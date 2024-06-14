@@ -1,6 +1,7 @@
 -- This module serves as the root of the `GroupoidModelInLean4` library.
 -- Import modules here that should be built as part of the library.
 import «GroupoidModelInLean4».Basic
+import «GroupoidModelInLean4».NaturalModel
 
 /- There should be at least three separate files here for three separate developments:
   1. the basic development of the category Grpd of groupoids
@@ -50,3 +51,4 @@ But it would be nice if the user could:
 - define the sets as the 0-types
 - use Lean's normal infrastructure like rewriting, tactics, mathlib, etc.
   for equality on sets.
+-/
