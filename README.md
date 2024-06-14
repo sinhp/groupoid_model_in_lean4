@@ -3,4 +3,6 @@
 
 This repository formalizes in Lean4 the groupoid model of HoTT.  
 
+Hopefully this could be be the basis for a HoTT mode in Lean.
+
 This repository relies on the [formalization of polynomial functors](https://github.com/sinhp/Poly/tree/master). 
