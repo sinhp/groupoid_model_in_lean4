@@ -52,3 +52,22 @@ But it would be nice if the user could:
 - use Lean's normal infrastructure like rewriting, tactics, mathlib, etc.
   for equality on sets.
 -/
+
+/-
+# Targets
+Here are some things that should be doable in the setting of HoTT 0:
+- HoTT Book real numbers and cumulative hierarchy,
+- univalent set theory,
+- Lawvere's objective number theory,
+- structure identity principle for general algebraic structures,
+- propositional truncation ||A|| ,
+- set-truncation ||X||₀ = π₀(X) ,
+- groupoid quotients,
+- Eilenberg-MacLane spaces K(G,1), and some basic cohomology,
+- classifying spaces BG, and the theory of covering spaces,
+- calculation of π₁(S¹) = Z using univalence and circle induction,
+- Joyal’s combinatorial species,
+- Egbert’s univalent combinatorics,
+- Rezk completion of a small category,
+- univalent category theory: equivalences, etc.
+-/
