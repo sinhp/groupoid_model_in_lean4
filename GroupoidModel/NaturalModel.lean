@@ -16,7 +16,7 @@ variable {C : Type u} [Category.{v} C] [HasTerminal C]
 
 
 /-!
-# Representable Natural Transformations
+# (Re)Presentable Natural Transformations
 -/
 
 
