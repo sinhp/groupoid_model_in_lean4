@@ -30,11 +30,14 @@ We will need at least the following:
   - the typing natural transformation t : Term ⟶ Type
   - the proof that t is (re)presentable
   - the polynomial endofunctor Pₜ : 𝓔 ⥤ 𝓔
-  - the type-formers Σ, Π, Id as operations on polynomials over 𝓔
+  - the rules for Π-types as an operation on Pₜ(t)
+  - the rules for Σ-types as an operation on Pₜ(t)
+  - the rules for Id-types as an operation on t : Term ⟶ Type
   - the universe Set of (small) discrete groupoids,
       along with its discrete (op-)fibration Set* ⟶ Set
-  It would also be useful to have:
-  - the proof that presentable natural transformations are tiny maps
+  It would probably also be useful to have:
+  - the proof that presentable natural transformations are "tiny" maps
+    (the pushforward has a right adjoint)
   - the proof that Pₜ is therefore cocontinuous, since t is tiny
   -/
 
