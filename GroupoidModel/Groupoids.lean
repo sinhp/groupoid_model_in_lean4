@@ -25,7 +25,7 @@ noncomputable section
 Need at least the following, some of which is already in MathLib:
   - the category of small groupoids and their homomorphisms
   - discrete fibrations of groupoids
-  - pullbacks of discrete fibrations exists and are discrete fibrations
+  - pullbacks of discrete fibrations exist in Grpd and are discrete fibrations
   - set-valued functors on groupoids (presheaves)
   - the Grothendieck construction relating the previous two
   - the equivalence between discrete fibrations and presheaves
