@@ -11,11 +11,22 @@ import Mathlib.CategoryTheory.Bicategory.Strict
 
 import Mathlib.CategoryTheory.Groupoid
 
+-- SH: Category of groupoids already in mathlib
+import Mathlib.CategoryTheory.Category.Grpd
+
 universe u v
 
 namespace CategoryTheory
 
+
+#check Grpd
+-- SH: The development below is not necessary, we alrady have the category of groupoids in mathlib.
+-- See Mathlib/CategoryTheory/Category/Grpd.lean
+
+
 noncomputable section
+
+
 
 /-
 Modified from: mathlib4/Mathlib/CategoryTheory/Category
@@ -38,8 +49,6 @@ Though `Grpd` is not a concrete category, we use `bundled` to define
 its carrier type.
 -/
 
--- SH: The development below is not necessary, we alrady have the category of groupoids in mathlib.
--- See Mathlib/CategoryTheory/Category/Grpd.lean
 
 -- intended to be used with explicit universe parameters
 /-- Category of groupoids. -/
