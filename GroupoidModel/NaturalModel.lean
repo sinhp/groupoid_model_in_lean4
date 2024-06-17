@@ -41,6 +41,7 @@ We will need at least the following:
   - the proof that presentable natural transformations are "tiny" maps
     (the pushforward has a right adjoint)
   - the proof that Pₜ is therefore cocontinuous, since t is tiny
+  - need to add a general formulation for (groupoid) quotient types
   -/
 
 /-!
