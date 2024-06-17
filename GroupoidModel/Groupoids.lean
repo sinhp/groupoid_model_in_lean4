@@ -60,12 +60,12 @@ instance str (G : Grpd.{v, u}) : Groupoid.{v, u} G :=
 -- #align category_theory.Cat.str CategoryTheory.Cat.str
 
 /-- Construct a bundled `Grpd` from the underlying type and the typeclass. -/
-def of (C : Type u) [Groupoid.{v} C] : Grpd.{v, u} :=
+def of (G : Type u) [Category.{v} C] : Groupoid.{v, u} :=
   Bundled.of C
 set_option linter.uppercaseLean3 false in
 #align category_theory.Cat.of CategoryTheory.Cat.of
 
-/-- Bicategory structure on `Cat` -/
+/-- Bicategory structure on `Grpd` -/
 instance bicategory : Bicategory.{max v u, max v u} Cat.{v, u} where
   Hom C D := C ⥤ D
   id C := 𝟭 C
