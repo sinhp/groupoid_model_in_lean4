@@ -55,7 +55,8 @@ It would be nice if the user could:
 
 /-
 # Targets
-Here are some things that should be doable in the setting of HoTT 0:
+Here are some things that should be doable in the setting of "HoTT 0", 
+i.e. HoTT with a univalent universe of 0-types:
 - HoTT Book real numbers and cumulative hierarchy,
 - univalent set theory,
 - Lawvere's objective number theory,
