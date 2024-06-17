@@ -10,7 +10,13 @@ https://awodey.github.io/talks/ATT.pdf
 import Mathlib.CategoryTheory.Yoneda
 import Mathlib.CategoryTheory.Limits.Shapes.Terminal
 import Mathlib.CategoryTheory.Limits.Shapes.Pullbacks
+import Mathlib.CategoryTheory.Limits.Shapes.CommSq
 import Mathlib.CategoryTheory.Limits.Presheaf
+import Mathlib.CategoryTheory.Limits.Shapes.FunctorCategory
+import Mathlib
+import Poly.LCCC.Polynomial
+import Poly.Exponentiable
+import Poly.Presheaves.presheaves
 
 universe u v
 
@@ -20,7 +26,7 @@ open Functor Limits Opposite Representable
 
 noncomputable section
 
-variable {C : Type u} [Category.{v} C] [HasTerminal C]
+variable {Ctx : Type u} [SmallCategory Ctx] [HasTerminal Ctx]
 
 /-
 We will need at least the following:
@@ -48,26 +54,29 @@ We will need at least the following:
 # (Re)Presentable Natural Transformations
 -/
 
-
-class IsPresentable {P Q : C ᵒᵖ ⥤ Type v} (f : P ⟶ Q) : Type _ where
-  pullback_present : {X : C} → (q : Q.obj (op X)) → Representable (pullback (yonedaEquiv.2 q) f)
+class IsPresentable {Tm Tp : Psh Ctx} (t : Tm ⟶ Tp) : Type _ where
+  extension (Γ : Ctx) (A : Tp.obj (op Γ)) : Ctx
+  p (Γ : Ctx) (A : Tp.obj (op Γ)) : extension Γ A ⟶ Γ
+  var (Γ : Ctx) (A : Tp.obj (op Γ)) : Tm.obj (op (extension Γ A))
+  pullback {Γ : Ctx} (A : Tp.obj (op Γ)) :
+    IsPullback (yonedaEquiv.symm (var Γ A)) (yoneda.map (p Γ A)) t (yonedaEquiv.symm A)
 
 namespace IsPresentable
 
-variable {P Q : C ᵒᵖ ⥤ Type v} (f : P ⟶ Q) [IsPresentable f]
+-- variable {Tm Tp : Ctxᵒᵖ ⥤ Type v} (t : Tm ⟶ Tp) [IsPresentable t]
 
-instance [IsPresentable f] {X : C} {q : Q.obj (op X)} : Representable (pullback (yonedaEquiv.2 q) f) := pullback_present q
+-- instance [IsPresentable t] {X : Ctx} {q : Tp.obj (op X)} : Representable (pullback (yonedaEquiv.2 q) t) := pullback_present q
 
-/-- The presenting object of a presentable natural transformation. -/
-def Present {X : C} (q : Q.obj (op X)) : C :=
-  Classical.choose (has_representation (F := pullback (yonedaEquiv.2 q) f))
+-- /-- The presenting object of a presentable natural transformation. -/
+-- def Present {X : Ctx} (q : Tp.obj (op X)) : Ctx :=
+--   Classical.choose (has_representation (F := pullback (yonedaEquiv.2 q) t))
 
-/-- -/
-def present {X : C} (q : Q.obj (op X)) : Present f q ⟶ X := sorry
+-- /-- -/
+-- def present {X : Ctx} (q : Tp.obj (op X)) : Present t q ⟶ X := sorry
 
-def var {X : C} (q : Q.obj (op X)) : yoneda.obj (Present f q) ⟶ P := sorry
+-- def var {X : Ctx} (q : Tp.obj (op X)) : yoneda.obj (Present t q) ⟶ Tm := sorry
 
-def square {X : C} (q : Q.obj (op X)) : yoneda.map (present f q) ≫ yonedaEquiv.2 q = var f q ≫ f := sorry
+-- def square {X : Ctx} (q : Tp.obj (op X)) : yoneda.map (present t q) ≫ yonedaEquiv.2 q = var f q ≫ f := sorry
 
 end IsPresentable
 
@@ -76,8 +85,19 @@ end IsPresentable
 # Natural Models
 -/
 
-class NaturalModel {Tp Tm : C ᵒᵖ ⥤ Type v} (tp : Tp ⟶ Tm) : Type _ where
-  tp_rep : IsPresentable tp
+instance : HasFiniteWidePullbacks (Psh Ctx) := hasFiniteWidePullbacks_of_hasFiniteLimits _
+
+def Pt {Tm Tp : Psh Ctx} (t : Tm ⟶ Tp) : Psh Ctx ⥤ Psh Ctx :=
+  -- UvPoly.functor' ⟨_, _, t⟩
+  sorry
+
+class NaturalModel {Tm Tp : Psh Ctx} (t : Tm ⟶ Tp) : Type _ where
+  t_rep : IsPresentable t
+  Pi : (Pt t).obj Tp ⟶ Tp
+  lam : (Pt t).obj Tm ⟶ Tm
+  Pi_pullback : IsPullback lam ((Pt t).map t) t Pi
+  Sigma : (Pt t).obj Tp ⟶ Tp
+
 
 namespace NaturalModel
 
