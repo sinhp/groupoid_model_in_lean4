@@ -28,7 +28,7 @@ Authors: Yury Kudryashov
 /-!
 # Category of groupoids
 
-This file contains the definition of the category `Grpd` of all groupoid.
+This file contains the definition of the category `Grpd` of all (small) groupoids.
 In this category objects are groupoids and
 morphisms are functors between these as categories.
 
