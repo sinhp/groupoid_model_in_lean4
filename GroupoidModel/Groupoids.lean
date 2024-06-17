@@ -34,4 +34,5 @@ Need at least the following, some of which is already in MathLib:
   - the universe of (small) discrete groupoids (aka sets)
   - polynomial functors of groupoids and of presheaves on Grpd
   - maybe some W-types
+  - eventually we will want some groupoid quotients
   -/
