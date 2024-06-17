@@ -25,8 +25,10 @@ noncomputable section
 Need at least the following, some of which is already in MathLib:
   - the category of small groupoids and their homomorphisms
   - discrete fibrations of groupoids
+  - pullbacks of discrete fibrations exists and are discrete fibrations
   - set-valued functors on groupoids (presheaves)
   - the Grothendieck construction relating the previous two
+  - the equivalence between discrete fibrations and presheaves
   - Σ and Π-types for discrete fibrations
   - path groupoids
   - the universe of (small) discrete groupoids (aka sets)
