@@ -23,7 +23,7 @@ We will need at least the following:
   -/
 
 /-
-# 2. The natural model of HoTT in Grpd
+# 2. The natural model of HoTT to be interpreted in Grpd
 We will need at least the following:
   - category Ctx of all small groupoids
   - the presheaf category 𝓔 = Psh(Ctx) in which the model lives
@@ -41,13 +41,13 @@ We will need at least the following:
   -/
 
   /-
-# 3. HoTT 0
-No idea!
-But it would be nice if the user could:
+# 3. HoTT in Lean
+An interface for the groupoid model in Lean. 
+It would be nice if the user could:
 - interact with types, terms, and type families rather than
     groupoids, homomorphisms, and fibrations
 - have the usual Lean rules for the Σ- and Π-types
-- have path-induction for the general identity types
+- have path-induction for the general Id-types
 - define the sets as the 0-types
 - use Lean's normal infrastructure like rewriting, tactics, mathlib, etc.
   for equality on sets.
@@ -55,7 +55,8 @@ But it would be nice if the user could:
 
 /-
 # Targets
-Here are some things that should be doable in the setting of HoTT 0:
+Here are some things that should be doable in the setting of "HoTT 0", 
+i.e. HoTT with a univalent universe of 0-types:
 - HoTT Book real numbers and cumulative hierarchy,
 - univalent set theory,
 - Lawvere's objective number theory,
