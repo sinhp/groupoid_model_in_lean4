@@ -3,6 +3,8 @@ Natural Models:
 see https://arxiv.org/pdf/1406.3219
 for the definition of a natural model
 and how to model the type formers Σ,Π,Id.
+A recent talk is here:
+https://awodey.github.io/talks/ATT.pdf
 -/
 
 import Mathlib.CategoryTheory.Yoneda
