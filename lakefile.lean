@@ -10,8 +10,8 @@ package groupoid_model where
   ]
   -- add any additional package configuration options here
 
-require mathlib from git
-  "https://github.com/leanprover-community/mathlib4.git"
+require Poly from git
+  "https://github.com/sinhp/Poly.git"
 
 @[default_target]
 lean_lib GroupoidModel where
