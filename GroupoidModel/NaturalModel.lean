@@ -20,6 +20,23 @@ noncomputable section
 
 variable {C : Type u} [Category.{v} C] [HasTerminal C]
 
+/-
+We will need at least the following:
+  - the category Ctx (to be interpreted as small groupoids)
+  - the display maps of contexts, arising from iterated context extensions
+  - the presheaf category 𝓔 = Psh(Ctx) in which the model lives
+  - the presheaf Type : Ctxᵒᵖ → Set of types in context
+  - the presheaf Term : Ctxᵒᵖ → Set of terms in context
+  - the typing natural transformation t : Term ⟶ Type
+  - the proof that t is (re)presentable
+  - the polynomial endofunctor Pₜ : 𝓔 ⥤ 𝓔
+  - the type-formers Σ, Π, Id as operations on polynomials over 𝓔
+  - the universe Set of (small) discrete groupoids,
+      along with its discrete (op-)fibration Set* ⟶ Set
+  It would also be useful to have:
+  - the proof that presentable natural transformations are tiny maps
+  - the proof that Pₜ is therefore cocontinuous, since t is tiny
+  -/
 
 /-!
 # (Re)Presentable Natural Transformations
