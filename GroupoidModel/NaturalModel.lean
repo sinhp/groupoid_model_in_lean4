@@ -1,5 +1,11 @@
-import Mathlib.CategoryTheory.Yoneda
+/-
+Natural Models:
+see https://arxiv.org/pdf/1406.3219
+for the definition of a natural model
+and how to model the type formers Σ,Π,Id.
+-/
 
+import Mathlib.CategoryTheory.Yoneda
 import Mathlib.CategoryTheory.Limits.Shapes.Terminal
 import Mathlib.CategoryTheory.Limits.Shapes.Pullbacks
 import Mathlib.CategoryTheory.Limits.Presheaf
