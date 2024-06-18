@@ -7,16 +7,24 @@ A recent talk is here:
 https://awodey.github.io/talks/ATT.pdf
 -/
 
+import Mathlib
+
 import Mathlib.CategoryTheory.Yoneda
 import Mathlib.CategoryTheory.Limits.Shapes.Terminal
 import Mathlib.CategoryTheory.Limits.Shapes.Pullbacks
 import Mathlib.CategoryTheory.Limits.Shapes.CommSq
 import Mathlib.CategoryTheory.Limits.Presheaf
 import Mathlib.CategoryTheory.Limits.Shapes.FunctorCategory
-import Mathlib
-import Poly.LCCC.Polynomial
+
+
+--import Poly
+import Poly.LCCC.Basic
+import Poly.LCCC.Presheaf
 import Poly.Exponentiable
-import Poly.Presheaves.presheaves
+import Poly.Polynomial
+
+-- import Poly.Exponentiable
+
 
 universe u v
 
@@ -87,16 +95,15 @@ end IsPresentable
 
 instance : HasFiniteWidePullbacks (Psh Ctx) := hasFiniteWidePullbacks_of_hasFiniteLimits _
 
--- the polynomial functor of tp : Tm ⟶ Ty:
-def Ptp {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Psh Ctx ⥤ Psh Ctx :=
-  -- UvPoly.functor' ⟨_, _, t⟩
-  sorry
+def Pt {Tm Ty : Psh Ctx} (t : Tm ⟶ Ty) : Psh Ctx ⥤ Psh Ctx :=
+  UvPoly.functor ⟨_, _, t, sorry⟩
+
 
 class NaturalModelPi {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
   tp_pres : IsPresentable tp
-  Pi : (Ptp tp).obj Ty ⟶ Ty
-  lam : (Ptp tp).obj Tm ⟶ Tm
-  Pi_pullback : IsPullback lam ((Ptp tp).map tp) tp Pi
+  Pi : (Pt tp).obj Ty ⟶ Ty
+  lam : (Pt tp).obj Tm ⟶ Tm
+  Pi_pullback : IsPullback lam ((Pt tp).map tp) tp Pi
 
 class NaturalModelSigma {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
   tp_pres : IsPresentable tp

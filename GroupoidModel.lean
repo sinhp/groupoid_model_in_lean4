@@ -1,7 +1,7 @@
 -- This module serves as the root of the `GroupoidModelInLean4` library.
 -- Import modules here that should be built as part of the library.
 import GroupoidModel.Basic
-import GroupoidModel.NaturalModel
+--import GroupoidModel.NaturalModel
 
 /- There should be at least three separate files here for three separate developments:
   1. the basic development of the category Grpd of groupoids
@@ -42,7 +42,7 @@ We will need at least the following:
 
   /-
 # 3. HoTT in Lean
-An interface for the groupoid model in Lean. 
+An interface for the groupoid model in Lean.
 It would be nice if the user could:
 - interact with types, terms, and type families rather than
     groupoids, homomorphisms, and fibrations
@@ -55,7 +55,7 @@ It would be nice if the user could:
 
 /-
 # Targets
-Here are some things that should be doable in the setting of "HoTT 0", 
+Here are some things that should be doable in the setting of "HoTT 0",
 i.e. HoTT with a univalent universe of 0-types:
 - HoTT Book real numbers and cumulative hierarchy,
 - univalent set theory,
