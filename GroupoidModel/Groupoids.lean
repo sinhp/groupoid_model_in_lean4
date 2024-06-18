@@ -1,7 +1,6 @@
 /-
 The category Grpd of (small) groupoids, as needed for the groupoid model of HoTT.
-See the thesis of Jakob Vidmar:
-https://etheses.whiterose.ac.uk/22517/1/Vidmar_J_Mathematics_PhD_2018.pdf
+See the thesis of Jakob Vidmar: https://etheses.whiterose.ac.uk/22517/
 for a modern exposition of the groupoid model, including polynomial functors and W-types.
 -/
 import Mathlib.CategoryTheory.ConcreteCategory.Bundled
