@@ -109,6 +109,9 @@ class NaturalModelSigma {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
 class NaturalModelId {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
   tp_pres : IsPresentable tp
 
+class NaturalModelU {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
+  tp_pres : IsPresentable tp
+
 
 namespace NaturalModel
 
