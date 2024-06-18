@@ -54,29 +54,29 @@ We will need at least the following:
 # (Re)Presentable Natural Transformations
 -/
 
-class IsPresentable {Tm Tp : Psh Ctx} (t : Tm ⟶ Tp) : Type _ where
-  extension (Γ : Ctx) (A : Tp.obj (op Γ)) : Ctx
-  p (Γ : Ctx) (A : Tp.obj (op Γ)) : extension Γ A ⟶ Γ
-  var (Γ : Ctx) (A : Tp.obj (op Γ)) : Tm.obj (op (extension Γ A))
-  pullback {Γ : Ctx} (A : Tp.obj (op Γ)) :
+class IsPresentable {Tm Ty : Psh Ctx} (t : Tm ⟶ Ty) : Type _ where
+  extension (Γ : Ctx) (A : Ty.obj (op Γ)) : Ctx
+  p (Γ : Ctx) (A : Ty.obj (op Γ)) : extension Γ A ⟶ Γ
+  var (Γ : Ctx) (A : Ty.obj (op Γ)) : Tm.obj (op (extension Γ A))
+  pullback {Γ : Ctx} (A : Ty.obj (op Γ)) :
     IsPullback (yonedaEquiv.symm (var Γ A)) (yoneda.map (p Γ A)) t (yonedaEquiv.symm A)
 
 namespace IsPresentable
 
--- variable {Tm Tp : Ctxᵒᵖ ⥤ Type v} (t : Tm ⟶ Tp) [IsPresentable t]
+-- variable {Tm Ty : Ctxᵒᵖ ⥤ Type v} (t : Tm ⟶ Ty) [IsPresentable t]
 
--- instance [IsPresentable t] {X : Ctx} {q : Tp.obj (op X)} : Representable (pullback (yonedaEquiv.2 q) t) := pullback_present q
+-- instance [IsPresentable t] {X : Ctx} {q : Ty.obj (op X)} : Representable (pullback (yonedaEquiv.2 q) t) := pullback_present q
 
 -- /-- The presenting object of a presentable natural transformation. -/
--- def Present {X : Ctx} (q : Tp.obj (op X)) : Ctx :=
+-- def Present {X : Ctx} (q : Ty.obj (op X)) : Ctx :=
 --   Classical.choose (has_representation (F := pullback (yonedaEquiv.2 q) t))
 
 -- /-- -/
--- def present {X : Ctx} (q : Tp.obj (op X)) : Present t q ⟶ X := sorry
+-- def present {X : Ctx} (q : Ty.obj (op X)) : Present t q ⟶ X := sorry
 
--- def var {X : Ctx} (q : Tp.obj (op X)) : yoneda.obj (Present t q) ⟶ Tm := sorry
+-- def var {X : Ctx} (q : Ty.obj (op X)) : yoneda.obj (Present t q) ⟶ Tm := sorry
 
--- def square {X : Ctx} (q : Tp.obj (op X)) : yoneda.map (present t q) ≫ yonedaEquiv.2 q = var f q ≫ f := sorry
+-- def square {X : Ctx} (q : Ty.obj (op X)) : yoneda.map (present t q) ≫ yonedaEquiv.2 q = var f q ≫ f := sorry
 
 end IsPresentable
 
@@ -87,16 +87,16 @@ end IsPresentable
 
 instance : HasFiniteWidePullbacks (Psh Ctx) := hasFiniteWidePullbacks_of_hasFiniteLimits _
 
-def Pt {Tm Tp : Psh Ctx} (t : Tm ⟶ Tp) : Psh Ctx ⥤ Psh Ctx :=
+def Pt {Tm Ty : Psh Ctx} (t : Tm ⟶ Ty) : Psh Ctx ⥤ Psh Ctx :=
   -- UvPoly.functor' ⟨_, _, t⟩
   sorry
 
-class NaturalModel {Tm Tp : Psh Ctx} (t : Tm ⟶ Tp) : Type _ where
+class NaturalModel {Tm Ty : Psh Ctx} (t : Tm ⟶ Ty) : Type _ where
   t_rep : IsPresentable t
-  Pi : (Pt t).obj Tp ⟶ Tp
+  Pi : (Pt t).obj Ty ⟶ Ty
   lam : (Pt t).obj Tm ⟶ Tm
   Pi_pullback : IsPullback lam ((Pt t).map t) t Pi
-  Sigma : (Pt t).obj Tp ⟶ Tp
+  Sigma : (Pt t).obj Ty ⟶ Ty
 
 
 namespace NaturalModel
