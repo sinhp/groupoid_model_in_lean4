@@ -1,7 +1,16 @@
 /-
 The category Grpd of (small) groupoids, as needed for the groupoid model of HoTT.
-See the thesis of Jakob Vidmar: https://etheses.whiterose.ac.uk/22517/
-for a modern exposition of the groupoid model, including polynomial functors and W-types.
+
+Here is Hofmann and Streicher's original paper:
+https://ncatlab.org/nlab/files/HofmannStreicherGroupoidInterpretation.pdf
+
+Here's something from the nLab that looks useful:
+Ethan Lewis, Max Bohnet, The groupoid model of type theory, seminar notes (2017)
+https://staff.fnwi.uva.nl/b.vandenberg3/Onderwijs/Homotopy_Type_Theory_2017/HoTT-bohnet-lewis-handout.pdf
+
+
+See the thesis of Jakob Vidmar for polynomials and W-types in groupoids:
+https://etheses.whiterose.ac.uk/22517/
 -/
 import Mathlib.CategoryTheory.ConcreteCategory.Bundled
 import Mathlib.CategoryTheory.DiscreteCategory
