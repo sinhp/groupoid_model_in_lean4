@@ -24,15 +24,15 @@ noncomputable section
 # The category Grpd of groupoids
 Need at least the following, some of which is already in MathLib:
   - the category of small groupoids and their homomorphisms
-  - discrete fibrations of groupoids
-  - pullbacks of discrete fibrations exist in Grpd and are discrete fibrations
-  - set-valued functors on groupoids (presheaves)
+  - (discrete and split) fibrations of groupoids
+  - pullbacks of (discrete and split) fibrations exist in Grpd and are again (such) fibrations
+  - set- and groupoid-valued presheaves on groupoids
   - the Grothendieck construction relating the previous two
-  - the equivalence between discrete fibrations and presheaves
-  - Σ and Π-types for discrete fibrations
+  - the equivalence between (split) fibrations and presheaves of groupoids
+  - Σ and Π-types for (split) fibrations
   - path groupoids
   - the universe of (small) discrete groupoids (aka sets)
-  - polynomial functors of groupoids and of presheaves on Grpd
+  - polynomial functors of groupoids
   - maybe some W-types
-  - eventually we will want some groupoid quotients
+  - eventually we will want some groupoid quotients as well
   -/
