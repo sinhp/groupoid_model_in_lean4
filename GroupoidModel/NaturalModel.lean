@@ -54,18 +54,18 @@ We will need at least the following:
 # (Re)Presentable Natural Transformations
 -/
 
-class IsPresentable {Tm Ty : Psh Ctx} (t : Tm ⟶ Ty) : Type _ where
-  extension (Γ : Ctx) (A : Ty.obj (op Γ)) : Ctx
-  p (Γ : Ctx) (A : Ty.obj (op Γ)) : extension Γ A ⟶ Γ
-  var (Γ : Ctx) (A : Ty.obj (op Γ)) : Tm.obj (op (extension Γ A))
+class IsPresentable {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
+  ext (Γ : Ctx) (A : Ty.obj (op Γ)) : Ctx
+  disp (Γ : Ctx) (A : Ty.obj (op Γ)) : ext Γ A ⟶ Γ
+  var (Γ : Ctx) (A : Ty.obj (op Γ)) : Tm.obj (op (ext Γ A))
   pullback {Γ : Ctx} (A : Ty.obj (op Γ)) :
-    IsPullback (yonedaEquiv.symm (var Γ A)) (yoneda.map (p Γ A)) t (yonedaEquiv.symm A)
+    IsPullback (yonedaEquiv.symm (var Γ A)) (yoneda.map (disp Γ A)) tp (yonedaEquiv.symm A)
 
 namespace IsPresentable
 
--- variable {Tm Ty : Ctxᵒᵖ ⥤ Type v} (t : Tm ⟶ Ty) [IsPresentable t]
+-- variable {Tm Ty : Ctxᵒᵖ ⥤ Type v} (tp : Tm ⟶ Ty) [IsPresentable t]
 
--- instance [IsPresentable t] {X : Ctx} {q : Ty.obj (op X)} : Representable (pullback (yonedaEquiv.2 q) t) := pullback_present q
+-- instance [IsPresentable tp] {X : Ctx} {q : Ty.obj (op X)} : Representable (pullback (yonedaEquiv.2 q) t) := pullback_present q
 
 -- /-- The presenting object of a presentable natural transformation. -/
 -- def Present {X : Ctx} (q : Ty.obj (op X)) : Ctx :=
@@ -87,16 +87,27 @@ end IsPresentable
 
 instance : HasFiniteWidePullbacks (Psh Ctx) := hasFiniteWidePullbacks_of_hasFiniteLimits _
 
-def Pt {Tm Ty : Psh Ctx} (t : Tm ⟶ Ty) : Psh Ctx ⥤ Psh Ctx :=
+-- the polynomial functor of tp : Tm ⟶ Ty:
+def Ptp {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Psh Ctx ⥤ Psh Ctx :=
   -- UvPoly.functor' ⟨_, _, t⟩
   sorry
 
-class NaturalModel {Tm Ty : Psh Ctx} (t : Tm ⟶ Ty) : Type _ where
-  t_rep : IsPresentable t
-  Pi : (Pt t).obj Ty ⟶ Ty
-  lam : (Pt t).obj Tm ⟶ Tm
-  Pi_pullback : IsPullback lam ((Pt t).map t) t Pi
-  Sigma : (Pt t).obj Ty ⟶ Ty
+class NaturalModelPi {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
+  tp_pres : IsPresentable tp
+  Pi : (Ptp tp).obj Ty ⟶ Ty
+  lam : (Ptp tp).obj Tm ⟶ Tm
+  Pi_pullback : IsPullback lam ((Ptp tp).map tp) tp Pi
+
+class NaturalModelSigma {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
+  tp_pres : IsPresentable tp
+  Sig : (Pt tp).obj Ty ⟶ Ty
+  SigPairObj : Psh Ctx := sorry
+  SigPairProj : SigPairObj ⟶ (Pt tp).obj Ty := sorry
+  pair : SigPairObj ⟶ Tm := sorry
+  Sig_pullback : IsPullback pair ((Pt t).map t) t Pi
+
+class NaturalModelId {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
+  tp_pres : IsPresentable tp
 
 
 namespace NaturalModel
