@@ -118,6 +118,10 @@ def P {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Psh Ctx ⥤ Psh Ctx := (uvPoly tp).fu
 def proj {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : (P tp).obj Ty ⟶ Ty :=
   (uvPoly tp).proj _
 
+def UniformWeakPullback  {}
+
+def Comparison  {}
+
 class NaturalModelPi {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
   Pi : (P tp).obj Ty ⟶ Ty
   lam : (P tp).obj Tm ⟶ Tm
@@ -129,6 +133,10 @@ class NaturalModelSigma {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
   Sig_pullback : IsPullback pair ((uvPoly tp).comp (uvPoly tp)).p tp Sig
 
 class NaturalModelId {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
+  Id : Tm2 ⟶ Ty
+  i : Tm ⟶ Tm
+  J : Comparison tp q δ*
+
 
 class NaturalModelU {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends IsPresentable tp : Type _ where
   U : Ty.obj (op (⊤_ _))

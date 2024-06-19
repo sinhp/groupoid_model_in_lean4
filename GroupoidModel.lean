@@ -12,7 +12,7 @@ import GroupoidModel.Basic
 /-
 # 1. The category Grpd of small groupoids
 We will need at least the following:
-  - discrete fibrations of groupoids
+  - fibrations of groupoids
   - set-valued functors on groupoids (presheaves)
   - the Grothendieck construction relating the previous two
   - Σ- and Π-types for discrete fibrations
