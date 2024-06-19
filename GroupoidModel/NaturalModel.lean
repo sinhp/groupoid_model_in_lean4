@@ -118,9 +118,17 @@ def P {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Psh Ctx ⥤ Psh Ctx := (uvPoly tp).fu
 def proj {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : (P tp).obj Ty ⟶ Ty :=
   (uvPoly tp).proj _
 
-def UniformWeakPullback  {}
+def PolyTwoCellBack {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty)
 
-def Comparison  {}
+def NaturalitySquare { F G : Psh C } { α : F ⥤ G } { h : C → D } { C D : C } [Category C]
+  : α_D ∘ (F h) = (G h) ∘ α_C
+
+def UniformWeakPullback { f : A → B , g : C → D , c : A → C , d : B → D }
+  : d ∘ f = g ∘ c and (f, c) : A → B ×_D C has a section j : B ×_D C → A with
+  (f, c) ∘ j = id.
+
+def WeakElimRule {Tm Ty I : Psh Ctx} (tp : Tm ⟶ Ty)(q : I ⟶ Ty)(δ : Tm ⟶ I)
+  : UniformWeakPullback NaturalitySquare ...
 
 class NaturalModelPi {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
   Pi : (P tp).obj Ty ⟶ Ty
@@ -135,8 +143,7 @@ class NaturalModelSigma {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
 class NaturalModelId {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
   Id : Tm2 ⟶ Ty
   i : Tm ⟶ Tm
-  J : Comparison tp q δ*
-
+  J : WeakElimRule tp q δ*
 
 class NaturalModelU {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends IsPresentable tp : Type _ where
   U : Ty.obj (op (⊤_ _))
