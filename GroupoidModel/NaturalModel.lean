@@ -130,6 +130,8 @@ def UniformWeakPullback { f : A → B , g : C → D , c : A → C , d : B → D 
 def WeakElimRule {Tm Ty I : Psh Ctx} (tp : Tm ⟶ Ty)(q : I ⟶ Ty)(δ : Tm ⟶ I)
   : UniformWeakPullback NaturalitySquare ...
 
+def DeltaOver {C : Type*} [ category C ] ( f : A → B ) := ⟨ 1_A , 1_A ⟩ : A → A ×_B A as an arrow in C/B .
+
 class NaturalModelPi {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
   Pi : (P tp).obj Ty ⟶ Ty
   lam : (P tp).obj Tm ⟶ Tm
@@ -139,6 +141,11 @@ class NaturalModelSigma {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
   Sig : (P tp).obj Ty ⟶ Ty
   pair : ((uvPoly tp).comp (uvPoly tp)).E ⟶ Tm
   Sig_pullback : IsPullback pair ((uvPoly tp).comp (uvPoly tp)).p tp Sig
+
+class NaturalModelEq {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
+  Id : Σ_Ty ( Tm ×_Ty Tm ) ⟶ Ty
+  i : Tm ⟶ Tm
+  Eq_pullback : IsPullback i (Σ_Ty DeltaOver (tp : Tm ⟶ Ty)) tp Id
 
 class NaturalModelId {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
   Id : Tm2 ⟶ Ty
