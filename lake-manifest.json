@@ -67,7 +67,7 @@
   {"url": "https://github.com/sinhp/Poly.git",
    "type": "git",
    "subDir": null,
-   "rev": "8de87689dbd47ac4de693d339435ccd76d3a83d5",
+   "rev": "5d3e599b00e3d667c1cd1cb92cbbe909c1ffc652",
    "name": "Poly",
    "manifestFile": "lake-manifest.json",
    "inputRev": null,

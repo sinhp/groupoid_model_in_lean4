@@ -99,8 +99,6 @@ local notation "Δ_ " => Over.baseChange
 
 local notation "Π_ " => CartesianExponentiable.functor
 
-
-
 namespace NaturalModel
 
 instance : HasFiniteWidePullbacks (Psh.{u,v} Ctx) := hasFiniteWidePullbacks_of_hasFiniteLimits _
@@ -118,19 +116,19 @@ def P {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Psh Ctx ⥤ Psh Ctx := (uvPoly tp).fu
 def proj {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : (P tp).obj Ty ⟶ Ty :=
   (uvPoly tp).proj _
 
-def PolyTwoCellBack {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty)
+-- def PolyTwoCellBack {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) := sorry
 
-def NaturalitySquare { F G : Psh C } { α : F ⥤ G } { h : C → D } { C D : C } [Category C]
-  : α_D ∘ (F h) = (G h) ∘ α_C
+-- def NaturalitySquare { F G : Psh Ctx } { α : F ⥤ G } { h : C → D } { C D : Ctx }
+--   : α_D ∘ (F h) = (G h) ∘ α_C := sorry
 
-def UniformWeakPullback { f : A → B , g : C → D , c : A → C , d : B → D }
-  : d ∘ f = g ∘ c and (f, c) : A → B ×_D C has a section j : B ×_D C → A with
-  (f, c) ∘ j = id.
+-- def UniformWeakPullback (f : A → B) (g : C → D) (c : A → C) (d : B → D)
+--   : d ∘ f = g ∘ c and (f, c) : A → B ×_D C has a section j : B ×_D C → A with
+--   (f, c) ∘ j = id.
 
-def WeakElimRule {Tm Ty I : Psh Ctx} (tp : Tm ⟶ Ty)(q : I ⟶ Ty)(δ : Tm ⟶ I)
-  : UniformWeakPullback NaturalitySquare ...
+-- def WeakElimRule {Tm Ty I : Psh Ctx} (tp : Tm ⟶ Ty)(q : I ⟶ Ty)(δ : Tm ⟶ I)
+--   : UniformWeakPullback NaturalitySquare ...
 
-def DeltaOver {C : Type*} [ category C ] ( f : A → B ) := ⟨ 1_A , 1_A ⟩ : A → A ×_B A as an arrow in C/B .
+-- def DeltaOver {C : Type*} [ category C ] ( f : A → B ) := ⟨𝟙 A, 𝟙 A⟩ : A → A ×_B A as an arrow in C/B .
 
 class NaturalModelPi {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
   Pi : (P tp).obj Ty ⟶ Ty
@@ -142,15 +140,37 @@ class NaturalModelSigma {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
   pair : ((uvPoly tp).comp (uvPoly tp)).E ⟶ Tm
   Sig_pullback : IsPullback pair ((uvPoly tp).comp (uvPoly tp)).p tp Sig
 
+set_option synthInstance.maxHeartbeats 100000 in
+instance {X Y Z : Psh Ctx} (f : X ⟶ Z) (g : Y ⟶ Z) : HasPullback f g := inferInstance
+
+def δ {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Tm ⟶ pullback tp tp := pullback.lift (𝟙 _) (𝟙 _) rfl
 class NaturalModelEq {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
-  Id : Σ_Ty ( Tm ×_Ty Tm ) ⟶ Ty
-  i : Tm ⟶ Tm
-  Eq_pullback : IsPullback i (Σ_Ty DeltaOver (tp : Tm ⟶ Ty)) tp Id
+  Eq : pullback tp tp ⟶ Ty
+  refl : Tm ⟶ Tm
+  Eq_pullback : IsPullback refl (δ tp) tp Eq
+
+noncomputable section
+
+def ρ {Tm Ty : Psh Ctx} {tp : Tm ⟶ Ty}
+  {Id : pullback tp tp ⟶ Ty}
+  {i : Tm ⟶ Tm}
+  (Id_commute : δ tp ≫ Id = i ≫ tp)
+:= pullback.lift (δ tp) i Id_commute
 
 class NaturalModelId {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
-  Id : Tm2 ⟶ Ty
+  Id : pullback tp tp ⟶ Ty
   i : Tm ⟶ Tm
-  J : WeakElimRule tp q δ*
+  Id_commute : δ tp ≫ Id = i ≫ tp
+  -- I := pullback Id tp
+  ρx : Tm ⟶ pullback Id tp := (by
+    let I := pullback Id tp
+    have ρ : Tm ⟶ I := pullback.lift (δ tp) i Id_commute
+    have q : I ⟶ Ty := pullback.fst ≫ pullback.fst ≫ tp
+    have := P q
+
+  )
+  -- Id_commute : i ≫ tp = δ tp ≫ Id
+  -- J : WeakElimRule tp q δ*
 
 class NaturalModelU {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends IsPresentable tp : Type _ where
   U : Ty.obj (op (⊤_ _))
