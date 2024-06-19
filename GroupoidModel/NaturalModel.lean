@@ -171,7 +171,6 @@ it would probably also be useful to have another universe U1 with U : U1,
 and maybe some type formers for U1 as well .
 -/
 
-
 class NaturalModel {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends
   IsPresentable tp, NaturalModelPi tp, NaturalModelSigma tp,
   NaturalModelId tp, NaturalModelU tp : Type _
