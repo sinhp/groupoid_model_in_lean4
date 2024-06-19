@@ -99,6 +99,25 @@ local notation "Δ_ " => Over.baseChange
 
 local notation "Π_ " => CartesianExponentiable.functor
 
+/-- `P : UvPoly C` is a polynomial functors in a single variable -/
+structure UvPoly' {C : Type*} [Category C] [HasFiniteWidePullbacks C] (E B : C) :=
+  (p : E ⟶ B)
+  (exp : CartesianExponentiable p := by infer_instance)
+
+namespace UvPoly'
+
+variable {𝒞} [Category 𝒞] [HasFiniteWidePullbacks 𝒞]
+
+def functor : ∀ {E B : 𝒞} (P : UvPoly' E B), 𝒞 ⥤ 𝒞 := sorry
+
+def star {E F B : 𝒞} : ∀ (P : UvPoly' E B) (Q : UvPoly' F B) (g : E ⟶ F) (h : P.p = g ≫ Q.p),
+    Q.functor ⟶ P.functor := sorry
+
+def natural {E B E' B' : 𝒞} (P : UvPoly' E B) (P' : UvPoly' E' B')
+    (e : E ⟶ E') (b : B ⟶ B') (pb : IsPullback P.p e b P'.p) : P.functor ⟶ P'.functor := sorry
+
+end UvPoly'
+
 namespace NaturalModel
 
 instance : HasFiniteWidePullbacks (Psh.{u,v} Ctx) := hasFiniteWidePullbacks_of_hasFiniteLimits _
@@ -111,7 +130,10 @@ instance {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : CartesianExponentiable tp where
 
 def uvPoly {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly (Psh Ctx) := ⟨_, _, tp, inferInstance⟩
 
+def uvPoly' {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly' Tm Ty := ⟨tp, inferInstance⟩
+
 def P {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Psh Ctx ⥤ Psh Ctx := (uvPoly tp).functor
+def P' {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Psh Ctx ⥤ Psh Ctx := (uvPoly' tp).functor
 
 def proj {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : (P tp).obj Ty ⟶ Ty :=
   (uvPoly tp).proj _
@@ -149,28 +171,29 @@ class NaturalModelEq {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
   refl : Tm ⟶ Tm
   Eq_pullback : IsPullback refl (δ tp) tp Eq
 
-noncomputable section
-
-def ρ {Tm Ty : Psh Ctx} {tp : Tm ⟶ Ty}
-  {Id : pullback tp tp ⟶ Ty}
-  {i : Tm ⟶ Tm}
-  (Id_commute : δ tp ≫ Id = i ≫ tp)
-:= pullback.lift (δ tp) i Id_commute
-
-class NaturalModelId {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
+class NaturalModelIdBase {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
   Id : pullback tp tp ⟶ Ty
   i : Tm ⟶ Tm
   Id_commute : δ tp ≫ Id = i ≫ tp
-  -- I := pullback Id tp
-  ρx : Tm ⟶ pullback Id tp := (by
-    let I := pullback Id tp
-    have ρ : Tm ⟶ I := pullback.lift (δ tp) i Id_commute
-    have q : I ⟶ Ty := pullback.fst ≫ pullback.fst ≫ tp
-    have := P q
 
-  )
-  -- Id_commute : i ≫ tp = δ tp ≫ Id
-  -- J : WeakElimRule tp q δ*
+section
+variable {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty)
+variable [NaturalModelIdBase tp]
+open NaturalModelIdBase
+
+def I : Psh Ctx := pullback (Id (tp := tp)) tp
+def q : I tp ⟶ Ty := pullback.fst ≫ pullback.fst ≫ tp
+def ρ : Tm ⟶ I tp := pullback.lift (δ tp) (i tp) Id_commute
+def ρs : P' (q tp) ⟶ P' tp :=
+  (uvPoly' tp).star (uvPoly' (q tp)) (ρ tp) (by simp [ρ, uvPoly', q, δ])
+def pb2 : Psh Ctx := pullback ((ρs tp).app Ty) ((P' tp).map tp)
+def ε : (P' (q tp)).obj Tm ⟶ pb2 tp :=
+  pullback.lift ((P' (q tp)).map tp) ((ρs tp).app Tm) (by aesop_cat)
+end
+
+class NaturalModelId {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends NaturalModelIdBase tp : Type _ where
+  J : pb2 tp ⟶ (P' (q tp)).obj Tm
+  J_section : J ≫ ε tp = 𝟙 _
 
 class NaturalModelU {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends IsPresentable tp : Type _ where
   U : Ty.obj (op (⊤_ _))
@@ -196,3 +219,25 @@ class NaturalModel {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends
   NaturalModelId tp, NaturalModelU tp : Type _
 
 end NaturalModel
+
+-- def foo : Option Nat := do
+--   let mut x ← pure 1
+--   let y ← pure 2
+--   if 2 + 2 ≠ 4 then
+--     x := x + 1
+--   return x + y
+
+-- set_option pp.notation false
+#print foo
+open Lean Elab Command Term
+elab "hello" t:term : command => do
+  IO.println t
+  let e ← elabTerm t none
+
+
+hello do
+  let mut x ← pure 1
+  let y ← pure 2
+  if 2 + 2 ≠ 4 then
+    x := x + 1
+  return x + y
