@@ -99,51 +99,6 @@ local notation "Δ_ " => Over.baseChange
 
 local notation "Π_ " => CartesianExponentiable.functor
 
-section UvPoly
-
-variable {C : Type*} [Category C] [HasPullbacks C] [HasTerminal C] [HasFiniteWidePullbacks C] [LCC C]
-
-/-- The identity polynomial functor in single variable. -/
-@[simps!]
-def id (X : C) : UvPoly C := ⟨X, X, 𝟙 X, by infer_instance⟩
-
--- Note (SH): We define the functor associated to a single variable polyonimal in terms of `MvPoly.functor` and then reduce the proofs of statements about single variable polynomials to the multivariable case using the equivalence between `Over (⊤_ C)` and `C`.
-
-def toMvPoly (P : UvPoly C) : MvPoly (⊤_ C) (⊤_ C) :=
-  ⟨P.B, P.E, terminal.from P.E, P.p, P.exp, terminal.from P.B⟩
-
--- def hom (P : UvPoly C) (X : Over (⊤_ C)) : sorry → sorry := X.hom
-
-/-- We use the equivalence between `Over (⊤_ C)` and `C` to get `functor : C ⥤ C`. Alternatively we can give a direct definition of `functor` in terms of exponetials. -/
-
-def proj (P : UvPoly C) : C ⥤ C := equivOverTerminal.functor ⋙  P.functor'  ⋙ equivOverTerminal.inverse
-
-attribute [instance] UvPoly.exp
-
-def _root_.UvPoly.proj (P : UvPoly C) (X : Over (⊤_ C)) :
-  ((Π_P.p).obj ((Δ_ (terminal.from P.E)).obj X)).left ⟶ P.B :=
-  ((Δ_ (terminal.from _) ⋙ (Π_ P.p)).obj X).hom
-
-set_option synthInstance.maxHeartbeats 100000 in
-def _root_.UvPoly.star {𝒞} [Category 𝒞] [HasFiniteWidePullbacks 𝒞] [HasTerminal 𝒞] (P1 P2 : UvPoly 𝒞) : UvPoly 𝒞 :=
-  let E : 𝒞 := P1.E
-  let B : 𝒞 := P1.B
-  let D : 𝒞 := P2.E
-  let C : 𝒞 := P2.B
-  let f : E ⟶ B := P1.p
-  let g : D ⟶ C := P2.p
-  {
-    B := P1.functor.obj C
-    E := sorry
-    p := sorry
-    exp := sorry
-  }
-
-def _root_.UvPoly.equiv {𝒞} [Category 𝒞] [HasFiniteWidePullbacks 𝒞] [HasTerminal 𝒞]
-    (P : UvPoly 𝒞) (Γ : 𝒞) (X : 𝒞) :
-    (Γ ⟶ P.functor.obj X) ≃ Σ b : Γ ⟶ P.B, pullback P.p b ⟶ X := sorry
-
-end UvPoly
 
 
 namespace NaturalModel
@@ -170,8 +125,8 @@ class NaturalModelPi {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
 
 class NaturalModelSigma {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
   Sig : (P tp).obj Ty ⟶ Ty
-  pair : ((uvPoly tp).star (uvPoly tp)).E ⟶ Tm
-  Sig_pullback : IsPullback pair ((uvPoly tp).star (uvPoly tp)).p tp Sig
+  pair : ((uvPoly tp).comp (uvPoly tp)).E ⟶ Tm
+  Sig_pullback : IsPullback pair ((uvPoly tp).comp (uvPoly tp)).p tp Sig
 
 class NaturalModelId {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
 
