@@ -15,15 +15,13 @@ import Mathlib.CategoryTheory.Limits.Shapes.Pullbacks
 import Mathlib.CategoryTheory.Limits.Shapes.CommSq
 import Mathlib.CategoryTheory.Limits.Presheaf
 import Mathlib.CategoryTheory.Limits.Shapes.FunctorCategory
-
+import Mathlib.CategoryTheory.Adjunction.Over
 
 --import Poly
 import Poly.LCCC.Basic
 import Poly.LCCC.Presheaf
 import Poly.Exponentiable
 import Poly.Polynomial
-
--- import Poly.Exponentiable
 
 
 universe u v
@@ -108,7 +106,7 @@ namespace UvPoly'
 
 variable {𝒞} [Category 𝒞] [HasFiniteWidePullbacks 𝒞]
 
-def functor : ∀ {E B : 𝒞} (P : UvPoly' E B), 𝒞 ⥤ 𝒞 := sorry
+def functor : ∀ {E B : 𝒞} (P : UvPoly' E B), 𝒞 ⥤ 𝒞 := Over.star E ⋙ Π_ p ⋙ Over.forget B
 
 def star {E F B : 𝒞} : ∀ (P : UvPoly' E B) (Q : UvPoly' F B) (g : E ⟶ F) (h : P.p = g ≫ Q.p),
     Q.functor ⟶ P.functor := sorry
