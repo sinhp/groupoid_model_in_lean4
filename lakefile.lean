@@ -15,4 +15,5 @@ require Poly from git
 
 @[default_target]
 lean_lib GroupoidModel where
+  globs := #[.andSubmodules `GroupoidModel]
   -- add any library configuration options here

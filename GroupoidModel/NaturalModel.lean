@@ -60,7 +60,7 @@ We will need at least the following:
 # (Re)Presentable Natural Transformations
 -/
 
-class IsPresentable {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
+class IsPresentable {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) where
   ext (Γ : Ctx) (A : Ty.obj (op Γ)) : Ctx
   disp (Γ : Ctx) (A : Ty.obj (op Γ)) : ext Γ A ⟶ Γ
   var (Γ : Ctx) (A : Ty.obj (op Γ)) : Tm.obj (op (ext Γ A))
@@ -100,6 +100,28 @@ local notation "Π_ " => CartesianExponentiable.functor
 
 namespace NaturalModel
 
+/-- `P : UvPoly C` is a polynomial functors in a single variable -/
+structure UvPoly' {C : Type*} [Category C] [HasFiniteWidePullbacks C] (E B : C) :=
+  (p : E ⟶ B)
+  (exp : CartesianExponentiable p := by infer_instance)
+
+namespace UvPoly'
+
+variable {𝒞} [Category 𝒞] [HasPullbacks 𝒞]
+
+-- def functor : ∀ {E B : 𝒞} (P : UvPoly' E B), 𝒞 ⥤ 𝒞 := sorry
+
+def _root_.UvPoly.star {E F B : 𝒞} : ∀ (P : UvPoly E B) (Q : UvPoly F B) (g : E ⟶ F) (h : P.p = g ≫ Q.p),
+    Q.functor ⟶ P.functor := sorry
+
+-- def natural {E B E' B' : 𝒞} (P : UvPoly' E B) (P' : UvPoly' E' B')
+--     (e : E ⟶ E') (b : B ⟶ B') (pb : IsPullback P.p e b P'.p) : P.functor ⟶ P'.functor := sorry
+
+-- def _root_.UvPoly.star {E F B : 𝒞} (P : UvPoly E B) (Q : UvPoly F B) (g : E ⟶ F) (h : P.p = g ≫ Q.p) :
+--     Q.functor ⟶ P.functor := sorry --UvPoly.natural (P := ⟨_, _, Q⟩) (Q := ⟨_, _, P⟩) ⟨by dsimp, by dsimp, _⟩
+
+end UvPoly'
+
 instance : HasFiniteWidePullbacks (Psh.{u,v} Ctx) := hasFiniteWidePullbacks_of_hasFiniteLimits _
 
 instance : LCC (Psh Ctx) := @LCCC.mkOfOverCC _ _ _ ⟨CategoryOfElements.pshOverCCC⟩
@@ -108,15 +130,24 @@ instance {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : CartesianExponentiable tp where
   functor := LCC.pushforward tp
   adj := LCC.adj _
 
-def uvPoly {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly (Psh Ctx) := ⟨_, _, tp, inferInstance⟩
+-- def uvPoly {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly (Psh Ctx) := ⟨_, _, tp, inferInstance⟩
 
-def uvPoly' {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly' Tm Ty := ⟨tp, inferInstance⟩
+def uvPoly {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly Tm Ty := ⟨tp, inferInstance⟩
+def uvPolyT {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly.Total (Psh Ctx) := ⟨_, _, uvPoly tp⟩
 
 def P {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Psh Ctx ⥤ Psh Ctx := (uvPoly tp).functor
-def P' {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Psh Ctx ⥤ Psh Ctx := (uvPoly' tp).functor
 
 def proj {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : (P tp).obj Ty ⟶ Ty :=
   (uvPoly tp).proj _
+
+def _root_.UvPoly.comp {𝒞} [Category 𝒞] [HasFiniteWidePullbacks 𝒞] [HasTerminal 𝒞]
+    {E B D C : 𝒞} (P1 : UvPoly E B) (P2 : UvPoly D C) : UvPoly (P2.functor.obj E) (P1.functor.obj C) :=
+   let f : E ⟶ B := P1.p
+   let g : D ⟶ C := P2.p
+   {
+     p := sorry
+     exp := sorry
+   }
 
 -- def PolyTwoCellBack {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) := sorry
 
@@ -132,26 +163,26 @@ def proj {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : (P tp).obj Ty ⟶ Ty :=
 
 -- def DeltaOver {C : Type*} [ category C ] ( f : A → B ) := ⟨𝟙 A, 𝟙 A⟩ : A → A ×_B A as an arrow in C/B .
 
-class NaturalModelPi {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
+class NaturalModelPi {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) where
   Pi : (P tp).obj Ty ⟶ Ty
   lam : (P tp).obj Tm ⟶ Tm
   Pi_pullback : IsPullback lam ((P tp).map tp) tp Pi
 
-class NaturalModelSigma {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
+class NaturalModelSigma {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) where
   Sig : (P tp).obj Ty ⟶ Ty
-  pair : ((uvPoly tp).comp (uvPoly tp)).E ⟶ Tm
+  pair : (P tp).obj Tm ⟶ Tm
   Sig_pullback : IsPullback pair ((uvPoly tp).comp (uvPoly tp)).p tp Sig
 
 set_option synthInstance.maxHeartbeats 100000 in
 instance {X Y Z : Psh Ctx} (f : X ⟶ Z) (g : Y ⟶ Z) : HasPullback f g := inferInstance
 
 def δ {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Tm ⟶ pullback tp tp := pullback.lift (𝟙 _) (𝟙 _) rfl
-class NaturalModelEq {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
+class NaturalModelEq {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) where
   Eq : pullback tp tp ⟶ Ty
   refl : Tm ⟶ Tm
   Eq_pullback : IsPullback refl (δ tp) tp Eq
 
-class NaturalModelIdBase {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Type _ where
+class NaturalModelIdBase {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) where
   Id : pullback tp tp ⟶ Ty
   i : Tm ⟶ Tm
   Id_commute : δ tp ≫ Id = i ≫ tp
@@ -164,18 +195,21 @@ open NaturalModelIdBase
 def I : Psh Ctx := pullback (Id (tp := tp)) tp
 def q : I tp ⟶ Ty := pullback.fst ≫ pullback.fst ≫ tp
 def ρ : Tm ⟶ I tp := pullback.lift (δ tp) (i tp) Id_commute
-def ρs : P' (q tp) ⟶ P' tp :=
-  (uvPoly' tp).star (uvPoly' (q tp)) (ρ tp) (by simp [ρ, uvPoly', q, δ])
-def pb2 : Psh Ctx := pullback ((ρs tp).app Ty) ((P' tp).map tp)
-def ε : (P' (q tp)).obj Tm ⟶ pb2 tp :=
-  pullback.lift ((P' (q tp)).map tp) ((ρs tp).app Tm) (by aesop_cat)
+def ρs : P (q tp) ⟶ P tp :=
+  UvPoly.star (P := uvPoly tp) (Q := uvPoly (q tp)) (ρ tp) (by simp [ρ, uvPoly, q, δ])
+
+def pb2 : Psh Ctx := pullback ((ρs tp).app Ty) ((P tp).map tp)
+def ε : (P (q tp)).obj Tm ⟶ pb2 tp :=
+  pullback.lift ((P (q tp)).map tp) ((ρs tp).app Tm) (by aesop_cat)
+#check pb2 tp ⟶ (P (q tp)).obj Tm
 end
 
-class NaturalModelId {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends NaturalModelIdBase tp : Type _ where
-  J : pb2 tp ⟶ (P' (q tp)).obj Tm
-  J_section : J ≫ ε tp = 𝟙 _
+class NaturalModelId {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends NaturalModelIdBase tp where
+  -- fixme: this doesn't compile?
+  -- J : pb2 tp ⟶ (P (q tp)).obj Tm
+  -- J_section : J ≫ ε tp = 𝟙 _
 
-class NaturalModelU {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends IsPresentable tp : Type _ where
+class NaturalModelU {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends IsPresentable tp where
   U : Ty.obj (op (⊤_ _))
   El : yoneda.obj (ext (⊤_ Ctx) U) ⟶ Ty
   -- U_El : ((P tp).obj Ty).obj (op (⊤_ _)) := (by
@@ -194,30 +228,9 @@ it would probably also be useful to have another universe U1 with U : U1,
 and maybe some type formers for U1 as well .
 -/
 
-class NaturalModel {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends
-  IsPresentable tp, NaturalModelPi tp, NaturalModelSigma tp,
-  NaturalModelId tp, NaturalModelU tp : Type _
-
 end NaturalModel
 
--- def foo : Option Nat := do
---   let mut x ← pure 1
---   let y ← pure 2
---   if 2 + 2 ≠ 4 then
---     x := x + 1
---   return x + y
-
--- set_option pp.notation false
-#print foo
-open Lean Elab Command Term
-elab "hello" t:term : command => do
-  IO.println t
-  let e ← elabTerm t none
-
-
-hello do
-  let mut x ← pure 1
-  let y ← pure 2
-  if 2 + 2 ≠ 4 then
-    x := x + 1
-  return x + y
+open NaturalModel in
+class NaturalModel {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends
+  IsPresentable tp, NaturalModelPi tp, NaturalModelSigma tp,
+  NaturalModelId tp, NaturalModelU tp
