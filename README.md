@@ -1,8 +1,28 @@
 
 # The Groupoid Model of HoTT in Lean 4
 
-This repository formalizes in Lean4 the groupoid model of HoTT.  
+This repository formalizes in Lean4 the groupoid model of HoTT.
 
 This could be the basis for a HoTT mode in Lean.
 
-This repository relies on the [formalization of polynomial functors](https://github.com/sinhp/Poly/tree/master). 
+This repository relies on the [formalization of polynomial functors](https://github.com/sinhp/Poly/tree/master).
+
+To get the most recent changes of the polynomial functors repository, run `lake update` first in the terminal inside the VSCode.
+You should see a message like
+
+```
+info: Poly: updating repository '././.lake/packages/Poly' to revision '7297691124d30c971ff69d691e6cbd35e9a5bcac'
+```
+
+To get mathlib cached `.olean` files run
+
+```
+lake exe cache get
+```
+
+
+and to get the cached files and override your potentially corrupted `.olean` files run
+
+```
+lake exe cache get!
+```
