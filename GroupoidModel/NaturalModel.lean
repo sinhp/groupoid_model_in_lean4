@@ -97,24 +97,6 @@ local notation "Δ_ " => Over.baseChange
 
 local notation "Π_ " => CartesianExponentiable.functor
 
-/-- `P : UvPoly C` is a polynomial functors in a single variable -/
-structure UvPoly' {C : Type*} [Category C] [HasFiniteWidePullbacks C] (E B : C) :=
-  (p : E ⟶ B)
-  (exp : CartesianExponentiable p := by infer_instance)
-
-namespace UvPoly'
-
-variable {𝒞} [Category 𝒞] [HasFiniteWidePullbacks 𝒞]
-
-def functor : ∀ {E B : 𝒞} (P : UvPoly' E B), 𝒞 ⥤ 𝒞 := Over.star E ⋙ Π_ p ⋙ Over.forget B
-
-def star {E F B : 𝒞} : ∀ (P : UvPoly' E B) (Q : UvPoly' F B) (g : E ⟶ F) (h : P.p = g ≫ Q.p),
-    Q.functor ⟶ P.functor := sorry
-
-def natural {E B E' B' : 𝒞} (P : UvPoly' E B) (P' : UvPoly' E' B')
-    (e : E ⟶ E') (b : B ⟶ B') (pb : IsPullback P.p e b P'.p) : P.functor ⟶ P'.functor := sorry
-
-end UvPoly'
 
 namespace NaturalModel
 
