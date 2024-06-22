@@ -47,6 +47,7 @@ inductive HasType : List Expr → Expr → Expr → Type
 
 inductive IsType : List Expr → Expr → Type
   | small {A Γ} : HasType Γ A .univ → IsType Γ A
+  | pi {A B Γ} : IsType Γ A → IsType (A :: Γ) B → IsType Γ (.pi A B)
   | univ {Γ} : IsType Γ .univ
 end
 
@@ -83,15 +84,21 @@ protected def Context.var (Γ : Context tp) (i : ℕ) : Part Γ.tm :=
   | ⟨_, .cons _ _⟩, 0 => pure <| var ..
   | ⟨_, .cons _ Γ⟩, n+1 => Context.weak ⟨_, Γ⟩ _ <$> Context.var ⟨_, Γ⟩ n
 
-def substCons (Γ Δ : Ctx) (A : Ty.obj (op Δ)) (σ : Γ ⟶ Δ)
-    (e : Tm.obj (op Γ)) (eTy : tp.app (op Γ) e = Ty.map σ.op A) :
+def substCons {Γ Δ : Ctx} (σ : Γ ⟶ Δ)
+    (e : Tm.obj (op Γ)) (A : Ty.obj (op Δ)) (eTy : tp.app (op Γ) e = Ty.map σ.op A) :
     Γ ⟶ ext tp Δ A := by
   refine Yoneda.fullyFaithful.1 <| (disp_pullback (tp := tp) A).isLimit.lift <|
     PullbackCone.mk (yonedaEquiv.2 e) (yoneda.map σ) ?_
-  sorry
+  ext ⟨X⟩ f
+  simp [← eTy] at f ⊢
+  exact congrFun (tp.naturality f.op) e
 
-def el {Γ : Context tp} (A : Γ.tm) (tyA : tp.app (op Γ.1) A = wU tp) : Γ.ty :=
-  (El (tp := tp)).app _ <| sorry
+def mkEl {Γ : Context tp} (A : Γ.tm) (tyA : tp.app (op Γ.1) A = wU tp) : Γ.ty :=
+  (El (tp := tp)).app _ <| substCons (terminal.from _) A _ (by simpa [wU] using tyA)
+
+def mkPi {Γ : Context tp} (A : Γ.ty) (B : (Γ.cons A).ty) : Γ.ty :=
+  (NaturalModelPi.Pi (tp := tp)).app _ <| by
+    sorry
 
 end
 
@@ -103,8 +110,19 @@ def ofCtx : List Expr → Part (Context tp)
   | A :: Γ => do let Γ ← ofCtx Γ; Γ.cons (← ofType Γ A)
 
 def ofType (Γ : Context tp) : Expr → Part Γ.ty
-  | .bvar i =>
-    sorry -- Context.var _ i
+  | .univ => pure (wU tp)
+  | .pi A B => do
+    let A ← ofType Γ A
+    let B ← ofType (Γ.cons A) B
+    pure (mkPi A B)
+  | e => do
+    let v ← ofTerm Γ e
+    Part.assert _ fun h => pure <| mkEl v h
+
+def ofTerm (Γ : Context tp) : Expr → Part Γ.tm
+  | .bvar i => Context.var _ i
+  | .univ => .none
+  | .pi A B => .none
   | _ => .none
 
 end
