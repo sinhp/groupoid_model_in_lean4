@@ -64,7 +64,7 @@ class IsPresentable {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) where
   ext (Γ : Ctx) (A : Ty.obj (op Γ)) : Ctx
   disp (Γ : Ctx) (A : Ty.obj (op Γ)) : ext Γ A ⟶ Γ
   var (Γ : Ctx) (A : Ty.obj (op Γ)) : Tm.obj (op (ext Γ A))
-  pullback {Γ : Ctx} (A : Ty.obj (op Γ)) :
+  disp_pullback {Γ : Ctx} (A : Ty.obj (op Γ)) :
     IsPullback (yonedaEquiv.symm (var Γ A)) (yoneda.map (disp Γ A)) tp (yonedaEquiv.symm A)
 
 namespace IsPresentable
@@ -111,9 +111,6 @@ variable {𝒞} [Category 𝒞] [HasPullbacks 𝒞]
 
 -- def functor : ∀ {E B : 𝒞} (P : UvPoly' E B), 𝒞 ⥤ 𝒞 := sorry
 
-def _root_.UvPoly.star {E F B : 𝒞} : ∀ (P : UvPoly E B) (Q : UvPoly F B) (g : E ⟶ F) (h : P.p = g ≫ Q.p),
-    Q.functor ⟶ P.functor := sorry
-
 -- def natural {E B E' B' : 𝒞} (P : UvPoly' E B) (P' : UvPoly' E' B')
 --     (e : E ⟶ E') (b : B ⟶ B') (pb : IsPullback P.p e b P'.p) : P.functor ⟶ P'.functor := sorry
 
@@ -132,7 +129,8 @@ instance {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : CartesianExponentiable tp where
 
 -- def uvPoly {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly (Psh Ctx) := ⟨_, _, tp, inferInstance⟩
 
-def uvPoly {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly Tm Ty := ⟨tp, inferInstance⟩
+-- FIXME: NaturalModelId doesn't compile without this being opaque
+irreducible_def uvPoly {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly Tm Ty := ⟨tp, inferInstance⟩
 def uvPolyT {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly.Total (Psh Ctx) := ⟨_, _, uvPoly tp⟩
 
 def P {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Psh Ctx ⥤ Psh Ctx := (uvPoly tp).functor
@@ -195,19 +193,19 @@ open NaturalModelIdBase
 def I : Psh Ctx := pullback (Id (tp := tp)) tp
 def q : I tp ⟶ Ty := pullback.fst ≫ pullback.fst ≫ tp
 def ρ : Tm ⟶ I tp := pullback.lift (δ tp) (i tp) Id_commute
-def ρs : P (q tp) ⟶ P tp :=
+
+-- FIXME: NaturalModelId doesn't compile without this being opaque
+irreducible_def ρs : P (q tp) ⟶ P tp :=
   UvPoly.star (P := uvPoly tp) (Q := uvPoly (q tp)) (ρ tp) (by simp [ρ, uvPoly, q, δ])
 
 def pb2 : Psh Ctx := pullback ((ρs tp).app Ty) ((P tp).map tp)
 def ε : (P (q tp)).obj Tm ⟶ pb2 tp :=
   pullback.lift ((P (q tp)).map tp) ((ρs tp).app Tm) (by aesop_cat)
-#check pb2 tp ⟶ (P (q tp)).obj Tm
 end
 
 class NaturalModelId {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends NaturalModelIdBase tp where
-  -- fixme: this doesn't compile?
-  -- J : pb2 tp ⟶ (P (q tp)).obj Tm
-  -- J_section : J ≫ ε tp = 𝟙 _
+  J : pb2 tp ⟶ (P (q tp)).obj Tm
+  J_section : J ≫ ε tp = 𝟙 _
 
 class NaturalModelU {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends IsPresentable tp where
   U : Ty.obj (op (⊤_ _))
