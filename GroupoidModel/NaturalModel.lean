@@ -129,8 +129,7 @@ instance {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : CartesianExponentiable tp where
 
 -- def uvPoly {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly (Psh Ctx) := ⟨_, _, tp, inferInstance⟩
 
--- FIXME: NaturalModelId doesn't compile without this being opaque
-irreducible_def uvPoly {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly Tm Ty := ⟨tp, inferInstance⟩
+def uvPoly {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly Tm Ty := ⟨tp, inferInstance⟩
 def uvPolyT {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly.Total (Psh Ctx) := ⟨_, _, uvPoly tp⟩
 
 def P {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Psh Ctx ⥤ Psh Ctx := (uvPoly tp).functor
@@ -194,8 +193,7 @@ def I : Psh Ctx := pullback (Id (tp := tp)) tp
 def q : I tp ⟶ Ty := pullback.fst ≫ pullback.fst ≫ tp
 def ρ : Tm ⟶ I tp := pullback.lift (δ tp) (i tp) Id_commute
 
--- FIXME: NaturalModelId doesn't compile without this being opaque
-irreducible_def ρs : P (q tp) ⟶ P tp :=
+def ρs : P (q tp) ⟶ P tp :=
   UvPoly.star (P := uvPoly tp) (Q := uvPoly (q tp)) (ρ tp) (by simp [ρ, uvPoly, q, δ])
 
 def pb2 : Psh Ctx := pullback ((ρs tp).app Ty) ((P tp).map tp)
@@ -203,9 +201,24 @@ def ε : (P (q tp)).obj Tm ⟶ pb2 tp :=
   pullback.lift ((P (q tp)).map tp) ((ρs tp).app Tm) (by aesop_cat)
 end
 
+-- FIXME: NaturalModelId doesn't compile without this being opaque
+irreducible_def NaturalModelIdData {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) [NaturalModelIdBase tp] :=
+  { J : pb2 tp ⟶ (P (q tp)).obj Tm // J ≫ ε tp = 𝟙 _ }
+
 class NaturalModelId {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends NaturalModelIdBase tp where
-  J : pb2 tp ⟶ (P (q tp)).obj Tm
-  J_section : J ≫ ε tp = 𝟙 _
+  data : NaturalModelIdData tp
+
+def NaturalModelId.J {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) [NaturalModelId tp] :
+    pb2 tp ⟶ (P (q tp)).obj Tm := by
+  have := NaturalModelId.data (tp := tp)
+  rw [NaturalModelIdData] at this
+  exact this.1
+
+theorem NaturalModelId.J_section {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) [NaturalModelId tp] :
+    J tp ≫ ε tp = 𝟙 _ := by
+  dsimp [J]
+  generalize cast .. = x
+  exact x.2
 
 class NaturalModelU {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends IsPresentable tp where
   U : Ty.obj (op (⊤_ _))
