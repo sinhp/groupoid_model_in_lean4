@@ -32,8 +32,6 @@ open Functor Limits Opposite Representable
 
 noncomputable section
 
-variable {Ctx : Type u} [SmallCategory Ctx] [HasTerminal Ctx]
-
 /-
 We will need at least the following:
   - the category Ctx (to be interpreted as small groupoids)
@@ -56,52 +54,6 @@ We will need at least the following:
   - need to add a general formulation for (groupoid) quotient types
   -/
 
-/-!
-# (Re)Presentable Natural Transformations
--/
-
-notation:max "y(" Γ ")" => yoneda.obj Γ
-
-class IsPresentable {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) where
-  ext (Γ : Ctx) (A : y(Γ) ⟶ Ty) : Ctx
-  disp (Γ : Ctx) (A : y(Γ) ⟶ Ty) : ext Γ A ⟶ Γ
-  var (Γ : Ctx) (A : y(Γ) ⟶ Ty) : y(ext Γ A) ⟶ Tm
-  disp_pullback {Γ : Ctx} (A : y(Γ) ⟶ Ty) :
-    IsPullback (var Γ A) (yoneda.map (disp Γ A)) tp A
-
-namespace IsPresentable
-
--- variable {Tm Ty : Ctxᵒᵖ ⥤ Type v} (tp : Tm ⟶ Ty) [IsPresentable tp]
-
--- instance [IsPresentable tp] {X : Ctx} {q : Ty.obj (op X)} : Representable (pullback (yonedaEquiv.2 q) tp) := pullback_present q
-
--- /-- The presenting object of a presentable natural transformation. -/
--- def Present {X : Ctx} (q : Ty.obj (op X)) : Ctx :=
---   Classical.choose (has_representation (F := pullback (yonedaEquiv.2 q) tp))
-
--- /-- -/
--- def present {X : Ctx} (q : Ty.obj (op X)) : Present tp q ⟶ X := sorry
-
--- def var {X : Ctx} (q : Ty.obj (op X)) : yoneda.obj (Present tp q) ⟶ Tm := sorry
-
--- def square {X : Ctx} (q : Ty.obj (op X)) : yoneda.map (present tp q) ≫ yonedaEquiv.2 q = var f q ≫ f := sorry
-
-end IsPresentable
-
-
-/-!
-# Natural Models
--/
-
-local notation "Σ_ " => Over.map
-
-local notation "Δ_ " => Over.baseChange
-
-local notation "Π_ " => CartesianExponentiable.functor
-
-
-namespace NaturalModel
-
 /-- `P : UvPoly C` is a polynomial functors in a single variable -/
 structure UvPoly' {C : Type*} [Category C] [HasFiniteWidePullbacks C] (E B : C) :=
   (p : E ⟶ B)
@@ -121,24 +73,6 @@ variable {𝒞} [Category 𝒞] [HasPullbacks 𝒞]
 
 end UvPoly'
 
-instance : HasFiniteWidePullbacks (Psh.{u,v} Ctx) := hasFiniteWidePullbacks_of_hasFiniteLimits _
-
-instance : LCC (Psh Ctx) := @LCCC.mkOfOverCC _ _ _ ⟨CategoryOfElements.pshOverCCC⟩
-
-instance {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : CartesianExponentiable tp where
-  functor := LCC.pushforward tp
-  adj := LCC.adj _
-
--- def uvPoly {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly (Psh Ctx) := ⟨_, _, tp, inferInstance⟩
-
-def uvPoly {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly Tm Ty := ⟨tp, inferInstance⟩
-def uvPolyT {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly.Total (Psh Ctx) := ⟨_, _, uvPoly tp⟩
-
-def P {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Psh Ctx ⥤ Psh Ctx := (uvPoly tp).functor
-
-def proj {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : (P tp).obj Ty ⟶ Ty :=
-  (uvPoly tp).proj _
-
 def _root_.UvPoly.comp {𝒞} [Category 𝒞] [HasFiniteWidePullbacks 𝒞] [HasTerminal 𝒞]
     {E B D C : 𝒞} (P1 : UvPoly E B) (P2 : UvPoly D C) : UvPoly (P2.functor.obj E) (P1.functor.obj C) :=
    let f : E ⟶ B := P1.p
@@ -147,6 +81,45 @@ def _root_.UvPoly.comp {𝒞} [Category 𝒞] [HasFiniteWidePullbacks 𝒞] [Has
      p := sorry
      exp := sorry
    }
+
+/-!
+# Natural Models
+-/
+
+variable {Ctx : Type u} [SmallCategory Ctx] [HasTerminal Ctx]
+
+notation:max "y(" Γ ")" => yoneda.obj Γ
+
+namespace NaturalModel
+
+variable (Ctx) in
+class NaturalModelBase where
+  Tm : Psh Ctx
+  Ty : Psh Ctx
+  tp : Tm ⟶ Ty
+  ext (Γ : Ctx) (A : y(Γ) ⟶ Ty) : Ctx
+  disp (Γ : Ctx) (A : y(Γ) ⟶ Ty) : ext Γ A ⟶ Γ
+  var (Γ : Ctx) (A : y(Γ) ⟶ Ty) : y(ext Γ A) ⟶ Tm
+  disp_pullback {Γ : Ctx} (A : y(Γ) ⟶ Ty) :
+    IsPullback (var Γ A) (yoneda.map (disp Γ A)) tp A
+
+export NaturalModelBase (Tm Ty tp ext disp var disp_pullback)
+variable [M : NaturalModelBase Ctx]
+
+instance : HasFiniteWidePullbacks (Psh.{u,v} Ctx) := hasFiniteWidePullbacks_of_hasFiniteLimits _
+
+instance : LCC (Psh Ctx) := @LCCC.mkOfOverCC _ _ _ ⟨CategoryOfElements.pshOverCCC⟩
+
+instance {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : CartesianExponentiable tp where
+  functor := LCC.pushforward tp
+  adj := LCC.adj _
+
+def uvPoly {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly Tm Ty := ⟨tp, inferInstance⟩
+def uvPolyT {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly.Total (Psh Ctx) := ⟨_, _, uvPoly tp⟩
+
+def P {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Psh Ctx ⥤ Psh Ctx := (uvPoly tp).functor
+
+def proj {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : (P tp).obj Ty ⟶ Ty := (uvPoly tp).proj _
 
 -- def PolyTwoCellBack {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) := sorry
 
@@ -162,73 +135,78 @@ def _root_.UvPoly.comp {𝒞} [Category 𝒞] [HasFiniteWidePullbacks 𝒞] [Has
 
 -- def DeltaOver {C : Type*} [ category C ] ( f : A → B ) := ⟨𝟙 A, 𝟙 A⟩ : A → A ×_B A as an arrow in C/B .
 
-class NaturalModelPi {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) where
-  Pi : (P tp).obj Ty ⟶ Ty
-  lam : (P tp).obj Tm ⟶ Tm
+variable (Ctx) in
+class NaturalModelPi where
+  Pi : (P tp).obj Ty ⟶ M.Ty
+  lam : (P tp).obj Tm ⟶ M.Tm
   Pi_pullback : IsPullback lam ((P tp).map tp) tp Pi
 
-class NaturalModelSigma {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) where
-  Sig : (P tp).obj Ty ⟶ Ty
-  pair : (P tp).obj Tm ⟶ Tm
+variable (Ctx) in
+class NaturalModelSigma where
+  Sig : (P tp).obj Ty ⟶ M.Ty
+  pair : (P tp).obj Tm ⟶ M.Tm
   Sig_pullback : IsPullback pair ((uvPoly tp).comp (uvPoly tp)).p tp Sig
 
 set_option synthInstance.maxHeartbeats 100000 in
 instance {X Y Z : Psh Ctx} (f : X ⟶ Z) (g : Y ⟶ Z) : HasPullback f g := inferInstance
 
-def δ {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Tm ⟶ pullback tp tp := pullback.lift (𝟙 _) (𝟙 _) rfl
-class NaturalModelEq {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) where
-  Eq : pullback tp tp ⟶ Ty
-  refl : Tm ⟶ Tm
-  Eq_pullback : IsPullback refl (δ tp) tp Eq
+def δ : M.Tm ⟶ pullback tp tp := pullback.lift (𝟙 _) (𝟙 _) rfl
+variable (Ctx) in
+class NaturalModelEq where
+  Eq : pullback tp tp ⟶ M.Ty
+  refl : Tm ⟶ M.Tm
+  Eq_pullback : IsPullback refl δ tp Eq
 
-class NaturalModelIdBase {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) where
-  Id : pullback tp tp ⟶ Ty
-  i : Tm ⟶ Tm
-  Id_commute : δ tp ≫ Id = i ≫ tp
+variable (Ctx) in
+class NaturalModelIdBase where
+  Id : pullback tp tp ⟶ M.Ty
+  i : Tm ⟶ M.Tm
+  Id_commute : δ ≫ Id = i ≫ tp
 
 section
-variable {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty)
-variable [NaturalModelIdBase tp]
+variable [NaturalModelIdBase Ctx]
 open NaturalModelIdBase
 
-def I : Psh Ctx := pullback (Id (tp := tp)) tp
-def q : I tp ⟶ Ty := pullback.fst ≫ pullback.fst ≫ tp
-def ρ : Tm ⟶ I tp := pullback.lift (δ tp) (i tp) Id_commute
+def I : Psh Ctx := pullback Id tp
+def q : I ⟶ M.Ty := pullback.fst ≫ pullback.fst ≫ tp
+def ρ : M.Tm ⟶ I := pullback.lift δ i Id_commute
 
-def ρs : P (q tp) ⟶ P tp :=
-  UvPoly.star (P := uvPoly tp) (Q := uvPoly (q tp)) (ρ tp) (by simp [ρ, uvPoly, q, δ])
+def ρs : P q ⟶ P M.tp :=
+  UvPoly.star (P := uvPoly tp) (Q := uvPoly q) ρ (by simp [ρ, uvPoly, q, δ])
 
-def pb2 : Psh Ctx := pullback ((ρs tp).app Ty) ((P tp).map tp)
-def ε : (P (q tp)).obj Tm ⟶ pb2 tp :=
-  pullback.lift ((P (q tp)).map tp) ((ρs tp).app Tm) (by aesop_cat)
-end
+def pb2 : Psh Ctx := pullback (ρs.app Ty) ((P tp).map tp)
+def ε : (P q).obj M.Tm ⟶ pb2 :=
+  pullback.lift ((P q).map tp) (ρs.app Tm) (by aesop_cat)
 
 -- FIXME: NaturalModelId doesn't compile without this being opaque
-irreducible_def NaturalModelIdData {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) [NaturalModelIdBase tp] :=
-  { J : pb2 tp ⟶ (P (q tp)).obj Tm // J ≫ ε tp = 𝟙 _ }
+variable (Ctx) in
+irreducible_def NaturalModelIdData :=
+  { J : pb2 ⟶ (P q).obj M.Tm // J ≫ ε = 𝟙 _ }
+end
 
-class NaturalModelId {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends NaturalModelIdBase tp where
-  data : NaturalModelIdData tp
+variable (Ctx) in
+class NaturalModelId extends NaturalModelIdBase Ctx where
+  data : NaturalModelIdData Ctx
 
-def NaturalModelId.J {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) [NaturalModelId tp] :
-    pb2 tp ⟶ (P (q tp)).obj Tm := by
-  have := NaturalModelId.data (tp := tp)
+def NaturalModelId.J [NaturalModelId Ctx] :
+    pb2 ⟶ (P q).obj M.Tm := by
+  have := NaturalModelId.data (Ctx := Ctx)
   rw [NaturalModelIdData] at this
   exact this.1
 
-theorem NaturalModelId.J_section {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) [NaturalModelId tp] :
-    J tp ≫ ε tp = 𝟙 _ := by
+theorem NaturalModelId.J_section [NaturalModelId Ctx] : J (Ctx := Ctx) ≫ ε = 𝟙 _ := by
   dsimp [J]
   generalize cast .. = x
   exact x.2
 
-class NaturalModelU {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends IsPresentable tp where
+variable (Ctx) in
+class NaturalModelU extends NaturalModelBase Ctx where
   U : y(⊤_ Ctx) ⟶ Ty
   El : y(ext (⊤_ Ctx) U) ⟶ Ty
   -- El_mono : Mono (yonedaEquiv.2 El)
 
-class NaturalModelSmallPi {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty)
-    extends NaturalModelU tp, NaturalModelPi tp where
+variable (Ctx) in
+class NaturalModelSmallPi extends NaturalModelU Ctx, NaturalModelPi Ctx where
   -- SmallPi : (P tp).obj Ty ⟶ Ty
 
 -- open NaturalModelU in
@@ -250,6 +228,7 @@ and maybe some type formers for U1 as well .
 end NaturalModel
 
 open NaturalModel in
-class NaturalModel {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends
-  IsPresentable tp, NaturalModelPi tp, NaturalModelSigma tp,
-  NaturalModelId tp, NaturalModelU tp, NaturalModelSmallPi tp
+variable (Ctx) in
+class NaturalModel extends
+  NaturalModelBase Ctx, NaturalModelPi Ctx, NaturalModelSigma Ctx,
+  NaturalModelId Ctx, NaturalModelU Ctx, NaturalModelSmallPi Ctx
