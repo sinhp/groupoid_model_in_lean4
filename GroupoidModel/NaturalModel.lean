@@ -60,12 +60,14 @@ We will need at least the following:
 # (Re)Presentable Natural Transformations
 -/
 
+notation:max "y(" Γ ")" => yoneda.obj Γ
+
 class IsPresentable {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) where
-  ext (Γ : Ctx) (A : Ty.obj (op Γ)) : Ctx
-  disp (Γ : Ctx) (A : Ty.obj (op Γ)) : ext Γ A ⟶ Γ
-  var (Γ : Ctx) (A : Ty.obj (op Γ)) : Tm.obj (op (ext Γ A))
-  disp_pullback {Γ : Ctx} (A : Ty.obj (op Γ)) :
-    IsPullback (yonedaEquiv.symm (var Γ A)) (yoneda.map (disp Γ A)) tp (yonedaEquiv.symm A)
+  ext (Γ : Ctx) (A : y(Γ) ⟶ Ty) : Ctx
+  disp (Γ : Ctx) (A : y(Γ) ⟶ Ty) : ext Γ A ⟶ Γ
+  var (Γ : Ctx) (A : y(Γ) ⟶ Ty) : y(ext Γ A) ⟶ Tm
+  disp_pullback {Γ : Ctx} (A : y(Γ) ⟶ Ty) :
+    IsPullback (var Γ A) (yoneda.map (disp Γ A)) tp A
 
 namespace IsPresentable
 
@@ -221,14 +223,20 @@ theorem NaturalModelId.J_section {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) [NaturalMode
   exact x.2
 
 class NaturalModelU {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends IsPresentable tp where
-  U : Ty.obj (op (⊤_ _))
-  El : yoneda.obj (ext (⊤_ Ctx) U) ⟶ Ty
-  -- U_El : ((P tp).obj Ty).obj (op (⊤_ _)) := (by
-    -- have := ((uvPoly tp).equiv _ _).symm ⟨_, _⟩
-    -- dsimp [P, uvPoly, UvPoly.functor, equivOverTerminal, equivOverTerminal', UvPoly.functor',
-    --   Equivalence.mk, UvPoly.toMvPoly, MvPoly.functor, CartesianExponentiable.functor,
-    --   MvPoly.instCartesianExponentiableP, LCC.pushforward, OverCC.pushforwardFunctor, OverCC.pushforwardObj]
-    -- )
+  U : y(⊤_ Ctx) ⟶ Ty
+  El : y(ext (⊤_ Ctx) U) ⟶ Ty
+  -- El_mono : Mono (yonedaEquiv.2 El)
+
+class NaturalModelSmallPi {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty)
+    extends NaturalModelU tp, NaturalModelPi tp where
+  -- SmallPi : (P tp).obj Ty ⟶ Ty
+
+-- open NaturalModelU in
+-- example {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) [NaturalModelU tp] [NaturalModelPi tp]
+--     (A : Tm.obj (op (⊤_ _))) (hA : tp.app _ A = U tp) :=
+--   have elA := (El (tp := tp)).app _ _
+--   _
+
 
 /-
 we will also want to say that the universe U is closed under Sigma, Pi, and Id,
@@ -244,4 +252,4 @@ end NaturalModel
 open NaturalModel in
 class NaturalModel {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) extends
   IsPresentable tp, NaturalModelPi tp, NaturalModelSigma tp,
-  NaturalModelId tp, NaturalModelU tp
+  NaturalModelId tp, NaturalModelU tp, NaturalModelSmallPi tp
