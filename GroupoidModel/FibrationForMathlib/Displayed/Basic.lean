@@ -41,7 +41,7 @@ We provide the following notations:
 Benedikt Ahrens, Peter LeFanu Lumsdaine, Displayed Categories, Logical Methods in Computer Science 15 (1).
 
 -/
-
+-- set_option autoImplicit true
 namespace CategoryTheory
 
 open Category CategoryTheory
@@ -69,6 +69,8 @@ lemma eqToHomMap_naturality {I I' J J' : C} {w : I = I'} {w' : J = J'} (f : I �
     eqToHom w ≫ eqToHomMap w w' f = f ≫ eqToHom w' := by
   subst w' w
   simp
+
+variable {I I' I'' : C}
 
 @[simp]
 lemma Fibre_cast_trans (X : F I) {w : I = I'} {w' : I' = I''} {w'' : I = I''} :

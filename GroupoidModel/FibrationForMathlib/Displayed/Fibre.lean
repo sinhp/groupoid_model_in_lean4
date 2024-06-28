@@ -129,7 +129,7 @@ lemma hom_ext {c : C} {x y : P⁻¹ c} {f g : x ⟶ y} (h : f.1 = g.1) : f = g :
 @[simps]
 lemma is_iso {c : C} {x y : P⁻¹ c} (f : x ⟶ y) : IsIso f ↔ IsIso f.1 :=
   ⟨
-    fun h ↦ (asIso f) |> forget.mapIso |> IsIso.of_iso, fun h ↦ ⟨⟨⟨inv f.1, by simp⟩, by simp⟩⟩
+    fun h ↦ (asIso f) |> forget.mapIso |> Iso.isIso_hom, fun h ↦ ⟨⟨⟨inv f.1, by simp⟩, by simp⟩⟩
   ⟩
 
 namespace Op
