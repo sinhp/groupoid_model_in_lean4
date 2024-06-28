@@ -119,6 +119,10 @@ def uvPolyT {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly.Total (Psh Ctx) := ⟨_,
 
 def P {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Psh Ctx ⥤ Psh Ctx := (uvPoly tp).functor
 
+def P_naturality {E B E' B' : Psh Ctx}
+    {f : E ⟶ B} {f' : E' ⟶ B'} (α : uvPolyT f ⟶ uvPolyT f') : P f ⟶ P f' :=
+  UvPoly.naturality (P := uvPolyT f) (Q := uvPolyT f') α
+
 def proj {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : (P tp).obj Ty ⟶ Ty := (uvPoly tp).proj _
 
 -- def PolyTwoCellBack {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) := sorry
@@ -200,21 +204,22 @@ theorem NaturalModelId.J_section [NaturalModelId Ctx] : J (Ctx := Ctx) ≫ ε = 
   exact x.2
 
 variable (Ctx) in
-class NaturalModelU extends NaturalModelBase Ctx where
+class NaturalModelU where
   U : y(⊤_ Ctx) ⟶ Ty
   El : y(ext (⊤_ Ctx) U) ⟶ Ty
-  -- El_mono : Mono (yonedaEquiv.2 El)
+  El_mono : Mono El
+export NaturalModelU (U El El_mono)
 
+open NaturalModelU in
+def toPiArgs [NaturalModelU Ctx] [NaturalModelPi Ctx] :
+    (P (yoneda.map (disp (ext (⊤_ Ctx) U) El))).obj y(ext (⊤_ Ctx) U) ⟶ (P tp).obj Ty :=
+  (P _).map El ≫ (P_naturality ⟨_, _, (disp_pullback El).flip⟩).app _
+
+open NaturalModelU NaturalModelPi in
 variable (Ctx) in
-class NaturalModelSmallPi extends NaturalModelU Ctx, NaturalModelPi Ctx where
-  -- SmallPi : (P tp).obj Ty ⟶ Ty
-
--- open NaturalModelU in
--- example {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) [NaturalModelU tp] [NaturalModelPi tp]
---     (A : Tm.obj (op (⊤_ _))) (hA : tp.app _ A = U tp) :=
---   have elA := (El (tp := tp)).app _ _
---   _
-
+class NaturalModelSmallPi [NaturalModelU Ctx] [NaturalModelPi Ctx] where
+  SmallPi : (P (yoneda.map (disp (ext (⊤_ Ctx) U) El))).obj y(ext (⊤_ Ctx) U) ⟶ y(ext (⊤_ Ctx) U)
+  SmallPi_eq : SmallPi ≫ El = toPiArgs ≫ Pi
 
 /-
 we will also want to say that the universe U is closed under Sigma, Pi, and Id,

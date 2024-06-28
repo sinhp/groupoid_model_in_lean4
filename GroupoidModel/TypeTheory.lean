@@ -14,7 +14,7 @@ inductive Expr where
   | bvar (n : Nat)
   | app (f a : Expr)
   | lam (ty : TyExpr) (val : Expr)
-  -- | small_pi (ty A : Expr)
+  | pi (ty A : Expr)
 end
 
 def liftVar (n i : Nat) (k := 0) : Nat := if i < k then i else n + i
@@ -45,7 +45,7 @@ def Expr.liftN : Expr → (k :_:= 0) → Expr
   | .bvar i, k => .bvar (liftVar n i k)
   | .app fn arg, k => .app (fn.liftN k) (arg.liftN k)
   | .lam ty body, k => .lam (ty.liftN k) (body.liftN (k+1))
-  -- | .pi ty body, k => .pi (ty.liftN k) (body.liftN (k+1))
+  | .pi ty body, k => .pi (ty.liftN k) (body.liftN (k+1))
 end
 
 abbrev TyExpr.lift := TyExpr.liftN 1
@@ -111,8 +111,16 @@ def substCons {Γ Δ : Ctx} (σ : Γ ⟶ Δ)
     PullbackCone.mk e (yoneda.map σ) ?_
   ext; simp [← eTy]
 
+def substFst {Γ Δ : Ctx} {A : y(Δ) ⟶ Ty} (σ : Γ ⟶ ext Δ A) : Γ ⟶ Δ := σ ≫ disp _ _
+
+def substSnd {Γ Δ : Ctx} {A : y(Δ) ⟶ Ty} (σ : Γ ⟶ ext Δ A) : y(Γ) ⟶ Tm := yoneda.map σ ≫ var _ _
+
+theorem substSnd_ty {Γ Δ : Ctx} {A : y(Δ) ⟶ Ty} (σ : Γ ⟶ ext Δ A) :
+    substSnd σ ≫ tp = yoneda.map (substFst σ) ≫ A := by
+  simp [substSnd, substFst]; rw [(disp_pullback _).w]
+
 def mkEl {Γ : Context Ctx} (A : Γ.typed wU) : Γ.ty :=
-  yoneda.map (substCons (terminal.from _) A.1 _ (by simpa [wU] using A.2)) ≫ El
+  yoneda.map (substCons (terminal.from _) A.1 _ A.2) ≫ El
 
 def mkP_equiv {Γ : Ctx} {X : Psh Ctx} :
     (y(Γ) ⟶ (P tp).obj X) ≃ (A : y(Γ) ⟶ Ty) × (y(ext Γ A) ⟶ X) :=
@@ -137,6 +145,10 @@ def mkLam' {Γ : Context Ctx} (A : Γ.ty) (e : (Γ.cons A).tm) : Γ.tm :=
 def Context.subst {Γ : Context Ctx} {X : Psh Ctx}
     (A : Γ.ty) (B : y((Γ.cons A).1) ⟶ X) (a : Γ.typed A) : y(Γ.1) ⟶ X :=
   yoneda.map (substCons (𝟙 _) a.1 A (by simpa using a.2)) ≫ B
+
+def mkTyped {Γ Δ : Context Ctx} {A : Δ.ty} (σ : Γ.1 ⟶ ext Δ.1 A)
+    {Aσ} (eq : yoneda.map (substFst σ) ≫ A = Aσ) :
+    Γ.typed Aσ := ⟨substSnd _, eq ▸ substSnd_ty _⟩
 
 def mkLam {Γ : Context Ctx} (A : Γ.ty) (B : (Γ.cons A).ty) (e : (Γ.cons A).typed B) :
     Γ.typed (mkPi A B) := by
@@ -164,6 +176,19 @@ def mkApp {Γ : Context Ctx} (A : Γ.ty) (B : (Γ.cons A).ty)
   simp [Context.subst]
   congr! 1; exact (mkPApp A B f).2
 
+def mkSmallPi {Γ : Context Ctx} (A : Γ.typed wU) (B : (Γ.cons (mkEl A)).typed wU) : Γ.typed wU := by
+  refine mkTyped (Δ := .nil)
+    (Yoneda.fullyFaithful.preimage (?_ ≫ NaturalModelSmallPi.SmallPi (Ctx := Ctx)))
+    (by simp [wU, Context.nil]; congr; ext)
+  refine ((uvPoly _).equiv _ _).2 ⟨?_, ?_⟩
+  · exact yoneda.map (substCons (terminal.from _) A.1 _ A.2)
+  · refine ?_ ≫ yoneda.map (substCons (terminal.from _) B.1 _ B.2)
+    dsimp [uvPoly]
+    refine (disp_pullback (Ctx := Ctx) _).isLimit.lift <|
+      PullbackCone.mk (pullback.fst ≫ var _ _) pullback.snd ?_
+    rw [mkEl, Category.assoc, (disp_pullback _).w, ← Category.assoc,
+      pullback.condition, Category.assoc]
+
 mutual
 
 def ofCtx : List TyExpr → Part (Context Ctx)
@@ -183,7 +208,12 @@ def ofType (Γ : Context Ctx) : TyExpr → Part Γ.ty
 def ofTerm (Γ : Context Ctx) : Expr → Part Γ.tm
   | .bvar i => Context.var _ i
   -- | .univ => .none
-  -- | .pi .. => .none -- TODO: small pi
+  | .pi A B => do
+    let A ← ofTerm Γ A
+    Part.assert (A ≫ tp = wU) fun hA => do
+    let B ← ofTerm (Γ.cons (mkEl ⟨A, hA⟩)) B
+    Part.assert (B ≫ tp = wU) fun hB => do
+    pure (mkSmallPi ⟨A, hA⟩ ⟨B, hB⟩).1
   | .lam A e => do
     let A ← ofType Γ A
     let e ← ofTerm (Γ.cons A) e
