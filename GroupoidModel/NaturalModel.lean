@@ -221,6 +221,20 @@ class NaturalModelSmallPi [NaturalModelU Ctx] [NaturalModelPi Ctx] where
   SmallPi : (P (yoneda.map (disp (ext (⊤_ Ctx) U) El))).obj y(ext (⊤_ Ctx) U) ⟶ y(ext (⊤_ Ctx) U)
   SmallPi_eq : SmallPi ≫ El = toPiArgs ≫ Pi
 
+section NaturalModelSmallPi
+
+def lambda [NaturalModelU Ctx] [NaturalModelPi Ctx] : (P (yoneda.map (disp (ext (⊤_ Ctx) U) El))).obj (ext (⊤_ Ctx) U) ⟶ (ext (⊤_ Ctx) U) :=
+  sorry
+
+theorem NaturalModelSmallPi_pullback [NaturalModelU Ctx] [NaturalModelPi Ctx] :
+    IsPullback NaturalModelSmallPi.lambda ((P tp).map tp) tp Pi := sorry
+
+
+end NaturalModelSmallPi
+
+
+
+
 /-
 we will also want to say that the universe U is closed under Sigma, Pi, and Id,
 so that we can say that U is univalent.

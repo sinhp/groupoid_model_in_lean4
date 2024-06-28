@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sina Hazratpour
 -/
 
-import LeanFibredCategories.ForMathlib.Displayed.Fibre
-import LeanFibredCategories.ForMathlib.Displayed.Basic
+import GroupoidModel.FibrationForMathlib.Displayed.Fibre
+import GroupoidModel.FibrationForMathlib.Displayed.Basic
 import Mathlib.CategoryTheory.Limits.Preserves.Basic
 
 /-!
@@ -66,7 +66,7 @@ namespace Cartesian
 
 open Display
 
-variable (g : X ⟶[f] Y) [Cartesian g]
+variable (g : X ⟶[f] Y) [Cartesian g] {K : C} {Z : F K}
 
 /-- `gap g u g'` is the canonical map from a lift `g' : x' ⟶[u ≫ f] y` to a
 cartesian lift `g` of `f`. -/
@@ -104,7 +104,7 @@ instance instId {X : F I} : Cartesian (𝟙ₗ X) where
   }
 
 /-- Cartesian based-lifts are closed under composition. -/
-instance instComp {X : F I} {Y : F J} {Z : F K} (g₁ : X ⟶[f₁] Y) [Cartesian g₁]
+instance instComp {X : F I} {Y : F J} {Z : F K} {f₁ : I ⟶ J}  {f₂ : J ⟶ K} (g₁ : X ⟶[f₁] Y) [Cartesian g₁]
 (g₂ : Y ⟶[f₂] Z) [Cartesian g₂] : Cartesian (g₁ ≫ₗ g₂) where
   uniq_lift := fun I' W u g' => {
     default := ⟨ gap g₁ u (gap g₂ (u ≫ f₁) (assoc u f₁ f₂ ▸ g')), by

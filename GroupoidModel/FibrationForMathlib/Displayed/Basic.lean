@@ -70,7 +70,7 @@ lemma eqToHomMap_naturality {I I' J J' : C} {w : I = I'} {w' : J = J'} (f : I �
   subst w' w
   simp
 
-variable {I I' I'' : C}
+variable {I I' I'' J' : C}
 
 @[simp]
 lemma Fibre_cast_trans (X : F I) {w : I = I'} {w' : I' = I''} {w'' : I = I''} :
@@ -197,10 +197,10 @@ instance categoryStruct : CategoryStruct (∫ F) where
   id X := ⟨𝟙 X.1, 𝟙ₗ X.2⟩
   comp u u' := ⟨u.1 ≫ u'.1, u.2 ≫ₗ u'.2⟩
 
-@[simp]
-lemma cast_exchange_comp {I J K : C} {f f' : I ⟶ J} {h h' : J ⟶ K} {X : F I} {Y : F J} {Z : F K} (g : X ⟶[f] Y) (k : Y ⟶[h] Z) (w : f = f') (w' : h = h') : (w ▸ w') ▸ (g ≫ₗ k) = (w ▸ g) ≫ₗ (w' ▸ k) := by
-  subst w w'
-  rfl
+-- @[simp]
+-- lemma cast_exchange_comp {I J K : C} {f f' : I ⟶ J} {h h' : J ⟶ K} {X : F I} {Y : F J} {Z : F K} (g : X ⟶[f] Y) (k : Y ⟶[h] Z) (w : f = f') (w' : h = h') : (w ▸ w') ▸ (g ≫ₗ k) = (w ▸ g) ≫ₗ (w' ▸ k) := by
+--   subst w w'
+--   rfl
 
 @[simp]
 lemma whisker_left_cast_comp {I J K : C} {f : I ⟶ J} {h h' : J ⟶ K} {X : F I} {Y : F J} {Z : F K}
@@ -300,7 +300,7 @@ based-lift of its image `P g` under functor `P`. -/
 @[simps!]
 def tauto {e e' : E} (g : e ⟶ e') : (Fibre.tauto e) ⟶[P.map g] (Fibre.tauto e') := ⟨g, by simp only [Fibre.tauto, eqToHom_refl, id_comp, comp_id]⟩
 
-lemma tauto_over_base (f : (P.obj x) ⟶ (P.obj y)) (e : (Fibre.tauto x) ⟶[f] (Fibre.tauto y)) : P.map e.hom = f := by
+lemma tauto_over_base {x y : E} (f : (P.obj x) ⟶ (P.obj y)) (e : (Fibre.tauto x) ⟶[f] (Fibre.tauto y)) : P.map e.hom = f := by
   simp only [Fibre.coe_mk, over_base, eqToHom_refl, comp_id, id_comp]
 
 lemma tauto_comp_hom {e e' e'' : E} {g : e ⟶ e'} {g' : e' ⟶ e''} :
