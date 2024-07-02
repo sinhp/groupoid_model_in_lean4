@@ -231,12 +231,14 @@ class NaturalModelSmallPi [NaturalModelU Ctx] [NaturalModelPi Ctx] where
 
 section NaturalModelSmallPi
 
-def lambda [NaturalModelU Ctx] [NaturalModelPi Ctx] : (P (yoneda.map (disp (ext (⊤_ Ctx) U) El))).obj (ext (⊤_ Ctx) U) ⟶ (ext (⊤_ Ctx) U) :=
+def NaturalModelSmallPi.lambda [NaturalModelU Ctx] [NaturalModelPi Ctx] :
+    (P (yoneda.map (disp (ext (⊤_ Ctx) U) El))).obj Tm ⟶ Tm :=
   sorry
 
-theorem NaturalModelSmallPi_pullback [NaturalModelU Ctx] [NaturalModelPi Ctx] :
-    IsPullback NaturalModelSmallPi.lambda ((P tp).map tp) tp Pi := sorry
-
+theorem NaturalModelSmallPi.pullback [NaturalModelU Ctx] [NaturalModelPi Ctx] :
+    IsPullback lambda
+      ((P (yoneda.map (disp (ext (⊤_ Ctx) U) El))).map tp) tp
+      ((P_naturality ⟨_, _, (disp_pullback El).flip⟩).app _ ≫ NaturalModelPi.Pi) := sorry
 
 end NaturalModelSmallPi
 
