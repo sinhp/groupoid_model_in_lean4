@@ -59,9 +59,17 @@ structure UvPoly' {C : Type*} [Category C] [HasFiniteWidePullbacks C] (E B : C) 
   (p : E ⟶ B)
   (exp : CartesianExponentiable p := by infer_instance)
 
-namespace UvPoly'
+namespace UvPoly
 
 variable {𝒞} [Category 𝒞] [HasPullbacks 𝒞]
+
+/-- Universal property of the polynomial functor. -/
+def _root_.UvPoly.equiv' {E B : 𝒞} (P : UvPoly E B) (Γ X : 𝒞) :
+    (Γ ⟶ P.functor.obj X) ≃ Σ b : Γ ⟶ B, pullback P.p b ⟶ X :=
+  (UvPoly.equiv P Γ X).trans <|
+  Equiv.sigmaCongrRight fun _ =>
+  ((yoneda.obj X).mapIso (pullbackSymmetry ..).op).toEquiv
+
 
 -- def functor : ∀ {E B : 𝒞} (P : UvPoly' E B), 𝒞 ⥤ 𝒞 := sorry
 
@@ -71,8 +79,6 @@ variable {𝒞} [Category 𝒞] [HasPullbacks 𝒞]
 -- def _root_.UvPoly.star {E F B : 𝒞} (P : UvPoly E B) (Q : UvPoly F B) (g : E ⟶ F) (h : P.p = g ≫ Q.p) :
 --     Q.functor ⟶ P.functor := sorry --UvPoly.natural (P := ⟨_, _, Q⟩) (Q := ⟨_, _, P⟩) ⟨by dsimp, by dsimp, _⟩
 
-end UvPoly'
-
 def _root_.UvPoly.comp {𝒞} [Category 𝒞] [HasFiniteWidePullbacks 𝒞] [HasTerminal 𝒞]
     {E B D C : 𝒞} (P1 : UvPoly E B) (P2 : UvPoly D C) : UvPoly (P2.functor.obj E) (P1.functor.obj C) :=
    let f : E ⟶ B := P1.p
@@ -81,6 +87,8 @@ def _root_.UvPoly.comp {𝒞} [Category 𝒞] [HasFiniteWidePullbacks 𝒞] [Has
      p := sorry
      exp := sorry
    }
+
+end UvPoly
 
 /-!
 # Natural Models
@@ -207,8 +215,8 @@ variable (Ctx) in
 class NaturalModelU where
   U : y(⊤_ Ctx) ⟶ Ty
   El : y(ext (⊤_ Ctx) U) ⟶ Ty
-  El_mono : Mono El
-export NaturalModelU (U El El_mono)
+  -- El_mono : Mono El
+export NaturalModelU (U El)
 
 open NaturalModelU in
 def toPiArgs [NaturalModelU Ctx] [NaturalModelPi Ctx] :

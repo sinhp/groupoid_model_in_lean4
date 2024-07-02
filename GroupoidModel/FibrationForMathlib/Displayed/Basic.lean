@@ -41,7 +41,9 @@ We provide the following notations:
 Benedikt Ahrens, Peter LeFanu Lumsdaine, Displayed Categories, Logical Methods in Computer Science 15 (1).
 
 -/
--- set_option autoImplicit true
+
+set_option autoImplicit true
+
 namespace CategoryTheory
 
 open Category CategoryTheory
@@ -109,7 +111,8 @@ attribute [trans] Display.assoc_cast
 
 namespace Display
 
-variable {F} [Display F] {I J : C}
+variable {F}
+variable [Display F] {I J : C}
 
 @[simp]
 def cast {f f' : I ⟶ J} {X : F I} {Y : F J} (w : f = f') (g : X ⟶[f] Y) :
@@ -197,10 +200,12 @@ instance categoryStruct : CategoryStruct (∫ F) where
   id X := ⟨𝟙 X.1, 𝟙ₗ X.2⟩
   comp u u' := ⟨u.1 ≫ u'.1, u.2 ≫ₗ u'.2⟩
 
--- @[simp]
--- lemma cast_exchange_comp {I J K : C} {f f' : I ⟶ J} {h h' : J ⟶ K} {X : F I} {Y : F J} {Z : F K} (g : X ⟶[f] Y) (k : Y ⟶[h] Z) (w : f = f') (w' : h = h') : (w ▸ w') ▸ (g ≫ₗ k) = (w ▸ g) ≫ₗ (w' ▸ k) := by
---   subst w w'
---   rfl
+@[simp]
+lemma cast_exchange_comp {I J K : C} {f f' : I ⟶ J} {h h' : J ⟶ K} {X : F I} {Y : F J} {Z : F K}
+    (g : X ⟶[f] Y) (k : Y ⟶[h] Z) (w : f = f') (w' : h = h') :
+    w' ▸ (g ≫ₗ k) = (w ▸ g) ≫ₗ (w' ▸ k) := by
+  subst w w'
+  rfl
 
 @[simp]
 lemma whisker_left_cast_comp {I J K : C} {f : I ⟶ J} {h h' : J ⟶ K} {X : F I} {Y : F J} {Z : F K}
@@ -343,7 +348,8 @@ instance Functor.display : Display (fun c => P⁻¹ c) where
 
 namespace Display
 
-variable {F} [Display F]
+variable {F}
+variable [Display F]
 
 /-- The type `Lift f tgt` of lifts of `f` with target `tgt` consists of an object in the Fibre of the domain of `f` and a based-lift
 of `f` starting at this object and ending at `tgt`. -/

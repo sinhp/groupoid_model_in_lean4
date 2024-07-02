@@ -5,8 +5,8 @@ Authors: Sina Hazratpour
 -/
 import Mathlib.CategoryTheory.Category.Cat
 import Mathlib.CategoryTheory.Functor.Basic
-import LeanFibredCategories.ForMathlib.FibredCats.Basic
-import LeanFibredCategories.ForMathlib.FibredCats.CartesianLift
+import GroupoidModel.FibrationForMathlib.FibredCats.Basic
+import GroupoidModel.FibrationForMathlib.FibredCats.CartesianLift
 
 
 namespace CategoryTheory

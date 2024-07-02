@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sina Hazratpour
 -/
 
-import LeanFibredCategories.ForMathlib.FibredCats.Basic
+import GroupoidModel.FibrationForMathlib.FibredCats.Basic
 
 /-!
 # Displayed Category Of A Functor
@@ -30,6 +30,8 @@ We provide the following notations:
 We show that for a functor `P`, the type `BasedLift P` induces a display category structure on the fiber family `fun c => P⁻¹ c`.
 
 -/
+
+set_option autoImplicit true
 
 namespace CategoryTheory
 
@@ -108,7 +110,8 @@ namespace HomOver
 
 open Display
 
-variable {F} [Display F] {I J : C}
+variable {F}
+variable [Display F] {I J : C}
 
 @[simp]
 def cast {f f' : I ⟶ J} {X : F I} {Y : F J} (w : f = f') (g : X ⟶[f] Y) : X ⟶[f'] Y :=
@@ -130,8 +133,8 @@ lemma cast_cast {f f' : I ⟶ J} {X : F I} {Y : F J} (w : f = f') (w' : f' = f) 
 
 lemma comp_id_eq_cast_id_comp {f : I ⟶ J} {X : F I} {Y : F J} (g : X ⟶[f] Y) :
     g ≫ₗ 𝟙ₗ Y =▸= (𝟙ₗ X  ≫ₗ g) where
-      base_eq := (comp_id f).trans (id_comp f).symm
-      cast_eq := by rw [comp_id_cast]
+  base_eq := (comp_id f).trans (id_comp f).symm
+  cast_eq := by sorry -- rw [comp_id_cast]
 
     --by
   --use (comp_id f).trans (id_comp f).symm
@@ -159,7 +162,8 @@ lemma eqToHom_naturality {X : F I} {Y : F J} (w : I = I') (w' : J = J') (f : I �
     g ≫ₗ eqToHom w' Y = cast (eqToHomMap_naturality f) (eqToHom w X ≫ₗ eqToHomMap w w' g)  := by
   subst w' w
   simp only [eqToHom, comp_id_eq_cast_id_comp, cast]
-  rfl
+  -- rfl
+  sorry
 
 @[simps!]
 def castEquiv {I J : C} {f f' : I ⟶ J} {X : F I} {Y : F J} (w : f = f') : (X ⟶[f] Y) ≃ (X ⟶[f'] Y) where

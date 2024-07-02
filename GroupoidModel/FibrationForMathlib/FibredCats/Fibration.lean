@@ -4,14 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sina Hazratpour
 -/
 import Mathlib.CategoryTheory.Category.Cat
-import Mathlib.CategoryTheory.Arrow
+import Mathlib.CategoryTheory.Comma.Arrow
 import Mathlib.CategoryTheory.Opposites
 import Mathlib.CategoryTheory.Elements
 import Mathlib.CategoryTheory.Equivalence
 import Mathlib.CategoryTheory.Grothendieck
-import LeanFibredCategories.ForMathlib.FibredCats.Basic
-import LeanFibredCategories.ForMathlib.FibredCats.CartesianLift
-import LeanFibredCategories.ForMathlib.FibredCats.VerticalLift
+import GroupoidModel.FibrationForMathlib.FibredCats.Basic
+import GroupoidModel.FibrationForMathlib.FibredCats.CartesianLift
+import GroupoidModel.FibrationForMathlib.FibredCats.VerticalLift
 
 set_option pp.explicit false
 --set_option pp.notation true
@@ -20,6 +20,7 @@ set_option trace.simps.verbose true
 --set_option trace.Meta.synthInstance true
 set_option pp.coercions true
 
+/-
 namespace CategoryTheory
 
 open Category Opposite BasedLift Fiber FiberCat
@@ -185,3 +186,4 @@ transport_id_hom {c : C} (x : P⁻¹ c) : basedLiftHom (𝟙 c) x = eqToHom (tra
 transport_comp_obj {c d₁ d₂ : C} (f₁ : c ⟶ d₁) (f₂ : d₁ ⟶ d₂) (x : P⁻¹ d₂) : ((f₁ ≫ f₂) ⋆ x).1 = (f₁ ⋆ (f₂ ⋆ x)).1
 lift_comp_hom {c d e : C} (f₁ : c ⟶ d) (f₂ : d ⟶ d') (x : P⁻¹ d') :
 basedLiftHom (f₁ ≫ f₂) x = eqToHom (transport_comp_obj f₁ f₂ x) ≫ basedLiftHom f₁ (f₂ ⋆ x) ≫ (basedLiftHom f₂ x)
+-/

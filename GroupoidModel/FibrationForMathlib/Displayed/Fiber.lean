@@ -8,7 +8,7 @@ import Mathlib.Tactic.Basic
 import Mathlib.Data.Subtype
 import Mathlib.Logic.Equiv.Basic
 import Mathlib.CategoryTheory.Category.Cat
-import Mathlib.CategoryTheory.Arrow
+import Mathlib.CategoryTheory.Comma.Arrow
 import Mathlib.CategoryTheory.Opposites
 import Mathlib.CategoryTheory.Equivalence
 import Mathlib.CategoryTheory.EqToHom
@@ -29,6 +29,7 @@ We provide the following notations:
 * `P ⁻¹ c` for the fiber of functor `P` at `c`.
 -/
 
+set_option autoImplicit true
 
 /-- The fiber of a map at a given point. -/
 def Fiber {C E : Type*} (P : E → C) (c : C) := {d : E // P d = c}
@@ -107,7 +108,7 @@ open Category Opposite Functor Fiber
 
 /-- The fiber of a functor at a given object in the base cateogry. -/
 abbrev FiberCat {C E : Type*} [Category C] [Category E] (P : E ⥤ C) (c : C) := Fiber P.obj c
-notation:75 P " ⁻¹ " c => FiberCat P c
+notation:75 (name := FiberCat_stx2) P " ⁻¹ " c => FiberCat P c
 
 namespace FiberCat
 variable {C E : Type*} [Category C] [Category E] {P : E ⥤ C}
@@ -161,7 +162,7 @@ lemma hom_ext {c : C} {x y : P⁻¹ c} {f g : x ⟶ y} (h : f.1 = g.1) : f = g :
 @[simps]
 lemma is_iso {c : C} {x y : P⁻¹ c} (f : x ⟶ y) : IsIso f ↔ IsIso f.1 :=
   ⟨
-    fun h ↦ (asIso f) |> forget.mapIso |> IsIso.of_iso, fun h ↦ ⟨⟨⟨inv f.1, by simp⟩, by simp⟩⟩
+    fun h ↦ (asIso f) |> forget.mapIso |> Iso.isIso_hom, fun h ↦ ⟨⟨⟨inv f.1, by simp⟩, by simp⟩⟩
   ⟩
 
 namespace Op

@@ -5,17 +5,18 @@ Authors: Sina Hazratpour
 -/
 
 import Mathlib.CategoryTheory.Category.Cat
-import Mathlib.CategoryTheory.Arrow
+import Mathlib.CategoryTheory.Comma.Arrow
 import Mathlib.CategoryTheory.Opposites
 import Mathlib.CategoryTheory.Equivalence
 import Mathlib.CategoryTheory.EqToHom
 import Mathlib.CategoryTheory.Sigma.Basic
-import Mathlib.CategoryTheory.MorphismProperty
+import Mathlib.CategoryTheory.MorphismProperty.Basic
 import Mathlib.CategoryTheory.Limits.Preserves.Basic
-import LeanFibredCategories.ForMathlib.Data.Fiber
-import LeanFibredCategories.ForMathlib.FibredCats.Basic
-import LeanFibredCategories.ForMathlib.FibredCats.CartesianLift
+import GroupoidModel.FibrationForMathlib.Data.Fiber
+import GroupoidModel.FibrationForMathlib.FibredCats.Basic
+import GroupoidModel.FibrationForMathlib.FibredCats.CartesianLift
 
+/-
 open BasedLift
 
 variable {P : E ⥤ C} {c' c d : C} {f : c ⟶ d} {x : P⁻¹ c} {y : P⁻¹ d} {x' : P⁻¹ c'} (g : x ⟶[f] y) [CartesianBasedLift (P:= P) g]
@@ -41,3 +42,4 @@ lemma gaplift_hom_property (u : c' ⟶ c) {f' : c' ⟶ d} (g' : x' ⟶[f'] y)
 (h : f' = u ≫ f) : (gaplift g u g' h).hom ≫  g.hom = g'.hom := by rw [← BasedLift.comp_hom _ _]; simp only [gaplift_property g u g' h, cast_hom]
 
 end BasedLift
+-/

@@ -5,8 +5,8 @@ Authors: Sina Hazratpour
 -/
 import Mathlib.CategoryTheory.Category.Basic
 import Mathlib.CategoryTheory.Sigma.Basic
-import LeanFibredCategories.ForMathlib.Data.Fiber
-import LeanFibredCategories.ForMathlib.FibredCats.CartesianLift
+import GroupoidModel.FibrationForMathlib.Data.Fiber
+import GroupoidModel.FibrationForMathlib.FibredCats.CartesianLift
 /-!
 # Vertical Lifts
 
@@ -115,12 +115,14 @@ def isoVertBasedLiftEquiv {c : C} {x y : P⁻¹ c} : (x ≅ y) ≃ (x ⟶[≅(�
 def vertCartIso {P : E ⥤ C} {c: C} {e e' : P⁻¹ c} (g : e ⟶ e')
 [Cartesian (basedLiftOfFiberHom g)] : e ≅ e' where
   hom := g
-  inv := gaplift (basedLiftOfFiberHom g) (𝟙 c) (id e' ≫[l] id e')
+  inv := sorry -- gaplift (basedLiftOfFiberHom g) (𝟙 c) (id e' ≫[l] id e')
   inv_hom_id := by
-    rw [← comp_id (𝟙 e')]; apply FiberCat.hom_ext; apply gaplift_hom_property
+    rw [← comp_id (𝟙 e')]; apply FiberCat.hom_ext; sorry -- apply gaplift_hom_property
   hom_inv_id := by
     rw [← comp_id (𝟙 e)]
-    let g' : e' ⟶[𝟙 c] e := basedLiftOfFiberHom (gaplift (basedLiftOfFiberHom g) (𝟙 c) (id e' ≫[l] id e'))
+    let g' : e' ⟶[𝟙 c] e := basedLiftOfFiberHom sorry -- (gaplift (basedLiftOfFiberHom g) (𝟙 c) (id e' ≫[l] id e'))
+    sorry
+    /-
     have : ((basedLiftOfFiberHom g ≫[l] g') ≫[l] basedLiftOfFiberHom g) = (BasedLift.id e ≫[l] BasedLift.id e) ≫[l](basedLiftOfFiberHom g) := by
       simp only [BasedLift.comp, BasedLift.id, comp_id,
       Category.assoc, id_comp, BasedLift.mk.injEq]
@@ -131,6 +133,7 @@ def vertCartIso {P : E ⥤ C} {c: C} {e e' : P⁻¹ c} (g : e ⟶ e')
     apply FiberCat.hom_ext
     dsimp
     aesop
+    -/
     -- have H' := comp_hom'.mp H
     -- simp only [BasedLift.comp, BasedLift.id, comp_id] at H'
     -- simp only [comp_id, H']

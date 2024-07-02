@@ -5,15 +5,15 @@ Authors: Sina Hazratpour
 -/
 
 import Mathlib.CategoryTheory.Category.Cat
-import Mathlib.CategoryTheory.Arrow
+import Mathlib.CategoryTheory.Comma.Arrow
 import Mathlib.CategoryTheory.Opposites
 import Mathlib.CategoryTheory.Equivalence
 import Mathlib.CategoryTheory.EqToHom
 import Mathlib.CategoryTheory.Sigma.Basic
-import Mathlib.CategoryTheory.MorphismProperty
+import Mathlib.CategoryTheory.MorphismProperty.Basic
 import Mathlib.CategoryTheory.Limits.Preserves.Basic
-import LeanFibredCategories.ForMathlib.Data.Fiber
-import LeanFibredCategories.ForMathlib.FibredCats.Basic
+import GroupoidModel.FibrationForMathlib.Data.Fiber
+import GroupoidModel.FibrationForMathlib.FibredCats.Basic
 
 /-!
 # Cartesian Lifts
@@ -51,6 +51,8 @@ Finally, We provide the following notations:
 
 -/
 
+set_option autoImplicit true
+set_option relaxedAutoImplicit true
 --set_option trace.simps.verbose true
 
 namespace CategoryTheory
@@ -158,7 +160,7 @@ variable (P : E ⥤ C) {c d d': C} {x: P⁻¹ c} {y : P⁻¹ d} {z : P⁻¹ d'} 
 
 scoped infixr:80 "  ≫ₗ "  => BasedLift.comp
 
---notation f " ≫[l] " g => BasedLift.comp f g
+notation f " ≫[l] " g => BasedLift.comp f g
 end
 
 /-- The underlying morphism of a composition of based-lifts is the composition
@@ -191,6 +193,7 @@ lemma eq_id_of_hom_eq_id {c : C} {x : P⁻¹ c} {g : x ⟶[𝟙 c] x} :
 (g.hom = 𝟙 x.1) ↔ (g = id x) := by
   aesop
 
+/-
 lemma hom_comp_cast  {c d d': C} {f₁ : c ⟶ d} {f₂ : d ⟶ d'} {f : c ⟶ d'}
 {h₁ : f = f₁ ≫ f₂} {x : P⁻¹ c} {y : P⁻¹ d} {z : P⁻¹ d'} {g₁ : x ⟶[f₁] y}
 {g₂ : y ⟶[f₂] z} {g : x ⟶[f] z} : g₁.hom ≫ g₂.hom = g.hom ↔
@@ -202,11 +205,11 @@ g₁ ≫[l] g₂ = cast h₁ g := by
   intro h
   rw [← comp_hom, h, cast_hom]
 
-
 @[simp]
 lemma id_comp_cast {c d : C} {f : c ⟶ d} {x : P⁻¹ c} {y : P⁻¹ d}
 {g : x ⟶[f] y} : BasedLift.id x  ≫[l] g = (BasedLift.cast ((id_comp f).symm : f = 𝟙 c ≫ f)) g := by
   simp_all only [comp, id, id_comp]; rfl
+-/
 
 /-- Casting equivalence along postcomposition with the identity morphism. -/
 @[simp]
@@ -226,14 +229,14 @@ def castOfeqToHom {c d : C} {f : c ⟶ d} {x : P⁻¹ c} {y : P⁻¹ d} :
   toFun := fun g => ⟨g.hom, by simp [g.over]⟩
   invFun := fun g => ⟨g.hom, by simp [g.over]⟩
   left_inv := by intro g; simp
-  right_inv := by intro g; simp
+  right_inv := by intro g; ext; simp
 
-
+/-
 lemma assoc {c' c d d' : C} {f₁ : c' ⟶ c} {f₂ : c ⟶ d} {f₃ : d ⟶ d'} {w : P⁻¹ c'}
 {x : P⁻¹ c} {y : P⁻¹ d} {z : P⁻¹ d'} (g₁ : w ⟶[f₁] x) (g₂ : x ⟶[f₂] y) (g₃ : y ⟶[f₃] z) :
     ((g₁ ≫ₗ g₂) ≫ₗ g₃) =  (g₁ ≫ₗ g₂ ≫ₗ g₃) := by
   simp only [comp, Category.assoc, castAssoc, cast]
-
+-/
 
 /-- The composition of based-lifts is associative up to casting along equalities
 of the base morphisms. -/
@@ -366,6 +369,8 @@ lemma gaplift'_self : gaplift' g (𝟙 c) g (id_comp f).symm = BasedLift.id x :=
   rfl
 
 variable {g}
+
+/-
 /-- The composition of gaplifts with respect to morphisms `u' : c'' ⟶ c` and
 `u : c' ⟶ c` is the gap lift of the composition `u' ≫ u`. -/
 @[simp]
@@ -404,6 +409,7 @@ lemma instCancel {g₁ : x ⟶[f₁] y} {g₂ : y ⟶[f₂] z} [CartesianBasedLi
                simp
                apply gaplift_uniq (g₁ ≫[l] g₂) (castAssoc (g₁' ≫[l] g₂)) l (this)
   }
+-/
 
 end CartesianBasedLift
 
@@ -433,6 +439,7 @@ lemma gapmap_over {z : E} {u : P.obj z ⟶ P.obj x} {g' : Fiber.tauto z ⟶[u �
 lemma gapmap_property {g : x ⟶ y} {gcart : CartMor P g} {z : E} {u : P.obj z ⟶ P.obj x} {g' : Fiber.tauto z ⟶[u ≫ P.map g] y} : (gapmap g gcart u g') ≫ g = g'.hom := by
   apply (Classical.choose_spec (gcart u g')).1
 
+/-
 @[simp]
 lemma gapmap_uniq {z : E} {u : P.obj z ⟶ P.obj x} {g' : Fiber.tauto z ⟶[u ≫ P.map g] Fiber.tauto y}  (v : Fiber.tauto z ⟶[u] x) (hv : v.hom ≫ g = g'.hom) : v.hom = gapmap g gcart u g' := by
   have : v = Classical.choose (gcart u g') := by
@@ -452,14 +459,17 @@ lemma gapmap_uniq' (g : x ⟶ y) (gcart : CartMor P g) {c : C} {z : P⁻¹ c}
   have hv₂' : (BasedLift.cast hv'.symm v₂').hom ≫ g = (BasedLift.cast  (this.symm) g').hom := by simp only [Fiber.tauto_over, tauto_hom, BasedLift.comp, cast_apply_hom]
   have H' := (gcart (P.map v₁) (BasedLift.cast (this.symm) g')).unique hv₁ hv₂'
   injection H'
+-/
 
 /-- `cart_id e` says that the identity morphism `𝟙 e` is cartesian. -/
 lemma cart_id (e : E) : CartMor P (𝟙 e) := fun z u g' ↦ by
+  stop
   use ⟨(BasedLift.cast ((whisker_eq u (P.map_id e)).trans (comp_id _))).toFun g', by aesop⟩
   constructor
   simp_all only [Fiber.tauto, Equiv.toFun_as_coe, cast_apply_hom, comp_id]
   intro v hv; ext; aesop
 
+/-
 /-- Cartesian morphisms are closed under composition. -/
 @[simp]
 lemma cart_comp : StableUnderComposition (CartMor P) := fun x y z f g hf hg w u g' => by
@@ -524,6 +534,7 @@ constructor
                          · simp [cone_fst]; rw [hl]; symm; exact pb₁.fac pbc₁ WalkingCospan.left
                          · simp [cone_snd]; rw [this]; symm; exact pb₁.fac pbc₁ WalkingCospan.right
   ext; assumption
+-/
 
 end CartMor
 
@@ -567,7 +578,7 @@ abbrev Cart ( _ : E ⥤ C) := E
 instance instCategoryCart {P : E ⥤ C} : Category (Cart P) where
   Hom x y := { f : x ⟶ y |  CartMor (P:= P) f }
   id x := ⟨𝟙 x, cart_id x⟩
-  comp := @fun x y z f g => ⟨ f.1 ≫ g.1, cart_comp f.1 g.1 f.2 g.2⟩
+  comp := @fun x y z f g => ⟨ f.1 ≫ g.1, sorry⟩  --cart_comp f.1 g.1 f.2 g.2⟩
 
 namespace Cart
 

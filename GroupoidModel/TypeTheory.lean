@@ -37,11 +37,11 @@ theorem liftVar_lt_add (self : i < k) : liftVar n i j < k + n := by
 
 variable (n : Nat) in
 mutual
-def TyExpr.liftN : TyExpr → (k :_:= 0) → TyExpr
+@[semireducible] def TyExpr.liftN : TyExpr → (k :_:= 0) → TyExpr
   | .univ, _ => .univ
   | .el A, k => .el (A.liftN k)
   | .pi ty body, k => .pi (ty.liftN k) (body.liftN (k+1))
-def Expr.liftN : Expr → (k :_:= 0) → Expr
+@[semireducible] def Expr.liftN : Expr → (k :_:= 0) → Expr
   | .bvar i, k => .bvar (liftVar n i k)
   | .app fn arg, k => .app (fn.liftN k) (arg.liftN k)
   | .lam ty body, k => .lam (ty.liftN k) (body.liftN (k+1))
@@ -51,20 +51,33 @@ end
 abbrev TyExpr.lift := TyExpr.liftN 1
 abbrev Expr.lift := Expr.liftN 1
 
-mutual
-inductive HasType : List TyExpr → Expr → TyExpr → Type
-  | var {A Γ} : HasType (A :: Γ) (.bvar 0) A.lift
-  | weak {e A Γ} : HasType Γ e A → HasType (A :: Γ) e.lift A.lift
-  | lam {A B e Γ} : IsType Γ A → HasType (A :: Γ) e B → HasType Γ (.lam A e) (.pi A B)
+def instVar (i : Nat) (e : Expr) (k := 0) : Expr :=
+  if i < k then .bvar i else if i = k then .liftN k e else .bvar (i - 1)
 
-inductive IsType : List TyExpr → TyExpr → Type
-  | el {A Γ} : HasType Γ A .univ → IsType Γ (.el A)
-  | pi {A B Γ} : IsType Γ A → IsType (A :: Γ) B → IsType Γ (.pi A B)
-  | univ {Γ} : IsType Γ .univ
+mutual
+def Expr.inst : Expr → Expr → (k :_:= 0) → Expr
+  | .bvar i, e, k => instVar i e k
+  | .app fn arg, e, k => .app (fn.inst e k) (arg.inst e k)
+  | .lam ty body, e, k => .lam (ty.inst e k) (body.inst e (k+1))
+  | .pi ty body, e, k => .pi (ty.inst e k) (body.inst e (k+1))
+def TyExpr.inst : TyExpr → Expr → (k :_:= 0) → TyExpr
+  | .univ, _, _ => .univ
+  | .el a, e, k => .el (a.inst e k)
+  | .pi ty body, e, k => .pi (ty.inst e k) (body.inst e (k+1))
 end
 
-example : HasType [] (Expr.lam .univ (.bvar 0)) (TyExpr.pi .univ .univ) :=
-  .lam .univ .var
+mutual
+inductive HasType : List TyExpr → Expr → TyExpr → Prop
+  | weak {e A Γ} : HasType Γ e A → HasType (A :: Γ) e.lift A.lift
+  | bvar {A Γ} : HasType (A :: Γ) (.bvar 0) A.lift
+  | app {A B f a Γ} : HasType Γ f (.pi A B) → HasType Γ a A → HasType Γ (.app f a) (.inst B a)
+  | lam {A B e Γ} : IsType Γ A → HasType (A :: Γ) e B → HasType Γ (.lam A e) (.pi A B)
+
+inductive IsType : List TyExpr → TyExpr → Prop
+  | univ {Γ} : IsType Γ .univ
+  | el {A Γ} : HasType Γ A .univ → IsType Γ (.el A)
+  | pi {A B Γ} : IsType Γ A → IsType (A :: Γ) B → IsType Γ (.pi A B)
+end
 
 universe u v
 open CategoryTheory NaturalModel
@@ -124,7 +137,7 @@ def mkEl {Γ : Context Ctx} (A : Γ.typed wU) : Γ.ty :=
 
 def mkP_equiv {Γ : Ctx} {X : Psh Ctx} :
     (y(Γ) ⟶ (P tp).obj X) ≃ (A : y(Γ) ⟶ Ty) × (y(ext Γ A) ⟶ X) :=
-  ((uvPoly tp).equiv y(Γ) X).trans <|
+  ((uvPoly tp).equiv' y(Γ) X).trans <|
   Equiv.sigmaCongrRight fun A =>
   ((yoneda.obj X).mapIso (disp_pullback A).isoPullback.op).toEquiv
 
@@ -180,7 +193,7 @@ def mkSmallPi {Γ : Context Ctx} (A : Γ.typed wU) (B : (Γ.cons (mkEl A)).typed
   refine mkTyped (Δ := .nil)
     (Yoneda.fullyFaithful.preimage (?_ ≫ NaturalModelSmallPi.SmallPi (Ctx := Ctx)))
     (by simp [wU, Context.nil]; congr; ext)
-  refine ((uvPoly _).equiv _ _).2 ⟨?_, ?_⟩
+  refine ((uvPoly _).equiv' _ _).2 ⟨?_, ?_⟩
   · exact yoneda.map (substCons (terminal.from _) A.1 _ A.2)
   · refine ?_ ≫ yoneda.map (substCons (terminal.from _) B.1 _ B.2)
     dsimp [uvPoly]
@@ -190,10 +203,6 @@ def mkSmallPi {Γ : Context Ctx} (A : Γ.typed wU) (B : (Γ.cons (mkEl A)).typed
       pullback.condition, Category.assoc]
 
 mutual
-
-def ofCtx : List TyExpr → Part (Context Ctx)
-  | [] => pure .nil
-  | A :: Γ => do let Γ ← ofCtx Γ; Γ.cons (← ofType Γ A)
 
 def ofType (Γ : Context Ctx) : TyExpr → Part Γ.ty
   | .univ => pure wU
@@ -225,3 +234,95 @@ def ofTerm (Γ : Context Ctx) : Expr → Part Γ.tm
     pure (mkApp _ h.choose ⟨f, h.choose_spec⟩ ⟨a, rfl⟩).1
 
 end
+
+def ofCtx : List TyExpr → Part (Context Ctx)
+  | [] => pure .nil
+  | A :: Γ => do let Γ ← ofCtx Γ; Γ.cons (← ofType Γ A)
+
+-- mutual
+
+-- theorem ofTerm_lift (h : e' ∈ ofTerm Γ (.liftN e k)) : e' ∈ ofTerm Γ (.liftN e k) := sorry
+-- end
+
+theorem ofTerm_ofType_correct :
+    (∀ {Γ e A} (H : HasType Γ e A) {Γ'} (hΓ : Γ' ∈ ofCtx (Ctx := Ctx) Γ),
+      ∃ A' ∈ ofType Γ' A, ∃ e' ∈ ofTerm Γ' e, e' ≫ tp = A') ∧
+    (∀ {Γ A} (H : IsType Γ A) {Γ'} (hΓ : Γ' ∈ ofCtx (Ctx := Ctx) Γ),
+      (ofType Γ' A).Dom) := by
+  let ofTerm_correct Γ e A := ∀ {Γ'}, Γ' ∈ ofCtx (Ctx := Ctx) Γ →
+      ∃ A' ∈ ofType Γ' A, ∃ e' ∈ ofTerm Γ' e, e' ≫ tp = A'
+  stop
+  let ofType_correct Γ A := ∀ {Γ'}, Γ' ∈ ofCtx (Ctx := Ctx) Γ → (ofType Γ' A).Dom
+  refine
+    ⟨@HasType.rec
+      (fun Γ e A _ => ofTerm_correct Γ e A)
+      (fun Γ A _ => ofType_correct Γ A)
+      ?weak ?bvar ?lam ?univ ?el ?pi,
+     @IsType.rec
+      (fun Γ e A _ => ofTerm_correct Γ e A)
+      (fun Γ A _ => ofType_correct Γ A)
+      ?weak ?bvar ?lam ?univ ?el ?pi⟩
+  case var =>
+    intro A Γ Γ' hΓ
+    simp [ofCtx] at hΓ
+    obtain ⟨Γ', hΓ', A', hA, rfl⟩ := hΓ
+    refine ⟨_, _, _⟩
+  case weak =>
+    intro A Γ Γ' hΓ
+  case lam =>
+    intro A Γ Γ' hΓ
+  case el =>
+    intro A Γ Γ' hΓ
+  case pi =>
+    intro A Γ Γ' hΓ
+  case univ =>
+    intro A Γ Γ' hΓ
+
+  -- have := @HasType.recOn
+  --   (motive_1 := fun Γ e A _ => ∀ {Γ'} (hΓ : Γ' ∈ ofCtx (Ctx := Ctx) Γ),
+  --     ∃ A' ∈ ofType Γ' A, ∃ e' ∈ ofTerm Γ' e, e' ≫ tp = A')
+  --   (motive_2 := fun Γ A _ => ∀ {Γ'} (hΓ : Γ' ∈ ofCtx (Ctx := Ctx) Γ),
+  --     (ofType Γ' A).Dom)
+
+
+theorem ofTerm_correct {Γ e A} (H : HasType Γ e A) {Γ'} (hΓ : Γ' ∈ ofCtx (Ctx := Ctx) Γ) :
+    ∃ A' ∈ ofType Γ' A, ∃ e' ∈ ofTerm Γ' e, e' ≫ tp = A' := ofTerm_ofType_correct.1 H hΓ
+
+theorem ofTerm_correct_ty {Γ e A} (H : HasType Γ e A) {Γ'} (hΓ : Γ' ∈ ofCtx (Ctx := Ctx) Γ) :
+    (ofType Γ' A).Dom :=
+  let ⟨_, ⟨h, rfl⟩, _⟩ := ofTerm_correct H hΓ
+  h
+
+theorem ofTerm_correct_tm {Γ e A} (H : HasType Γ e A) {Γ'} (hΓ : Γ' ∈ ofCtx (Ctx := Ctx) Γ) :
+    (ofTerm Γ' e).Dom :=
+  let ⟨_, _, _, ⟨h, rfl⟩, _⟩ := ofTerm_correct H hΓ
+  h
+
+theorem ofTerm_correct_tp {Γ A} (H : HasType Γ e A) {Γ'} (hΓ : Γ' ∈ ofCtx (Ctx := Ctx) Γ) :
+    (ofTerm Γ' e).get (ofTerm_correct_tm H hΓ) ≫ tp =
+    (ofType Γ' A).get (ofTerm_correct_ty H hΓ) :=
+  let ⟨_, ⟨_, rfl⟩, _, ⟨_, rfl⟩, eq⟩ := ofTerm_correct H hΓ
+  eq
+
+theorem ofType_correct {Γ A} (H : IsType Γ A) {Γ'} (hΓ : Γ' ∈ ofCtx (Ctx := Ctx) Γ) :
+    (ofType Γ' A).Dom := ofTerm_ofType_correct.2 H hΓ
+
+def foo : Type → Type := fun x : Type => x
+
+def Typed (Γ A) := { e // HasType Γ e A }
+
+def foo._hott : Typed [] (TyExpr.pi .univ .univ) := ⟨Expr.lam .univ (.bvar 0), .lam .univ .bvar⟩
+
+-- example : HasType [] (Expr.lam .univ (.bvar 0)) (TyExpr.pi .univ .univ) :=
+--   .lam .univ .bvar
+
+def toModelType {A} (e : Typed [] A) : y(⊤_ _) ⟶ M.Ty :=
+  (ofType .nil A).get (ofTerm_correct_ty (Ctx := Ctx) e.2 ⟨trivial, rfl⟩)
+
+def toModel {A} (e : Typed [] A) : y(⊤_ _) ⟶ M.Tm :=
+  (ofTerm .nil e.1).get (ofTerm_correct_tm (Ctx := Ctx) e.2 ⟨trivial, rfl⟩)
+
+theorem toModel_type {A} (e : Typed [] A) : toModel e ≫ tp = toModelType (Ctx := Ctx) e :=
+  ofTerm_correct_tp (Ctx := Ctx) e.2 ⟨trivial, rfl⟩
+
+example : y(⊤_ _) ⟶ M.Tm := toModel foo._hott

@@ -35,7 +35,7 @@ to the domain category `E`.
 
 -/
 
-
+set_option autoImplicit true
 
 namespace CategoryTheory
 

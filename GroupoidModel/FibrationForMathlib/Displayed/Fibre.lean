@@ -37,7 +37,7 @@ open Category Opposite Functor
 def Fibre {C E : Type*} [Category C] [Category E] (P : E ⥤ C) (c : C) :=
   {d : E // P.obj d = c}
 
-notation:75 P " ⁻¹ " c => Fibre P c
+notation:75 (name := Fiber_stx) P " ⁻¹ " c => Fibre P c
 
 namespace Fibre
 

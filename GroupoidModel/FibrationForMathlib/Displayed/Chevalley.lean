@@ -4,14 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sina Hazratpour
 -/
 import Mathlib.CategoryTheory.Category.Cat
-import Mathlib.CategoryTheory.Arrow
+import Mathlib.CategoryTheory.Comma.Arrow
 import Mathlib.CategoryTheory.Opposites
 import Mathlib.CategoryTheory.Elements
 import Mathlib.CategoryTheory.Equivalence
 import Mathlib.CategoryTheory.Grothendieck
-import LeanFibredCategories.ForMathlib.Displayed.Fiber
-import LeanFibredCategories.ForMathlib.Displayed.Basic
-import LeanFibredCategories.ForMathlib.Displayed.Cartesian
+import GroupoidModel.FibrationForMathlib.Displayed.Fiber
+import GroupoidModel.FibrationForMathlib.Displayed.Basic
+import GroupoidModel.FibrationForMathlib.Displayed.Cartesian
 
 set_option pp.explicit false
 --set_option pp.notation true

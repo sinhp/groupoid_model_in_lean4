@@ -99,22 +99,22 @@ instance bicategory : Bicategory (Para C) where
   whiskerLeft := @fun X Y Z f g g' α =>
     ⟨ f.par ◁ α.1, by simp [comp_par_hom]; sorry   ⟩
 
-  whiskerRight := _
-  associator := _
-  leftUnitor := _
-  rightUnitor := _
-  whiskerLeft_id := _
-  whiskerLeft_comp := _
-  id_whiskerLeft := _
-  comp_whiskerLeft := _
-  id_whiskerRight := _
-  comp_whiskerRight := _
-  whiskerRight_id := _
-  whiskerRight_comp := _
-  whisker_assoc := _
-  whisker_exchange := _
-  pentagon := _
-  triangle := _
+  whiskerRight := sorry
+  associator := sorry
+  leftUnitor := sorry
+  rightUnitor := sorry
+  whiskerLeft_id := sorry
+  whiskerLeft_comp := sorry
+  id_whiskerLeft := sorry
+  comp_whiskerLeft := sorry
+  id_whiskerRight := sorry
+  comp_whiskerRight := sorry
+  whiskerRight_id := sorry
+  whiskerRight_comp := sorry
+  whisker_assoc := sorry
+  whisker_exchange := sorry
+  pentagon := sorry
+  triangle := sorry
 
 
 

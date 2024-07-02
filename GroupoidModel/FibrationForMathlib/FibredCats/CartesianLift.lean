@@ -5,15 +5,15 @@ Authors: Sina Hazratpour
 -/
 
 import Mathlib.CategoryTheory.Category.Cat
-import Mathlib.CategoryTheory.Arrow
+import Mathlib.CategoryTheory.Comma.Arrow
 import Mathlib.CategoryTheory.Opposites
 import Mathlib.CategoryTheory.Equivalence
 import Mathlib.CategoryTheory.EqToHom
 import Mathlib.CategoryTheory.Sigma.Basic
-import Mathlib.CategoryTheory.MorphismProperty
+import Mathlib.CategoryTheory.MorphismProperty.Basic
 import Mathlib.CategoryTheory.Limits.Preserves.Basic
-import LeanFibredCategories.ForMathlib.Data.Fiber
-import LeanFibredCategories.ForMathlib.FibredCats.Basic
+import GroupoidModel.FibrationForMathlib.Data.Fiber
+import GroupoidModel.FibrationForMathlib.FibredCats.Basic
 
 /-!
 # Cartesian Lifts
@@ -51,6 +51,8 @@ Finally, We provide the following notations:
 
 -/
 
+set_option autoImplicit true
+set_option relaxedAutoImplicit true
 --set_option trace.simps.verbose true
 
 namespace CategoryTheory
@@ -193,6 +195,7 @@ lemma eq_id_of_hom_eq_id {c : C} {x : P⁻¹ c} {g : x ⟶[𝟙 c] x} :
 (g.hom = 𝟙 x.1) ↔ (g = id x) := by
   aesop
 
+/-
 lemma hom_comp_cast  {c d d': C} {f₁ : c ⟶ d} {f₂ : d ⟶ d'} {f : c ⟶ d'}
 {h₁ : f = f₁ ≫ f₂} {x : P⁻¹ c} {y : P⁻¹ d} {z : P⁻¹ d'} {g₁ : x ⟶[f₁] y}
 {g₂ : y ⟶[f₂] z} {g : x ⟶[f] z} : g₁.hom ≫ g₂.hom = g.hom ↔
@@ -208,6 +211,7 @@ g₁ ≫ₗ g₂ = cast h₁ g := by
 lemma id_comp_cast {c d : C} {f : c ⟶ d} {x : P⁻¹ c} {y : P⁻¹ d}
 {g : x ⟶[f] y} : id x  ≫ₗ g = (cast ((id_comp f).symm : f = 𝟙 c ≫ f)) g := by
   simp_all only [comp, id, id_comp]; rfl
+-/
 
 /-- Casting equivalence along postcomposition with the identity morphism. -/
 @[simp]
@@ -227,7 +231,7 @@ def castOfeqToHom {c d : C} {f : c ⟶ d} {x : P⁻¹ c} {y : P⁻¹ d} :
   toFun := fun g => ⟨g.hom, by simp [g.over]⟩
   invFun := fun g => ⟨g.hom, by simp [g.over]⟩
   left_inv := by intro g; simp
-  right_inv := by intro g; simp
+  right_inv := sorry -- by intro g; simp
 
 
 -- @[simp]
@@ -347,6 +351,7 @@ lemma gaplift_property (u : c' ⟶ c) (g' : x' ⟶[u ≫ f] y) :
 @[simp]
 lemma gaplift_hom_property (u : c' ⟶ c) (g' : x' ⟶[u ≫ f] y) : (gaplift g u g').hom ≫  g.hom = g'.hom := by rw [← BasedLift.comp_hom _ _]; congr 1; exact gaplift_property g u g'
 
+/-
 /-- The uniqueness part of the universal property of the gap lift. -/
 @[simp]
 lemma gaplift_uniq {u : c' ⟶ c} (g' : x' ⟶[u ≫ f] y) (v : x' ⟶[u] x)
@@ -377,6 +382,7 @@ lemma gaplift_comp {u : c' ⟶ c} {u' : c'' ⟶ c'} {x'' : P⁻¹ c''}
 (gaplift  (g:= g') u' g'') ≫ₗ (gaplift (g:= g) u g') =
 gaplift (g:= g) (u' ≫ u) (BasedLift.castAssoc.invFun g'') := by
   refine gaplift_uniq (f:= f) g (castAssoc.invFun g'') ((gaplift (g:= g') u' g'') ≫ₗ (gaplift (g:= g) u g')) (by rw [BasedLift.assoc]; simp only [gaplift_property])
+-/
 
 /-- The identity based-lift is cartesian. -/
 instance instId {x : P⁻¹ c} : Cartesian (id x) where
@@ -390,22 +396,23 @@ instance instId {x : P⁻¹ c} : Cartesian (id x) where
 instance instComp  {c d d' : C} {f₁ : c ⟶ d} {f₂ : d ⟶ d'} {x : P⁻¹ c} {y : P⁻¹ d} {z : P⁻¹ d'} (g₁ : x ⟶[f₁] y) [Cartesian g₁] (g₂ : y ⟶[f₂] z) [Cartesian g₂] : Cartesian (g₁ ≫ₗ g₂) where
   uniq_lift := fun c' w u g' => {
     default := ⟨gaplift g₁ u (gaplift g₂ (u ≫ f₁) (castAssoc.invFun g')), by rw [← BasedLift.assoc_inv, gaplift_property g₁ _ _, gaplift_property g₂ _ _]; simp⟩
-    uniq := by intro ⟨l, hl⟩; simp; apply gaplift_uniq; apply gaplift_uniq; rw [BasedLift.assoc]; simp; exact hl}
+    uniq := sorry -- by intro ⟨l, hl⟩; simp; apply gaplift_uniq; apply gaplift_uniq; rw [BasedLift.assoc]; simp; exact hl
+  }
 
 /-- The cancellation lemma for cartesian based-lifts. If  `g₂ : y ⟶[f₂] z` and
 `g₁ ≫ₗ g₂ : z ⟶[f₂] z` are cartesian then `g₁` is cartesian. -/
 @[simp]
-lemma instCancel {c d d' : C} {f₁ : c ⟶ d} {f₂ : d ⟶ d'} {x : P⁻¹ c} {y : P⁻¹ d} {z : P⁻¹ d'} {g₁ : x ⟶[f₁] y} {g₂ : y ⟶[f₂] z} [Cartesian g₂] [Cartesian (g₁ ≫ₗ g₂)] : Cartesian g₁ where
+def instCancel {c d d' : C} {f₁ : c ⟶ d} {f₂ : d ⟶ d'} {x : P⁻¹ c} {y : P⁻¹ d} {z : P⁻¹ d'} {g₁ : x ⟶[f₁] y} {g₂ : y ⟶[f₂] z} [Cartesian g₂] [Cartesian (g₁ ≫ₗ g₂)] : Cartesian g₁ where
   uniq_lift := fun c' z' u₁ g₁' => {
     default := {
       val := gaplift (g:= g₁ ≫ₗ  g₂) u₁ (castAssoc (g₁' ≫ₗ g₂))
-      property := by apply gaplift_uniq' g₂ _ (g₁'); rw [BasedLift.assoc]; rw [ gaplift_property _ _ _]; simp
+      property := sorry -- by apply gaplift_uniq' g₂ _ (g₁'); rw [BasedLift.assoc]; rw [ gaplift_property _ _ _]; simp
     }
     uniq := by intro l
                cases' l with l hl
                have : (l ≫ₗ (g₁ ≫ₗ g₂)) = castAssoc (g₁' ≫ₗ g₂) := by simp only [← BasedLift.assoc_inv]; rw [hl]; simp
                simp
-               apply gaplift_uniq (g₁ ≫ₗ g₂) (castAssoc (g₁' ≫ₗ g₂)) l (this)
+               sorry -- apply gaplift_uniq (g₁ ≫ₗ g₂) (castAssoc (g₁' ≫ₗ g₂)) l (this)
   }
 
 instance instCast {c d : C} {f f' : c ⟶ d} (h : f = f') {x : P⁻¹ c} {y : P⁻¹ d} (g : x ⟶[f] y) [Cartesian g] : Cartesian (g.cast h) where
@@ -458,7 +465,7 @@ lemma gapmap_uniq' (g : x ⟶ y) (gcart : CartMor P g) {c : C} {z : P⁻¹ c}
   let v₂' := tauto (P:= P) v₂
   let g' := v₂' ≫ₗ tauto g
   have : P.map v₁ ≫ P.map g = P.map v₂ ≫ P.map g  := by rw [← P.map_comp, ← P.map_comp, hv]
-  have hv₁ : v₁'.hom ≫ g = g'.hom := by simp_all only [Fiber.tauto_over, tauto_hom, BasedLift.comp]
+  have hv₁ : v₁'.hom ≫ g = g'.hom := sorry -- by simp_all only [Fiber.tauto_over, tauto_hom, BasedLift.comp]
   have hv₂' : (BasedLift.cast hv'.symm v₂').hom ≫ g = (BasedLift.cast  (this.symm) g').hom := by simp only [Fiber.tauto_over, tauto_hom, BasedLift.comp, castEquiv_apply_hom]; rfl
   have H' := (gcart (P.map v₁) (BasedLift.cast (this.symm) g')).unique hv₁ hv₂'
   injection H'
@@ -470,6 +477,7 @@ lemma cart_id (e : E) : CartMor P (𝟙 e) := fun z u g' ↦ by
   simp only [Fiber.tauto, Equiv.toFun_as_coe, castEquiv_apply_hom, comp_id]; rfl
   intro v hv; ext; aesop
 
+/-
 /-- Cartesian morphisms are closed under composition. -/
 @[simp]
 lemma cart_comp : StableUnderComposition (CartMor P) := fun x y z f g hf hg w u g' => by
@@ -481,6 +489,7 @@ lemma cart_comp : StableUnderComposition (CartMor P) := fun x y z f g hf hg w u 
   · intro v hv
     have : v.hom ≫ f = lg.hom := (BasedLift.comp_hom').mp (hlg.2 (v ≫ₗ f) (hv ▸ assoc v.hom f g))
     apply hlf.2 v this
+-/
 
 /-- Every isomorphism is cartesian. -/
 @[simp]
@@ -491,9 +500,9 @@ lemma cart_iso {x y : E} (g : x ⟶ y) [IsIso g] : CartMor P g := fun z u g' => 
   · simp only [Fiber.tauto, BasedLift.comp, tauto_hom, cast_hom, Category.assoc, IsIso.inv_hom_id,
     comp_id]
   · intro v hv
-    congr! 1
     aesop
 
+/-
 /-- The property CartMor respect isomorphisms -/
 lemma cart_iso_closed : RespectsIso (CartMor P) where
   left := fun e g hg => by apply cart_comp; exact cart_iso e.hom; assumption
@@ -552,6 +561,7 @@ constructor
                          · simp [cone_fst]; rw [hl]; symm; exact pb₁.fac pbc₁ WalkingCospan.left
                          · simp [cone_snd]; rw [this]; symm; exact pb₁.fac pbc₁ WalkingCospan.right
   ext; assumption
+-/
 
 end CartMor
 
@@ -593,7 +603,7 @@ abbrev Cart ( _ : E ⥤ C) := E
 instance instCategoryCart {P : E ⥤ C} : Category (Cart P) where
   Hom x y := { f : x ⟶ y |  CartMor (P:= P) f }
   id x := ⟨𝟙 x, cart_id x⟩
-  comp := @fun x y z f g => ⟨ f.1 ≫ g.1, cart_comp f.1 g.1 f.2 g.2⟩
+  comp := @fun x y z f g => ⟨ f.1 ≫ g.1, sorry⟩ -- cart_comp f.1 g.1 f.2 g.2⟩
 
 namespace Cart
 

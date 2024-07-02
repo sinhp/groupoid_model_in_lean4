@@ -5,9 +5,9 @@ Authors: Sina Hazratpour
 -/
 
 import Mathlib.CategoryTheory.Category.Preorder
-import LeanFibredCategories.ForMathlib.FibredCats.Basic
---import LeanFibredCategories.ForMathlib.FibredCats.CartesianLift
---import LeanFibredCategories.ForMathlib.FibredCats.VerticalLift
+import GroupoidModel.FibrationForMathlib.FibredCats.Basic
+--import GroupoidModel.FibrationForMathlib.FibredCats.CartesianLift
+--import GroupoidModel.FibrationForMathlib.FibredCats.VerticalLift
 
 /-!
 # Displayed Category
@@ -31,7 +31,7 @@ We show that for a functor `P`, the type `BasedLift P` induces a display categor
 
 -/
 
-
+set_option autoImplicit true
 
 namespace CategoryTheory
 
@@ -101,7 +101,8 @@ namespace HomOver
 
 open Display
 
-variable {F} [Display F] {I J : C}
+variable {F}
+variable [Display F] {I J : C}
 
 @[simp]
 def cast {f f' : I ⟶ J} {X : F I} {Y : F J} (w : f = f') (g : X ⟶[f] Y) : X ⟶[f'] Y :=
@@ -197,17 +198,21 @@ instance instCategoryTotalHom {X Y : ∫ F} : SmallCategory (X ⟶ Y) := by
 
 
 @[simp]
-lemma cast_exchange_comp {I J K : C} {f f' : I ⟶ J} {h h' : J ⟶ K} {X : F I} {Y : F J} {Z : F K} (g : X ⟶[f] Y) (k : Y ⟶[h] Z) (w : f = f') (w' : h = h') : (w ▸ w') ▸ (g ≫ₗ k) = (w ▸ g) ≫ₗ (w' ▸ k) := by
+lemma cast_exchange_comp {I J K : C} {f f' : I ⟶ J} {h h' : J ⟶ K} {X : F I} {Y : F J} {Z : F K}
+    (g : X ⟶[f] Y) (k : Y ⟶[h] Z) (w : f = f') (w' : h = h') :
+    w' ▸ (g ≫ₗ k) = (w ▸ g) ≫ₗ (w' ▸ k) := by
   subst w w'
   rfl
 
 @[simp]
-lemma whisker_left_cast_comp {I J K : C} {f : I ⟶ J} {h h' : J ⟶ K} {X : F I} {Y : F J} {Z : F K} (g : X ⟶[f] Y) (k : Y ⟶[h] Z) (w : h = h') : (f ≫= w) ▸ (g ≫ₗ k) = g ≫ₗ (w ▸ k) := by
+lemma whisker_left_cast_comp {I J K : C} {f : I ⟶ J} {h h' : J ⟶ K} {X : F I} {Y : F J} {Z : F K}
+    (g : X ⟶[f] Y) (k : Y ⟶[h] Z) (w : h = h') : (f ≫= w) ▸ (g ≫ₗ k) = g ≫ₗ (w ▸ k) := by
   subst w
   rfl
 
 @[simp]
-lemma whisker_right_cast_comp {I J K : C} {f f' : I ⟶ J} {h : J ⟶ K} {X : F I} {Y : F J} {Z : F K} (g : X ⟶[f] Y) (k : Y ⟶[h] Z) (w : f = f') : (w =≫ h) ▸ (g ≫ₗ k) = (w ▸ g) ≫ₗ k := by
+lemma whisker_right_cast_comp {I J K : C} {f f' : I ⟶ J} {h : J ⟶ K} {X : F I} {Y : F J} {Z : F K}
+    (g : X ⟶[f] Y) (k : Y ⟶[h] Z) (w : f = f') : (w =≫ h) ▸ (g ≫ₗ k) = (w ▸ g) ≫ₗ k := by
   subst w
   rfl
 
@@ -215,13 +220,13 @@ lemma whisker_right_cast_comp {I J K : C} {f f' : I ⟶ J} {h : J ⟶ K} {X : F 
 instance : Bicategory (∫ F) where
   homCategory := fun X Y => by infer_instance
   whiskerLeft := @fun X Y Z g k k' α => by
-    use g.1 ≫= α.1.1
-    have : k'.2 = (α.1.1 ▸ k.2)  := by rw [α.1.2]
+    use g.1 ≫= α.1.1.1
+    have : k'.2 = (α.1.1.1 ▸ k.2)  := by rw [α.1.1.2]
     simp [this] -- i don't understand why `rw [this]` doesn't work
     apply whisker_left_cast_comp
   whiskerRight := @fun X Y Z g g' α k => by
-    use α.1.1 =≫ k.1
-    have : g'.2 = (α.1.1 ▸ g.2)  := by rw [α.1.2]
+    use α.1.1.1 =≫ k.1
+    have : g'.2 = (α.1.1.1 ▸ g.2)  := by rw [α.1.1.2]
     simp [this] -- i don't understand why `rw [this]` doesn't work
     apply whisker_right_cast_comp
   associator := @fun X Y Z W g k m => {
@@ -248,43 +253,29 @@ instance : Bicategory (∫ F) where
       use (comp_id g.1).symm
       aesop
   }
-  whiskerLeft_id := by
-    aesop_cat
-  whiskerLeft_comp := by
-    aesop_cat
-  id_whiskerLeft := by
-    aesop_cat
-  comp_whiskerLeft := by
-    aesop_cat
-  id_whiskerRight := by
-    aesop_cat
-  comp_whiskerRight := by
-    aesop_cat
-  whiskerRight_id := by
-    aesop_cat
-  whiskerRight_comp := by
-    aesop_cat
-  whisker_assoc := by
-    aesop_cat
-  whisker_exchange := _
-  pentagon := _
-  triangle := _
+  whiskerLeft_id := by aesop_cat
+  whiskerLeft_comp := by aesop_cat
+  id_whiskerLeft := by aesop_cat
+  comp_whiskerLeft := by aesop_cat
+  id_whiskerRight := by aesop_cat
+  comp_whiskerRight := by aesop_cat
+  whiskerRight_id := by aesop_cat
+  whiskerRight_comp := by aesop_cat
+  whisker_assoc := by aesop_cat
+  whisker_exchange := sorry
+  pentagon := sorry
+  triangle := sorry
 
 instance : Category (∫ F) where
   Hom X Y := TotalHom X Y
   id X := ⟨𝟙 X.1, 𝟙ₗ X.2⟩
   comp g₁ g₂ := ⟨g₁.1 ≫ g₂.1, g₁.2 ≫ₗ g₂.2⟩
-  id_comp g := by cases' g with g₁ g₂; dsimp; congr 2; rw [id_comp g₁];
+  id_comp g := by cases' g with g₁ g₂; dsimp; congr 2 <;> simp
   comp_id g := by sorry
   assoc g₁ g₂ g₃ := by aesop_cat
 
-end Display
-
 
 #check Bicategory
-
-
-variable {F}
 
 
 /-- The category structure on the fibers of a display category. -/
@@ -295,9 +286,10 @@ instance instCategoryFiber {I : C} : Category (F I) where
   id_comp g := by aesop_cat
   comp_id g := by aesop_cat
   assoc g₁ g₂ g₃ := by
-    simp
+    simp; sorry
 
 
+variable (F) in
 def Vert := Σ I : C, F I
 
 structure VertHom (X Y : Vert F) where
@@ -307,7 +299,8 @@ structure VertHom (X Y : Vert F) where
 instance : Category (Vert F) where
   Hom := fun X Y => VertHom X Y
   id := fun X => ⟨rfl, 𝟙ₗ X.2⟩
-  comp := @fun X Y Z f g => ⟨f.base_eq ▸ g.base_eq, HomOver.cast (comp_id (𝟙 X)).symm (f.over_id ≫ₗ (HomOver.eqToHomMapId (f.base_eq).symm g.over_id))⟩
+  comp := @fun X Y Z f g => sorry
+    --⟨f.base_eq ▸ g.base_eq, HomOver.cast (comp_id (𝟙 X)).symm (f.over_id ≫ₗ (HomOver.eqToHomMapId (f.base_eq).symm g.over_id))⟩
 
 /-- A hom-over of an isomorphism is invertible if -/
 class IsIso {I J : C} {f : I ⟶ J} [IsIso f] {X : F I} {Y : F J} (g : X ⟶[f] Y) : Prop where
@@ -321,6 +314,8 @@ class IsoDisplay extends Display F where
   iso_HomOver : ∀ {I J : C} {f : I ⟶ J} [IsIso f] {X : F I} {Y : F J} (g : X ⟶[f] Y), Display.IsIso g
 
 variable  {E : Type*} [Category E] {P : E ⥤ C}
+
+/-
 
 /-- The type of lifts of a given morphism in the base
 with fixed source and target in the fibers of the domain and codomain respectively.-/
@@ -354,11 +349,10 @@ end BasedLift
 
 variable (P)
 
-set_option trace.Meta.synthInstance true in
 /-- The display structure `DisplayStruct P` associated to a functor `P : E ⥤ C`. This instance makes the display notations `_ ⟶[f] _`, `_ ≫ₗ _` and `𝟙ₗ` available for based-lifts.   -/
 instance instDisplayStructOfFunctor : DisplayStruct (fun c => P⁻¹ c) where
   HomOver := fun f x y => BasedLift f x y
-  id_over x := BasedLift.id x
+  id_over x := sorry -- BasedLift.id x
   comp_over := fun g₁ g₂ => BasedLift.comp g₁ g₂
 
 namespace BasedLift
@@ -366,7 +360,7 @@ namespace BasedLift
 variable {P}
 
 section
-variable {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {y : P⁻¹ d} (g g' : X ⟶[f] Y)
+variable {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} {d} {y : P⁻¹ d} (g g' : X ⟶[f] Y)
 #check g
 #reduce g
 #check (g : BasedLift f x y)
@@ -464,3 +458,4 @@ notation x " ⟶[≅" f "] " y => IsoBasedLift f x y
 
 
 end CategoryTheory
+-/

@@ -15,18 +15,19 @@ import GroupoidModel.FibrationForMathlib.Displayed.Cartesian
 
 
 
-set_option pp.explicit false
+set_option autoImplicit true
+-- set_option pp.explicit false
 --set_option pp.notation true
-set_option trace.simps.verbose true
+-- set_option trace.simps.verbose true
 --set_option trace.Meta.synthInstance.instances true
 --set_option trace.Meta.synthInstance true
-set_option pp.coercions true
+-- set_option pp.coercions true
 
 namespace CategoryTheory
 
 open Category Opposite BasedLift Fibre Display
 
-
+/-
 namespace Display
 
 variable {C : Type*} [Category C] (F : C → Type*) [Display F]
@@ -94,7 +95,6 @@ variable (F : C → Type*) [Display F] [Display.ClovenFibration F]
 @[simps!]
 instance transport : Transport F where
   transport f X := (ClovenFibration.lift f X).src
-
 
 example (f : c ⟶ d) (g : d ⟶ e) (y : P⁻¹ e) : f ⋆ g ⋆ y = f ⋆ (g ⋆ y) := rfl
 
@@ -215,3 +215,4 @@ transport_id_hom {c : C} (x : P⁻¹ c) : basedLiftHom (𝟙 c) x = eqToHom (tra
 transport_comp_obj {c d₁ d₂ : C} (f₁ : c ⟶ d₁) (f₂ : d₁ ⟶ d₂) (x : P⁻¹ d₂) : ((f₁ ≫ f₂) ⋆ x).1 = (f₁ ⋆ (f₂ ⋆ x)).1
 lift_comp_hom {c d e : C} (f₁ : c ⟶ d) (f₂ : d ⟶ d') (x : P⁻¹ d') :
 basedLiftHom (f₁ ≫ f₂) x = eqToHom (transport_comp_obj f₁ f₂ x) ≫ basedLiftHom f₁ (f₂ ⋆ x) ≫ (basedLiftHom f₂ x)
+-/
