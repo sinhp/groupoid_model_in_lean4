@@ -132,7 +132,8 @@ lemma cast_assoc_symm {I J K L : C} {f₁ : I ⟶ J} {f₂ : J ⟶ K} {f₃ : K 
 
 @[simp]
 lemma cast_trans {f f' f'' : I ⟶ J} {X : F I} {Y : F J} {w : f = f'}
-    {w' : f' = f''} (g : X ⟶[f] Y) : w' ▸ w ▸ g = (w.trans w') ▸ g := by
+    {w' : f' = f''} (g : X ⟶[f] Y) :
+    w' ▸ w ▸ g = (w.trans w') ▸ g := by
   subst w'
   rfl
 
@@ -149,7 +150,8 @@ lemma comp_id_eq_cast_id_comp {f : I ⟶ J} {X : F I} {Y : F J} (g : X ⟶[f] Y)
   simp only [comp_id_cast, cast, id_comp_cast, comp_id, cast_trans]
 
 /-- `EqToHom w X` is a hom-over `eqToHom w` from `X` to `w ▸ X`. -/
-def eqToHom (w : I = I') (X : F I) : X ⟶[eqToHom w] (w ▸ X) := by
+def eqToHom (w : I = I') (X : F I) :
+    X ⟶[eqToHom w] (w ▸ X) := by
   subst w
   exact 𝟙ₗ X
 
@@ -276,16 +278,16 @@ end BasedLift
 
 /-- The display structure `DisplayStruct P` associated to a functor `P : E ⥤ C`.
 This instance makes the displayed notations `_ ⟶[f] _`, `_ ≫ₗ _` and `𝟙ₗ` available for based-lifts.   -/
-instance Functor.displayStruct {P : E ⥤ C} : DisplayStruct (fun c => P⁻¹ c) where
-  HomOver := fun f x y => BasedLift f x y
-  id_over x := BasedLift.id x
+instance Functor.displayStruct {P : E ⥤ C} : DisplayStruct (fun I => P⁻¹ I) where
+  HomOver := fun f X Y => BasedLift f X Y
+  id_over X := BasedLift.id X
   comp_over := fun g₁ g₂ => BasedLift.comp g₁ g₂
 
 namespace BasedLift
 
 @[ext]
 theorem ext {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} (g g' : X ⟶[f] Y)
-(w : g.hom = g'.hom)  : g = g' := by
+    (w : g.hom = g'.hom) : g = g' := by
   cases' g with g hg
   cases' g' with g' hg'
   congr
@@ -298,21 +300,24 @@ lemma cast_rec {I J : C} {f f' : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} {w : f =
 /-- `BasedLift.tauto` regards a morphism `g` of the domain category `E` as a
 based-lift of its image `P g` under functor `P`. -/
 @[simps!]
-def tauto {e e' : E} (g : e ⟶ e') : (Fibre.tauto e) ⟶[P.map g] (Fibre.tauto e') := ⟨g, by simp only [Fibre.tauto, eqToHom_refl, id_comp, comp_id]⟩
+def tauto {X Y : E} (g : X ⟶ Y) : (Fibre.tauto X) ⟶[P.map g] (Fibre.tauto Y) :=
+  ⟨g, by simp only [Fibre.tauto, eqToHom_refl, id_comp, comp_id]⟩
 
-lemma tauto_over_base {x y : E} (f : (P.obj x) ⟶ (P.obj y)) (e : (Fibre.tauto x) ⟶[f] (Fibre.tauto y)) : P.map e.hom = f := by
+lemma tauto_over_base {X Y : E} (f : (P.obj X) ⟶ (P.obj Y)) (f' : (Fibre.tauto X) ⟶[f] (Fibre.tauto Y)) :
+    P.map f'.hom = f := by
   simp only [Fibre.coe_mk, over_base, eqToHom_refl, comp_id, id_comp]
 
-lemma tauto_comp_hom {e e' e'' : E} {g : e ⟶ e'} {g' : e' ⟶ e''} :
-    (tauto (P:= P) g ≫ₗ  tauto g').hom = g ≫ g' := by
+lemma tauto_comp_hom {X Y Z : E} {g : X ⟶ Y} {g' : Y ⟶ Z} :
+    (tauto (P:= P) g ≫ₗ tauto g').hom = g ≫ g' := by
   rfl
 
-lemma comp_tauto_hom {x y z : E} {f : P.obj x ⟶ P.obj y} {l : Fibre.tauto x ⟶[f] (Fibre.tauto y)} {g : y ⟶ z} : (l ≫ₗ tauto g).hom = l.hom ≫ g := rfl
+lemma comp_tauto_hom {X Y Z : E} {f : P.obj X ⟶ P.obj Y} {f' : Fibre.tauto X ⟶[f] (Fibre.tauto Y)}
+  {g : Y ⟶ Z} : (f' ≫ₗ tauto g).hom = f'.hom ≫ g := rfl
 
 /-- A morphism of `E` coerced as a tautological based-lift. -/
 @[simps]
-instance instCoeTautoBasedLift {e e' : E} {g : e ⟶ e'} :
-  CoeDep (e ⟶ e') (g : e ⟶ e') (Fibre.tauto e  ⟶[P.map g] Fibre.tauto e') where
+instance instCoeTautoBasedLift {X Y : E} {g : X ⟶ Y} :
+  CoeDep (X ⟶ Y) (g : X ⟶ Y) (Fibre.tauto X ⟶[P.map g] Fibre.tauto Y) where
   coe := tauto g
 
 lemma eq_id_of_hom_eq_id {X : P⁻¹ I} {g : X ⟶[𝟙 I] X} :
@@ -321,7 +326,7 @@ lemma eq_id_of_hom_eq_id {X : P⁻¹ I} {g : X ⟶[𝟙 I] X} :
 
 @[simp]
 lemma id_comp_cast {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J}
-  {g : X ⟶[f] Y} : 𝟙ₗ X  ≫ₗ g = g.cast (id_comp f).symm := by
+  {g : X ⟶[f] Y} : 𝟙ₗ X ≫ₗ g = g.cast (id_comp f).symm := by
   ext
   simp only [cast_hom, DisplayStruct.comp_over, DisplayStruct.id_over,
     comp_hom, id_hom, id_comp]
@@ -344,8 +349,8 @@ lemma assoc {I J K L : C} {f : I ⟶ J} {h : J ⟶ K} {l : K ⟶ L}
 end BasedLift
 
 /-- The displayed category of a functor `P : E ⥤ C`. -/
-instance Functor.display : Display (fun c => P⁻¹ c) where
-  id_comp_cast := by simp  --simp_all only [BasedLift.comp, BasedLift.id, id_comp]; rfl
+instance Functor.display : Display (fun I => P⁻¹ I) where
+  id_comp_cast := by simp
   comp_id_cast := by
     simp only [BasedLift.comp_id_cast, BasedLift.cast_rec, implies_true]
   assoc_cast := by
@@ -359,7 +364,6 @@ of `f` starting at this object and ending at `tgt`. -/
 structure Lift {F : C → Type*} [Display F] {I J : C} (f : I ⟶ J) (tgt : F J) where
   src : F I
   homOver : src ⟶[f] tgt
-
 
 end Display
 
