@@ -13,14 +13,12 @@ import GroupoidModel.FibrationForMathlib.Displayed.Fibre
 import GroupoidModel.FibrationForMathlib.Displayed.Basic
 import GroupoidModel.FibrationForMathlib.Displayed.Cartesian
 
-
-
 set_option autoImplicit true
 -- set_option pp.explicit false
---set_option pp.notation true
+-- set_option pp.notation true
 -- set_option trace.simps.verbose true
---set_option trace.Meta.synthInstance.instances true
---set_option trace.Meta.synthInstance true
+-- set_option trace.Meta.synthInstance.instances true
+-- set_option trace.Meta.synthInstance true
 -- set_option pp.coercions true
 
 namespace CategoryTheory
@@ -37,16 +35,16 @@ variable {C : Type*} [Category C] (F : C → Type*) [Display F]
 /-- A Cloven fibration structure provides for every morphism `f` and every
 object in the fiber of the codomain of `f` a specified cartesian lift of `f`. -/
 class ClovenFibration where
-/-- A lift function which assigns to a morphism `f` and an
-object in the fiber of the codomain of `f` a cartesian lift of `f`. -/
-lift {I J : C} (f : I ⟶ J) (Y : F J) : CartLift f Y
+  /-- A lift function which assigns to a morphism `f` and an
+  object in the fiber of the codomain of `f` a cartesian lift of `f`. -/
+  lift {I J : C} (f : I ⟶ J) (Y : F J) : CartLift f Y
 
 /-- A fibration structure provides for every morphism `f` and every
 object in the fiber of the codomain of `f` some cartesian lift of `f`. -/
 class Fibration  where
-/-- A lift function which provides for a morphism `f` and an object in the fiber of the
-codomain of `f` the existene of a cartesian lift of `f`. -/
-lift {I J : C} (f : I ⟶ J) (Y : F J) : HasCartLift f Y
+  /-- A lift function which provides for a morphism `f` and an object in the fiber of the
+  codomain of `f` the existene of a cartesian lift of `f`. -/
+  lift {I J : C} (f : I ⟶ J) (Y : F J) : HasCartLift f Y
 
 class Transport where
   transport {I J : C} (f : I ⟶ J) (Y : F J) : F I

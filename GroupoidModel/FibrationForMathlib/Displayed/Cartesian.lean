@@ -18,9 +18,9 @@ Specialized to the display category structure of a functor `P : E ⥤ C`,
 we obtain the class `CartMor` of cartesian morphisms in `E`.
 The type `CartMor P` is defined in terms of the predicate `isCartesianMorphism`.
 
-In this file we shall refer to a hom-over `g : x ⟶[f] y` as a "lift" of
-`f : c ⟶ d` to `x : F c` and `y : F d` since the map application of cartesianness concerns
-the display structure of a functor `P : E ⥤ C`.
+In this file we shall refer to a hom-over `g : X ⟶[f] Y` as a "lift" of
+`f : I ⟶ J` to `X : F I` and `Y : F J`, since the map application of cartesianness concerns
+the display structure of a functor `P : E ⥤ C`, where `I J : C` are objects of the base category `C`.
 
 We prove the following closure properties of the class `CartMor` of cartesian morphisms:
 - `cart_id` proves that the identity morphism is cartesian.
@@ -47,20 +47,46 @@ namespace Display
 
 variable {I J : C} {f : I ⟶ J} {X : F I} {Y : F J}
 
-/-- A hom-over `g : x ⟶[f] y` is cartesian if for every morphism `u`
-in the base and every hom-over `g' : x ⟶[u ≫ f] z` over the composite
- `u ≫ f`, there is a unique morphism `l : y ⟶[u] z` over `u` such that
- `l ≫ g = g'`. -/
+/-- A hom-over `g : X ⟶[f] Y` is cartesian if for every morphism `u : K ⟶ I`
+in the base and every hom-over `g' : Z ⟶[u ≫ f] Y` over the composite
+ `u ≫ f`, there is a unique morphism `k : Z ⟶[u] X` over `u` such that
+ `k ≫ g = g'`.
+```
+       _ _ _ _ _ _ _ _ _ _ _
+      /           g'        \
+     |                      v
+     Z - - - - > X --------> Y
+     _   ∃!k     _   g       _
+     |           |           |
+     |           |           |
+     v           v           v
+     K --------> I --------> J
+          u            f
+```
+-/
 class Cartesian (g : X ⟶[f] Y) where
 uniq_lift : ∀ ⦃K : C⦄ ⦃Z : F K⦄ (u : K ⟶ I) (g' : Z ⟶[u ≫ f] Y),
 Unique {k : Z ⟶[u] X // (k ≫ₗ g) = g'}
 
-/-- A morphism `g : x ⟶[f] y` over `f` is cocartesian if for all morphisms `u` in the
-base and `g' : x ⟶[f ≫ u] z` over the composite `f ≫ u`, there is a unique morphism
-`l : y ⟶[u] z` over `u` such that `g ≫ l = g'`. -/
+/-- A morphism `g : X ⟶[f] Y` over `f` is cocartesian if for all morphisms `u` in the
+base and `g' : X ⟶[f ≫ u] Z` over the composite `f ≫ u`, there is a unique morphism
+`k : Y ⟶[u] Z` over `u` such that `g ≫ k = g'`.
+```
+       _ _ _ _ _ _ _ _ _ _ _
+      /          g'         \
+     |                      v
+     X ------- > Y - - - - > Z
+     _    g      _    ∃!k    _
+     |           |           |
+     |           |           |
+     v           v           v
+     I --------> J --------> K
+          f            u
+```
+-/
 class CoCartesian (g : X ⟶[f] Y) where
-uniq_lift : ∀ ⦃K : C⦄ ⦃Z : F K⦄ (u : J ⟶ K) (g' : X ⟶[f ≫ u] Z),
-Unique {k :  Y ⟶[u] Z // (g ≫ₗ k) = g'}
+  uniq_lift : ∀ ⦃K : C⦄ ⦃Z : F K⦄ (u : J ⟶ K) (g' : X ⟶[f ≫ u] Z),
+  Unique {k :  Y ⟶[u] Z // (g ≫ₗ k) = g'}
 
 namespace Cartesian
 
@@ -68,31 +94,32 @@ open Display
 
 variable (g : X ⟶[f] Y) [Cartesian g] {K : C} {Z : F K}
 
-/-- `gap g u g'` is the canonical map from a lift `g' : x' ⟶[u ≫ f] y` to a
+/-- `gap g u g'` is the canonical map from a lift `g' : Z ⟶[u ≫ f] X` to a
 cartesian lift `g` of `f`. -/
 def gap (u : K ⟶ I) (g' : Z ⟶[u ≫ f] Y) : Z ⟶[u] X :=
-(Cartesian.uniq_lift (g:= g) (Z:= Z) u g').default.val
+  (Cartesian.uniq_lift (g:= g) (Z:= Z) u g').default.val
 
-/-- A variant of `gaplift` for `g' : x' ⟶[f'] y` with casting along `f' = u ≫ f` baked into the definition. -/
+/-- A variant of `gaplift` for `g' : Z ⟶[f'] Y` with casting along `f' = u ≫ f`
+baked into the definition. -/
 def gapCast (u : K ⟶ I) {f' : K ⟶ J} (g' : Z ⟶[f'] Y) (w : f' = u ≫ f) :
-Z ⟶[u] X :=
-(Cartesian.uniq_lift (g:= g) (Z:= Z) u (w ▸ g')).default.val
+    Z ⟶[u] X :=
+  (Cartesian.uniq_lift (g:= g) (Z:= Z) u (w ▸ g')).default.val
 
--- @[simp]
--- lemma gap_cast (u : c' ⟶ c) {f' : c' ⟶ d} (g' : x' ⟶[f'] y)
--- (w : f' = u ≫ f) : gapCast g u g' w = gap g u (w ▸ g') := by
---   rfl
+@[simp]
+lemma gap_cast (u : K ⟶ I) {f' : K ⟶ J} (g' : Z ⟶[f'] Y)
+    (w : f' = u ≫ f) : gapCast g u g' w = gap g u (w ▸ g') := by
+  rfl
 
 /-- The composition of the gap lift and the cartesian hom-over is the given hom-over. -/
 @[simp]
 lemma gap_prop (u : K ⟶ I) (g' : Z ⟶[u ≫ f] Y) :
-((gap g u g') ≫ₗ g) = g' :=
-(Cartesian.uniq_lift (f:= f) (g:= g) (Z := Z) u g').default.property
+    ((gap g u g') ≫ₗ g) = g' :=
+  (Cartesian.uniq_lift (f:= f) (g:= g) (Z := Z) u g').default.property
 
 /-- The uniqueness part of the universal property of the gap lift. -/
 @[simp]
 lemma gaplift_uniq {u : K ⟶ I} (g' : Z ⟶[u ≫ f] Y) (v : Z ⟶[u] X)
-(hv : v ≫ₗ g = g') : v = gap (g:= g) u g' := by
+    (hv : v ≫ₗ g = g') : v = gap (g:= g) u g' := by
   simp [gap]
   rw [← (Cartesian.uniq_lift u g').uniq ⟨v,hv⟩]
 
@@ -105,8 +132,8 @@ instance instId {X : F I} : Cartesian (𝟙ₗ X) where
 
 /-- Cartesian based-lifts are closed under composition. -/
 instance instComp {X : F I} {Y : F J} {Z : F K} {f₁ : I ⟶ J} {f₂ : J ⟶ K}
-    (g₁ : X ⟶[f₁] Y) [Cartesian g₁]
-    (g₂ : Y ⟶[f₂] Z) [Cartesian g₂] : Cartesian (g₁ ≫ₗ g₂) where
+    (g₁ : X ⟶[f₁] Y) [Cartesian g₁] (g₂ : Y ⟶[f₂] Z) [Cartesian g₂] :
+  Cartesian (g₁ ≫ₗ g₂) where
   uniq_lift := fun I' W u g' => {
     default := ⟨ gap g₁ u (gap g₂ (u ≫ f₁) (assoc u f₁ f₂ ▸ g')), by
       rw [← Display.cast_assoc_symm, gap_prop g₁ _ _, gap_prop g₂ _ _]
