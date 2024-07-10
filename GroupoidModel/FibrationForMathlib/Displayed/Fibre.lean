@@ -105,7 +105,8 @@ lemma fiber_comp_obj {c: C} (x y z : P⁻¹ c) (f: x ⟶ y) (g: y ⟶ z) :
 (f ≫ g).1 = f.1 ≫ g.1 := rfl
 
 @[simp]
-lemma fiber_comp_obj_eq {c: C} {x y z : P⁻¹ c} {f: x ⟶ y} {g: y ⟶ z} {h : x ⟶ z} :
+lemma fiber_comp_obj_eq {c: C} {x y z : P⁻¹ c}
+    {f: x ⟶ y} {g: y ⟶ z} {h : x ⟶ z} :
     (f ≫ g = h) ↔  f.1 ≫ g.1  = h.1 := by
   constructor
   · intro H

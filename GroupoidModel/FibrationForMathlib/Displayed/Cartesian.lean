@@ -104,8 +104,9 @@ instance instId {X : F I} : Cartesian (𝟙ₗ X) where
   }
 
 /-- Cartesian based-lifts are closed under composition. -/
-instance instComp {X : F I} {Y : F J} {Z : F K} {f₁ : I ⟶ J}  {f₂ : J ⟶ K} (g₁ : X ⟶[f₁] Y) [Cartesian g₁]
-(g₂ : Y ⟶[f₂] Z) [Cartesian g₂] : Cartesian (g₁ ≫ₗ g₂) where
+instance instComp {X : F I} {Y : F J} {Z : F K} {f₁ : I ⟶ J} {f₂ : J ⟶ K}
+    (g₁ : X ⟶[f₁] Y) [Cartesian g₁]
+    (g₂ : Y ⟶[f₂] Z) [Cartesian g₂] : Cartesian (g₁ ≫ₗ g₂) where
   uniq_lift := fun I' W u g' => {
     default := ⟨ gap g₁ u (gap g₂ (u ≫ f₁) (assoc u f₁ f₂ ▸ g')), by
       rw [← Display.cast_assoc_symm, gap_prop g₁ _ _, gap_prop g₂ _ _]

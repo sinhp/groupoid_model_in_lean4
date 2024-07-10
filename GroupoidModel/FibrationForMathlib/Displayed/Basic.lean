@@ -58,8 +58,7 @@ def FibreCast {I I' : C} (w : I = I') (X : F I)  : F I' :=
 Note: It might be a good idea to add this to eqToHom file. -/
 @[simp]
 def eqToHomMap {I I' J J' : C} (w : I = I') (w' : J = J') (f : I ⟶ J) : I' ⟶ J' :=
-  w' ▸ (w ▸ f)
---eqToHom (w.symm) ≫ f ≫ eqToHom w'
+  w' ▸ (w ▸ f) --eqToHom (w.symm) ≫ f ≫ eqToHom w'
 
 @[simp]
 def eqToHomMapId {I I' : C} (w : I = I') : w ▸ 𝟙 I = 𝟙 I' := by
@@ -317,19 +316,23 @@ lemma comp_tauto_hom {x y z : E} {f : P.obj x ⟶ P.obj y} {l : Fibre.tauto x �
 /-- A morphism of `E` coerced as a tautological based-lift. -/
 @[simps]
 instance instCoeTautoBasedLift {e e' : E} {g : e ⟶ e'} :
-CoeDep (e ⟶ e') (g) (Fibre.tauto e  ⟶[P.map g] Fibre.tauto e') where
+    CoeDep (e ⟶ e') (g) (Fibre.tauto e  ⟶[P.map g] Fibre.tauto e') where
   coe := tauto g
 
 lemma eq_id_of_hom_eq_id {c : C} {X : P⁻¹ I} {g : X ⟶[𝟙 I] X} :
-(g.hom = 𝟙 X.1) ↔ (g = id X) := by
+    (g.hom = 𝟙 X.1) ↔ (g = id X) := by
   aesop
 
 @[simp]
 lemma id_comp_cast {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J}
-{g : X ⟶[f] Y} : 𝟙ₗ X  ≫ₗ g = g.cast (id_comp f).symm := by ext; simp only [cast_hom, DisplayStruct.comp_over, DisplayStruct.id_over, comp_hom, id_hom, id_comp]
+    {g : X ⟶[f] Y} : 𝟙ₗ X  ≫ₗ g = g.cast (id_comp f).symm := by
+  ext
+  simp only [cast_hom, DisplayStruct.comp_over, DisplayStruct.id_over, comp_hom, id_hom, id_comp]
 
 @[simp]
-lemma comp_id_cast {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} {g : X ⟶[f] Y} : g ≫ₗ 𝟙ₗ Y = g.cast (comp_id f).symm := by ext; simp only [cast_hom, DisplayStruct.comp_over, DisplayStruct.id_over, comp_hom, id_hom, comp_id]
+lemma comp_id_cast {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} {g : X ⟶[f] Y} : g ≫ₗ 𝟙ₗ Y = g.cast (comp_id f).symm := by
+  ext
+  simp only [cast_hom, DisplayStruct.comp_over, DisplayStruct.id_over, comp_hom, id_hom, comp_id]
 
 @[simp]
 lemma assoc {I J K L : C} {f : I ⟶ J} {h : J ⟶ K} {l : K ⟶ L} {W : P⁻¹ I} {X : P⁻¹ J} {Y : P⁻¹ K} {Z : P⁻¹ L} (g : W ⟶[f] X) (k : X ⟶[h] Y) (m : Y ⟶[l] Z) : (g ≫ₗ k) ≫ₗ m = (g ≫ₗ (k ≫ₗ m)).cast (assoc f h l).symm := by
@@ -358,8 +361,6 @@ structure Lift {I J : C} (f : I ⟶ J) (tgt : F J) where
   src : F I
   homOver : src ⟶[f] tgt
 
-
 end Display
-
 
 end CategoryTheory
