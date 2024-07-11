@@ -49,6 +49,8 @@ Finally, We provide the following notations:
 * `x ⟶[f] y` for `BasedLift P f x y`
 * `f ≫ₗ g` for the composition of based-lifts given by `BasedLift.comp f g`
 
+## Main declarations
+
 -/
 
 set_option autoImplicit true

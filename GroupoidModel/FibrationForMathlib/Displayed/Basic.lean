@@ -29,14 +29,14 @@ We also provide various useful constructors for based-lifts:
   based-lifts, respectively.
 * We can cast a based-lift along an equality of the base morphisms using the equivalence `BasedLift.cast`.
 
-## Notation
+### Notation
 
 We provide the following notations:
 * `X ⟶[f] Y` for `DisplayStruct.HomOver f x y`
 * `f ≫ₗ g` for `DisplayStruct.comp_over f g`
 * `𝟙ₗ X` for `DisplayStruct.id_over`
 
-## References
+#### References
 
 Benedikt Ahrens, Peter LeFanu Lumsdaine, Displayed Categories, Logical Methods in Computer Science 15 (1).
 -/
@@ -252,7 +252,24 @@ variable {E : Type*} [Category E] {P : E ⥤ C}
 with fixed source and target in the Fibres of the domain and codomain respectively.-/
 structure BasedLift {I J : C} (f : I ⟶ J) (X : P⁻¹ I) (Y : P⁻¹ J) where
   hom : (X : E) ⟶ (Y : E)
-  over : (P.map hom) ≫ eqToHom (Y.2) = eqToHom (X.2) ≫ f
+  over_eq : (P.map hom) ≫ eqToHom (Y.2) = eqToHom (X.2) ≫ f
+
+/--
+The structure of based-lifts up to an isomorphism of the domain objects in the base.
+```              g
+     X -------------------->    Y
+     _                          -
+     |            |             |
+     |            |             |
+     v            v             v
+P.obj X ---------> I ---------> J
+           ≅             f
+```
+-/
+structure IsoBasedLift {I J : C} (f : I ⟶ J) (X : P⁻¹ I) (Y : P⁻¹ J) where
+  hom : (X : E) ⟶ (Y : E)
+  iso : P.obj X ≅ I
+  iso_over_eq : (P.map hom) ≫ eqToHom (Y.2) = iso.hom ≫ f := by aesop_cat
 
 namespace BasedLift
 
@@ -261,7 +278,7 @@ variable {E : Type*} [Category E] {P : E ⥤ C}
 @[simp]
 lemma over_base {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} (g : BasedLift f X Y) :
     P.map g.hom = eqToHom (X.2) ≫ f ≫ (eqToHom (Y.2).symm)  := by
-  simp only [← Category.assoc _ _ _, ← g.over, assoc, eqToHom_trans, eqToHom_refl, comp_id]
+  simp only [← Category.assoc _ _ _, ← g.over_eq, assoc, eqToHom_trans, eqToHom_refl, comp_id]
 
 /-- The identity based-lift. -/
 @[simps!]
@@ -270,14 +287,37 @@ def id {I : C} (X : P⁻¹ I) : BasedLift (𝟙 I) X X := ⟨𝟙 _, by simp⟩
 /-- The composition of based-lifts -/
 @[simps]
 def comp {I J K : C} {f₁ : I ⟶ J} {f₂ : J ⟶ K} {X : P⁻¹ I} {Y : P⁻¹ J} {Z : P⁻¹ K}
-    (g₁ : BasedLift f₁ X Y) (g₂ : BasedLift f₂ Y Z) : BasedLift (f₁ ≫ f₂) X Z :=
+    (g₁ : BasedLift f₁ X Y) (g₂ : BasedLift f₂ Y Z) :
+    BasedLift (f₁ ≫ f₂) X Z :=
   ⟨g₁.hom ≫ g₂.hom, by simp only [P.map_comp]; rw [assoc, over_base g₁, over_base g₂]; simp⟩
 
 @[simps!]
 def cast {I J : C} {f f' : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} (w : f = f')
-    (g : BasedLift f X Y) : BasedLift f' X Y := ⟨g.hom, by rw [←w, g.over]⟩
+    (g : BasedLift f X Y) : BasedLift f' X Y := ⟨g.hom, by rw [←w, g.over_eq]⟩
 
 end BasedLift
+
+namespace IsoBasedLift
+
+@[simp]
+lemma iso_over_eq' {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} (g : IsoBasedLift f X Y) :
+    P.map g.hom = (g.iso.hom ≫ f) ≫ eqToHom (Y.2.symm):= by
+  rw [← comp_eqToHom_iff, g.iso_over_eq]
+
+def id {I : C} (X : P⁻¹ I) : IsoBasedLift (𝟙 I) X X := ⟨𝟙 _, eqToIso (X.2), by aesop⟩
+
+-- def comp {I J K : C} {f₁ : I ⟶ J} {f₂ : J ⟶ K} {X : P⁻¹ I} {Y : P⁻¹ J} {Z : P⁻¹ K}
+--     (g₁ : IsoBasedLift f₁ X Y) (g₂ : IsoBasedLift f₂ Y Z) :
+--     IsoBasedLift (f₁ ≫ eqToIso (Y.2) ≫ f₂) X Z := by
+--   refine ⟨g₁.hom ≫ g₂.hom, g₁.iso, ?_⟩
+--   rw [Functor.map_comp]
+--   rw [assoc, g₂.iso_over_eq, g₁.iso_over_eq']
+--   sorry
+
+
+end IsoBasedLift
+
+
 
 variable (P)
 
@@ -287,6 +327,11 @@ instance Functor.displayStruct : DisplayStruct (fun I => P⁻¹ I) where
   HomOver := fun f X Y => BasedLift f X Y
   id_over X := BasedLift.id X
   comp_over := fun g₁ g₂ => BasedLift.comp g₁ g₂
+
+-- def Functor.dispalyStruct : DisplayStruct (fun I => P⁻¹ I) where
+--   HomOver := fun f X Y => IsoBasedLift f X Y
+--   id_over := fun X => IsoBasedLift.id X
+--   comp_over := fun g₁ g₂ => IsoBasedLift.comp g₁ g₂
 
 namespace BasedLift
 
@@ -363,12 +408,20 @@ namespace Display
 variable {F}
 variable [Display F]
 
-/-- The type `Lift f tgt` of lifts of `f` with target `tgt` consists of an object in the Fibre of the domain of `f` and a based-lift
-of `f` starting at this object and ending at `tgt`. -/
+/-- The type `Lift f tgt` of a lift of `f` with the target `tgt` consists of an object `src` in
+the Fibre of the domain of `f` and a based-lift of `f` starting at `src` and ending at `tgt`. -/
 @[ext]
 structure Lift {I J : C} (f : I ⟶ J) (tgt : F J) where
   src : F I
   homOver : src ⟶[f] tgt
+
+/-- The type `CoLift f src` of a colift of `f` with the source `src` consists of an object `tgt` in
+the Fibre of the codomain of `f` and a based-lift of `f` starting at `src` and ending at `tgt`. -/
+@[ext]
+structure CoLift {I J : C} (f : I ⟶ J) (src : F I) where
+  tgt : F J
+  homOver : src ⟶[f] tgt
+
 
 end Display
 

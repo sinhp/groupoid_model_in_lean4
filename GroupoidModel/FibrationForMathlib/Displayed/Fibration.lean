@@ -13,6 +13,24 @@ import GroupoidModel.FibrationForMathlib.Displayed.Fibre
 import GroupoidModel.FibrationForMathlib.Displayed.Basic
 import GroupoidModel.FibrationForMathlib.Displayed.Cartesian
 
+/-!
+# Fibrations for displayed categories
+
+Given a displayed category structure on a type family `F : C → Type*`, the structure `ClovenFibration F`
+provides the structure of a cleavage for `F`. Specialized to the display category structure of a functor,
+`ClovenFibration (P⁻¹ .)` provides the structure of a cleavage for a functor `P : E ⥤ C`.
+
+## Main declarations
+
+- `Display.ClovenFibration.lift` is the lift function of a cleavage of a displayed category.
+- `Functor.ClovenFibration.lift` is the lift function of a cleavage of a functor.
+
+- `Display.ClovenFibration.transport` is the transport function of a cleavage of a displayed category.
+- `Functor.transport` is the transport function of a functor with a cleavage.
+
+-/
+
+
 set_option autoImplicit true
 -- set_option pp.explicit false
 -- set_option pp.notation true
@@ -20,17 +38,15 @@ set_option autoImplicit true
 -- set_option trace.Meta.synthInstance.instances true
 -- set_option trace.Meta.synthInstance true
 -- set_option pp.coercions true
+set_option pp.proofs.threshold 20
 
 namespace CategoryTheory
 
 open Category Opposite BasedLift Fibre Display
 
-
 namespace Display
 
 variable {C : Type*} [Category C] (F : C → Type*) [Display F]
-
-#check CartLift
 
 /-- A Cloven fibration structure provides for every morphism `f` and every
 object in the fiber of the codomain of `f` a specified cartesian lift of `f`. -/
@@ -41,7 +57,7 @@ class ClovenFibration where
 
 /-- A fibration structure provides for every morphism `f` and every
 object in the fiber of the codomain of `f` some cartesian lift of `f`. -/
-class Fibration  where
+class Fibration where
   /-- A lift function which provides for a morphism `f` and an object in the fiber of the
   codomain of `f` the existene of a cartesian lift of `f`. -/
   lift {I J : C} (f : I ⟶ J) (Y : F J) : HasCartLift f Y
@@ -54,8 +70,8 @@ scoped infixr:80 " ⋆ "  => Transport.transport -- NtS: infix right ensures tha
 
 end Display
 
+namespace Functor
 variable {C E : Type*} [Category C] [Category E]
-
 
 /-- A functor `P : E ⥤ C` is a cloven fibration if the associated displayed structure of `P` is a
 cloven fibration. -/
@@ -67,26 +83,21 @@ abbrev Fibration (P : E ⥤ C) := Display.Fibration (P⁻¹ .)
 
 /-- A transport function for a functor `P : E ⥤ C` is a transport function for the
 associated displayed structure of `P`. -/
-abbrev Functor.Transport (P : E ⥤ C) := Display.Transport (P⁻¹ .)
+abbrev Transport (P : E ⥤ C) := Display.Transport (P⁻¹ .)
 
-section
-variable {C E : Type*} [Category C] [Category E] (P : E ⥤ C) [ClovenFibration P]
-{c d : C} (f : c ⟶ d) (y : P⁻¹ d) (g : CartLift f y)
-#check Fibration.lift
-#check ClovenFibration.lift
-#check g.1
-#check g.1.homOver
-#check g.homOver.hom
-end
+abbrev transport {P : E ⥤ C} [P.Transport] {I J : C} (f : I ⟶ J) (Y : P⁻¹ J) :=
+  Display.Transport.transport f Y
+
+end Functor
+
 
 open Display
 
-lemma transport_over' {c d : C} {P : E ⥤ C} [Functor.Transport P] (f : c ⟶ d) (y : P⁻¹ d) :
-    P.obj (f ⋆ y) = c := by
+lemma transport_over' {I J : C} {P : E ⥤ C} [Functor.Transport P] (f : I ⟶ J) (Y : P⁻¹ J) :
+    P.obj (f ⋆ Y) = I := by
   simp only [Fibre.over]
 
 namespace Display.ClovenFibration
-
 
 variable (F : C → Type*) [Display F] [Display.ClovenFibration F]
 
@@ -94,10 +105,10 @@ variable (F : C → Type*) [Display F] [Display.ClovenFibration F]
 instance transport : Transport F where
   transport f X := (ClovenFibration.lift f X).src
 
-example (f : c ⟶ d) (g : d ⟶ e) (y : P⁻¹ e) : f ⋆ g ⋆ y = f ⋆ (g ⋆ y) := rfl
+example (f : I ⟶ J) (g : J ⟶ K) (Z : P⁻¹ K) : f ⋆ g ⋆ Z = f ⋆ (g ⋆ Z) := rfl
 
 @[simp]
-def Transport (f : c ⟶ d) : (P⁻¹ d) → (P⁻¹ c) := fun y ↦ f ⋆ y
+def Transport (f : c ⟶ d) : (P⁻¹ J) → (P⁻¹ I) := fun y ↦ f ⋆ y
 
 /-- The lift of a morphism `f` ending at `y`. -/
 def basedLift (f : c ⟶ d) (y : P⁻¹ d) : (f ⋆ y) ⟶[f] y := (ClovenFibration.lift f y).homOver

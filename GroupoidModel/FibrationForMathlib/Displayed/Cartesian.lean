@@ -11,7 +11,7 @@ import Mathlib.CategoryTheory.Limits.Preserves.Basic
 /-!
 # Cartesian lifts
 
-There are also typeclasses `Display.Cartesian` and `Display.CoCartesian`
+We introduce the structures `Display.Cartesian` and `Display.CoCartesian`
 carrying data witnessing that a given lift is cartesian and cocartesian, respectively.
 
 Specialized to the display category structure of a functor `P : E ⥤ C`,
@@ -19,8 +19,7 @@ we obtain the class `CartMor` of cartesian morphisms in `E`.
 The type `CartMor P` is defined in terms of the predicate `isCartesianMorphism`.
 
 In this file we shall refer to a hom-over `g : X ⟶[f] Y` as a "lift" of
-`f : I ⟶ J` to `X : F I` and `Y : F J`, since the map application of cartesianness concerns
-the display structure of a functor `P : E ⥤ C`, where `I J : C` are objects of the base category `C`.
+`f : I ⟶ J` to `X : F I` and `Y : F J`.
 
 We prove the following closure properties of the class `CartMor` of cartesian morphisms:
 - `cart_id` proves that the identity morphism is cartesian.
@@ -33,6 +32,22 @@ the pullback of a cartesian morphism is cartesian.
 and `Cart.forget` provides the forgetful functor from the category of cartesian morphisms
 to the domain category `E`.
 
+## Main declarations
+
+- `CartLift f Y` is the type of cartesian lifts of a morphism `f` with fixed target `Y`.
+- `CoCartLift f X` is the type of cocartesian lifts of a morphism `f` with fixed source `X`.
+
+Given `g : CartLift f Y`, we have
+- `g.1` is the lift of `f` to `Y`.
+- `g.homOver : CartLift.toLift.src ⟶[f] Y` is a morphism over `f`.
+- `g.homOver.hom` is the underlying morphism of `g.homOver`.
+- `g.is_cart` is the proof that `g.homOver` is cartesian.
+
+Similarly, given `g : CoCartLift f X`, we have
+- `g.1` is the lift of `f` from `X`.
+- `g.homOver : X ⟶[f] CoCartLift.toCoLift.tgt` is a morphism over `f`.
+- `g.homOver.hom` is the underlying morphism of `g.homOver`.
+- `g.is_cocart` is the proof that `g.homOver` is cocartesian.
 -/
 
 set_option autoImplicit true
@@ -65,8 +80,8 @@ in the base and every hom-over `g' : Z ⟶[u ≫ f] Y` over the composite
 ```
 -/
 class Cartesian (g : X ⟶[f] Y) where
-uniq_lift : ∀ ⦃K : C⦄ ⦃Z : F K⦄ (u : K ⟶ I) (g' : Z ⟶[u ≫ f] Y),
-Unique {k : Z ⟶[u] X // (k ≫ₗ g) = g'}
+  uniq_lift : ∀ ⦃K : C⦄ ⦃Z : F K⦄ (u : K ⟶ I) (g' : Z ⟶[u ≫ f] Y),
+  Unique {k : Z ⟶[u] X // (k ≫ₗ g) = g'}
 
 /-- A morphism `g : X ⟶[f] Y` over `f` is cocartesian if for all morphisms `u` in the
 base and `g' : X ⟶[f ≫ u] Z` over the composite `f ≫ u`, there is a unique morphism
@@ -153,6 +168,12 @@ class CartLift (f : I ⟶ J) (tgt : F J) extends Lift f tgt where
 
 /--Mere existence of a cartesian lift with fixed target. -/
 def HasCartLift (f : I ⟶ J) (tgt : F J) := Nonempty (CartLift f tgt)
+
+/-- The type of cocartesian lifts of a morphism `f` with fixed source. -/
+class CoCartLift (f : I ⟶ J) (src : F I) extends CoLift f src where
+  is_cocart : CoCartesian homOver
+
+def HasCoCartLift (f : I ⟶ J) (src : F I) := Nonempty (CoCartLift f src)
 
 end Display
 
