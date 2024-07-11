@@ -39,16 +39,17 @@ We provide the following notations:
 ## References
 
 Benedikt Ahrens, Peter LeFanu Lumsdaine, Displayed Categories, Logical Methods in Computer Science 15 (1).
-
 -/
 
-set_option autoImplicit true
 
 namespace CategoryTheory
 
 open Category CategoryTheory
 
 variable {C : Type*} [Category C] (F : C → Type*)
+
+
+section cast
 
 /-- Cast an element of a Fibre along an equality of the base objects. -/
 def FibreCast {I I' : C} (w : I = I') (X : F I)  : F I' :=
@@ -71,16 +72,16 @@ lemma eqToHomMap_naturality {I I' J J' : C} {w : I = I'} {w' : J = J'} (f : I �
   subst w' w
   simp
 
-variable {I I' I'' J' : C}
-
 @[simp]
-lemma Fibre_cast_trans (X : F I) {w : I = I'} {w' : I' = I''} {w'' : I = I''} :
+lemma Fibre_cast_trans {I I' I'': C} (X : F I) {w : I = I'} {w' : I' = I''} {w'' : I = I''} :
     w' ▸ (w ▸ X) = w'' ▸ X := by
   subst w'
   rfl
 
-lemma Fibre_cast_cast (X : F I) {w : I = I'} {w' : I' = I} : w' ▸ w ▸ X = X := by
+lemma Fibre_cast_cast {I I' : C} (X : F I) {w : I = I'} {w' : I' = I} : w' ▸ w ▸ X = X := by
   simp only [Fibre_cast_trans]
+
+end cast
 
 class DisplayStruct where
   /-- The type of morphisms indexed over morphisms of `C`. -/
@@ -111,15 +112,15 @@ attribute [trans] Display.assoc_cast
 namespace Display
 
 variable {F}
-variable [Display F] {I J : C}
+variable [Display F]
 
 @[simp]
-def cast {f f' : I ⟶ J} {X : F I} {Y : F J} (w : f = f') (g : X ⟶[f] Y) :
+def cast {I J : C} {f f' : I ⟶ J} {X : F I} {Y : F J} (w : f = f') (g : X ⟶[f] Y) :
     X ⟶[f'] Y :=
   w ▸ g
 
 @[simp]
-lemma cast_symm {f f' : I ⟶ J} {X : F I} {Y : F J} (w : f = f') (g : X ⟶[f] Y) (g' : X ⟶[f'] Y) :
+lemma cast_symm {I J : C} {f f' : I ⟶ J} {X : F I} {Y : F J} (w : f = f') (g : X ⟶[f] Y) (g' : X ⟶[f'] Y) :
     (w ▸ g = g') ↔ g = w.symm ▸ g' := by
   subst w
   rfl
@@ -131,42 +132,45 @@ lemma cast_assoc_symm {I J K L : C} {f₁ : I ⟶ J} {f₂ : J ⟶ K} {f₃ : K 
   simp only [cast_symm, assoc_cast]
 
 @[simp]
-lemma cast_trans {f f' f'' : I ⟶ J} {X : F I} {Y : F J} {w : f = f'}
+lemma cast_trans {I J : C} {f f' f'' : I ⟶ J} {X : F I} {Y : F J} {w : f = f'}
     {w' : f' = f''} (g : X ⟶[f] Y) : w' ▸ w ▸ g = (w.trans w') ▸ g := by
   subst w'
   rfl
 
-lemma cast_eq {f f' : I ⟶ J} {X : F I} {Y : F J} {w w' : f = f'} (g : X ⟶[f] Y) :
+lemma cast_eq {I J : C} {f f' : I ⟶ J} {X : F I} {Y : F J} {w w' : f = f'} (g : X ⟶[f] Y) :
     w ▸ g = w' ▸ g := by
   rfl
 
-lemma cast_cast {f f' : I ⟶ J} {X : F I} {Y : F J} (w : f = f') (w' : f' = f) (g : X ⟶[f'] Y) :
+lemma cast_cast{I J : C} {f f' : I ⟶ J} {X : F I} {Y : F J} (w : f = f') (w' : f' = f)
+    (g : X ⟶[f'] Y) :
     w' ▸ w ▸ g = g := by
   simp only [cast_trans]
 
-lemma comp_id_eq_cast_id_comp {f : I ⟶ J} {X : F I} {Y : F J} (g : X ⟶[f] Y) :
+lemma comp_id_eq_cast_id_comp {I J : C} {f : I ⟶ J} {X : F I} {Y : F J} (g : X ⟶[f] Y) :
     g ≫ₗ 𝟙ₗ Y = cast (by simp) (𝟙ₗ X  ≫ₗ g) := by
   simp only [comp_id_cast, cast, id_comp_cast, comp_id, cast_trans]
 
 /-- `EqToHom w X` is a hom-over `eqToHom w` from `X` to `w ▸ X`. -/
-def eqToHom (w : I = I') (X : F I) : X ⟶[eqToHom w] (w ▸ X) := by
+def eqToHom {I I' : C} (w : I = I') (X : F I) : X ⟶[eqToHom w] (w ▸ X) := by
   subst w
   exact 𝟙ₗ X
 
 @[simp]
-def eqToHomMap (w : I = I') (w' : J = J') {f : I ⟶ J} {X : F I } {Y : F J} (g : X ⟶[f] Y) :
+def eqToHomMap {I I' J J' : C} (w : I = I') (w' : J = J') {f : I ⟶ J} {X : F I } {Y : F J}
+    (g : X ⟶[f] Y) :
     (w ▸ X) ⟶[eqToHomMap w w' f] (w' ▸ Y) := by
   subst w
   subst w'
   exact g
 
 @[simp]
-def eqToHomMapId (w : I = I') {X : F I } {Y : F I} (g : X ⟶[𝟙 I] Y) :
+def eqToHomMapId {I I' : C} (w : I = I') {X : F I } {Y : F I} (g : X ⟶[𝟙 I] Y) :
     (w ▸ X) ⟶[𝟙 I'] (w ▸ Y) := by
   subst w
   exact g
 
-lemma eqToHom_naturality {X : F I} {Y : F J} (w : I = I') (w' : J = J') (f : I ⟶ J) (g : X ⟶[f] Y) :
+lemma eqToHom_naturality {I I' J J': C} {X : F I} {Y : F J} (w : I = I') (w' : J = J')
+    (f : I ⟶ J) (g : X ⟶[f] Y) :
     g ≫ₗ eqToHom w' Y = cast (eqToHomMap_naturality f) (eqToHom w X ≫ₗ eqToHomMap w w' g)  := by
   subst w' w
   simp only [eqToHom, comp_id_eq_cast_id_comp, cast]
@@ -247,30 +251,31 @@ variable {E : Type*} [Category E] {P : E ⥤ C}
 /-- The type of lifts of a given morphism in the base
 with fixed source and target in the Fibres of the domain and codomain respectively.-/
 structure BasedLift {I J : C} (f : I ⟶ J) (X : P⁻¹ I) (Y : P⁻¹ J) where
-hom : (X : E) ⟶ (Y : E)
-over : (P.map hom) ≫ eqToHom (Y.2) = eqToHom (X.2) ≫ f
+  hom : (X : E) ⟶ (Y : E)
+  over : (P.map hom) ≫ eqToHom (Y.2) = eqToHom (X.2) ≫ f
 
 namespace BasedLift
 
 variable {E : Type*} [Category E] {P : E ⥤ C}
 
 @[simp]
-lemma over_base {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} (g : BasedLift f X Y) : P.map g.hom = eqToHom (X.2) ≫ f ≫ (eqToHom (Y.2).symm)  := by
+lemma over_base {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} (g : BasedLift f X Y) :
+    P.map g.hom = eqToHom (X.2) ≫ f ≫ (eqToHom (Y.2).symm)  := by
   simp only [← Category.assoc _ _ _, ← g.over, assoc, eqToHom_trans, eqToHom_refl, comp_id]
 
 /-- The identity based-lift. -/
 @[simps!]
-def id (X : P⁻¹ I) : BasedLift (𝟙 I) X X := ⟨𝟙 _, by simp⟩
+def id {I : C} (X : P⁻¹ I) : BasedLift (𝟙 I) X X := ⟨𝟙 _, by simp⟩
 
 /-- The composition of based-lifts -/
 @[simps]
-def comp {I J K: C} {f₁ : I ⟶ J} {f₂ : J ⟶ K} {X : P⁻¹ I} {Y : P⁻¹ J} {Z : P⁻¹ K} (g₁ : BasedLift f₁ X Y) (g₂ : BasedLift f₂ Y Z) : BasedLift (f₁ ≫ f₂) X Z :=
-⟨g₁.hom ≫ g₂.hom, by simp only [P.map_comp]; rw [assoc, over_base g₁, over_base g₂]; simp⟩
+def comp {I J K : C} {f₁ : I ⟶ J} {f₂ : J ⟶ K} {X : P⁻¹ I} {Y : P⁻¹ J} {Z : P⁻¹ K}
+    (g₁ : BasedLift f₁ X Y) (g₂ : BasedLift f₂ Y Z) : BasedLift (f₁ ≫ f₂) X Z :=
+  ⟨g₁.hom ≫ g₂.hom, by simp only [P.map_comp]; rw [assoc, over_base g₁, over_base g₂]; simp⟩
 
 @[simps!]
 def cast {I J : C} {f f' : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} (w : f = f')
-(g : BasedLift f X Y) : BasedLift f' X Y
- := ⟨g.hom, by rw [←w, g.over]⟩
+    (g : BasedLift f X Y) : BasedLift f' X Y := ⟨g.hom, by rw [←w, g.over]⟩
 
 end BasedLift
 
@@ -278,9 +283,9 @@ variable (P)
 
 /-- The display structure `DisplayStruct P` associated to a functor `P : E ⥤ C`.
 This instance makes the displayed notations `_ ⟶[f] _`, `_ ≫ₗ _` and `𝟙ₗ` available for based-lifts.   -/
-instance Functor.displayStruct : DisplayStruct (fun c => P⁻¹ c) where
-  HomOver := fun f x y => BasedLift f x y
-  id_over x := BasedLift.id x
+instance Functor.displayStruct : DisplayStruct (fun I => P⁻¹ I) where
+  HomOver := fun f X Y => BasedLift f X Y
+  id_over X := BasedLift.id X
   comp_over := fun g₁ g₂ => BasedLift.comp g₁ g₂
 
 namespace BasedLift
@@ -289,7 +294,7 @@ variable {P}
 
 @[ext]
 theorem ext {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} (g g' : X ⟶[f] Y)
-(w : g.hom = g'.hom)  : g = g' := by
+    (w : g.hom = g'.hom)  : g = g' := by
   cases' g with g hg
   cases' g' with g' hg'
   congr
@@ -297,29 +302,32 @@ theorem ext {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} (g g' : X ⟶[
 @[simp]
 lemma cast_rec {I J : C} {f f' : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} {w : f = f'} (g : X ⟶[f] Y) :
     g.cast w  = w ▸ g := by
-  subst w; rfl
+  subst w
+  rfl
 
 /-- `BasedLift.tauto` regards a morphism `g` of the domain category `E` as a
 based-lift of its image `P g` under functor `P`. -/
 @[simps!]
-def tauto {e e' : E} (g : e ⟶ e') : (Fibre.tauto e) ⟶[P.map g] (Fibre.tauto e') := ⟨g, by simp only [Fibre.tauto, eqToHom_refl, id_comp, comp_id]⟩
+def tauto {X Y : E} (g : X ⟶ Y) : (Fibre.tauto X) ⟶[P.map g] (Fibre.tauto Y) :=
+  ⟨g, by simp only [Fibre.tauto, eqToHom_refl, id_comp, comp_id]⟩
 
-lemma tauto_over_base {x y : E} (f : (P.obj x) ⟶ (P.obj y)) (e : (Fibre.tauto x) ⟶[f] (Fibre.tauto y)) : P.map e.hom = f := by
+lemma tauto_over_base {X Y : E} (f : (P.obj X) ⟶ (P.obj Y)) (g : (Fibre.tauto X) ⟶[f] (Fibre.tauto Y)) : P.map g.hom = f := by
   simp only [Fibre.coe_mk, over_base, eqToHom_refl, comp_id, id_comp]
 
-lemma tauto_comp_hom {e e' e'' : E} {g : e ⟶ e'} {g' : e' ⟶ e''} :
-    (tauto (P:= P) g ≫ₗ  tauto g').hom = g ≫ g' := by
+lemma tauto_comp_hom {X Y Z : E} {g : X ⟶ Y} {g' : Y ⟶ Z} :
+    (tauto (P:= P) g ≫ₗ tauto g').hom = g ≫ g' := by
   rfl
 
-lemma comp_tauto_hom {x y z : E} {f : P.obj x ⟶ P.obj y} {l : Fibre.tauto x ⟶[f] (Fibre.tauto y)} {g : y ⟶ z} : (l ≫ₗ tauto g).hom = l.hom ≫ g := rfl
+lemma comp_tauto_hom {X Y Z : E} {f : P.obj X ⟶ P.obj Y} {f' : Fibre.tauto X ⟶[f] (Fibre.tauto Y)}
+    {g : Y ⟶ Z} : (f' ≫ₗ tauto g).hom = f'.hom ≫ g := by
+  rfl
 
 /-- A morphism of `E` coerced as a tautological based-lift. -/
 @[simps]
-instance instCoeTautoBasedLift {e e' : E} {g : e ⟶ e'} :
-    CoeDep (e ⟶ e') (g) (Fibre.tauto e  ⟶[P.map g] Fibre.tauto e') where
-  coe := tauto g
+ instance instCoeTautoBasedLift {X Y : E} {g : X ⟶ Y} :
+    CoeDep (X ⟶ Y) (g : X ⟶ Y) (Fibre.tauto X ⟶[P.map g] Fibre.tauto Y) := ⟨tauto g⟩
 
-lemma eq_id_of_hom_eq_id {c : C} {X : P⁻¹ I} {g : X ⟶[𝟙 I] X} :
+lemma eq_id_of_hom_eq_id {I : C} {X : P⁻¹ I} {g : X ⟶[𝟙 I] X} :
     (g.hom = 𝟙 X.1) ↔ (g = id X) := by
   aesop
 
@@ -330,7 +338,8 @@ lemma id_comp_cast {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J}
   simp only [cast_hom, DisplayStruct.comp_over, DisplayStruct.id_over, comp_hom, id_hom, id_comp]
 
 @[simp]
-lemma comp_id_cast {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} {g : X ⟶[f] Y} : g ≫ₗ 𝟙ₗ Y = g.cast (comp_id f).symm := by
+lemma comp_id_cast {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} {g : X ⟶[f] Y} :
+    g ≫ₗ 𝟙ₗ Y = g.cast (comp_id f).symm := by
   ext
   simp only [cast_hom, DisplayStruct.comp_over, DisplayStruct.id_over, comp_hom, id_hom, comp_id]
 
@@ -342,7 +351,7 @@ lemma assoc {I J K L : C} {f : I ⟶ J} {h : J ⟶ K} {l : K ⟶ L} {W : P⁻¹ 
 end BasedLift
 
 /-- The displayed category of a functor `P : E ⥤ C`. -/
-instance Functor.display : Display (fun c => P⁻¹ c) where
+instance Functor.display : Display (fun I => P⁻¹ I) where
   id_comp_cast := by simp  --simp_all only [BasedLift.comp, BasedLift.id, id_comp]; rfl
   comp_id_cast := by
     simp only [BasedLift.comp_id_cast, BasedLift.cast_rec, implies_true]
