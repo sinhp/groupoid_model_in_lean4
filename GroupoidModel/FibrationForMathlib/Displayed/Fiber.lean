@@ -33,7 +33,6 @@ set_option autoImplicit true
 
 /-- The fiber of a map at a given point. -/
 def Fiber {C E : Type*} (P : E → C) (c : C) := {d : E // P d = c}
-
 namespace Fiber
 
 variable {C E : Type*} {P : E → C} {c d : C}

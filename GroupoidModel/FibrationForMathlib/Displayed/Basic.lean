@@ -266,10 +266,11 @@ P.obj X ---------> I ---------> J
            ≅             f
 ```
 -/
-structure IsoBasedLift {I J : C} (f : I ⟶ J) (X : P⁻¹ I) (Y : P⁻¹ J) where
-  hom : (X : E) ⟶ (Y : E)
-  iso : P.obj X ≅ I
-  iso_over_eq : (P.map hom) ≫ eqToHom (Y.2) = iso.hom ≫ f := by aesop_cat
+structure IsoBasedLift {I J : C} (f : I ⟶ J) (X : IsoFiber P I) (Y : IsoFiber P J) where
+  hom : X.obj ⟶ Y.obj
+  iso_over_eq : (P.map hom) ≫ Y.iso.hom = X.iso.hom ≫ f := by aesop_cat
+
+attribute [reassoc] IsoBasedLift.iso_over_eq
 
 namespace BasedLift
 
@@ -293,27 +294,39 @@ def comp {I J K : C} {f₁ : I ⟶ J} {f₂ : J ⟶ K} {X : P⁻¹ I} {Y : P⁻�
 
 @[simps!]
 def cast {I J : C} {f f' : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} (w : f = f')
-    (g : BasedLift f X Y) : BasedLift f' X Y := ⟨g.hom, by rw [←w, g.over_eq]⟩
+  (g : BasedLift f X Y) : BasedLift f' X Y := ⟨g.hom, by rw [←w, g.over_eq]⟩
 
 end BasedLift
 
 namespace IsoBasedLift
 
 @[simp]
-lemma iso_over_eq' {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} (g : IsoBasedLift f X Y) :
-    P.map g.hom = (g.iso.hom ≫ f) ≫ eqToHom (Y.2.symm):= by
-  rw [← comp_eqToHom_iff, g.iso_over_eq]
+lemma iso_over_eq' {I J : C} {f : I ⟶ J} {X : IsoFiber P I} {Y : IsoFiber P J} (g : IsoBasedLift f X Y) :
+    P.map g.hom = X.iso.hom ≫ f ≫ Y.iso.inv := by
+  simpa using g.iso_over_eq_assoc (Y.iso.inv)
 
-def id {I : C} (X : P⁻¹ I) : IsoBasedLift (𝟙 I) X X := ⟨𝟙 _, eqToIso (X.2), by aesop⟩
+def id {I : C} (X : IsoFiber P I) : IsoBasedLift (𝟙 I) X X where
+  hom := 𝟙 _
 
--- def comp {I J K : C} {f₁ : I ⟶ J} {f₂ : J ⟶ K} {X : P⁻¹ I} {Y : P⁻¹ J} {Z : P⁻¹ K}
---     (g₁ : IsoBasedLift f₁ X Y) (g₂ : IsoBasedLift f₂ Y Z) :
---     IsoBasedLift (f₁ ≫ eqToIso (Y.2) ≫ f₂) X Z := by
---   refine ⟨g₁.hom ≫ g₂.hom, g₁.iso, ?_⟩
---   rw [Functor.map_comp]
---   rw [assoc, g₂.iso_over_eq, g₁.iso_over_eq']
---   sorry
-
+def comp {I J K : C} {f₁ : I ⟶ J} {f₂ : J ⟶ K} {X : IsoFiber P I} {Y : IsoFiber P J} {Z : IsoFiber P K}
+    (g₁ : IsoBasedLift f₁ X Y) (g₂ : IsoBasedLift f₂ Y Z) :
+    IsoBasedLift (f₁ ≫ f₂) X Z := by
+  refine ⟨g₁.hom ≫ g₂.hom, ?_⟩
+  have := by
+    calc
+      P.map (g₁.hom ≫ g₂.hom) = P.map (g₁.hom) ≫ P.map (g₂.hom) := by
+        rw [P.map_comp]
+      _   = (X.iso.hom ≫ f₁ ≫ Y.iso.inv) ≫ P.map (g₂.hom) := by
+        rw [g₁.iso_over_eq']
+      _   = X.iso.hom ≫ f₁ ≫ (Y.iso.inv ≫ P.map (g₂.hom)) := by
+        simp only [iso_over_eq', assoc, Iso.inv_hom_id_assoc]
+      _   = X.iso.hom ≫ f₁ ≫ (Y.iso.inv ≫ Y.iso.hom ≫ f₂ ≫ Z.iso.inv) := by
+        rw [g₂.iso_over_eq']
+      _   = X.iso.hom ≫ f₁ ≫ (𝟙 J ≫ f₂ ≫ Z.iso.inv) := by
+        simp
+      _   = X.iso.hom ≫ f₁ ≫ f₂ ≫ Z.iso.inv := by
+        simp
+  simp [this]
 
 end IsoBasedLift
 
@@ -332,6 +345,11 @@ instance Functor.displayStruct : DisplayStruct (fun I => P⁻¹ I) where
 --   HomOver := fun f X Y => IsoBasedLift f X Y
 --   id_over := fun X => IsoBasedLift.id X
 --   comp_over := fun g₁ g₂ => IsoBasedLift.comp g₁ g₂
+
+instance Functor.isodisplay : DisplayStruct (fun I => IsoFiber P I) where
+  HomOver := fun f X Y => IsoBasedLift f X Y
+  id_over := fun X => IsoBasedLift.id X
+  comp_over := fun g₁ g₂ => IsoBasedLift.comp g₁ g₂
 
 namespace BasedLift
 
