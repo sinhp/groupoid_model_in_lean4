@@ -5,7 +5,7 @@ Authors: Sina Hazratpour
 -/
 
 import Mathlib.CategoryTheory.Category.Preorder
-import GroupoidModel.FibrationForMathlib.Displayed.Fibre
+import GroupoidModel.FibrationForMathlib.Displayed.Fiber
 
 /-!
 # Displayed category
@@ -13,14 +13,14 @@ import GroupoidModel.FibrationForMathlib.Displayed.Fibre
 Given a type family `F : C → Type*` on a category `C` we define the type class `Display F`
 of displayed categories over `F`. A displayed category structure associates to each morphism `f`
 in `C`  and terms `X : F I` and `Y : F J` a type `HomOver f X Y`.
-We think of `F I` as the Fibre over `I`, and we think of `HomOver f X Y` as the type ofmorphisms
+We think of `F I` as the Fiber over `I`, and we think of `HomOver f X Y` as the type ofmorphisms
 lying over `f` starting from `X` and ending at `Y`. The data of a displayed category structure
 also provides the dependent operations of identity and composition for `HomOver`.
 Finally, the modified laws of associativity and unitality hold dependently over the associativity and unitality equalities in `C`.
 
 ## Main results
 
-Our main construction is the displayed category of a functor. Given a functor `P : E ⥤ C`, the associated displayed category on the Fibre family `fun c => P⁻¹ c` is provided by the instance `Functor.display`. Here `HomOver f X Y ` is given by the type `BasedLift f src tgt` carrying data witnessing morphisms in `E` starting from `src` and ending at `tgt` and are mapped to `f` under `P`.
+Our main construction is the displayed category of a functor. Given a functor `P : E ⥤ C`, the associated displayed category on the Fiber family `fun c => P⁻¹ c` is provided by the instance `Functor.display`. Here `HomOver f X Y ` is given by the type `BasedLift f src tgt` carrying data witnessing morphisms in `E` starting from `src` and ending at `tgt` and are mapped to `f` under `P`.
 
 We also provide various useful constructors for based-lifts:
 * `BasedLift.tauto` regards a morphism `g` of the domain category `E` as a
@@ -51,8 +51,8 @@ variable {C : Type*} [Category C] (F : C → Type*)
 
 section cast
 
-/-- Cast an element of a Fibre along an equality of the base objects. -/
-def FibreCast {I I' : C} (w : I = I') (X : F I)  : F I' :=
+/-- Cast an element of a Fiber along an equality of the base objects. -/
+def FiberCast {I I' : C} (w : I = I') (X : F I)  : F I' :=
   w ▸ X
 
 /-- Tranporsting a morphism `f : I ⟶ J` along equalities `w : I = I'` and  `w' : J = J'`.
@@ -73,13 +73,13 @@ lemma eqToHomMap_naturality {I I' J J' : C} {w : I = I'} {w' : J = J'} (f : I �
   simp
 
 @[simp]
-lemma Fibre_cast_trans {I I' I'': C} (X : F I) {w : I = I'} {w' : I' = I''} {w'' : I = I''} :
+lemma Fiber_cast_trans {I I' I'': C} (X : F I) {w : I = I'} {w' : I' = I''} {w'' : I = I''} :
     w' ▸ (w ▸ X) = w'' ▸ X := by
   subst w'
   rfl
 
-lemma Fibre_cast_cast {I I' : C} (X : F I) {w : I = I'} {w' : I' = I} : w' ▸ w ▸ X = X := by
-  simp only [Fibre_cast_trans]
+lemma Fiber_cast_cast {I I' : C} (X : F I) {w : I = I'} {w' : I' = I} : w' ▸ w ▸ X = X := by
+  simp only [Fiber_cast_trans]
 
 end cast
 
@@ -186,7 +186,7 @@ def castEquiv {I J : C} {f f' : I ⟶ J} {X : F I} {Y : F J} (w : f = f') :
 
 variable (F)
 
-/-- The total space of a displayed category consists of pairs `(I, X)` where `I` is an object of `C` and `X` is an object of the Fibre `F I`. -/
+/-- The total space of a displayed category consists of pairs `(I, X)` where `I` is an object of `C` and `X` is an object of the Fiber `F I`. -/
 def Total := Σ I : C, F I
 
 prefix:75 " ∫ "  => Total
@@ -249,28 +249,28 @@ end Display
 variable {E : Type*} [Category E] {P : E ⥤ C}
 
 /-- The type of lifts of a given morphism in the base
-with fixed source and target in the Fibres of the domain and codomain respectively.-/
+with fixed source and target in the Fibers of the domain and codomain respectively.-/
 structure BasedLift {I J : C} (f : I ⟶ J) (X : P⁻¹ I) (Y : P⁻¹ J) where
   hom : (X : E) ⟶ (Y : E)
   over_eq : (P.map hom) ≫ eqToHom (Y.2) = eqToHom (X.2) ≫ f
 
 /--
 The structure of based-lifts up to an isomorphism of the domain objects in the base.
-```              g
-     X -------------------->    Y
-     _                          -
-     |            |             |
-     |            |             |
-     v            v             v
-P.obj X ---------> I ---------> J
-           ≅             f
+```                   g
+     X -------------------------------> Y
+     _                                  -
+     |                                  |
+     |                                  |
+     v                                  v
+P.obj X --------> I ------> J ----> P.obj Y
+            ≅           f       ≅
 ```
 -/
-structure IsoBasedLift {I J : C} (f : I ⟶ J) (X : IsoFiber P I) (Y : IsoFiber P J) where
+structure EBasedLift {I J : C} (f : I ⟶ J) (X : P⁻¹ᵉ I) (Y : P⁻¹ᵉ J) where
   hom : X.obj ⟶ Y.obj
   iso_over_eq : (P.map hom) ≫ Y.iso.hom = X.iso.hom ≫ f := by aesop_cat
 
-attribute [reassoc] IsoBasedLift.iso_over_eq
+attribute [reassoc] EBasedLift.iso_over_eq
 
 namespace BasedLift
 
@@ -298,19 +298,19 @@ def cast {I J : C} {f f' : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} (w : f = f')
 
 end BasedLift
 
-namespace IsoBasedLift
+namespace EBasedLift
 
 @[simp]
-lemma iso_over_eq' {I J : C} {f : I ⟶ J} {X : IsoFiber P I} {Y : IsoFiber P J} (g : IsoBasedLift f X Y) :
+lemma iso_over_eq' {I J : C} {f : I ⟶ J} {X : P⁻¹ᵉ I} {Y : P⁻¹ᵉ J} (g : EBasedLift f X Y) :
     P.map g.hom = X.iso.hom ≫ f ≫ Y.iso.inv := by
   simpa using g.iso_over_eq_assoc (Y.iso.inv)
 
-def id {I : C} (X : IsoFiber P I) : IsoBasedLift (𝟙 I) X X where
+def id {I : C} (X : P⁻¹ᵉ I) : EBasedLift (𝟙 I) X X where
   hom := 𝟙 _
 
-def comp {I J K : C} {f₁ : I ⟶ J} {f₂ : J ⟶ K} {X : IsoFiber P I} {Y : IsoFiber P J} {Z : IsoFiber P K}
-    (g₁ : IsoBasedLift f₁ X Y) (g₂ : IsoBasedLift f₂ Y Z) :
-    IsoBasedLift (f₁ ≫ f₂) X Z := by
+def comp {I J K : C} {f₁ : I ⟶ J} {f₂ : J ⟶ K} {X : P⁻¹ᵉ I} {Y : P⁻¹ᵉ J} {Z : P⁻¹ᵉ K}
+    (g₁ : EBasedLift f₁ X Y) (g₂ : EBasedLift f₂ Y Z) :
+    EBasedLift (f₁ ≫ f₂) X Z := by
   refine ⟨g₁.hom ≫ g₂.hom, ?_⟩
   have := by
     calc
@@ -328,9 +328,14 @@ def comp {I J K : C} {f₁ : I ⟶ J} {f₂ : J ⟶ K} {X : IsoFiber P I} {Y : I
         simp
   simp [this]
 
-end IsoBasedLift
+@[simps!]
+def cast {I J : C} {f f' : I ⟶ J} {X : P⁻¹ᵉ I} {Y : P⁻¹ᵉ J}
+    (w : f = f') (g : EBasedLift f X Y) : EBasedLift f' X Y where
+  hom := g.hom
+  iso_over_eq := by
+    rw [←w, g.iso_over_eq]
 
-
+end EBasedLift
 
 variable (P)
 
@@ -341,15 +346,10 @@ instance Functor.displayStruct : DisplayStruct (fun I => P⁻¹ I) where
   id_over X := BasedLift.id X
   comp_over := fun g₁ g₂ => BasedLift.comp g₁ g₂
 
--- def Functor.dispalyStruct : DisplayStruct (fun I => P⁻¹ I) where
---   HomOver := fun f X Y => IsoBasedLift f X Y
---   id_over := fun X => IsoBasedLift.id X
---   comp_over := fun g₁ g₂ => IsoBasedLift.comp g₁ g₂
-
-instance Functor.isodisplay : DisplayStruct (fun I => IsoFiber P I) where
-  HomOver := fun f X Y => IsoBasedLift f X Y
-  id_over := fun X => IsoBasedLift.id X
-  comp_over := fun g₁ g₂ => IsoBasedLift.comp g₁ g₂
+instance Functor.isodisplay : DisplayStruct (fun I => P⁻¹ᵉ I) where
+  HomOver := fun f X Y => EBasedLift f X Y
+  id_over := fun X => EBasedLift.id X
+  comp_over := fun g₁ g₂ => EBasedLift.comp g₁ g₂
 
 namespace BasedLift
 
@@ -371,24 +371,24 @@ lemma cast_rec {I J : C} {f f' : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} {w : f =
 /-- `BasedLift.tauto` regards a morphism `g` of the domain category `E` as a
 based-lift of its image `P g` under functor `P`. -/
 @[simps!]
-def tauto {X Y : E} (g : X ⟶ Y) : (Fibre.tauto X) ⟶[P.map g] (Fibre.tauto Y) :=
-  ⟨g, by simp only [Fibre.tauto, eqToHom_refl, id_comp, comp_id]⟩
+def tauto {X Y : E} (g : X ⟶ Y) : (Fiber.tauto X) ⟶[P.map g] (Fiber.tauto Y) :=
+  ⟨g, by simp only [Fiber.tauto, eqToHom_refl, id_comp, comp_id]⟩
 
-lemma tauto_over_base {X Y : E} (f : (P.obj X) ⟶ (P.obj Y)) (g : (Fibre.tauto X) ⟶[f] (Fibre.tauto Y)) : P.map g.hom = f := by
-  simp only [Fibre.coe_mk, over_base, eqToHom_refl, comp_id, id_comp]
+lemma tauto_over_base {X Y : E} (f : (P.obj X) ⟶ (P.obj Y)) (g : (Fiber.tauto X) ⟶[f] (Fiber.tauto Y)) : P.map g.hom = f := by
+  simp only [Fiber.coe_mk, over_base, eqToHom_refl, comp_id, id_comp]
 
 lemma tauto_comp_hom {X Y Z : E} {g : X ⟶ Y} {g' : Y ⟶ Z} :
     (tauto (P:= P) g ≫ₗ tauto g').hom = g ≫ g' := by
   rfl
 
-lemma comp_tauto_hom {X Y Z : E} {f : P.obj X ⟶ P.obj Y} {f' : Fibre.tauto X ⟶[f] (Fibre.tauto Y)}
+lemma comp_tauto_hom {X Y Z : E} {f : P.obj X ⟶ P.obj Y} {f' : Fiber.tauto X ⟶[f] (Fiber.tauto Y)}
     {g : Y ⟶ Z} : (f' ≫ₗ tauto g).hom = f'.hom ≫ g := by
   rfl
 
 /-- A morphism of `E` coerced as a tautological based-lift. -/
 @[simps]
  instance instCoeTautoBasedLift {X Y : E} {g : X ⟶ Y} :
-    CoeDep (X ⟶ Y) (g : X ⟶ Y) (Fibre.tauto X ⟶[P.map g] Fibre.tauto Y) := ⟨tauto g⟩
+    CoeDep (X ⟶ Y) (g : X ⟶ Y) (Fiber.tauto X ⟶[P.map g] Fiber.tauto Y) := ⟨tauto g⟩
 
 lemma eq_id_of_hom_eq_id {I : C} {X : P⁻¹ I} {g : X ⟶[𝟙 I] X} :
     (g.hom = 𝟙 X.1) ↔ (g = id X) := by
@@ -413,6 +413,79 @@ lemma assoc {I J K L : C} {f : I ⟶ J} {h : J ⟶ K} {l : K ⟶ L} {W : P⁻¹ 
 
 end BasedLift
 
+namespace EBasedLift
+
+@[ext]
+theorem ext {I J : C} {f : I ⟶ J} {X : P⁻¹ᵉ I} {Y : P⁻¹ᵉ J} (g g' : X ⟶[f] Y)
+    (w : g.hom = g'.hom) : g = g' := by
+  cases' g with g hg
+  cases' g' with g' hg'
+  congr
+
+@[simp]
+lemma cast_rec {I J : C} {f f' : I ⟶ J} {X : P⁻¹ᵉ I} {Y : P⁻¹ᵉ J}
+    {w : f = f'} (g : X ⟶[f] Y) :
+    g.cast w  = w ▸ g := by
+  subst w
+  rfl
+
+#check EFiber.tauto
+
+/-- `BasedLift.tauto` regards a morphism `g` of the domain category `E` as a
+based-lift of its image `P g` under functor `P`. -/
+@[simps!]
+def tauto {X Y : E} (g : X ⟶ Y) : (EFiber.tauto X) ⟶[P.map g] (EFiber.tauto Y) :=
+  sorry
+
+lemma tauto_over_base {X Y : E} (f : (P.obj X) ⟶ (P.obj Y)) (g : (Fiber.tauto X) ⟶[f] (Fiber.tauto Y)) :
+    P.map g.hom = f := by
+  sorry
+
+lemma tauto_comp_hom {X Y Z : E} {g : X ⟶ Y} {g' : Y ⟶ Z} :
+    (tauto (P:= P) g ≫ₗ tauto g').hom = g ≫ g' := by
+  rfl
+
+lemma comp_tauto_hom {X Y Z : E} {f : P.obj X ⟶ P.obj Y} {f' : Fiber.tauto X ⟶[f] (Fiber.tauto Y)}
+    {g : Y ⟶ Z} : (f' ≫ₗ tauto g).hom = f'.hom ≫ g := by
+  rfl
+
+/-- A morphism of `E` coerced as a tautological based-lift. -/
+@[simps]
+ instance instCoeTautoBasedLift {X Y : E} {g : X ⟶ Y} :
+    CoeDep (X ⟶ Y) (g : X ⟶ Y) (Fiber.tauto X ⟶[P.map g] Fiber.tauto Y) := ⟨tauto g⟩
+
+lemma eq_id_of_hom_eq_id {I : C} {X : P⁻¹ I} {g : X ⟶[𝟙 I] X} :
+    (g.hom = 𝟙 X.1) ↔ (g = id X) := by
+  aesop
+
+@[simp]
+lemma id_comp_cast {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J}
+    {g : X ⟶[f] Y} : 𝟙ₗ X  ≫ₗ g = g.cast (id_comp f).symm := by
+  ext
+  simp only [cast_hom, DisplayStruct.comp_over, DisplayStruct.id_over, comp_hom, id_hom, id_comp]
+
+@[simp]
+lemma comp_id_cast {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} {g : X ⟶[f] Y} :
+    g ≫ₗ 𝟙ₗ Y = g.cast (comp_id f).symm := by
+  ext
+  simp only [cast_hom, DisplayStruct.comp_over, DisplayStruct.id_over, comp_hom, id_hom, comp_id]
+
+@[simp]
+lemma assoc {I J K L : C} {f : I ⟶ J} {h : J ⟶ K} {l : K ⟶ L} {W : P⁻¹ I} {X : P⁻¹ J} {Y : P⁻¹ K} {Z : P⁻¹ L} (g : W ⟶[f] X) (k : X ⟶[h] Y) (m : Y ⟶[l] Z) : (g ≫ₗ k) ≫ₗ m = (g ≫ₗ (k ≫ₗ m)).cast (assoc f h l).symm := by
+  ext
+  simp only [cast_hom, DisplayStruct.comp_over, comp_hom, Category.assoc]
+
+
+@[simp]
+lemma id_comp_cast {I J : C} {f : I ⟶ J} {X : IsoFiber P I} {Y : IsoFiber P J}
+    {g : X ⟶[f] Y} : 𝟙ₗ X  ≫ₗ g = g.cast (id_comp f).symm := by
+  ext
+  simp only [cast_hom, DisplayStruct.comp_over, DisplayStruct.id_over, comp_hom, id_hom, id_comp]
+
+end EBasedLift
+
+
+
 /-- The displayed category of a functor `P : E ⥤ C`. -/
 instance Functor.display : Display (fun I => P⁻¹ I) where
   id_comp_cast := by simp  --simp_all only [BasedLift.comp, BasedLift.id, id_comp]; rfl
@@ -421,20 +494,29 @@ instance Functor.display : Display (fun I => P⁻¹ I) where
   assoc_cast := by
     simp only [BasedLift.assoc, BasedLift.cast_rec, implies_true]
 
+instance Functor.isoDisplay : Display (fun I => IsoFiber P I) where
+  id_comp_cast := by
+    intro I J f X Y g
+
+
+
+  comp_id_cast := by sorry
+  assoc_cast := by sorry
+
 namespace Display
 
 variable {F}
 variable [Display F]
 
 /-- The type `Lift f tgt` of a lift of `f` with the target `tgt` consists of an object `src` in
-the Fibre of the domain of `f` and a based-lift of `f` starting at `src` and ending at `tgt`. -/
+the Fiber of the domain of `f` and a based-lift of `f` starting at `src` and ending at `tgt`. -/
 @[ext]
 structure Lift {I J : C} (f : I ⟶ J) (tgt : F J) where
   src : F I
   homOver : src ⟶[f] tgt
 
 /-- The type `CoLift f src` of a colift of `f` with the source `src` consists of an object `tgt` in
-the Fibre of the codomain of `f` and a based-lift of `f` starting at `src` and ending at `tgt`. -/
+the Fiber of the codomain of `f` and a based-lift of `f` starting at `src` and ending at `tgt`. -/
 @[ext]
 structure CoLift {I J : C} (f : I ⟶ J) (src : F I) where
   tgt : F J

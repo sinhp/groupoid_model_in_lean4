@@ -423,7 +423,6 @@ instance instCast {c d : C} {f f' : c ⟶ d} (h : f = f') {x : P⁻¹ c} {y : P�
     uniq := by intro l; cases l; sorry
   }
 
-
 end BasedLift
 
 /-- A morphism is cartesian if the gap map is unique. -/
