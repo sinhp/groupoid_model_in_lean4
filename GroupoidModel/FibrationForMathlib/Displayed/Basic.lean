@@ -93,7 +93,7 @@ class DisplayStruct where
   {Z : F K}, HomOver f₁ X Y → HomOver f₂ Y Z → HomOver (f₁ ≫ f₂) X Z
 
 notation X " ⟶[" f "] " Y => DisplayStruct.HomOver f X Y
-notation " 𝟙ₗ " => DisplayStruct.id_over
+notation "𝟙ₗ" => DisplayStruct.id_over
 scoped infixr:80 "  ≫ₗ "  => DisplayStruct.comp_over
 
 class Display extends DisplayStruct F where
@@ -429,58 +429,56 @@ lemma cast_rec {I J : C} {f f' : I ⟶ J} {X : P⁻¹ᵉ I} {Y : P⁻¹ᵉ J}
   subst w
   rfl
 
-#check EFiber.tauto
-
 /-- `BasedLift.tauto` regards a morphism `g` of the domain category `E` as a
 based-lift of its image `P g` under functor `P`. -/
 @[simps!]
-def tauto {X Y : E} (g : X ⟶ Y) : (EFiber.tauto X) ⟶[P.map g] (EFiber.tauto Y) :=
-  sorry
+def tauto {X Y : E} (g : X ⟶ Y) : (EFiber.tauto X) ⟶[P.map g] (EFiber.tauto Y) where
+  hom := g
+  iso_over_eq := sorry
 
 lemma tauto_over_base {X Y : E} (f : (P.obj X) ⟶ (P.obj Y)) (g : (Fiber.tauto X) ⟶[f] (Fiber.tauto Y)) :
     P.map g.hom = f := by
   sorry
 
 lemma tauto_comp_hom {X Y Z : E} {g : X ⟶ Y} {g' : Y ⟶ Z} :
-    (tauto (P:= P) g ≫ₗ tauto g').hom = g ≫ g' := by
+    (tauto P g ≫ₗ tauto P g').hom = g ≫ g' := by
   rfl
 
-lemma comp_tauto_hom {X Y Z : E} {f : P.obj X ⟶ P.obj Y} {f' : Fiber.tauto X ⟶[f] (Fiber.tauto Y)}
-    {g : Y ⟶ Z} : (f' ≫ₗ tauto g).hom = f'.hom ≫ g := by
+lemma comp_tauto_hom {X Y Z : E} {f : P.obj X ⟶ P.obj Y} {f' : EFiber.tauto X ⟶[f] (EFiber.tauto Y)}
+    {g : Y ⟶ Z} : (f' ≫ₗ tauto P g).hom = f'.hom ≫ g := by
   rfl
 
 /-- A morphism of `E` coerced as a tautological based-lift. -/
 @[simps]
  instance instCoeTautoBasedLift {X Y : E} {g : X ⟶ Y} :
-    CoeDep (X ⟶ Y) (g : X ⟶ Y) (Fiber.tauto X ⟶[P.map g] Fiber.tauto Y) := ⟨tauto g⟩
+    CoeDep (X ⟶ Y) (g : X ⟶ Y) (EFiber.tauto X ⟶[P.map g] EFiber.tauto Y) := ⟨tauto P g⟩
 
 lemma eq_id_of_hom_eq_id {I : C} {X : P⁻¹ I} {g : X ⟶[𝟙 I] X} :
-    (g.hom = 𝟙 X.1) ↔ (g = id X) := by
+    (g.hom = 𝟙 X.1) ↔ (g = 𝟙ₗ X) := by
   aesop
 
 @[simp]
 lemma id_comp_cast {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J}
-    {g : X ⟶[f] Y} : 𝟙ₗ X  ≫ₗ g = g.cast (id_comp f).symm := by
+    {g : X ⟶[f] Y} : 𝟙ₗ X ≫ₗ g = g.cast (id_comp f).symm := by
   ext
-  simp only [cast_hom, DisplayStruct.comp_over, DisplayStruct.id_over, comp_hom, id_hom, id_comp]
+  simp only [DisplayStruct.comp_over, DisplayStruct.id_over, BasedLift.comp_hom, BasedLift.id_hom, id_comp]
+  rfl
 
 @[simp]
 lemma comp_id_cast {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} {g : X ⟶[f] Y} :
     g ≫ₗ 𝟙ₗ Y = g.cast (comp_id f).symm := by
   ext
-  simp only [cast_hom, DisplayStruct.comp_over, DisplayStruct.id_over, comp_hom, id_hom, comp_id]
+  simp only [cast_hom, DisplayStruct.comp_over, DisplayStruct.id_over, BasedLift.comp_hom, BasedLift.id_hom, comp_id]
+  rfl
 
 @[simp]
-lemma assoc {I J K L : C} {f : I ⟶ J} {h : J ⟶ K} {l : K ⟶ L} {W : P⁻¹ I} {X : P⁻¹ J} {Y : P⁻¹ K} {Z : P⁻¹ L} (g : W ⟶[f] X) (k : X ⟶[h] Y) (m : Y ⟶[l] Z) : (g ≫ₗ k) ≫ₗ m = (g ≫ₗ (k ≫ₗ m)).cast (assoc f h l).symm := by
+lemma assoc {I J K L : C} {f : I ⟶ J} {h : J ⟶ K} {l : K ⟶ L}
+    {W : P⁻¹ I} {X : P⁻¹ J} {Y : P⁻¹ K} {Z : P⁻¹ L}
+    (g : W ⟶[f] X) (k : X ⟶[h] Y) (m : Y ⟶[l] Z) :
+    (g ≫ₗ k) ≫ₗ m = (g ≫ₗ (k ≫ₗ m)).cast (assoc f h l).symm := by
   ext
-  simp only [cast_hom, DisplayStruct.comp_over, comp_hom, Category.assoc]
-
-
-@[simp]
-lemma id_comp_cast {I J : C} {f : I ⟶ J} {X : IsoFiber P I} {Y : IsoFiber P J}
-    {g : X ⟶[f] Y} : 𝟙ₗ X  ≫ₗ g = g.cast (id_comp f).symm := by
-  ext
-  simp only [cast_hom, DisplayStruct.comp_over, DisplayStruct.id_over, comp_hom, id_hom, id_comp]
+  simp only [cast_hom, DisplayStruct.comp_over, BasedLift.comp_hom, Category.assoc]
+  rfl
 
 end EBasedLift
 
@@ -494,10 +492,10 @@ instance Functor.display : Display (fun I => P⁻¹ I) where
   assoc_cast := by
     simp only [BasedLift.assoc, BasedLift.cast_rec, implies_true]
 
-instance Functor.isoDisplay : Display (fun I => IsoFiber P I) where
+instance Functor.isoDisplay : Display (fun I => EFiber P I) where
   id_comp_cast := by
     intro I J f X Y g
-
+    sorry
 
 
   comp_id_cast := by sorry

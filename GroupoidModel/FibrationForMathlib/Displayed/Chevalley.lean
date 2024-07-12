@@ -12,6 +12,7 @@ import Mathlib.CategoryTheory.Grothendieck
 import GroupoidModel.FibrationForMathlib.Displayed.Fiber
 import GroupoidModel.FibrationForMathlib.Displayed.Basic
 import GroupoidModel.FibrationForMathlib.Displayed.Cartesian
+import GroupoidModel.FibrationForMathlib.FibredCats.Basic
 
 set_option pp.explicit false
 --set_option pp.notation true

@@ -9,7 +9,7 @@ import Mathlib.CategoryTheory.Opposites
 import Mathlib.CategoryTheory.Elements
 import Mathlib.CategoryTheory.Equivalence
 import Mathlib.CategoryTheory.Grothendieck
-import GroupoidModel.FibrationForMathlib.Displayed.Fibre
+import GroupoidModel.FibrationForMathlib.Displayed.Fiber
 import GroupoidModel.FibrationForMathlib.Displayed.Basic
 import GroupoidModel.FibrationForMathlib.Displayed.Cartesian
 
@@ -42,7 +42,7 @@ set_option pp.proofs.threshold 20
 
 namespace CategoryTheory
 
-open Category Opposite BasedLift Fibre Display
+open Category Opposite BasedLift Fiber Display
 
 namespace Display
 
@@ -70,8 +70,8 @@ scoped infixr:80 " ⋆ "  => Transport.transport -- NtS: infix right ensures tha
 
 end Display
 
-namespace Functor
 variable {C E : Type*} [Category C] [Category E]
+namespace Functor
 
 /-- A functor `P : E ⥤ C` is a cloven fibration if the associated displayed structure of `P` is a
 cloven fibration. -/
@@ -95,7 +95,7 @@ open Display
 
 lemma transport_over' {I J : C} {P : E ⥤ C} [Functor.Transport P] (f : I ⟶ J) (Y : P⁻¹ J) :
     P.obj (f ⋆ Y) = I := by
-  simp only [Fibre.over]
+  simp only [Fiber.over]
 
 namespace Display.ClovenFibration
 
@@ -105,6 +105,7 @@ variable (F : C → Type*) [Display F] [Display.ClovenFibration F]
 instance transport : Transport F where
   transport f X := (ClovenFibration.lift f X).src
 
+/-
 example (f : I ⟶ J) (g : J ⟶ K) (Z : P⁻¹ K) : f ⋆ g ⋆ Z = f ⋆ (g ⋆ Z) := rfl
 
 @[simp]
@@ -224,3 +225,4 @@ transport_id_hom {c : C} (x : P⁻¹ c) : basedLiftHom (𝟙 c) x = eqToHom (tra
 transport_comp_obj {c d₁ d₂ : C} (f₁ : c ⟶ d₁) (f₂ : d₁ ⟶ d₂) (x : P⁻¹ d₂) : ((f₁ ≫ f₂) ⋆ x).1 = (f₁ ⋆ (f₂ ⋆ x)).1
 lift_comp_hom {c d e : C} (f₁ : c ⟶ d) (f₂ : d ⟶ d') (x : P⁻¹ d') :
 basedLiftHom (f₁ ≫ f₂) x = eqToHom (transport_comp_obj f₁ f₂ x) ≫ basedLiftHom f₁ (f₂ ⋆ x) ≫ (basedLiftHom f₂ x)
+-/

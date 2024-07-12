@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sina Hazratpour
 -/
 
-import GroupoidModel.FibrationForMathlib.Displayed.Fibre
+import GroupoidModel.FibrationForMathlib.Displayed.Fiber
 import GroupoidModel.FibrationForMathlib.Displayed.Basic
 import Mathlib.CategoryTheory.Limits.Preserves.Basic
 
