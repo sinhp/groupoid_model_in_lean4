@@ -12,7 +12,6 @@ import Mathlib.CategoryTheory.Grothendieck
 import GroupoidModel.FibrationForMathlib.Displayed.Fiber
 import GroupoidModel.FibrationForMathlib.Displayed.Basic
 import GroupoidModel.FibrationForMathlib.Displayed.Cartesian
-import GroupoidModel.FibrationForMathlib.FibredCats.Basic
 
 set_option pp.explicit false
 --set_option pp.notation true
@@ -23,7 +22,7 @@ set_option pp.coercions true
 
 namespace CategoryTheory
 
-open Category Opposite BasedLift Fiber FiberCat Display
+open Category Opposite BasedLift Fiber Display
 
 
 namespace Display
