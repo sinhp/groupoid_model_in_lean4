@@ -18,8 +18,9 @@ Specialized to the display category structure of a functor `P : E ⥤ C`,
 we obtain the class `CartMor` of cartesian morphisms in `E`.
 The type `CartMor P` is defined in terms of the predicate `isCartesianMorphism`.
 
-In this file we shall refer to a hom-over `g : X ⟶[f] Y` as a "lift" of
-`f : I ⟶ J` to `X : F I` and `Y : F J`.
+Given a displayed category structure on a type family `F : C → Type`, and an object `I : C`, we shall refer to
+the type `F I` as the "fiber" of `F` at `I`. For a morphism `f : I ⟶ J` in `C`, and objects
+`X : F I` and `Y : F J`, we shall refer to a hom-over `g : X ⟶[f] Y` as a "lift" of  `f` to `X` and `Y`.
 
 We prove the following closure properties of the class `CartMor` of cartesian morphisms:
 - `cart_id` proves that the identity morphism is cartesian.
@@ -62,7 +63,7 @@ namespace Display
 
 variable {I J : C} {f : I ⟶ J} {X : F I} {Y : F J}
 
-/-- A hom-over `g : X ⟶[f] Y` is cartesian if for every morphism `u : K ⟶ I`
+/-- A lift `g : X ⟶[f] Y` is cartesian if for every morphism `u : K ⟶ I`
 in the base and every hom-over `g' : Z ⟶[u ≫ f] Y` over the composite
  `u ≫ f`, there is a unique morphism `k : Z ⟶[u] X` over `u` such that
  `k ≫ g = g'`.
@@ -81,10 +82,10 @@ in the base and every hom-over `g' : Z ⟶[u ≫ f] Y` over the composite
 -/
 class Cartesian (g : X ⟶[f] Y) where
   uniq_lift : ∀ ⦃K : C⦄ ⦃Z : F K⦄ (u : K ⟶ I) (g' : Z ⟶[u ≫ f] Y),
-  Unique {k : Z ⟶[u] X // (k ≫ₗ g) = g'}
+  Unique {k : Z ⟶[u] X // (k ≫ₒ g) = g'}
 
-/-- A morphism `g : X ⟶[f] Y` over `f` is cocartesian if for all morphisms `u` in the
-base and `g' : X ⟶[f ≫ u] Z` over the composite `f ≫ u`, there is a unique morphism
+/-- A lift `g : X ⟶[f] Y` is cocartesian if for all morphisms `u` in the
+base and `g' : X ⟶[f ≫ u] Z`, there is a unique morphism
 `k : Y ⟶[u] Z` over `u` such that `g ≫ k = g'`.
 ```
        _ _ _ _ _ _ _ _ _ _ _
@@ -101,7 +102,7 @@ base and `g' : X ⟶[f ≫ u] Z` over the composite `f ≫ u`, there is a unique
 -/
 class CoCartesian (g : X ⟶[f] Y) where
   uniq_lift : ∀ ⦃K : C⦄ ⦃Z : F K⦄ (u : J ⟶ K) (g' : X ⟶[f ≫ u] Z),
-  Unique {k :  Y ⟶[u] Z // (g ≫ₗ k) = g'}
+  Unique {k :  Y ⟶[u] Z // (g ≫ₒ k) = g'}
 
 namespace Cartesian
 
@@ -128,18 +129,18 @@ lemma gap_cast (u : K ⟶ I) {f' : K ⟶ J} (g' : Z ⟶[f'] Y)
 /-- The composition of the gap lift and the cartesian hom-over is the given hom-over. -/
 @[simp]
 lemma gap_prop (u : K ⟶ I) (g' : Z ⟶[u ≫ f] Y) :
-    ((gap g u g') ≫ₗ g) = g' :=
+    ((gap g u g') ≫ₒ g) = g' :=
   (Cartesian.uniq_lift (f:= f) (g:= g) (Z := Z) u g').default.property
 
 /-- The uniqueness part of the universal property of the gap lift. -/
 @[simp]
 lemma gaplift_uniq {u : K ⟶ I} (g' : Z ⟶[u ≫ f] Y) (v : Z ⟶[u] X)
-    (hv : v ≫ₗ g = g') : v = gap (g:= g) u g' := by
+    (hv : v ≫ₒ g = g') : v = gap (g:= g) u g' := by
   simp [gap]
   rw [← (Cartesian.uniq_lift u g').uniq ⟨v,hv⟩]
 
 /-- The identity hom-over is cartesian. -/
-instance instId {X : F I} : Cartesian (𝟙ₗ X) where
+instance instId {X : F I} : Cartesian (𝟙ₒ X) where
   uniq_lift := fun K Z u g' => {
     default := ⟨(comp_id u) ▸ g', by simp⟩
     uniq := by aesop
@@ -148,7 +149,7 @@ instance instId {X : F I} : Cartesian (𝟙ₗ X) where
 /-- Cartesian based-lifts are closed under composition. -/
 instance instComp {X : F I} {Y : F J} {Z : F K} {f₁ : I ⟶ J} {f₂ : J ⟶ K}
     (g₁ : X ⟶[f₁] Y) [Cartesian g₁] (g₂ : Y ⟶[f₂] Z) [Cartesian g₂] :
-  Cartesian (g₁ ≫ₗ g₂) where
+  Cartesian (g₁ ≫ₒ g₂) where
   uniq_lift := fun I' W u g' => {
     default := ⟨ gap g₁ u (gap g₂ (u ≫ f₁) (assoc u f₁ f₂ ▸ g')), by
       rw [← Display.cast_assoc_symm, gap_prop g₁ _ _, gap_prop g₂ _ _]

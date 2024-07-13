@@ -14,7 +14,7 @@ import ProofWidgets.Component.Panel.SelectionPanel
 import ProofWidgets.Component.Panel.GoalTypePanel
 
 /-!
-# Widget
+# Widget test for fibred category theory
 -/
 
 
@@ -24,6 +24,38 @@ open Category CategoryTheory ProofWidgets
 
 variable {C : Type*} [Category C] (F : C → Type*)
 
+
+/-- Tranporsting a morphism `f : I ⟶ J` along equalities `w : I = I'` and  `w' : J = J'`.
+Note: It might be a good idea to add this to eqToHom file. -/
+@[simp]
+def eqToHomMap {I I' J J' : C} (w : I = I') (w' : J = J') (f : I ⟶ J) : I' ⟶ J' :=
+  w' ▸ (w ▸ f) --eqToHom (w.symm) ≫ f ≫ eqToHom w'
+
+/--
+The diagram below commutes:
+```
+    I --eqToHom w --> J
+    |                 |
+  f |                 | eqToHomMap w w' f
+    v                 v
+    I' --eqToHom w'-> J'
+```
+-/
+@[simp]
+lemma eqToHomMap_naturality' {I I' J J' : C} {w : I = I'} {w' : J = J'} (f : I ⟶ J) :
+    eqToHom w ≫ eqToHomMap w w' f = f ≫ eqToHom w' := by
+  with_panel_widgets [GoalTypePanel]
+  subst w' w
+  simp
+
+/-- Tranporsting a morphism `f : I ⟶ J` along equalities `w : I = I'` and  `w' : J = J'`.
+Note: It might be a good idea to add this to eqToHom file. -/
+@[simp]
+def eqToHomMap' {I I' J J' : C} (w : I = I') (w' : J = J') (f : I ⟶ J) : I' ⟶ J' := by
+  with_panel_widgets [GoalTypePanel]
+  let a : I' ⟶ J := eqToHom (w.symm) ≫ f
+  let b : I' ⟶ J' := a ≫ eqToHom w'
+  exact b
 
 class DisplayStruct where
   /-- The type of morphisms indexed over morphisms of `C`. -/
