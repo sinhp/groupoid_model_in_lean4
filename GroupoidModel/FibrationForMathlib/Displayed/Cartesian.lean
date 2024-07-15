@@ -112,7 +112,7 @@ variable (g : X ⟶[f] Y) [Cartesian g] {K : C} {Z : F K}
 
 /-- `gap g u g'` is the canonical map from a lift `g' : Z ⟶[u ≫ f] X` to a
 cartesian lift `g` of `f`. -/
-def gap (u : K ⟶ I) (g' : Z ⟶[u ≫ f] Y) : Z ⟶[u] X :=
+def gap {u : K ⟶ I} (g' : Z ⟶[u ≫ f] Y) : Z ⟶[u] X :=
   (Cartesian.uniq_lift (g:= g) (Z:= Z) u g').default.val
 
 /-- A variant of `gaplift` for `g' : Z ⟶[f'] Y` with casting along `f' = u ≫ f`
@@ -123,19 +123,19 @@ def gapCast (u : K ⟶ I) {f' : K ⟶ J} (g' : Z ⟶[f'] Y) (w : f' = u ≫ f) :
 
 @[simp]
 lemma gap_cast (u : K ⟶ I) {f' : K ⟶ J} (g' : Z ⟶[f'] Y)
-    (w : f' = u ≫ f) : gapCast g u g' w = gap g u (w ▸ g') := by
+    (w : f' = u ≫ f) : gapCast g u g' w = gap g (w ▸ g') := by
   rfl
 
 /-- The composition of the gap lift and the cartesian hom-over is the given hom-over. -/
 @[simp]
 lemma gap_prop (u : K ⟶ I) (g' : Z ⟶[u ≫ f] Y) :
-    ((gap g u g') ≫ₒ g) = g' :=
+    ((gap g g') ≫ₒ g) = g' :=
   (Cartesian.uniq_lift (f:= f) (g:= g) (Z := Z) u g').default.property
 
 /-- The uniqueness part of the universal property of the gap lift. -/
 @[simp]
 lemma gaplift_uniq {u : K ⟶ I} (g' : Z ⟶[u ≫ f] Y) (v : Z ⟶[u] X)
-    (hv : v ≫ₒ g = g') : v = gap (g:= g) u g' := by
+    (hv : v ≫ₒ g = g') : v = gap g g' := by
   simp [gap]
   rw [← (Cartesian.uniq_lift u g').uniq ⟨v,hv⟩]
 
@@ -151,9 +151,9 @@ instance instComp {X : F I} {Y : F J} {Z : F K} {f₁ : I ⟶ J} {f₂ : J ⟶ K
     (g₁ : X ⟶[f₁] Y) [Cartesian g₁] (g₂ : Y ⟶[f₂] Z) [Cartesian g₂] :
   Cartesian (g₁ ≫ₒ g₂) where
   uniq_lift := fun I' W u g' => {
-    default := ⟨ gap g₁ u (gap g₂ (u ≫ f₁) (assoc u f₁ f₂ ▸ g')), by
+    default := ⟨gap g₁ (gap g₂ (assoc u f₁ f₂ ▸ g')), by
       rw [← Display.cast_assoc_symm, gap_prop g₁ _ _, gap_prop g₂ _ _]
-      simp ⟩
+      simp⟩
     uniq := by
       intro ⟨l, hl⟩
       simp

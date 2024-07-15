@@ -139,7 +139,6 @@ attribute [trans] Display.assoc_cast
 namespace Display
 
 variable {F}
-
 variable [Display F]
 
 @[simp]
@@ -234,15 +233,23 @@ def Total := Σ I : C, F I
 
 prefix:75 " ∫ "  => Total
 
-variable {F}
-
-abbrev TotalHom (X Y : ∫ F) := Σ (f : X.1 ⟶ Y.1), X.2 ⟶[f] Y.2
 
 namespace Total
 
+variable {F}
+
+@[simp]
+def mk {I : C} (X : F I) : ∫ F := ⟨I, X⟩
+
+abbrev Hom (X Y : ∫ F) := Σ (f : X.1 ⟶ Y.1), X.2 ⟶[f] Y.2
+
+def Total.Hom.mk {I J : C} {X : F I} {Y : F J} {f : I ⟶ J} (g : X ⟶[f] Y) :
+    Total.Hom (.mk X) (.mk Y) :=
+  ⟨f, g⟩
+
 @[simp]
 instance categoryStruct : CategoryStruct (∫ F) where
-  Hom := TotalHom
+  Hom := Total.Hom
   id X := ⟨𝟙 X.1, 𝟙ₒ X.2⟩
   comp u u' := ⟨u.1 ≫ u'.1, u.2 ≫ₒ u'.2⟩
 
