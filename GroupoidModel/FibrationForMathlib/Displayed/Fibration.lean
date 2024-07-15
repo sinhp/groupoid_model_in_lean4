@@ -129,7 +129,6 @@ open Cartesian
 
 variable {P : E ⥤ C} [P.ClovenFibration]
 
-variable {F}
 /-- A cloven fibration has transports along morphisms of the base. -/
 @[simps!]
 instance transport : P.Transport where
@@ -264,17 +263,16 @@ def map {I J : C} (f : I ⟶ J) : (P⁻¹ J) ⥤ (P⁻¹ I) where
 
 variable (P)
 
+@[simps!]
 def straightening : Cᵒᵖ  ⥤ Cat where
   obj I := Cat.of (P⁻¹ (unop I))
   map {I J} f := Functor.ClovenFibration.map (unop f)
   map_id := by sorry
   map_comp := by sorry
 
-#check Functor.leftOp
-
--- def unstraightening (G : Cᵒᵖ  ⥤ Cat) : (Grothendieck G)ᵒᵖ ⥤ C :=
--- (Grothendieck.forget G.rightOp)
-
+@[simps]
+def unstraightening (G : Cᵒᵖ  ⥤ Cat) : (Grothendieck G)ᵒᵖ ⥤ C :=
+  (Grothendieck.forget G).leftOp
 
 end Functor.ClovenFibration
 

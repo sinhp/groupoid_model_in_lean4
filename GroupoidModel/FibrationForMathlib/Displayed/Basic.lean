@@ -243,7 +243,8 @@ def mk {I : C} (X : F I) : ∫ F := ⟨I, X⟩
 
 abbrev Hom (X Y : ∫ F) := Σ (f : X.1 ⟶ Y.1), X.2 ⟶[f] Y.2
 
-def Total.Hom.mk {I J : C} {X : F I} {Y : F J} {f : I ⟶ J} (g : X ⟶[f] Y) :
+@[simps!]
+def Hom.mk {I J : C} {X : F I} {Y : F J} {f : I ⟶ J} (g : X ⟶[f] Y) :
     Total.Hom (.mk X) (.mk Y) :=
   ⟨f, g⟩
 
