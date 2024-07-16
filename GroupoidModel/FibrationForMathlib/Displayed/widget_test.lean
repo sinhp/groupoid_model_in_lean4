@@ -24,6 +24,7 @@ open Category CategoryTheory ProofWidgets
 
 variable {C : Type*} [Category C] (F : C → Type*)
 
+show_panel_widgets [local GoalTypePanel]
 
 /-- Tranporsting a morphism `f : I ⟶ J` along equalities `w : I = I'` and  `w' : J = J'`.
 Note: It might be a good idea to add this to eqToHom file. -/
@@ -44,7 +45,6 @@ The diagram below commutes:
 @[simp]
 lemma eqToHomMap_naturality' {I I' J J' : C} {w : I = I'} {w' : J = J'} (f : I ⟶ J) :
     eqToHom w ≫ eqToHomMap w w' f = f ≫ eqToHom w' := by
-  with_panel_widgets [GoalTypePanel]
   subst w' w
   simp
 
@@ -52,7 +52,6 @@ lemma eqToHomMap_naturality' {I I' J J' : C} {w : I = I'} {w' : J = J'} (f : I �
 Note: It might be a good idea to add this to eqToHom file. -/
 @[simp]
 def eqToHomMap' {I I' J J' : C} (w : I = I') (w' : J = J') (f : I ⟶ J) : I' ⟶ J' := by
-  with_panel_widgets [GoalTypePanel]
   let a : I' ⟶ J := eqToHom (w.symm) ≫ f
   let b : I' ⟶ J' := a ≫ eqToHom w'
   exact b
@@ -128,7 +127,6 @@ def id {I : C} (X : P⁻¹ I) : BasedLift (𝟙 I) X X := ⟨𝟙 _, by simp⟩
 def comp {I J K : C} {f₁ : I ⟶ J} {f₂ : J ⟶ K} {X : P⁻¹ I} {Y : P⁻¹ J} {Z : P⁻¹ K}
     (g₁ : BasedLift f₁ X Y) (g₂ : BasedLift f₂ Y Z) :
     BasedLift (f₁ ≫ f₂) X Z := by
-  with_panel_widgets [GoalTypePanel]
   with_panel_widgets [SelectionPanel]
   refine ⟨g₁.hom ≫ g₂.hom, ?_⟩
   have := by
@@ -162,7 +160,6 @@ def id {I : C} (X : EFiber P I) : EBasedLift (𝟙 I) X X where
 def comp {I J K : C} {f₁ : I ⟶ J} {f₂ : J ⟶ K} {X : EFiber P I} {Y : EFiber P J} {Z : EFiber P K}
     (g₁ : EBasedLift f₁ X Y) (g₂ : EBasedLift f₂ Y Z) :
     EBasedLift (f₁ ≫ f₂) X Z := by
-  with_panel_widgets [GoalTypePanel]
   with_panel_widgets [SelectionPanel]
   refine ⟨g₁.hom ≫ g₂.hom, ?_⟩
   have := by
