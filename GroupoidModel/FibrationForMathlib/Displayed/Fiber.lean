@@ -42,13 +42,28 @@ structure EFiber {C E : Type*} [Category C] [Category E] (P : E ⥤ C) (I : C) w
   obj : E
   iso : P.obj obj ≅ I
 
+/-- The lax fiber of a functor at a given object in the codomain category. -/
+structure LaxFiber {C E : Type*} [Category C] [Category E] (P : E ⥤ C) (I : C) where
+  obj : E
+  from_base : I ⟶ P.obj obj
+
 notation:75 (name := Fiber_stx) P " ⁻¹ " I => Fiber P I
 
 notation:75 (name := EFiber_stx) P " ⁻¹ᵉ " I => EFiber P I
 
+notation:75 (name := LaxFiber_stx) P " ⁻¹ˡ " I => LaxFiber P I
+
 namespace Fiber
 
 variable {C E : Type*} [Category C] [Category E] {P : E ⥤ C}
+
+@[ext]
+lemma ext  {I : C} (X Y : P⁻¹ I) (h : X.1 = Y.1) : X = Y := by
+  cases X
+  cases Y
+  simp at h
+  subst h
+  rfl
 
 /-- Coercion from the fiber to the domain. -/
 instance {I : C} : CoeOut (P⁻¹ I) E where
@@ -141,7 +156,6 @@ lemma is_iso {I : C} {X Y : P⁻¹ I} (f : X ⟶ Y) : IsIso f ↔ IsIso f.1 :=
   ⟨fun h ↦ (asIso f) |> forget.mapIso |> Iso.isIso_hom, fun h ↦ ⟨⟨⟨inv f.1, by simp⟩, by simp⟩⟩⟩
 
 end Fiber
-
 namespace EFiber
 
 variable {C E : Type*} [Category C] [Category E] {P : E ⥤ C}

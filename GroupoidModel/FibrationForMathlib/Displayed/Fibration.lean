@@ -62,6 +62,11 @@ class Fibration where
   codomain of `f` the existene of a cartesian lift of `f`. -/
   lift {I J : C} (f : I ⟶ J) (Y : F J) : HasCartLift f Y
 
+/-- A discrete fibration structure provides for every morphism `f` and every
+object in the fiber of the codomain of `f` a unique cartesian lift of `f`. -/
+class DiscreteFibration where
+  lift {I J : C} (f : I ⟶ J) (Y : F J) : Unique (Lift f Y)
+
 class Transport where
   transport {I J : C} (f : I ⟶ J) (Y : F J) : F I
 
@@ -83,36 +88,18 @@ abbrev Fibration (P : E ⥤ C) := Display.Fibration (P⁻¹ .)
 
 abbrev StreetFibration (P : E ⥤ C) := Display.Fibration (P⁻¹ᵉ .)
 
-/-- A transport structure for a functor `P : E ⥤ C` consists of a transport function for the
-associated displayed structure of `P`. -/
-abbrev Transport (P : E ⥤ C) := Display.Transport (P⁻¹ .)
-
-abbrev transport {P : E ⥤ C} [P.Transport] {I J : C} (f : I ⟶ J) (Y : P⁻¹ J) :=
-  Display.Transport.transport f Y
-
-lemma transport_over_eq {I J : C} {P : E ⥤ C} [Functor.Transport P] (f : I ⟶ J) (Y : P⁻¹ J) :
-    P.obj (f ⋆ Y) = I := by
-  simp only [Fiber.over]
+abbrev DiscreteFibration (P : E ⥤ C) := Display.DiscreteFibration (P⁻¹ .)
 
 end Functor
 
 namespace Display
 
-open Total
-
 variable {C : Type*} [Category C] (F : C → Type*)
 variable [Display F] [ClovenFibration F]
 
 @[simps!]
-instance transport : Transport F where
+instance : Transport F where
   transport f X := (ClovenFibration.lift f X).src
-
-example {I J K : C} (f : I ⟶ J) (g : J ⟶ K) (Z : F K) : f ⋆ g ⋆ Z = f ⋆ (g ⋆ Z) := rfl
-
-@[simp]
-def tp {I J : C}  (f : I ⟶ J) : (F J) → (F I) := fun Y ↦ f ⋆ Y
-
-attribute [instance] Display.Total.category
 
 @[simp]
 def totalLift {I J : C} (f : I ⟶ J) (Y : F J) :
@@ -121,23 +108,28 @@ def totalLift {I J : C} (f : I ⟶ J) (Y : F J) :
 
 end Display
 
-open Display
-
 namespace Functor.ClovenFibration
 
 open Cartesian
 
 variable {P : E ⥤ C} [P.ClovenFibration]
 
+/-- A transport structure for a functor `P : E ⥤ C` consists of a transport function for the
+associated displayed structure of `P`. -/
+abbrev Transport (P : E ⥤ C) := Display.Transport (P⁻¹ .)
+
 /-- A cloven fibration has transports along morphisms of the base. -/
 @[simps!]
-instance transport : P.Transport where
+instance : Transport P where
   transport f X := (ClovenFibration.lift f X).src
 
-theorem transport_trans {I J K : C} (f : I ⟶ J) (g : J ⟶ K) (Z : P⁻¹ K) : f ⋆ g ⋆ Z = f ⋆ (g ⋆ Z) := rfl
+def transport {P : E ⥤ C} [Transport P] {I J : C} (f : I ⟶ J) (Y : P⁻¹ J) := Transport.transport f Y
 
-@[simp]
-def tp {I J : C}  (f : I ⟶ J) : (P⁻¹ J) → (P⁻¹ I) := fun Y ↦ f ⋆ Y
+lemma transport_over_eq {I J : C} {P : E ⥤ C} [Transport P] (f : I ⟶ J) (Y : P⁻¹ J) :
+    P.obj (f ⋆ Y) = I := by
+  simp only [Fiber.over]
+
+theorem transport_trans {I J K : C} (f : I ⟶ J) (g : J ⟶ K) (Z : P⁻¹ K) : f ⋆ g ⋆ Z = f ⋆ (g ⋆ Z) := rfl
 
 /-- The lift of a morphism `f`, ending at `Y`. -/
  def basedLift {I J : C} (f : I ⟶ J) (Y : P⁻¹ J) : (f ⋆ Y) ⟶[f] Y :=
@@ -149,13 +141,13 @@ def tp {I J : C}  (f : I ⟶ J) : (P⁻¹ J) → (P⁻¹ I) := fun Y ↦ f ⋆ Y
 
 @[simp]
 def basedLiftHom {I J : C} (f : I ⟶ J) (Y : P⁻¹ J) : (f ⋆ Y : E) ⟶ (Y : E) :=
-(ClovenFibration.lift f Y).homOver.hom
+  (ClovenFibration.lift f Y).homOver.hom
 
 @[simp]
 lemma basedLiftHom_over {I J : C} (f : I ⟶ J) (Y : P⁻¹ J) :
     P.map (basedLiftHom f Y) =
     (eqToHom (transport_over_eq (P:= P) f Y)) ≫ f ≫ eqToHom ((Fiber.over Y).symm) := by
-  simp only [transport_transport, basedLiftHom, over_eq']
+  simp only [transport, basedLiftHom, over_eq']
 
 instance cartLiftOf {I J : C} (f : I ⟶ J) (Y : P⁻¹ J) : CartLift f Y := ClovenFibration.lift f Y
 
@@ -207,7 +199,7 @@ def equivBasedLiftVertAux {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} 
    invFun h := h ≫ₒ basedLift f Y
    left_inv := by
      intro g
-     simp only [transport_transport, Cartesian.gap_prop]
+     simp only [transport, Cartesian.gap_prop]
    right_inv := by
      intro h
      symm
@@ -249,7 +241,7 @@ def map {I J : C} (f : I ⟶ J) : (P⁻¹ J) ⥤ (P⁻¹ I) where
     let g₄ : (f ⋆ Y) ⟶[f] Y := basedLift f Y
     refine ⟨?_, ?_⟩
     · exact (gap g₄ g₂).hom
-    · simp only [Display.transport_transport, over_eq', id_comp, eqToHom_trans]
+    · simp only [Display.Transport.transport, over_eq', id_comp, eqToHom_trans]
   map_id := by
     intro X
     simp
@@ -275,5 +267,70 @@ def unstraightening (G : Cᵒᵖ  ⥤ Cat) : (Grothendieck G)ᵒᵖ ⥤ C :=
   (Grothendieck.forget G).leftOp
 
 end Functor.ClovenFibration
+
+namespace Functor.DiscreteFibration
+
+open Display
+
+variable {P : E ⥤ C} [DiscreteFibration P]
+
+abbrev Transport (P : E ⥤ C) := Display.Transport (P⁻¹ .)
+
+/-- A discrete fibration has transports along morphisms of the base. -/
+@[simps!]
+instance : Transport P where
+  transport f Y := (DiscreteFibration.lift f Y).default.src
+
+def transport {I J : C} (f : I ⟶ J) (Y : P⁻¹ J) : P⁻¹ I := Transport.transport f Y
+
+def basedLift {I J : C} (f : I ⟶ J) (Y : P⁻¹ J) : (f ⋆ Y) ⟶[f] Y := (DiscreteFibration.lift f Y).default.homOver
+
+@[simp]
+theorem basedLift_src_eq {I J : C} (f : I ⟶ J) {X : P⁻¹ I} {Y : P⁻¹ J} (g : X ⟶[f] Y) :
+    f ⋆ Y = X := by
+  let hu' := (DiscreteFibration.lift f Y).uniq
+  have hu'' :=  hu' ⟨X, g⟩
+  symm
+  apply congr_arg Lift.src hu''
+
+#check Lift.ext
+
+@[simp]
+theorem basedLift_id_src_eq {I : C} (X : P⁻¹ I) :
+    (𝟙 I) ⋆ X = X  := by
+  apply basedLift_src_eq
+  exact (𝟙ₒ X)
+
+theorem basedLift_id {I : C} {Y : P⁻¹ I} :
+    basedLift (𝟙 I) Y = ((BasedLift.eqToHom (basedLift_id_src_eq Y)) ≫ₒ (𝟙ₒ Y)).cast (comp_id (𝟙 I)) := by
+  simp
+  symm
+ -- apply congr_arg Lift.homOver
+ -- apply (DiscreteFibration.lift (𝟙 I) Y).uniq
+  sorry
+
+/-- Every discrete fibration is a cloven fibration. -/
+instance instCartesianCovLift {I J : C} (f : I ⟶ J) (Y : P⁻¹ J) : CartLift f Y where
+  src := f ⋆ Y
+  homOver := (DiscreteFibration.lift f Y).default.homOver
+  is_cart := by
+    refine ⟨?uniq_lift⟩
+    intro K Z u g'
+    let u':= (DiscreteFibration.lift u (f ⋆ Y)).default.homOver
+    let hu' := (DiscreteFibration.lift u (f ⋆ Y)).uniq
+    let l : Lift (u ≫ f) Y := ⟨_, u' ≫ₒ ((DiscreteFibration.lift f Y).default.homOver)⟩
+    have hl := (DiscreteFibration.lift (u ≫ f) Y).uniq l
+    have hg' := (DiscreteFibration.lift (u ≫ f) Y).uniq ⟨Z, g'⟩
+    have hlg' := hl.trans hg'.symm
+    --have hu' : u' ≫ₒ ((DiscreteFibration.lift f Y).default.homOver) = g' := by sorry
+    --use ⟨u', hu'⟩
+    sorry
+
+
+end Functor.DiscreteFibration
+
+
+
+
 
 end CategoryTheory

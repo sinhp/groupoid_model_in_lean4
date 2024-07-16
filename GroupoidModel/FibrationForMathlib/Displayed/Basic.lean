@@ -179,13 +179,17 @@ lemma comp_id_eq_cast_id_comp {I J : C} {f : I ⟶ J} {X : F I} {Y : F J} (g : X
     g ≫ₒ 𝟙ₒ Y = cast (by simp) (𝟙ₒ X  ≫ₒ g) := by
   simp only [comp_id_cast, cast, id_comp_cast, comp_id, cast_trans]
 
-/-- `EqToHom w X` is a morphism from `X` to `w ▸ X` over `eqToHom w`. -/
-def eqToHom {I I' : C} (w : I = I') (X : F I) : X ⟶[eqToHom w] (w ▸ X) := by
+/-- `castToHom w X` is a morphism from `X` to `w ▸ X` over `eqToHom w`. -/
+def castToHom {I I' : C} (w : I = I') (X : F I) : X ⟶[eqToHom w] (w ▸ X) := by
+  subst w
+  exact 𝟙ₒ X
+
+def castToHomInv {I I' : C} (w : I = I') (X : F I) : (w ▸ X) ⟶[CategoryTheory.eqToHom w.symm] X := by
   subst w
   exact 𝟙ₒ X
 
 @[simp]
-def eqToHomMap {I I' J J' : C} (w : I = I') (w' : J = J') {f : I ⟶ J} {X : F I } {Y : F J}
+def castToHomMap {I I' J J' : C} (w : I = I') (w' : J = J') {f : I ⟶ J} {X : F I } {Y : F J}
     (g : X ⟶[f] Y) :
     (w ▸ X) ⟶[eqToHom.map w w' f] (w' ▸ Y) := by
   subst w
@@ -193,7 +197,7 @@ def eqToHomMap {I I' J J' : C} (w : I = I') (w' : J = J') {f : I ⟶ J} {X : F I
   exact g
 
 @[simp]
-def eqToHomMapId {I I' : C} (w : I = I') {X : F I } {Y : F I} (g : X ⟶[𝟙 I] Y) :
+def castToHomMapId {I I' : C} (w : I = I') {X : F I } {Y : F I} (g : X ⟶[𝟙 I] Y) :
     (w ▸ X) ⟶[𝟙 I'] (w ▸ Y) := by
   subst w
   exact g
@@ -213,9 +217,9 @@ commutes.
 -/
 lemma eqToHom_naturality {I I' J J': C} {X : F I} {Y : F J} (w : I = I') (w' : J = J')
     (f : I ⟶ J) (g : X ⟶[f] Y) :
-    g ≫ₒ eqToHom w' Y = cast (eqToHom.map_naturality f) (eqToHom w X ≫ₒ eqToHomMap w w' g)  := by
+    g ≫ₒ castToHom w' Y = cast (eqToHom.map_naturality f) (castToHom w X ≫ₒ castToHomMap w w' g)  := by
   subst w' w
-  simp only [eqToHom, comp_id_eq_cast_id_comp, cast]
+  simp only [castToHom, comp_id_eq_cast_id_comp, cast]
   rfl
 
 @[simps!]
@@ -232,7 +236,6 @@ variable (F)
 def Total := Σ I : C, F I
 
 prefix:75 " ∫ "  => Total
-
 
 namespace Total
 
@@ -409,8 +412,8 @@ namespace BasedLift
 variable {P}
 
 @[ext]
-theorem ext {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} (g g' : X ⟶[f] Y)
-    (w : g.hom = g'.hom)  : g = g' := by
+theorem ext {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} (g g' : X ⟶[f] Y) (w : g.hom = g'.hom) :
+    g = g' := by
   cases' g with g hg
   cases' g' with g' hg'
   congr
@@ -463,6 +466,15 @@ lemma comp_id_cast {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} {g : X 
 lemma assoc {I J K L : C} {f : I ⟶ J} {h : J ⟶ K} {l : K ⟶ L} {W : P⁻¹ I} {X : P⁻¹ J} {Y : P⁻¹ K} {Z : P⁻¹ L} (g : W ⟶[f] X) (k : X ⟶[h] Y) (m : Y ⟶[l] Z) : (g ≫ₒ k) ≫ₒ m = (g ≫ₒ (k ≫ₒ m)).cast (assoc f h l).symm := by
   ext
   simp only [cast_hom, DisplayStruct.comp_over, comp_hom, Category.assoc]
+
+def eqToHom {I : C} {X Y : P⁻¹ I} (w : X = Y) : X ⟶[𝟙 I] Y := by
+  subst w
+  exact id X
+
+def eqToHom' {I : C} {X Y : P⁻¹ I} (w : X.1 = Y.1) : X ⟶[𝟙 I] Y := by
+  apply Fiber.ext at w
+  subst w
+  exact id X
 
 end BasedLift
 
@@ -552,10 +564,19 @@ variable [Display F]
 
 /-- The type `Lift f tgt` of a lift of `f` with the target `tgt` consists of an object `src` in
 the Fiber of the domain of `f` and a based-lift of `f` starting at `src` and ending at `tgt`. -/
-@[ext]
 structure Lift {I J : C} (f : I ⟶ J) (tgt : F J) where
   src : F I
   homOver : src ⟶[f] tgt
+
+@[ext]
+theorem Lift.ext {I J : C} {f : I ⟶ J} {tgt : F J} {g g' : Lift f tgt}
+    (w_src : g.src = g'.src) (w_homOver : g.homOver = w_src ▸ g'.homOver) :
+    g = g' := by
+  cases' g with X g
+  cases' g' with X' g'
+  cases w_src
+  cases w_homOver
+  rfl
 
 /-- The type `CoLift f src` of a colift of `f` with the source `src` consists of an object `tgt` in
 the Fiber of the codomain of `f` and a based-lift of `f` starting at `src` and ending at `tgt`. -/
