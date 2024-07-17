@@ -243,6 +243,20 @@ theorem NaturalModelSmallPi.pullback [NaturalModelU Ctx] [NaturalModelPi Ctx] :
 end NaturalModelSmallPi
 
 
+section DisplayMaps
+
+class DisplayMap {D A : Psh Ctx} (p : D ⟶ A) where
+  char : A ⟶ Ty
+  var : D ⟶ Tm
+  disp_pullback : IsPullback var p tp char
+
+instance {B D A : Psh Ctx} (p : D ⟶ A) [DisplayMap p] (t : B ⟶ A) : DisplayMap (pullback.fst : pullback t p ⟶ B) where
+  char := t ≫ (DisplayMap.char p)
+  var := pullback.snd ≫ (DisplayMap.var p)
+  disp_pullback := sorry -- use pullback pasting
+
+end DisplayMaps
+
 
 
 /-
