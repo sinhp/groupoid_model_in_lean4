@@ -16,6 +16,8 @@ import Mathlib.CategoryTheory.Limits.Shapes.CommSq
 import Mathlib.CategoryTheory.Limits.Presheaf
 import Mathlib.CategoryTheory.Limits.Shapes.FunctorCategory
 import Mathlib.CategoryTheory.Adjunction.Over
+import Mathlib.CategoryTheory.Limits.Shapes.CommSq
+
 
 --import Poly
 import Poly.LCCC.Basic
@@ -245,15 +247,25 @@ end NaturalModelSmallPi
 
 section DisplayMaps
 
-class DisplayMap {D A : Psh Ctx} (p : D ⟶ A) where
+structure DisplayMap {D A : Psh Ctx} (p : D ⟶ A) where
   char : A ⟶ Ty
   var : D ⟶ Tm
   disp_pullback : IsPullback var p tp char
 
-instance {B D A : Psh Ctx} (p : D ⟶ A) [DisplayMap p] (t : B ⟶ A) : DisplayMap (pullback.fst : pullback t p ⟶ B) where
-  char := t ≫ (DisplayMap.char p)
-  var := pullback.snd ≫ (DisplayMap.var p)
-  disp_pullback := sorry -- use pullback pasting
+def displayMapPullback {D A B : Psh Ctx} (p : D ⟶ A) (i : DisplayMap p) (t : B ⟶ A) :
+    DisplayMap (pullback.snd : pullback p t ⟶ B) where
+  char := t ≫ i.char
+  var := pullback.fst ≫ i.var
+  disp_pullback := by
+    have : IsPullback (pullback.fst (f:= p) (g:= t)) (pullback.snd (f:= p) (g:= t)) p t := by
+      apply IsPullback.of_hasPullback
+    apply IsPullback.paste_horiz this
+    exact i.disp_pullback
+
+
+
+
+
 
 end DisplayMaps
 
