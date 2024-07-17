@@ -128,7 +128,7 @@ lemma help2 {X Y : GroupoidGrothendieck F}(f : Grothendieck.Hom X  Y) : (F.map (
   rw[Functor.congr_hom h f.fiber]
 
 /-
-Because instances to not get lifted to new definitions we have to redefine the category structure of
+Because instances do not get lifted to new definitions we have to redefine the category structure of
 GroupoidGrothendieck as well as show that it is a Groupoid. There may be a better way to do this.
 -/
 attribute [local simp] eqToHom_map
