@@ -308,6 +308,10 @@ structure BasedLift {I J : C} (f : I ⟶ J) (X : P⁻¹ I) (Y : P⁻¹ J) where
   hom : (X : E) ⟶ (Y : E)
   over_eq : (P.map hom) ≫ eqToHom (Y.2) = eqToHom (X.2) ≫ f
 
+def BasedLift' {I J : C} (f : I ⟶ J) (X : P⁻¹ I) (Y : P⁻¹ J) :=
+{ hom : (X : E) ⟶ (Y : E) // (P.map hom) ≫ eqToHom (Y.2) = eqToHom (X.2) ≫ f }
+
+
 /--
 The structure of based-lifts up to an isomorphism of the domain objects in the base.
 ```                   g

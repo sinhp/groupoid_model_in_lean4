@@ -172,4 +172,6 @@ def castEquiv {I J : C} {f f' : I ‚ü∂ J} {X : F I} {Y : F J} (w : f = f') : (X ‚
   left_inv := by aesop_cat
   right_inv := by aesop_cat
 
+#check HEq
+
 end HomOver

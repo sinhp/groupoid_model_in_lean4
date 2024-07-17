@@ -12,6 +12,9 @@ import Mathlib.CategoryTheory.Grothendieck
 import GroupoidModel.FibrationForMathlib.Displayed.Fiber
 import GroupoidModel.FibrationForMathlib.Displayed.Basic
 import GroupoidModel.FibrationForMathlib.Displayed.Cartesian
+import Mathlib.CategoryTheory.Category.Pointed
+import Mathlib.CategoryTheory.Limits.Preserves.Basic
+import Mathlib.CategoryTheory.Limits.Shapes.CommSq
 
 /-!
 # Fibrations for displayed categories
@@ -42,11 +45,13 @@ provides the structure of a cleavage for `F`. Specialized to the display categor
 
 namespace CategoryTheory
 
-open Category Opposite BasedLift Fiber Display
+open Category Opposite BasedLift Fiber Display Limits
+
+universe u₁ v₁ u₂ v₂
 
 namespace Display
 
-variable {C : Type*} [Category C] (F : C → Type*) [Display F]
+variable {C : Type u₁} [Category.{v₁} C] (F : C → Type u₂) [Display.{u₁,v₁,u₂,v₂} F]
 
 /-- A Cloven fibration structure provides for every morphism `f` and every
 object in the fiber of the codomain of `f` a specified cartesian lift of `f`. -/
@@ -75,8 +80,9 @@ scoped infixr:80 " ⋆ "  => Transport.transport -- NtS: infix right ensures tha
 
 end Display
 
-variable {C E : Type*} [Category C] [Category E]
 namespace Functor
+
+variable {C : Type u₁} {E : Type u₂} [Category.{v₁} C] [Category.{v₂} E]
 
 /-- A functor `P : E ⥤ C` is a cloven fibration if the associated displayed structure of `P` is a
 cloven fibration. -/
@@ -109,6 +115,8 @@ def totalLift {I J : C} (f : I ⟶ J) (Y : F J) :
 end Display
 
 namespace Functor.ClovenFibration
+
+variable {C : Type u₁} {E : Type u₂} [Category.{v₁} C] [Category.{v₂} E]
 
 open Cartesian
 
@@ -262,19 +270,25 @@ def straightening : Cᵒᵖ  ⥤ Cat where
   map_id := by sorry
   map_comp := by sorry
 
+universe w
+
 @[simps]
-def unstraightening (G : Cᵒᵖ  ⥤ Cat) : (Grothendieck G)ᵒᵖ ⥤ C :=
+def unstraightening (G : Cᵒᵖ  ⥤ Cat.{w}) : (Grothendieck G)ᵒᵖ ⥤ C :=
   (Grothendieck.forget G).leftOp
 
 end Functor.ClovenFibration
 
 namespace Functor.DiscreteFibration
 
-open Display
+universe w
 
-variable {P : E ⥤ C} [DiscreteFibration P]
+open Display Fiber CategoryOfElements
 
-abbrev Transport (P : E ⥤ C) := Display.Transport (P⁻¹ .)
+variable {C : Type (u₁ + 1)} {E : Type (u₂ + 1)} [Category.{v₁} C] [Category.{v₂} E]
+
+variable (P : E ⥤ C) [DiscreteFibration P]
+
+abbrev Transport := Display.Transport (P⁻¹ .)
 
 /-- A discrete fibration has transports along morphisms of the base. -/
 @[simps!]
@@ -282,6 +296,8 @@ instance : Transport P where
   transport f Y := (DiscreteFibration.lift f Y).default.src
 
 def transport {I J : C} (f : I ⟶ J) (Y : P⁻¹ J) : P⁻¹ I := Transport.transport f Y
+
+variable {P}
 
 def basedLift {I J : C} (f : I ⟶ J) (Y : P⁻¹ J) : (f ⋆ Y) ⟶[f] Y := (DiscreteFibration.lift f Y).default.homOver
 
@@ -292,8 +308,6 @@ theorem basedLift_src_eq {I J : C} (f : I ⟶ J) {X : P⁻¹ I} {Y : P⁻¹ J} (
   have hu'' :=  hu' ⟨X, g⟩
   symm
   apply congr_arg Lift.src hu''
-
-#check Lift.ext
 
 @[simp]
 theorem basedLift_id_src_eq {I : C} (X : P⁻¹ I) :
@@ -326,11 +340,78 @@ instance instCartesianCovLift {I J : C} (f : I ⟶ J) (Y : P⁻¹ J) : CartLift 
     --use ⟨u', hu'⟩
     sorry
 
+def fiberMap {I J : C} (f : I ⟶ J) : (P⁻¹ J) → (P⁻¹ I) := fun Y ↦ f ⋆ Y
+
+variable (P)
+
+/-- The universal property of the universal discrete fibration. -/
+def straightening  : Cᵒᵖ ⥤ Type _ where
+  obj I := Fiber P (unop I)
+  map {I J} f := fiberMap (unop f)
+  map_id Z := by
+    simp
+    sorry
+  map_comp := by
+    simp
+    sorry
+
+-- def straightening' : Cat.of (Cᵒᵖ) ⟶ Cat.of (Type _) := straightening P
+
+@[simps!]
+def unstraightening (G : Cᵒᵖ  ⥤ Type w) : G.Elementsᵒᵖ  ⥤ C :=  (π G).leftOp
+
+@[simps!]
+def unstraightening' (G : Cᵒᵖ  ⥤ Type w) : Cat.of G.Elementsᵒᵖ  ⥤ Cat.of C :=  unstraightening G
+
+instance categoryOfElements.forget (G : Cᵒᵖ  ⥤ Type w) : DiscreteFibration (unstraightening G) where
+  lift := by
+    rintro I J f ⟨X, rfl⟩
+    obtain ⟨J, x⟩ := X
+    simp at f
+    fconstructor
+    · refine ⟨?lift⟩
+      refine ⟨?src, ?homOver⟩
+      · exact ⟨⟨op I, (G.map f.op) x⟩, by simp only [op_unop, unstraightening_obj]⟩
+      · fconstructor
+        · sorry
+        · sorry
+    · sorry
+
+/-- The universal discrete fibration. -/
+def univ : Pointed ⥤ Type w := forget _
+
+instance : ConcreteCategory ↑(Cat.of Pointed) := by sorry
+
+def univ' : Cat.of Pointed ⟶ Cat.of (Type w) := forget _
+
+def fst (G : Cᵒᵖ  ⥤ Type w) : G.Elements ⥤ Pointed where
+  obj := fun X ↦ {
+    X := G.obj X.1
+    point := X.2
+  }
+  map {X Y} f := {
+    toFun := by
+      simp
+      exact G.map f.1
+    map_point := by simp
+  }
+
+-- def fst' (G : Cᵒᵖ  ⥤ Type _) : Cat.of G.Elements ⟶ Cat.of Pointed := fst G
+
+/- The unstraightening functor is part of a pullback square. -/
+-- instance univ_pullback : HasPullback univ'.{u₂} (straightening' P) := sorry
+
+/- The unstraightening functor is part of a pullback square. -/
+-- theorem pb (G : Cᵒᵖ  ⥤ Type w)  : IsPullback (fst' G) univ (straightening P) := sorry
+
 
 end Functor.DiscreteFibration
 
 
+namespace Functor.ClovenFibration
 
+/-The universal fibration-/
 
+end Functor.ClovenFibration
 
 end CategoryTheory

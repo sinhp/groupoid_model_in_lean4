@@ -84,6 +84,10 @@ class Cartesian (g : X ⟶[f] Y) where
   uniq_lift : ∀ ⦃K : C⦄ ⦃Z : F K⦄ (u : K ⟶ I) (g' : Z ⟶[u ≫ f] Y),
   Unique {k : Z ⟶[u] X // (k ≫ₒ g) = g'}
 
+class Cartesian' [Category E] {P : E ⥤ C} {X Y : E} (g : X ⟶ Y) where
+  uniq_lift : ∀ ⦃Z : E⦄ (u : P.obj Z ⟶ P.obj X) (g' : Z ⟶ Y),
+    Unique {k : Z ⟶ X // (k ≫ g) = g' ∧ P.map k = u}
+
 /-- A lift `g : X ⟶[f] Y` is cocartesian if for all morphisms `u` in the
 base and `g' : X ⟶[f ≫ u] Z`, there is a unique morphism
 `k : Y ⟶[u] Z` over `u` such that `g ≫ k = g'`.
