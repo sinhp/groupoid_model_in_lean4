@@ -352,38 +352,25 @@ end HSexp
 
 section NM
 -- Here I am useing sGrpd to be a small category version of Grpd. There is likely a better way to do this.
-def sGrpd := Grpd.{u,u}
+def sGrpd := ULiftHom.{u+1} Grpd.{u,u}
+  deriving SmallCategory
+
 def toGrpd (x : sGrpd.{u}) : Grpd.{u,u} := x
 def tosGrpd (x : Grpd.{u,u}) : sGrpd.{u} := x
-
-instance SmallGrpd : SmallCategory sGrpd.{u} where
-  Hom x y := ULift.{u+1, u} (toGrpd x ⟶ toGrpd y)
-  id x := {down := 𝟙 (toGrpd x)}
-  comp f g := {down := f.down ≫ g.down}
 
 def SmallGrpd.forget : sGrpd.{u} ⥤ Grpd.{u,u} where
   obj x := toGrpd x
   map f := f.down
 
-def SmallGrpd.forget_op : sGrpd.{u}ᵒᵖ ⥤ Grpd.{u,u}ᵒᵖ where
-  obj x := by
-    rcases x with ⟨x⟩
-    constructor
-    exact (toGrpd x)
-  map f := by
-    constructor
-    rcases f with ⟨f⟩
-    exact f.down
-
 /-
-This is the Natral Modle on sGrpd. I am not sure this belongs in this file but I keep it here so that I can
+This is the Natural Model on sGrpd. I am not sure this belongs in this file but I keep it here so that I can
 get an idea of what needs to be done.
 -/
 instance GroupoidNM : NaturalModel.NaturalModelBase sGrpd.{u} where
-  Ty := SmallGrpd.forget_op ⋙ Ty_functor
-  Tm := SmallGrpd.forget_op ⋙ Tm_functor
-  tp := NatTrans.hcomp (NatTrans.id SmallGrpd.forget_op) (tp_NatTrans)
-  ext Γ f := tosGrpd (Grpd.of (@GroupoidGrothendieck Γ ((@yonedaEquiv _ _ Γ (SmallGrpd.forget_op ⋙ Ty_functor)).toFun f)))
+  Ty := SmallGrpd.forget.op ⋙ Ty_functor
+  Tm := SmallGrpd.forget.op ⋙ Tm_functor
+  tp := NatTrans.hcomp (NatTrans.id SmallGrpd.forget.op) (tp_NatTrans)
+  ext Γ f := tosGrpd (Grpd.of (@GroupoidGrothendieck Γ ((@yonedaEquiv _ _ Γ (SmallGrpd.forget.op ⋙ Ty_functor)).toFun f)))
   disp Γ A := by
     constructor
     exact Grothendieck.forget (yonedaEquiv A ⋙ Grpd.forgetToCat)
@@ -394,3 +381,26 @@ instance GroupoidNM : NaturalModel.NaturalModelBase sGrpd.{u} where
     sorry
 
 end NM
+
+instance groupoidULift.{u'} {α : Type u} [Groupoid.{v} α] : Groupoid (ULift.{u'} α) where
+  inv f := Groupoid.inv f
+  inv_comp _ := Groupoid.inv_comp ..
+  comp_inv _ := Groupoid.comp_inv ..
+
+instance groupoidULiftHom.{u'} {α : Type u} [Groupoid.{v} α] : Groupoid (ULiftHom.{u'} α) where
+  inv f := .up (Groupoid.inv f.down)
+  inv_comp _ := ULift.ext _ _ <| Groupoid.inv_comp ..
+  comp_inv _ := ULift.ext _ _ <| Groupoid.comp_inv ..
+
+inductive Groupoid2 : Type (u+2) where
+  | small (_ : sGrpd.{u})
+  | large (_ : sGrpd.{u+1})
+
+def Groupoid2.toLarge : Groupoid2.{u} → sGrpd.{u+1}
+  | .small A => .mk (ULiftHom.{u+1} (ULift.{u+1} A.α))
+  | .large A => A
+
+/-- A model of Grpd with an internal universe, with the property that the small universe
+injects into the large one. -/
+def Grpd2 : Type (u+2) := InducedCategory sGrpd.{u+1} Groupoid2.toLarge
+  deriving SmallCategory
