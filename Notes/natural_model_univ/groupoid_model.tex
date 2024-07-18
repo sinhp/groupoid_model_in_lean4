@@ -1,0 +1,67 @@
+% \subsection{Overview}
+
+In this section we construct a natural model in $\Pshgrpd$ the presheaf category
+indexed by the category $\grpd$ of (small) groupoids.
+We will build the classifier for display maps in the style of
+Hofmann and Streicher \cite{hofmannstreicher1996} and Awodey \cite{awodey2023hofmannstreicheruniverses}.
+To interpret the type constructors,
+we will make use of the weak factorization system on $\grpd$ -
+which comes from restricting the ``classical Quillen model structure'' on
+$\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
+
+\medskip
+
+\begin{notation*}
+  We will have two universe sizes - one small and one large.
+  We denote the category of small sets as $\set$ and the large sets as $\Set$
+  (in the previous sections this would have been $\Set_{\lambda}$ and $\Set$ respectively).
+  We denote the category of small categories as $\cat$ and the large categories as $\Cat$.
+  We denote the category of small groupoids as $\grpd$. %% and the large groupoids as $\GRPD$.
+  The category of small pointed groupoids will be $\grpd_{\bullet}$.
+
+  We are primarily working in the category of large presheaves indexed by small groupoids,
+  which we will denote by
+  \[ \Pshgrpd = [\grpd^{\op}, \Set]\]
+
+  In this section, $\Term$ and $\Type$ and so on will refer to the natural model semantics in this
+  specific model.
+\end{notation*}
+
+\medskip
+
+\begin{defn}[The disply map classifier]
+  We would like to define a natural transformation in
+  $\Pshgrpd$
+  \[ \tp \co \Term \to \Type \]
+  with representable fibers.
+
+  Consider the functor that forgets the point
+  \[
+    U \co \ptgrpd \to \grpd
+    \quad \quad
+    \text{
+      in \quad $\Cat$.
+    }
+  \]
+  If we apply the yoneda embedding $y \co \Cat \to \PshCat$ to $U$
+  we obtain
+  \[ U \circ \co [ - , \ptgrpd] \to [ - , \grpd ]
+    \quad \quad
+    \text{
+      in \quad $\PshCat$.
+    }
+  \]
+  Since any small groupoid is also a large category $\grpd \hookrightarrow \Cat$,
+  we can restrict $\Cat$ indexed presheaves to be $\grpd$ indexed presheaves.
+  We define $\tp \co \Term \to \Type$ as the image of $U \circ$ under this restriction.
+  % https://q.uiver.app/#q=WzAsNixbMCwwLCJcXENhdCJdLFsxLDAsIlxcUHNoQ2F0Il0sWzIsMCwiXFxQc2hncnBkIl0sWzAsMSwiXFxncnBkIl0sWzEsMSwiWy0sXFxncnBkXSJdLFsyLDEsIlxcVHlwZSJdLFswLDEsInkiXSxbMSwyLCJcXHRleHRzZntyZXN9Il0sWzMsNCwiIiwwLHsic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9fX1dLFs0LDUsIiIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XV0=
+  \[\begin{tikzcd}[row sep = tiny]
+    \Cat & \PshCat & \Pshgrpd \\
+    \grpd & {[-,\grpd]} & \Type
+    \arrow["y", from=1-1, to=1-2]
+    \arrow["{\textsf{res}}", from=1-2, to=1-3]
+    \arrow[maps to, from=2-1, to=2-2]
+    \arrow[maps to, from=2-2, to=2-3]
+  \end{tikzcd}\]
+  Note that $\Term$ and $\Type$ are not representable in $\Pshgrpd$.
+\end{defn}
