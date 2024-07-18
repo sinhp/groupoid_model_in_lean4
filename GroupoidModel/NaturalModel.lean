@@ -161,9 +161,6 @@ class NaturalModelSigma where
   pair : (P tp).obj Tm ⟶ M.Tm
   Sig_pullback : IsPullback pair ((uvPoly tp).comp (uvPoly tp)).p tp Sig
 
-set_option synthInstance.maxHeartbeats 100000 in
-instance {X Y Z : Psh Ctx} (f : X ⟶ Z) (g : Y ⟶ Z) : HasPullback f g := inferInstance
-
 def δ : M.Tm ⟶ pullback tp tp := pullback.lift (𝟙 _) (𝟙 _) rfl
 variable (Ctx) in
 class NaturalModelEq where

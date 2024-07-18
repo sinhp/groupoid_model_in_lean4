@@ -79,7 +79,6 @@ inductive IsType : List TyExpr → TyExpr → Prop
   | pi {A B Γ} : IsType Γ A → IsType (A :: Γ) B → IsType Γ (.pi A B)
 end
 
-universe u v
 open CategoryTheory NaturalModel
 open Functor Limits Opposite Representable
 noncomputable section
@@ -174,7 +173,8 @@ def mkPApp {Γ : Context Ctx} (A : Γ.ty) (B : (Γ.cons A).ty)
   let total' : y(Γ.1) ⟶ (P tp).obj Tm :=
     NaturalModelPi.Pi_pullback.isLimit.lift <|
     PullbackCone.mk f.1 (mkP A B) f.2
-  have : total' ≫ (P tp).map tp = mkP A B := sorry
+  have : total' ≫ (P tp).map tp = mkP A B :=
+    NaturalModelPi.Pi_pullback.isLimit.fac _ (some .right)
   let total := mkP_equiv.1 total'
   have := mkP_equiv.symm.injective <|
     show mkP total.1 (total.2 ≫ tp) = mkP A B by
@@ -251,23 +251,25 @@ theorem ofTerm_ofType_correct :
       (ofType Γ' A).Dom) := by
   let ofTerm_correct Γ e A := ∀ {Γ'}, Γ' ∈ ofCtx (Ctx := Ctx) Γ →
       ∃ A' ∈ ofType Γ' A, ∃ e' ∈ ofTerm Γ' e, e' ≫ tp = A'
-  stop
   let ofType_correct Γ A := ∀ {Γ'}, Γ' ∈ ofCtx (Ctx := Ctx) Γ → (ofType Γ' A).Dom
   refine
     ⟨@HasType.rec
       (fun Γ e A _ => ofTerm_correct Γ e A)
       (fun Γ A _ => ofType_correct Γ A)
-      ?weak ?bvar ?lam ?univ ?el ?pi,
+      ?weak ?bvar ?app ?lam ?univ ?el ?pi,
      @IsType.rec
       (fun Γ e A _ => ofTerm_correct Γ e A)
       (fun Γ A _ => ofType_correct Γ A)
-      ?weak ?bvar ?lam ?univ ?el ?pi⟩
-  case var =>
+      ?weak ?bvar ?app ?lam ?univ ?el ?pi⟩
+  stop
+  case bvar =>
     intro A Γ Γ' hΓ
     simp [ofCtx] at hΓ
     obtain ⟨Γ', hΓ', A', hA, rfl⟩ := hΓ
     refine ⟨_, _, _⟩
   case weak =>
+    intro A Γ Γ' hΓ
+  case app =>
     intro A Γ Γ' hΓ
   case lam =>
     intro A Γ Γ' hΓ
