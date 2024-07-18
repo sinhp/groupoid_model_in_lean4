@@ -3,11 +3,12 @@
 \usepackage{amsthm,amsmath,amssymb,stmaryrd,enumerate,a4,array}
 \usepackage{geometry}
 \usepackage{url}
-\usepackage{cleveref}
-\usepackage[cmtip,all]{xy} 
+\usepackage[cmtip,all]{xy}
 \usepackage{hyperref}
+\usepackage{cleveref}
 \numberwithin{equation}{section} 
-\usepackage[parfill]{parskip} 
+\usepackage[parfill]{parskip}
+\usepackage{tikz, tikz-cd, float} % Commutative Diagrams
 
 \input{prooftree}
 
@@ -34,6 +35,7 @@
 
 \newenvironment{comment}{\begin{quote} \em Comment. }{\end{quote}}
 
+%%%%%%% SYMBOLS %%%%%%%%%
 
 \newcommand{\defeq}{=_{\mathrm{def}}}
 \newcommand{\iso}{\cong}
@@ -45,11 +47,10 @@
 \newcommand{\co}{\colon}
 
 
-\newcommand{\cat}{\mathbb} 
+% \newcommand{\cat}{\mathbb}
 \newcommand{\catC}{\mathbb{C}}
 \newcommand{\tcat}{\mathbf}
-\newcommand{\Set}{\tcat{Set}}
-\newcommand{\psh}[1]{\mathrm{Psh}(#1)}
+\newcommand{\psh}[1]{\mathbf{Psh}(#1)} %% consider renaming to \Psh
 \newcommand{\yo}{\mathsf{y}}
 \newcommand{\pshC}{\psh{\catC}}
 \newcommand{\Type}{\mathsf{Ty}}
@@ -60,6 +61,35 @@
 \newcommand{\E}{\mathsf{E}}
 \newcommand{\El}{\mathsf{El}}
 
+\newcommand{\set}{\tcat{set}}
+\newcommand{\Set}{\tcat{Set}}
+\newcommand{\cat}{\tcat{cat}}
+\newcommand{\Cat}{\tcat{Cat}}
+\newcommand{\grpd}{\tcat{grpd}}
+% \newcommand{\Grpd}{\tcat{Grpd}}
+\newcommand{\ptgrpd}{\tcat{grpd}_\bullet}
+% \newcommand{\ptGrpd}{\tcat{Grpd}_\bullet}
+\newcommand{\Pshgrpd}{\mathbf{Psh}(\grpd)}
+\newcommand{\PshCat}{\mathbf{Psh}(\Cat)}
+
+% % Greek
+\newcommand{\al}{\alpha}
+\newcommand{\be}{\beta}
+\newcommand{\ga}{\gamma}
+\newcommand{\de}{\delta}
+\newcommand{\ep}{\varepsilon}
+\newcommand{\io}{\iota}
+\newcommand{\ka}{\kappa}
+\newcommand{\la}{\lambda}
+\newcommand{\om}{\omega}
+\newcommand{\si}{\sigma}
+
+\newcommand{\Ga}{\Gamma}
+\newcommand{\De}{\Delta}
+\newcommand{\Th}{\Theta}
+\newcommand{\La}{\Lambda}
+\newcommand{\Si}{\Sigma}
+\newcommand{\Om}{\Omega}
 
 \title{Universe in the Natural Model of Type Theory}
 \author{Sina Hazratpour}
@@ -190,6 +220,11 @@ Both squares above are pullback squares.
 \section{The Universe in Embedded Type Theory (HoTT0) and the relationship to the Natural Model}
 
 \section{Groupoid Model of HoTT}
+
+\include{groupoid_model.tex}
+
+\bibliography{refs.bib}{}
+\bibliographystyle{alpha}
 
 
 \end{document}
