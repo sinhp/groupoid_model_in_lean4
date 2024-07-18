@@ -6,7 +6,7 @@
 \usepackage[cmtip,all]{xy}
 \usepackage{hyperref}
 \usepackage{cleveref}
-\numberwithin{equation}{section} 
+\numberwithin{equation}{section}
 \usepackage[parfill]{parskip}
 \usepackage{tikz, tikz-cd, float} % Commutative Diagrams
 
@@ -21,7 +21,7 @@
 \newtheorem{cor}[theorem]{Corollary}
 \newtheorem{applemma}{Lemma}[section]
 
-\theoremstyle{definition} 
+\theoremstyle{definition}
 \newtheorem{defn}[theorem]{Definition}
 
 \theoremstyle{remark}
@@ -39,7 +39,7 @@
 
 \newcommand{\defeq}{=_{\mathrm{def}}}
 \newcommand{\iso}{\cong}
-\newcommand{\equi}{\simeq} 
+\newcommand{\equi}{\simeq}
 \newcommand{\retequi}{\unlhd}
 \newcommand{\op}{\mathrm{op}}
 \newcommand{\Id}{\mathrm{Id}}
@@ -112,7 +112,7 @@ Assume an inaccessible cardinal $\lambda$. Write $\Set$ for the category of all 
 subcategory of $\Set$ spanned by  $\lambda$-small sets.
 
 Let $\mathbb{C}$ be a small category, i.e.~a category whose class of objects is a set and
-whose hom-classes are sets. 
+whose hom-classes are sets.
 % We do not assume that $\mathbb{C}$ is $\lambda$-small for
 % the moment.
 
@@ -121,7 +121,7 @@ We write $\pshC$ for the category of presheaves over $\catC$,
 \pshC \defeq [\catC^\op, \Set]
 \]
 
-% Because of the assumption of the existence of $\lambda$, $\pshC$ has additional structure. Let 
+% Because of the assumption of the existence of $\lambda$, $\pshC$ has additional structure. Let
 % \[
 % \Term \to \Type
 % \]
@@ -130,7 +130,7 @@ We write $\pshC$ for the category of presheaves over $\catC$,
 % \Type(c) \defeq \{  A \co (\catC_{/c})^\op \to \Set_{\lambda} \}
 % \]
 
-The Natural Model associated to a presentable map $\tp \co \Term \to \Type$ consists of 
+The Natural Model associated to a presentable map $\tp \co \Term \to \Type$ consists of
 \begin{itemize}
 \item contexts as objects $\Gamma, \Delta, \ldots \in \catC$,
 \item a type in context $\yo (\Gamma)$ as a map $A \co \yo(\Gamma) \to \Type$,
@@ -138,7 +138,7 @@ The Natural Model associated to a presentable map $\tp \co \Term \to \Type$ cons
 \[
 \xymatrix{
  & \Term \ar[d]^{\tp} \\
-\Gamma \ar[r]_-A \ar[ur]^{a} & \Type} 
+\Gamma \ar[r]_-A \ar[ur]^{a} & \Type}
 \]
 commutes,
 \item an operation called ``context extension'' which given a context $\Gamma$ and a type $A \co \yo(\Gamma) \to \Type$ produces a context $\Gamma\cdot A$ which fits into a pullback diagram below.
@@ -153,20 +153,20 @@ commutes,
 % \[
 %  (\Gamma) \ A \co \Type \qquad  (\Gamma) \ a \co A
 % \]
-% to mean that $A$ is a type in context $\Gamma$ and that $a$ is an element of type $A$ in context 
+% to mean that $A$ is a type in context $\Gamma$ and that $a$ is an element of type $A$ in context
 % $\Gamma$, respectively.
 
 
 
 
-{\bf Remark.} 
+{\bf Remark.}
 Sometimes, we first construct a presheaf $X$ over $\Gamma$ and observe that it can be classified by a map into $\Type$. We write
 \[
 \xymatrix@C=1cm{
 X \ar[r] \ar[d]& \Term \ar[d] \\
 \yo(\Gamma) \ar[r]_-{\ulcorner X \urcorner} & \Type}
 \]
-to express this situation, i.e.~$X \cong \yo(\Gamma \cdot \ulcorner X \urcorner)$. 
+to express this situation, i.e.~$X \cong \yo(\Gamma \cdot \ulcorner X \urcorner)$.
 
 \medskip
 
@@ -176,22 +176,22 @@ to express this situation, i.e.~$X \cong \yo(\Gamma \cdot \ulcorner X \urcorner)
 
 We now wish to formulate a condition that allows us to have a type of small types, written $\U$, not just {\em judgement} expressing that something is a type. With this notation, the judgements that we would like to derive is
 \[
- \U \co \Type \qquad 
+ \U \co \Type \qquad
  \begin{prooftree}
- a \co \U 
+ a \co \U
  \justifies
  \El(a) \co \Type
  \end{prooftree}
 \]
 
-(A sufficient and natural condition for this seems to be that we now have another inaccessible cardinal $\kappa$, with $\kappa < \lambda$.) 
+(A sufficient and natural condition for this seems to be that we now have another inaccessible cardinal $\kappa$, with $\kappa < \lambda$.)
 
-In the Natural Model, a universe $\U$ is postulated by a map 
+In the Natural Model, a universe $\U$ is postulated by a map
 \[
 \pi \co \E \to \U
 \]
 
-In the Natural Model: 
+In the Natural Model:
 \begin{itemize}
 \item There is a pullback diagram of the form
 \[
@@ -199,7 +199,7 @@ In the Natural Model:
 \U \ar[r] \ar[d] & \Term \ar[d] \\
 1 \ar[r]_-{\ulcorner \U \urcorner } & \Type }
 \]
-\item There is an inclusion of $\U$ into $\Type$ 
+\item There is an inclusion of $\U$ into $\Type$
 \[
 \El \co \U \rightarrowtail \Type
 \]
