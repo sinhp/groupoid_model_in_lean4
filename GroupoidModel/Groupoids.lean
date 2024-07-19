@@ -210,149 +210,34 @@ instance largeCategory : LargeCategory PointedGroupoid where
   id P := PointedCategory.Hom.id P
   comp f g := PointedCategory.Hom.comp f g
 
+def forgetPoint.{w,z} : PointedGroupoid.{w,z} ⥤ Grpd.{w,z} where
+  obj x := @Grpd.of x.X x.grpd
+  map f := f.toFunc
+
 end PointedGroupoid
-
-
-
 end PointedCategorys
 
 section NaturalModelBase
 
 def TySub {Δ Γ : Grpd.{u,u}} (f : Δ ⥤ Γ) : (Γ ⥤ Grpd.{u,u}) ⥤ (Δ ⥤ Grpd.{u,u}):= (whiskeringLeft Δ Γ Grpd.{u,u}).obj f
 
--- This is a Covariant Functor that takes a Groupoid Γ to Ty Γ
+-- This is a Covariant Functor that takes a Groupoid Γ to Γ ⥤ Grpd
 def Ty_functor : Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1) where
   obj x := x.unop ⥤ Grpd.{u,u}
   map f A := f.unop ⋙ A --(TySub f.unop).obj A
 
--- These are the terms of type A. They are Sections Γ ⥤ Ty A
-structure Tm {Γ : Grpd.{u,u}} (A : Γ ⥤ Grpd.{u,u}) :=
-  obj (g : Γ) : A.obj g
-  map {g h : Γ} (p : g ⟶ h) : (A.map p).obj (obj g) ⟶ obj h
-  map_id (g : Γ) : (map (𝟙 g)) = eqToHom (by simp; rfl) ≫ 𝟙 (obj g)
-  map_comp {g h i : Γ} (p : g ⟶ h) (p' : h ⟶ i) : map (p ≫ p') =
-    eqToHom (by simp; rfl) ≫ (A.map p').map (map p) ≫ map p'
+def TmSub {Δ Γ : Grpd.{u,u}} (f : Δ ⥤ Γ) : (Γ ⥤ PointedGroupoid.{u,u}) ⥤ (Δ ⥤ PointedGroupoid.{u,u}):= (whiskeringLeft Δ Γ PointedGroupoid.{u,u}).obj f
 
-theorem Ty_hom_congr_obj {Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}} (a : Tm A) {g h : Γ} {p p' : g ⟶ h}
-    (eq : p = p') : (A.map p).obj (a.obj g) = (A.map p').obj (a.obj g) := by
-  rw [eq]
-
-theorem Tm_hom_congr {Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}} (a : Tm A) {g h : Γ} {p p': g ⟶ h}
-    (eq : p = p') : a.map p = eqToHom (Ty_hom_congr_obj a eq) ≫ a.map p' := by
-  have h : HEq (a.map p) (a.map p') := by
-    rw [eq]
-  rw [(Functor.conj_eqToHom_iff_heq (a.map p) (a.map p') (Ty_hom_congr_obj a eq) (rfl)).mpr h]
-  simp
-
--- This should be made functorial. Tm is given a category structure farther down
-def TmSub {Δ Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}} (a : Tm A) (f : Δ ⥤ Γ) : Tm ((TySub f).obj A) where
-  obj g := a.obj (f.obj g)
-  map p := a.map (f.map p)
-  map_id g := by
-    have h' := (eqToHom_comp_iff ?_ (𝟙 (a.obj (f.obj g))) (a.map (𝟙 (f.obj g)))).mpr (a.map_id (f.obj g))
-    case refine_1; simp [CategoryStruct.id]
-    rw [<- h']
-    simp
-    have eq : f.map (𝟙 g) = 𝟙 (f.obj g) := f.map_id g
-    rw [Tm_hom_congr a eq]
-  map_comp p p':= by
-    dsimp [TySub]
-    have h := (a.map_comp (f.map p) (f.map p'))
-    have eq : (f.map p ≫ f.map p') = f.map (p ≫ p') := (f.map_comp p p').symm
-    have h' := Tm_hom_congr a eq
-    rw [h'] at h
-    have h'' := (eqToHom_comp_iff _ _ (a.map (f.map (p ≫ p')))).mp h
-    rw [h'']
-    simp
-
--- This is a Covariant Functor that takes a Groupoid Γ to dependent pairs of (A ∈ Ty Γ) and (t ∈ Tm A)
+-- This is a Covariant Functor that takes a Groupoid Γ to Γ ⥤ PointedGroupoid
 def Tm_functor : Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1) where
-  obj x := by
-    rcases x with ⟨x'⟩
-    exact Σ(t : x' ⥤ Grpd.{u,u}), Tm t
-  map f := by
-    intro input
-    exact ⟨_,TmSub input.snd f.unop⟩
+  obj x := x.unop ⥤ PointedGroupoid.{u,u}
+  map f A := f.unop ⋙ A --(TmSub f.unop).obj A
 
 -- This is the typing natral transformation
 def tp_NatTrans : NatTrans Tm_functor Ty_functor where
   app x := by
-    dsimp [Tm_functor,Ty_functor,Quiver.Hom]
     intro a
-    exact a.fst
-
-def TmSubToGrothendieckFunc {Δ Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}} (f : Δ ⟶ Γ) (M : Tm ((TySub f).obj A)) :
-    Δ ⥤ GroupoidalGrothendieck A where
-  obj x := {base := f.obj x, fiber := M.obj x}
-  map p := {base := f.map p, fiber := M.map p}
-  map_id x := by
-    simp
-    congr
-    simp
-    simp [M.map_id,CategoryStruct.id]
-    dsimp [eqToHom,cast]
-    simp
-  map_comp p p' := by
-    simp [CategoryStruct.comp,Grothendieck.comp]
-    apply Grothendieck.ext <;> simp
-    rw [M.map_comp]
-    simp [TySub,Grpd.forgetToCat]
-
-def TmSubToGrothendieckFuncWrapper {Δ Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}}
-    (S : Σ f : Δ ⟶ Γ, Tm ((TySub f).obj A)) : Δ ⥤ GroupoidalGrothendieck A :=
-  TmSubToGrothendieckFunc S.fst S.snd
-
-def GrothendieckFuncToTmSub {Δ Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}} (F : Δ ⥤ GroupoidalGrothendieck A) :
-    Σ f : Δ ⥤ Γ, Tm ((TySub f).obj A) where
-  fst := F ⋙ Grothendieck.forget (A ⋙ Grpd.forgetToCat)
-  snd := by
-    dsimp [TySub, Grothendieck.forget]
-    constructor
-    case obj => intro g; exact (F.obj g).fiber
-    case map => intro _ _ p; dsimp; exact (F.map p).fiber
-    case map_id => intro g; rw [Grothendieck.congr (F.map_id g)]; simp [CategoryStruct.id]
-    case map_comp =>
-      intro g h i p p'; simp
-      rw [Grothendieck.congr (F.map_comp p p')]
-      simp [CategoryStruct.comp,Grpd.forgetToCat]
-
-theorem Left_Inv {Δ Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}} (S : Σ f: Δ ⟶ Γ, Tm ((TySub f).obj A)) :
-    GrothendieckFuncToTmSub (TmSubToGrothendieckFuncWrapper S) = S := by congr
-
-theorem Right_Inv {Δ Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}} (F : Δ ⥤ GroupoidalGrothendieck A) :
-    TmSubToGrothendieckFuncWrapper (GrothendieckFuncToTmSub F) = F := by
-  congr
-
-structure GrothendieckSection (Γ : Grpd.{u,u}) (A : Γ ⥤ Grpd.{u,u}) where
-  func : Γ ⥤ GroupoidalGrothendieck A
-  s : func ⋙ GroupoidalGrothendieck.forget = 𝟙 Γ
-
-def TmToGrothendieckFunc {Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}} (M : Tm A) : Γ ⥤ GroupoidalGrothendieck A where
-  obj g := {base := g, fiber := M.obj g}
-  map p := {base := p, fiber := M.map p}
-  map_id g := by
-    simp
-    rw [(M.map_id g)]
-    simp [CategoryStruct.id,Grothendieck.id]
-  map_comp p p' := by
-    simp
-    rw [M.map_comp p p']
-    simp [CategoryStruct.comp,Grothendieck.comp, Grpd.forgetToCat]
-
-/-
-This is a bijection but it is quite dificult to show in lean. I have worked on it for a bit by the inverse
-function requires so strange type casting that I can't seem to get to work
--/
-def TmToGrothendieckSection {Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}} (M : Tm A) : GrothendieckSection Γ A where
-  func := TmToGrothendieckFunc M
-  s := rfl
-
--- This can be expanded to a Groupoid
-instance TmCategory {Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}} : Category (Tm A) where
-  Hom x y := (TmToGrothendieckFunc x) ⟶ (TmToGrothendieckFunc y)
-  id x := 𝟙 (TmToGrothendieckFunc x)
-  comp f g := NatTrans.vcomp f g
-
+    exact a ⋙ PointedGroupoid.forgetPoint
 
 open GroupoidalGrothendieck
 
