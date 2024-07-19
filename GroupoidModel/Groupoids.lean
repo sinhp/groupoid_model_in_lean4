@@ -54,7 +54,7 @@ Need at least the following, some of which is already in MathLib:
 
 section GroupoidGrothendieck
 
-variable {G : Grpd.{u,u}}(F : G ⥤ Grpd.{u,u})
+variable {G : Type u} [Groupoid G] (F : G ⥤ Grpd.{u,u})
 
 /-
   In Mathlib.CategoryTheory.Grothendieck the Grothendieck construction is done but into Cat.
@@ -64,145 +64,83 @@ variable {G : Grpd.{u,u}}(F : G ⥤ Grpd.{u,u})
 
 def GroupoidGrothendieck := Grothendieck (F ⋙ Grpd.forgetToCat)
 
+instance : Category (GroupoidGrothendieck F) := inferInstanceAs (Category (Grothendieck _))
+
 instance (g : G) : Groupoid ((F ⋙ Grpd.forgetToCat).obj g) where
   inv f := ((F.obj g).str').inv f
 
-instance mapsToIso {X Y : GroupoidGrothendieck F}(f : Grothendieck.Hom X Y) : Iso (F.obj X.base) (F.obj Y.base) where
+instance mapsToIso {X Y : GroupoidGrothendieck F} (f : Grothendieck.Hom X Y) :
+    Iso (F.obj X.base) (F.obj Y.base) where
   hom := F.map f.base
   inv := F.map (Groupoid.inv f.base)
 
-def Grothendieck.inv {X Y : GroupoidGrothendieck F} (f : Grothendieck.Hom X Y) : Grothendieck.Hom Y X where
-  base := Groupoid.inv (f.base)
-  fiber := by
-    have l_eq :  ((F ⋙ Grpd.forgetToCat).map (Groupoid.inv f.base)).obj Y.fiber = (CategoryTheory.inv (F.map f.base)).obj Y.fiber := by
-      dsimp[Grpd.forgetToCat]
-      rw [Groupoid.inv_eq_inv,Functor.map_inv]
-    have r_eq : (CategoryTheory.inv (F.map f.base)).obj (((F ⋙ Grpd.forgetToCat).map f.base).obj X.fiber) = X.fiber := by
-      dsimp[Grpd.forgetToCat]
-      have h : (CategoryTheory.inv (F.map f.base)).obj ((F.map f.base).obj X.fiber) = ((F.map f.base) ≫ (CategoryTheory.inv (F.map f.base))).obj X.fiber := rfl
-      rw [h]
-      simp [CategoryStruct.id]
-    exact (eqToHom l_eq) ≫ Groupoid.inv ((CategoryTheory.inv (F.map f.base)).map f.fiber) ≫ (eqToHom r_eq)
-
-theorem Grothendieck.Hom_congr_fiber_help {C : Type u}[Category C](F : C ⥤ Cat) {X Y : Grothendieck F} {f f' : X ⟶ Y}(eq : f = f')
-  : (F.map f.base).obj X.fiber = (F.map f'.base).obj X.fiber := by
-    refine (Functor.congr_obj (congrArg F.map (?_)) X.fiber)
-    exact congrArg Hom.base eq
-
-theorem Grothendieck.Hom_congr_fiber {C : Type u}[Category C](F : C ⥤ Cat){X Y : Grothendieck F}{f f' : X ⟶ Y}(eq : f = f')
-  : f.fiber = (eqToHom (Grothendieck.Hom_congr_fiber_help F eq)) ≫ f'.fiber := by
-    have h : HEq (f.fiber) (f'.fiber) := by
-      rw[eq]
-    have h' := (Functor.conj_eqToHom_iff_heq (f.fiber) (f'.fiber) (Grothendieck.Hom_congr_fiber_help F eq) (rfl)).mpr h
-    rw [h']
-    simp
-
---These are some lemmas I needed to help show that inv works. They should be neamed more clearly
-lemma help1_eql {X Y : GroupoidGrothendieck F}(f : Grothendieck.Hom X  Y) : (F.map f.base).obj ((inv (F.map f.base)).obj Y.fiber) = Y.fiber := by
-  have h : (F.map f.base).obj ((inv (F.map f.base)).obj Y.fiber) = ((inv (F.map f.base)) ≫ (F.map f.base)).obj Y.fiber := rfl
-  rw [h]
-  simp [CategoryStruct.id]
-
-lemma help1_eqr {X Y : GroupoidGrothendieck F}(f : Grothendieck.Hom X  Y) : ((F ⋙ Grpd.forgetToCat).map f.base).obj X.fiber = (F.map f.base).obj ((inv (F.map f.base)).obj (((F ⋙ Grpd.forgetToCat).map f.base).obj X.fiber)) := by
-  have h : (F.map f.base).obj ((inv (F.map f.base)).obj (((F ⋙ Grpd.forgetToCat).map f.base).obj X.fiber)) = ((inv (F.map f.base)) ≫ (F.map f.base)).obj (((F ⋙ Grpd.forgetToCat).map f.base).obj X.fiber) := rfl
-  rw [h]
-  simp [CategoryStruct.id]
-
-lemma help1 {X Y : GroupoidGrothendieck F}(f : Grothendieck.Hom X  Y) : inv ((F.map f.base).map ((inv (F.map f.base)).map f.fiber)) = (eqToHom (help1_eql F f)) ≫ (inv f.fiber) ≫ (eqToHom (help1_eqr F f)) := by
-  have h : inv ((F.map f.base).map ((inv (F.map f.base)).map f.fiber)) = inv (((inv (F.map f.base)) ≫ (F.map f.base)).map f.fiber) := by
-    congr
-  rw [h]
-  apply symm
-  apply (hom_comp_eq_id (((inv (F.map f.base) ≫ F.map f.base).map f.fiber))).mp
-  simp[Grpd.forgetToCat,CategoryStruct.id]
-  have temp := Functor.congr_hom ((@inv_comp_eq_id _ _ _ _ (F.map f.base) _ (F.map f.base)).mpr rfl) f.fiber
-  simp[temp,CategoryStruct.id]
-
-lemma help2_eql {X Y : GroupoidGrothendieck F}(f : Grothendieck.Hom X  Y) : (F.map (Groupoid.inv f.base)).obj (((F ⋙ Grpd.forgetToCat).map f.base).obj X.fiber) = (inv (F.map f.base)).obj (((F ⋙ Grpd.forgetToCat).map f.base).obj X.fiber) := by simp
-
-lemma help2_eqr {X Y : GroupoidGrothendieck F}(f : Grothendieck.Hom X  Y) : (inv (F.map f.base)).obj Y.fiber = (F.map (Groupoid.inv f.base)).obj Y.fiber := by simp
-
-lemma help2 {X Y : GroupoidGrothendieck F}(f : Grothendieck.Hom X  Y) : (F.map (Groupoid.inv f.base)).map f.fiber = (eqToHom (help2_eql F f)) ≫ (inv (F.map f.base)).map f.fiber ≫ (eqToHom (help2_eqr F f)) := by
-  have h : F.map (Groupoid.inv f.base) = inv (F.map f.base) := by
-    simp[Groupoid.inv_eq_inv]
-  rw[Functor.congr_hom h f.fiber]
-
-/-
-Because instances do not get lifted to new definitions we have to redefine the category structure of
-GroupoidGrothendieck as well as show that it is a Groupoid. There may be a better way to do this.
--/
-attribute [local simp] eqToHom_map
+def Grothendieck.inv {X Y : GroupoidGrothendieck F}
+    (f : X ⟶ Y) : Y ⟶ X where
+  base := Groupoid.inv f.base
+  fiber := Groupoid.inv ((F.map (Groupoid.inv f.base)).map f.fiber) ≫
+    eqToHom (by simpa only [Functor.map_comp, Functor.map_id] using
+      congr((F.map $(Groupoid.comp_inv f.base)).obj X.fiber))
 
 instance : Groupoid (GroupoidGrothendieck F) where
-  Hom X Y := Grothendieck.Hom X Y
-  id X := Grothendieck.id X
-  comp := @fun X Y Z f g => Grothendieck.comp f g
-  comp_id := @fun X Y f => by
-    dsimp; ext
-    · simp
-    · dsimp [Grpd.forgetToCat] ; rw [← NatIso.naturality_2 (eqToIso (F.map_id Y.base)) f.fiber] ; simp[CategoryStruct.id]
-  id_comp := @fun X Y f => by dsimp; ext <;> simp
-  assoc := @fun W X Y Z f g h => by
-    dsimp; ext
-    · simp
-    · dsimp [Grpd.forgetToCat] ; rw [← NatIso.naturality_2 (eqToIso (F.map_comp _ _)) f.fiber] ; simp[CategoryStruct.id,CategoryStruct.comp]
   inv f := Grothendieck.inv F f
-  inv_comp := by
-    intros X Y f
-    simp
-    apply Grothendieck.ext
-    simp[Grothendieck.comp,Grothendieck.inv,Grpd.forgetToCat]
-    rw[help1 F f]
-    simp[CategoryStruct.id]
-    simp[Grothendieck.comp,Grothendieck.inv]
-  comp_inv := by
-    intros X Y f
-    simp
-    apply Grothendieck.ext
-    simp[Grothendieck.comp,Grothendieck.inv,Grpd.forgetToCat]
-    rw[help2 F f]
-    simp[CategoryStruct.id]
-    simp[Grothendieck.comp,Grothendieck.inv]
+  inv_comp f := by
+    suffices ∀ {Z g} (_ : g ≫ f.base = Z) (_ : Z = 𝟙 _)
+        {g'} (eq : g' ≫ (F.map g).map f.fiber = 𝟙 _)
+        (W) (eqW : F.map g ≫ F.map f.base = W)
+        (eq2 : ∃ w1 w2, W.map f.fiber = eqToHom w1 ≫ f.fiber ≫ eqToHom w2) h1 h2,
+        { base := Z, fiber := eqToHom h1 ≫ (F.map f.base).map (g' ≫ eqToHom h2) ≫ f.fiber } =
+        ({..} : Grothendieck.Hom ..) from
+      this rfl (Groupoid.inv_comp _) (Groupoid.inv_comp _)
+        (W := 𝟙 _) (eqW := by simp) (eq2 := ⟨rfl, rfl, by simp; rfl⟩) ..
+    rintro _ g - rfl g' eq _ rfl ⟨w1, w2, eq2 : (F.map f.base).map _ = _⟩ h1 h2; congr
+    replace eq := congr((F.map f.base).map $eq)
+    simp only [Functor.map_comp, eq2, eqToHom_map, Category.assoc] at eq ⊢
+    conv at eq => lhs; slice 1 3
+    rw [(comp_eqToHom_iff ..).1 eq]; simp
+  comp_inv {X Y} f := by
+    suffices ∀ {Z g} (_ : f.base ≫ g = Z) (_ : Z = 𝟙 _)
+        {g'} (eq : (F.map g).map f.fiber ≫ g' = 𝟙 _) h1 h2,
+        { base := Z, fiber := eqToHom h1 ≫ (F.map g).map f.fiber ≫ g' ≫ eqToHom h2 } =
+        ({..} : Grothendieck.Hom ..) by
+      exact this rfl (Groupoid.comp_inv _) (Groupoid.comp_inv _) ..
+    rintro _ g - rfl g' eq _ _; congr
+    slice_lhs 2 3 => apply eq
+    erw [Category.id_comp, eqToHom_trans]
 
-def GroupoidGrothendieck.forget : GroupoidGrothendieck F ⥤ G := Grothendieck.forget (F ⋙ Grpd.forgetToCat)
+def GroupoidGrothendieck.forget : GroupoidGrothendieck F ⥤ G :=
+  Grothendieck.forget (F ⋙ Grpd.forgetToCat)
 
 def GroupoidGrothendieck.forget' : GroupoidGrothendieck F ⥤ Grpd.{u,u} where
   obj x := F.obj x.base
   map p := F.map p.base
-  map_id x := by
-    dsimp[CategoryStruct.id]
-    rw [F.map_id]
-    dsimp[CategoryStruct.id]
-  map_comp p p' := by
-    dsimp[CategoryStruct.comp]
-    rw[F.map_comp]
-    dsimp[CategoryStruct.comp]
+  map_id _ := F.map_id _
+  map_comp _ _ := F.map_comp ..
 
-def GroupoidGrothendieck.functorial {C D :Grpd.{u,u}}(F : C ⥤ D)(G : D ⥤ Grpd.{u,u})
-  : GroupoidGrothendieck (F ⋙ G) ⥤ GroupoidGrothendieck G  where
-    obj x := by
-      constructor
-      case base;
-      exact (F.obj x.base)
-      exact x.fiber
-    map f := by
-      constructor
-      case base;
-      exact (F.map f.base)
-      exact f.fiber
-    map_id x := by
-      dsimp[CategoryStruct.id,Grothendieck.id]
-      congr
-      exact (F.map_id x.base)
-      exact (F.map_id x.base)
-      simp
-    map_comp f g := by
-      dsimp[CategoryStruct.comp,Grothendieck.comp]
-      congr
-      exact (F.map_comp f.base g.base)
-      exact (F.map_comp f.base g.base)
-      exact (F.map_comp f.base g.base)
-      simp
+def GroupoidGrothendieck.functorial {C D : Grpd.{u,u}} (F : C ⥤ D) (G : D ⥤ Grpd.{u,u}) :
+    GroupoidGrothendieck (F ⋙ G) ⥤ GroupoidGrothendieck G where
+  obj x := by
+    constructor
+    case base;
+    exact (F.obj x.base)
+    exact x.fiber
+  map f := by
+    constructor
+    case base;
+    exact (F.map f.base)
+    exact f.fiber
+  map_id x := by
+    dsimp [CategoryStruct.id,Grothendieck.id]
+    congr
+    exact (F.map_id x.base)
+    exact (F.map_id x.base)
+    simp
+  map_comp f g := by
+    dsimp [CategoryStruct.comp,Grothendieck.comp]
+    congr
+    exact (F.map_comp f.base g.base)
+    exact (F.map_comp f.base g.base)
+    exact (F.map_comp f.base g.base)
+    simp
 
 end GroupoidGrothendieck
 
@@ -215,7 +153,7 @@ In this section we go through section 4 of Hofmann and Streicher's original pape
 -- Ty of Γ is the type of familiys of groupoids indexed by Γ
 abbrev Ty (Γ : Grpd.{u,u}) := Γ ⥤ Grpd.{u,u}
 
-def TySub {Δ Γ: Grpd.{u,u}}(f : Δ ⥤ Γ) : (Ty Γ) ⥤ (Ty Δ) := (whiskeringLeft Δ Γ Grpd.{u,u}).obj f
+def TySub {Δ Γ : Grpd.{u,u}} (f : Δ ⥤ Γ) : Ty Γ ⥤ Ty Δ := (whiskeringLeft Δ Γ Grpd.{u,u}).obj f
 
 -- This is a Covariant Functor that takes a Groupoid Γ to Ty Γ
 def Ty_functor : Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1) where
@@ -226,45 +164,44 @@ def Ty_functor : Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1) where
     intro A
     exact (TySub f.unop).obj A
 
--- These are the terms of type A. They are Sections Γ ⥤ (Ty A)
-structure Tm {Γ : Grpd.{u,u}}(A : Ty Γ) :=
+-- These are the terms of type A. They are Sections Γ ⥤ Ty A
+structure Tm {Γ : Grpd.{u,u}} (A : Ty Γ) :=
   obj (g : Γ) : A.obj g
-  map {g h : Γ}(p : g ⟶ h) : ((A.map p).obj (obj g)) ⟶ (obj h)
-  map_id (g : Γ): (map (𝟙 g)) = eqToHom ( Eq.trans (Functor.congr_obj (A.map_id g) (obj g)) rfl) ≫ (𝟙 (obj g))
-  map_comp {g h i : Γ}(p : g ⟶ h)(p' : h ⟶ i) : map (p ≫ p') =
-    (eqToHom (Eq.mpr (id (congrArg (fun _a ↦ _a.obj (obj g) = (A.map p').obj ((A.map p).obj (obj g))) (A.map_comp p p')))
-    (of_eq_true (eq_self ((A.map p').obj ((A.map p).obj (obj g))))))) ≫ ((A.map p').map (map p)) ≫ (map p')
+  map {g h : Γ} (p : g ⟶ h) : (A.map p).obj (obj g) ⟶ obj h
+  map_id (g : Γ) : (map (𝟙 g)) = eqToHom (by simp; rfl) ≫ 𝟙 (obj g)
+  map_comp {g h i : Γ} (p : g ⟶ h) (p' : h ⟶ i) : map (p ≫ p') =
+    eqToHom (by simp; rfl) ≫ (A.map p').map (map p) ≫ map p'
 
-theorem Ty_hom_congr_obj {Γ : Grpd.{u,u}}{A : Ty Γ}(a : Tm A){g h : Γ}{p p': g ⟶ h}(eq : p = p') : (A.map p).obj (a.obj g) = (A.map p').obj (a.obj g) := by
-  refine Functor.congr_obj (?_) (a.obj g)
+theorem Ty_hom_congr_obj {Γ : Grpd.{u,u}} {A : Ty Γ} (a : Tm A) {g h : Γ} {p p' : g ⟶ h}
+    (eq : p = p') : (A.map p).obj (a.obj g) = (A.map p').obj (a.obj g) := by
   rw [eq]
 
-theorem Tm_hom_congr{Γ : Grpd.{u,u}}{A : Ty Γ}(a : Tm A){g h : Γ}{p p': g ⟶ h}(eq : p = p') : a.map p = eqToHom (Ty_hom_congr_obj a eq) ≫ a.map p' := by
+theorem Tm_hom_congr {Γ : Grpd.{u,u}} {A : Ty Γ} (a : Tm A) {g h : Γ} {p p': g ⟶ h}
+    (eq : p = p') : a.map p = eqToHom (Ty_hom_congr_obj a eq) ≫ a.map p' := by
   have h : HEq (a.map p) (a.map p') := by
-    rw[eq]
-  have h' := (Functor.conj_eqToHom_iff_heq (a.map p) (a.map p') (Ty_hom_congr_obj a eq) (rfl)).mpr h
-  rw[h']
+    rw [eq]
+  rw [(Functor.conj_eqToHom_iff_heq (a.map p) (a.map p') (Ty_hom_congr_obj a eq) (rfl)).mpr h]
   simp
 
 -- This should be made functorial. Tm is given a category structure farther down
-def TmSub {Δ Γ: Grpd.{u,u}}{A : Ty Γ}(a : Tm A)(f : Δ ⥤ Γ) : Tm ((TySub f).obj A) where
+def TmSub {Δ Γ : Grpd.{u,u}} {A : Ty Γ} (a : Tm A) (f : Δ ⥤ Γ) : Tm ((TySub f).obj A) where
   obj g := a.obj (f.obj g)
   map p := a.map (f.map p)
   map_id g := by
     have h' := (eqToHom_comp_iff ?_ (𝟙 (a.obj (f.obj g))) (a.map (𝟙 (f.obj g)))).mpr (a.map_id (f.obj g))
-    case refine_1; simp[CategoryStruct.id]
+    case refine_1; simp [CategoryStruct.id]
     rw [<- h']
     simp
     have eq : f.map (𝟙 g) = 𝟙 (f.obj g) := f.map_id g
     rw [Tm_hom_congr a eq]
   map_comp p p':= by
-    dsimp[TySub]
+    dsimp [TySub]
     have h := (a.map_comp (f.map p) (f.map p'))
     have eq : (f.map p ≫ f.map p') = f.map (p ≫ p') := (f.map_comp p p').symm
     have h' := Tm_hom_congr a eq
-    rw[h'] at h
+    rw [h'] at h
     have h'' := (eqToHom_comp_iff _ _ (a.map (f.map (p ≫ p')))).mp h
-    rw[h'']
+    rw [h'']
     simp
 
 -- This is a Covariant Functor that takes a Groupoid Γ to dependent pairs of (A ∈ Ty Γ) and (t ∈ Tm A)
@@ -283,7 +220,8 @@ def tp_NatTrans : NatTrans Tm_functor Ty_functor where
     intro a
     exact a.fst
 
-def TmSubToGrothendieckFunc {Δ Γ: Grpd.{u,u}}{A : Ty Γ}(f : Δ ⟶ Γ)(M : Tm ((TySub f).obj A)) : Δ ⥤ (GroupoidGrothendieck A) where
+def TmSubToGrothendieckFunc {Δ Γ : Grpd.{u,u}} {A : Ty Γ} (f : Δ ⟶ Γ) (M : Tm ((TySub f).obj A)) :
+    Δ ⥤ GroupoidGrothendieck A where
   obj x := {base := f.obj x, fiber := M.obj x}
   map p := {base := f.map p, fiber := M.map p}
   map_id x := by
@@ -294,55 +232,62 @@ def TmSubToGrothendieckFunc {Δ Γ: Grpd.{u,u}}{A : Ty Γ}(f : Δ ⟶ Γ)(M : Tm
     dsimp [eqToHom,cast]
     simp
   map_comp p p' := by
-    simp[CategoryStruct.comp,Grothendieck.comp]
+    simp [CategoryStruct.comp,Grothendieck.comp]
     apply Grothendieck.ext <;> simp
     rw [M.map_comp]
-    simp[TySub,Grpd.forgetToCat]
+    simp [TySub,Grpd.forgetToCat]
 
-def TmSubToGrothendieckFuncWraper {Δ Γ: Grpd.{u,u}}{A : Ty Γ}(S : Σ( f: Δ ⟶ Γ),Tm ((TySub f).obj A)) : Δ ⥤ (GroupoidGrothendieck A) := TmSubToGrothendieckFunc S.fst S.snd
+def TmSubToGrothendieckFuncWrapper {Δ Γ : Grpd.{u,u}} {A : Ty Γ}
+    (S : Σ f : Δ ⟶ Γ, Tm ((TySub f).obj A)) : Δ ⥤ GroupoidGrothendieck A :=
+  TmSubToGrothendieckFunc S.fst S.snd
 
-def GrothendieckFuncToTmSub {Δ Γ: Grpd.{u,u}}{A : Ty Γ}(F : Δ ⥤ (GroupoidGrothendieck A)) : Σ(f : Δ ⥤  Γ),Tm ((TySub f).obj A)where
-  fst := (F ⋙ (Grothendieck.forget (A ⋙ Grpd.forgetToCat)))
+def GrothendieckFuncToTmSub {Δ Γ : Grpd.{u,u}} {A : Ty Γ} (F : Δ ⥤ GroupoidGrothendieck A) :
+    Σ f : Δ ⥤ Γ, Tm ((TySub f).obj A) where
+  fst := F ⋙ Grothendieck.forget (A ⋙ Grpd.forgetToCat)
   snd := by
-    dsimp [TySub,Grothendieck.forget]
+    dsimp [TySub, Grothendieck.forget]
     constructor
-    case obj; intro g; exact (F.obj g).fiber
-    case map; intro _ _ p; dsimp; exact (F.map p).fiber
-    case map_id; intro g; rw[Grothendieck.Hom_congr_fiber (A ⋙ Grpd.forgetToCat) (F.map_id g)];simp[CategoryStruct.id]
-    case map_comp; intro g h i p p'; simp ; rw[Grothendieck.Hom_congr_fiber (A ⋙ Grpd.forgetToCat) (F.map_comp p p')];simp[CategoryStruct.comp,Grpd.forgetToCat]
+    case obj => intro g; exact (F.obj g).fiber
+    case map => intro _ _ p; dsimp; exact (F.map p).fiber
+    case map_id => intro g; rw [Grothendieck.congr (F.map_id g)]; simp [CategoryStruct.id]
+    case map_comp =>
+      intro g h i p p'; simp
+      rw [Grothendieck.congr (F.map_comp p p')]
+      simp [CategoryStruct.comp,Grpd.forgetToCat]
 
-theorem Left_Inv {Δ Γ: Grpd.{u,u}}{A : Ty Γ}(S : Σ( f: Δ ⟶ Γ),Tm ((TySub f).obj A)):  (GrothendieckFuncToTmSub (TmSubToGrothendieckFuncWraper S)) = S := by
-  congr
+theorem Left_Inv {Δ Γ : Grpd.{u,u}} {A : Ty Γ} (S : Σ f: Δ ⟶ Γ, Tm ((TySub f).obj A)) :
+    GrothendieckFuncToTmSub (TmSubToGrothendieckFuncWrapper S) = S := by congr
 
-theorem  Right_Inv {Δ Γ: Grpd.{u,u}}{A : Ty Γ}(F : Δ ⥤ (GroupoidGrothendieck A)):  (TmSubToGrothendieckFuncWraper (GrothendieckFuncToTmSub F))= F := by
+theorem Right_Inv {Δ Γ : Grpd.{u,u}} {A : Ty Γ} (F : Δ ⥤ GroupoidGrothendieck A) :
+    TmSubToGrothendieckFuncWrapper (GrothendieckFuncToTmSub F) = F := by
   congr
 
 structure GrothendieckSection (Γ : Grpd.{u,u}) (A : Ty Γ) where
-  func : Γ ⥤ (GroupoidGrothendieck A)
-  s : func ⋙ (GroupoidGrothendieck.forget A) = 𝟙 Γ
+  func : Γ ⥤ GroupoidGrothendieck A
+  s : func ⋙ GroupoidGrothendieck.forget A = 𝟙 Γ
 
-def TmToGrothendieckFunc {Γ : Grpd.{u,u}}{A : Ty Γ}(M : Tm A) : Γ ⥤ (GroupoidGrothendieck A) where
+def TmToGrothendieckFunc {Γ : Grpd.{u,u}} {A : Ty Γ} (M : Tm A) : Γ ⥤ GroupoidGrothendieck A where
   obj g := {base := g, fiber := M.obj g}
   map p := {base := p, fiber := M.map p}
   map_id g := by
     simp
     rw [(M.map_id g)]
-    simp[CategoryStruct.id,Grothendieck.id]
+    simp [CategoryStruct.id,Grothendieck.id]
   map_comp p p' := by
     simp
     rw [M.map_comp p p']
-    simp[CategoryStruct.comp,Grothendieck.comp, Grpd.forgetToCat]
+    simp [CategoryStruct.comp,Grothendieck.comp, Grpd.forgetToCat]
 
 /-
 This is a bijection but it is quite dificult to show in lean. I have worked on it for a bit by the inverse
-function requiers so strange type casing that I cant seem to get to work
+function requires so strange type casting that I can't seem to get to work
 -/
-def TmToGrothendieckSection {Γ : Grpd.{u,u}}{A : Ty Γ}(M : Tm A) : GrothendieckSection Γ A where
+def TmToGrothendieckSection {Γ : Grpd.{u,u}} {A : Ty Γ} (M : Tm A) : GrothendieckSection Γ A where
   func := TmToGrothendieckFunc M
   s := rfl
 
 -- This can be expanded to a Groupoid
-instance TmCategory {Γ : Grpd.{u,u}}{A : Ty Γ} : Category (Tm A) where
+instance TmCategory {Γ : Grpd.{u,u}} {A : Ty Γ} : Category (Tm A) where
   Hom x y := (TmToGrothendieckFunc x) ⟶ (TmToGrothendieckFunc y)
   id x := 𝟙 (TmToGrothendieckFunc x)
   comp f g := NatTrans.vcomp f g
@@ -355,11 +300,10 @@ section NM
 def sGrpd := ULiftHom.{u+1} Grpd.{u,u}
   deriving SmallCategory
 
-def toGrpd (x : sGrpd.{u}) : Grpd.{u,u} := x
-def tosGrpd (x : Grpd.{u,u}) : sGrpd.{u} := x
+def sGrpd.of (C : Type u) [Groupoid.{u} C] : sGrpd.{u} := Grpd.of C
 
 def SmallGrpd.forget : sGrpd.{u} ⥤ Grpd.{u,u} where
-  obj x := toGrpd x
+  obj x := Grpd.of x.α
   map f := f.down
 
 /-
@@ -370,7 +314,7 @@ instance GroupoidNM : NaturalModel.NaturalModelBase sGrpd.{u} where
   Ty := SmallGrpd.forget.op ⋙ Ty_functor
   Tm := SmallGrpd.forget.op ⋙ Tm_functor
   tp := NatTrans.hcomp (NatTrans.id SmallGrpd.forget.op) (tp_NatTrans)
-  ext Γ f := tosGrpd (Grpd.of (@GroupoidGrothendieck Γ ((@yonedaEquiv _ _ Γ (SmallGrpd.forget.op ⋙ Ty_functor)).toFun f)))
+  ext Γ f := sGrpd.of (GroupoidGrothendieck ((@yonedaEquiv _ _ Γ (SmallGrpd.forget.op ⋙ Ty_functor)).toFun f))
   disp Γ A := by
     constructor
     exact Grothendieck.forget (yonedaEquiv A ⋙ Grpd.forgetToCat)
