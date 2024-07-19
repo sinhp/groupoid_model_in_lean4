@@ -156,88 +156,107 @@ end
 
 section PointedCategorys
 
-structure PointedCategory.{w,z} extends Pointed.{z} where
-  cat : Category.{w} X
+/-- The class of pointed pointed categorys. -/
+class PointedCategory.{w,z} (C : Type z) extends Category.{w} C where
+  pt : C
 
-namespace PointedCategory
+/-- A constructor that makes a pointed categorys from a category and a point. -/
+def PointedCategory.of (C : Type*) (pt : C)[Category C]: PointedCategory C where
+  pt := pt
 
-instance : CoeSort PointedCategory Type* := CoeSort.mk (fun(x) => x.X)
-
-instance (P : PointedCategory) : Category P.X := P.cat
-
-def of.{w,z} {X : Type z} (point : X)[cat : Category.{w} X]: PointedCategory :=
-  ⟨⟨X,point⟩,cat⟩
-
+/-- The structure of a functor that preserves the distinguished point of pointed categorys-/
 @[ext]
-protected structure Hom.{w,z} (P Q : PointedCategory.{w,z}) : Type (max w z) where
-  toFunc : P.X ⥤ Q.X
-  obj_point : toFunc.obj P.point = Q.point
-
-namespace Hom
+structure PointedFunctor (C : Type*)(D : Type*)[cp : PointedCategory C][dp : PointedCategory D] extends C ⥤ D where
+  obj_point : obj (cp.pt) = (dp.pt)
 
 @[simps]
-def id.{w,z} (P : PointedCategory.{w,z}) : PointedCategory.Hom.{w,z} P P where
-  toFunc := Functor.id P.X
+def PointedFunctor.id (C : Type*)[PointedCategory C] : PointedFunctor C C where
+  toFunctor := Functor.id C
   obj_point := rfl
 
 @[simps]
-def comp.{w,z} {P Q R: PointedCategory.{w,z}} (f : PointedCategory.Hom.{w,z} P Q) (g : PointedCategory.Hom.{w,z} Q R) : PointedCategory.Hom.{w,z} P R :=
-  ⟨f.toFunc ⋙ g.toFunc, by rw [Functor.comp_obj, f.obj_point, g.obj_point]⟩
+def PointedFunctor.comp {C : Type*}[PointedCategory C]{D : Type*}[PointedCategory D]{E : Type*}[PointedCategory E]
+  (F : PointedFunctor C D)(G : PointedFunctor D E)  : PointedFunctor C E where
+  toFunctor := F.toFunctor ⋙ G.toFunctor
+  obj_point := by
+    rw[Functor.comp_obj,F.obj_point,G.obj_point]
 
-end Hom
+/-- The category of pointed categorys and pointed functors-/
+def PCat.{w,z} :=
+  Bundled PointedCategory.{w, z}
 
-instance largeCategory : LargeCategory PointedCategory where
-  Hom := PointedCategory.Hom
-  id := Hom.id
-  comp := @Hom.comp
+namespace PCat
 
-end PointedCategory
+instance : CoeSort PCat.{v,u} (Type u) :=
+  ⟨Bundled.α⟩
 
-structure PointedGroupoid.{w,z} extends Pointed.{z} where
-  grpd : Groupoid.{w} X
+instance str (C : PCat.{v, u}) : PointedCategory.{v, u} C :=
+  Bundled.str C
 
-namespace PointedGroupoid
+def of (C : Type u) [PointedCategory C] :  PCat.{v, u} :=
+  Bundled.of C
 
-instance : CoeSort PointedGroupoid Type* := CoeSort.mk (fun(x) => x.X)
+instance category : LargeCategory.{max v u} PCat.{v, u} where
+  Hom C D := PointedFunctor C D
+  id C := PointedFunctor.id C
+  comp f g := PointedFunctor.comp f g
 
-instance toPointedCategory : CoeSort PointedGroupoid PointedCategory := CoeSort.mk (fun(x) => ⟨⟨x.X,x.point⟩,x.grpd.toCategory⟩)
+/-- The functor that takes PCat to Cat by forgeting the points-/
+def forgetPoint : PCat ⥤ Cat where
+  obj x := Cat.of x
+  map f := f.toFunctor
 
-def of.{w,z} {X : Type z} (point : X)[grpd : Groupoid.{w} X]: PointedGroupoid :=
-  ⟨⟨X,point⟩,grpd⟩
+end PCat
 
-instance largeCategory : LargeCategory PointedGroupoid where
-  Hom P Q := PointedCategory.Hom P Q
-  id P := PointedCategory.Hom.id P
-  comp f g := PointedCategory.Hom.comp f g
+/-- The class of pointed pointed groupoids. -/
+class PointedGroupoid.{w,z} (C : Type z) extends Groupoid.{w} C, PointedCategory.{w,z} C
 
-def forgetPoint.{w,z} : PointedGroupoid.{w,z} ⥤ Grpd.{w,z} where
-  obj x := @Grpd.of x.X x.grpd
-  map f := f.toFunc
+/-- The category of pointed groupoids and pointed functors-/
+def PGrpd.{w,z} :=
+  Bundled PointedGroupoid.{w, z}
 
-end PointedGroupoid
+namespace PGrpd
+
+instance : CoeSort PGrpd.{v,u} (Type u) :=
+  ⟨Bundled.α⟩
+
+instance str (C : PGrpd.{v, u}) : PointedGroupoid.{v, u} C :=
+  Bundled.str C
+
+def of (C : Type u) [PointedGroupoid C] : PGrpd.{v, u} :=
+  Bundled.of C
+
+instance category : LargeCategory.{max v u} PGrpd.{v, u} where
+  Hom C D := PointedFunctor C D
+  id C := PointedFunctor.id C
+  comp f g := PointedFunctor.comp f g
+
+/-- The functor that takes PGrpd to Grpd by forgeting the points-/
+def forgetPoint : PGrpd ⥤ Grpd where
+  obj x := Grpd.of x
+  map f := f.toFunctor
+
+end PGrpd
+
 end PointedCategorys
 
 section NaturalModelBase
 
-def TySub {Δ Γ : Grpd.{u,u}} (f : Δ ⥤ Γ) : (Γ ⥤ Grpd.{u,u}) ⥤ (Δ ⥤ Grpd.{u,u}):= (whiskeringLeft Δ Γ Grpd.{u,u}).obj f
-
 -- This is a Covariant Functor that takes a Groupoid Γ to Γ ⥤ Grpd
 def Ty_functor : Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1) where
   obj x := x.unop ⥤ Grpd.{u,u}
-  map f A := f.unop ⋙ A --(TySub f.unop).obj A
-
-def TmSub {Δ Γ : Grpd.{u,u}} (f : Δ ⥤ Γ) : (Γ ⥤ PointedGroupoid.{u,u}) ⥤ (Δ ⥤ PointedGroupoid.{u,u}):= (whiskeringLeft Δ Γ PointedGroupoid.{u,u}).obj f
+  map f A := f.unop ⋙ A
 
 -- This is a Covariant Functor that takes a Groupoid Γ to Γ ⥤ PointedGroupoid
 def Tm_functor : Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1) where
-  obj x := x.unop ⥤ PointedGroupoid.{u,u}
-  map f A := f.unop ⋙ A --(TmSub f.unop).obj A
+  obj x := x.unop ⥤ PGrpd.{u,u}
+  map f A := f.unop ⋙ A
 
 -- This is the typing natral transformation
 def tp_NatTrans : NatTrans Tm_functor Ty_functor where
   app x := by
     intro a
-    exact a ⋙ PointedGroupoid.forgetPoint
+    exact a ⋙ PGrpd.forgetPoint
 
 open GroupoidalGrothendieck
 
