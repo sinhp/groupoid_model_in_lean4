@@ -169,11 +169,13 @@ def PointedCategory.of (C : Type*) (pt : C)[Category C]: PointedCategory C where
 structure PointedFunctor (C : Type*)(D : Type*)[cp : PointedCategory C][dp : PointedCategory D] extends C ⥤ D where
   obj_point : obj (cp.pt) = (dp.pt)
 
+/-- The identity `PointedFunctor` whoes underlying functor is the identity functor-/
 @[simps]
 def PointedFunctor.id (C : Type*)[PointedCategory C] : PointedFunctor C C where
   toFunctor := Functor.id C
   obj_point := rfl
 
+/-- Composition of `PointedFunctor` that composes there underling functors and shows that the point is preserved-/
 @[simps]
 def PointedFunctor.comp {C : Type*}[PointedCategory C]{D : Type*}[PointedCategory D]{E : Type*}[PointedCategory E]
   (F : PointedFunctor C D)(G : PointedFunctor D E)  : PointedFunctor C E where
@@ -193,6 +195,7 @@ instance : CoeSort PCat.{v,u} (Type u) :=
 instance str (C : PCat.{v, u}) : PointedCategory.{v, u} C :=
   Bundled.str C
 
+/-- Construct a bundled `PCat` from the underlying type and the typeclass. -/
 def of (C : Type u) [PointedCategory C] :  PCat.{v, u} :=
   Bundled.of C
 
@@ -223,6 +226,7 @@ instance : CoeSort PGrpd.{v,u} (Type u) :=
 instance str (C : PGrpd.{v, u}) : PointedGroupoid.{v, u} C :=
   Bundled.str C
 
+/-- Construct a bundled `PGrpd` from the underlying type and the typeclass. -/
 def of (C : Type u) [PointedGroupoid C] : PGrpd.{v, u} :=
   Bundled.of C
 
