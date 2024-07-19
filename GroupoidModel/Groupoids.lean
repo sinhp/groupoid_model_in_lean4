@@ -25,7 +25,7 @@ import Mathlib.CategoryTheory.Grothendieck
 import GroupoidModel.NaturalModel
 --
 
-universe u v
+universe u v u₁ v₁ u₂ v₂
 
 namespace CategoryTheory
 
@@ -51,99 +51,107 @@ Need at least the following, some of which is already in MathLib:
   -/
 
 
+@[simps?!]
+def toCat {C : Type u₁} [Category.{v₁,u₁} C] (G : C ⥤ Grpd) : C ⥤ Cat := G ⋙ Grpd.forgetToCat
 
-section GroupoidGrothendieck
+namespace Grothendieck
 
-variable {G : Type u} [Groupoid G] (F : G ⥤ Grpd.{u,u})
+open CategoryTheory Iso
 
-/-
-  In Mathlib.CategoryTheory.Grothendieck the Grothendieck construction is done but into Cat.
-  By composing a functor into Grpd with Grpd.forgetToCat we can use this construction. Then
-  we show that what we get is a Groupoid.
--/
+variable {C : Type u₁} [Category.{v₁,u₁} C] {G : C ⥤ Cat.{v₂,u₂}}
 
-def GroupoidGrothendieck := Grothendieck (F ⋙ Grpd.forgetToCat)
-
-instance : Category (GroupoidGrothendieck F) := inferInstanceAs (Category (Grothendieck _))
-
-instance (g : G) : Groupoid ((F ⋙ Grpd.forgetToCat).obj g) where
-  inv f := ((F.obj g).str').inv f
-
-instance mapsToIso {X Y : GroupoidGrothendieck F} (f : Grothendieck.Hom X Y) :
-    Iso (F.obj X.base) (F.obj Y.base) where
-  hom := F.map f.base
-  inv := F.map (Groupoid.inv f.base)
-
-def Grothendieck.inv {X Y : GroupoidGrothendieck F}
-    (f : X ⟶ Y) : Y ⟶ X where
-  base := Groupoid.inv f.base
-  fiber := Groupoid.inv ((F.map (Groupoid.inv f.base)).map f.fiber) ≫
+/-- A morphism in the Grothendieck construction is an isomorphism if the morphism in the base is an isomorphism and the fiber morphism is an isomorphism. -/
+def mkIso {X Y : Grothendieck G} (s : X.base ≅ Y.base) (t : (G |>.map s.hom).obj X.fiber ≅ Y.fiber) :
+    X ≅ Y where
+  hom := { base := s.hom, fiber := t.hom }
+  inv.base := s.inv
+  inv.fiber := (G.map (s.inv)).map (t.inv) ≫
     eqToHom (by simpa only [Functor.map_comp, Functor.map_id] using
-      congr((F.map $(Groupoid.comp_inv f.base)).obj X.fiber))
-
-instance : Groupoid (GroupoidGrothendieck F) where
-  inv f := Grothendieck.inv F f
-  inv_comp f := by
-    suffices ∀ {Z g} (_ : g ≫ f.base = Z) (_ : Z = 𝟙 _)
-        {g'} (eq : g' ≫ (F.map g).map f.fiber = 𝟙 _)
-        (W) (eqW : F.map g ≫ F.map f.base = W)
-        (eq2 : ∃ w1 w2, W.map f.fiber = eqToHom w1 ≫ f.fiber ≫ eqToHom w2) h1 h2,
-        { base := Z, fiber := eqToHom h1 ≫ (F.map f.base).map (g' ≫ eqToHom h2) ≫ f.fiber } =
+      congr((G.map $(s.hom_inv_id)).obj X.fiber))
+  hom_inv_id := by
+    apply ext
+    erw [comp_fiber]
+    simp only [Cat.comp_obj, id_eq, map_hom_inv_id_assoc,
+      eqToHom_trans, id_fiber'] at *
+    erw [comp_base, id_base]
+    dsimp
+    rw [s.hom_inv_id]
+  inv_hom_id := by
+    suffices ∀ {Z g} (_ : g ≫ s.hom = Z) (_ : Z = 𝟙 _)
+        {g'} (eq : g' ≫ (G.map g).map t.hom = 𝟙 _)
+        (W) (eqW : G.map g ≫ G.map s.hom = W)
+        (eq2 : ∃ w1 w2, W.map t.hom = eqToHom w1 ≫ t.hom ≫ eqToHom w2) h1 h2,
+        { base := Z, fiber := eqToHom h1 ≫ (G.map s.hom).map (g' ≫ eqToHom h2) ≫ t.hom } =
         ({..} : Grothendieck.Hom ..) from
-      this rfl (Groupoid.inv_comp _) (Groupoid.inv_comp _)
-        (W := 𝟙 _) (eqW := by simp) (eq2 := ⟨rfl, rfl, by simp; rfl⟩) ..
-    rintro _ g - rfl g' eq _ rfl ⟨w1, w2, eq2 : (F.map f.base).map _ = _⟩ h1 h2; congr
-    replace eq := congr((F.map f.base).map $eq)
+      this rfl s.inv_hom_id (by simp)
+        (W := 𝟙 _) (eqW := by simp) (eq2 := ⟨rfl, rfl, by simp⟩) ..
+    rintro _ g - rfl g' eq _ rfl ⟨w1, w2, eq2 : (G.map s.hom).map _ = _⟩ h1 h2; congr
+    replace eq := congr((G.map s.hom).map $eq)
     simp only [Functor.map_comp, eq2, eqToHom_map, Category.assoc] at eq ⊢
     conv at eq => lhs; slice 1 3
     rw [(comp_eqToHom_iff ..).1 eq]; simp
-  comp_inv {X Y} f := by
-    suffices ∀ {Z g} (_ : f.base ≫ g = Z) (_ : Z = 𝟙 _)
-        {g'} (eq : (F.map g).map f.fiber ≫ g' = 𝟙 _) h1 h2,
-        { base := Z, fiber := eqToHom h1 ≫ (F.map g).map f.fiber ≫ g' ≫ eqToHom h2 } =
-        ({..} : Grothendieck.Hom ..) by
-      exact this rfl (Groupoid.comp_inv _) (Groupoid.comp_inv _) ..
-    rintro _ g - rfl g' eq _ _; congr
-    slice_lhs 2 3 => apply eq
-    erw [Category.id_comp, eqToHom_trans]
 
-def GroupoidGrothendieck.forget : GroupoidGrothendieck F ⥤ G :=
+end Grothendieck
+
+section
+variable {C : Type u₁} [Groupoid.{v₁,u₁} C] {F : C ⥤ Grpd.{v₂,u₂}}
+
+variable (F) in
+/--
+  In Mathlib.CategoryTheory.Grothendieck we find the Grothendieck construction
+  for the functors `F : C ⥤ Cat`. Given a functor `F : G ⥤ Grpd`, we show that
+  the Grothendieck construction of the composite `F ⋙ Grpd.forgetToCat`, where
+  `forgetToCat : Grpd ⥤ Cat` is the embedding of groupoids into categories, is a groupoid.
+-/
+def GroupoidalGrothendieck := Grothendieck (toCat F)
+
+
+namespace GroupoidalGrothendieck
+
+
+instance : Category (GroupoidalGrothendieck F) := inferInstanceAs (Category (Grothendieck _))
+
+
+instance (X : C) : Groupoid (toCat F |>.obj X) where
+  inv f := ((F.obj X).str').inv f
+
+def isoMk {X Y : GroupoidalGrothendieck F} (f : X ⟶ Y) : X ≅ Y := by
+  fapply Grothendieck.mkIso
+  · exact (Groupoid.isoEquivHom _ _).2 f.base
+  · apply (Groupoid.isoEquivHom _ _).2 f.fiber
+
+def inv {X Y : GroupoidalGrothendieck F} (f : X ⟶ Y) : Y ⟶ X  := isoMk f |>.inv
+
+instance groupoid : Groupoid (GroupoidalGrothendieck F) where
+  inv f :=  inv f
+  inv_comp f := (isoMk f).inv_hom_id
+  comp_inv f := (isoMk f).hom_inv_id
+
+
+def forget : GroupoidalGrothendieck F ⥤ C :=
   Grothendieck.forget (F ⋙ Grpd.forgetToCat)
+-- note: maybe come up with a better name?
+def ToGrpd : GroupoidalGrothendieck F ⥤ Grpd.{v₂,u₂} := forget ⋙ F
 
-def GroupoidGrothendieck.forget' : GroupoidGrothendieck F ⥤ Grpd.{u,u} where
-  obj x := F.obj x.base
-  map p := F.map p.base
-  map_id _ := F.map_id _
-  map_comp _ _ := F.map_comp ..
+def functorial {C D : Grpd.{v₁,u₁}} (F : C ⟶ D) (G : D ⥤ Grpd.{v₂,u₂})
+  : Grothendieck (toCat (F ⋙ G)) ⥤ Grothendieck (toCat G) where
+    obj X := ⟨F.obj X.base, X.fiber⟩
+    map {X Y} f := ⟨F.map f.base, f.fiber⟩
+    map_id X := by
+      fapply Grothendieck.ext
+      · exact F.map_id X.base
+      · simp only [Grothendieck.id_fiber', eqToHom_trans]
+    map_comp {X Y Z} f g := by
+      simp only [Grothendieck.comp]
+      fapply Grothendieck.ext
+      · exact F.map_comp f.base g.base
+      · erw [Grothendieck.comp_fiber (F:= toCat (F ⋙ G)) f g]
+        simp [eqToHom_trans]
+        erw [Grothendieck.comp_fiber]; rfl
 
-def GroupoidGrothendieck.functorial {C D : Grpd.{u,u}} (F : C ⥤ D) (G : D ⥤ Grpd.{u,u}) :
-    GroupoidGrothendieck (F ⋙ G) ⥤ GroupoidGrothendieck G where
-  obj x := by
-    constructor
-    case base;
-    exact (F.obj x.base)
-    exact x.fiber
-  map f := by
-    constructor
-    case base;
-    exact (F.map f.base)
-    exact f.fiber
-  map_id x := by
-    dsimp [CategoryStruct.id,Grothendieck.id]
-    congr
-    exact (F.map_id x.base)
-    exact (F.map_id x.base)
-    simp
-  map_comp f g := by
-    dsimp [CategoryStruct.comp,Grothendieck.comp]
-    congr
-    exact (F.map_comp f.base g.base)
-    exact (F.map_comp f.base g.base)
-    exact (F.map_comp f.base g.base)
-    simp
+end GroupoidalGrothendieck
 
-end GroupoidGrothendieck
-
+end
 section HSexp
 
 /-
@@ -221,7 +229,7 @@ def tp_NatTrans : NatTrans Tm_functor Ty_functor where
     exact a.fst
 
 def TmSubToGrothendieckFunc {Δ Γ : Grpd.{u,u}} {A : Ty Γ} (f : Δ ⟶ Γ) (M : Tm ((TySub f).obj A)) :
-    Δ ⥤ GroupoidGrothendieck A where
+    Δ ⥤ GroupoidalGrothendieck A where
   obj x := {base := f.obj x, fiber := M.obj x}
   map p := {base := f.map p, fiber := M.map p}
   map_id x := by
@@ -238,10 +246,10 @@ def TmSubToGrothendieckFunc {Δ Γ : Grpd.{u,u}} {A : Ty Γ} (f : Δ ⟶ Γ) (M 
     simp [TySub,Grpd.forgetToCat]
 
 def TmSubToGrothendieckFuncWrapper {Δ Γ : Grpd.{u,u}} {A : Ty Γ}
-    (S : Σ f : Δ ⟶ Γ, Tm ((TySub f).obj A)) : Δ ⥤ GroupoidGrothendieck A :=
+    (S : Σ f : Δ ⟶ Γ, Tm ((TySub f).obj A)) : Δ ⥤ GroupoidalGrothendieck A :=
   TmSubToGrothendieckFunc S.fst S.snd
 
-def GrothendieckFuncToTmSub {Δ Γ : Grpd.{u,u}} {A : Ty Γ} (F : Δ ⥤ GroupoidGrothendieck A) :
+def GrothendieckFuncToTmSub {Δ Γ : Grpd.{u,u}} {A : Ty Γ} (F : Δ ⥤ GroupoidalGrothendieck A) :
     Σ f : Δ ⥤ Γ, Tm ((TySub f).obj A) where
   fst := F ⋙ Grothendieck.forget (A ⋙ Grpd.forgetToCat)
   snd := by
@@ -258,15 +266,15 @@ def GrothendieckFuncToTmSub {Δ Γ : Grpd.{u,u}} {A : Ty Γ} (F : Δ ⥤ Groupoi
 theorem Left_Inv {Δ Γ : Grpd.{u,u}} {A : Ty Γ} (S : Σ f: Δ ⟶ Γ, Tm ((TySub f).obj A)) :
     GrothendieckFuncToTmSub (TmSubToGrothendieckFuncWrapper S) = S := by congr
 
-theorem Right_Inv {Δ Γ : Grpd.{u,u}} {A : Ty Γ} (F : Δ ⥤ GroupoidGrothendieck A) :
+theorem Right_Inv {Δ Γ : Grpd.{u,u}} {A : Ty Γ} (F : Δ ⥤ GroupoidalGrothendieck A) :
     TmSubToGrothendieckFuncWrapper (GrothendieckFuncToTmSub F) = F := by
   congr
 
 structure GrothendieckSection (Γ : Grpd.{u,u}) (A : Ty Γ) where
-  func : Γ ⥤ GroupoidGrothendieck A
-  s : func ⋙ GroupoidGrothendieck.forget A = 𝟙 Γ
+  func : Γ ⥤ GroupoidalGrothendieck A
+  s : func ⋙ GroupoidalGrothendieck.forget = 𝟙 Γ
 
-def TmToGrothendieckFunc {Γ : Grpd.{u,u}} {A : Ty Γ} (M : Tm A) : Γ ⥤ GroupoidGrothendieck A where
+def TmToGrothendieckFunc {Γ : Grpd.{u,u}} {A : Ty Γ} (M : Tm A) : Γ ⥤ GroupoidalGrothendieck A where
   obj g := {base := g, fiber := M.obj g}
   map p := {base := p, fiber := M.map p}
   map_id g := by
@@ -296,6 +304,9 @@ end HSexp
 
 
 section NM
+
+open GroupoidalGrothendieck
+
 -- Here I am useing sGrpd to be a small category version of Grpd. There is likely a better way to do this.
 def sGrpd := ULiftHom.{u+1} Grpd.{u,u}
   deriving SmallCategory
@@ -314,7 +325,7 @@ instance GroupoidNM : NaturalModel.NaturalModelBase sGrpd.{u} where
   Ty := SmallGrpd.forget.op ⋙ Ty_functor
   Tm := SmallGrpd.forget.op ⋙ Tm_functor
   tp := NatTrans.hcomp (NatTrans.id SmallGrpd.forget.op) (tp_NatTrans)
-  ext Γ f := sGrpd.of (GroupoidGrothendieck ((@yonedaEquiv _ _ Γ (SmallGrpd.forget.op ⋙ Ty_functor)).toFun f))
+  ext Γ f := sGrpd.of (GroupoidalGrothendieck ((@yonedaEquiv _ _ Γ (SmallGrpd.forget.op ⋙ Ty_functor)).toFun f))
   disp Γ A := by
     constructor
     exact Grothendieck.forget (yonedaEquiv A ⋙ Grpd.forgetToCat)
