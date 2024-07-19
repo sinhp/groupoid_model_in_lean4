@@ -23,6 +23,7 @@ import Mathlib.CategoryTheory.Category.Grpd
 -- I added these import
 import Mathlib.CategoryTheory.Grothendieck
 import GroupoidModel.NaturalModel
+import Mathlib.CategoryTheory.Category.Pointed
 --
 
 universe u v u₁ v₁ u₂ v₂
@@ -152,35 +153,91 @@ def functorial {C D : Grpd.{v₁,u₁}} (F : C ⟶ D) (G : D ⥤ Grpd.{v₂,u₂
 end GroupoidalGrothendieck
 
 end
-section HSexp
 
-/-
-In this section we go through section 4 of Hofmann and Streicher's original paper
--/
+section PointedCategorys
 
--- Ty of Γ is the type of familiys of groupoids indexed by Γ
-abbrev Ty (Γ : Grpd.{u,u}) := Γ ⥤ Grpd.{u,u}
+structure PointedCategory.{w,z} extends Pointed.{z} where
+  cat : Category.{w} X
 
-def TySub {Δ Γ : Grpd.{u,u}} (f : Δ ⥤ Γ) : Ty Γ ⥤ Ty Δ := (whiskeringLeft Δ Γ Grpd.{u,u}).obj f
+namespace PointedCategory
+
+instance : CoeSort PointedCategory Type* := CoeSort.mk (fun(x) => x.X)
+
+instance (P : PointedCategory) : Category P.X := P.cat
+
+def of.{w,z} {X : Type z} (point : X)[cat : Category.{w} X]: PointedCategory :=
+  ⟨⟨X,point⟩,cat⟩
+
+@[ext]
+protected structure Hom.{w,z} (P Q : PointedCategory.{w,z}) : Type (max w z) where
+  toFunc : P.X ⥤ Q.X
+  obj_point : toFunc.obj P.point = Q.point
+
+namespace Hom
+
+@[simps]
+def id.{w,z} (P : PointedCategory.{w,z}) : PointedCategory.Hom.{w,z} P P where
+  toFunc := Functor.id P.X
+  obj_point := rfl
+
+@[simps]
+def comp.{w,z} {P Q R: PointedCategory.{w,z}} (f : PointedCategory.Hom.{w,z} P Q) (g : PointedCategory.Hom.{w,z} Q R) : PointedCategory.Hom.{w,z} P R :=
+  ⟨f.toFunc ⋙ g.toFunc, by rw [Functor.comp_obj, f.obj_point, g.obj_point]⟩
+
+end Hom
+
+instance largeCategory : LargeCategory PointedCategory where
+  Hom := PointedCategory.Hom
+  id := Hom.id
+  comp := @Hom.comp
+
+end PointedCategory
+
+structure PointedGroupoid.{w,z} extends Pointed.{z} where
+  grpd : Groupoid.{w} X
+
+namespace PointedGroupoid
+
+instance : CoeSort PointedGroupoid Type* := CoeSort.mk (fun(x) => x.X)
+
+instance toPointedCategory : CoeSort PointedGroupoid PointedCategory := CoeSort.mk (fun(x) => ⟨⟨x.X,x.point⟩,x.grpd.toCategory⟩)
+
+def of.{w,z} {X : Type z} (point : X)[grpd : Groupoid.{w} X]: PointedGroupoid :=
+  ⟨⟨X,point⟩,grpd⟩
+
+instance largeCategory : LargeCategory PointedGroupoid where
+  Hom P Q := PointedCategory.Hom P Q
+  id P := PointedCategory.Hom.id P
+  comp f g := PointedCategory.Hom.comp f g
+
+end PointedGroupoid
+
+
+
+end PointedCategorys
+
+section NaturalModelBase
+
+def TySub {Δ Γ : Grpd.{u,u}} (f : Δ ⥤ Γ) : (Γ ⥤ Grpd.{u,u}) ⥤ (Δ ⥤ Grpd.{u,u}):= (whiskeringLeft Δ Γ Grpd.{u,u}).obj f
 
 -- This is a Covariant Functor that takes a Groupoid Γ to Ty Γ
 def Ty_functor : Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1) where
-  obj x := Ty x.unop
+  obj x := x.unop ⥤ Grpd.{u,u}
   map f A := f.unop ⋙ A --(TySub f.unop).obj A
 
 -- These are the terms of type A. They are Sections Γ ⥤ Ty A
-structure Tm {Γ : Grpd.{u,u}} (A : Ty Γ) :=
+structure Tm {Γ : Grpd.{u,u}} (A : Γ ⥤ Grpd.{u,u}) :=
   obj (g : Γ) : A.obj g
   map {g h : Γ} (p : g ⟶ h) : (A.map p).obj (obj g) ⟶ obj h
   map_id (g : Γ) : (map (𝟙 g)) = eqToHom (by simp; rfl) ≫ 𝟙 (obj g)
   map_comp {g h i : Γ} (p : g ⟶ h) (p' : h ⟶ i) : map (p ≫ p') =
     eqToHom (by simp; rfl) ≫ (A.map p').map (map p) ≫ map p'
 
-theorem Ty_hom_congr_obj {Γ : Grpd.{u,u}} {A : Ty Γ} (a : Tm A) {g h : Γ} {p p' : g ⟶ h}
+theorem Ty_hom_congr_obj {Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}} (a : Tm A) {g h : Γ} {p p' : g ⟶ h}
     (eq : p = p') : (A.map p).obj (a.obj g) = (A.map p').obj (a.obj g) := by
   rw [eq]
 
-theorem Tm_hom_congr {Γ : Grpd.{u,u}} {A : Ty Γ} (a : Tm A) {g h : Γ} {p p': g ⟶ h}
+theorem Tm_hom_congr {Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}} (a : Tm A) {g h : Γ} {p p': g ⟶ h}
     (eq : p = p') : a.map p = eqToHom (Ty_hom_congr_obj a eq) ≫ a.map p' := by
   have h : HEq (a.map p) (a.map p') := by
     rw [eq]
@@ -188,7 +245,7 @@ theorem Tm_hom_congr {Γ : Grpd.{u,u}} {A : Ty Γ} (a : Tm A) {g h : Γ} {p p': 
   simp
 
 -- This should be made functorial. Tm is given a category structure farther down
-def TmSub {Δ Γ : Grpd.{u,u}} {A : Ty Γ} (a : Tm A) (f : Δ ⥤ Γ) : Tm ((TySub f).obj A) where
+def TmSub {Δ Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}} (a : Tm A) (f : Δ ⥤ Γ) : Tm ((TySub f).obj A) where
   obj g := a.obj (f.obj g)
   map p := a.map (f.map p)
   map_id g := by
@@ -212,7 +269,7 @@ def TmSub {Δ Γ : Grpd.{u,u}} {A : Ty Γ} (a : Tm A) (f : Δ ⥤ Γ) : Tm ((TyS
 def Tm_functor : Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1) where
   obj x := by
     rcases x with ⟨x'⟩
-    exact Σ(t : Ty x'), Tm t
+    exact Σ(t : x' ⥤ Grpd.{u,u}), Tm t
   map f := by
     intro input
     exact ⟨_,TmSub input.snd f.unop⟩
@@ -224,7 +281,7 @@ def tp_NatTrans : NatTrans Tm_functor Ty_functor where
     intro a
     exact a.fst
 
-def TmSubToGrothendieckFunc {Δ Γ : Grpd.{u,u}} {A : Ty Γ} (f : Δ ⟶ Γ) (M : Tm ((TySub f).obj A)) :
+def TmSubToGrothendieckFunc {Δ Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}} (f : Δ ⟶ Γ) (M : Tm ((TySub f).obj A)) :
     Δ ⥤ GroupoidalGrothendieck A where
   obj x := {base := f.obj x, fiber := M.obj x}
   map p := {base := f.map p, fiber := M.map p}
@@ -241,11 +298,11 @@ def TmSubToGrothendieckFunc {Δ Γ : Grpd.{u,u}} {A : Ty Γ} (f : Δ ⟶ Γ) (M 
     rw [M.map_comp]
     simp [TySub,Grpd.forgetToCat]
 
-def TmSubToGrothendieckFuncWrapper {Δ Γ : Grpd.{u,u}} {A : Ty Γ}
+def TmSubToGrothendieckFuncWrapper {Δ Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}}
     (S : Σ f : Δ ⟶ Γ, Tm ((TySub f).obj A)) : Δ ⥤ GroupoidalGrothendieck A :=
   TmSubToGrothendieckFunc S.fst S.snd
 
-def GrothendieckFuncToTmSub {Δ Γ : Grpd.{u,u}} {A : Ty Γ} (F : Δ ⥤ GroupoidalGrothendieck A) :
+def GrothendieckFuncToTmSub {Δ Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}} (F : Δ ⥤ GroupoidalGrothendieck A) :
     Σ f : Δ ⥤ Γ, Tm ((TySub f).obj A) where
   fst := F ⋙ Grothendieck.forget (A ⋙ Grpd.forgetToCat)
   snd := by
@@ -259,18 +316,18 @@ def GrothendieckFuncToTmSub {Δ Γ : Grpd.{u,u}} {A : Ty Γ} (F : Δ ⥤ Groupoi
       rw [Grothendieck.congr (F.map_comp p p')]
       simp [CategoryStruct.comp,Grpd.forgetToCat]
 
-theorem Left_Inv {Δ Γ : Grpd.{u,u}} {A : Ty Γ} (S : Σ f: Δ ⟶ Γ, Tm ((TySub f).obj A)) :
+theorem Left_Inv {Δ Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}} (S : Σ f: Δ ⟶ Γ, Tm ((TySub f).obj A)) :
     GrothendieckFuncToTmSub (TmSubToGrothendieckFuncWrapper S) = S := by congr
 
-theorem Right_Inv {Δ Γ : Grpd.{u,u}} {A : Ty Γ} (F : Δ ⥤ GroupoidalGrothendieck A) :
+theorem Right_Inv {Δ Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}} (F : Δ ⥤ GroupoidalGrothendieck A) :
     TmSubToGrothendieckFuncWrapper (GrothendieckFuncToTmSub F) = F := by
   congr
 
-structure GrothendieckSection (Γ : Grpd.{u,u}) (A : Ty Γ) where
+structure GrothendieckSection (Γ : Grpd.{u,u}) (A : Γ ⥤ Grpd.{u,u}) where
   func : Γ ⥤ GroupoidalGrothendieck A
   s : func ⋙ GroupoidalGrothendieck.forget = 𝟙 Γ
 
-def TmToGrothendieckFunc {Γ : Grpd.{u,u}} {A : Ty Γ} (M : Tm A) : Γ ⥤ GroupoidalGrothendieck A where
+def TmToGrothendieckFunc {Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}} (M : Tm A) : Γ ⥤ GroupoidalGrothendieck A where
   obj g := {base := g, fiber := M.obj g}
   map p := {base := p, fiber := M.map p}
   map_id g := by
@@ -286,20 +343,16 @@ def TmToGrothendieckFunc {Γ : Grpd.{u,u}} {A : Ty Γ} (M : Tm A) : Γ ⥤ Group
 This is a bijection but it is quite dificult to show in lean. I have worked on it for a bit by the inverse
 function requires so strange type casting that I can't seem to get to work
 -/
-def TmToGrothendieckSection {Γ : Grpd.{u,u}} {A : Ty Γ} (M : Tm A) : GrothendieckSection Γ A where
+def TmToGrothendieckSection {Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}} (M : Tm A) : GrothendieckSection Γ A where
   func := TmToGrothendieckFunc M
   s := rfl
 
 -- This can be expanded to a Groupoid
-instance TmCategory {Γ : Grpd.{u,u}} {A : Ty Γ} : Category (Tm A) where
+instance TmCategory {Γ : Grpd.{u,u}} {A : Γ ⥤ Grpd.{u,u}} : Category (Tm A) where
   Hom x y := (TmToGrothendieckFunc x) ⟶ (TmToGrothendieckFunc y)
   id x := 𝟙 (TmToGrothendieckFunc x)
   comp f g := NatTrans.vcomp f g
 
-end HSexp
-
-
-section NM
 
 open GroupoidalGrothendieck
 
@@ -331,7 +384,7 @@ instance GroupoidNM : NaturalModel.NaturalModelBase sGrpd.{u} where
     dsimp
     sorry
 
-end NM
+end NaturalModelBase
 
 instance groupoidULift.{u'} {α : Type u} [Groupoid.{v} α] : Groupoid (ULift.{u'} α) where
   inv f := Groupoid.inv f
