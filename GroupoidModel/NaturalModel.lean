@@ -260,13 +260,7 @@ def displayMapPullback {D A B : Psh Ctx} (p : D ⟶ A) (i : DisplayMap p) (t : B
     exact i.disp_pullback
 
 
-
-
-
-
 end DisplayMaps
-
-
 
 /-
 we will also want to say that the universe U is closed under Sigma, Pi, and Id,
