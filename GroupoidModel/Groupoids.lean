@@ -165,12 +165,8 @@ def TySub {Δ Γ : Grpd.{u,u}} (f : Δ ⥤ Γ) : Ty Γ ⥤ Ty Δ := (whiskeringL
 
 -- This is a Covariant Functor that takes a Groupoid Γ to Ty Γ
 def Ty_functor : Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1) where
-  obj x := by
-    rcases x with ⟨x'⟩
-    exact (Ty x')
-  map f := by
-    intro A
-    exact (TySub f.unop).obj A
+  obj x := Ty x.unop
+  map f A := f.unop ⋙ A --(TySub f.unop).obj A
 
 -- These are the terms of type A. They are Sections Γ ⥤ Ty A
 structure Tm {Γ : Grpd.{u,u}} (A : Ty Γ) :=
