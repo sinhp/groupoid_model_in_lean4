@@ -1,5 +1,3 @@
-% \subsection{Overview}
-
 In this section we construct a natural model in $\Pshgrpd$ the presheaf category
 indexed by the category $\grpd$ of (small) groupoids.
 We will build the classifier for display maps in the style of
@@ -8,6 +6,10 @@ To interpret the type constructors,
 we will make use of the weak factorization system on $\grpd$ -
 which comes from restricting the ``classical Quillen model structure'' on
 $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
+
+\medskip
+
+\subsection{Classifying display maps}
 
 \medskip
 
@@ -175,7 +177,111 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
     \arrow["\yo", from=2-1, to=2-3]
   \end{tikzcd}\]
   The Yoneda embedding $\yo : \Cat \to \PshCat$ preserves pullbacks,
-  as does $\textsf{res}$,
-  since it is a right adjoint
+  as does $\textsf{res}$ since it is a right adjoint
   (with left Kan extension $\io_{!} \dashv \textsf{res}_{\io}$).
+\end{proof}
+
+\medskip
+
+\subsection{Groupoid fibrations}
+
+\begin{defn}[Isofibration]
+  TODO
+
+  Unless specified otherwise,
+  by a (Groupoid) \textit{fibration} we will mean an isofibration.
+\end{defn}
+
+\begin{prop}[Display map properties of fibrations]
+  TODO
+  \begin{enumerate}
+    \item (\textsf{subst}) Stable under pullback
+    \item ($\Si$) Closed under composition
+    \item ($\Pi$) Closed under pushforward
+    \item (Fibrant objects) Map to terminal is a fibration
+    \item ($\Id$) Path object fibration
+  \end{enumerate}
+\end{prop}
+
+\medskip
+
+\subsection{Polynomial endofunctors}
+
+\begin{defn}[Polynomial endofunctor in an LCCC]
+  TODO
+\end{defn}
+
+\medskip
+
+\begin{prop}[Universal property of polynomial endofunctors]
+  TODO
+\end{prop}
+
+\medskip
+
+\subsection{$\Pi$ and $\Si$ structure}
+
+\medskip
+
+\begin{defn}[Interpretation of $\Pi$ and $\la$]
+  Sketch: we define the natural transformation
+  $\Pi : \Poly{\tp} \Type \to \Type$
+  by first taking some small groupoid $\Ga$ and defining
+  \[\Pi_{\Ga} : \Pshgrpd(\Ga, \Poly{\tp} \Type) \to \Pshgrpd(\Ga, \Type)\]
+  Unfolding the universal property of $\Poly{\tp}$
+  this amounts to taking a pair of composable groupoid fibrations
+  to a single groupoid fibration on the codomain
+  % https://q.uiver.app/#q=WzAsNixbMCwxLCJcXEdhIFxcY2RvdCBBIl0sWzAsMCwiXFxHYSBcXGNkb3QgQSBcXGNkb3QgQiJdLFsxLDEsIlxcR2EiXSxbMywwLCJcXEdhIFxcY2RvdCBcXFBpX0FCIl0sWzMsMSwiXFxHYSJdLFsyLDAsIlxcbWFwc3RvIl0sWzEsMCwiXFxkaXNwe0J9IiwyLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV0sWzAsMiwiXFxkaXNwe0F9IiwyLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV0sWzMsNCwiKFxcZGlzcHtBfSlfKiBcXGRpc3B7Qn0iLDAseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XV0=
+  \[\begin{tikzcd}
+    {\Ga \cdot A \cdot B} && \mapsto & {\Ga \cdot \Pi_AB} \\
+    {\Ga \cdot A} & \Ga && \Ga
+    \arrow["{\disp{B}}"', two heads, from=1-1, to=2-1]
+    \arrow["{(\disp{A})_* \disp{B}}", two heads, from=1-4, to=2-4]
+    \arrow["{\disp{A}}"', two heads, from=2-1, to=2-2]
+  \end{tikzcd}\]
+  As indicated in the diagram, we take this to be the pushforward of the
+  dependent display map $\disp{B}$ along the display map it depends on $\disp{A}$.
+  Note that this pushforward is in $\grpd$,
+  and this pushforward is only defined on fibrations.
+
+  TODO: define $\la$.
+\end{defn}
+\begin{proof}
+  TODO: naturality.
+  % Beck-chevalley.
+  % Steve says the coherence problem is not an issue here -
+  % i.e. that our equalities are strict.
+
+  TODO: prove pullback.
+\end{proof}
+
+\medskip
+
+\begin{defn}[Interpretation of $\Si$]
+  Sketch: we define the natural transformation
+  $\Si : \Poly{\tp} \Type \to \Type$
+  by first taking some small groupoid $\Ga$ and defining
+  \[\Si_{\Ga} : \Pshgrpd(\Ga, \Poly{\tp} \Type) \to \Pshgrpd(\Ga, \Type)\]
+  Again,
+  this amounts to taking a pair of composable groupoid fibrations
+  to a single groupoid fibration on the codomain
+  % https://q.uiver.app/#q=WzAsNixbMCwxLCJcXEdhIFxcY2RvdCBBIl0sWzAsMCwiXFxHYSBcXGNkb3QgQSBcXGNkb3QgQiJdLFsxLDEsIlxcR2EiXSxbMywwLCJcXEdhIFxcY2RvdCBcXFNpX0EgQiJdLFszLDEsIlxcR2EiXSxbMiwwLCJcXG1hcHN0byJdLFsxLDAsIlxcZGlzcHtCfSIsMix7InN0eWxlIjp7ImhlYWQiOnsibmFtZSI6ImVwaSJ9fX1dLFswLDIsIlxcZGlzcHtBfSIsMix7InN0eWxlIjp7ImhlYWQiOnsibmFtZSI6ImVwaSJ9fX1dLFszLDQsIihcXGRpc3B7QX0pXyEgXFxkaXNwe0J9IiwwLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV1d
+  \[\begin{tikzcd}
+    {\Ga \cdot A \cdot B} && \mapsto & {\Ga \cdot \Si_A B} \\
+    {\Ga \cdot A} & \Ga && \Ga
+    \arrow["{\disp{B}}"', two heads, from=1-1, to=2-1]
+    \arrow["{(\disp{A})_! \disp{B}}", two heads, from=1-4, to=2-4]
+    \arrow["{\disp{A}}"', two heads, from=2-1, to=2-2]
+  \end{tikzcd}\]
+  As indicated in the diagram, we take this to be the composition of
+  $\disp{B}$ and $\disp{A}$,
+  recalling that fibrations are closed under composition.
+
+  TODO: define $\pair$.
+\end{defn}
+\begin{proof}
+  TODO: naturality.
+  % Beck-chevalley again.
+
+  TODO: prove pullback.
 \end{proof}
