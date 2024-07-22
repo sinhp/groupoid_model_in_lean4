@@ -23,7 +23,7 @@ import Mathlib.CategoryTheory.Category.Grpd
 -- I added these import
 import Mathlib.CategoryTheory.Grothendieck
 import GroupoidModel.NaturalModel
-import Mathlib.CategoryTheory.Category.Pointed
+import Mathlib.CategoryTheory.Category.Cat.Limit
 --
 
 universe u v u₁ v₁ u₂ v₂
@@ -164,24 +164,23 @@ class PointedCategory.{w,z} (C : Type z) extends Category.{w} C where
 def PointedCategory.of (C : Type*) (pt : C)[Category C]: PointedCategory C where
   pt := pt
 
-/-- The structure of a functor that preserves the distinguished point of pointed categorys-/
+/-- The structure of a functor from C to D along with a morphism from the image of the point of C to the point of D -/
 @[ext]
 structure PointedFunctor (C : Type*)(D : Type*)[cp : PointedCategory C][dp : PointedCategory D] extends C ⥤ D where
-  obj_point : obj (cp.pt) = (dp.pt)
+  point : obj (cp.pt) ⟶ (dp.pt)
 
 /-- The identity `PointedFunctor` whoes underlying functor is the identity functor-/
-@[simps]
+@[simps!]
 def PointedFunctor.id (C : Type*)[PointedCategory C] : PointedFunctor C C where
   toFunctor := Functor.id C
-  obj_point := rfl
+  point := 𝟙 PointedCategory.pt
 
 /-- Composition of `PointedFunctor` that composes there underling functors and shows that the point is preserved-/
-@[simps]
+@[simps!]
 def PointedFunctor.comp {C : Type*}[PointedCategory C]{D : Type*}[PointedCategory D]{E : Type*}[PointedCategory E]
   (F : PointedFunctor C D)(G : PointedFunctor D E)  : PointedFunctor C E where
   toFunctor := F.toFunctor ⋙ G.toFunctor
-  obj_point := by
-    rw[Functor.comp_obj,F.obj_point,G.obj_point]
+  point := (G.map F.point) ≫ (G.point)
 
 /-- The category of pointed categorys and pointed functors-/
 def PCat.{w,z} :=
@@ -213,6 +212,10 @@ end PCat
 
 /-- The class of pointed pointed groupoids. -/
 class PointedGroupoid.{w,z} (C : Type z) extends Groupoid.{w} C, PointedCategory.{w,z} C
+
+/-- A constructor that makes a pointed groupoid from a groupoid and a point. -/
+def PointedGroupoid.of (C : Type*) (pt : C)[Groupoid C]: PointedGroupoid C where
+  pt := pt
 
 /-- The category of pointed groupoids and pointed functors-/
 def PGrpd.{w,z} :=
@@ -262,6 +265,18 @@ def tp_NatTrans : NatTrans Tm_functor Ty_functor where
     intro a
     exact a ⋙ PGrpd.forgetPoint
 
+-- This is the var construction of var before applying yoneda
+def var' (Γ : Grpd)(A : Γ ⥤ Grpd) : (GroupoidalGrothendieck A) ⥤ PGrpd where
+  obj x := @PGrpd.of (A.obj x.base) (PointedGroupoid.of (A.obj x.base) x.fiber)
+  map f := by
+    constructor
+    case toFunctor;
+    exact A.map f.base
+    exact f.fiber
+  map_id x := sorry
+  map_comp f g := sorry
+
+
 open GroupoidalGrothendieck
 
 -- Here I am useing sGrpd to be a small category version of Grpd. There is likely a better way to do this.
@@ -286,8 +301,7 @@ instance GroupoidNM : NaturalModel.NaturalModelBase sGrpd.{u} where
   disp Γ A := by
     constructor
     exact Grothendieck.forget (yonedaEquiv A ⋙ Grpd.forgetToCat)
-  var Γ A := by
-    sorry
+  var Γ A := yonedaEquiv.invFun (var' (SmallGrpd.forget.obj Γ) (yonedaEquiv A))
   disp_pullback A := by
     dsimp
     sorry
