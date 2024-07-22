@@ -197,11 +197,12 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
 
 \begin{defn}[Fibration]
   Let $p : \catC_{1} \to \catC_{0}$ be a functor.
-  We say $p$ is a \textit{cloven Grothendieck fibration}
+  We say $p$ is a \textit{split Grothendieck fibration}
   if we have a dependent function $\lift{a}{f}$ satisfying the following:
   for any object $a$ in $\catC_{1}$ and morphism $f : p \, a \to y$
   in the base $\catC_{0}$
-  we have $\lift{a}{f} : a \to b$ in $\catC_{1}$ such that $p (\lift{a}{f}) = f$.
+  we have $\lift{a}{f} : a \to b$ in $\catC_{1}$ such that $p (\lift{a}{f}) = f$
+  and moreover $\lift{a}{g \circ f} = \lift{b}{g} \circ \lift{a}{f}$
   % https://q.uiver.app/#q=WzAsNCxbMCwwLCJhIl0sWzEsMCwiYiJdLFswLDEsIngiXSxbMSwxLCJ5Il0sWzAsMSwiXFxsaWZ0e2F9e2Z9IiwwLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzAsMiwiIiwyLHsic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9fX1dLFsyLDMsImYiLDJdLFsxLDMsIiIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifSwiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzQsNiwiIiwwLHsic2hvcnRlbiI6eyJzb3VyY2UiOjIwLCJ0YXJnZXQiOjIwfSwic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9LCJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XV0=
   \[\begin{tikzcd}
     a & b \\
@@ -213,12 +214,12 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
     \arrow[shorten <=4pt, shorten >=4pt, Rightarrow, dashed, maps to, from=0, to=1]
   \end{tikzcd}\]
 
-  In particular, we are intereseted in cloven Grothendieck fibrations of groupoids,
+  In particular, we are intereseted in split Grothendieck fibrations of groupoids,
   which are the same as \textit{isofibrations}
   (replace all the morphisms with isomorphisms in the definition).
 
   Unless specified otherwise,
-  by a \textit{fibration} we will mean a cloven Grothendieck fibration of groupoids.
+  by a \textit{fibration} we will mean a split Grothendieck fibration of groupoids.
   Let us denote the category of fibrations over a groupoid $\Ga$ as $\Fib_{\Ga}$,
   which is a full subcategory of the slice $\grpd / \Ga$.
 \end{defn}
