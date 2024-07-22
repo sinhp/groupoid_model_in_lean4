@@ -41,7 +41,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
 
 \medskip
 
-\begin{defn}[The disply map classifier]
+\begin{defn}[The display map classifier]
   We would like to define a natural transformation in
   $\Pshgrpd$
   \[ \tp \co \Term \to \Type \]
@@ -124,7 +124,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
   and form the Grothendieck construction which we denote as
   \[ \Ga \cdot A := \int i \circ A \quad \quad \disp{A} \co \Ga \cdot A \to \Ga\]
   This is also a small groupoid since the underlying morphisms are
-  from the groupoid $\Ga$.
+  pairs of morphisms from groupoids $\Ga$ and $A x$ for $x \in \Ga$.
   Furthermore the pullback factors through (pointed) groupoids.
   % https://q.uiver.app/#q=WzAsNyxbMCwwLCJcXEdhIFxcY2RvdCBBIl0sWzAsMSwiXFxHYSJdLFsxLDAsIlxccHRncnBkIl0sWzEsMSwiXFxncnBkIl0sWzAsMl0sWzIsMCwiXFxwdENhdCJdLFsyLDEsIlxcQ2F0Il0sWzAsMV0sWzAsMl0sWzIsM10sWzEsMywiQSIsMl0sWzAsMywiIiwyLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzIsNV0sWzMsNl0sWzUsNl0sWzIsNiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
   \[\begin{tikzcd}
@@ -155,7 +155,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
     {\yo \Ga} & \Type \\
     {}
     \arrow[from=1-1, to=1-2]
-    \arrow["{\yo h\disp A}"', from=1-1, to=2-1]
+    \arrow["{\yo \disp A}"', from=1-1, to=2-1]
     \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
     \arrow["\tp"', from=1-2, to=2-2]
     \arrow["A"', from=2-1, to=2-2]
