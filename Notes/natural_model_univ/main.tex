@@ -45,11 +45,12 @@
 \newcommand{\Id}{\mathrm{Id}}
 \newcommand{\Nat}{\mathbb{N}}
 \newcommand{\co}{\colon}
-
+\newcommand{\st}{\,|\,}
 
 % \newcommand{\cat}{\mathbb}
 \newcommand{\catC}{\mathbb{C}}
 \newcommand{\tcat}{\mathbf}
+\newcommand{\id}{\mathsf{id}}
 \newcommand{\psh}[1]{\mathbf{Psh}(#1)} %% consider renaming to \Psh
 \newcommand{\yo}{\mathsf{y}}
 \newcommand{\pshC}{\psh{\catC}}
@@ -65,9 +66,15 @@
 \newcommand{\Poly}[1]{\textsf{Poly}_{#1}}
 \newcommand{\pair}{\textsf{pair}}
 
+\newcommand{\Fib}{\mathsf{Fib}}
+\newcommand{\lift}[2]{\mathsf{lift} \, #1 \, #2}
+\newcommand{\fiber}{\mathsf{fiber}}
+\newcommand{\terminal}{\bullet}
+
 \newcommand{\set}{\tcat{set}}
 \newcommand{\Set}{\tcat{Set}}
 \newcommand{\cat}{\tcat{cat}}
+\newcommand{\ptcat}{\tcat{cat}_\bullet}
 \newcommand{\Cat}{\tcat{Cat}}
 \newcommand{\ptCat}{\tcat{Cat}_\bullet}
 \newcommand{\grpd}{\tcat{grpd}}
@@ -229,9 +236,10 @@ Both squares above are pullback squares.
 \include{groupoid_model.tex}
 
 
+
+
 \bibliography{refs.bib}{}
 \bibliographystyle{alpha}
-
 
 
 

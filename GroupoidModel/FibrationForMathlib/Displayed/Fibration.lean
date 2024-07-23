@@ -14,7 +14,7 @@ import GroupoidModel.FibrationForMathlib.Displayed.Basic
 import GroupoidModel.FibrationForMathlib.Displayed.Cartesian
 import Mathlib.CategoryTheory.Category.Pointed
 import Mathlib.CategoryTheory.Limits.Preserves.Basic
-import Mathlib.CategoryTheory.Limits.Shapes.CommSq
+import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 
 /-!
 # Fibrations for displayed categories
@@ -59,6 +59,14 @@ class ClovenFibration where
   /-- A lift function which assigns to a morphism `f` and an
   object in the fiber of the codomain of `f` a cartesian lift of `f`. -/
   lift {I J : C} (f : I ⟶ J) (Y : F J) : CartLift f Y
+
+/-- A Cloven fibration structure provides for every morphism `f` and every
+object in the fiber of the codomain of `f` a specified cartesian lift of `f`. -/
+class GroupoidClovenFibration where
+  /-- A lift function which assigns to a morphism `f` and an
+  object in the fiber of the codomain of `f` a cartesian lift of `f`. -/
+  lift {I J : C} (f : I ⟶ J) (Y : F J) : Lift f Y
+
 
 /-- A fibration structure provides for every morphism `f` and every
 object in the fiber of the codomain of `f` some cartesian lift of `f`. -/
@@ -380,28 +388,36 @@ instance categoryOfElements.forget (G : Cᵒᵖ  ⥤ Type w) : DiscreteFibration
 /-- The universal discrete fibration. -/
 def univ : Pointed ⥤ Type w := forget _
 
-instance : ConcreteCategory ↑(Cat.of Pointed) := by sorry
+-- instance : ConcreteCategory ↑(Cat.of Pointed) := by sorry
 
-def univ' : Cat.of Pointed ⟶ Cat.of (Type w) := forget _
+-- def univ' : Cat.of Pointed ⟶ Cat.of (Type w) := forget _
 
-def fst (G : Cᵒᵖ  ⥤ Type w) : G.Elements ⥤ Pointed where
-  obj := fun X ↦ {
-    X := G.obj X.1
-    point := X.2
-  }
-  map {X Y} f := {
-    toFun := by
-      simp
-      exact G.map f.1
-    map_point := by simp
-  }
+-- def fst (G : Cᵒᵖ  ⥤ Type w) : G.Elements ⥤ Pointed where
+--   obj := fun X ↦ {
+--     X := G.obj X.1
+--     point := X.2
+--   }
+--   map {X Y} f := {
+--     toFun := by
+--       simp
+--       exact G.map f.1
+--     map_point := by simp
+--   }
 
 -- def fst' (G : Cᵒᵖ  ⥤ Type _) : Cat.of G.Elements ⟶ Cat.of Pointed := fst G
 
-/- The unstraightening functor is part of a pullback square. -/
+-- /-- The unstraightening functor is part of a pullback square:
+-- ```
+-- G.Elements ---fst---> Pointed
+--   |                     |
+-- π |                     | forget
+--   |                     |
+--   Cᵒᵖ -------G------> Type w
+-- ```
+-- -/
 -- instance univ_pullback : HasPullback univ'.{u₂} (straightening' P) := sorry
 
-/- The unstraightening functor is part of a pullback square. -/
+-- /- The unstraightening functor is part of a pullback square. -/
 -- theorem pb (G : Cᵒᵖ  ⥤ Type w)  : IsPullback (fst' G) univ (straightening P) := sorry
 
 

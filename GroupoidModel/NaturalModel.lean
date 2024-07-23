@@ -11,13 +11,10 @@ import Mathlib
 
 import Mathlib.CategoryTheory.Yoneda
 import Mathlib.CategoryTheory.Limits.Shapes.Terminal
-import Mathlib.CategoryTheory.Limits.Shapes.Pullbacks
-import Mathlib.CategoryTheory.Limits.Shapes.CommSq
+import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 import Mathlib.CategoryTheory.Limits.Presheaf
 import Mathlib.CategoryTheory.Limits.Shapes.FunctorCategory
 import Mathlib.CategoryTheory.Adjunction.Over
-import Mathlib.CategoryTheory.Limits.Shapes.CommSq
-
 
 --import Poly
 import Poly.LCCC.Basic
@@ -116,9 +113,9 @@ class NaturalModelBase where
 export NaturalModelBase (Tm Ty tp ext disp var disp_pullback)
 variable [M : NaturalModelBase Ctx]
 
-instance : HasFiniteWidePullbacks (Psh.{u,v} Ctx) := hasFiniteWidePullbacks_of_hasFiniteLimits _
+instance : HasFiniteWidePullbacks (Psh Ctx) := hasFiniteWidePullbacks_of_hasFiniteLimits _
 
-instance : LCC (Psh Ctx) := @LCCC.mkOfOverCC _ _ _ ⟨CategoryOfElements.pshOverCCC⟩
+instance : LCC (Psh Ctx) := @LCCC.mkOfOverCC _ _ _ ⟨CategoryOfElements.presheafOverCCC⟩
 
 instance {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : CartesianExponentiable tp where
   functor := LCC.pushforward tp
