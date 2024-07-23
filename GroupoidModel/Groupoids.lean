@@ -214,7 +214,7 @@ end PCat
 class PointedGroupoid.{w,z} (C : Type z) extends Groupoid.{w} C, PointedCategory.{w,z} C
 
 /-- A constructor that makes a pointed groupoid from a groupoid and a point. -/
-def PointedGroupoid.of (C : Type*) (pt : C)[Groupoid C]: PointedGroupoid C where
+def PointedGroupoid.of (C : Type*) (pt : C) [Groupoid C]: PointedGroupoid C where
   pt := pt
 
 /-- The category of pointed groupoids and pointed functors-/
@@ -267,24 +267,22 @@ def tp_NatTrans : NatTrans Tm_functor Ty_functor where
 
 -- This is the var construction of var before applying yoneda
 def var' (Γ : Grpd)(A : Γ ⥤ Grpd) : (GroupoidalGrothendieck A) ⥤ PGrpd where
-  obj x := @PGrpd.of (A.obj x.base) (PointedGroupoid.of (A.obj x.base) x.fiber)
-  map f := {toFunctor := A.map f.base, point := f.fiber}
+  obj x := ⟨(A.obj x.base), (PointedGroupoid.of (A.obj x.base) x.fiber)⟩
+  map f := ⟨A.map f.base, f.fiber⟩
   map_id x := by
-    dsimp[CategoryStruct.id]
-    congr
-    rw[A.map_id]
-    exact rfl
-    exact cast_heq (Eq.symm (eqToHom.proof_1 (Grothendieck.id.proof_1 x))) (𝟙 x.fiber)
-  map_comp f g := by
-    dsimp[CategoryStruct.comp,PointedFunctor.comp]
+    dsimp [CategoryStruct.id]
+    congr 1
+    · simp only [A.map_id]; rfl
+    · exact cast_heq (Eq.symm (eqToHom.proof_1 (Grothendieck.id.proof_1 x))) (𝟙 x.fiber)
+  map_comp {X Y Z} f g := by
+    dsimp [CategoryStruct.comp,PointedFunctor.comp]
     congr 1
     exact A.map_comp f.base g.base
     dsimp [eqToHom]
-    rename_i X Y Z
-    have h := Eq.symm (Category.id_comp ((A.map g.base).map f.fiber ≫ g.fiber))
-    rw[h]
+    have h := (Category.id_comp ((A.map g.base).map f.fiber ≫ g.fiber))
+    rw [← h]
     congr 1
-    simp[Grpd.forgetToCat,CategoryStruct.comp]
+    simp [Grpd.forgetToCat, CategoryStruct.comp]
     exact
       cast_heq (Eq.symm (eqToHom.proof_1 (Grothendieck.comp.proof_1 f g)))
         (𝟙
