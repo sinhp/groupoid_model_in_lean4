@@ -45,7 +45,7 @@ def Fiber (I : C) := F I
 def fiberCast {I I' : C} (w : I = I') (X : F I)  : F I' :=
   w ▸ X
 
-/-- Tranporsting a morphism `f : I ⟶ J` along equalities `w : I = I'` and  `w' : J = J'`.
+/-- Transporting a morphism `f : I ⟶ J` along equalities `w : I = I'` and  `w' : J = J'`.
 Note: It might be a good idea to add this to eqToHom file. -/
 @[simp]
 def eqToHomMap {I I' J J' : C} (w : I = I') (w' : J = J') (f : I ⟶ J) : I' ⟶ J' :=
