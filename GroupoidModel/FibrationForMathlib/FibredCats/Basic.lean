@@ -29,7 +29,7 @@ namespace CategoryTheory
 
 open Category Opposite Functor Fiber
 
-/-- The fiber of a functor at a given object in the base cateogry. -/
+/-- The fiber of a functor at a given object in the base category. -/
 abbrev FiberCat {C E : Type*} [Category C] [Category E] (P : E ⥤ C) (c : C) := Fiber P.obj c
 notation:75 (name := FiberCat_stx) P " ⁻¹ " c => FiberCat P c
 
