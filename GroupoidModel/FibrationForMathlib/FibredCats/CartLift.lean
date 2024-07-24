@@ -35,7 +35,7 @@ carrying data witnessing that a given based-lift is cartesian and cocartesian, r
 
 For a functor `P : E ⥤ C`, we provide the class `CartMor` of cartesian morphisms in `E`. The type `CartMor P`is defined in terms of the predicate `isCartesianMorphism`.
 
-We prove the following closrue properties of the class `CartMor` of cartesian morphisms:
+We prove the following closure properties of the class `CartMor` of cartesian morphisms:
 - `cart_id` proves that the identity morphism is cartesian.
 - `cart_comp` proves that the composition of cartesian morphisms is cartesian.
 - `cart_iso_closed` proves that the class of cartesian morphisms is closed under isomorphisms.

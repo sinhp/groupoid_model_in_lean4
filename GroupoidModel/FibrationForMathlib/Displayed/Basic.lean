@@ -64,7 +64,7 @@ variable {C : Type u₁} [Category.{v₁} C] (F : C → Type u₂)
 
 namespace eqToHom
 
-/-- Tranporsting a morphism `f : I ⟶ J` along equalities `w : I = I'` and  `w' : J = J'`.
+/-- Transporting a morphism `f : I ⟶ J` along equalities `w : I = I'` and  `w' : J = J'`.
 Note: It might be a good idea to add this to eqToHom file. -/
 @[simp]
 def map {I I' J J' : C} (w : I = I') (w' : J = J') (f : I ⟶ J) : I' ⟶ J' :=

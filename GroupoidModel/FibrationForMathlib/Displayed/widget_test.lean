@@ -26,7 +26,7 @@ variable {C : Type*} [Category C] (F : C → Type*)
 
 show_panel_widgets [local GoalTypePanel]
 
-/-- Tranporsting a morphism `f : I ⟶ J` along equalities `w : I = I'` and  `w' : J = J'`.
+/-- Transporting a morphism `f : I ⟶ J` along equalities `w : I = I'` and  `w' : J = J'`.
 Note: It might be a good idea to add this to eqToHom file. -/
 @[simp]
 def eqToHomMap {I I' J J' : C} (w : I = I') (w' : J = J') (f : I ⟶ J) : I' ⟶ J' :=
@@ -48,7 +48,7 @@ lemma eqToHomMap_naturality' {I I' J J' : C} {w : I = I'} {w' : J = J'} (f : I �
   subst w' w
   simp
 
-/-- Tranporsting a morphism `f : I ⟶ J` along equalities `w : I = I'` and  `w' : J = J'`.
+/-- Transporting a morphism `f : I ⟶ J` along equalities `w : I = I'` and  `w' : J = J'`.
 Note: It might be a good idea to add this to eqToHom file. -/
 @[simp]
 def eqToHomMap' {I I' J J' : C} (w : I = I') (w' : J = J') (f : I ⟶ J) : I' ⟶ J' := by

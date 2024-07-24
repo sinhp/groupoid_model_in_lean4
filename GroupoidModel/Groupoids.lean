@@ -169,7 +169,7 @@ def PointedCategory.of (C : Type*) (pt : C)[Category C]: PointedCategory C where
 structure PointedFunctor (C : Type*)(D : Type*)[cp : PointedCategory C][dp : PointedCategory D] extends C ⥤ D where
   point : obj (cp.pt) ⟶ (dp.pt)
 
-/-- The identity `PointedFunctor` whoes underlying functor is the identity functor-/
+/-- The identity `PointedFunctor` whose underlying functor is the identity functor-/
 @[simps!]
 def PointedFunctor.id (C : Type*)[PointedCategory C] : PointedFunctor C C where
   toFunctor := Functor.id C
@@ -203,7 +203,7 @@ instance category : LargeCategory.{max v u} PCat.{v, u} where
   id C := PointedFunctor.id C
   comp f g := PointedFunctor.comp f g
 
-/-- The functor that takes PCat to Cat by forgeting the points-/
+/-- The functor that takes PCat to Cat by forgetting the points-/
 def forgetPoint : PCat ⥤ Cat where
   obj x := Cat.of x
   map f := f.toFunctor
@@ -238,7 +238,7 @@ instance category : LargeCategory.{max v u} PGrpd.{v, u} where
   id C := PointedFunctor.id C
   comp f g := PointedFunctor.comp f g
 
-/-- The functor that takes PGrpd to Grpd by forgeting the points-/
+/-- The functor that takes PGrpd to Grpd by forgetting the points-/
 def forgetPoint : PGrpd ⥤ Grpd where
   obj x := Grpd.of x
   map f := f.toFunctor
@@ -259,7 +259,7 @@ def Tm_functor : Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1) where
   obj x := x.unop ⥤ PGrpd.{u,u}
   map f A := f.unop ⋙ A
 
--- This is the typing natral transformation
+-- This is the typing natural transformation
 def tp_NatTrans : NatTrans Tm_functor Ty_functor where
   app x := by
     intro a
@@ -291,7 +291,7 @@ def var' (Γ : Grpd)(A : Γ ⥤ Grpd) : (GroupoidalGrothendieck A) ⥤ PGrpd whe
 
 open GroupoidalGrothendieck
 
--- Here I am useing sGrpd to be a small category version of Grpd. There is likely a better way to do this.
+-- Here I am using sGrpd to be a small category version of Grpd. There is likely a better way to do this.
 def sGrpd := ULiftHom.{u+1} Grpd.{u,u}
   deriving SmallCategory
 

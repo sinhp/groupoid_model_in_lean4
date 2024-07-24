@@ -97,7 +97,7 @@ def equivVertHomBasedLift {c : C} {x y : P⁻¹ c} : ((⟨c, x⟩ : Vert P) ⟶ 
   right_inv := by intro g; rfl
 
 
-/-- The bijection between the type of the isomporphisms in the fiber P⁻¹ c and the iso-based-lifts of the identity morphism of c. -/
+/-- The bijection between the type of the isomorphisms in the fiber P⁻¹ c and the iso-based-lifts of the identity morphism of c. -/
 noncomputable
 def isoVertBasedLiftEquiv {c : C} {x y : P⁻¹ c} : (x ≅ y) ≃ (x ⟶[≅(𝟙 c)] y) where
   toFun := fun g => ⟨⟨g.hom.1, by simp [g.hom.2]⟩, by use g.inv.1; simp; cases g; aesop⟩
