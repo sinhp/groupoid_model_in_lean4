@@ -230,17 +230,15 @@ def castAssoc {c' c d d' : C} {u' : c' ⟶ c} {f : c ⟶ d} {u : d ⟶ d'} {x : 
 @[simps]
 def castOfeqToHom {c d : C} {f : c ⟶ d} {x : P⁻¹ c} {y : P⁻¹ d} :
 (x ⟶[f] y) ≃ (x.1 ⟶[(eqToHom x.2) ≫ f] y) where
-  toFun := fun g => ⟨g.hom, by simp [g.over]⟩
-  invFun := fun g => ⟨g.hom, by simp [g.over]⟩
-  left_inv := by intro g; simp
-  right_inv := sorry -- by intro g; simp
-
+  toFun := fun g ↦ ⟨g.hom, by simp [g.over]⟩
+  invFun := fun g ↦ ⟨g.hom, by simp [g.over]⟩
+  left_inv := fun _ ↦ rfl
+  right_inv := fun _ ↦ rfl
 
 -- @[simp]
 -- example {I J K L: C} {f₁ : I ⟶ J} {f₂ : J ⟶ K} {f₃ : K ⟶ L} {W : P⁻¹ I} {X : P⁻¹ J} {Y : P⁻¹ K} {Z : P⁻¹ L} (g₁ : W ⟶[f₁] X) (g₂ : X ⟶[f₂] Y) (g₃ : Y ⟶[f₃] Z) :
 --   ((g₁ ≫ₗ g₂) ≫ₗ g₃) = g₁ ≫ₗ g₂ ≫ₗ g₃ := by
 --   sorry
-
 
 /-- The composition of based-lifts is associative up to casting along equalities
 of the base morphisms. -/
