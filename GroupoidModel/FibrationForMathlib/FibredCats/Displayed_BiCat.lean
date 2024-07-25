@@ -12,22 +12,34 @@ import GroupoidModel.FibrationForMathlib.FibredCats.Basic
 /-!
 # Displayed Category
 
-Given a type family `F : C → Type*` on a category `C` we define the type class `Display F` of displayed categories over `F`. A displayed category structure associates to each morphism `f` in `C`  and terms `X : F c` and `Y : F d` a type `HomOver f X Y` whose terms are to be thought of as morphisms lying over `f` starting from `X` and ending at `Y`. The data of a displayed category structure also provides the dependent operations of identity and composition for `HomOver`. Finally, the modified laws of associativity and unitality hold, up to casting, dependently over the associativity and unitality equalities in `C`.
+Given a type family `F : C → Type*` on a category `C` we define the type class `Display F` of
+displayed categories over `F`. A displayed category structure associates to each morphism `f` in `C`
+and terms `X : F c` and `Y : F d` a type `HomOver f X Y` whose terms are to be thought of as
+morphisms lying over `f` starting from `X` and ending at `Y`. The data of a displayed category
+structure also provides the dependent operations of identity and composition for `HomOver`.
+Finally, the modified laws of associativity and unitality hold, up to casting, dependently over
+the associativity and unitality equalities in `C`.
 
-Our main construction is the displayed category of a functor. Given a functor `P : E ⥤ C`, the associated displayed category on the fiber family `fun c => P⁻¹ c` is provided by the instance `instDisplayOfFunctor`. Here `HomOver f X Y ` is given by the type `BasedLift f src tgt` carrying data witnessing morphisms in `E` starting from `src` and ending at `tgt` and are mapped to `f` under `P`.
+Our main construction is the displayed category of a functor. Given a functor `P : E ⥤ C`, the
+associated displayed category on the fiber family `fun c => P⁻¹ c` is provided by the instance
+`instDisplayOfFunctor`. Here `HomOver f X Y ` is given by the type `BasedLift f src tgt` carrying
+data witnessing morphisms in `E` starting from `src` and ending at `tgt` and are mapped to `f`
+under `P`.
 
 We also provide various useful constructors for based-lifts:
 * `BasedLift.tauto` regards a morphism `g` of the domain category `E` as a
   tautological based-lift of its image `P.map g`.
 * `BasedLift.id` and `BasedLift.comp` provide the identity and composition of
   based-lifts, respectively.
-* We can cast a based-lift along an equality of the base morphisms using the equivalence `BasedLift.cast`.
+* We can cast a based-lift along an equality of the base morphisms using the equivalence
+`BasedLift.cast`.
 
 We provide the following notations:
 * `X ⟶[f] Y` for `DisplayStruct.HomOver f x y`
 * `f ≫ₗ g` for `DisplayStruct.comp_over f g`
 
-We show that for a functor `P`, the type `BasedLift P` induces a display category structure on the fiber family `fun c => P⁻¹ c`.
+We show that for a functor `P`, the type `BasedLift P` induces a display category structure on the
+fiber family `fun c => P⁻¹ c`.
 
 -/
 
@@ -115,12 +127,10 @@ lemma cast_trans {f f' f'' : I ⟶ J} {X : F I} {Y : F J} {w : f = f'} {w' : f' 
   rfl
 
 lemma cast_unique {f f' : I ⟶ J} {X : F I} {Y : F J} {w w' : f = f'} (g : X ⟶[f] Y) :
-    w ▸ g = w' ▸ g := by
-  rfl
+    w ▸ g = w' ▸ g := rfl
 
 lemma cast_cast {f f' : I ⟶ J} {X : F I} {Y : F J} (w : f = f') (w' : f' = f) (g : X ⟶[f'] Y) :
-    w' ▸ w ▸ g = g := by
-  simp only [cast_trans] --subst w'; rfl
+    w' ▸ w ▸ g = g := fiber_cast_cast (fun {f'} ↦ X ⟶[f'] Y) g
 
 lemma comp_id_eq_cast_id_comp {f : I ⟶ J} {X : F I} {Y : F J} (g : X ⟶[f] Y) :
     g ≫ₗ 𝟙ₗ Y = cast (by simp) (𝟙ₗ X  ≫ₗ g) := by
@@ -195,8 +205,6 @@ instance {X Y : ∫ F} : PartialOrder (X ⟶ Y) where
 instance instCategoryTotalHom {X Y : ∫ F} : SmallCategory (X ⟶ Y) := by
   infer_instance
 
-
-
 @[simp]
 lemma cast_exchange_comp {I J K : C} {f f' : I ⟶ J} {h h' : J ⟶ K} {X : F I} {Y : F J} {Z : F K}
     (g : X ⟶[f] Y) (k : Y ⟶[h] Z) (w : f = f') (w' : h = h') :
@@ -215,7 +223,6 @@ lemma whisker_right_cast_comp {I J K : C} {f f' : I ⟶ J} {h : J ⟶ K} {X : F 
     (g : X ⟶[f] Y) (k : Y ⟶[h] Z) (w : f = f') : (w =≫ h) ▸ (g ≫ₗ k) = (w ▸ g) ≫ₗ k := by
   subst w
   rfl
-
 
 instance : Bicategory (∫ F) where
   homCategory := fun X Y => by infer_instance
