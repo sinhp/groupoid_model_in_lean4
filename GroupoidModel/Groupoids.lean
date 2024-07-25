@@ -182,6 +182,16 @@ def PointedFunctor.comp {C : Type*}[PointedCategory C]{D : Type*}[PointedCategor
   toFunctor := F.toFunctor ⋙ G.toFunctor
   point := (G.map F.point) ≫ (G.point)
 
+theorem PointedFunctor.congr_func {C : Type*}[PointedCategory C]{D : Type*}[PointedCategory D]
+  {F G: PointedFunctor C D}(eq : F = G)  : F.toFunctor = G.toFunctor := congrArg toFunctor eq
+
+theorem PointedFunctor.congr_point {C : Type*}[pc :PointedCategory C]{D : Type*}[PointedCategory D]
+  (F G: PointedFunctor C D)(eq : F = G)  : F.point = (eqToHom (Functor.congr_obj (congr_func eq) pc.pt)) ≫ G.point := by
+    have h := (Functor.conj_eqToHom_iff_heq F.point G.point (Functor.congr_obj (congr_func eq) pc.pt) rfl).mpr
+    simp at h
+    apply h
+    rw[eq]
+
 /-- The category of pointed categorys and pointed functors-/
 def PCat.{w,z} :=
   Bundled PointedCategory.{w, z}
@@ -288,6 +298,124 @@ def var' (Γ : Grpd)(A : Γ ⥤ Grpd) : (GroupoidalGrothendieck A) ⥤ PGrpd whe
         (𝟙
           ((Grpd.forgetToCat.map (A.map g.base)).obj
             ((Grpd.forgetToCat.map (A.map f.base)).obj X.fiber)))
+
+
+def Lift_dom {Γ : Type u}[Category.{u} Γ]{C : Type (u+1)}[Category.{u} C](A : Γ ⥤ C) : (ULift.{u+1,u} Γ) ⥤ C where
+  obj x := A.obj x.down
+  map f := A.map f
+  map_id x := by
+    simp[CategoryStruct.id]
+  map_comp f g := by
+    simp[CategoryStruct.comp]
+
+def Lift_domcod {Γ Δ: Type u}[Category.{u} Γ][Category.{u} Δ](F : Γ ⥤ Δ) : (ULift.{u+1,u} Γ) ⥤ (ULift.{u+1,u} Δ) where
+  obj x := {down := F.obj x.down}
+  map f := F.map f
+  map_id x := by
+    simp[CategoryStruct.id]
+  map_comp f g := by
+    simp[CategoryStruct.comp]
+
+def CastFunc {C : Cat.{u+1,u}}{F1 : C ⥤ Grpd.{u,u}}{F2 : C ⥤ Grpd.{u,u}}(Comm : F1 = F2 )(x : C) : Equivalence (F1.obj x) (F2.obj x) := by
+  have h := @Cat.equivOfIso (Grpd.forgetToCat.obj (F1.obj x)) (Grpd.forgetToCat.obj (F2.obj x)) (eqToIso (congrArg Grpd.forgetToCat.obj (Functor.congr_obj Comm x)))
+  dsimp[Grpd.forgetToCat,Cat.of,Bundled.of] at h
+  exact h
+
+def GrpdHelp (P : PGrpd.{u,u}) : P ⥤ (PGrpd.forgetPoint.obj P) := by
+  simp[PGrpd.forgetPoint]
+  exact Functor.id P
+
+def PB.vallift {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u})(C : Cat.{u+1,u})(F1 : C ⥤ PGrpd.{u,u})(F2 : C ⥤ Γ)(Comm : F1 ⋙ PGrpd.forgetPoint = F2 ⋙ A) : C ⥤ GroupoidalGrothendieck A where
+  obj x := {base := (F2.obj x), fiber := ((GrpdHelp (F1.obj x)) ⋙ (CastFunc Comm x).functor).obj ((F1.obj x).str.pt)}
+  map f := by
+    rename_i X Y
+    refine {base := F2.map f, fiber := (eqToHom ?_) ≫ (((CastFunc Comm Y).functor).map (F1.map f).point)}
+    dsimp
+    have leftEQ : (Grpd.forgetToCat.map (A.map (F2.map f))).obj ((CastFunc Comm X).functor.obj ((GrpdHelp (F1.obj X)).obj (@PointedGroupoid.pt ((F1.obj X)) (F1.obj X).str))) =
+     ((GrpdHelp (F1.obj X)) ⋙ (CastFunc Comm X).functor ⋙ (Grpd.forgetToCat.map ((F2 ⋙ A).map f))).obj (@PointedGroupoid.pt (F1.obj X) (F1.obj X).str) := rfl
+    rw[leftEQ,(Functor.congr_hom Comm.symm f),Grpd.forgetToCat.map_comp,Grpd.forgetToCat.map_comp,eqToHom_map]
+    have eqToHomFunctorHelp : (CastFunc Comm X).functor ⋙ eqToHom (congr_arg Grpd.forgetToCat.obj (Functor.congr_obj (Eq.symm Comm) X)) = 𝟙 (Grpd.forgetToCat.obj (PGrpd.forgetPoint.obj (F1.obj X))) := by
+      have h : ∀ {X Y Z : Cat} (p : X = Y) (q : Y = Z), eqToHom p ≫ eqToHom q = eqToHom (p.trans q) := @eqToHom_trans Cat.{u,u} _
+      dsimp [CategoryStruct.comp] at h
+      simp [CastFunc,Cat.equivOfIso,h]
+    dsimp only [CategoryStruct.comp]
+    rw [<- Functor.assoc ((CastFunc Comm X).functor),eqToHomFunctorHelp]
+    simp [CategoryStruct.id]
+    aesop_cat
+  map_id x := by
+    simp[CategoryStruct.id,Grothendieck.id]
+    apply Grothendieck.ext
+    simp only [Grothendieck.Hom.fiber]
+    simp[(dcongr_arg PointedFunctor.point (F1.map_id x)),eqToHom_map,CategoryStruct.id]
+    exact F2.map_id x
+  map_comp f g := by
+    rename_i X Y Z
+    dsimp[CategoryStruct.comp,Grothendieck.comp]
+    apply Grothendieck.ext
+    have h := @PointedFunctor.congr_point (F1.obj X) _ (F1.obj Z) _ (F1.map (f ≫ g)) ((F1.map f)≫(F1.map g)) (F1.map_comp f g)
+    have h'' := (congrArg Grpd.forgetToCat.map (Functor.congr_hom Comm.symm g))
+    simp only [Functor.map_comp, eqToHom_map] at h''
+    have h' := Functor.congr_hom h'' ((CastFunc Comm Y).functor.map (F1.map f).point)
+    dsimp at h'
+    simp[Grothendieck.Hom.fiber,h,CategoryStruct.comp,eqToHom_map,h']
+    sorry
+    exact F2.map_comp f g
+
+abbrev LimDiag {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}) := (@CategoryTheory.Limits.PullbackCone Cat.{u,u+1} _ (Cat.of PGrpd.{u,u}) (Cat.of (ULift.{u+1,u} Γ)) (Cat.of Grpd.{u,u}) PGrpd.forgetPoint.{u,u} (Lift_dom A))
+
+def Lim {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}): (LimDiag A) where
+  pt := (Cat.of (ULift.{u+1,u} (GroupoidalGrothendieck A)))
+  π := by
+    constructor
+    case app;
+    intro X
+    cases X
+    case app.some;
+    rename_i X
+    cases X
+    dsimp
+    exact (Lift_dom (var' Γ A))
+    dsimp
+    exact (Lift_domcod GroupoidalGrothendieck.forget)
+    exact (Lift_domcod GroupoidalGrothendieck.forget) ⋙ (Lift_dom A)
+    intros X Y f
+    dsimp
+    cases f
+    simp
+    rename_i X
+    cases X
+    aesop_cat
+    aesop_cat
+
+
+def isLim {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}) : Limits.IsLimit (Lim A) := by
+  refine Limits.PullbackCone.isLimitAux' (Lim A) ?_
+  intro s
+  constructor
+  case val;
+  dsimp [Lim,Quiver.Hom,Cat.of,Bundled.of]
+  let FL := (s.π).app (Option.some Limits.WalkingPair.left)
+  let FR := (s.π).app (Option.some Limits.WalkingPair.right)
+  let FM := (s.π).app (Option.some Limits.WalkingPair.right)
+  dsimp [Quiver.Hom] at FL FR FM
+  let Comm := (s.π).naturality
+  sorry
+  dsimp
+  refine ⟨?_,?_,?_⟩
+  sorry
+  sorry
+  sorry
+
+
+theorem PB {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}): @IsPullback Cat.{u,u+1} _ (Cat.of (ULift.{u+1,u} (GroupoidalGrothendieck A))) (Cat.of PGrpd.{u,u}) (Cat.of (ULift.{u+1,u} Γ)) (Cat.of Grpd.{u,u}) (Lift_dom (var' Γ A)) (Lift_domcod GroupoidalGrothendieck.forget) PGrpd.forgetPoint (Lift_dom A) where
+  w := rfl
+  isLimit' := by
+    constructor
+    constructor
+    case val.lift;
+    intro s
+
+
 
 open GroupoidalGrothendieck
 
