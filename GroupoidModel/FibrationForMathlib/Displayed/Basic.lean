@@ -16,17 +16,21 @@ in `C`  and terms `X : F I` and `Y : F J` a type `HomOver f X Y`.
 We think of `F I` as the Fiber over `I`, and we think of `HomOver f X Y` as the type of morphisms
 lying over `f` starting from `X` and ending at `Y`. The data of a displayed category structure
 also provides the dependent operations of identity and composition for `HomOver`.
-Finally, the modified laws of associativity and unitality hold dependently over the associativity and unitality equalities in `C`.
+Finally, the modified laws of associativity and unitality hold dependently over the associativity
+and unitality equalities in `C`.
 
 ## Main declarations
 
-Our main construction is the displayed category of a functor. Given a functor `P : E ⥤ C`, the associated displayed category on the fiber family `fun I => P⁻¹ I` is provided by the instance `Functor.display`. Here `HomOver f X Y ` is given by the type `BasedLift f src tgt` carrying data witnessing morphisms in `E` starting from `src` and ending at `tgt` and are mapped to `f` under `P`.
+Our main construction is the displayed category of a functor. Given a functor `P : E ⥤ C`, the
+associated displayed category on the fiber family `fun I => P⁻¹ I` is provided by the instance
+`Functor.display`. Here `HomOver f X Y ` is given by the type `BasedLift f src tgt` carrying data
+witnessing morphisms in `E` starting from `src` and ending at `tgt` and are mapped to `f` under `P`.
 
-There is another displayed structure `EBasedLift` associated to a functor `P : E ⥤ C` which is defined
-in terms of the displayed family of "fat" fibers, namely `fun I => P⁻¹ᵉ I` where `P⁻¹ᵉ I` is the fibers
-of `P` at `J` for all `J` isomorphic to `I`. The type `EBasedLift f src tgt` is the type of morphisms in `E`
-starting from `src` and ending at `tgt` and are mapped, up to the specified isomorphisms of
-`src` and `tgt`, to `f` under `P`.
+There is another displayed structure `EBasedLift` associated to a functor `P : E ⥤ C` which is
+defined in terms of the displayed family of "fat" fibers, namely `fun I => P⁻¹ᵉ I` where `P⁻¹ᵉ I`
+is the fibers of `P` at `J` for all `J` isomorphic to `I`. The type `EBasedLift f src tgt` is the
+type of morphisms in `E` starting from `src` and ending at `tgt` and are mapped, up to the specified
+isomorphisms of `src` and `tgt`, to `f` under `P`.
 
 We also provide various useful constructors for based-lifts:
 
@@ -36,7 +40,8 @@ We also provide various useful constructors for based-lifts:
 * `BasedLift.id` and `BasedLift.comp` provide the identity and composition of
   based-lifts, respectively.
 
-* `BasedLift.cast` casts a based-lift along an equality of the base morphisms using the equivalence `BasedLift.cast`.
+* `BasedLift.cast` casts a based-lift along an equality of the base morphisms using the equivalence
+`BasedLift.cast`.
 
 ### Notation
 
@@ -50,7 +55,8 @@ We provide the following notations:
 
 #### References
 
-Benedikt Ahrens, Peter LeFanu Lumsdaine, Displayed Categories, Logical Methods in Computer Science 15 (1).
+Benedikt Ahrens, Peter LeFanu Lumsdaine, Displayed Categories, Logical Methods in Computer Science
+15 (1).
 -/
 
 
@@ -147,8 +153,8 @@ def cast {I J : C} {f f' : I ⟶ J} {X : F I} {Y : F J} (w : f = f') (g : X ⟶[
   w ▸ g
 
 @[simp]
-lemma cast_symm {I J : C} {f f' : I ⟶ J} {X : F I} {Y : F J} (w : f = f') (g : X ⟶[f] Y) (g' : X ⟶[f'] Y) :
-    (w ▸ g = g') ↔ g = w.symm ▸ g' := by
+lemma cast_symm {I J : C} {f f' : I ⟶ J} {X : F I} {Y : F J}
+    (w : f = f') (g : X ⟶[f] Y) (g' : X ⟶[f'] Y) : (w ▸ g = g') ↔ g = w.symm ▸ g' := by
   subst w
   rfl
 
@@ -184,7 +190,8 @@ def castToHom {I I' : C} (w : I = I') (X : F I) : X ⟶[eqToHom w] (w ▸ X) := 
   subst w
   exact 𝟙ₒ X
 
-def castToHomInv {I I' : C} (w : I = I') (X : F I) : (w ▸ X) ⟶[CategoryTheory.eqToHom w.symm] X := by
+def castToHomInv {I I' : C} (w : I = I') (X : F I) :
+    (w ▸ X) ⟶[CategoryTheory.eqToHom w.symm] X := by
   subst w
   exact 𝟙ₒ X
 
@@ -216,8 +223,8 @@ eqToHom w X   |                    | eqToHom w' Y
 commutes.
 -/
 lemma eqToHom_naturality {I I' J J': C} {X : F I} {Y : F J} (w : I = I') (w' : J = J')
-    (f : I ⟶ J) (g : X ⟶[f] Y) :
-    g ≫ₒ castToHom w' Y = cast (eqToHom.map_naturality f) (castToHom w X ≫ₒ castToHomMap w w' g)  := by
+    (f : I ⟶ J) (g : X ⟶[f] Y) : g ≫ₒ castToHom w' Y = cast (eqToHom.map_naturality f)
+    (castToHom w X ≫ₒ castToHomMap w w' g) := by
   subst w' w
   simp only [castToHom, comp_id_eq_cast_id_comp, cast]
   rfl
@@ -392,8 +399,7 @@ def comp {I J K : C} {f₁ : I ⟶ J} {f₂ : J ⟶ K} {X : P⁻¹ᵉ I} {Y : P�
 def cast {I J : C} {f f' : I ⟶ J} {X : P⁻¹ᵉ I} {Y : P⁻¹ᵉ J}
     (w : f = f') (g : EBasedLift f X Y) : EBasedLift f' X Y where
   hom := g.hom
-  over_eq := by
-    rw [←w, g.over_eq]
+  over_eq := by rw [←w, g.over_eq]
 
 end EBasedLift
 
@@ -438,12 +444,10 @@ lemma tauto_over_base {X Y : E} (f : (P.obj X) ⟶ (P.obj Y)) (g : (Fiber.tauto 
   simp only [Fiber.coe_mk, over_eq', eqToHom_refl, comp_id, id_comp]
 
 lemma tauto_comp_hom {X Y Z : E} {g : X ⟶ Y} {g' : Y ⟶ Z} :
-    (tauto (P:= P) g ≫ₒ tauto g').hom = g ≫ g' := by
-  rfl
+    (tauto (P:= P) g ≫ₒ tauto g').hom = g ≫ g' := rfl
 
 lemma comp_tauto_hom {X Y Z : E} {f : P.obj X ⟶ P.obj Y} {f' : Fiber.tauto X ⟶[f] (Fiber.tauto Y)}
-    {g : Y ⟶ Z} : (f' ≫ₒ tauto g).hom = f'.hom ≫ g := by
-  rfl
+    {g : Y ⟶ Z} : (f' ≫ₒ tauto g).hom = f'.hom ≫ g := rfl
 
 /-- A morphism of `E` coerced as a tautological based-lift. -/
 @[simps]
@@ -512,12 +516,10 @@ lemma tauto_over_base {X Y : E} (f : (P.obj X) ⟶ (P.obj Y))
   aesop_cat
 
 lemma tauto_comp_hom {X Y Z : E} {g : X ⟶ Y} {g' : Y ⟶ Z} :
-    (tauto (P:= P) g ≫ₒ tauto g').hom = g ≫ g' := by
-  rfl
+    (tauto (P:= P) g ≫ₒ tauto g').hom = g ≫ g' := rfl
 
 lemma comp_tauto_hom {X Y Z : E} {f : P.obj X ⟶ P.obj Y} {f' : EFiber.tauto X ⟶[f] (EFiber.tauto Y)}
-    {g : Y ⟶ Z} : (f' ≫ₒ tauto g).hom = f'.hom ≫ g := by
-  rfl
+    {g : Y ⟶ Z} : (f' ≫ₒ tauto g).hom = f'.hom ≫ g := rfl
 
 /-- A morphism of `E` coerced as a tautological based-lift. -/
 @[simps]
