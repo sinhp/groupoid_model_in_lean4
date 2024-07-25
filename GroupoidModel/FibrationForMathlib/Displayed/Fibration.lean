@@ -191,7 +191,7 @@ lemma vert_fiberHom_id {I : C} {X Y : P⁻¹ I} (g : X ⟶ Y) : (g ᵛ)ᶠ = g :
 lemma fiberHom_vert_id {I : C} {X Y : P⁻¹ I} (g : X ⟶[𝟙 I] Y) : (g ᶠ)ᵛ = g := rfl
 
 lemma fiber_lift_comp {I : C} {X Y Z : P⁻¹ I} (f : X ⟶[𝟙 I] Y) (g : Y ⟶[𝟙 I] Z) :
-     fᶠ ≫ gᶠ = (BasedLift.cast (comp_id (𝟙 I)) (f ≫ₒ g))ᶠ := by exact rfl
+     fᶠ ≫ gᶠ = (BasedLift.cast (comp_id (𝟙 I)) (f ≫ₒ g))ᶠ := rfl
 
 lemma fiberLift_congr {I : C} {X Y: P⁻¹ I} (f g: X ⟶[𝟙 I] Y) :
      fᶠ = gᶠ ↔ f = g := by
