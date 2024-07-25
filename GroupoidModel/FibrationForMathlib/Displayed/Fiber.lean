@@ -71,18 +71,16 @@ coe := fun x => x.1
 
 variable {I : C}
 
-lemma coe_mk {X : E} (h : P.obj X = I) : ((⟨X, h⟩ : P⁻¹ I) : E) = X := by
-  simp [@Subtype.coe_eta]
+lemma coe_mk {X : E} (h : P.obj X = I) : ((⟨X, h⟩ : P⁻¹ I) : E) = X := rfl
 
-lemma mk_coe {X : P⁻¹ I} : ⟨X.1, X.2⟩  = X := by
-simp only [@Subtype.coe_eta]
+lemma mk_coe {X : P⁻¹ I} : ⟨X.1, X.2⟩  = X := rfl
 
 lemma coe_inj (X Y : P⁻¹ I) : (X : E) = Y ↔ X = Y := Subtype.coe_inj
 
 lemma over (X : P⁻¹ I) : P.obj X = I := X.2
 
 lemma over_eq (X Y : P⁻¹ I) : P.obj X = P.obj Y := by
-  simp only [Fiber.over]
+  simp [over]
 
 /-- A tautological construction of an element in the fiber of the image of a domain element. -/
 @[simp]
@@ -202,12 +200,8 @@ lemma obj_over {I : C} (X : P.op ⁻¹ (op I)) : P.obj (unop (X.1)) = I := by
 def equiv (I : C) : (P.op ⁻¹ (op I)) ≃ (P⁻¹ I) where
   toFun := fun X =>  (⟨unop X.1, by rw [obj_over] ⟩)
   invFun := fun X => ⟨op X.1 , by simp only [Functor.op_obj, unop_op, Fiber.over]⟩
-  left_inv := by
-    intro X
-    rfl
-  right_inv := by
-    intro X
-    rfl
+  left_inv := fun X ↦ rfl
+  right_inv := fun X ↦ rfl
 
 /-- The Fibers of the opposite functor `P.op` are isomorphic to the the Fibers of `P`.  -/
 @[simps]
@@ -216,12 +210,10 @@ def iso (I : C) : (P.op ⁻¹ (op I)) ≅ (P⁻¹ I) where
   inv := fun X => ⟨op X.1 , by simp only [Functor.op_obj, unop_op, Fiber.over]⟩
 
 lemma unop_op_map  {I : C} {X Y : (P.op) ⁻¹ (op I)} (f : X ⟶ Y) :
-    unop (P.op.map f.1) = P.map f.1.unop  := by
-  rfl
+    unop (P.op.map f.1) = P.map f.1.unop  := rfl
 
 lemma op_map_unop  {I : C} {X Y : (P ⁻¹ I)ᵒᵖ} (f : X ⟶ Y) :
-    P.op.map (f.unop.1.op) = (P.map (f.unop.1)).op := by
-  rfl
+    P.op.map (f.unop.1.op) = (P.map (f.unop.1)).op := rfl
 
 /-- The fiber categories of the opposite functor `P.op` are isomorphic
 to the opposites of the fiber categories of `P`. -/
@@ -234,10 +226,8 @@ def Iso (P : E ⥤ C) (I : C) : Cat.of (P.op ⁻¹ (op I) ) ≅ Cat.of ((P⁻¹ 
     obj := fun X => ⟨op X.unop.1 , by simp only [Functor.op_obj, unop_op, Fiber.over]⟩
     map := @fun X Y f => ⟨(f.unop.1).op , by dsimp;  simp [Functor.op_map]⟩
   }
-  hom_inv_id := by
-    simp only [Fiber.coe_mk, Functor.op_obj, Functor.op_map]; rfl
-  inv_hom_id := by
-    simp only [Fiber.coe_mk, Functor.op_obj, unop_op, Functor.op_map]; rfl
+  hom_inv_id := rfl
+  inv_hom_id := rfl
 
 end Fiber.Op
 

@@ -12,8 +12,8 @@ import GroupoidModel.FibrationForMathlib.FibredCats.CartesianLift
 
 We call a lift `v : x ⟶[𝟙 c] y` of the identity morphism a vertical lift/morphism.
 
-Question: Can we use extension types to define VertHom so that the proofs of `vertHomOfBasedLift` and `basedLiftOfVertHom` are more concise/automated?
-
+Question: Can we use extension types to define VertHom so that the proofs of
+`vertHomOfBasedLift` and `basedLiftOfVertHom` are more concise/automated?
 -/
 
 
@@ -81,7 +81,8 @@ to a morphism `x ⟶ y` in the fiber `P⁻¹ c`. -/
 instance instCoeFiberHom {c : C} {x y : P⁻¹ c} : Coe (x ⟶[𝟙 c] y) (x ⟶ y) where
   coe := fun f ↦ ⟨ f.hom , by simp [f.over]⟩
 
-/-- The bijection between the hom-type of the fiber P⁻¹ c and the based-lifts of the identity morphism of c. -/
+/-- The bijection between the hom-type of the fiber P⁻¹ c and the based-lifts of the identity
+morphism of c. -/
 @[simps!]
 def equivFiberHomBasedLift {c : C} {x y : P⁻¹ c} : (x ⟶ y) ≃ (x ⟶[𝟙 c] y) where
   toFun := fun g ↦ basedLiftOfFiberHom g
@@ -93,11 +94,12 @@ def equivFiberHomBasedLift {c : C} {x y : P⁻¹ c} : (x ⟶ y) ≃ (x ⟶[𝟙 
 def equivVertHomBasedLift {c : C} {x y : P⁻¹ c} : ((⟨c, x⟩ : Vert P) ⟶ ⟨c, y⟩) ≃ (x ⟶[𝟙 c] y) where
   toFun := fun g ↦ basedLiftOfVertHom g
   invFun := fun g ↦ vertHomOfBasedLift rfl g
-  left_inv := by intro g; cases g; aesop
-  right_inv := by intro g; rfl
+  left_inv := fun g ↦ by cases g; rfl
+  right_inv := fun _ ↦ rfl
 
 
-/-- The bijection between the type of the isomorphisms in the fiber P⁻¹ c and the iso-based-lifts of the identity morphism of c. -/
+/-- The bijection between the type of the isomorphisms in the fiber P⁻¹ c and the iso-based-lifts
+of the identity morphism of c. -/
 noncomputable
 def isoVertBasedLiftEquiv {c : C} {x y : P⁻¹ c} : (x ≅ y) ≃ (x ⟶[≅(𝟙 c)] y) where
   toFun := fun g => ⟨⟨g.hom.1, by simp [g.hom.2]⟩, by use g.inv.1; simp; cases g; aesop⟩
@@ -107,8 +109,8 @@ def isoVertBasedLiftEquiv {c : C} {x y : P⁻¹ c} : (x ≅ y) ≃ (x ⟶[≅(�
     hom_inv_id := by aesop
     inv_hom_id := by aesop
   }
-  left_inv := by intro α; dsimp; ext; rfl
-  right_inv := by intro α; dsimp
+  left_inv := fun _ ↦ Iso.ext rfl
+  right_inv := fun _ ↦ rfl
 
 /-- Vertical cartesian morphisms are isomorphism. -/
 @[simps!]

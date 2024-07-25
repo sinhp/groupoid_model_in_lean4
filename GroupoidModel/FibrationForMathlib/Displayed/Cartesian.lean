@@ -127,8 +127,7 @@ def gapCast (u : K ⟶ I) {f' : K ⟶ J} (g' : Z ⟶[f'] Y) (w : f' = u ≫ f) :
 
 @[simp]
 lemma gap_cast (u : K ⟶ I) {f' : K ⟶ J} (g' : Z ⟶[f'] Y)
-    (w : f' = u ≫ f) : gapCast g u g' w = gap g (w ▸ g') := by
-  rfl
+    (w : f' = u ≫ f) : gapCast g u g' w = gap g (w ▸ g') := rfl
 
 /-- The composition of the gap lift and the cartesian hom-over is the given hom-over. -/
 @[simp]
@@ -140,8 +139,7 @@ lemma gap_prop (u : K ⟶ I) (g' : Z ⟶[u ≫ f] Y) :
 @[simp]
 lemma gaplift_uniq {u : K ⟶ I} (g' : Z ⟶[u ≫ f] Y) (v : Z ⟶[u] X)
     (hv : v ≫ₒ g = g') : v = gap g g' := by
-  simp [gap]
-  rw [← (Cartesian.uniq_lift u g').uniq ⟨v,hv⟩]
+  rw [gap, ← (Cartesian.uniq_lift u g').uniq ⟨v,hv⟩]
 
 /-- The identity hom-over is cartesian. -/
 instance instId {X : F I} : Cartesian (𝟙ₒ X) where
@@ -160,9 +158,8 @@ instance instComp {X : F I} {Y : F J} {Z : F K} {f₁ : I ⟶ J} {f₂ : J ⟶ K
       simp⟩
     uniq := by
       intro ⟨l, hl⟩
-      simp
-      apply gaplift_uniq
-      apply gaplift_uniq
+      rw [Subtype.mk.injEq]
+      apply gaplift_uniq _ _ _ (gaplift_uniq _ _ _ _)
       simp [assoc_cast, hl] }
 
 end Cartesian

@@ -31,7 +31,9 @@ def BasedLiftOf {P : E ⥤ C} {X Y : ∫ P} (g : TotalCatHom X Y) : X.fiber ⟶[
   over := g.eq
 
 @[simp]
-lemma over_base {P : E ⥤ C} {X Y : ∫ P} (g : TotalCatHom X Y) : P.map g.fiber = eqToHom (X.fiber.over) ≫ g.base ≫ (eqToHom (Y.fiber.over).symm)  := by simp [← Category.assoc _ _ _, ← g.eq]
+lemma over_base {P : E ⥤ C} {X Y : ∫ P} (g : TotalCatHom X Y) :
+    P.map g.fiber = eqToHom (X.fiber.over) ≫ g.base ≫ (eqToHom (Y.fiber.over).symm) := by
+  simp [← Category.assoc _ _ _, ← g.eq]
 
 
 instance instCatOfTotal (P : E ⥤ C) : Category (∫ P) where

@@ -24,12 +24,10 @@ namespace CategoryTheory
 
 open Category Opposite BasedLift Fiber Display
 
-
 namespace Display
 
 variable {C : Type*} [Category C] (F : C → Type*) [Display F]
 
 #check CartLift
-
 
 end Display

@@ -17,7 +17,6 @@ import ProofWidgets.Component.Panel.GoalTypePanel
 # Widget test for fibred category theory
 -/
 
-
 namespace CategoryTheory
 
 open Category CategoryTheory ProofWidgets
@@ -82,7 +81,6 @@ class Display extends DisplayStruct F where
 attribute [simp] Display.id_comp_cast Display.comp_id_cast Display.assoc_cast
 attribute [trans] Display.assoc_cast
 
-
 variable {E : Type*} [Category E] {P : E ⥤ C}
 
 /-- The type of lifts of a given morphism in the base
@@ -146,7 +144,6 @@ def cast {I J : C} {f f' : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} (w : f = f')
   (g : BasedLift f X Y) : BasedLift f' X Y := ⟨g.hom, by rw [←w, g.over_eq]⟩
 
 end BasedLift
-
 namespace EBasedLift
 
 @[simp]
@@ -164,21 +161,15 @@ def comp {I J K : C} {f₁ : I ⟶ J} {f₂ : J ⟶ K} {X : EFiber P I} {Y : EFi
   refine ⟨g₁.hom ≫ g₂.hom, ?_⟩
   have := by
     calc
-      P.map (g₁.hom ≫ g₂.hom) = P.map (g₁.hom) ≫ P.map (g₂.hom) := by
-        rw [P.map_comp]
-      _   = (X.iso.hom ≫ f₁ ≫ Y.iso.inv) ≫ P.map (g₂.hom) := by
-        rw [g₁.iso_over_eq']
+      P.map (g₁.hom ≫ g₂.hom) = P.map (g₁.hom) ≫ P.map (g₂.hom) := by rw [P.map_comp]
+      _   = (X.iso.hom ≫ f₁ ≫ Y.iso.inv) ≫ P.map (g₂.hom) := by rw [g₁.iso_over_eq']
       _   = X.iso.hom ≫ f₁ ≫ (Y.iso.inv ≫ P.map (g₂.hom)) := by
         simp only [iso_over_eq', assoc, Iso.inv_hom_id_assoc]
-      _   = X.iso.hom ≫ f₁ ≫ (Y.iso.inv ≫ Y.iso.hom ≫ f₂ ≫ Z.iso.inv) := by
-        rw [g₂.iso_over_eq']
-      _   = X.iso.hom ≫ f₁ ≫ (𝟙 J ≫ f₂ ≫ Z.iso.inv) := by
-        simp
-      _   = X.iso.hom ≫ f₁ ≫ f₂ ≫ Z.iso.inv := by
-        simp
+      _   = X.iso.hom ≫ f₁ ≫ (Y.iso.inv ≫ Y.iso.hom ≫ f₂ ≫ Z.iso.inv) := by rw [g₂.iso_over_eq']
+      _   = X.iso.hom ≫ f₁ ≫ (𝟙 J ≫ f₂ ≫ Z.iso.inv) := by rw [Iso.inv_hom_id_assoc, id_comp]
+      _   = X.iso.hom ≫ f₁ ≫ f₂ ≫ Z.iso.inv := by rw [id_comp]
   simp [this]
 
 end EBasedLift
-
 
 end CategoryTheory
