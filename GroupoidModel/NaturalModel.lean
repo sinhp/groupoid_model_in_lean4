@@ -239,26 +239,6 @@ theorem NaturalModelSmallPi.pullback [NaturalModelU Ctx] [NaturalModelPi Ctx] :
 end NaturalModelSmallPi
 
 
-section DisplayMaps
-
-structure DisplayMap {D A : Psh Ctx} (p : D ⟶ A) where
-  char : A ⟶ Ty
-  var : D ⟶ Tm
-  disp_pullback : IsPullback var p tp char
-
-def displayMapPullback {D A B : Psh Ctx} (p : D ⟶ A) (i : DisplayMap p) (t : B ⟶ A) :
-    DisplayMap (pullback.snd : pullback p t ⟶ B) where
-  char := t ≫ i.char
-  var := pullback.fst ≫ i.var
-  disp_pullback := by
-    have : IsPullback (pullback.fst (f:= p) (g:= t)) (pullback.snd (f:= p) (g:= t)) p t := by
-      apply IsPullback.of_hasPullback
-    apply IsPullback.paste_horiz this
-    exact i.disp_pullback
-
-
-end DisplayMaps
-
 /-
 we will also want to say that the universe U is closed under Sigma, Pi, and Id,
 so that we can say that U is univalent.
