@@ -44,8 +44,7 @@ instance instCategoryFiber {c : C} : Category (P ⁻¹ c) where
 
 lemma id_coe {c : C} (x : P⁻¹ c) : (𝟙 x : x ⟶ x).val = 𝟙 (x : E) := rfl
 
-lemma comp_coe {c : C} {x y z : P⁻¹ c} (f : x ⟶ y) (g : y ⟶ z) : (f ≫ g).1 = f.1 ≫ g.1 :=
-rfl
+lemma comp_coe {c : C} {x y z : P⁻¹ c} (f : x ⟶ y) (g : y ⟶ z) : (f ≫ g).1 = f.1 ≫ g.1 := rfl
 
 @[simp, aesop forward safe]
 lemma fiber_hom_over {c: C} (x y : P⁻¹ c) (g : x ⟶ y) :
@@ -76,9 +75,8 @@ lemma hom_ext {c : C} {x y : P⁻¹ c} {f g : x ⟶ y} (h : f.1 = g.1) : f = g :
 
 @[simps]
 lemma is_iso {c : C} {x y : P⁻¹ c} (f : x ⟶ y) : IsIso f ↔ IsIso f.1 :=
-  ⟨
-    fun h ↦ (asIso f) |> forget.mapIso |> Iso.isIso_hom, fun h ↦ ⟨⟨⟨inv f.1, by simp⟩, by simp⟩⟩
-  ⟩
+  ⟨fun h ↦ (asIso f) |> forget.mapIso |> Iso.isIso_hom,
+    fun h ↦ ⟨⟨⟨inv f.1, by simp⟩, by simp⟩⟩⟩
 
 namespace Op
 
@@ -92,8 +90,8 @@ simpa [Functor.op] using h
 def equiv (c : C) : (P.op ⁻¹ (op c)) ≃ (P⁻¹ c) where
   toFun := fun x =>  (⟨unop x.1, by rw [obj_over] ⟩)
   invFun := fun x => ⟨op x.1 , by simp only [Functor.op_obj, unop_op, Fiber.over]⟩
-  left_inv := by intro x; rfl
-  right_inv := by intro x; rfl
+  left_inv := fun _ ↦ rfl
+  right_inv := fun _ ↦ rfl
 
 /-- The fibres of the opposite functor `P.op` are isomorphic
 to the the fibres of `P`.  -/
@@ -103,7 +101,8 @@ def iso (c : C) : (P.op ⁻¹ (op c)) ≅ (P⁻¹ c) where
   inv := fun x => ⟨op x.1 , by simp only [Functor.op_obj, unop_op, Fiber.over]⟩  -- aesop generated
 
 @[simp]
-lemma unop_op_map  {c : C} {x y : (P.op) ⁻¹ (op c)} (f : x ⟶ y) : unop (P.op.map f.1) = P.map f.1.unop  := by rfl
+lemma unop_op_map  {c : C} {x y : (P.op) ⁻¹ (op c)} (f : x ⟶ y) :
+    unop (P.op.map f.1) = P.map f.1.unop := rfl
 
 @[simp]
 lemma op_map_unop  {c : C} {x y : (P ⁻¹ c)ᵒᵖ} (f : x ⟶ y) : P.op.map (f.unop.1.op) = (P.map (f.unop.1)).op := rfl
@@ -119,8 +118,8 @@ def Iso (P : E ⥤ C) (c : C) : Cat.of (P.op ⁻¹ (op c) ) ≅ Cat.of ((P⁻¹ 
     obj := fun x => ⟨op x.unop.1 , by simp only [Functor.op_obj, unop_op, Fiber.over]⟩
     map := @fun x y f => ⟨(f.unop.1).op , by dsimp;  simp [Functor.op_map]⟩
   }
-  hom_inv_id := by simp_all only [Fiber.coe_mk, Functor.op_obj, Functor.op_map]; rfl
-  inv_hom_id := by simp_all only [Fiber.coe_mk, Functor.op_obj, unop_op, Functor.op_map]; rfl
+  hom_inv_id := rfl
+  inv_hom_id := rfl
 
 end Op
 end FiberCat
