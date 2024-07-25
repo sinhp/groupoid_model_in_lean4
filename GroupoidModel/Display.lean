@@ -82,11 +82,7 @@ def displayMapOfPullback {D A B : C} (p : D ⟶ A) [i : DisplayStruct π p] (t :
     DisplayStruct π (pullback.snd : Limits.pullback p t ⟶ B) where
   char := t ≫ i.char
   var := pullback.fst ≫ i.var
-  disp_pullback := by
-    have : IsPullback (pullback.fst (f:= p) (g:= t)) (pullback.snd (f:= p) (g:= t)) p t := by
-      apply IsPullback.of_hasPullback
-    apply IsPullback.paste_horiz this
-    exact i.disp_pullback
+  disp_pullback := IsPullback.paste_horiz (IsPullback.of_hasPullback _ _) i.disp_pullback
 
 end DisplayStruct
 
