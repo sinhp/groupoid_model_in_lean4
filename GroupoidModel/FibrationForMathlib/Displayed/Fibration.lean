@@ -30,9 +30,7 @@ provides the structure of a cleavage for `F`. Specialized to the display categor
 
 - `Display.ClovenFibration.transport` is the transport function of a cleavage of a displayed category.
 - `Functor.transport` is the transport function of a functor with a cleavage.
-
 -/
-
 
 --set_option autoImplicit true
 -- set_option pp.explicit false
@@ -142,8 +140,7 @@ instance : Transport P where
 def transport {P : E ⥤ C} [Transport P] {I J : C} (f : I ⟶ J) (Y : P⁻¹ J) := Transport.transport f Y
 
 lemma transport_over_eq {I J : C} {P : E ⥤ C} [Transport P] (f : I ⟶ J) (Y : P⁻¹ J) :
-    P.obj (f ⋆ Y) = I := by
-  simp only [Fiber.over]
+    P.obj (f ⋆ Y) = I := over (f ⋆ Y)
 
 theorem transport_trans {I J K : C} (f : I ⟶ J) (g : J ⟶ K) (Z : P⁻¹ K) : f ⋆ g ⋆ Z = f ⋆ (g ⋆ Z) := rfl
 
@@ -194,9 +191,7 @@ lemma vert_fiberHom_id {I : C} {X Y : P⁻¹ I} (g : X ⟶ Y) : (g ᵛ)ᶠ = g :
 lemma fiberHom_vert_id {I : C} {X Y : P⁻¹ I} (g : X ⟶[𝟙 I] Y) : (g ᶠ)ᵛ = g := rfl
 
 lemma fiber_lift_comp {I : C} {X Y Z : P⁻¹ I} (f : X ⟶[𝟙 I] Y) (g : Y ⟶[𝟙 I] Z) :
-     fᶠ ≫ gᶠ = (BasedLift.cast (comp_id (𝟙 I)) (f ≫ₒ g))ᶠ := by
-   simp [fibreHomOfVert]
-   sorry
+     fᶠ ≫ gᶠ = (BasedLift.cast (comp_id (𝟙 I)) (f ≫ₒ g))ᶠ := by exact rfl
 
 lemma fiberLift_congr {I : C} {X Y: P⁻¹ I} (f g: X ⟶[𝟙 I] Y) :
      fᶠ = gᶠ ↔ f = g := by
@@ -227,14 +222,15 @@ def equivBasedLiftVert {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} :
   Equiv.trans (Display.castEquiv (id_comp f).symm) equivBasedLiftVertAux
 
 -- equivFiberCatHomBasedLift
-/-- The equivalence of lifts `X ⟶[f] Y` and morphisms `X ⟶  f ⋆ Y` in the fiber category `P⁻¹ I`. -/
+/-- The equivalence of lifts `X ⟶[f] Y` and morphisms `X ⟶  f ⋆ Y` in the fiber category
+`P⁻¹ I`.-/
 @[simps!]
 def equivVertFiberHom {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} :
      (X ⟶[𝟙 I] f ⋆ Y) ≃ (X ⟶ f ⋆ Y) where
    toFun g := ⟨g.hom, by simp⟩
    invFun h := ⟨h.1, by simp⟩
-   left_inv := by intro _; rfl
-   right_inv := by intro _; rfl
+   left_inv := fun _ ↦ rfl
+   right_inv := fun _ ↦ rfl
 
 @[simps!]
 def equivBasedLiftFiberHom {I J : C} {f : I ⟶ J} {X : P⁻¹ I} {Y : P⁻¹ J} :
@@ -311,17 +307,12 @@ def basedLift {I J : C} (f : I ⟶ J) (Y : P⁻¹ J) : (f ⋆ Y) ⟶[f] Y := (Di
 
 @[simp]
 theorem basedLift_src_eq {I J : C} (f : I ⟶ J) {X : P⁻¹ I} {Y : P⁻¹ J} (g : X ⟶[f] Y) :
-    f ⋆ Y = X := by
-  let hu' := (DiscreteFibration.lift f Y).uniq
-  have hu'' :=  hu' ⟨X, g⟩
-  symm
-  apply congr_arg Lift.src hu''
+    f ⋆ Y = X :=
+  (congr_arg Lift.src ((DiscreteFibration.lift f Y).uniq ⟨X, g⟩).symm)
 
 @[simp]
 theorem basedLift_id_src_eq {I : C} (X : P⁻¹ I) :
-    (𝟙 I) ⋆ X = X  := by
-  apply basedLift_src_eq
-  exact (𝟙ₒ X)
+    (𝟙 I) ⋆ X = X  := basedLift_src_eq _ (𝟙ₒ X)
 
 theorem basedLift_id {I : C} {Y : P⁻¹ I} :
     basedLift (𝟙 I) Y = ((BasedLift.eqToHom (basedLift_id_src_eq Y)) ≫ₒ (𝟙ₒ Y)).cast (comp_id (𝟙 I)) := by
