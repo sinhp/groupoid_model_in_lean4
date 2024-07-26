@@ -248,22 +248,32 @@ lifting $f$. Furthermore
   \[\fiber_{\de} \, x = \text{\emph {full subcategory}} \, \{a \in \De \st \de \, a = x\}\]
   It follows that all fibrations are pullbacks of the classifier
   $U : \ptgrpd \to \grpd$, when viewed as morphisms in $\Cat$.
-  From now on, we will use $\disp{A}$ to represent any groupoid fibration,
-  which we can adjust up to isomorphism using this equivalence.
 \end{prop}
 
 \medskip
 
-\begin{prop}[Pullback of fibrations]
-  Let $\si : \De \to Ga$ be a functor between groupoids.
+Pullback of fibrations along groupoid functors is not strictly coherent,
+in the sense that for $\tau : \Xi \to \De$ and $\si : \De \to \Ga$
+and a fibration $p \in \Fib_{\Ga}$ we only have an isomorphism
+\[ \tau^{*} \si^{*} p \iso (\si \circ \tau)^{*} p\]
+rather than equality.
+
+In order to interpret reindexing/substitution strictly,
+it is convenient to work with classifiers $[\Ga,\grpd]$
+instead of fibrations.
+
+\medskip
+
+\begin{prop}[Strictly coherent pullback]
+  Let $\si : \De \to \Ga$ be a functor between groupoids.
   Since display maps are pullbacks
   of the classifier $U : \ptgrpd \to \grpd$ we have
   the pasting diagram
-  % https://q.uiver.app/#q=WzAsNixbMSwwLCJcXEdhLkEiXSxbMSwxLCJcXEdhIl0sWzAsMSwiXFxEZSJdLFswLDAsIlxcRGUuQVxcc2kiXSxbMiwxLCJcXGdycGQiXSxbMiwwLCJcXHB0Z3JwZCJdLFswLDEsIlxcZGlzcHtBfSIsMSx7InN0eWxlIjp7ImhlYWQiOnsibmFtZSI6ImVwaSJ9fX1dLFsyLDEsIlxcc2kiLDJdLFsxLDQsIkEiLDJdLFswLDVdLFs1LDRdLFswLDQsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFszLDEsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFszLDIsIlxcZGlzcHtBXFxzaX0iLDEseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMywwLCIiLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbMyw1LCIiLDEseyJjdXJ2ZSI6LTJ9XV0=
+  % https://q.uiver.app/#q=WzAsNixbMSwwLCJcXEdhLkEiXSxbMSwxLCJcXEdhIl0sWzAsMSwiXFxEZSJdLFswLDAsIlxcRGUuQVxcc2kiXSxbMiwxLCJcXGdycGQiXSxbMiwwLCJcXHB0Z3JwZCJdLFswLDEsIlxcZGlzcHtBfSIsMSx7InN0eWxlIjp7ImhlYWQiOnsibmFtZSI6ImVwaSJ9fX1dLFsyLDEsIlxcc2kiLDJdLFsxLDQsIkEiLDJdLFswLDVdLFs1LDRdLFswLDQsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFszLDEsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFszLDIsIlxcZGlzcHtBXFxzaX0iLDEseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMywwLCJcXHNpX0EiLDIseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbMyw1LCIiLDEseyJjdXJ2ZSI6LTJ9XV0=
   \[\begin{tikzcd}
     {\De.A\si} & {\Ga.A} & \ptgrpd \\
     \De & \Ga & \grpd
-    \arrow[dashed, from=1-1, to=1-2]
+    \arrow["{\si_A}"', dashed, from=1-1, to=1-2]
     \arrow[bend left, from=1-1, to=1-3]
     \arrow["{\disp{A\si}}"{description}, two heads, from=1-1, to=2-1]
     \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
@@ -274,54 +284,111 @@ lifting $f$. Furthermore
     \arrow["\si"', from=2-1, to=2-2]
     \arrow["A"', from=2-2, to=2-3]
   \end{tikzcd}\]
+  This gives us a functor $\circ \si : [\Ga,\grpd] \to [\De,\grpd]$
+  which is our strict version of pullback.
+\end{prop}
 
-  Note that this avoids coherence issues, since we take the pullback to be
-  the map $\disp{A \si}$ specifically.
-  It follows that fibrations are stable under pullback along all groupoid functors.
-  % Then define (strict) pullback of fibrations in the following way
+\medskip
+
+\begin{cor}[Fibrations are stable under pullback]
   % https://q.uiver.app/#q=WzAsNCxbMCwwLCJbXFxHYSwgXFxncnBkXSJdLFsyLDAsIlxcRmliX1xcR2EiXSxbMCwxLCJbXFxEZSwgXFxncnBkXSJdLFsyLDEsIlxcRmliX1xcRGUiXSxbMSwwLCJcXHRleHRzZntmaWJlcn0iLDJdLFswLDIsIlxcY2lyYyBcXHNpIiwyXSxbMiwzLCJcXGRpc3B7fSIsMl0sWzEsMywiXFxzaV4qIiwwLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
   \[\begin{tikzcd}
     {[\Ga, \grpd]} && {\Fib_\Ga} \\
     {[\De, \grpd]} && {\Fib_\De}
     \arrow["{\circ \si}"', from=1-1, to=2-1]
-    \arrow["{\textsf{fiber}}"', from=1-3, to=1-1]
+    \arrow["{\fiber}"', from=1-3, to=1-1]
     \arrow["{\si^*}", dashed, from=1-3, to=2-3]
     \arrow["{\disp{}}"', from=2-1, to=2-3]
   \end{tikzcd}\]
-
-\end{prop}
+  We can deduce a corresponding fact about fibrations:
+  since fibrations are closed under isomorphism,
+  and since any pullback in $\grpd$ of a fibration $p$ is isomorphic to
+  the display map $\disp{\fiber{p} \circ \si}$,
+  any pullback of a fibration is a fibration.
+\end{cor}
 
 \medskip
 
-\begin{defn}[Composition of fibrations]
-  The composition of two fibrations is a fibration.
-  % https://q.uiver.app/#q=WzAsMyxbMCwwLCJcXEdhIFxcY2RvdCBBIFxcY2RvdCBCIl0sWzAsMSwiXFxHYSBcXGNkb3QgQSJdLFsxLDEsIlxcR2EiXSxbMCwxLCIiLDAseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMSwyLCIiLDAseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMCwyLCIiLDIseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifSwiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV1d
+A strict interpretation of type theory would require
+$\Si$ and $\Pi$-formers to be stable under pullback (Beck-Chevalley).
+Thus we again define these as operations on classifiers $[\Ga,\grpd]$.
+
+\medskip
+
+\begin{defn}[$\Si$-former operation]
+  Then given $A : \Ga \to \grpd$ and $B : \Ga\cdot A \to \grpd$ we define
+  $\Si_{A}B : \Ga \to \grpd$ such that
+  $\Si_{A}B$ acts on objects by forming fiberwise Grothendieck constructions
+  \[ \Si_{A}B (x) := A(x) \cdot B \circ x_{A} \]
+  where $x_{A} : A(x) \to \Ga \cdot A$ takes $f : a_{0} \to a_{1}$ to
+  $(\id_{x},f) : (x,a_{0}) \to (x,a_{1})$
+  % https://q.uiver.app/#q=WzAsOSxbMSwxLCJcXEdhLkEiXSxbMSwyLCJcXEdhIl0sWzAsMSwiQSh4KSJdLFsyLDIsIlxcZ3JwZCJdLFsyLDEsIlxcZ3JwZCJdLFsxLDAsIlxcR2EuQS5CIl0sWzIsMCwiXFxidWxsZXQiXSxbMCwyLCJcXHRlcm1pbmFsIl0sWzAsMCwiQSh4KSBcXGNkb3QgQiBcXGNpcmMgeF9BIl0sWzAsMSwiXFxkaXNwe0F9IiwxLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV0sWzEsMywiQSIsMl0sWzAsNCwiQiJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFsyLDAsInhfQSIsMl0sWzUsMCwiXFxkaXNwe0J9IiwxXSxbNSw2XSxbNywxLCJ4IiwyXSxbMiw3LCIhIiwxXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbOCwyLCJcXGRpc3B7QiBcXGNpcmMgeF9BfSIsMSx7InN0eWxlIjp7ImhlYWQiOnsibmFtZSI6ImVwaSJ9fX1dLFs4LDUsIiIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dXQ==
   \[\begin{tikzcd}
-    {\Ga \cdot A \cdot B} \\
-    {\Ga \cdot A} & \Ga
+    {A(x) \cdot B \circ x_A} & {\Ga.A.B} & \bullet \\
+    {A(x)} & {\Ga.A} & \grpd \\
+    \terminal & \Ga & \grpd
+    \arrow[dashed, from=1-1, to=1-2]
+    \arrow["{\disp{B \circ x_A}}"{description}, two heads, from=1-1, to=2-1]
+    \arrow[from=1-2, to=1-3]
+    \arrow["{\disp{B}}"{description}, from=1-2, to=2-2]
+    \arrow["{x_A}"', from=2-1, to=2-2]
+    \arrow["{!}"{description}, from=2-1, to=3-1]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-1, to=3-2]
+    \arrow["B", from=2-2, to=2-3]
+    \arrow["{\disp{A}}"{description}, two heads, from=2-2, to=3-2]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+    \arrow["x"', from=3-1, to=3-2]
+    \arrow["A"', from=3-2, to=3-3]
+  \end{tikzcd}\]
+  $\Si_{A}B$ acts on morphism $f : x \to y$ in $\Ga$ and $(a \in A(x), b \in B(x,a))$ by
+  \[ \Si_{A}B \, f \, (a,b) := (A \, f \, a, B \, (f,\id_{{A \, f \, a}}) \, b) \]
+  and for morphism $(\al : a_{0} \to a_{1} \in A(x),\be : B \, (\id_{x},\al) \, b_{0} \to b_{1} \in B(x,a_{1}))$
+  in $\Si_{A}B \, x$
+  \[ \Si_{A}B \, f \, (\al,\be) := (A \, f \, \al, B \, (f,\id_{{A \, f \, a_{1}}}) \, \be) \]
+
+
+%   Let us also define the natural transformation
+%   $\fst : \Si_{A}B \to A$ by
+%   % https://q.uiver.app/#q=WzAsNyxbMCwwLCJcXGRpc3B7QX1cXGNpcmMgXFxkaXNwe0J9Il0sWzAsMiwiXFxkaXNwe0F9Il0sWzEsMV0sWzIsMV0sWzMsMCwiXFxTaV9BIEIiXSxbMywyLCJcXGZpYmVyIChcXGRpc3B7QX0pIl0sWzUsMSwiQSJdLFswLDEsIlxcZGlzcHtCfSIsMV0sWzIsMywiXFxmaWJlciIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XSxbNCw1LCJcXGZpYmVyKFxcZGlzcCBCKSIsMV0sWzQsNiwiXFxmc3QiLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNSw2LCJcXGNvbmciLDFdXQ==
+% \[\begin{tikzcd}
+% 	{\disp{A}\circ \disp{B}} &&& {\Si_A B} \\
+% 	& {} & {} &&& A \\
+% 	{\disp{A}} &&& {\fiber (\disp{A})}
+% 	\arrow["{\disp{B}}"{description}, from=1-1, to=3-1]
+% 	\arrow["\fst"{description}, dashed, from=1-4, to=2-6]
+% 	\arrow["{\fiber(\disp B)}"{description}, from=1-4, to=3-4]
+% 	\arrow["\fiber", maps to, from=2-2, to=2-3]
+% 	\arrow["\cong"{description}, from=3-4, to=2-6]
+% \end{tikzcd}\]
+\end{defn}
+
+\medskip
+
+\begin{cor}[Fibrations are closed under composition]
+  The corresponding fact about fibrations is that
+  the composition of two fibrations is a fibration.
+  % https://q.uiver.app/#q=WzAsMyxbMCwwLCJcXFhpIl0sWzAsMSwiXFxEZSJdLFsxLDEsIlxcR2EiXSxbMCwxLCIiLDAseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMSwyLCIiLDAseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMCwyLCIiLDIseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifSwiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV1d
+  \[\begin{tikzcd}
+    \Xi \\
+    \De & \Ga
     \arrow[two heads, from=1-1, to=2-1]
     \arrow[dashed, two heads, from=1-1, to=2-2]
     \arrow[two heads, from=2-1, to=2-2]
   \end{tikzcd}\]
-  Then given $A : \Ga \to \grpd$ and $B : \Ga\cdot A \to \grpd$ we define
-  \[ \Si_{A}B := \fiber (\disp{B} \circ \disp{A}) : \Ga \to \grpd\]
-
-  Let us also define the natural transformation
-  $\fst : \Si_{A}B \to A$ by
-  % https://q.uiver.app/#q=WzAsNyxbMCwwLCJcXGRpc3B7QX1cXGNpcmMgXFxkaXNwe0J9Il0sWzAsMiwiXFxkaXNwe0F9Il0sWzEsMV0sWzIsMV0sWzMsMCwiXFxTaV9BIEIiXSxbMywyLCJcXGZpYmVyIChcXGRpc3B7QX0pIl0sWzUsMSwiQSJdLFswLDEsIlxcZGlzcHtCfSIsMV0sWzIsMywiXFxmaWJlciIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XSxbNCw1LCJcXGZpYmVyKFxcZGlzcCBCKSIsMV0sWzQsNiwiXFxmc3QiLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNSw2LCJcXGNvbmciLDFdXQ==
-\[\begin{tikzcd}
-	{\disp{A}\circ \disp{B}} &&& {\Si_A B} \\
-	& {} & {} &&& A \\
-	{\disp{A}} &&& {\fiber (\disp{A})}
-	\arrow["{\disp{B}}"{description}, from=1-1, to=3-1]
-	\arrow["\fst"{description}, dashed, from=1-4, to=2-6]
-	\arrow["{\fiber(\disp B)}"{description}, from=1-4, to=3-4]
-	\arrow["\fiber", maps to, from=2-2, to=2-3]
-	\arrow["\cong"{description}, from=3-4, to=2-6]
-\end{tikzcd}\]
-\end{defn}
+\end{cor}
 
 \medskip
+
+We can compare the two fibrations
+\[ \disp{B} \circ \disp{A}
+  \quad \quad
+  \text{ and }
+  \quad \quad
+  \disp{\Si_{A}(B)}
+\]
+An object in the composition would look like $((x,a),b)$
+for $x \in \Ga$, $a \in A(x)$ and $b \in B(x,a)$,
+whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
 
 \medskip
 
