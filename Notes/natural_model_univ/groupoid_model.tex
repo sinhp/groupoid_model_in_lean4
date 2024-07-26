@@ -346,25 +346,14 @@ Thus we again define these as operations on classifiers $[\Ga,\grpd]$.
   in $\Si_{A}B \, x$
   \[ \Si_{A}B \, f \, (\al,\be) := (A \, f \, \al, B \, (f,\id_{{A \, f \, a_{1}}}) \, \be) \]
 
-
-%   Let us also define the natural transformation
-%   $\fst : \Si_{A}B \to A$ by
-%   % https://q.uiver.app/#q=WzAsNyxbMCwwLCJcXGRpc3B7QX1cXGNpcmMgXFxkaXNwe0J9Il0sWzAsMiwiXFxkaXNwe0F9Il0sWzEsMV0sWzIsMV0sWzMsMCwiXFxTaV9BIEIiXSxbMywyLCJcXGZpYmVyIChcXGRpc3B7QX0pIl0sWzUsMSwiQSJdLFswLDEsIlxcZGlzcHtCfSIsMV0sWzIsMywiXFxmaWJlciIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XSxbNCw1LCJcXGZpYmVyKFxcZGlzcCBCKSIsMV0sWzQsNiwiXFxmc3QiLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNSw2LCJcXGNvbmciLDFdXQ==
-% \[\begin{tikzcd}
-% 	{\disp{A}\circ \disp{B}} &&& {\Si_A B} \\
-% 	& {} & {} &&& A \\
-% 	{\disp{A}} &&& {\fiber (\disp{A})}
-% 	\arrow["{\disp{B}}"{description}, from=1-1, to=3-1]
-% 	\arrow["\fst"{description}, dashed, from=1-4, to=2-6]
-% 	\arrow["{\fiber(\disp B)}"{description}, from=1-4, to=3-4]
-% 	\arrow["\fiber", maps to, from=2-2, to=2-3]
-% 	\arrow["\cong"{description}, from=3-4, to=2-6]
-% \end{tikzcd}\]
+  Let us also define the natural transformation
+  $\fst : \Si_{A}B \to A$ by
+  \[ \fst_{x} : (a, b) \mapsto a \]
 \end{defn}
 
 \medskip
 
-\begin{cor}[Fibrations are closed under composition]
+\begin{prop}[Fibrations are closed under composition]
   The corresponding fact about fibrations is that
   the composition of two fibrations is a fibration.
   % https://q.uiver.app/#q=WzAsMyxbMCwwLCJcXFhpIl0sWzAsMSwiXFxEZSJdLFsxLDEsIlxcR2EiXSxbMCwxLCIiLDAseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMSwyLCIiLDAseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMCwyLCIiLDIseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifSwiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV1d
@@ -375,9 +364,7 @@ Thus we again define these as operations on classifiers $[\Ga,\grpd]$.
     \arrow[dashed, two heads, from=1-1, to=2-2]
     \arrow[two heads, from=2-1, to=2-2]
   \end{tikzcd}\]
-\end{cor}
-
-\medskip
+\end{prop}
 
 We can compare the two fibrations
 \[ \disp{B} \circ \disp{A}
@@ -391,25 +378,65 @@ for $x \in \Ga$, $a \in A(x)$ and $b \in B(x,a)$,
 whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
 
 \medskip
+\begin{prop}[Strict Beck-Chevalley for $\Si$]
+  Let $\si : \De \to \Ga$, $A : \Ga \to \grpd$ and $B : \Ga\cdot A \to \grpd$.
+  Then
+  \[ (\Si_{A}B) \circ \si = \Si_{A \circ \si}(B \circ \si_{A})\]
+  where $\si_{A}$ is uniquely determined by the pullback in
+  % https://q.uiver.app/#q=WzAsOSxbMiwxLCJcXEdhLkEiXSxbMiwyLCJcXEdhIl0sWzEsMSwiXFxEZSBcXGNkb3QgQSBcXHNpIl0sWzMsMiwiXFxncnBkIl0sWzMsMSwiXFxncnBkIl0sWzIsMCwiXFxHYS5BLkIiXSxbMSwyLCJcXERlIl0sWzEsMCwiXFxEZSBcXGNkb3QgQSBcXHNpIFxcY2RvdCBCIFxcY2lyYyBcXHNpX0EiXSxbMCwyLCJcXGdycGQiXSxbMCwxLCJcXGRpc3B7QX0iLDEseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMSwzLCJBIiwyXSxbMCw0LCJCIl0sWzAsMywiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzIsMCwiXFxzaV9BIiwyXSxbNSwwLCJcXGRpc3B7Qn0iLDEseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbNiwxLCJcXHNpIiwyXSxbMiw2LCJcXGRpc3B7QVxcc2l9IiwxXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNywyLCJcXGRpc3B7QiBcXGNpcmMgXFxzaV9BfSIsMSx7InN0eWxlIjp7ImhlYWQiOnsibmFtZSI6ImVwaSJ9fX1dLFs3LDUsIlxcc2lfe0EgXFxjZG90IEJ9IiwyXSxbNiw4LCJcXFNpX0EgQiBcXGNpcmMgXFxzaSIsMix7Im9mZnNldCI6MX1dLFs2LDgsIlxcU2lfe0EgXFxjaXJjIFxcc2l9IChCIFxcY2lyYyBcXHNpX0EpIiwwLHsib2Zmc2V0IjotMX1dXQ==
+  \[\begin{tikzcd}
+    & {\De \cdot A \si \cdot B \circ \si_A} & {\Ga.A.B} \\
+    & {\De \cdot A \si} & {\Ga.A} & \grpd \\
+    \grpd & \De & \Ga & \grpd
+    \arrow["{\si_{A \cdot B}}"', from=1-2, to=1-3]
+    \arrow["{\disp{B \circ \si_A}}"{description}, two heads, from=1-2, to=2-2]
+    \arrow["{\disp{B}}"{description}, two heads, from=1-3, to=2-3]
+    \arrow["{\si_A}"', from=2-2, to=2-3]
+    \arrow["{\disp{A\si}}"{description}, from=2-2, to=3-2]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+    \arrow["B", from=2-3, to=2-4]
+    \arrow["{\disp{A}}"{description}, two heads, from=2-3, to=3-3]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-3, to=3-4]
+    \arrow["{(\Si_A B) \circ \si}"', shift right, from=3-2, to=3-1]
+    \arrow["{\Si_{A \circ \si} (B \circ \si_A)}", shift left, from=3-2, to=3-1]
+    \arrow["\si"', from=3-2, to=3-3]
+    \arrow["A"', from=3-3, to=3-4]
+  \end{tikzcd}\]
+\end{prop}
+\begin{proof}
+  By checking pointwise at $x \in \De$, this boils down to showing
+  \[(\si x)_{A} = \si_{A} \circ x_{A \circ \si} : A (\si x) \to \Ga \cdot A\]
+  % https://q.uiver.app/#q=WzAsOCxbMiwwLCJcXEdhLkEiXSxbMiwxLCJcXEdhIl0sWzEsMCwiXFxEZSBcXGNkb3QgQSBcXHNpIl0sWzMsMSwiXFxncnBkIl0sWzMsMCwiXFxncnBkIl0sWzEsMSwiXFxEZSJdLFswLDEsIlxcdGVybWluYWwiXSxbMCwwLCJBIChcXHNpIHgpIl0sWzAsMSwiXFxkaXNwe0F9IiwxLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV0sWzEsMywiQSIsMl0sWzAsNCwiQiJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFsyLDAsIlxcc2lfQSIsMl0sWzUsMSwiXFxzaSIsMl0sWzIsNSwiXFxkaXNwe0FcXHNpfSIsMV0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzYsNSwieCIsMl0sWzcsMiwieF97QSBcXHNpfSIsMl0sWzcsNiwiISIsMV0sWzcsMCwiKFxcc2kgeClfQSIsMCx7ImN1cnZlIjotM31dLFs3LDUsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
+  \[\begin{tikzcd}
+    {A (\si x)} & {\De \cdot A \si} & {\Ga.A} & \grpd \\
+    \terminal & \De & \Ga & \grpd
+    \arrow["{x_{A \si}}"', from=1-1, to=1-2]
+    \arrow["{(\si x)_A}", bend left, from=1-1, to=1-3]
+    \arrow["{!}"{description}, from=1-1, to=2-1]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+    \arrow["{\si_A}"', from=1-2, to=1-3]
+    \arrow["{\disp{A\si}}"{description}, from=1-2, to=2-2]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-2, to=2-3]
+    \arrow["B", from=1-3, to=1-4]
+    \arrow["{\disp{A}}"{description}, two heads, from=1-3, to=2-3]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-3, to=2-4]
+    \arrow["x"', from=2-1, to=2-2]
+    \arrow["\si"', from=2-2, to=2-3]
+    \arrow["A"', from=2-3, to=2-4]
+  \end{tikzcd}\]
 
-\begin{defn}[Pushforward of fibrations]
+  which holds because of the universal property of pullback.
+\end{proof}
+
+\medskip
+
+\begin{defn}[$\Pi$-former operation]
   Given $A : \Ga \to \grpd$ and $B : \Ga \cdot A \to \grpd$
   we will define $\Pi_{A} B : \Ga \to \grpd$ such that
   for any $C : \Ga \to \grpd$ we have an isomorphism
   \[ [\Ga \cdot A, \grpd](\disp{A}\circ C, B) \iso
     [\Ga, \grpd](C, \Pi_{A} B)\]
   natural in both $B$ and $C$.
-  Stated in terms of fibrations we have
-  % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXEdhIFxcY2RvdCBBIFxcY2RvdCBCIl0sWzAsMSwiXFxHYSBcXGNkb3QgQSJdLFsxLDEsIlxcR2EiXSxbMSwwLCJcXEdhIFxcY2RvdCBcXFBpX0EgQiJdLFswLDEsIiIsMCx7InN0eWxlIjp7ImhlYWQiOnsibmFtZSI6ImVwaSJ9fX1dLFsxLDIsIiIsMCx7InN0eWxlIjp7ImhlYWQiOnsibmFtZSI6ImVwaSJ9fX1dLFszLDIsIiIsMix7InN0eWxlIjp7ImhlYWQiOnsibmFtZSI6ImVwaSJ9fX1dXQ==
-  \[\begin{tikzcd}
-    {\Ga \cdot A \cdot B} & {\Ga \cdot \Pi_A B} \\
-    {\Ga \cdot A} & \Ga
-    \arrow["\disp{B}"', two heads, from=1-1, to=2-1]
-    \arrow[two heads, dashed, from=1-2, to=2-2]
-    \arrow["\disp{A}"', two heads, from=2-1, to=2-2]
-  \end{tikzcd}\]
-  with the universal property of pushforward
-  \[ \Fib_{\Ga \cdot A}(\disp{A}^{*}\disp{C}, \disp{B}) \iso \Fib_{\Ga}(\disp{C}, \disp{\Pi_{A} B})\]
 \end{defn}
 \begin{proof}
   $\Pi_{A}B$ acts on objects by taking fiberwise sections
@@ -433,6 +460,54 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
     \arrow["{\Pi_A B (f) (s)}"', dashed, from=3-7, to=3-9]
   \end{tikzcd}\]
   Note that conjugation is functorial and invertible.
+\end{proof}
+
+\medskip
+
+\begin{cor}[Fibrations are closed under pushforward]
+  Stated in terms of fibrations, we have
+  % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFhpIl0sWzAsMSwiXFxEZSJdLFsxLDEsIlxcR2EiXSxbMSwwLCJcXEdhXyEgXFxzaV8qIFxcdGF1Il0sWzAsMSwiXFx0YXUiLDIseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMSwyLCJcXHNpIiwyLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV0sWzMsMiwiXFxzaV8qIFxcdGF1IiwwLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV1d
+  \[\begin{tikzcd}
+    \Xi & {\Ga_! \si_* \tau} \\
+    \De & \Ga
+    \arrow["\tau"', two heads, from=1-1, to=2-1]
+    \arrow["{\si_* \tau}", two heads, from=1-2, to=2-2]
+    \arrow["\si"', two heads, from=2-1, to=2-2]
+  \end{tikzcd}\]
+  with the universal property of pushforward
+  \[ \Fib_{\De}(\si^{*}\rho, \tau) \iso \Fib_{\Ga}(\rho, \si_{*} \tau)\]
+  natural in both $\tau$ and $\rho$.
+\end{cor}
+
+\medskip
+
+\begin{prop}[Strict Beck-Chevalley for $\Pi$]
+  Let $\si : \De \to \Ga$, $A : \Ga \to \grpd$ and $B : \Ga\cdot A \to \grpd$.
+  Then
+  \[ (\Pi_{A}B) \circ \si = \Pi_{A \circ \si}(B \circ \si_{A})\]
+  where $\si_{A}$ is uniquely determined by the pullback in
+  % https://q.uiver.app/#q=WzAsOSxbMiwxLCJcXEdhLkEiXSxbMiwyLCJcXEdhIl0sWzEsMSwiXFxEZSBcXGNkb3QgQSBcXHNpIl0sWzMsMiwiXFxncnBkIl0sWzMsMSwiXFxncnBkIl0sWzIsMCwiXFxHYS5BLkIiXSxbMSwyLCJcXERlIl0sWzEsMCwiXFxEZSBcXGNkb3QgQSBcXHNpIFxcY2RvdCBCIFxcY2lyYyBcXHNpX0EiXSxbMCwyLCJcXGdycGQiXSxbMCwxLCJcXGRpc3B7QX0iLDEseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMSwzLCJBIiwyXSxbMCw0LCJCIl0sWzAsMywiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzIsMCwiXFxzaV9BIiwyXSxbNSwwLCJcXGRpc3B7Qn0iLDEseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbNiwxLCJcXHNpIiwyXSxbMiw2LCJcXGRpc3B7QVxcc2l9IiwxXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNywyLCJcXGRpc3B7QiBcXGNpcmMgXFxzaV9BfSIsMSx7InN0eWxlIjp7ImhlYWQiOnsibmFtZSI6ImVwaSJ9fX1dLFs3LDUsIlxcc2lfe0EgXFxjZG90IEJ9IiwyXSxbNiw4LCJcXFBpX0EgQiBcXGNpcmMgXFxzaSIsMix7Im9mZnNldCI6MX1dLFs2LDgsIlxcUGlfe0EgXFxjaXJjIFxcc2l9IChCIFxcY2lyYyBcXHNpX0EpIiwwLHsib2Zmc2V0IjotMX1dXQ==
+  \[\begin{tikzcd}
+    & {\De \cdot A \si \cdot B \circ \si_A} & {\Ga.A.B} \\
+    & {\De \cdot A \si} & {\Ga.A} & \grpd \\
+    \grpd & \De & \Ga & \grpd
+    \arrow["{\si_{A \cdot B}}"', from=1-2, to=1-3]
+    \arrow["{\disp{B \circ \si_A}}"{description}, two heads, from=1-2, to=2-2]
+    \arrow["{\disp{B}}"{description}, two heads, from=1-3, to=2-3]
+    \arrow["{\si_A}"', from=2-2, to=2-3]
+    \arrow["{\disp{A\si}}"{description}, from=2-2, to=3-2]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+    \arrow["B", from=2-3, to=2-4]
+    \arrow["{\disp{A}}"{description}, two heads, from=2-3, to=3-3]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-3, to=3-4]
+    \arrow["{\Pi_A B \circ \si}"', shift right, from=3-2, to=3-1]
+    \arrow["{\Pi_{A \circ \si} (B \circ \si_A)}", shift left, from=3-2, to=3-1]
+    \arrow["\si"', from=3-2, to=3-3]
+    \arrow["A"', from=3-3, to=3-4]
+  \end{tikzcd}\]
+\end{prop}
+\begin{proof}
+  By checking pointwise, this boils down to Beck-Chevalley for $\Si$.
 \end{proof}
 
 \medskip
