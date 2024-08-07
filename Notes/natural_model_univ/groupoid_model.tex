@@ -678,9 +678,38 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
 
 \medskip
 
-% \begin{lem}
+\begin{lemma}
+  Let $\catC$ be a large category,
+  and let $[-,\catC] \in \Pshgrpd$ be the restriction of the yoneda embedding
+  $\yo : \Cat \to \PshCat$.
+  Let $F$ be an operation that takes a groupoid $\Ga$,
+  a functor $A : \Ga \to \grpd$
+  and $B : \Ga \cdot A \to \catC$ and returns a functor
+  $F_{A} B : \Ga \to \catC$.
 
-% \end{lem}
+  Then $F : \Poly{\tp} [-,\catC] \to [-,\catC]$
+  \[ F_{\Ga} (A,B) = F_{A}B \]
+  defines a natural transformation
+  if and only if $F$ satisfies strict the Beck-Chevalley condition
+  \[ (F_{A} B) \circ \si = F_{A \circ \si} (B \circ \si_{A})\]
+\end{lemma}
+\begin{proof}
+% https://q.uiver.app/#q=WzAsOCxbMywwLCJcXFBvbHl7XFx0cH0gW1xcR2EsXFxjYXRDXSAiXSxbNCwwLCJbXFxHYSxcXGNhdENdIl0sWzMsMSwiXFxQb2x5e1xcdHB9IFtcXERlLFxcY2F0Q10gIl0sWzQsMSwiW1xcRGUsXFxjYXRDXSAiXSxbMCwxLCJcXERlIl0sWzAsMCwiXFxHYSJdLFsyLDAsIlxcU2lfe0EgXFxpbiBbXFxHYSxcXGdycGRdfSAgW1xcR2EuQSBcXHRvIFxcY2F0Q10iXSxbMiwxLCJcXFNpX3tBIFxcaW4gW1xcRGUsXFxncnBkXX0gIFtcXERlLkEgXFx0byBcXGNhdENdIl0sWzQsNSwiXFxzaSJdLFswLDIsIlxcUG9seXtcXHRwfXstIFxcY2lyYyBcXHNpfSIsMl0sWzEsMywiLSBcXGNpcmMgXFxzaSJdLFswLDEsIkZfXFxHYSIsMl0sWzIsMywiRl9cXERlIl0sWzYsMF0sWzcsMl0sWzYsNywiKC0gXFxjaXJjIFxcc2ksLSBcXGNpcmMgXFxzaV9BKSIsMV0sWzYsMSwiRiIsMSx7ImN1cnZlIjotMn1dLFs3LDMsIkYiLDEseyJjdXJ2ZSI6Mn1dXQ==
+\[\begin{tikzcd}
+	\Ga && {\Si_{A \in [\Ga,\grpd]}  [\Ga.A \to \catC]} & {\Poly{\tp} [\Ga,\catC] } & {[\Ga,\catC]} \\
+	\De && {\Si_{A \in [\De,\grpd]}  [\De.A \to \catC]} & {\Poly{\tp} [\De,\catC] } & {[\De,\catC] }
+	\arrow[from=1-3, to=1-4]
+	\arrow["F"{description}, bend left, from=1-3, to=1-5]
+	\arrow["{(- \circ \si,- \circ \si_A)}"{description}, from=1-3, to=2-3]
+	\arrow["{F_\Ga}"', from=1-4, to=1-5]
+	\arrow["{\Poly{\tp}{- \circ \si}}"', from=1-4, to=2-4]
+	\arrow["{- \circ \si}", from=1-5, to=2-5]
+	\arrow["\si", from=2-1, to=1-1]
+	\arrow[from=2-3, to=2-4]
+	\arrow["F"{description}, bend right, from=2-3, to=2-5]
+	\arrow["{F_\De}", from=2-4, to=2-5]
+\end{tikzcd}\]
+\end{proof}
 
 \begin{defn}[Interpretation of $\Pi$ and $\la$]
   We define the natural transformation
