@@ -430,7 +430,7 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
 
 \medskip
 
-\begin{defn}[$\Pi$-former operation]
+\begin{defn}[$\Pi$-former operation]\label{pi_classifier_op}
   Given $A : \Ga \to \grpd$ and $B : \Ga \cdot A \to \grpd$
   we will define $\Pi_{A} B : \Ga \to \grpd$ such that
   for any $C : \Ga \to \grpd$ we have an isomorphism
@@ -648,7 +648,7 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
 
 \medskip
 
-\begin{prop}[$\Poly{\tp}\Type$ classifies dependent types]
+\begin{prop}[$\Poly{\tp}\Type$ classifies dependent types]\label{tp_classifies}
   Specialized to $\tp : \Term \to \Type$ in $\Pshgrpd$,
   the previous proposition says that a map
   from a representable
@@ -670,6 +670,18 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
     B : \Ga \cdot A \to \grpd
   \]
 
+  Furthermore, if $\si : \De \to \Ga$ were a representable map,
+  then we have a naturality square
+% https://q.uiver.app/#q=WzAsNixbMywwLCJcXFBvbHl7XFx0cH0gW1xcR2EsXFxjYXRDXSAiXSxbMywxLCJcXFBvbHl7XFx0cH0gW1xcRGUsXFxjYXRDXSAiXSxbMCwxLCJcXERlIl0sWzAsMCwiXFxHYSJdLFsyLDAsIlxcU2lfe0EgXFxpbiBbXFxHYSxcXGdycGRdfSAgW1xcR2EuQSxcXGNhdENdIl0sWzIsMSwiXFxTaV97QSBcXGluIFtcXERlLFxcZ3JwZF19ICBbXFxEZS5BLFxcY2F0Q10iXSxbMiwzLCJcXHNpIl0sWzAsMSwiXFxQb2x5e1xcdHB9ey0gXFxjaXJjIFxcc2l9IiwxXSxbNCwwLCJcXGlzbyJdLFs1LDEsIlxcaXNvIiwyXSxbNCw1LCIoLSBcXGNpcmMgXFxzaSwtIFxcY2lyYyBcXHNpX0EpIiwxXV0=
+\[\begin{tikzcd}
+	\Ga && {\Si_{A \in [\Ga,\grpd]}  [\Ga.A,\catC]} & {\Poly{\tp} [\Ga,\catC] } \\
+	\De && {\Si_{A \in [\De,\grpd]}  [\De.A,\catC]} & {\Poly{\tp} [\De,\catC] }
+	\arrow["\iso", from=1-3, to=1-4]
+	\arrow["{(- \circ \si,- \circ \si_A)}"{description}, from=1-3, to=2-3]
+	\arrow["{\Poly{\tp}{- \circ \si}}"{description}, from=1-4, to=2-4]
+	\arrow["\si", from=2-1, to=1-1]
+	\arrow["\iso"', from=2-3, to=2-4]
+\end{tikzcd}\]
 \end{prop}
 
 \medskip
@@ -678,26 +690,40 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
 
 \medskip
 
-\begin{lemma}
+\begin{lemma}\label{BC_iff_nat_trans}
   Let $\catC$ be a large category,
-  and let $[-,\catC] \in \Pshgrpd$ be the restriction of the yoneda embedding
+  and let $[-,\catC] \in \Pshgrpd$ be the restriction of the Yoneda embedding
   $\yo : \Cat \to \PshCat$.
   Let $F$ be an operation that takes a groupoid $\Ga$,
   a functor $A : \Ga \to \grpd$
   and $B : \Ga \cdot A \to \catC$ and returns a functor
   $F_{A} B : \Ga \to \catC$.
 
-  Then $F : \Poly{\tp} [-,\catC] \to [-,\catC]$
-  \[ F_{\Ga} (A,B) = F_{A}B \]
+  Then $\tilde{F} : \Poly{\tp} [-,\catC] \to [-,\catC]$
+  \[ \tilde{F}_{\Ga} (A,B) = F_{A}B \]
   defines a natural transformation
-  if and only if $F$ satisfies strict the Beck-Chevalley condition
+  if and only if $F$ satisfies the strict Beck-Chevalley condition
   \[ (F_{A} B) \circ \si = F_{A \circ \si} (B \circ \si_{A})\]
+  where $\si_{A}$ is given by
+  % https://q.uiver.app/#q=WzAsNixbMSwwLCJcXEdhXFxjZG90IEEiXSxbMSwxLCJcXEdhIl0sWzIsMSwiXFxncnBkIl0sWzIsMCwiXFxwdGdycGQiXSxbMCwxLCJcXERlIl0sWzAsMCwiXFxEZSBcXGNkb3QgQVxcY2lyYyBcXHNpIl0sWzAsMSwiIiwyLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV0sWzEsMiwiQSIsMl0sWzMsMl0sWzAsM10sWzQsMSwiXFxzaSIsMl0sWzUsNCwiIiwyLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV0sWzUsMCwiXFxzaV9BIiwwLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
+\[\begin{tikzcd}
+	{\De \cdot A\circ \si} & {\Ga\cdot A} & \ptgrpd \\
+	\De & \Ga & \grpd
+	\arrow["{\si_A}", dashed, from=1-1, to=1-2]
+	\arrow[two heads, from=1-1, to=2-1]
+	\arrow[from=1-2, to=1-3]
+	\arrow[two heads, from=1-2, to=2-2]
+	\arrow[from=1-3, to=2-3]
+	\arrow["\si"', from=2-1, to=2-2]
+	\arrow["A"', from=2-2, to=2-3]
+\end{tikzcd}\]
 \end{lemma}
 \begin{proof}
-% https://q.uiver.app/#q=WzAsOCxbMywwLCJcXFBvbHl7XFx0cH0gW1xcR2EsXFxjYXRDXSAiXSxbNCwwLCJbXFxHYSxcXGNhdENdIl0sWzMsMSwiXFxQb2x5e1xcdHB9IFtcXERlLFxcY2F0Q10gIl0sWzQsMSwiW1xcRGUsXFxjYXRDXSAiXSxbMCwxLCJcXERlIl0sWzAsMCwiXFxHYSJdLFsyLDAsIlxcU2lfe0EgXFxpbiBbXFxHYSxcXGdycGRdfSAgW1xcR2EuQSBcXHRvIFxcY2F0Q10iXSxbMiwxLCJcXFNpX3tBIFxcaW4gW1xcRGUsXFxncnBkXX0gIFtcXERlLkEgXFx0byBcXGNhdENdIl0sWzQsNSwiXFxzaSJdLFswLDIsIlxcUG9seXtcXHRwfXstIFxcY2lyYyBcXHNpfSIsMl0sWzEsMywiLSBcXGNpcmMgXFxzaSJdLFswLDEsIkZfXFxHYSIsMl0sWzIsMywiRl9cXERlIl0sWzYsMF0sWzcsMl0sWzYsNywiKC0gXFxjaXJjIFxcc2ksLSBcXGNpcmMgXFxzaV9BKSIsMV0sWzYsMSwiRiIsMSx7ImN1cnZlIjotMn1dLFs3LDMsIkYiLDEseyJjdXJ2ZSI6Mn1dXQ==
+  Using \cref{tp_classifies}
+% https://q.uiver.app/#q=WzAsOCxbMywwLCJcXFBvbHl7XFx0cH0gW1xcR2EsXFxjYXRDXSAiXSxbNCwwLCJbXFxHYSxcXGNhdENdIl0sWzMsMSwiXFxQb2x5e1xcdHB9IFtcXERlLFxcY2F0Q10gIl0sWzQsMSwiW1xcRGUsXFxjYXRDXSAiXSxbMCwxLCJcXERlIl0sWzAsMCwiXFxHYSJdLFsyLDAsIlxcU2lfe0EgXFxpbiBbXFxHYSxcXGdycGRdfSAgW1xcR2EuQSxcXGNhdENdIl0sWzIsMSwiXFxTaV97QSBcXGluIFtcXERlLFxcZ3JwZF19ICBbXFxEZS5BLFxcY2F0Q10iXSxbNCw1LCJcXHNpIl0sWzAsMiwiXFxQb2x5e1xcdHB9ey0gXFxjaXJjIFxcc2l9IiwyXSxbMSwzLCItIFxcY2lyYyBcXHNpIl0sWzAsMSwiRl9cXEdhIiwyXSxbMiwzLCJGX1xcRGUiXSxbNiwwXSxbNywyXSxbNiw3LCIoLSBcXGNpcmMgXFxzaSwtIFxcY2lyYyBcXHNpX0EpIiwxXSxbNiwxLCJGIiwxLHsiY3VydmUiOi0yfV0sWzcsMywiRiIsMSx7ImN1cnZlIjoyfV1d
 \[\begin{tikzcd}
-	\Ga && {\Si_{A \in [\Ga,\grpd]}  [\Ga.A \to \catC]} & {\Poly{\tp} [\Ga,\catC] } & {[\Ga,\catC]} \\
-	\De && {\Si_{A \in [\De,\grpd]}  [\De.A \to \catC]} & {\Poly{\tp} [\De,\catC] } & {[\De,\catC] }
+	\Ga && {\Si_{A \in [\Ga,\grpd]}  [\Ga.A,\catC]} & {\Poly{\tp} [\Ga,\catC] } & {[\Ga,\catC]} \\
+	\De && {\Si_{A \in [\De,\grpd]}  [\De.A,\catC]} & {\Poly{\tp} [\De,\catC] } & {[\De,\catC] }
 	\arrow[from=1-3, to=1-4]
 	\arrow["F"{description}, bend left, from=1-3, to=1-5]
 	\arrow["{(- \circ \si,- \circ \si_A)}"{description}, from=1-3, to=2-3]
@@ -711,32 +737,70 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
 \end{tikzcd}\]
 \end{proof}
 
-\begin{defn}[Interpretation of $\Pi$ and $\la$]
+\begin{defn}[Interpretation of $\Pi$ types]
   We define the natural transformation
   $\Pi : \Poly{\tp} \Type \to \Type$
-  by first taking some small groupoid $\Ga$ and defining
-  \[\Pi_{\Ga} : \Pshgrpd(\Ga, \Poly{\tp} \Type) \to \Pshgrpd(\Ga, \Type)\]
-  Let $(A,B) : \Ga \to \Poly{\tp} \Type$, corresponding to $A : \Ga \to \grpd$
-  and $B : \Ga \cdot A \to \grpd$.
-  Taking the pushforward of fibrations in $\grpd$
-  (formally defined as operations on the classifying maps),
-  we obtain $\Pi_{A}B : \Ga \to \grpd$ corresponding by Yoneda
-  to an element of $\Pshgrpd(\Ga, \Type)$.
+  as that which is induced (\cref{BC_iff_nat_trans}) by the $\Pi$-former operation (\cref{pi_classifier_op}).
 
-  As indicated in the diagram, we take this to be the pushforward of the
-  dependent display map $\disp{B}$ along the display map it depends on $\disp{A}$.
-  Note that this pushforward is in $\grpd$,
-  and this pushforward is only defined on fibrations.
+  Then we define the natural transofrmation
+  $\la : \Poly{\tp} \Type \to \Type$
+  as the natural transformation induced by the following operation:
+  given $A : \Ga \to \grpd$ and $\be : \Ga \cdot A \to \ptgrpd$,
+  $\la_{A}\be : \Ga \to \ptgrpd$ will be the functor such that on objects
+  $x \in \Ga$
+  \[ \la_{A}\be \, (x) := (\Pi_{A} B \, (x) , a \mapsto (a, b (x , a)))\]
+  where $B := U \circ \be : \Ga \cdot A \to \grpd$
+  and $b (x , a)$ is the point in $\be (x , a)$.
+  On morphisms $f : x \to y$ in $\Ga$ we have
+  \[ \la_{A}\be \, (f) := (\Pi_{A} B \, (f) , \eta )\]
+  where $\eta : \Pi_{A} B \, f \, s_{x} \to s_{y}$ is a natural isomorphism
+  between functors $A_{y} \to \Si_{A} B y$ given on objects $a \in A_{y}$ by
+  \[ \eta_{a} := (\id_{a}, \id_{b (y , a)})\]
 
-  TODO: define $\la$.
+  These combine to give us a pullback square
+% https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSJdLFswLDEsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzEsMCwiXFxUZXJtIl0sWzEsMSwiXFxUeXBlIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcdHB9IiwyXSxbMCwyLCJcXGxhIl0sWzIsMywiXFx0cCJdLFsxLDMsIlxcUGkiLDJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
+\[\begin{tikzcd}
+	{\Poly{\tp}{\Term}} & \Term \\
+	{\Poly{\tp}{\Type}} & \Type
+	\arrow["\la", from=1-1, to=1-2]
+	\arrow["{\Poly{\tp}{\tp}}"', from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow["\tp", from=1-2, to=2-2]
+	\arrow["\Pi"', from=2-1, to=2-2]
+\end{tikzcd}\]
 \end{defn}
 \begin{proof}
-  TODO: naturality.
-  % Beck-chevalley.
-  % Steve says the coherence problem is not an issue here -
-  % i.e. that our equalities are strict.
+  We should check that the $\la$ operation satisfied Beck-Chevalley.
+  This follows from the $\Pi$ satisfying Beck-Chevalley and extensionality
+  results for functors.
 
-  TODO: prove pullback.
+  The square commutes and is a pullback if and only it pointwise
+  commutes and pointwise gives pullbacks, i.e.
+  for each groupoid $\Ga$
+  % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSBcXEdhIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcVHlwZX0gXFxHYSJdLFsxLDAsIltcXEdhLFxccHRncnBkXSJdLFsxLDEsIltcXEdhLFxcZ3JwZF0iXSxbMCwxLCJcXFBvbHl7XFx0cH17XFx0cH1fXFxHYSIsMl0sWzAsMiwiXFxsYV9cXEdhIl0sWzIsMywiVSBcXGNpcmMgLSJdLFsxLDMsIlxcUGlfXFxHYSIsMl0sWzAsMywiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
+\[\begin{tikzcd}
+	{\Poly{\tp}{\Term} \, \Ga} & {[\Ga,\ptgrpd]} \\
+	{\Poly{\tp}{\Type} \, \Ga} & {[\Ga,\grpd]}
+	\arrow["{\la_\Ga}", from=1-1, to=1-2]
+	\arrow["{\Poly{\tp}{\tp}_\Ga}"', from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow["{U \circ -}", from=1-2, to=2-2]
+	\arrow["{\Pi_\Ga}"', from=2-1, to=2-2]
+\end{tikzcd}\]
+
+by \cref{tp_classifies} this holds if and only if
+% https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFNpX3tBIFxcaW4gW1xcR2EsXFxncnBkXX0gIFtcXEdhLkEsXFxwdGdycGRdIl0sWzAsMSwiXFxTaV97QSBcXGluIFtcXEdhLFxcZ3JwZF19ICBbXFxHYS5BLFxcZ3JwZF0iXSxbMSwwLCJbXFxHYSxcXHB0Z3JwZF0iXSxbMSwxLCJbXFxHYSxcXGdycGRdIl0sWzAsMSwiKC0gXFxjaXJjIFxcc2ksLSBcXGNpcmMgXFxzaV9BKSIsMl0sWzAsMiwiXFxsYSJdLFsyLDMsIlUgXFxjaXJjIC0iXSxbMSwzLCJcXFBpIiwyXSxbMCwzLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
+\[\begin{tikzcd}
+	{\Si_{A \in [\Ga,\grpd]}  [\Ga.A,\ptgrpd]} & {[\Ga,\ptgrpd]} \\
+	{\Si_{A \in [\Ga,\grpd]}  [\Ga.A,\grpd]} & {[\Ga,\grpd]}
+	\arrow["\la", from=1-1, to=1-2]
+	\arrow["{(- \circ \si,- \circ \si_A)}"', from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow["{U \circ -}", from=1-2, to=2-2]
+	\arrow["\Pi"', from=2-1, to=2-2]
+\end{tikzcd}\]
+
+which follows from the definitions of $\Pi$ and $\la$.
 \end{proof}
 
 \medskip
