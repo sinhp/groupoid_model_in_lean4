@@ -154,7 +154,7 @@ end GroupoidalGrothendieck
 
 end
 
-section PointedCategorys
+section PointedCategories
 
 /-- The class of pointed pointed categorys. -/
 class PointedCategory.{w,z} (C : Type z) extends Category.{w} C where
