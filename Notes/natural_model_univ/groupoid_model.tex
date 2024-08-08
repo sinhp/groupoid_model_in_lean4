@@ -841,14 +841,14 @@ which follows from the definitions of $\Pi$ and $\la$.
   to get
   \[\counit \circ (\al, \be) : \Ga \to \tp \times_{\Type} \tp_{*} \Type\]
   then extract the type by composing with the projection to $\Type$
-  \[\Type^{*} \Term \circ \counit \circ (\al, \be) : \Ga \to \Type\]
+  \[\pi_{\Type} \circ \counit \circ (\al, \be) : \Ga \to \Type\]
   Finally, this corresponds to a unique map
   $\ev{\al}{B} : \Ga \to \grpd$.
 \end{defn}
 
 \medskip
 
-\begin{defn}[Classifier for dependent pairs]
+\begin{defn}[Classifier for dependent pairs]\label{dependent_pair_classifier}
   Recall the following definition of composition of polynomial endofunctors,
   specialized to our situation
 % https://q.uiver.app/#q=WzAsMTEsWzMsMCwiXFxQb2x5e1xcdHB9IHtcXFR5cGV9Il0sWzMsMSwiXFxUeXBlIl0sWzIsMF0sWzIsMSwiXFxUZXJtIl0sWzEsMSwiXFxUZXJtIFxcdGltZXMgXFxUeXBlIl0sWzEsMiwiXFxUeXBlIl0sWzIsMiwiXFx0ZXJtaW5hbCJdLFswLDEsIlxcVGVybSBcXHRpbWVzIFxcVGVybSJdLFswLDIsIlxcVGVybSJdLFsxLDBdLFswLDAsIlEiXSxbMCwxLCJcXHRwXyogXFxUZXJtXiogXFxUeXBlIl0sWzIsMF0sWzIsM10sWzMsMSwiXFx0cCIsMl0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzQsM10sWzQsNV0sWzUsNl0sWzMsNl0sWzQsNiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzcsNF0sWzcsOF0sWzgsNSwiXFx0cCIsMl0sWzcsNSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzEwLDddLFsxMCw0LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbOSwyLCJcXFRlcm0gXFx0aW1lc197XFxUeXBlfSBcXFBvbHl7XFx0cH0gXFxUeXBlIiwxLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoibm9uZSJ9LCJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzEwLDldLFs5LDQsIlxcY291bml0IiwxXSxbMTAsMCwiXFx0cCBcXHRyaWFuZ2xlbGVmdCBcXHRwIiwxLHsiY3VydmUiOi0zfV1d
@@ -877,10 +877,66 @@ which follows from the definitions of $\Pi$ and $\la$.
 	\arrow["\tp"', from=3-1, to=3-2]
 	\arrow[from=3-2, to=3-3]
 \end{tikzcd}\]
-  Then $Q$ classifies the data of a pair of dependent terms $(a, b)$,
+\end{defn}
+
+\medskip
+
+\begin{prop}
+  $Q$ classifies the data of a pair of dependent terms $(a, b)$,
   and $\tp \triangleleft \tp$
   extracts the underlying type and dependent type $(A, B)$.
-\end{defn}
+
+  \[ Q \, \Ga \iso \{ (\be : \ga \to \ptgrpd, \al : \Ga \to \ptgrpd, B : \Ga \cdot U \circ \al \to \grpd) \st U \circ \be = \ev{\al}{\be} \}\]
+\end{prop}
+\begin{proof}
+  Extending the diagram from \cref{dependent_pair_classifier}
+  % https://q.uiver.app/#q=WzAsMTIsWzQsMSwiXFxQb2x5e1xcdHB9IHtcXFR5cGV9Il0sWzQsMiwiXFxUeXBlIl0sWzMsMV0sWzMsMiwiXFxUZXJtIl0sWzIsMiwiXFxUZXJtIFxcdGltZXMgXFxUeXBlIl0sWzIsMywiXFxUeXBlIl0sWzMsMywiXFx0ZXJtaW5hbCJdLFsxLDIsIlxcVGVybSBcXHRpbWVzIFxcVGVybSJdLFsxLDMsIlxcVGVybSJdLFsyLDFdLFsxLDEsIlEiXSxbMCwwLCJcXEdhIl0sWzAsMSwiXFx0cF8qIFxcVGVybV4qIFxcVHlwZSJdLFsyLDBdLFsyLDNdLFszLDEsIlxcdHAiLDJdLFsyLDEsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs0LDNdLFs0LDVdLFs1LDZdLFszLDZdLFs0LDYsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs3LDRdLFs3LDhdLFs4LDUsIlxcdHAiLDJdLFs3LDUsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFsxMCw3XSxbMTAsNCwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzksMiwiXFxUZXJtIFxcdGltZXNfe1xcVHlwZX0gXFxQb2x5e1xcdHB9IFxcVHlwZSIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6Im5vbmUifSwiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dLFsxMCw5XSxbOSw0LCJcXGNvdW5pdCIsMV0sWzExLDgsIlxcYmUiLDJdLFsxMSwxMCwiXFxlcCIsMV0sWzExLDAsIlxcZ2EiLDFdLFsxMSwzLCJcXGFsIiwxLHsibGFiZWxfcG9zaXRpb24iOjIwfV0sWzExLDI4LCJcXGxhbmdsZSBcXGFsICwgXFxnYSBcXHJhbmdsZSIsMSx7InNob3J0ZW4iOnsidGFyZ2V0IjoyMH0sImxldmVsIjoxfV1d
+\[\begin{tikzcd}
+	\Ga \\
+	& Q & {} & {} & {\Poly{\tp} {\Type}} \\
+	& {\Term \times \Term} & {\Term \times \Type} & \Term & \Type \\
+	& \Term & \Type & \terminal
+	\arrow["\ep"{description}, from=1-1, to=2-2]
+	\arrow["\ga"{description}, bend left, from=1-1, to=2-5]
+	\arrow["\al"{description, pos=0.2}, bend left = 20, from=1-1, to=3-4]
+	\arrow["\be"', from=1-1, bend right, to=4-2]
+	\arrow[from=2-2, to=2-3]
+	\arrow[from=2-2, to=3-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+	\arrow[""{name=0, anchor=center, inner sep=0}, "{\Term \times_{\Type} \Poly{\tp} \Type}"{description}, draw=none, from=2-3, to=2-4]
+	\arrow["\counit"{description}, from=2-3, to=3-3]
+	\arrow[from=2-4, to=2-5]
+	\arrow[from=2-4, to=3-4]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-4, to=3-5]
+	\arrow["{\tp_* \Term^* \Type}", from=2-5, to=3-5]
+	\arrow[from=3-2, to=3-3]
+	\arrow[from=3-2, to=4-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=3-2, to=4-3]
+	\arrow[from=3-3, to=3-4]
+	\arrow[from=3-3, to=4-3]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=3-3, to=4-4]
+	\arrow["\tp"', from=3-4, to=3-5]
+	\arrow[from=3-4, to=4-4]
+	\arrow["\tp"', from=4-2, to=4-3]
+	\arrow[from=4-3, to=4-4]
+	\arrow["{\langle \al , \ga \rangle}"{description}, bend left, shorten >=28pt, from=1-1, to=0]
+\end{tikzcd}\]
+  By the universal property of pullbacks,
+  a data of a map with representable domain $\ep : \Ga \to Q$ corresponds to the
+  data of a triple of maps $\al, \be : \Ga \to \Term$
+  and $\ga : \Ga \to \Poly{\tp} \Type$ such that $\tp \circ \be = \pi_{\Type} \circ \counit \circ \langle \al, \ga \rangle$
+  and $\tp_{*}\Term^{*}\Type \circ \ga= \tp \circ \al$.
+
+  This in turn corresponds to three functors $\al, \be : \Ga \to \ptgrpd$ and
+  $B : \Ga \cdot U \circ \al \to \grpd$,
+  such that $U \circ \be = \ev{\al} B$.
+  Type theoretically $\al = (A , a : A)$ and $\ev{\al} B = B a$ and
+  $\be = (B a, b : B a)$.
+  Then composing $\ep$ with $\tp \triangleleft \tp$ returns $\ga$,
+  which consists of $(A, B)$.
+  It is in this sense that $Q$ classifies pairs of dependent terms,
+  and $\tp \triangleleft \tp$ extracts the underlying types.
+\end{proof}
 
 \medskip
 
