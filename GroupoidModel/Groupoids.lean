@@ -51,10 +51,8 @@ Need at least the following, some of which is already in MathLib:
   - eventually we will want some groupoid quotients as well
   -/
 
-
 @[simps?!]
 def toCat {C : Type u₁} [Category.{v₁,u₁} C] (G : C ⥤ Grpd) : C ⥤ Cat := G ⋙ Grpd.forgetToCat
-
 namespace Grothendieck
 
 open CategoryTheory Iso
@@ -154,7 +152,7 @@ end GroupoidalGrothendieck
 
 end
 
-section PointedCategorys
+section PointedCategories
 
 /-- The class of pointed pointed categorys. -/
 class PointedCategory.{w,z} (C : Type z) extends Category.{w} C where
@@ -308,7 +306,7 @@ def forgetToCat : PGrpd ⥤ PCat where
 
 end PGrpd
 
-end PointedCategorys
+end PointedCategories
 
 section Pullbacks
 section GrothendieckPullBack
@@ -438,11 +436,38 @@ theorem PointedFunctor.eqToHom_toFunctor {P1 P2 : PCat.{u,u}} (eq : P1 = P2) : (
 
 theorem PointedFunctor.eqToHom_point_help {P1 P2 : PCat.{u,u}} (eq : P1 = P2) : (eqToHom eq).obj PointedCategory.pt = PointedCategory.pt  := by
   cases eq
-  simp [CategoryStruct.id ]
+  simp [CategoryStruct.id]
 
 theorem PointedFunctor.eqToHom_point {P1 P2 : PCat.{u,u}} (eq : P1 = P2) : (eqToHom eq).point = (eqToHom (PointedFunctor.eqToHom_point_help eq)) := by
   cases eq
-  simp[ PointedFunctor.id, CategoryStruct.id, PCat.forgetPoint,Cat.of,Bundled.of]
+  simp[PointedFunctor.id, CategoryStruct.id, PCat.forgetPoint,Cat.of,Bundled.of]
+
+theorem Cat.eqToHom_obj (C1 C2 : Cat.{u,v})(x : C1)(eq : C1 = C2): (eqToHom eq).obj x = cast (congrArg Bundled.α eq) x := by
+  cases eq
+  simp[CategoryStruct.id]
+
+theorem Cat.eqToHom_hom_help {C1 C2 : Cat.{u,v}}(x y: C1)(eq : C1 = C2): (x ⟶ y) = ((eqToHom eq).obj x ⟶ (eqToHom eq).obj y) := by
+  cases eq
+  simp[CategoryStruct.id]
+
+theorem Cat.eqToHom_hom {C1 C2 : Cat.{u,v}}{x y: C1}(f : x ⟶ y)(eq : C1 = C2): (eqToHom eq).map f = (cast (Cat.eqToHom_hom_help x y eq) f) := by
+  cases eq
+  simp[CategoryStruct.id]
+
+theorem PCat.eqToHom_hom_help {C1 C2 : PCat.{u,v}}(x y: C1)(eq : C1 = C2): (x ⟶ y) = ((eqToHom eq).obj x ⟶ (eqToHom eq).obj y) := by
+  cases eq
+  simp[CategoryStruct.id]
+
+theorem PCat.eqToHom_hom {C1 C2 : PCat.{u,v}}{x y: C1}(f : x ⟶ y)(eq : C1 = C2): (eqToHom eq).map f = (cast (PCat.eqToHom_hom_help x y eq) f) := by
+  cases eq
+  simp[CategoryStruct.id]
+
+theorem OneSidedEqToHom {C : Type v} [Category C] {x y z : C} (eq : y = z) {f : x ⟶ y} {g : x ⟶ z}
+  (heq : HEq f g) : f ≫ eqToHom eq = g := by
+    cases eq
+    simp
+    simp at heq
+    exact heq
 
 --This is the proof that the universal map composed with CatVar' is the the map F1
 theorem Grothendieck.UnivesalMap_CatVar'_Comm {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u,u})(C : Cat.{u,u+1})
@@ -460,7 +485,10 @@ theorem Grothendieck.UnivesalMap_CatVar'_Comm {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u
         simp [Cat.of,Bundled.of]
       · rw [<- Comm']
         simp [Cat.of,Bundled.of,Cat.str]
-      · sorry
+      · refine heq_of_cast_eq ?h_obj.h.e_3.e_3.e ?h_obj.h.e_3.e_3.x
+        · rw [<- Comm']
+          simp [Cat.of,Bundled.of]
+        · simp [Cat.eqToHom_obj]
     · intros X Y f
       simp[UnivesalMap,CatVar']
       let _ : PointedCategory (A.obj (F2.obj X)) := by
@@ -472,7 +500,18 @@ theorem Grothendieck.UnivesalMap_CatVar'_Comm {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u
       apply PointedFunctor.ext
       · simp [CastFunc,Cat.equivOfIso,CategoryStruct.comp,PointedFunctor.eqToHom_point,eqToHom_map]
         congr <;> try simp [PointedFunctor.eqToHom_toFunctor]
-        sorry
+        have rwHelp1 : ((eqToHom (CastFunc.proof_1 Comm Y)).map (F1.map f).point) = ((eqToHom (CastFunc.proof_1 Comm Y)).map (F1.map f).point) ≫ eqToHom rfl  := by
+          simp
+        rw [rwHelp1]
+        refine heq_of_cast_eq ?_ ?_
+        · congr 1
+          simp [PointedFunctor.eqToHom_toFunctor]
+        · simp [Cat.eqToHom_hom,PCat.eqToHom_hom]
+          refine (OneSidedEqToHom ?_ ?_).symm
+          refine (@HEq.trans _ _ _ _ ((F1.map f).point) _ ?_ ?_)
+          · apply cast_heq
+          · apply HEq.symm
+            apply cast_heq
       · have r := Functor.congr_hom Comm.symm f
         simp
         simp [PCat.forgetPoint] at r
@@ -493,6 +532,27 @@ theorem Grothendieck.eqToHom_base {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}(g1 g2 :
   (eq : g1 = g2) : (eqToHom eq).base = (eqToHom (congrArg (Grothendieck.forget A).obj eq)) := by
     cases eq
     simp[CategoryStruct.id]
+
+theorem Grothendieck.eqToHom_fiber_help {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}{g1 g2 : Grothendieck A}
+  (eq : g1 = g2) : (A.map (eqToHom eq).base).obj g1.fiber = g2.fiber := by
+    cases eq
+    simp [Hom.base,A.map_id,CategoryStruct.id]
+
+theorem Grothendieck.eqToHom_fiber {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}{g1 g2 : Grothendieck A}
+  (eq : g1 = g2) : (eqToHom eq).fiber = eqToHom (Grothendieck.eqToHom_fiber_help eq) := by
+    cases eq
+    simp[CategoryStruct.id]
+
+theorem CastEqToHomSolve {C : Type v} [Category C] {x x1 x2 y y1 y2: C} (eqx1 : x = x1)(eqx2 : x = x2)
+  (eqy1 : y1 = y)(eqy2 : y2 = y){f : x1 ⟶ y1}{g : x2 ⟶ y2}(heq : HEq f g) : eqToHom eqx1 ≫ f ≫ eqToHom eqy1 = eqToHom eqx2 ≫ g ≫ eqToHom eqy2:= by
+    cases eqx1
+    cases eqx2
+    cases eqy1
+    cases eqy2
+    simp
+    simp at heq
+    exact heq
+
 
 -- This is the proof that the universal map is unique
 theorem Grothendieck.UnivesalMap_Uniq {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u,u})(C : Cat.{u,u+1})
@@ -523,8 +583,16 @@ theorem Grothendieck.UnivesalMap_Uniq {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u,u})(C :
         have h := (PointedFunctor.congr_point ((Functor.congr_hom F1comm f)))
         simp at h
         rw [h]
-        simp [eqToHom_map]
-        sorry
+        simp [eqToHom_map,CategoryStruct.comp,PointedFunctor.eqToHom_point,Grothendieck.eqToHom_fiber,CastFunc,Cat.equivOfIso]
+        have hh : ∀{G1 G2 : Grothendieck A}(eq : G1 = G2), A.map (eqToHom eq).base = eqToHom ?_ := by
+          simp[Grothendieck.eqToHom_base,eqToHom_map]
+        · congr
+        simp [Functor.congr_hom (hh ?_),Cat.eqToHom_hom,PCat.eqToHom_hom]
+        refine CastEqToHomSolve _ _ _ _ ?_
+        apply @HEq.trans _ _ _ _ (F1.map f).point
+        · apply cast_heq
+        · apply HEq.symm
+          apply cast_heq
 
 -- This is the type of cones
 abbrev GrothendieckCones {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u,u}) := @CategoryTheory.Limits.PullbackCone
