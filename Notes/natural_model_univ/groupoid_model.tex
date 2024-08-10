@@ -886,7 +886,12 @@ which follows from the definitions of $\Pi$ and $\la$.
   and $\tp \triangleleft \tp$
   extracts the underlying type and dependent type $(A, B)$.
 
-  \[ Q \, \Ga \iso \{ (\be : \ga \to \ptgrpd, \al : \Ga \to \ptgrpd, B : \Ga \cdot U \circ \al \to \grpd) \st U \circ \be = \ev{\al}{\be} \}\]
+  \[ Q \, \Ga \iso
+    \{ (\be : \ga \to \ptgrpd, \al : \Ga \to \ptgrpd,
+      B : \Ga \cdot U \circ \al \to \grpd)
+      \st U \circ \be = \ev{\al}{\be}
+    \}
+  \]
 \end{prop}
 \begin{proof}
   Extending the diagram from \cref{dependent_pair_classifier}
@@ -942,10 +947,21 @@ which follows from the definitions of $\Pi$ and $\la$.
 
 \begin{defn}[Interpretation of $\Si$]
   We define the natural transformation
-  $\Si : \Poly{\tp} \Type \to \Type$
+  \[\Si : \Poly{\tp} \Type \to \Type\]
   as that which is induced (\cref{BC_iff_nat_trans}) by the $\Si$-former operation (\cref{pi_classifier_op}).
 
-  Define $\pair : Q \to \Term$ such that TODO.
+  Define $\pair : Q \to \Term$ such that for some $\Ga$
+  \begin{align*}
+    & Q \, \Ga \\
+    \iso &
+      \{ (\be : \ga \to \ptgrpd, \al : \Ga \to \ptgrpd,
+        B : \Ga \cdot U \circ \al \to \grpd) \st U \circ \be = \ev{\al}{\be} \}
+    \\
+    \to & [\Ga, \ptgrpd]
+  \end{align*}
+  where the arrow takes $(\be,\al,B)$ to the following functor:
+  on objects $x \in \Ga$, return $(\Si_{A} B \, x, (a_{x}, b_{a_{x}}))$
+  % where $\al \, x = (A x, a_{x})$ and $\be \, x = (B (x , a_{x}))$ this needs computation of $U \circ \be = \ev{\al}{B} !!$
 
   $\Si$ and $\pair$ combine to give us a pullback square
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJRIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcVHlwZX0iXSxbMSwwLCJcXFRlcm0iXSxbMSwxLCJcXFR5cGUiXSxbMCwxLCJcXHRwIFxcdHJpYW5nbGVsZWZ0IFxcdHAiLDJdLFswLDIsIlxccGFpciJdLFsyLDMsIlxcdHAiXSxbMSwzLCJcXFNpIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
