@@ -298,7 +298,7 @@ def forgetPoint : PGrpd ⥤ Grpd where
 
 end PGrpd
 
-end PointedCategorys
+end PointedCategories
 
 section Pullbacks
 /-
