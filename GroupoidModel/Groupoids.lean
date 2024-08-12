@@ -205,8 +205,6 @@ theorem PointedFunctor.ext {C : Type*}[pc :PointedCategory C]{D : Type*}[Pointed
           rfl).mp
       h_point
 
-
-
 /-- The category of pointed categorys and pointed functors-/
 def PCat.{w,z} :=
   Bundled PointedCategory.{w, z}
@@ -300,6 +298,7 @@ def forgetPoint : PGrpd ⥤ Grpd where
   obj x := Grpd.of x
   map f := f.toFunctor
 
+/-- This takes PGrpd to PCat-/
 def forgetToCat : PGrpd ⥤ PCat where
   obj x := PCat.of x
   map f := f
@@ -309,6 +308,99 @@ end PGrpd
 end PointedCategories
 
 section Pullbacks
+
+section Lemmas
+
+/--theorem PointedCategory.ext {P1 P2 : PCat.{u,u}} (eq_cat : P1.α  = P2.α): P1 = P2 := by sorry -/
+theorem PointedFunctor.eqToHom_toFunctor {P1 P2 : PCat.{u,u}} (eq : P1 = P2) : (eqToHom eq).toFunctor = (eqToHom (congrArg PCat.forgetPoint.obj eq)) := by
+    cases eq
+    simp[ PointedFunctor.id, CategoryStruct.id, PCat.forgetPoint,Cat.of,Bundled.of]
+
+/-- This is the proof of equality used in the eqToHom in `PointedFunctor.eqToHom_point` -/
+theorem PointedFunctor.eqToHom_point_help {P1 P2 : PCat.{u,u}} (eq : P1 = P2) : (eqToHom eq).obj PointedCategory.pt = PointedCategory.pt  := by
+  cases eq
+  simp [CategoryStruct.id]
+
+/-- This shows that the point of an eqToHom in PCat is an eqToHom-/
+theorem PointedFunctor.eqToHom_point {P1 P2 : PCat.{u,u}} (eq : P1 = P2) : (eqToHom eq).point = (eqToHom (PointedFunctor.eqToHom_point_help eq)) := by
+  cases eq
+  simp[PointedFunctor.id, CategoryStruct.id, PCat.forgetPoint,Cat.of,Bundled.of]
+
+/-- This is the turns the object part of eqToHom functors into a cast-/
+theorem Cat.eqToHom_obj (C1 C2 : Cat.{u,v})(x : C1)(eq : C1 = C2): (eqToHom eq).obj x = cast (congrArg Bundled.α eq) x := by
+  cases eq
+  simp[CategoryStruct.id]
+
+/-- This is the proof of equality used in the eqToHom in `Cat.eqToHom_hom` -/
+theorem Cat.eqToHom_hom_help {C1 C2 : Cat.{u,v}}(x y: C1)(eq : C1 = C2): (x ⟶ y) = ((eqToHom eq).obj x ⟶ (eqToHom eq).obj y) := by
+  cases eq
+  simp[CategoryStruct.id]
+
+/-- This is the turns the hom part of eqToHom functors into a cast-/
+theorem Cat.eqToHom_hom {C1 C2 : Cat.{u,v}}{x y: C1}(f : x ⟶ y)(eq : C1 = C2): (eqToHom eq).map f = (cast (Cat.eqToHom_hom_help x y eq) f) := by
+  cases eq
+  simp[CategoryStruct.id]
+
+/-- This is the proof of equality used in the eqToHom in `PCat.eqToHom_hom` -/
+theorem PCat.eqToHom_hom_help {C1 C2 : PCat.{u,v}}(x y: C1)(eq : C1 = C2): (x ⟶ y) = ((eqToHom eq).obj x ⟶ (eqToHom eq).obj y) := by
+  cases eq
+  simp[CategoryStruct.id]
+
+/-- This is the turns the hom part of eqToHom pointed functors into a cast-/
+theorem PCat.eqToHom_hom {C1 C2 : PCat.{u,v}}{x y: C1}(f : x ⟶ y)(eq : C1 = C2): (eqToHom eq).map f = (cast (PCat.eqToHom_hom_help x y eq) f) := by
+  cases eq
+  simp[CategoryStruct.id]
+
+/-- This shows that two objects are equal in Grothendieck A if they have equal bases and fibers that are equal after being cast-/
+theorem Grothendieck.ext' {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}(g1 g2 : Grothendieck A)(eq_base : g1.base = g2.base)
+  (eq_fiber : g1.fiber = (A.map (eqToHom eq_base.symm)).obj g2.fiber ) : (g1 = g2) := by
+    rcases g1 with ⟨g1.base,g1.fiber⟩
+    rcases g2 with ⟨g2.base,g2.fiber⟩
+    simp at eq_fiber eq_base
+    cases eq_base
+    simp
+    rw[eq_fiber]
+    simp [eqToHom_map, CategoryStruct.id]
+
+/-- This proves that base of an eqToHom morphism in the category Grothendieck A is an eqToHom morphism -/
+theorem Grothendieck.eqToHom_base {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}(g1 g2 : Grothendieck A)
+  (eq : g1 = g2) : (eqToHom eq).base = (eqToHom (congrArg (Grothendieck.forget A).obj eq)) := by
+    cases eq
+    simp[CategoryStruct.id]
+
+/-- This is the proof of equality used in the eqToHom in `Grothendieck.eqToHom_fiber` -/
+theorem Grothendieck.eqToHom_fiber_help {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}{g1 g2 : Grothendieck A}
+  (eq : g1 = g2) : (A.map (eqToHom eq).base).obj g1.fiber = g2.fiber := by
+    cases eq
+    simp [Hom.base,A.map_id,CategoryStruct.id]
+
+/-- This proves that fiber of an eqToHom morphism in the category Grothendieck A is an eqToHom morphism -/
+theorem Grothendieck.eqToHom_fiber {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}{g1 g2 : Grothendieck A}
+  (eq : g1 = g2) : (eqToHom eq).fiber = eqToHom (Grothendieck.eqToHom_fiber_help eq) := by
+    cases eq
+    simp[CategoryStruct.id]
+
+/-- This eliminates an eqToHom on the right side of an equality-/
+theorem RightSidedEqToHom {C : Type v} [Category C] {x y z : C} (eq : y = z) {f : x ⟶ y} {g : x ⟶ z}
+  (heq : HEq f g) : f ≫ eqToHom eq = g := by
+    cases eq
+    simp
+    simp at heq
+    exact heq
+
+/-- This theorem is used to eliminate eqToHom form both sides of an equation-/
+theorem CastEqToHomSolve {C : Type v} [Category C] {x x1 x2 y y1 y2: C} (eqx1 : x = x1)(eqx2 : x = x2)
+  (eqy1 : y1 = y)(eqy2 : y2 = y){f : x1 ⟶ y1}{g : x2 ⟶ y2}(heq : HEq f g) : eqToHom eqx1 ≫ f ≫ eqToHom eqy1 = eqToHom eqx2 ≫ g ≫ eqToHom eqy2:= by
+    cases eqx1
+    cases eqx2
+    cases eqy1
+    cases eqy2
+    simp
+    simp at heq
+    exact heq
+
+end Lemmas
+
 section GrothendieckPullBack
 /-
 In this section we prove that the following square is a PullBack
@@ -326,6 +418,7 @@ In this section we prove that the following square is a PullBack
 def CastFunc {C : Cat.{u,u+1}}{F1 : C ⥤ Cat.{u,u}}{F2 : C ⥤ Cat.{u,u}}(Comm : F1 = F2 )(x : C) :
   Equivalence (F1.obj x) (F2.obj x) := Cat.equivOfIso (eqToIso (Functor.congr_obj  Comm  x))
 
+-- This turns the cast functor in an eqToHom
 theorem CastFuncIsEqToHom {C : Cat.{u,u+1}} {F1 : C ⥤ Cat.{u,u}} {F2 : C ⥤ Cat.{u,u}} (Comm : F1 = F2 )(x : C):
   (CastFunc Comm x).functor = (eqToHom (Functor.congr_obj Comm x)) := by
     simp[CastFunc,Cat.equivOfIso]
@@ -429,46 +522,6 @@ def Grothendieck.UnivesalMap {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u,u})(C : Cat.{u,u
       rw [rwh1,rwh3]
       simp
 
---theorem PointedCategory.ext {P1 P2 : PCat.{u,u}} (eq_cat : P1.α  = P2.α): P1 = P2 := by sorry
-theorem PointedFunctor.eqToHom_toFunctor {P1 P2 : PCat.{u,u}} (eq : P1 = P2) : (eqToHom eq).toFunctor = (eqToHom (congrArg PCat.forgetPoint.obj eq)) := by
-    cases eq
-    simp[ PointedFunctor.id, CategoryStruct.id, PCat.forgetPoint,Cat.of,Bundled.of]
-
-theorem PointedFunctor.eqToHom_point_help {P1 P2 : PCat.{u,u}} (eq : P1 = P2) : (eqToHom eq).obj PointedCategory.pt = PointedCategory.pt  := by
-  cases eq
-  simp [CategoryStruct.id]
-
-theorem PointedFunctor.eqToHom_point {P1 P2 : PCat.{u,u}} (eq : P1 = P2) : (eqToHom eq).point = (eqToHom (PointedFunctor.eqToHom_point_help eq)) := by
-  cases eq
-  simp[PointedFunctor.id, CategoryStruct.id, PCat.forgetPoint,Cat.of,Bundled.of]
-
-theorem Cat.eqToHom_obj (C1 C2 : Cat.{u,v})(x : C1)(eq : C1 = C2): (eqToHom eq).obj x = cast (congrArg Bundled.α eq) x := by
-  cases eq
-  simp[CategoryStruct.id]
-
-theorem Cat.eqToHom_hom_help {C1 C2 : Cat.{u,v}}(x y: C1)(eq : C1 = C2): (x ⟶ y) = ((eqToHom eq).obj x ⟶ (eqToHom eq).obj y) := by
-  cases eq
-  simp[CategoryStruct.id]
-
-theorem Cat.eqToHom_hom {C1 C2 : Cat.{u,v}}{x y: C1}(f : x ⟶ y)(eq : C1 = C2): (eqToHom eq).map f = (cast (Cat.eqToHom_hom_help x y eq) f) := by
-  cases eq
-  simp[CategoryStruct.id]
-
-theorem PCat.eqToHom_hom_help {C1 C2 : PCat.{u,v}}(x y: C1)(eq : C1 = C2): (x ⟶ y) = ((eqToHom eq).obj x ⟶ (eqToHom eq).obj y) := by
-  cases eq
-  simp[CategoryStruct.id]
-
-theorem PCat.eqToHom_hom {C1 C2 : PCat.{u,v}}{x y: C1}(f : x ⟶ y)(eq : C1 = C2): (eqToHom eq).map f = (cast (PCat.eqToHom_hom_help x y eq) f) := by
-  cases eq
-  simp[CategoryStruct.id]
-
-theorem OneSidedEqToHom {C : Type v} [Category C] {x y z : C} (eq : y = z) {f : x ⟶ y} {g : x ⟶ z}
-  (heq : HEq f g) : f ≫ eqToHom eq = g := by
-    cases eq
-    simp
-    simp at heq
-    exact heq
-
 --This is the proof that the universal map composed with CatVar' is the the map F1
 theorem Grothendieck.UnivesalMap_CatVar'_Comm {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u,u})(C : Cat.{u,u+1})
   (F1 : C ⥤ PCat.{u,u})(F2 : C ⥤ Γ)(Comm : F1 ⋙ PCat.forgetPoint = F2 ⋙ A) : (Grothendieck.UnivesalMap A C F1 F2 Comm) ⋙ (CatVar' Γ A) = F1 := by
@@ -507,7 +560,7 @@ theorem Grothendieck.UnivesalMap_CatVar'_Comm {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u
         · congr 1
           simp [PointedFunctor.eqToHom_toFunctor]
         · simp [Cat.eqToHom_hom,PCat.eqToHom_hom]
-          refine (OneSidedEqToHom ?_ ?_).symm
+          refine (RightSidedEqToHom ?_ ?_).symm
           refine (@HEq.trans _ _ _ _ ((F1.map f).point) _ ?_ ?_)
           · apply cast_heq
           · apply HEq.symm
@@ -517,42 +570,6 @@ theorem Grothendieck.UnivesalMap_CatVar'_Comm {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u
         simp [PCat.forgetPoint] at r
         rw [r]
         simp [CategoryStruct.comp,PointedFunctor.comp,PointedFunctor.eqToHom_toFunctor]
-
-theorem Grothendieck.ext' {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}(g1 g2 : Grothendieck A)(eq_base : g1.base = g2.base)
-  (eq_fiber : g1.fiber = (A.map (eqToHom eq_base.symm)).obj g2.fiber ) : (g1 = g2) := by
-    rcases g1 with ⟨g1.base,g1.fiber⟩
-    rcases g2 with ⟨g2.base,g2.fiber⟩
-    simp at eq_fiber eq_base
-    cases eq_base
-    simp
-    rw[eq_fiber]
-    simp [eqToHom_map, CategoryStruct.id]
-
-theorem Grothendieck.eqToHom_base {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}(g1 g2 : Grothendieck A)
-  (eq : g1 = g2) : (eqToHom eq).base = (eqToHom (congrArg (Grothendieck.forget A).obj eq)) := by
-    cases eq
-    simp[CategoryStruct.id]
-
-theorem Grothendieck.eqToHom_fiber_help {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}{g1 g2 : Grothendieck A}
-  (eq : g1 = g2) : (A.map (eqToHom eq).base).obj g1.fiber = g2.fiber := by
-    cases eq
-    simp [Hom.base,A.map_id,CategoryStruct.id]
-
-theorem Grothendieck.eqToHom_fiber {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}{g1 g2 : Grothendieck A}
-  (eq : g1 = g2) : (eqToHom eq).fiber = eqToHom (Grothendieck.eqToHom_fiber_help eq) := by
-    cases eq
-    simp[CategoryStruct.id]
-
-theorem CastEqToHomSolve {C : Type v} [Category C] {x x1 x2 y y1 y2: C} (eqx1 : x = x1)(eqx2 : x = x2)
-  (eqy1 : y1 = y)(eqy2 : y2 = y){f : x1 ⟶ y1}{g : x2 ⟶ y2}(heq : HEq f g) : eqToHom eqx1 ≫ f ≫ eqToHom eqy1 = eqToHom eqx2 ≫ g ≫ eqToHom eqy2:= by
-    cases eqx1
-    cases eqx2
-    cases eqy1
-    cases eqy2
-    simp
-    simp at heq
-    exact heq
-
 
 -- This is the proof that the universal map is unique
 theorem Grothendieck.UnivesalMap_Uniq {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u,u})(C : Cat.{u,u+1})
@@ -649,8 +666,20 @@ theorem GrothendieckLimisPullBack {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u,u}) : @IsPu
 
 end GrothendieckPullBack
 section PointedPullBack
+/-
+In this section we prove that the following square is a PullBack
 
-def PComm : PGrpd.forgetToCat.{u,u} ⋙ PCat.forgetPoint.{u,u} = PGrpd.forgetPoint.{u,u} ⋙ Grpd.forgetToCat.{u,u} := by
+      PGrpd---PGrpd.forgetToCat--->PCat
+        |                           |
+        |                           |
+ PGrpd.forgetPoint           PCat.forgetPoint
+        |                           |
+        v                           v
+      Grpd----Grpd.forgetToCat---->Cat
+-/
+
+/-This is the proof that the diagram commutes-/
+theorem PComm : PGrpd.forgetToCat.{u,u} ⋙ PCat.forgetPoint.{u,u} = PGrpd.forgetPoint.{u,u} ⋙ Grpd.forgetToCat.{u,u} := by
   simp[PGrpd.forgetToCat,PCat.forgetPoint,PGrpd.forgetPoint,Grpd.forgetToCat,Functor.comp]
   congr
 
@@ -663,6 +692,7 @@ abbrev PointedCones := @CategoryTheory.Limits.PullbackCone
   PCat.forgetPoint.{u,u}
   (Grpd.forgetToCat)
 
+-- This is the cone we will show to be the limit
 abbrev PointedLim : PointedCones :=
   @Limits.PullbackCone.mk Cat.{u,u+1} _
     (Cat.of.{u,u+1} PCat.{u,u})
@@ -675,7 +705,8 @@ abbrev PointedLim : PointedCones :=
     PGrpd.forgetPoint
     PComm
 
-def Pointed.UnivesalMap_Uniq.func (C : Cat.{u,u+1}) (F1 : C ⥤ PCat.{u,u})(F2 : C ⥤ Grpd.{u,u})(Comm : F1 ⋙ PCat.forgetPoint = F2 ⋙ Grpd.forgetToCat) : C ⥤ PGrpd where
+/-- This is the construction of the universal map for the limit-/
+def Pointed.UnivesalMap (C : Cat.{u,u+1}) (F1 : C ⥤ PCat.{u,u})(F2 : C ⥤ Grpd.{u,u})(Comm : F1 ⋙ PCat.forgetPoint = F2 ⋙ Grpd.forgetToCat) : C ⥤ PGrpd where
   obj x := by
     fapply PGrpd.fromGrpd
     · exact F2.obj x
@@ -689,13 +720,17 @@ def Pointed.UnivesalMap_Uniq.func (C : Cat.{u,u+1}) (F1 : C ⥤ PCat.{u,u})(F2 :
     simp [Quiver.Hom]
     fconstructor
     · exact F2.map f
-    · sorry
-
-
+    · rename_i X Y
+      have r1 := (ForgetPointFunctor (F1.obj Y)).map ((F1.map f).point)
+      have r2 := (CastFunc Comm Y).functor.map r1
+      refine eqToHom ?A ≫ r2 ≫ eqToHom ?B
+      · sorry
+      · sorry
 
 def Pointed.UnivesalMap_Uniq (s : PointedCones) : s ⟶ PointedLim := by
   refine { hom := ?hom, w := ?w }
-
+  · sorry
+  · sorry
 
 def PointedLimisLim : Limits.IsLimit PointedLim := by
   refine Limits.PullbackCone.isLimitAux' PointedLim ?_
