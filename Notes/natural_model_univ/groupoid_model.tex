@@ -674,8 +674,8 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
   then we have a naturality square
 % https://q.uiver.app/#q=WzAsNixbMywwLCJcXFBvbHl7XFx0cH0gW1xcR2EsXFxjYXRDXSAiXSxbMywxLCJcXFBvbHl7XFx0cH0gW1xcRGUsXFxjYXRDXSAiXSxbMCwxLCJcXERlIl0sWzAsMCwiXFxHYSJdLFsyLDAsIlxcU2lfe0EgXFxpbiBbXFxHYSxcXGdycGRdfSAgW1xcR2EuQSxcXGNhdENdIl0sWzIsMSwiXFxTaV97QSBcXGluIFtcXERlLFxcZ3JwZF19ICBbXFxEZS5BLFxcY2F0Q10iXSxbMiwzLCJcXHNpIl0sWzAsMSwiXFxQb2x5e1xcdHB9ey0gXFxjaXJjIFxcc2l9IiwxXSxbNCwwLCJcXGlzbyJdLFs1LDEsIlxcaXNvIiwyXSxbNCw1LCIoLSBcXGNpcmMgXFxzaSwtIFxcY2lyYyBcXHNpX0EpIiwxXV0=
 \[\begin{tikzcd}
-	\Ga && {\Si_{A \in [\Ga,\grpd]}  [\Ga.A,\catC]} & {\Poly{\tp} [\Ga,\catC] } \\
-	\De && {\Si_{A \in [\De,\grpd]}  [\De.A,\catC]} & {\Poly{\tp} [\De,\catC] }
+	\Ga && {\Si_{A \in [\Ga,\grpd]}  [\Ga.A,\catC]} & {\Poly{\tp} \Type \, \Ga } \\
+	\De && {\Si_{A \in [\De,\grpd]}  [\De.A,\catC]} & {\Poly{\tp} \Type \, \De }
 	\arrow["\iso", from=1-3, to=1-4]
 	\arrow["{(- \circ \si,- \circ \si_A)}"{description}, from=1-3, to=2-3]
 	\arrow["{\Poly{\tp}{- \circ \si}}"{description}, from=1-4, to=2-4]
@@ -805,22 +805,61 @@ which follows from the definitions of $\Pi$ and $\la$.
 
 \medskip
 
-\begin{defn}[Evaluation]
-  Define the operation of evaluation $\ev{}{}$ to take
-  $\al : \Ga \to \ptgrpd$ and $B : \Ga \cdot U \circ \al \to \grpd$
-  and return $\ev{\al}{B} : \Ga \to \grpd$, described below.
- % https://q.uiver.app/#q=WzAsOCxbMiwxLCJcXFBvbHlfXFx0cCB7XFxUeXBlfSJdLFsyLDIsIlxcVHlwZSJdLFsxLDEsIlxcVGVybSBcXHRpbWVzX3tcXFR5cGV9IFxcUG9seV9cXHRwIFxcVHlwZSJdLFsxLDIsIlxcVG0iXSxbMCwyLCJcXFRlcm0gXFx0aW1lcyBcXFR5cGUiXSxbMCwzLCJcXFRlcm0iXSxbMSwzLCJcXHRlcm1pbmFsIl0sWzAsMCwiXFxHYSJdLFswLDEsIlxcdHBfKiBcXFRlcm1eKiBcXFR5cGUiXSxbMiwwXSxbMiwzXSxbMywxLCJcXHRwIiwyXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMiw0LCJcXGNvdW5pdCIsMV0sWzQsM10sWzQsNV0sWzUsNl0sWzMsNl0sWzQsNiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzcsMCwiXFxiZSIsMV0sWzcsMywiXFxhbCIsMSx7ImxhYmVsX3Bvc2l0aW9uIjoyMH1dLFs3LDUsIlxcZXZ7XFxhbH17Qn0iLDEseyJjdXJ2ZSI6NX1dLFs3LDIsIihcXGFsLFxcYmUpIiwxLHsibGFiZWxfcG9zaXRpb24iOjcwfV1d
+\begin{lemma}
+  Use $R$ to denote the fiber product
+  % https://q.uiver.app/#q=WzAsNCxbMSwwLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMSwxLCJcXFR5cGUiXSxbMCwwLCJSIl0sWzAsMSwiXFxUZXJtIl0sWzAsMSwiXFx0cF8qIFxcVGVybV4qIFxcVHlwZSJdLFsyLDAsIlxccmhvX1xcUG9seXt9Il0sWzIsMywiXFx0cF4qIFxcdHBfKiBcXFRlcm1eKiBcXFR5cGU9IFxccmhvX1xcVGVybSIsMl0sWzMsMSwiXFx0cCIsMl0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
+\[\begin{tikzcd}
+	R & {\Poly{\tp}{\Type}} \\
+	\Term & \Type
+	\arrow["{\rho_{\Poly{}}}", from=1-1, to=1-2]
+	\arrow["{\tp^* \tp_* \Term^* \Type = \rho_\Term}"', from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow["{\tp_* \Term^* \Type}", from=1-2, to=2-2]
+	\arrow["\tp"', from=2-1, to=2-2]
+\end{tikzcd}\]
+
+  Then a map from a respresentable $\ep : \Ga \to R$
+  consists of the data $\al : \Ga \to \ptgrpd$ and $B : \Ga \cdot U \circ \al \to \grpd$.
+  By the universal property of pullbacks,
+  the data of $\ep = (\al, B)$ corresponds to the data of
+  $\al : \Ga \to \Term$ and $(U \circ \al,B) : \Ga \to \Poly{\tp}{\Type}$.
+  and by \cref{tp_classifies} this corresponds to
+  $\al : \Ga \to \Term$ and $B : \Ga \cdot U \circ \al \to \Type$.
+  % https://q.uiver.app/#q=WzAsNSxbMiwxLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMiwyLCJcXFR5cGUiXSxbMSwxLCJSIl0sWzEsMiwiXFxUZXJtIl0sWzAsMCwiXFxHYSJdLFswLDEsIlxcdHBfKiBcXFRlcm1eKiBcXFR5cGUiXSxbMiwwLCJcXHJob19cXFBvbHl7fSJdLFsyLDMsIlxcdHBeKiBcXHRwXyogXFxUZXJtXiogXFxUeXBlPSBcXHJob19cXFRlcm0iLDJdLFszLDEsIlxcdHAiLDJdLFsyLDEsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs0LDAsIihVIFxcY2lyYyBcXGFsLEIpIl0sWzQsMywiXFxhbCIsMl0sWzQsMiwiKFxcYWwsQikiLDFdXQ==
 \[\begin{tikzcd}
 	\Ga \\
-	& {\Term \times_{\Type} \Poly{\tp} \Type} & {\Poly{\tp} {\Type}} \\
+	& R & {\Poly{\tp} {\Type}} \\
+	& \Term & \Type
+	\arrow["{(\al,B)}"{description}, from=1-1, to=2-2]
+	\arrow["{(U \circ \al,B)}", bend left, from=1-1, to=2-3]
+	\arrow["\al"', bend right, from=1-1, to=3-2]
+	\arrow["{\rho_{\Poly{}}}", from=2-2, to=2-3]
+	\arrow["{\rho_\Term}"', from=2-2, to=3-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+	\arrow["{\tp_* \Term^* \Type}", from=2-3, to=3-3]
+	\arrow["\tp"', from=3-2, to=3-3]
+\end{tikzcd}\]
+\end{lemma}
+
+\medskip
+
+\begin{defn}[Evaluation]
+  Define the operation of evaluation $\ev{\al}{B}$ to take
+  $\al : \Ga \to \ptgrpd$ and $B : \Ga \cdot U \circ \al \to \grpd$
+  and return $\ev{\al}{B} : \Ga \to \grpd$, described below.
+% https://q.uiver.app/#q=WzAsOCxbMiwxLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMiwyLCJcXFR5cGUiXSxbMSwxLCJSIl0sWzEsMiwiXFxUZXJtIl0sWzAsMiwiXFxUZXJtIFxcdGltZXMgXFxUeXBlIl0sWzAsMywiXFxUZXJtIl0sWzEsMywiXFx0ZXJtaW5hbCJdLFswLDAsIlxcR2EiXSxbMCwxLCJcXHRwXyogXFxUZXJtXiogXFxUeXBlIl0sWzIsMF0sWzIsM10sWzMsMSwiXFx0cCIsMl0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzIsNCwiXFxjb3VuaXQiLDFdLFs0LDNdLFs0LDVdLFs1LDZdLFszLDZdLFs0LDYsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs3LDAsIihBLEIpIiwxXSxbNywzLCJcXGFsIiwxLHsibGFiZWxfcG9zaXRpb24iOjIwfV0sWzcsNSwiXFxldntcXGFsfXtCfSIsMSx7ImN1cnZlIjo1LCJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNywyLCIoXFxhbCxCKSIsMSx7ImxhYmVsX3Bvc2l0aW9uIjo3MH1dLFs3LDQsIihcXGV2e1xcYWx9e0J9LFxcYWwpIiwxLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
+\[\begin{tikzcd}
+	\Ga \\
+	& R & {\Poly{\tp}{\Type}} \\
 	{\Term \times \Type} & \Term & \Type \\
 	\Type & \terminal
-	\arrow["{(\al,\be)}"{description, pos=0.7}, from=1-1, to=2-2]
-	\arrow["\be"{description}, bend left, from=1-1, to=2-3]
+	\arrow["{(\al,B)}"{description, pos=0.7}, from=1-1, to=2-2]
+	\arrow["{(A,B)}"{description}, bend left, from=1-1, to=2-3]
+	\arrow["{(\ev{\al}{B},\al)}"{description}, dashed, from=1-1, to=3-1]
 	\arrow["\al"{description, pos=0.2}, from=1-1, to=3-2]
-	\arrow["{\ev{\al}{B}}"{description}, dashed, bend right = 50, from=1-1, to=4-1]
+	\arrow["{\ev{\al}{B}}"{description}, bend right = 50, dashed, from=1-1, to=4-1]
 	\arrow[from=2-2, to=2-3]
-	\arrow["\counit"{description}, from=2-2, to=3-1]
+	\arrow["\counit"{description, pos=0.7}, from=2-2, to=3-1]
 	\arrow[from=2-2, to=3-2]
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
 	\arrow["{\tp_* \Term^* \Type}", from=2-3, to=3-3]
@@ -831,19 +870,11 @@ which follows from the definitions of $\Pi$ and $\la$.
 	\arrow[from=3-2, to=4-2]
 	\arrow[from=4-1, to=4-2]
 \end{tikzcd}\]
-  The input data corresponds to
-  $\al : \Ga \to \Term$ and
-  and some $\be : \Ga \to \Poly{\tp}{\Type}$ such that
-  \[\tp_{*}\Term^{*} \Type \circ \be = \tp \circ \al\]
-  This in turn corresponds to a map into the fiber product
-  \[(\al, \be) : \Ga \to \tp \times_{\Type} \tp_{*}\Term^{*} \Type\]
-  We then compose this the counit of the adjunction $\tp^{*} \dashv \tp_{*}$
-  to get
-  \[\counit \circ (\al, \be) : \Ga \to \tp \times_{\Type} \tp_{*} \Type\]
-  then extract the type by composing with the projection to $\Type$
-  \[\pi_{\Type} \circ \counit \circ (\al, \be) : \Ga \to \Type\]
-  Finally, this corresponds to a unique map
-  $\ev{\al}{B} : \Ga \to \grpd$.
+where we write $A := U \circ \al$ and treat a map
+$\Ga \to \grpd$
+as the same
+as a map
+$\Ga \to \Type$.
 \end{defn}
 
 \medskip
@@ -851,16 +882,16 @@ which follows from the definitions of $\Pi$ and $\la$.
 \begin{defn}[Classifier for dependent pairs]\label{dependent_pair_classifier}
   Recall the following definition of composition of polynomial endofunctors,
   specialized to our situation
-% https://q.uiver.app/#q=WzAsMTEsWzMsMCwiXFxQb2x5e1xcdHB9IHtcXFR5cGV9Il0sWzMsMSwiXFxUeXBlIl0sWzIsMF0sWzIsMSwiXFxUZXJtIl0sWzEsMSwiXFxUZXJtIFxcdGltZXMgXFxUeXBlIl0sWzEsMiwiXFxUeXBlIl0sWzIsMiwiXFx0ZXJtaW5hbCJdLFswLDEsIlxcVGVybSBcXHRpbWVzIFxcVGVybSJdLFswLDIsIlxcVGVybSJdLFsxLDBdLFswLDAsIlEiXSxbMCwxLCJcXHRwXyogXFxUZXJtXiogXFxUeXBlIl0sWzIsMF0sWzIsM10sWzMsMSwiXFx0cCIsMl0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzQsM10sWzQsNV0sWzUsNl0sWzMsNl0sWzQsNiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzcsNF0sWzcsOF0sWzgsNSwiXFx0cCIsMl0sWzcsNSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzEwLDddLFsxMCw0LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbOSwyLCJcXFRlcm0gXFx0aW1lc197XFxUeXBlfSBcXFBvbHl7XFx0cH0gXFxUeXBlIiwxLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoibm9uZSJ9LCJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzEwLDldLFs5LDQsIlxcY291bml0IiwxXSxbMTAsMCwiXFx0cCBcXHRyaWFuZ2xlbGVmdCBcXHRwIiwxLHsiY3VydmUiOi0zfV1d
+% https://q.uiver.app/#q=WzAsMTEsWzMsMCwiXFxQb2x5e1xcdHB9IHtcXFR5cGV9Il0sWzMsMSwiXFxUeXBlIl0sWzIsMCwiUiJdLFsyLDEsIlxcVGVybSJdLFsxLDEsIlxcVGVybSBcXHRpbWVzIFxcVHlwZSJdLFsxLDIsIlxcVHlwZSJdLFsyLDIsIlxcdGVybWluYWwiXSxbMCwxLCJcXFRlcm0gXFx0aW1lcyBcXFRlcm0iXSxbMCwyLCJcXFRlcm0iXSxbMSwwLCJSIl0sWzAsMCwiUSJdLFswLDEsIlxcdHBfKiBcXFRlcm1eKiBcXFR5cGUiXSxbMiwwXSxbMiwzXSxbMywxLCJcXHRwIiwyXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwzXSxbNCw1XSxbNSw2XSxbMyw2XSxbNCw2LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNyw0XSxbNyw4XSxbOCw1LCJcXHRwIiwyXSxbNyw1LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMTAsN10sWzEwLDQsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs5LDIsIiIsMSx7ImxldmVsIjoyLCJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzEwLDldLFs5LDQsIlxcY291bml0IiwxXSxbMTAsMCwiXFx0cCBcXHRyaWFuZ2xlbGVmdCBcXHRwIiwxLHsiY3VydmUiOi0zfV1d
 \[\begin{tikzcd}
-	Q & {} & {} & {\Poly{\tp} {\Type}} \\
+	Q & R & R & {\Poly{\tp} {\Type}} \\
 	{\Term \times \Term} & {\Term \times \Type} & \Term & \Type \\
 	\Term & \Type & \terminal
 	\arrow[from=1-1, to=1-2]
 	\arrow["{\tp \triangleleft \tp}"{description}, bend left, from=1-1, to=1-4]
 	\arrow[from=1-1, to=2-1]
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
-	\arrow["{\Term \times_{\Type} \Poly{\tp} \Type}"{description}, draw=none, from=1-2, to=1-3]
+	\arrow[Rightarrow, no head, from=1-2, to=1-3]
 	\arrow["\counit"{description}, from=1-2, to=2-2]
 	\arrow[from=1-3, to=1-4]
 	\arrow[from=1-3, to=2-3]
@@ -877,38 +908,23 @@ which follows from the definitions of $\Pi$ and $\la$.
 	\arrow["\tp"', from=3-1, to=3-2]
 	\arrow[from=3-2, to=3-3]
 \end{tikzcd}\]
-\end{defn}
 
-\medskip
-
-\begin{prop}
-  $Q$ classifies the data of a pair of dependent terms $(a, b)$,
-  and $\tp \triangleleft \tp$
-  extracts the underlying type and dependent type $(A, B)$.
-
-  \[ Q \, \Ga \iso
-    \{ (\be : \ga \to \ptgrpd, \al : \Ga \to \ptgrpd,
-      B : \Ga \cdot U \circ \al \to \grpd)
-      \st U \circ \be = \ev{\al}{\be}
-    \}
-  \]
-\end{prop}
-\begin{proof}
-  Extending the diagram from \cref{dependent_pair_classifier}
-  % https://q.uiver.app/#q=WzAsMTIsWzQsMSwiXFxQb2x5e1xcdHB9IHtcXFR5cGV9Il0sWzQsMiwiXFxUeXBlIl0sWzMsMV0sWzMsMiwiXFxUZXJtIl0sWzIsMiwiXFxUZXJtIFxcdGltZXMgXFxUeXBlIl0sWzIsMywiXFxUeXBlIl0sWzMsMywiXFx0ZXJtaW5hbCJdLFsxLDIsIlxcVGVybSBcXHRpbWVzIFxcVGVybSJdLFsxLDMsIlxcVGVybSJdLFsyLDFdLFsxLDEsIlEiXSxbMCwwLCJcXEdhIl0sWzAsMSwiXFx0cF8qIFxcVGVybV4qIFxcVHlwZSJdLFsyLDBdLFsyLDNdLFszLDEsIlxcdHAiLDJdLFsyLDEsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs0LDNdLFs0LDVdLFs1LDZdLFszLDZdLFs0LDYsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs3LDRdLFs3LDhdLFs4LDUsIlxcdHAiLDJdLFs3LDUsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFsxMCw3XSxbMTAsNCwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzksMiwiXFxUZXJtIFxcdGltZXNfe1xcVHlwZX0gXFxQb2x5e1xcdHB9IFxcVHlwZSIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6Im5vbmUifSwiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dLFsxMCw5XSxbOSw0LCJcXGNvdW5pdCIsMV0sWzExLDgsIlxcYmUiLDJdLFsxMSwxMCwiXFxlcCIsMV0sWzExLDAsIlxcZ2EiLDFdLFsxMSwzLCJcXGFsIiwxLHsibGFiZWxfcG9zaXRpb24iOjIwfV0sWzExLDI4LCJcXGxhbmdsZSBcXGFsICwgXFxnYSBcXHJhbmdsZSIsMSx7InNob3J0ZW4iOnsidGFyZ2V0IjoyMH0sImxldmVsIjoxfV1d
+  By the universal property of pullbacks,
+  a data of a map with representable domain $\ep : \Ga \to Q$ corresponds to the
+  data of a triple of maps $\al, \be : \Ga \to \Term$
+  and $(A,B) : \Ga \to \Poly{\tp} \Type$ such that
+  $\tp \circ \be = \pi_{\Type} \circ \counit \circ (\al, B)$
+  and $A = \tp \circ \al$.
+% https://q.uiver.app/#q=WzAsMTIsWzQsMSwiXFxQb2x5e1xcdHB9IHtcXFR5cGV9Il0sWzQsMiwiXFxUeXBlIl0sWzMsMSwiUiJdLFszLDIsIlxcVGVybSJdLFsyLDIsIlxcVGVybSBcXHRpbWVzIFxcVHlwZSJdLFsyLDMsIlxcVHlwZSJdLFszLDMsIlxcdGVybWluYWwiXSxbMSwyLCJcXFRlcm0gXFx0aW1lcyBcXFRlcm0iXSxbMSwzLCJcXFRlcm0iXSxbMiwxLCJSIl0sWzEsMSwiUSJdLFswLDAsIlxcR2EiXSxbMCwxLCJcXHRwXyogXFxUZXJtXiogXFxUeXBlIl0sWzIsMF0sWzIsM10sWzMsMSwiXFx0cCIsMl0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzQsM10sWzQsNV0sWzUsNl0sWzMsNl0sWzQsNiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzcsNF0sWzcsOF0sWzgsNSwiXFx0cCIsMl0sWzcsNSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzEwLDddLFsxMCw0LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbOSwyLCIiLDEseyJsZXZlbCI6Miwic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dLFsxMCw5XSxbOSw0LCJcXGNvdW5pdCIsMV0sWzExLDgsIlxcYmUiLDJdLFsxMSwxMCwiXFxlcCIsMV0sWzExLDAsIlxcZ2EiLDFdLFsxMSwzLCJcXGFsIiwxLHsibGFiZWxfcG9zaXRpb24iOjIwfV0sWzExLDI4LCJcXGxhbmdsZSBcXGFsICwgXFxnYSBcXHJhbmdsZSIsMSx7InNob3J0ZW4iOnsidGFyZ2V0IjoyMH0sImxldmVsIjoxfV1d
 \[\begin{tikzcd}
 	\Ga \\
-	& Q & {} & {} & {\Poly{\tp} {\Type}} \\
+	& Q & R & R & {\Poly{\tp} {\Type}} \\
 	& {\Term \times \Term} & {\Term \times \Type} & \Term & \Type \\
 	& \Term & \Type & \terminal
-	\arrow["\ep"{description}, from=1-1, to=2-2]
-	\arrow["\ga"{description}, bend left, from=1-1, to=2-5]
-	\arrow["\al"{description, pos=0.2}, bend left = 20, from=1-1, to=3-4]
-	\arrow["\be"', from=1-1, bend right, to=4-2]
 	\arrow[from=2-2, to=2-3]
 	\arrow[from=2-2, to=3-2]
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
-	\arrow[""{name=0, anchor=center, inner sep=0}, "{\Term \times_{\Type} \Poly{\tp} \Type}"{description}, draw=none, from=2-3, to=2-4]
+	\arrow[""{name=0, anchor=center, inner sep=0}, Rightarrow, no head, from=2-3, to=2-4]
 	\arrow["\counit"{description}, from=2-3, to=3-3]
 	\arrow[from=2-4, to=2-5]
 	\arrow[from=2-4, to=3-4]
@@ -924,24 +940,27 @@ which follows from the definitions of $\Pi$ and $\la$.
 	\arrow[from=3-4, to=4-4]
 	\arrow["\tp"', from=4-2, to=4-3]
 	\arrow[from=4-3, to=4-4]
-	\arrow["{\langle \al , \ga \rangle}"{description}, bend left, shorten >=28pt, from=1-1, to=0]
+	\arrow["\ep"{description}, from=1-1, to=2-2]
+	\arrow["{(A,B)}"{description}, bend left, from=1-1, to=2-5]
+	\arrow["\al"{description, pos=0.2}, bend left = 10, from=1-1, to=3-4]
+	\arrow["\be"', from=1-1, bend right, to=4-2]
+	\arrow["{( \al , B ) }"{description}, bend left = 25, from=1-1, to=2-3]
 \end{tikzcd}\]
-  By the universal property of pullbacks,
-  a data of a map with representable domain $\ep : \Ga \to Q$ corresponds to the
-  data of a triple of maps $\al, \be : \Ga \to \Term$
-  and $\ga : \Ga \to \Poly{\tp} \Type$ such that $\tp \circ \be = \pi_{\Type} \circ \counit \circ \langle \al, \ga \rangle$
-  and $\tp_{*}\Term^{*}\Type \circ \ga= \tp \circ \al$.
+
 
   This in turn corresponds to three functors $\al, \be : \Ga \to \ptgrpd$ and
   $B : \Ga \cdot U \circ \al \to \grpd$,
   such that $U \circ \be = \ev{\al} B$.
+  So we will write
+  \[\ep = (\be, \al, B)\]
+ 
   Type theoretically $\al = (A , a : A)$ and $\ev{\al} B = B a$ and
   $\be = (B a, b : B a)$.
   Then composing $\ep$ with $\tp \triangleleft \tp$ returns $\ga$,
   which consists of $(A, B)$.
   It is in this sense that $Q$ classifies pairs of dependent terms,
   and $\tp \triangleleft \tp$ extracts the underlying types.
-\end{proof}
+\end{defn}
 
 \medskip
 
