@@ -805,7 +805,7 @@ which follows from the definitions of $\Pi$ and $\la$.
 
 \medskip
 
-\begin{lemma}
+\begin{lemma}\label{R_classifies}
   Use $R$ to denote the fiber product
   % https://q.uiver.app/#q=WzAsNCxbMSwwLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMSwxLCJcXFR5cGUiXSxbMCwwLCJSIl0sWzAsMSwiXFxUZXJtIl0sWzAsMSwiXFx0cF8qIFxcVGVybV4qIFxcVHlwZSJdLFsyLDAsIlxccmhvX1xcUG9seXt9Il0sWzIsMywiXFx0cF4qIFxcdHBfKiBcXFRlcm1eKiBcXFR5cGU9IFxccmhvX1xcVGVybSIsMl0sWzMsMSwiXFx0cCIsMl0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
 \[\begin{tikzcd}
@@ -818,12 +818,11 @@ which follows from the definitions of $\Pi$ and $\la$.
 	\arrow["\tp"', from=2-1, to=2-2]
 \end{tikzcd}\]
 
-  Then a map from a respresentable $\ep : \Ga \to R$
-  consists of the data $\al : \Ga \to \ptgrpd$ and $B : \Ga \cdot U \circ \al \to \grpd$.
   By the universal property of pullbacks,
-  the data of $\ep = (\al, B)$ corresponds to the data of
+  The data of a map from a respresentable $\ep : \Ga \to R$
+  corresponds to the data of
   $\al : \Ga \to \Term$ and $(U \circ \al,B) : \Ga \to \Poly{\tp}{\Type}$.
-  and by \cref{tp_classifies} this corresponds to
+  Then by \cref{tp_classifies} this corresponds to the data of
   $\al : \Ga \to \Term$ and $B : \Ga \cdot U \circ \al \to \Type$.
   % https://q.uiver.app/#q=WzAsNSxbMiwxLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMiwyLCJcXFR5cGUiXSxbMSwxLCJSIl0sWzEsMiwiXFxUZXJtIl0sWzAsMCwiXFxHYSJdLFswLDEsIlxcdHBfKiBcXFRlcm1eKiBcXFR5cGUiXSxbMiwwLCJcXHJob19cXFBvbHl7fSJdLFsyLDMsIlxcdHBeKiBcXHRwXyogXFxUZXJtXiogXFxUeXBlPSBcXHJob19cXFRlcm0iLDJdLFszLDEsIlxcdHAiLDJdLFsyLDEsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs0LDAsIihVIFxcY2lyYyBcXGFsLEIpIl0sWzQsMywiXFxhbCIsMl0sWzQsMiwiKFxcYWwsQikiLDFdXQ==
 \[\begin{tikzcd}
@@ -831,7 +830,7 @@ which follows from the definitions of $\Pi$ and $\la$.
 	& R & {\Poly{\tp} {\Type}} \\
 	& \Term & \Type
 	\arrow["{(\al,B)}"{description}, from=1-1, to=2-2]
-	\arrow["{(U \circ \al,B)}", bend left, from=1-1, to=2-3]
+	\arrow["{(U \circ \al,B)}"{description}, bend left, from=1-1, to=2-3]
 	\arrow["\al"', bend right, from=1-1, to=3-2]
 	\arrow["{\rho_{\Poly{}}}", from=2-2, to=2-3]
 	\arrow["{\rho_\Term}"', from=2-2, to=3-2]
@@ -839,6 +838,9 @@ which follows from the definitions of $\Pi$ and $\la$.
 	\arrow["{\tp_* \Term^* \Type}", from=2-3, to=3-3]
 	\arrow["\tp"', from=3-2, to=3-3]
 \end{tikzcd}\]
+
+  Precomposition by a substitution $\si : \De \to \Ga$ then act on such a pair by
+  \[ (\al, B) \mapsto (\al \circ \si, B \circ \si_{U \circ \al})\]
 \end{lemma}
 
 \medskip
@@ -851,11 +853,11 @@ which follows from the definitions of $\Pi$ and $\la$.
 \[\begin{tikzcd}
 	\Ga \\
 	& R & {\Poly{\tp}{\Type}} \\
-	{\Term \times \Type} & \Term & \Type \\
+	{\Type \times \Term} & \Term & \Type \\
 	\Type & \terminal
 	\arrow["{(\al,B)}"{description, pos=0.7}, from=1-1, to=2-2]
 	\arrow["{(A,B)}"{description}, bend left, from=1-1, to=2-3]
-	\arrow["{(\ev{\al}{B},\al)}"{description}, dashed, from=1-1, to=3-1]
+	\arrow["{(\ev{\al}{B}, \al)}"{description}, dashed, from=1-1, to=3-1]
 	\arrow["\al"{description, pos=0.2}, from=1-1, to=3-2]
 	\arrow["{\ev{\al}{B}}"{description}, bend right = 50, dashed, from=1-1, to=4-1]
 	\arrow[from=2-2, to=2-3]
@@ -870,12 +872,122 @@ which follows from the definitions of $\Pi$ and $\la$.
 	\arrow[from=3-2, to=4-2]
 	\arrow[from=4-1, to=4-2]
 \end{tikzcd}\]
-where we write $A := U \circ \al$ and treat a map
-$\Ga \to \grpd$
-as the same
-as a map
-$\Ga \to \Type$.
+  where we write $A := U \circ \al$ and treat a map
+  $\Ga \to \grpd$
+  as the same
+  as a map
+  $\Ga \to \Type$.
+
+  More concisely, evaluation is a natural transformation $\ev{}{} : R \to \Type$, given by
+  \[ \ev{}{} = \pi_{\Type} \circ \counit \]
 \end{defn}
+
+\medskip
+
+\begin{lemma}\label{evaluation_computation}
+  The functor $\ev{\al}{B} : \Ga \to \grpd$ can be computed as
+  \[ \ev{\al}{B} = B \circ a \]
+  where
+  % https://q.uiver.app/#q=WzAsNSxbMiwyLCJcXGdycGQiXSxbMiwxLCJcXHB0Z3JwZCJdLFsxLDIsIlxcR2EiXSxbMSwxLCJcXEdhIFxcY2RvdCBBIl0sWzAsMCwiXFxHYSJdLFsxLDBdLFsyLDAsIkEiLDJdLFszLDIsIlxcZGlzcHtBfSIsMl0sWzMsMV0sWzQsMiwiIiwwLHsibGV2ZWwiOjIsInN0eWxlIjp7ImhlYWQiOnsibmFtZSI6Im5vbmUifX19XSxbNCwxLCJcXGFsIl0sWzQsMywiYSIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFszLDAsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
+\[\begin{tikzcd}
+	\Ga \\
+	& {\Ga \cdot A} & \ptgrpd \\
+	& \Ga & \grpd
+	\arrow["a"{description}, dashed, from=1-1, to=2-2]
+	\arrow["\al", bend left, from=1-1, to=2-3]
+	\arrow[Rightarrow, no head, bend right, from=1-1, to=3-2]
+	\arrow[from=2-2, to=2-3]
+	\arrow["{\disp{A}}"', from=2-2, to=3-2]
+	\arrow[from=2-3, to=3-3]
+	\arrow["A"', from=3-2, to=3-3]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+\end{tikzcd}\]
+\end{lemma}
+\begin{proof}
+  Since $\counit = (\ev{}{}, \rho_{\Term}) : R \to \Type$,
+  it suffices to find out how the counit computes.
+  The adjunction $\tp^{*} \dashv \tp_{*}$
+  suggests that we use the way
+  \[ \widetilde{\counit} = \id_{\Poly{\tp}\Type}\]
+  computes. Namely for any $A : \Ga \to \grpd$ and $B : \Ga \cdot A \to \grpd$
+  \begin{equation}
+    \widetilde{\counit} \circ (A, B) = (A, B) : \Ga \to \Poly{\tp}\Type
+    \label{evaluation_computation_equation1}
+  \end{equation}
+
+  Working on both sides of \cref{evaluation_computation_equation1} we get
+  \begin{align*}
+    & (\ev{\var_{A}}{B} \circ U^{*}\disp{A}, \var_{A}) \\
+    = \, & (\ev{}{}, \rho_{\Type}) \circ (\var_{A}, B \circ U^{*}(\disp{A})) \\
+    = \, & (\ev{}{}, \rho_{\Type}) \circ \tp^{*} (A, B)
+         & \cref{evaluation_computation_diagram1} \\
+    = \, & \counit \circ \tp^{*} (A, B) \\
+    = \, & \overline{\widetilde{\counit} \circ (A, B)} \\
+    = \, & \overline{(A, B)} \\
+    = \, & (B, \var_{A})
+  \end{align*}
+  Hence we know that evaluation of $B$
+  (weakened to the context $\Ga \cdot A \cdot A$)
+  on a variable of type $A$
+  is just $B$.
+  \[ \ev{\var_{A}}{B} \circ U^{*}\disp{A} = B\]
+  % diagrams TODO
+
+  Then the naturality square for the natural transformation
+  $\ev{}{} : R \to \Type$ on $a : \Ga \to \Ga \cdot A$
+  tells us that
+  \begin{align*}
+    & \ev{\al}{B} \\
+    = \, & \ev{\Ga}{} (\al, B) \\
+    = \, & \ev{\Ga}{} (\var_{A} \circ a, B \circ \U^{*} (\id_{\Ga}) \\
+    = \, & \ev{\Ga}{} (\var_{A} \circ a, B \circ \U^{*} (\disp{A} \circ a)) \\
+    = \, & \ev{\Ga}{} (\var_{A} \circ a, B \circ \U^{*} \disp{A} \circ U^{*} a) \\
+    = \, & \ev{\Ga}{} ((\var_{A}, B \circ \U^{*} \disp{A}) \circ a) \\
+    = \, & (\ev{\Ga \cdot A}{} (\var_{A}, B \circ \U^{*} \disp{A}) \circ a
+         & \text{by naturality}\\
+    = \, & (\ev{\var_{A}}{B \circ \U^{*} \disp{A}}) \circ a \\
+    = \, & B \circ a
+  \end{align*}
+
+
+ \begin{figure}
+\centering
+\begin{subfigure}{.5\textwidth}
+  \centering
+% https://q.uiver.app/#q=WzAsNixbMSwxLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMSwyLCJcXFR5cGUiXSxbMCwxLCJSIl0sWzAsMiwiXFxUZXJtIl0sWzEsMCwiXFxHYSJdLFswLDAsIlxcR2EgXFxjZG90IEEiXSxbMCwxLCJcXHRwXyogXFxUZXJtXiogXFxUeXBlIiwxXSxbMiwwLCJcXHJob197XFxQb2x5e319Il0sWzIsMywiXFxyaG9fXFxUZXJtIiwxXSxbMywxLCJcXHRwIiwyXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwwLCIoQSxCKSIsMV0sWzUsNCwiXFxkaXNwe0F9Il0sWzUsMiwiXFx0cF4qKEEsQikiLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNSwzLCJcXHZhcl9BIiwyLHsiY3VydmUiOjR9XSxbNCwxLCJBIiwwLHsiY3VydmUiOi00fV1d
+\begin{tikzcd}
+	{\Ga \cdot A} & \Ga \\
+	R & {\Poly{\tp} {\Type}} \\
+	\Term & \Type
+	\arrow["{\disp{A}}", from=1-1, to=1-2]
+	\arrow["{\tp^*(A,B)}"{description}, dashed, from=1-1, to=2-1]
+	\arrow["{\var_A}"', bend right = 60, from=1-1, to=3-1]
+	\arrow["{(A,B)}"{description}, from=1-2, to=2-2]
+	\arrow["A", bend left = 60, from=1-2, to=3-2]
+	\arrow["{\rho_{\Poly{}}}", from=2-1, to=2-2]
+	\arrow["{\rho_\Term}"{description}, from=2-1, to=3-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-1, to=3-2]
+	\arrow["{\tp_* \Term^* \Type}"{description}, from=2-2, to=3-2]
+	\arrow["\tp"', from=3-1, to=3-2]
+\end{tikzcd}
+  \caption{$\tp^{*}(A,B)$}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+      \begin{align*}
+        & \rho_{\Poly{}} \circ \tp^*(A,B) \\
+        = \, & (A, B) \circ \disp{A} \\
+        = \, & (A \circ \disp{A}, B \circ U^{*}\disp{A}) \\
+        \text{Hence}
+      \end{align*}
+  \caption{$\tp^{*}(A,B) = (\var_{A}, B \circ U^{*}\disp{A})$}
+  \label{evaluation_computation_diagram1}
+\end{subfigure}
+\end{figure}
+  % (\var_{A}, B \circ \tp^* \disp_A)
+
+ 
+\end{proof}
 
 \medskip
 
@@ -885,7 +997,7 @@ $\Ga \to \Type$.
 % https://q.uiver.app/#q=WzAsMTEsWzMsMCwiXFxQb2x5e1xcdHB9IHtcXFR5cGV9Il0sWzMsMSwiXFxUeXBlIl0sWzIsMCwiUiJdLFsyLDEsIlxcVGVybSJdLFsxLDEsIlxcVGVybSBcXHRpbWVzIFxcVHlwZSJdLFsxLDIsIlxcVHlwZSJdLFsyLDIsIlxcdGVybWluYWwiXSxbMCwxLCJcXFRlcm0gXFx0aW1lcyBcXFRlcm0iXSxbMCwyLCJcXFRlcm0iXSxbMSwwLCJSIl0sWzAsMCwiUSJdLFswLDEsIlxcdHBfKiBcXFRlcm1eKiBcXFR5cGUiXSxbMiwwXSxbMiwzXSxbMywxLCJcXHRwIiwyXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwzXSxbNCw1XSxbNSw2XSxbMyw2XSxbNCw2LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNyw0XSxbNyw4XSxbOCw1LCJcXHRwIiwyXSxbNyw1LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMTAsN10sWzEwLDQsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs5LDIsIiIsMSx7ImxldmVsIjoyLCJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzEwLDldLFs5LDQsIlxcY291bml0IiwxXSxbMTAsMCwiXFx0cCBcXHRyaWFuZ2xlbGVmdCBcXHRwIiwxLHsiY3VydmUiOi0zfV1d
 \[\begin{tikzcd}
 	Q & R & R & {\Poly{\tp} {\Type}} \\
-	{\Term \times \Term} & {\Term \times \Type} & \Term & \Type \\
+	{\Term \times \Term} & {\Type \times \Term} & \Term & \Type \\
 	\Term & \Type & \terminal
 	\arrow[from=1-1, to=1-2]
 	\arrow["{\tp \triangleleft \tp}"{description}, bend left, from=1-1, to=1-4]
@@ -919,7 +1031,7 @@ $\Ga \to \Type$.
 \[\begin{tikzcd}
 	\Ga \\
 	& Q & R & R & {\Poly{\tp} {\Type}} \\
-	& {\Term \times \Term} & {\Term \times \Type} & \Term & \Type \\
+	& {\Term \times \Term} & {\Type \times \Term} & \Term & \Type \\
 	& \Term & \Type & \terminal
 	\arrow[from=2-2, to=2-3]
 	\arrow[from=2-2, to=3-2]
@@ -953,13 +1065,13 @@ $\Ga \to \Type$.
   such that $U \circ \be = \ev{\al} B$.
   So we will write
   \[\ep = (\be, \al, B)\]
- 
+  {\color{gray}
   Type theoretically $\al = (A , a : A)$ and $\ev{\al} B = B a$ and
   $\be = (B a, b : B a)$.
   Then composing $\ep$ with $\tp \triangleleft \tp$ returns $\ga$,
   which consists of $(A, B)$.
   It is in this sense that $Q$ classifies pairs of dependent terms,
-  and $\tp \triangleleft \tp$ extracts the underlying types.
+  and $\tp \triangleleft \tp$ extracts the underlying types.}
 \end{defn}
 
 \medskip
@@ -969,18 +1081,29 @@ $\Ga \to \Type$.
   \[\Si : \Poly{\tp} \Type \to \Type\]
   as that which is induced (\cref{BC_iff_nat_trans}) by the $\Si$-former operation (\cref{pi_classifier_op}).
 
-  Define $\pair : Q \to \Term$ such that for some $\Ga$
-  \begin{align*}
-    & Q \, \Ga \\
-    \iso &
-      \{ (\be : \ga \to \ptgrpd, \al : \Ga \to \ptgrpd,
-        B : \Ga \cdot U \circ \al \to \grpd) \st U \circ \be = \ev{\al}{\be} \}
-    \\
-    \to & [\Ga, \ptgrpd]
-  \end{align*}
-  where the arrow takes $(\be,\al,B)$ to the following functor:
-  on objects $x \in \Ga$, return $(\Si_{A} B \, x, (a_{x}, b_{a_{x}}))$
-  % where $\al \, x = (A x, a_{x})$ and $\be \, x = (B (x , a_{x}))$ this needs computation of $U \circ \be = \ev{\al}{B} !!$
+  To define $\pair : Q \to \Term$, let $\Ga$ be a groupoid
+  % \begin{align*}
+  %   & Q \, \Ga \\
+  %   \iso &
+  %     \{ (\be : \ga \to \ptgrpd, \al : \Ga \to \ptgrpd,
+  %       B : \Ga \cdot U \circ \al \to \grpd) \st U \circ \be = \ev{\al}{\be} \}
+  %   \\
+  %   \to & [\Ga, \ptgrpd]
+  % \end{align*}
+  and $(\be,\al,B) : \Ga \to Q$ (such that $U \circ \be = \ev{\al}{\be}$).
+  We define a functor $\pair_{\Ga}(\be,\al,B) : \Ga \to \ptgrpd$ such that
+  on objects $x \in \Ga$, the functor returns $(\Si_{A} B \, x, (a_{x}, b_{a_{x}}))$,
+  where
+  (using \cref{evaluation_computation}
+  $U \circ \be x = \ev{\al}{B} x = B(x, a_{x})$)
+  \[\al \, x = (A \, x, a_{x}) \quad \text{ and } \quad \be \, x = (B (x , a_{x}), b_{a_{x}})\]
+  and on morphisms $f : x \to y$, the functor returns $(\Si_{A} B \, f, (\phi_{f}, \psi_{f}))$,
+  where (using \cref{evaluation_computation}
+  $U \circ \be f = \ev{\al}{B} f = B(f, \phi_{f})$)
+  \[\al \, f = (A \, f, \phi_{f} { \color{gray} : A \, f \, a_{x} \to a_{y}})
+    \quad \text{ and } \quad
+    \be \, f = (B(f, \phi_{f}), \psi_{f} {\color{gray}: B(f, \phi_{f}) \, b_{a_{x}}\to b_{a_{y}}})
+  \]
 
   $\Si$ and $\pair$ combine to give us a pullback square
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJRIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcVHlwZX0iXSxbMSwwLCJcXFRlcm0iXSxbMSwxLCJcXFR5cGUiXSxbMCwxLCJcXHRwIFxcdHJpYW5nbGVsZWZ0IFxcdHAiLDJdLFswLDIsIlxccGFpciJdLFsyLDMsIlxcdHAiXSxbMSwzLCJcXFNpIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
@@ -995,8 +1118,77 @@ $\Ga \to \Type$.
 \end{tikzcd}\]
 \end{defn}
 \begin{proof}
-  TODO: naturality.
-  % Beck-chevalley again.
+  To show naturality of $\pair$,
+  suppose $\si : \De \to \Ga$ is a functor between groupoids.
+% https://q.uiver.app/#q=WzAsOCxbMCwwLCJcXFBzaGdycGQoXFxEZSxRKSJdLFswLDMsIlxcUHNoZ3JwZChcXEdhLFEpIl0sWzMsMywiW1xcR2EsXFxwdGdycGRdIl0sWzMsMCwiW1xcRGUsXFxwdGdycGRdIl0sWzEsMiwiKFxcYmUsXFxhbCxCKSJdLFsxLDEsIihcXGJlIFxcY2lyYyBcXHNpLFxcYWwgXFxjaXJjIFxcc2ksQiBcXGNpcmMgXFxzaV9BKSJdLFsyLDEsIj8iXSxbMiwyLCJcXHBhaXJfXFxHYShcXGJlLFxcYWwsQikiXSxbMSwwLCJcXGNpcmMgXFxzaSJdLFsxLDIsIlxccGFpcl9cXEdhIiwyXSxbMCwzLCJcXHBhaXJfXFxEZSJdLFsyLDMsIlxcY2lyYyBcXHNpIiwyXSxbNCw1LCIiLDIseyJzdHlsZSI6eyJ0YWlsIjp7Im5hbWUiOiJtYXBzIHRvIn19fV0sWzUsNiwiIiwyLHsic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9fX1dLFs0LDcsIiIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XSxbNyw2LCIiLDAseyJzdHlsZSI6eyJ0YWlsIjp7Im5hbWUiOiJtYXBzIHRvIn19fV1d
+\[\begin{tikzcd}
+	{\Pshgrpd(\De,Q)} &&& {[\De,\ptgrpd]} \\
+	& {(\be \circ \si,\al \circ \si,B \circ \si_A)} & {?} \\
+	& {(\be,\al,B)} & {\pair_\Ga(\be,\al,B)} \\
+	{\Pshgrpd(\Ga,Q)} &&& {[\Ga,\ptgrpd]}
+	\arrow["{\pair_\De}", from=1-1, to=1-4]
+	\arrow[maps to, from=2-2, to=2-3]
+	\arrow[maps to, from=3-2, to=2-2]
+	\arrow[maps to, from=3-2, to=3-3]
+	\arrow[maps to, from=3-3, to=2-3]
+	\arrow["{\circ \si}", from=4-1, to=1-1]
+	\arrow["{\pair_\Ga}"', from=4-1, to=4-4]
+	\arrow["{\circ \si}"', from=4-4, to=1-4]
+\end{tikzcd}\]
 
-  TODO: prove pullback.
+  So we check that for any $x \in \Ga$,
+  \begin{align*}
+    & \pair_\De (\be \circ \si, \al \circ \si, B \circ \si_A) \, x \\
+    = \, & (\Si_{A \circ \si} B \circ \si_A \, x, (a_x, b_{a_x})) \\
+    = \, & ((\Si_{A} B) \circ \si \, x, (a_x, b_{a_x})) \\
+    = \, & \pair_\Ga (\be, \al, B) \circ \si \, x
+  \end{align*}
+  where
+  \[ \al \circ \si \, x = (A \circ \si x, a_{x})
+    \quad
+    \text{and}
+    \quad
+    \be \circ \si \, x = (\ev{\al}{B} \circ \si \, x, b_{a_{x}})
+  \]
+  and so on.
+
+  It follows from the definition of $\pair$ that the square commutes.
+  To show that it is pullback, it suffices to show that for each $\Ga$,
+ % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBzaGdycGQgKFxcR2EsIFEpIl0sWzAsMSwiXFxQc2hncnBkKFxcR2EsXFxQb2x5e1xcdHB9e1xcVHlwZX0pIl0sWzEsMCwiW1xcR2EsXFxwdGdycGRdIl0sWzEsMSwiW1xcR2EsXFxncnBkXSJdLFswLDEsIlxcdHAgXFx0cmlhbmdsZWxlZnQgXFx0cCBcXGNpcmMgLSIsMl0sWzAsMiwiXFxwYWlyX1xcR2EiXSxbMiwzLCJVIFxcY2lyYyAtIl0sWzEsMywiXFxTaV9cXEdhIiwyXV0=
+\[\begin{tikzcd}
+	{\Pshgrpd (\Ga, Q)} & {[\Ga,\ptgrpd]} \\
+	{\Pshgrpd(\Ga,\Poly{\tp}{\Type})} & {[\Ga,\grpd]}
+	\arrow["{\pair_\Ga}", from=1-1, to=1-2]
+	\arrow["{\tp \triangleleft \tp \circ -}"', from=1-1, to=2-1]
+	\arrow["{U \circ -}", from=1-2, to=2-2]
+	\arrow["{\Si_\Ga}"', from=2-1, to=2-2]
+\end{tikzcd}\]
+  is a pullback.
+  Since we are in $\Set$,
+  it suffices to just show the universal property applied to a point:
+  so for any $A : \Ga \to \grpd$, any $B : \Ga \cdot A \to \grpd$,
+  and any $p : \Ga \to \ptgrpd$,
+  such that
+  \[ U \circ p = \Si_{\Ga} (A, B)\]
+  there exists a unique $(\be, \al, B) : \Ga \to Q$
+  such that
+  \[ \pair_{\Ga}(\be,\al,B) = p
+    \quad
+    \text{and}
+    \quad
+    \tp \triangleleft \tp \circ (B,\al, B) = (A, B)
+  \]
+  Indeed if we write
+  \[ p \, x = (\Si_{A} B \, x ,
+    (a_{x} {\color{gray} \in A x}, b_{x} {\color{gray} \in B(x, a_{x})}))\]
+  this uniquely determines $\al$ and $\be$ as
+  \[ \al \, x =  (A x, a_{x})
+    \quad
+    \text{and}
+    \quad
+    \be \, x = (\ev{\al}{B} \, x, b_{x})
+  \]
+
+
+
 \end{proof}
