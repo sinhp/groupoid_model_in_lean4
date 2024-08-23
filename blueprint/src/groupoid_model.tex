@@ -1,0 +1,1193 @@
+In this section we construct a natural model in $\Pshgrpd$ the presheaf category
+indexed by the category $\grpd$ of (small) groupoids.
+We will build the classifier for display maps in the style of
+Hofmann and Streicher \cite{hofmannstreicher1996} and Awodey \cite{awodey2023hofmannstreicheruniverses}.
+To interpret the type constructors,
+we will make use of the weak factorization system on $\grpd$ -
+which comes from restricting the ``classical Quillen model structure'' on
+$\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
+
+\medskip
+
+\subsection{Classifying display maps}
+
+\medskip
+
+\begin{notation*}
+  We will have two universe sizes - one small and one large.
+  We denote the category of small sets as $\set$ and the large sets as $\Set$
+  (in the previous sections this would have been $\Set_{\lambda}$ and $\Set$ respectively).
+  We denote the category of small categories as $\cat$ and the large categories as $\Cat$.
+  We denote the category of small groupoids as $\grpd$. %% and the large groupoids as $\GRPD$.
+
+  We are primarily working in the category of large presheaves indexed by small groupoids,
+  which we will denote by
+  \[ \Pshgrpd = [\grpd^{\op}, \Set]\]
+
+  In this section, $\Term$ and $\Type$ and so on will refer to the natural model semantics in this
+  specific model.
+\end{notation*}
+
+\medskip
+
+\begin{defn}[Pointed]
+  We will take the category of pointed small categories $\ptcat$
+  to have objects as pairs $(\catC \in \cat, c \in \catC)$
+  and morphisms as pairs
+  \[ (F : \catC_{1} \to \catC_{0}, \phi : F c_{1} \to c_{0}) \co (\catC_{1}, c_{1}) \to (\catC_{0}, c_{0})\]
+  Then the category of pointed small groupoids $\ptgrpd$ will be the full subcategory
+  of objects $(\Ga, c)$ with $\Ga$ a groupoid.
+\end{defn}
+
+\medskip
+
+\begin{defn}[The display map classifier]
+  We would like to define a natural transformation in
+  $\Pshgrpd$
+  \[ \tp \co \Term \to \Type \]
+  with representable fibers.
+
+  Consider the functor that forgets the point
+  \[
+    U \co \ptgrpd \to \grpd
+    \quad \quad
+    \text{
+      in \quad $\Cat$.
+    }
+  \]
+  If we apply the Yoneda embedding $\yo \co \Cat \to \PshCat$ to $U$
+  we obtain
+  \[ U \circ \co [ - , \ptgrpd] \to [ - , \grpd ]
+    \quad \quad
+    \text{
+      in \quad $\PshCat$.
+    }
+  \]
+  Since any small groupoid is also a large category $\grpd \hookrightarrow \Cat$,
+  we can restrict $\Cat$ indexed presheaves to be $\grpd$ indexed presheaves.
+  We define $\tp \co \Term \to \Type$ as the image of $U \circ$ under this restriction.
+  % https://q.uiver.app/#q=WzAsNixbMCwwLCJcXENhdCJdLFsxLDAsIlxcUHNoQ2F0Il0sWzIsMCwiXFxQc2hncnBkIl0sWzAsMSwiXFxncnBkIl0sWzEsMSwiWy0sXFxncnBkXSJdLFsyLDEsIlxcVHlwZSJdLFswLDEsInkiXSxbMSwyLCJcXHRleHRzZntyZXN9Il0sWzMsNCwiIiwwLHsic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9fX1dLFs0LDUsIiIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XV0=
+  \[\begin{tikzcd}[row sep = tiny]
+    \Cat & \PshCat & \Pshgrpd \\
+    \grpd & {[-,\grpd]} & \Type
+    \arrow["\yo", from=1-1, to=1-2]
+    \arrow["{\textsf{res}}", from=1-2, to=1-3]
+    \arrow[maps to, from=2-1, to=2-2]
+    \arrow[maps to, from=2-2, to=2-3]
+  \end{tikzcd}\]
+  Note that $\Term$ and $\Type$ are not representable in $\Pshgrpd$.
+\end{defn}
+
+\medskip
+
+\begin{rmk}
+  By Yoneda we can identify maps with representable domain into the
+  type classifier
+  \[ A : \yo \Ga \to \Type \quad \quad \text{ in } \quad \Pshgrpd \]
+  with functors
+  \[ A : \Ga \to \grpd \quad \quad \text{ in } \quad \Cat \]
+
+\end{rmk}
+
+\medskip
+
+\begin{defn}[Grothendieck construction]
+  From $\catC$ a small category and $F : \catC \to \cat$
+  a functor, we construct a small category $\int F$.
+  For any $c$ in $\catC$ we refer to $F c$ as the fiber over $c$.
+  The objects of $\int F$ consist of pairs $(c \in \catC, x \in F c)$,
+  and morphisms between $(c, x)$ and $(d, y)$
+  are pairs $(f : c \to d, \phi : F \, f \, x \to y)$.
+  This makes the following pullback in $\Cat$
+  % https://q.uiver.app/#q=WzAsMTEsWzEsMSwiXFxpbnQgRiJdLFsxLDIsIlxcY2F0QyJdLFsyLDEsIlxccHRjYXQiXSxbMiwyLCJcXGNhdCJdLFswLDEsIihjLHgpIl0sWzAsMiwiYyJdLFsxLDAsIihjLHgpIl0sWzIsMCwiKEZjLCB4KSJdLFsxLDNdLFszLDEsIihDLGMpIl0sWzMsMiwiQyJdLFswLDFdLFswLDJdLFsyLDNdLFsxLDMsIkYiLDJdLFs0LDUsIiIsMix7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XSxbNiw3LCIiLDIseyJzdHlsZSI6eyJ0YWlsIjp7Im5hbWUiOiJtYXBzIHRvIn19fV0sWzAsMywiIiwyLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzksMTAsIiIsMix7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XV0=
+  \[\begin{tikzcd}
+    & {(c,x)} & {(Fc, x)} \\
+    {(c,x)} & {\int F} & \ptcat & {(C,c)} \\
+    c & \catC & \cat & C \\
+    & {}
+    \arrow[maps to, from=1-2, to=1-3]
+    \arrow[maps to, from=2-1, to=3-1]
+    \arrow[from=2-2, to=2-3]
+    \arrow[from=2-2, to=3-2]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+    \arrow[from=2-3, to=3-3]
+    \arrow[maps to, from=2-4, to=3-4]
+    \arrow["F"', from=3-2, to=3-3]
+  \end{tikzcd}\]
+\end{defn}
+
+\medskip
+
+\begin{defn}[Grothendieck construction for groupoids]
+  Let $\Ga$ be a groupoid and $A \co \Ga \to \grpd$ a functor,
+  we can compose $F$ with the inclusion $i \co \grpd \hookrightarrow \Cat$
+  and form the Grothendieck construction which we denote as
+  \[ \Ga \cdot A := \int i \circ A \quad \quad \disp{A} \co \Ga \cdot A \to \Ga\]
+  This is also a small groupoid since the underlying morphisms are
+  pairs of morphisms from groupoids $\Ga$ and $A x$ for $x \in \Ga$.
+  Furthermore the pullback factors through (pointed) groupoids.
+  % https://q.uiver.app/#q=WzAsNyxbMCwwLCJcXEdhIFxcY2RvdCBBIl0sWzAsMSwiXFxHYSJdLFsxLDAsIlxccHRncnBkIl0sWzEsMSwiXFxncnBkIl0sWzAsMl0sWzIsMCwiXFxwdENhdCJdLFsyLDEsIlxcQ2F0Il0sWzAsMV0sWzAsMl0sWzIsM10sWzEsMywiQSIsMl0sWzAsMywiIiwyLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzIsNV0sWzMsNl0sWzUsNl0sWzIsNiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
+  \[\begin{tikzcd}
+    {\Ga \cdot A} & \ptgrpd & \ptcat \\
+    \Ga & \grpd & \cat \\
+    {}
+    \arrow[from=1-1, to=1-2]
+    \arrow["\disp{A}"', from=1-1, to=2-1]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+    \arrow[from=1-2, to=1-3]
+    \arrow[from=1-2, to=2-2]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-2, to=2-3]
+    \arrow[from=1-3, to=2-3]
+    \arrow["A"', from=2-1, to=2-2]
+    \arrow[from=2-2, to=2-3]
+  \end{tikzcd}\]
+\end{defn}
+
+\medskip
+
+\begin{cor}[The display map classifier is presentable]
+  For any small groupoid $\Ga$ and $A : \yo \Ga \to \Type$,
+  the pullback of $\tp$ along $A$ can be given by the representable
+  map $\yo \disp{A}$.
+  % https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXHlvIFxcR2EgXFxjZG90IEEiXSxbMCwxLCJcXHlvIFxcR2EiXSxbMSwwLCJcXFRlcm0iXSxbMSwxLCJcXFR5cGUiXSxbMCwyXSxbMCwxLCJcXGRpc3AgQSIsMl0sWzAsMl0sWzIsMywiXFx0cCIsMl0sWzEsMywiQSIsMl0sWzAsMywiIiwyLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
+  \[\begin{tikzcd}
+    {\yo \Ga \cdot A} & \Term \\
+    {\yo \Ga} & \Type \\
+    {}
+    \arrow[from=1-1, to=1-2]
+    \arrow["{\yo \disp A}"', from=1-1, to=2-1]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+    \arrow["\tp"', from=1-2, to=2-2]
+    \arrow["A"', from=2-1, to=2-2]
+  \end{tikzcd}\]
+\end{cor}
+\begin{proof}
+  Consider the pullback in $\Cat$
+  % https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXEdhIFxcY2RvdCBBIl0sWzAsMSwiXFxHYSJdLFsxLDAsIlxccHRncnBkIl0sWzEsMSwiXFxncnBkIl0sWzAsMl0sWzAsMV0sWzAsMl0sWzIsM10sWzEsMywiQSIsMl0sWzAsMywiIiwyLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
+  \[\begin{tikzcd}
+    {\Ga \cdot A} & \ptgrpd \\
+    \Ga & \grpd \\
+    {}
+    \arrow[from=1-1, to=1-2]
+    \arrow[from=1-1, to=2-1]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+    \arrow[from=1-2, to=2-2]
+    \arrow["A"', from=2-1, to=2-2]
+  \end{tikzcd}\]
+  We send this square along $\textsf{res} \circ \yo$ in the following
+  % https://q.uiver.app/#q=WzAsNSxbMiwxLCJcXFBzaGdycGQiXSxbMSwyXSxbMiwwLCJcXFBzaENhdCJdLFswLDAsIlxcQ2F0Il0sWzAsMSwiXFxncnBkIl0sWzMsMiwiXFx5byJdLFsyLDAsIlxcdGV4dHNme3Jlc30iXSxbMywwXSxbNCwzXSxbNCwwLCJcXHlvIl1d
+  \[\begin{tikzcd}
+    \Cat && \PshCat \\
+    \grpd && \Pshgrpd \\
+    & {}
+    \arrow["\yo", from=1-1, to=1-3]
+    \arrow[from=1-1, to=2-3]
+    \arrow["{\textsf{res}}", from=1-3, to=2-3]
+    \arrow[from=2-1, to=1-1]
+    \arrow["\yo", from=2-1, to=2-3]
+  \end{tikzcd}\]
+  The Yoneda embedding $\yo : \Cat \to \PshCat$ preserves pullbacks,
+  as does $\textsf{res}$ since it is a right adjoint
+  (with left Kan extension $\io_{!} \dashv \textsf{res}_{\io}$).
+\end{proof}
+
+\medskip
+
+\subsection{Groupoid fibrations}
+
+\begin{defn}[Fibration]
+  Let $p : \catC_{1} \to \catC_{0}$ be a functor.
+  We say $p$ is a \textit{split Grothendieck fibration}
+  if we have a dependent function $\lift{a}{f}$ satisfying the following:
+  for any object $a$ in $\catC_{1}$ and morphism $f : p \, a \to y$
+  in the base $\catC_{0}$
+  we have $\lift{a}{f} : a \to b$ in $\catC_{1}$ such that $p (\lift{a}{f}) = f$
+  and moreover $\lift{a}{g \circ f} = \lift{b}{g} \circ \lift{a}{f}$
+  % https://q.uiver.app/#q=WzAsNCxbMCwwLCJhIl0sWzEsMCwiYiJdLFswLDEsIngiXSxbMSwxLCJ5Il0sWzAsMSwiXFxsaWZ0e2F9e2Z9IiwwLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzAsMiwiIiwyLHsic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9fX1dLFsyLDMsImYiLDJdLFsxLDMsIiIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifSwiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzQsNiwiIiwwLHsic2hvcnRlbiI6eyJzb3VyY2UiOjIwLCJ0YXJnZXQiOjIwfSwic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9LCJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XV0=
+  \[\begin{tikzcd}
+    a & b \\
+    x & y
+    \arrow[""{name=0, anchor=center, inner sep=0}, "{\lift{a}{f}}", dashed, from=1-1, to=1-2]
+    \arrow[maps to, from=1-1, to=2-1]
+    \arrow[dashed, maps to, from=1-2, to=2-2]
+    \arrow[""{name=1, anchor=center, inner sep=0}, "f"', from=2-1, to=2-2]
+    \arrow[shorten <=4pt, shorten >=4pt, Rightarrow, dashed, maps to, from=0, to=1]
+  \end{tikzcd}\]
+
+  In particular, we are intereseted in split Grothendieck fibrations of groupoids,
+  which are the same as \textit{isofibrations}
+  (replace all the morphisms with isomorphisms in the definition).
+
+  Unless specified otherwise,
+  by a \textit{fibration} we will mean a split Grothendieck fibration of groupoids.
+  Let us denote the category of fibrations over a groupoid $\Ga$ as $\Fib_{\Ga}$,
+  which is a full subcategory of the slice $\grpd / \Ga$.
+  We will decorate an arrow with $\twoheadrightarrow$
+  to indicate it is a fibration.
+\end{defn}
+
+\medskip
+
+Note that $\disp{A} \co \Ga \cdot A \to \Ga$ is a fibration,
+since for any $(x \in \Ga, a \in A \, x)$ and $f \co x \to y$ in $\Ga$
+we have a morphism $(f, \id_{A \, f \, a}) : (x, a) \to (y, A \, f \, a)$
+lifting $f$. Furthermore
+
+\begin{prop}
+  There is an adjoint equivalence
+ % https://q.uiver.app/#q=WzAsMixbMCwwLCJbXFxHYSwgXFxncnBkXSJdLFsyLDAsIlxcRmliX1xcR2EiXSxbMCwxLCJcXGRpc3B7fSIsMCx7Im9mZnNldCI6LTJ9XSxbMSwwLCJcXHRleHRzZntmaWJlcn0iLDAseyJvZmZzZXQiOi0yfV0sWzAsMSwiXFxzaW1lcSIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6Im5vbmUifSwiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dXQ==
+  \[\begin{tikzcd}
+    {[\Ga, \grpd]} && {\Fib_\Ga}
+    \arrow["{\disp{}}", shift left=2, from=1-1, to=1-3]
+    \arrow["\simeq"{description}, draw=none, from=1-1, to=1-3]
+    \arrow["{\fiber}", shift left=2, from=1-3, to=1-1]
+  \end{tikzcd}\]
+  where for each fibration $\de : \De \to \Ga$ and each
+  object $x \in \Ga$
+  \[\fiber_{\de} \, x = \text{\emph {full subcategory}} \, \{a \in \De \st \de \, a = x\}\]
+  It follows that all fibrations are pullbacks of the classifier
+  $U : \ptgrpd \to \grpd$, when viewed as morphisms in $\Cat$.
+\end{prop}
+
+\medskip
+
+Pullback of fibrations along groupoid functors is not strictly coherent,
+in the sense that for $\tau : \Xi \to \De$ and $\si : \De \to \Ga$
+and a fibration $p \in \Fib_{\Ga}$ we only have an isomorphism
+\[ \tau^{*} \si^{*} p \iso (\si \circ \tau)^{*} p\]
+rather than equality.
+
+In order to interpret reindexing/substitution strictly,
+it is convenient to work with classifiers $[\Ga,\grpd]$
+instead of fibrations.
+
+\medskip
+
+\begin{prop}[Strictly coherent pullback]
+  Let $\si : \De \to \Ga$ be a functor between groupoids.
+  Since display maps are pullbacks
+  of the classifier $U : \ptgrpd \to \grpd$ we have
+  the pasting diagram
+  % https://q.uiver.app/#q=WzAsNixbMSwwLCJcXEdhLkEiXSxbMSwxLCJcXEdhIl0sWzAsMSwiXFxEZSJdLFswLDAsIlxcRGUuQVxcc2kiXSxbMiwxLCJcXGdycGQiXSxbMiwwLCJcXHB0Z3JwZCJdLFswLDEsIlxcZGlzcHtBfSIsMSx7InN0eWxlIjp7ImhlYWQiOnsibmFtZSI6ImVwaSJ9fX1dLFsyLDEsIlxcc2kiLDJdLFsxLDQsIkEiLDJdLFswLDVdLFs1LDRdLFswLDQsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFszLDEsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFszLDIsIlxcZGlzcHtBXFxzaX0iLDEseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMywwLCJcXHNpX0EiLDIseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbMyw1LCIiLDEseyJjdXJ2ZSI6LTJ9XV0=
+  \[\begin{tikzcd}
+    {\De.A\si} & {\Ga.A} & \ptgrpd \\
+    \De & \Ga & \grpd
+    \arrow["{\si_A}"', dashed, from=1-1, to=1-2]
+    \arrow[bend left, from=1-1, to=1-3]
+    \arrow["{\disp{A\si}}"{description}, two heads, from=1-1, to=2-1]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+    \arrow[from=1-2, to=1-3]
+    \arrow["{\disp{A}}"{description}, two heads, from=1-2, to=2-2]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-2, to=2-3]
+    \arrow[from=1-3, to=2-3]
+    \arrow["\si"', from=2-1, to=2-2]
+    \arrow["A"', from=2-2, to=2-3]
+  \end{tikzcd}\]
+  This gives us a functor $\circ \si : [\Ga,\grpd] \to [\De,\grpd]$
+  which is our strict version of pullback.
+\end{prop}
+
+\medskip
+
+\begin{cor}[Fibrations are stable under pullback]
+  % https://q.uiver.app/#q=WzAsNCxbMCwwLCJbXFxHYSwgXFxncnBkXSJdLFsyLDAsIlxcRmliX1xcR2EiXSxbMCwxLCJbXFxEZSwgXFxncnBkXSJdLFsyLDEsIlxcRmliX1xcRGUiXSxbMSwwLCJcXHRleHRzZntmaWJlcn0iLDJdLFswLDIsIlxcY2lyYyBcXHNpIiwyXSxbMiwzLCJcXGRpc3B7fSIsMl0sWzEsMywiXFxzaV4qIiwwLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
+  \[\begin{tikzcd}
+    {[\Ga, \grpd]} && {\Fib_\Ga} \\
+    {[\De, \grpd]} && {\Fib_\De}
+    \arrow["{\circ \si}"', from=1-1, to=2-1]
+    \arrow["{\fiber}"', from=1-3, to=1-1]
+    \arrow["{\si^*}", dashed, from=1-3, to=2-3]
+    \arrow["{\disp{}}"', from=2-1, to=2-3]
+  \end{tikzcd}\]
+  We can deduce a corresponding fact about fibrations:
+  since fibrations are closed under isomorphism,
+  and since any pullback in $\grpd$ of a fibration $p$ is isomorphic to
+  the display map $\disp{\fiber{p} \circ \si}$,
+  any pullback of a fibration is a fibration.
+\end{cor}
+
+\medskip
+
+A strict interpretation of type theory would require
+$\Si$ and $\Pi$-formers to be stable under pullback (Beck-Chevalley).
+Thus we again define these as operations on classifiers $[\Ga,\grpd]$.
+
+\medskip
+
+\begin{defn}[$\Si$-former operation]
+  Then given $A : \Ga \to \grpd$ and $B : \Ga\cdot A \to \grpd$ we define
+  $\Si_{A}B : \Ga \to \grpd$ such that
+  $\Si_{A}B$ acts on objects by forming fiberwise Grothendieck constructions
+  \[ \Si_{A}B (x) := A(x) \cdot B \circ x_{A} \]
+  where $x_{A} : A(x) \to \Ga \cdot A$ takes $f : a_{0} \to a_{1}$ to
+  $(\id_{x},f) : (x,a_{0}) \to (x,a_{1})$
+  % https://q.uiver.app/#q=WzAsOSxbMSwxLCJcXEdhLkEiXSxbMSwyLCJcXEdhIl0sWzAsMSwiQSh4KSJdLFsyLDIsIlxcZ3JwZCJdLFsyLDEsIlxcZ3JwZCJdLFsxLDAsIlxcR2EuQS5CIl0sWzIsMCwiXFxidWxsZXQiXSxbMCwyLCJcXHRlcm1pbmFsIl0sWzAsMCwiQSh4KSBcXGNkb3QgQiBcXGNpcmMgeF9BIl0sWzAsMSwiXFxkaXNwe0F9IiwxLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV0sWzEsMywiQSIsMl0sWzAsNCwiQiJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFsyLDAsInhfQSIsMl0sWzUsMCwiXFxkaXNwe0J9IiwxXSxbNSw2XSxbNywxLCJ4IiwyXSxbMiw3LCIhIiwxXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbOCwyLCJcXGRpc3B7QiBcXGNpcmMgeF9BfSIsMSx7InN0eWxlIjp7ImhlYWQiOnsibmFtZSI6ImVwaSJ9fX1dLFs4LDUsIiIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dXQ==
+  \[\begin{tikzcd}
+    {A(x) \cdot B \circ x_A} & {\Ga.A.B} & \bullet \\
+    {A(x)} & {\Ga.A} & \grpd \\
+    \terminal & \Ga & \grpd
+    \arrow[dashed, from=1-1, to=1-2]
+    \arrow["{\disp{B \circ x_A}}"{description}, two heads, from=1-1, to=2-1]
+    \arrow[from=1-2, to=1-3]
+    \arrow["{\disp{B}}"{description}, from=1-2, to=2-2]
+    \arrow["{x_A}"', from=2-1, to=2-2]
+    \arrow["{!}"{description}, from=2-1, to=3-1]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-1, to=3-2]
+    \arrow["B", from=2-2, to=2-3]
+    \arrow["{\disp{A}}"{description}, two heads, from=2-2, to=3-2]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+    \arrow["x"', from=3-1, to=3-2]
+    \arrow["A"', from=3-2, to=3-3]
+  \end{tikzcd}\]
+  $\Si_{A}B$ acts on morphism $f : x \to y$ in $\Ga$ and $(a \in A(x), b \in B(x,a))$ by
+  \[ \Si_{A}B \, f \, (a,b) := (A \, f \, a, B \, (f,\id_{{A \, f \, a}}) \, b) \]
+  and for morphism $(\al : a_{0} \to a_{1} \in A(x),\be : B \, (\id_{x},\al) \, b_{0} \to b_{1} \in B(x,a_{1}))$
+  in $\Si_{A}B \, x$
+  \[ \Si_{A}B \, f \, (\al,\be) := (A \, f \, \al, B \, (f,\id_{{A \, f \, a_{1}}}) \, \be) \]
+
+  Let us also define the natural transformation
+  $\fst : \Si_{A}B \to A$ by
+  \[ \fst_{x} : (a, b) \mapsto a \]
+\end{defn}
+
+\medskip
+
+\begin{prop}[Fibrations are closed under composition]
+  The corresponding fact about fibrations is that
+  the composition of two fibrations is a fibration.
+  % https://q.uiver.app/#q=WzAsMyxbMCwwLCJcXFhpIl0sWzAsMSwiXFxEZSJdLFsxLDEsIlxcR2EiXSxbMCwxLCIiLDAseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMSwyLCIiLDAseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMCwyLCIiLDIseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifSwiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV1d
+  \[\begin{tikzcd}
+    \Xi \\
+    \De & \Ga
+    \arrow[two heads, from=1-1, to=2-1]
+    \arrow[dashed, two heads, from=1-1, to=2-2]
+    \arrow[two heads, from=2-1, to=2-2]
+  \end{tikzcd}\]
+\end{prop}
+
+We can compare the two fibrations
+\[ \disp{B} \circ \disp{A}
+  \quad \quad
+  \text{ and }
+  \quad \quad
+  \disp{\Si_{A}(B)}
+\]
+An object in the composition would look like $((x,a),b)$
+for $x \in \Ga$, $a \in A(x)$ and $b \in B(x,a)$,
+whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
+
+\medskip
+\begin{prop}[Strict Beck-Chevalley for $\Si$]
+  Let $\si : \De \to \Ga$, $A : \Ga \to \grpd$ and $B : \Ga\cdot A \to \grpd$.
+  Then
+  \[ (\Si_{A}B) \circ \si = \Si_{A \circ \si}(B \circ \si_{A})\]
+  where $\si_{A}$ is uniquely determined by the pullback in
+  % https://q.uiver.app/#q=WzAsOSxbMiwxLCJcXEdhLkEiXSxbMiwyLCJcXEdhIl0sWzEsMSwiXFxEZSBcXGNkb3QgQSBcXHNpIl0sWzMsMiwiXFxncnBkIl0sWzMsMSwiXFxncnBkIl0sWzIsMCwiXFxHYS5BLkIiXSxbMSwyLCJcXERlIl0sWzEsMCwiXFxEZSBcXGNkb3QgQSBcXHNpIFxcY2RvdCBCIFxcY2lyYyBcXHNpX0EiXSxbMCwyLCJcXGdycGQiXSxbMCwxLCJcXGRpc3B7QX0iLDEseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMSwzLCJBIiwyXSxbMCw0LCJCIl0sWzAsMywiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzIsMCwiXFxzaV9BIiwyXSxbNSwwLCJcXGRpc3B7Qn0iLDEseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbNiwxLCJcXHNpIiwyXSxbMiw2LCJcXGRpc3B7QVxcc2l9IiwxXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNywyLCJcXGRpc3B7QiBcXGNpcmMgXFxzaV9BfSIsMSx7InN0eWxlIjp7ImhlYWQiOnsibmFtZSI6ImVwaSJ9fX1dLFs3LDUsIlxcc2lfe0EgXFxjZG90IEJ9IiwyXSxbNiw4LCJcXFNpX0EgQiBcXGNpcmMgXFxzaSIsMix7Im9mZnNldCI6MX1dLFs2LDgsIlxcU2lfe0EgXFxjaXJjIFxcc2l9IChCIFxcY2lyYyBcXHNpX0EpIiwwLHsib2Zmc2V0IjotMX1dXQ==
+  \[\begin{tikzcd}
+    & {\De \cdot A \si \cdot B \circ \si_A} & {\Ga.A.B} \\
+    & {\De \cdot A \si} & {\Ga.A} & \grpd \\
+    \grpd & \De & \Ga & \grpd
+    \arrow["{\si_{A \cdot B}}"', from=1-2, to=1-3]
+    \arrow["{\disp{B \circ \si_A}}"{description}, two heads, from=1-2, to=2-2]
+    \arrow["{\disp{B}}"{description}, two heads, from=1-3, to=2-3]
+    \arrow["{\si_A}"', from=2-2, to=2-3]
+    \arrow["{\disp{A\si}}"{description}, from=2-2, to=3-2]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+    \arrow["B", from=2-3, to=2-4]
+    \arrow["{\disp{A}}"{description}, two heads, from=2-3, to=3-3]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-3, to=3-4]
+    \arrow["{(\Si_A B) \circ \si}"', shift right, from=3-2, to=3-1]
+    \arrow["{\Si_{A \circ \si} (B \circ \si_A)}", shift left, from=3-2, to=3-1]
+    \arrow["\si"', from=3-2, to=3-3]
+    \arrow["A"', from=3-3, to=3-4]
+  \end{tikzcd}\]
+\end{prop}
+\begin{proof}
+  By checking pointwise at $x \in \De$, this boils down to showing
+  \[(\si x)_{A} = \si_{A} \circ x_{A \circ \si} : A (\si x) \to \Ga \cdot A\]
+  % https://q.uiver.app/#q=WzAsOCxbMiwwLCJcXEdhLkEiXSxbMiwxLCJcXEdhIl0sWzEsMCwiXFxEZSBcXGNkb3QgQSBcXHNpIl0sWzMsMSwiXFxncnBkIl0sWzMsMCwiXFxncnBkIl0sWzEsMSwiXFxEZSJdLFswLDEsIlxcdGVybWluYWwiXSxbMCwwLCJBIChcXHNpIHgpIl0sWzAsMSwiXFxkaXNwe0F9IiwxLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV0sWzEsMywiQSIsMl0sWzAsNCwiQiJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFsyLDAsIlxcc2lfQSIsMl0sWzUsMSwiXFxzaSIsMl0sWzIsNSwiXFxkaXNwe0FcXHNpfSIsMV0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzYsNSwieCIsMl0sWzcsMiwieF97QSBcXHNpfSIsMl0sWzcsNiwiISIsMV0sWzcsMCwiKFxcc2kgeClfQSIsMCx7ImN1cnZlIjotM31dLFs3LDUsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
+  \[\begin{tikzcd}
+    {A (\si x)} & {\De \cdot A \si} & {\Ga.A} & \grpd \\
+    \terminal & \De & \Ga & \grpd
+    \arrow["{x_{A \si}}"', from=1-1, to=1-2]
+    \arrow["{(\si x)_A}", bend left, from=1-1, to=1-3]
+    \arrow["{!}"{description}, from=1-1, to=2-1]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+    \arrow["{\si_A}"', from=1-2, to=1-3]
+    \arrow["{\disp{A\si}}"{description}, from=1-2, to=2-2]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-2, to=2-3]
+    \arrow["B", from=1-3, to=1-4]
+    \arrow["{\disp{A}}"{description}, two heads, from=1-3, to=2-3]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-3, to=2-4]
+    \arrow["x"', from=2-1, to=2-2]
+    \arrow["\si"', from=2-2, to=2-3]
+    \arrow["A"', from=2-3, to=2-4]
+  \end{tikzcd}\]
+
+  which holds because of the universal property of pullback.
+\end{proof}
+
+\medskip
+
+\begin{defn}[$\Pi$-former operation]\label{pi_classifier_op}
+  Given $A : \Ga \to \grpd$ and $B : \Ga \cdot A \to \grpd$
+  we will define $\Pi_{A} B : \Ga \to \grpd$ such that
+  for any $C : \Ga \to \grpd$ we have an isomorphism
+  \[ [\Ga \cdot A, \grpd](\disp{A}\circ C, B) \iso
+    [\Ga, \grpd](C, \Pi_{A} B)\]
+  natural in both $B$ and $C$.
+\end{defn}
+\begin{proof}
+  $\Pi_{A}B$ acts on objects by taking fiberwise sections
+  \[ \Pi_{A}B (x) := \{s \in [A (x), \Si_{A}B (x)] \st \fst_x \circ s = \id_{A (x)}\} \]
+  Where we have taken the full subcategory of the functor category $[A (x), \Si_{A}B (x)]$.
+  This is a groupoid since any natural transformation
+  of functors into groupoids are natural isomorphisms.
+
+  $\Pi_{A}B$ acts on morphisms via conjugation
+  % https://q.uiver.app/#q=WzAsMTAsWzAsMCwieCJdLFswLDIsInkiXSxbMSwxXSxbMiwxXSxbMywwLCJcXFBpX0EgQiAoeCkiXSxbMywyLCJcXFBpX0EgQih5KSJdLFs2LDAsIkEgKHgpIl0sWzgsMCwiXFxTaV97QX1CICh4KSJdLFs2LDIsIkEgKHkpIl0sWzgsMiwiXFxTaV97QX1CICh5KSJdLFswLDEsImYiXSxbMiwzLCJcXFBpX0EgQiIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XSxbNCw1LCJcXFNpX0FCKGYpIFxcY2lyYyAtIFxcY2lyYyBBIChmXnstMX0pIl0sWzgsNiwiQShmXnstMX0pIiwxXSxbOCw5LCJcXFBpX0EgQiAoZikgKHMpIiwyLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzYsNywicyIsMV0sWzcsOSwiXFxTaV9BIEIoZikiLDFdXQ==
+  \[\begin{tikzcd}
+    x &&& {\Pi_A B (x)} &&& {A (x)} && {\Si_{A}B (x)} \\
+    & {} & {} \\
+    y &&& {\Pi_A B(y)} &&& {A (y)} && {\Si_{A}B (y)}
+    \arrow["f", from=1-1, to=3-1]
+    \arrow["{\Si_AB(f) \circ - \circ A (f^{-1})}", from=1-4, to=3-4]
+    \arrow["s"{description}, from=1-7, to=1-9]
+    \arrow["{\Si_A B(f)}"{description}, from=1-9, to=3-9]
+    \arrow["{\Pi_A B}", maps to, from=2-2, to=2-3]
+    \arrow["{A(f^{-1})}"{description}, from=3-7, to=1-7]
+    \arrow["{\Pi_A B (f) (s)}"', dashed, from=3-7, to=3-9]
+  \end{tikzcd}\]
+  Note that conjugation is functorial and invertible.
+\end{proof}
+
+\medskip
+
+\begin{cor}[Fibrations are closed under pushforward]
+  Stated in terms of fibrations, we have
+  % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFhpIl0sWzAsMSwiXFxEZSJdLFsxLDEsIlxcR2EiXSxbMSwwLCJcXEdhXyEgXFxzaV8qIFxcdGF1Il0sWzAsMSwiXFx0YXUiLDIseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMSwyLCJcXHNpIiwyLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV0sWzMsMiwiXFxzaV8qIFxcdGF1IiwwLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV1d
+  \[\begin{tikzcd}
+    \Xi & {\Ga_! \si_* \tau} \\
+    \De & \Ga
+    \arrow["\tau"', two heads, from=1-1, to=2-1]
+    \arrow["{\si_* \tau}", two heads, from=1-2, to=2-2]
+    \arrow["\si"', two heads, from=2-1, to=2-2]
+  \end{tikzcd}\]
+  with the universal property of pushforward
+  \[ \Fib_{\De}(\si^{*}\rho, \tau) \iso \Fib_{\Ga}(\rho, \si_{*} \tau)\]
+  natural in both $\tau$ and $\rho$.
+\end{cor}
+
+\medskip
+
+\begin{prop}[Strict Beck-Chevalley for $\Pi$]
+  Let $\si : \De \to \Ga$, $A : \Ga \to \grpd$ and $B : \Ga\cdot A \to \grpd$.
+  Then
+  \[ (\Pi_{A}B) \circ \si = \Pi_{A \circ \si}(B \circ \si_{A})\]
+  where $\si_{A}$ is uniquely determined by the pullback in
+  % https://q.uiver.app/#q=WzAsOSxbMiwxLCJcXEdhLkEiXSxbMiwyLCJcXEdhIl0sWzEsMSwiXFxEZSBcXGNkb3QgQSBcXHNpIl0sWzMsMiwiXFxncnBkIl0sWzMsMSwiXFxncnBkIl0sWzIsMCwiXFxHYS5BLkIiXSxbMSwyLCJcXERlIl0sWzEsMCwiXFxEZSBcXGNkb3QgQSBcXHNpIFxcY2RvdCBCIFxcY2lyYyBcXHNpX0EiXSxbMCwyLCJcXGdycGQiXSxbMCwxLCJcXGRpc3B7QX0iLDEseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMSwzLCJBIiwyXSxbMCw0LCJCIl0sWzAsMywiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzIsMCwiXFxzaV9BIiwyXSxbNSwwLCJcXGRpc3B7Qn0iLDEseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbNiwxLCJcXHNpIiwyXSxbMiw2LCJcXGRpc3B7QVxcc2l9IiwxXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNywyLCJcXGRpc3B7QiBcXGNpcmMgXFxzaV9BfSIsMSx7InN0eWxlIjp7ImhlYWQiOnsibmFtZSI6ImVwaSJ9fX1dLFs3LDUsIlxcc2lfe0EgXFxjZG90IEJ9IiwyXSxbNiw4LCJcXFBpX0EgQiBcXGNpcmMgXFxzaSIsMix7Im9mZnNldCI6MX1dLFs2LDgsIlxcUGlfe0EgXFxjaXJjIFxcc2l9IChCIFxcY2lyYyBcXHNpX0EpIiwwLHsib2Zmc2V0IjotMX1dXQ==
+  \[\begin{tikzcd}
+    & {\De \cdot A \si \cdot B \circ \si_A} & {\Ga.A.B} \\
+    & {\De \cdot A \si} & {\Ga.A} & \grpd \\
+    \grpd & \De & \Ga & \grpd
+    \arrow["{\si_{A \cdot B}}"', from=1-2, to=1-3]
+    \arrow["{\disp{B \circ \si_A}}"{description}, two heads, from=1-2, to=2-2]
+    \arrow["{\disp{B}}"{description}, two heads, from=1-3, to=2-3]
+    \arrow["{\si_A}"', from=2-2, to=2-3]
+    \arrow["{\disp{A\si}}"{description}, from=2-2, to=3-2]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+    \arrow["B", from=2-3, to=2-4]
+    \arrow["{\disp{A}}"{description}, two heads, from=2-3, to=3-3]
+    \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-3, to=3-4]
+    \arrow["{\Pi_A B \circ \si}"', shift right, from=3-2, to=3-1]
+    \arrow["{\Pi_{A \circ \si} (B \circ \si_A)}", shift left, from=3-2, to=3-1]
+    \arrow["\si"', from=3-2, to=3-3]
+    \arrow["A"', from=3-3, to=3-4]
+  \end{tikzcd}\]
+\end{prop}
+\begin{proof}
+  By checking pointwise, this boils down to Beck-Chevalley for $\Si$.
+\end{proof}
+
+\medskip
+
+\begin{prop}[All objects are fibrant]
+  Let $\terminal$ denote the terminal groupoid,
+  namely that with a single object and morphism.
+  Then the unique map $\Ga \to \terminal$ is a fibration.
+\end{prop}
+
+\medskip
+
+\begin{defn}[Interval]
+  Let the interval groupoid $\Interval$ be the small groupoid with two objects
+  and a single non-identity isomorphism.
+  There are two distinct morphisms $\de_{0}, \de_{1} : \terminal \to \Interval$
+  and a natural isomorphism $i : \de_{0} \Rightarrow \de_{1}$.
+  Note that $\de_{0}$ and $\de_{1}$ both form adjoint equivalences with the unique
+  map $! : \Interval \to \terminal$.
+
+  Denote by $\Two$ the small groupoid with two objects and only identity morphisms.
+  Then let $\partial : \Two \to \Interval$ be the unique map factoring $\de_{0}$ and $\de_{1}$.
+
+  % https://q.uiver.app/#q=WzAsNCxbMSwxLCJcXFR3byJdLFsyLDIsIlxcSW50ZXJ2YWwiXSxbMCwxLCJcXHRlcm1pbmFsIl0sWzEsMCwiXFx0ZXJtaW5hbCJdLFswLDEsIlxccGFydGlhbCIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFsyLDEsIlxcZGVfMCIsMix7ImN1cnZlIjoxfV0sWzMsMSwiXFxkZV8xIiwwLHsiY3VydmUiOi0xfV0sWzIsMF0sWzMsMF1d
+  \[\begin{tikzcd}
+    & \terminal \\
+    \terminal & \Two \\
+    && \Interval
+    \arrow[from=1-2, to=2-2]
+    \arrow["{\de_1}", bend left, from=1-2, to=3-3]
+    \arrow[from=2-1, to=2-2]
+    \arrow["{\de_0}"', bend right, from=2-1, to=3-3]
+    \arrow["\partial"{description}, dashed, from=2-2, to=3-3]
+  \end{tikzcd}\]
+\end{defn}
+
+\medskip
+
+\begin{prop}[Path object fibration]
+  Let $\Ga$ be a small groupoid.
+  Recall that $\grpd$ is Cartesian closed,
+  so we can take the image of the above diagram under the functor $\Ga^{-}$.
+  % https://q.uiver.app/#q=WzAsNCxbMSwxLCJcXEdhIFxcdGltZXMgXFxHYSJdLFsxLDIsIlxcR2EiXSxbMiwxLCJcXEdhIl0sWzAsMCwiXFxHYV5cXEludGVydmFsIl0sWzAsMV0sWzAsMl0sWzMsMSwiXFxHYV57XFxkZV8wfSIsMix7ImN1cnZlIjoxLCJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMywyLCJcXEdhXntcXGRlXzF9IiwwLHsiY3VydmUiOi0xLCJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMywwLCJcXEdhXlxccGFydGlhbCIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9LCJoZWFkIjp7Im5hbWUiOiJlcGkifX19XV0=
+  \[\begin{tikzcd}
+    {\Ga^{\Interval}} \\
+    & {\Ga \times \Ga} & \Ga \\
+    & \Ga
+    \arrow["{\Ga^\partial}"{description}, dashed, two heads, from=1-1, to=2-2]
+    \arrow["{\Ga^{\de_1}}", bend left, two heads, from=1-1, to=2-3]
+    \arrow["{\Ga^{\de_0}}"', bend right, two heads, from=1-1, to=3-2]
+    \arrow[from=2-2, to=2-3]
+    \arrow[from=2-2, to=3-2]
+  \end{tikzcd}\]
+  Then the indicated morphisms are fibrations,
+  and $\Ga^{\de_{0}}, \Ga^{\de_{1}}$ form adjoint equivalences
+  with $\Ga^{!} : \Ga \to \Ga^{\Interval}$.
+\end{prop}
+
+\medskip
+
+\subsection{Polynomial endofunctors}
+
+\begin{defn}[Polynomial endofunctor on a morphism
+  in an locally Cartesian closed category]
+  Let $\catC$ be a locally Cartesian closed category
+  (we will take presheaves on small groupoids).
+  This means for each morphism $t : B \to A$ we have an adjoint triple
+  % https://q.uiver.app/#q=WzAsMyxbMCwyXSxbMSwyLCJcXGNhdEMgLyBBIl0sWzEsMCwiXFxjYXRDIC8gQiJdLFsyLDEsInRfKiIsMCx7Im9mZnNldCI6LTV9XSxbMiwxLCJ0XyEiLDIseyJvZmZzZXQiOjV9XSxbMSwyLCJ0XioiLDFdLFs1LDMsIiIsMix7ImxldmVsIjoxLCJzdHlsZSI6eyJuYW1lIjoiYWRqdW5jdGlvbiJ9fV0sWzQsNSwiIiwyLHsibGV2ZWwiOjEsInN0eWxlIjp7Im5hbWUiOiJhZGp1bmN0aW9uIn19XV0=
+  \[\begin{tikzcd}
+    & {\catC / B} \\
+    \\
+    {} & {\catC / A}
+    \arrow[""{name=0, anchor=center, inner sep=0}, "{t_*}", bend left, shift left=5, from=1-2, to=3-2]
+    \arrow[""{name=1, anchor=center, inner sep=0}, "{t_!}"', bend right, shift right=5, from=1-2, to=3-2]
+    \arrow[""{name=2, anchor=center, inner sep=0}, "{t^*}"{description}, from=3-2, to=1-2]
+    \arrow["\dashv"{anchor=center}, draw=none, from=1, to=2]
+    \arrow["\dashv"{anchor=center}, draw=none, from=2, to=0]
+  \end{tikzcd}\]
+  where $t^{*}$ is pullback, and $t_{!}$ is composition with $t$.
+
+  Let $t : B \to A$ be a morphism in $\catC$.
+  Then define $\Poly{t} : \catC \to \catC$ be the composition
+  \[
+    \Poly{t} := A_{!} \circ t_{*} \circ B^{*}
+    \quad \quad \quad
+    % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXGNhdEMiXSxbMSwwLCJcXGNhdEMgLyBCIl0sWzIsMCwiXFxjYXRDIC8gQSJdLFszLDAsIlxcY2F0QyJdLFswLDEsIkJeKiJdLFsxLDIsInRfKiJdLFsyLDMsIkFfISJdXQ==
+    \begin{tikzcd}
+    \catC & {\catC / B} & {\catC / A} & \catC
+    \arrow["{B^*}", from=1-1, to=1-2]
+    \arrow["{t_*}", from=1-2, to=1-3]
+    \arrow["{A_!}", from=1-3, to=1-4]
+  \end{tikzcd}\]
+\end{defn}
+
+\medskip
+
+\begin{prop}
+  The data of a map into the polynomial applied to an object in $\catC$
+  % https://q.uiver.app/#q=WzAsMixbMCwwLCJYIl0sWzEsMCwiXFxQb2x5e3R9IFkiXSxbMCwxXV0=
+  \[\begin{tikzcd}
+    X & {\Poly{t} Y}
+    \arrow["\phi", from=1-1, to=1-2]
+  \end{tikzcd}\]
+  corresponds to
+  % https://q.uiver.app/#q=WzAsMyxbMCwwLCJYIl0sWzIsMCwiXFxQb2x5e3R9IFkiXSxbMSwxLCJBIl0sWzAsMSwiXFxwaGkiXSxbMSwyLCJ0XyogQl4qIFkiXSxbMCwyLCJcXGFsIiwyLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
+  \[\begin{tikzcd}
+    X && {\Poly{t} Y} \\
+    & A
+    \arrow["\phi", from=1-1, to=1-3]
+    \arrow["\al"', dashed, from=1-1, to=2-2]
+    \arrow["{t_* B^* Y}", from=1-3, to=2-2]
+  \end{tikzcd}\]
+  Applying the adjunction $A_{!} \dashv A^{*}$, this corresponds to
+  % https://q.uiver.app/#q=WzAsMyxbMCwwLCJCXyEgdF4qXFxhbCJdLFsyLDAsIkIgXFx0aW1lcyBZIl0sWzEsMSwiQiJdLFswLDEsIlxcdGlsZGV7XFxwaGl9IiwwLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzEsMiwiQl4qIFkiXSxbMCwyLCJ0XipcXGFsIiwyXV0=
+  \[
+    \al : X \to A
+    \quad \quad \text{ and }
+    \quad \quad
+    \begin{tikzcd}
+    {B_! t^*\al} && {B \times Y} \\
+    & B
+    \arrow["{\tilde{\phi}}", dashed, from=1-1, to=1-3]
+    \arrow["{t^*\al}"', from=1-1, to=2-2]
+    \arrow["{B^* Y}", from=1-3, to=2-2]
+  \end{tikzcd}\]
+  Applying the adjunction $t^{*} \dashv t_{*}$,
+  this corresponds to
+  % https://q.uiver.app/#q=WzAsMixbMCwwLCJCXyEgdF4qXFxhbCJdLFsyLDAsIlkiXSxbMCwxLCJcXHRpbGRle1xcdGlsZGV7XFxwaGl9fSIsMCx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dXQ==
+  \[
+    \al : X \to A
+    \quad \quad \text{ and }
+    \quad \quad
+    \begin{tikzcd}
+    {B_! t^*\al} && Y
+    \arrow["{\beta}", dashed, from=1-1, to=1-3]
+  \end{tikzcd}\]
+\end{prop}
+
+\medskip
+
+\begin{prop}[$\Poly{\tp}\Type$ classifies dependent types]\label{tp_classifies}
+  Specialized to $\tp : \Term \to \Type$ in $\Pshgrpd$,
+  the previous proposition says that a map
+  from a representable
+  $\Ga \to \Poly{\tp}\Type$
+  corresponds to the data of
+  \[
+    A : \Ga \to \Type
+    \quad \quad
+    \text{ and }
+    \quad \quad
+    B : \Ga \cdot A \to \Type
+  \]
+  which by Yoneda corresponds to the data in $\Cat$ of
+  \[
+    A : \Ga \to \grpd
+    \quad \quad
+    \text{ and }
+    \quad \quad
+    B : \Ga \cdot A \to \grpd
+  \]
+
+  Furthermore, if $\si : \De \to \Ga$ were a representable map,
+  then we have a naturality square
+% https://q.uiver.app/#q=WzAsNixbMywwLCJcXFBvbHl7XFx0cH0gW1xcR2EsXFxjYXRDXSAiXSxbMywxLCJcXFBvbHl7XFx0cH0gW1xcRGUsXFxjYXRDXSAiXSxbMCwxLCJcXERlIl0sWzAsMCwiXFxHYSJdLFsyLDAsIlxcU2lfe0EgXFxpbiBbXFxHYSxcXGdycGRdfSAgW1xcR2EuQSxcXGNhdENdIl0sWzIsMSwiXFxTaV97QSBcXGluIFtcXERlLFxcZ3JwZF19ICBbXFxEZS5BLFxcY2F0Q10iXSxbMiwzLCJcXHNpIl0sWzAsMSwiXFxQb2x5e1xcdHB9ey0gXFxjaXJjIFxcc2l9IiwxXSxbNCwwLCJcXGlzbyJdLFs1LDEsIlxcaXNvIiwyXSxbNCw1LCIoLSBcXGNpcmMgXFxzaSwtIFxcY2lyYyBcXHNpX0EpIiwxXV0=
+\[\begin{tikzcd}
+	\Ga && {\Si_{A \in [\Ga,\grpd]}  [\Ga.A,\catC]} & {\Poly{\tp} \Type \, \Ga } \\
+	\De && {\Si_{A \in [\De,\grpd]}  [\De.A,\catC]} & {\Poly{\tp} \Type \, \De }
+	\arrow["\iso", from=1-3, to=1-4]
+	\arrow["{(- \circ \si,- \circ \si_A)}"{description}, from=1-3, to=2-3]
+	\arrow["{\Poly{\tp}{- \circ \si}}"{description}, from=1-4, to=2-4]
+	\arrow["\si", from=2-1, to=1-1]
+	\arrow["\iso"', from=2-3, to=2-4]
+\end{tikzcd}\]
+\end{prop}
+
+\medskip
+
+\subsection{Pi and Sigma structure} %% TODO fix subsection title
+
+\medskip
+
+\begin{lemma}\label{BC_iff_nat_trans}
+  Let $\catC$ be a large category,
+  and let $[-,\catC] \in \Pshgrpd$ be the restriction of the Yoneda embedding
+  $\yo : \Cat \to \PshCat$.
+  Let $F$ be an operation that takes a groupoid $\Ga$,
+  a functor $A : \Ga \to \grpd$
+  and $B : \Ga \cdot A \to \catC$ and returns a functor
+  $F_{A} B : \Ga \to \catC$.
+
+  Then $\tilde{F} : \Poly{\tp} [-,\catC] \to [-,\catC]$
+  \[ \tilde{F}_{\Ga} (A,B) = F_{A}B \]
+  defines a natural transformation
+  if and only if $F$ satisfies the strict Beck-Chevalley condition
+  \[ (F_{A} B) \circ \si = F_{A \circ \si} (B \circ \si_{A})\]
+  where $\si_{A}$ is given by
+  % https://q.uiver.app/#q=WzAsNixbMSwwLCJcXEdhXFxjZG90IEEiXSxbMSwxLCJcXEdhIl0sWzIsMSwiXFxncnBkIl0sWzIsMCwiXFxwdGdycGQiXSxbMCwxLCJcXERlIl0sWzAsMCwiXFxEZSBcXGNkb3QgQVxcY2lyYyBcXHNpIl0sWzAsMSwiIiwyLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV0sWzEsMiwiQSIsMl0sWzMsMl0sWzAsM10sWzQsMSwiXFxzaSIsMl0sWzUsNCwiIiwyLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV0sWzUsMCwiXFxzaV9BIiwwLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
+\[\begin{tikzcd}
+	{\De \cdot A\circ \si} & {\Ga\cdot A} & \ptgrpd \\
+	\De & \Ga & \grpd
+	\arrow["{\si_A}", dashed, from=1-1, to=1-2]
+	\arrow[two heads, from=1-1, to=2-1]
+	\arrow[from=1-2, to=1-3]
+	\arrow[two heads, from=1-2, to=2-2]
+	\arrow[from=1-3, to=2-3]
+	\arrow["\si"', from=2-1, to=2-2]
+	\arrow["A"', from=2-2, to=2-3]
+\end{tikzcd}\]
+\end{lemma}
+\begin{proof}
+  Using \cref{tp_classifies}
+% https://q.uiver.app/#q=WzAsOCxbMywwLCJcXFBvbHl7XFx0cH0gW1xcR2EsXFxjYXRDXSAiXSxbNCwwLCJbXFxHYSxcXGNhdENdIl0sWzMsMSwiXFxQb2x5e1xcdHB9IFtcXERlLFxcY2F0Q10gIl0sWzQsMSwiW1xcRGUsXFxjYXRDXSAiXSxbMCwxLCJcXERlIl0sWzAsMCwiXFxHYSJdLFsyLDAsIlxcU2lfe0EgXFxpbiBbXFxHYSxcXGdycGRdfSAgW1xcR2EuQSxcXGNhdENdIl0sWzIsMSwiXFxTaV97QSBcXGluIFtcXERlLFxcZ3JwZF19ICBbXFxEZS5BLFxcY2F0Q10iXSxbNCw1LCJcXHNpIl0sWzAsMiwiXFxQb2x5e1xcdHB9ey0gXFxjaXJjIFxcc2l9IiwyXSxbMSwzLCItIFxcY2lyYyBcXHNpIl0sWzAsMSwiRl9cXEdhIiwyXSxbMiwzLCJGX1xcRGUiXSxbNiwwXSxbNywyXSxbNiw3LCIoLSBcXGNpcmMgXFxzaSwtIFxcY2lyYyBcXHNpX0EpIiwxXSxbNiwxLCJGIiwxLHsiY3VydmUiOi0yfV0sWzcsMywiRiIsMSx7ImN1cnZlIjoyfV1d
+\[\begin{tikzcd}
+	\Ga && {\Si_{A \in [\Ga,\grpd]}  [\Ga.A,\catC]} & {\Poly{\tp} [\Ga,\catC] } & {[\Ga,\catC]} \\
+	\De && {\Si_{A \in [\De,\grpd]}  [\De.A,\catC]} & {\Poly{\tp} [\De,\catC] } & {[\De,\catC] }
+	\arrow[from=1-3, to=1-4]
+	\arrow["F"{description}, bend left, from=1-3, to=1-5]
+	\arrow["{(- \circ \si,- \circ \si_A)}"{description}, from=1-3, to=2-3]
+	\arrow["{F_\Ga}"', from=1-4, to=1-5]
+	\arrow["{\Poly{\tp}{- \circ \si}}"', from=1-4, to=2-4]
+	\arrow["{- \circ \si}", from=1-5, to=2-5]
+	\arrow["\si", from=2-1, to=1-1]
+	\arrow[from=2-3, to=2-4]
+	\arrow["F"{description}, bend right, from=2-3, to=2-5]
+	\arrow["{F_\De}", from=2-4, to=2-5]
+\end{tikzcd}\]
+\end{proof}
+
+\begin{defn}[Interpretation of $\Pi$ types]
+  We define the natural transformation
+  $\Pi : \Poly{\tp} \Type \to \Type$
+  as that which is induced (\cref{BC_iff_nat_trans}) by the $\Pi$-former operation (\cref{pi_classifier_op}).
+
+  Then we define the natural transofrmation
+  $\la : \Poly{\tp} \Type \to \Type$
+  as the natural transformation induced by the following operation:
+  given $A : \Ga \to \grpd$ and $\be : \Ga \cdot A \to \ptgrpd$,
+  $\la_{A}\be : \Ga \to \ptgrpd$ will be the functor such that on objects
+  $x \in \Ga$
+  \[ \la_{A}\be \, (x) := (\Pi_{A} B \, (x) , a \mapsto (a, b (x , a)))\]
+  where $B := U \circ \be : \Ga \cdot A \to \grpd$
+  and $b (x , a)$ is the point in $\be (x , a)$.
+  On morphisms $f : x \to y$ in $\Ga$ we have
+  \[ \la_{A}\be \, (f) := (\Pi_{A} B \, (f) , \eta )\]
+  where $\eta : \Pi_{A} B \, f \, s_{x} \to s_{y}$ is a natural isomorphism
+  between functors $A_{y} \to \Si_{A} B y$ given on objects $a \in A_{y}$ by
+  \[ \eta_{a} := (\id_{a}, \id_{b (y , a)})\]
+
+  These combine to give us a pullback square
+% https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSJdLFswLDEsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzEsMCwiXFxUZXJtIl0sWzEsMSwiXFxUeXBlIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcdHB9IiwyXSxbMCwyLCJcXGxhIl0sWzIsMywiXFx0cCJdLFsxLDMsIlxcUGkiLDJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
+\[\begin{tikzcd}
+	{\Poly{\tp}{\Term}} & \Term \\
+	{\Poly{\tp}{\Type}} & \Type
+	\arrow["\la", from=1-1, to=1-2]
+	\arrow["{\Poly{\tp}{\tp}}"', from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow["\tp", from=1-2, to=2-2]
+	\arrow["\Pi"', from=2-1, to=2-2]
+\end{tikzcd}\]
+\end{defn}
+\begin{proof}
+  We should check that the $\la$ operation satisfied Beck-Chevalley.
+  This follows from the $\Pi$ satisfying Beck-Chevalley and extensionality
+  results for functors.
+
+  The square commutes and is a pullback if and only it pointwise
+  commutes and pointwise gives pullbacks, i.e.
+  for each groupoid $\Ga$
+  % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSBcXEdhIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcVHlwZX0gXFxHYSJdLFsxLDAsIltcXEdhLFxccHRncnBkXSJdLFsxLDEsIltcXEdhLFxcZ3JwZF0iXSxbMCwxLCJcXFBvbHl7XFx0cH17XFx0cH1fXFxHYSIsMl0sWzAsMiwiXFxsYV9cXEdhIl0sWzIsMywiVSBcXGNpcmMgLSJdLFsxLDMsIlxcUGlfXFxHYSIsMl0sWzAsMywiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
+\[\begin{tikzcd}
+	{\Poly{\tp}{\Term} \, \Ga} & {[\Ga,\ptgrpd]} \\
+	{\Poly{\tp}{\Type} \, \Ga} & {[\Ga,\grpd]}
+	\arrow["{\la_\Ga}", from=1-1, to=1-2]
+	\arrow["{\Poly{\tp}{\tp}_\Ga}"', from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow["{U \circ -}", from=1-2, to=2-2]
+	\arrow["{\Pi_\Ga}"', from=2-1, to=2-2]
+\end{tikzcd}\]
+
+by \cref{tp_classifies} this holds if and only if
+% https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFNpX3tBIFxcaW4gW1xcR2EsXFxncnBkXX0gIFtcXEdhLkEsXFxwdGdycGRdIl0sWzAsMSwiXFxTaV97QSBcXGluIFtcXEdhLFxcZ3JwZF19ICBbXFxHYS5BLFxcZ3JwZF0iXSxbMSwwLCJbXFxHYSxcXHB0Z3JwZF0iXSxbMSwxLCJbXFxHYSxcXGdycGRdIl0sWzAsMSwiKC0gXFxjaXJjIFxcc2ksLSBcXGNpcmMgXFxzaV9BKSIsMl0sWzAsMiwiXFxsYSJdLFsyLDMsIlUgXFxjaXJjIC0iXSxbMSwzLCJcXFBpIiwyXSxbMCwzLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
+\[\begin{tikzcd}
+	{\Si_{A \in [\Ga,\grpd]}  [\Ga.A,\ptgrpd]} & {[\Ga,\ptgrpd]} \\
+	{\Si_{A \in [\Ga,\grpd]}  [\Ga.A,\grpd]} & {[\Ga,\grpd]}
+	\arrow["\la", from=1-1, to=1-2]
+	\arrow["{(- \circ \si,- \circ \si_A)}"', from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow["{U \circ -}", from=1-2, to=2-2]
+	\arrow["\Pi"', from=2-1, to=2-2]
+\end{tikzcd}\]
+
+which follows from the definitions of $\Pi$ and $\la$.
+\end{proof}
+
+\medskip
+
+\begin{lemma}\label{R_classifies}
+  Use $R$ to denote the fiber product
+  % https://q.uiver.app/#q=WzAsNCxbMSwwLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMSwxLCJcXFR5cGUiXSxbMCwwLCJSIl0sWzAsMSwiXFxUZXJtIl0sWzAsMSwiXFx0cF8qIFxcVGVybV4qIFxcVHlwZSJdLFsyLDAsIlxccmhvX1xcUG9seXt9Il0sWzIsMywiXFx0cF4qIFxcdHBfKiBcXFRlcm1eKiBcXFR5cGU9IFxccmhvX1xcVGVybSIsMl0sWzMsMSwiXFx0cCIsMl0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
+\[\begin{tikzcd}
+	R & {\Poly{\tp}{\Type}} \\
+	\Term & \Type
+	\arrow["{\rho_{\Poly{}}}", from=1-1, to=1-2]
+	\arrow["{\tp^* \tp_* \Term^* \Type = \rho_\Term}"', from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow["{\tp_* \Term^* \Type}", from=1-2, to=2-2]
+	\arrow["\tp"', from=2-1, to=2-2]
+\end{tikzcd}\]
+
+  By the universal property of pullbacks,
+  The data of a map from a respresentable $\ep : \Ga \to R$
+  corresponds to the data of
+  $\al : \Ga \to \Term$ and $(U \circ \al,B) : \Ga \to \Poly{\tp}{\Type}$.
+  Then by \cref{tp_classifies} this corresponds to the data of
+  $\al : \Ga \to \Term$ and $B : \Ga \cdot U \circ \al \to \Type$.
+  % https://q.uiver.app/#q=WzAsNSxbMiwxLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMiwyLCJcXFR5cGUiXSxbMSwxLCJSIl0sWzEsMiwiXFxUZXJtIl0sWzAsMCwiXFxHYSJdLFswLDEsIlxcdHBfKiBcXFRlcm1eKiBcXFR5cGUiXSxbMiwwLCJcXHJob19cXFBvbHl7fSJdLFsyLDMsIlxcdHBeKiBcXHRwXyogXFxUZXJtXiogXFxUeXBlPSBcXHJob19cXFRlcm0iLDJdLFszLDEsIlxcdHAiLDJdLFsyLDEsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs0LDAsIihVIFxcY2lyYyBcXGFsLEIpIl0sWzQsMywiXFxhbCIsMl0sWzQsMiwiKFxcYWwsQikiLDFdXQ==
+\[\begin{tikzcd}
+	\Ga \\
+	& R & {\Poly{\tp} {\Type}} \\
+	& \Term & \Type
+	\arrow["{(\al,B)}"{description}, from=1-1, to=2-2]
+	\arrow["{(U \circ \al,B)}"{description}, bend left, from=1-1, to=2-3]
+	\arrow["\al"', bend right, from=1-1, to=3-2]
+	\arrow["{\rho_{\Poly{}}}", from=2-2, to=2-3]
+	\arrow["{\rho_\Term}"', from=2-2, to=3-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+	\arrow["{\tp_* \Term^* \Type}", from=2-3, to=3-3]
+	\arrow["\tp"', from=3-2, to=3-3]
+\end{tikzcd}\]
+
+  Precomposition by a substitution $\si : \De \to \Ga$ then act on such a pair by
+  \[ (\al, B) \mapsto (\al \circ \si, B \circ \si_{U \circ \al})\]
+\end{lemma}
+
+\medskip
+
+\begin{defn}[Evaluation]
+  Define the operation of evaluation $\ev{\al}{B}$ to take
+  $\al : \Ga \to \ptgrpd$ and $B : \Ga \cdot U \circ \al \to \grpd$
+  and return $\ev{\al}{B} : \Ga \to \grpd$, described below.
+% https://q.uiver.app/#q=WzAsOCxbMiwxLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMiwyLCJcXFR5cGUiXSxbMSwxLCJSIl0sWzEsMiwiXFxUZXJtIl0sWzAsMiwiXFxUZXJtIFxcdGltZXMgXFxUeXBlIl0sWzAsMywiXFxUZXJtIl0sWzEsMywiXFx0ZXJtaW5hbCJdLFswLDAsIlxcR2EiXSxbMCwxLCJcXHRwXyogXFxUZXJtXiogXFxUeXBlIl0sWzIsMF0sWzIsM10sWzMsMSwiXFx0cCIsMl0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzIsNCwiXFxjb3VuaXQiLDFdLFs0LDNdLFs0LDVdLFs1LDZdLFszLDZdLFs0LDYsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs3LDAsIihBLEIpIiwxXSxbNywzLCJcXGFsIiwxLHsibGFiZWxfcG9zaXRpb24iOjIwfV0sWzcsNSwiXFxldntcXGFsfXtCfSIsMSx7ImN1cnZlIjo1LCJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNywyLCIoXFxhbCxCKSIsMSx7ImxhYmVsX3Bvc2l0aW9uIjo3MH1dLFs3LDQsIihcXGV2e1xcYWx9e0J9LFxcYWwpIiwxLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
+\[\begin{tikzcd}
+	\Ga \\
+	& R & {\Poly{\tp}{\Type}} \\
+	{\Type \times \Term} & \Term & \Type \\
+	\Type & \terminal
+	\arrow["{(\al,B)}"{description, pos=0.7}, from=1-1, to=2-2]
+	\arrow["{(A,B)}"{description}, bend left, from=1-1, to=2-3]
+	\arrow["{(\ev{\al}{B}, \al)}"{description}, dashed, from=1-1, to=3-1]
+	\arrow["\al"{description, pos=0.2}, from=1-1, to=3-2]
+	\arrow["{\ev{\al}{B}}"{description}, bend right = 50, dashed, from=1-1, to=4-1]
+	\arrow[from=2-2, to=2-3]
+	\arrow["\counit"{description, pos=0.7}, from=2-2, to=3-1]
+	\arrow[from=2-2, to=3-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+	\arrow["{\tp_* \Term^* \Type}", from=2-3, to=3-3]
+	\arrow[from=3-1, to=3-2]
+	\arrow[from=3-1, to=4-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=3-1, to=4-2]
+	\arrow["\tp"', from=3-2, to=3-3]
+	\arrow[from=3-2, to=4-2]
+	\arrow[from=4-1, to=4-2]
+\end{tikzcd}\]
+  where we write $A := U \circ \al$ and treat a map
+  $\Ga \to \grpd$
+  as the same
+  as a map
+  $\Ga \to \Type$.
+
+  More concisely, evaluation is a natural transformation $\ev{}{} : R \to \Type$, given by
+  \[ \ev{}{} = \pi_{\Type} \circ \counit \]
+\end{defn}
+
+\medskip
+
+\begin{lemma}\label{evaluation_computation}
+  The functor $\ev{\al}{B} : \Ga \to \grpd$ can be computed as
+  \[ \ev{\al}{B} = B \circ a \]
+  where
+  % https://q.uiver.app/#q=WzAsNSxbMiwyLCJcXGdycGQiXSxbMiwxLCJcXHB0Z3JwZCJdLFsxLDIsIlxcR2EiXSxbMSwxLCJcXEdhIFxcY2RvdCBBIl0sWzAsMCwiXFxHYSJdLFsxLDBdLFsyLDAsIkEiLDJdLFszLDIsIlxcZGlzcHtBfSIsMl0sWzMsMV0sWzQsMiwiIiwwLHsibGV2ZWwiOjIsInN0eWxlIjp7ImhlYWQiOnsibmFtZSI6Im5vbmUifX19XSxbNCwxLCJcXGFsIl0sWzQsMywiYSIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFszLDAsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
+\[\begin{tikzcd}
+	\Ga \\
+	& {\Ga \cdot A} & \ptgrpd \\
+	& \Ga & \grpd
+	\arrow["a"{description}, dashed, from=1-1, to=2-2]
+	\arrow["\al", bend left, from=1-1, to=2-3]
+	\arrow[Rightarrow, no head, bend right, from=1-1, to=3-2]
+	\arrow[from=2-2, to=2-3]
+	\arrow["{\disp{A}}"', from=2-2, to=3-2]
+	\arrow[from=2-3, to=3-3]
+	\arrow["A"', from=3-2, to=3-3]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+\end{tikzcd}\]
+\end{lemma}
+\begin{proof}
+  Since $\counit = (\ev{}{}, \rho_{\Term}) : R \to \Type$,
+  it suffices to find out how the counit computes.
+  The adjunction $\tp^{*} \dashv \tp_{*}$
+  suggests that we use the way
+  \[ \widetilde{\counit} = \id_{\Poly{\tp}\Type}\]
+  computes. Namely for any $A : \Ga \to \grpd$ and $B : \Ga \cdot A \to \grpd$
+  \begin{equation}
+    \widetilde{\counit} \circ (A, B) = (A, B) : \Ga \to \Poly{\tp}\Type
+    \label{evaluation_computation_equation1}
+  \end{equation}
+
+  Working on both sides of \cref{evaluation_computation_equation1} we get
+  \begin{align*}
+    & (\ev{\var_{A}}{B} \circ U^{*}\disp{A}, \var_{A}) \\
+    = \, & (\ev{}{}, \rho_{\Type}) \circ (\var_{A}, B \circ U^{*}(\disp{A})) \\
+    = \, & (\ev{}{}, \rho_{\Type}) \circ \tp^{*} (A, B)
+         & \cref{evaluation_computation_diagram1} \\
+    = \, & \counit \circ \tp^{*} (A, B) \\
+    = \, & \overline{\widetilde{\counit} \circ (A, B)} \\
+    = \, & \overline{(A, B)} \\
+    = \, & (B, \var_{A})
+  \end{align*}
+  Hence we know that evaluation of $B$
+  (weakened to the context $\Ga \cdot A \cdot A$)
+  on a variable of type $A$
+  is just $B$.
+  \[ \ev{\var_{A}}{B} \circ U^{*}\disp{A} = B\]
+  % diagrams TODO
+
+  Then the naturality square for the natural transformation
+  $\ev{}{} : R \to \Type$ on $a : \Ga \to \Ga \cdot A$
+  tells us that
+  \begin{align*}
+    & \ev{\al}{B} \\
+    = \, & \ev{\Ga}{} (\al, B) \\
+    = \, & \ev{\Ga}{} (\var_{A} \circ a, B \circ \U^{*} (\id_{\Ga}) \\
+    = \, & \ev{\Ga}{} (\var_{A} \circ a, B \circ \U^{*} (\disp{A} \circ a)) \\
+    = \, & \ev{\Ga}{} (\var_{A} \circ a, B \circ \U^{*} \disp{A} \circ U^{*} a) \\
+    = \, & \ev{\Ga}{} ((\var_{A}, B \circ \U^{*} \disp{A}) \circ a) \\
+    = \, & (\ev{\Ga \cdot A}{} (\var_{A}, B \circ \U^{*} \disp{A}) \circ a
+         & \text{by naturality}\\
+    = \, & (\ev{\var_{A}}{B \circ \U^{*} \disp{A}}) \circ a \\
+    = \, & B \circ a
+  \end{align*}
+
+
+ \begin{figure}
+\centering
+\begin{subfigure}{.5\textwidth}
+  \centering
+% https://q.uiver.app/#q=WzAsNixbMSwxLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMSwyLCJcXFR5cGUiXSxbMCwxLCJSIl0sWzAsMiwiXFxUZXJtIl0sWzEsMCwiXFxHYSJdLFswLDAsIlxcR2EgXFxjZG90IEEiXSxbMCwxLCJcXHRwXyogXFxUZXJtXiogXFxUeXBlIiwxXSxbMiwwLCJcXHJob197XFxQb2x5e319Il0sWzIsMywiXFxyaG9fXFxUZXJtIiwxXSxbMywxLCJcXHRwIiwyXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwwLCIoQSxCKSIsMV0sWzUsNCwiXFxkaXNwe0F9Il0sWzUsMiwiXFx0cF4qKEEsQikiLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNSwzLCJcXHZhcl9BIiwyLHsiY3VydmUiOjR9XSxbNCwxLCJBIiwwLHsiY3VydmUiOi00fV1d
+\begin{tikzcd}
+	{\Ga \cdot A} & \Ga \\
+	R & {\Poly{\tp} {\Type}} \\
+	\Term & \Type
+	\arrow["{\disp{A}}", from=1-1, to=1-2]
+	\arrow["{\tp^*(A,B)}"{description}, dashed, from=1-1, to=2-1]
+	\arrow["{\var_A}"', bend right = 60, from=1-1, to=3-1]
+	\arrow["{(A,B)}"{description}, from=1-2, to=2-2]
+	\arrow["A", bend left = 60, from=1-2, to=3-2]
+	\arrow["{\rho_{\Poly{}}}", from=2-1, to=2-2]
+	\arrow["{\rho_\Term}"{description}, from=2-1, to=3-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-1, to=3-2]
+	\arrow["{\tp_* \Term^* \Type}"{description}, from=2-2, to=3-2]
+	\arrow["\tp"', from=3-1, to=3-2]
+\end{tikzcd}
+  \caption{$\tp^{*}(A,B)$}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+      \begin{align*}
+        & \rho_{\Poly{}} \circ \tp^*(A,B) \\
+        = \, & (A, B) \circ \disp{A} \\
+        = \, & (A \circ \disp{A}, B \circ U^{*}\disp{A}) \\
+        \text{Hence}
+      \end{align*}
+  \caption{$\tp^{*}(A,B) = (\var_{A}, B \circ U^{*}\disp{A})$}
+  \label{evaluation_computation_diagram1}
+\end{subfigure}
+\end{figure}
+  % (\var_{A}, B \circ \tp^* \disp_A)
+
+
+\end{proof}
+
+\medskip
+
+\begin{defn}[Classifier for dependent pairs]\label{dependent_pair_classifier}
+  Recall the following definition of composition of polynomial endofunctors,
+  specialized to our situation
+% https://q.uiver.app/#q=WzAsMTEsWzMsMCwiXFxQb2x5e1xcdHB9IHtcXFR5cGV9Il0sWzMsMSwiXFxUeXBlIl0sWzIsMCwiUiJdLFsyLDEsIlxcVGVybSJdLFsxLDEsIlxcVGVybSBcXHRpbWVzIFxcVHlwZSJdLFsxLDIsIlxcVHlwZSJdLFsyLDIsIlxcdGVybWluYWwiXSxbMCwxLCJcXFRlcm0gXFx0aW1lcyBcXFRlcm0iXSxbMCwyLCJcXFRlcm0iXSxbMSwwLCJSIl0sWzAsMCwiUSJdLFswLDEsIlxcdHBfKiBcXFRlcm1eKiBcXFR5cGUiXSxbMiwwXSxbMiwzXSxbMywxLCJcXHRwIiwyXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwzXSxbNCw1XSxbNSw2XSxbMyw2XSxbNCw2LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNyw0XSxbNyw4XSxbOCw1LCJcXHRwIiwyXSxbNyw1LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMTAsN10sWzEwLDQsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs5LDIsIiIsMSx7ImxldmVsIjoyLCJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzEwLDldLFs5LDQsIlxcY291bml0IiwxXSxbMTAsMCwiXFx0cCBcXHRyaWFuZ2xlbGVmdCBcXHRwIiwxLHsiY3VydmUiOi0zfV1d
+\[\begin{tikzcd}
+	Q & R & R & {\Poly{\tp} {\Type}} \\
+	{\Term \times \Term} & {\Type \times \Term} & \Term & \Type \\
+	\Term & \Type & \terminal
+	\arrow[from=1-1, to=1-2]
+	\arrow["{\tp \triangleleft \tp}"{description}, bend left, from=1-1, to=1-4]
+	\arrow[from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow[Rightarrow, no head, from=1-2, to=1-3]
+	\arrow["\counit"{description}, from=1-2, to=2-2]
+	\arrow[from=1-3, to=1-4]
+	\arrow[from=1-3, to=2-3]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-3, to=2-4]
+	\arrow["{\tp_* \Term^* \Type}", from=1-4, to=2-4]
+	\arrow[from=2-1, to=2-2]
+	\arrow[from=2-1, to=3-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-1, to=3-2]
+	\arrow[from=2-2, to=2-3]
+	\arrow[from=2-2, to=3-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+	\arrow["\tp"', from=2-3, to=2-4]
+	\arrow[from=2-3, to=3-3]
+	\arrow["\tp"', from=3-1, to=3-2]
+	\arrow[from=3-2, to=3-3]
+\end{tikzcd}\]
+
+  By the universal property of pullbacks,
+  a data of a map with representable domain $\ep : \Ga \to Q$ corresponds to the
+  data of a triple of maps $\al, \be : \Ga \to \Term$
+  and $(A,B) : \Ga \to \Poly{\tp} \Type$ such that
+  $\tp \circ \be = \pi_{\Type} \circ \counit \circ (\al, B)$
+  and $A = \tp \circ \al$.
+% https://q.uiver.app/#q=WzAsMTIsWzQsMSwiXFxQb2x5e1xcdHB9IHtcXFR5cGV9Il0sWzQsMiwiXFxUeXBlIl0sWzMsMSwiUiJdLFszLDIsIlxcVGVybSJdLFsyLDIsIlxcVGVybSBcXHRpbWVzIFxcVHlwZSJdLFsyLDMsIlxcVHlwZSJdLFszLDMsIlxcdGVybWluYWwiXSxbMSwyLCJcXFRlcm0gXFx0aW1lcyBcXFRlcm0iXSxbMSwzLCJcXFRlcm0iXSxbMiwxLCJSIl0sWzEsMSwiUSJdLFswLDAsIlxcR2EiXSxbMCwxLCJcXHRwXyogXFxUZXJtXiogXFxUeXBlIl0sWzIsMF0sWzIsM10sWzMsMSwiXFx0cCIsMl0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzQsM10sWzQsNV0sWzUsNl0sWzMsNl0sWzQsNiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzcsNF0sWzcsOF0sWzgsNSwiXFx0cCIsMl0sWzcsNSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzEwLDddLFsxMCw0LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbOSwyLCIiLDEseyJsZXZlbCI6Miwic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dLFsxMCw5XSxbOSw0LCJcXGNvdW5pdCIsMV0sWzExLDgsIlxcYmUiLDJdLFsxMSwxMCwiXFxlcCIsMV0sWzExLDAsIlxcZ2EiLDFdLFsxMSwzLCJcXGFsIiwxLHsibGFiZWxfcG9zaXRpb24iOjIwfV0sWzExLDI4LCJcXGxhbmdsZSBcXGFsICwgXFxnYSBcXHJhbmdsZSIsMSx7InNob3J0ZW4iOnsidGFyZ2V0IjoyMH0sImxldmVsIjoxfV1d
+\[\begin{tikzcd}
+	\Ga \\
+	& Q & R & R & {\Poly{\tp} {\Type}} \\
+	& {\Term \times \Term} & {\Type \times \Term} & \Term & \Type \\
+	& \Term & \Type & \terminal
+	\arrow[from=2-2, to=2-3]
+	\arrow[from=2-2, to=3-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+	\arrow[""{name=0, anchor=center, inner sep=0}, Rightarrow, no head, from=2-3, to=2-4]
+	\arrow["\counit"{description}, from=2-3, to=3-3]
+	\arrow[from=2-4, to=2-5]
+	\arrow[from=2-4, to=3-4]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-4, to=3-5]
+	\arrow["{\tp_* \Term^* \Type}", from=2-5, to=3-5]
+	\arrow[from=3-2, to=3-3]
+	\arrow[from=3-2, to=4-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=3-2, to=4-3]
+	\arrow[from=3-3, to=3-4]
+	\arrow[from=3-3, to=4-3]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=3-3, to=4-4]
+	\arrow["\tp"', from=3-4, to=3-5]
+	\arrow[from=3-4, to=4-4]
+	\arrow["\tp"', from=4-2, to=4-3]
+	\arrow[from=4-3, to=4-4]
+	\arrow["\ep"{description}, from=1-1, to=2-2]
+	\arrow["{(A,B)}"{description}, bend left, from=1-1, to=2-5]
+	\arrow["\al"{description, pos=0.2}, bend left = 10, from=1-1, to=3-4]
+	\arrow["\be"', from=1-1, bend right, to=4-2]
+	\arrow["{( \al , B ) }"{description}, bend left = 25, from=1-1, to=2-3]
+\end{tikzcd}\]
+
+
+  This in turn corresponds to three functors $\al, \be : \Ga \to \ptgrpd$ and
+  $B : \Ga \cdot U \circ \al \to \grpd$,
+  such that $U \circ \be = \ev{\al} B$.
+  So we will write
+  \[\ep = (\be, \al, B)\]
+  {\color{gray}
+  Type theoretically $\al = (A , a : A)$ and $\ev{\al} B = B a$ and
+  $\be = (B a, b : B a)$.
+  Then composing $\ep$ with $\tp \triangleleft \tp$ returns $\ga$,
+  which consists of $(A, B)$.
+  It is in this sense that $Q$ classifies pairs of dependent terms,
+  and $\tp \triangleleft \tp$ extracts the underlying types.}
+\end{defn}
+
+\medskip
+
+\begin{defn}[Interpretation of $\Si$]
+  We define the natural transformation
+  \[\Si : \Poly{\tp} \Type \to \Type\]
+  as that which is induced (\cref{BC_iff_nat_trans}) by the $\Si$-former operation (\cref{pi_classifier_op}).
+
+  To define $\pair : Q \to \Term$, let $\Ga$ be a groupoid
+  % \begin{align*}
+  %   & Q \, \Ga \\
+  %   \iso &
+  %     \{ (\be : \ga \to \ptgrpd, \al : \Ga \to \ptgrpd,
+  %       B : \Ga \cdot U \circ \al \to \grpd) \st U \circ \be = \ev{\al}{\be} \}
+  %   \\
+  %   \to & [\Ga, \ptgrpd]
+  % \end{align*}
+  and $(\be,\al,B) : \Ga \to Q$ (such that $U \circ \be = \ev{\al}{\be}$).
+  We define a functor $\pair_{\Ga}(\be,\al,B) : \Ga \to \ptgrpd$ such that
+  on objects $x \in \Ga$, the functor returns $(\Si_{A} B \, x, (a_{x}, b_{a_{x}}))$,
+  where
+  (using \cref{evaluation_computation}
+  $U \circ \be x = \ev{\al}{B} x = B(x, a_{x})$)
+  \[\al \, x = (A \, x, a_{x}) \quad \text{ and } \quad \be \, x = (B (x , a_{x}), b_{a_{x}})\]
+  and on morphisms $f : x \to y$, the functor returns $(\Si_{A} B \, f, (\phi_{f}, \psi_{f}))$,
+  where (using \cref{evaluation_computation}
+  $U \circ \be f = \ev{\al}{B} f = B(f, \phi_{f})$)
+  \[\al \, f = (A \, f, \phi_{f} { \color{gray} : A \, f \, a_{x} \to a_{y}})
+    \quad \text{ and } \quad
+    \be \, f = (B(f, \phi_{f}), \psi_{f} {\color{gray}: B(f, \phi_{f}) \, b_{a_{x}}\to b_{a_{y}}})
+  \]
+
+  $\Si$ and $\pair$ combine to give us a pullback square
+% https://q.uiver.app/#q=WzAsNCxbMCwwLCJRIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcVHlwZX0iXSxbMSwwLCJcXFRlcm0iXSxbMSwxLCJcXFR5cGUiXSxbMCwxLCJcXHRwIFxcdHJpYW5nbGVsZWZ0IFxcdHAiLDJdLFswLDIsIlxccGFpciJdLFsyLDMsIlxcdHAiXSxbMSwzLCJcXFNpIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
+\[\begin{tikzcd}
+	Q & \Term \\
+	{\Poly{\tp}{\Type}} & \Type
+	\arrow["\pair", from=1-1, to=1-2]
+	\arrow["{\tp \triangleleft \tp}"', from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow["\tp", from=1-2, to=2-2]
+	\arrow["\Si"', from=2-1, to=2-2]
+\end{tikzcd}\]
+\end{defn}
+\begin{proof}
+  To show naturality of $\pair$,
+  suppose $\si : \De \to \Ga$ is a functor between groupoids.
+% https://q.uiver.app/#q=WzAsOCxbMCwwLCJcXFBzaGdycGQoXFxEZSxRKSJdLFswLDMsIlxcUHNoZ3JwZChcXEdhLFEpIl0sWzMsMywiW1xcR2EsXFxwdGdycGRdIl0sWzMsMCwiW1xcRGUsXFxwdGdycGRdIl0sWzEsMiwiKFxcYmUsXFxhbCxCKSJdLFsxLDEsIihcXGJlIFxcY2lyYyBcXHNpLFxcYWwgXFxjaXJjIFxcc2ksQiBcXGNpcmMgXFxzaV9BKSJdLFsyLDEsIj8iXSxbMiwyLCJcXHBhaXJfXFxHYShcXGJlLFxcYWwsQikiXSxbMSwwLCJcXGNpcmMgXFxzaSJdLFsxLDIsIlxccGFpcl9cXEdhIiwyXSxbMCwzLCJcXHBhaXJfXFxEZSJdLFsyLDMsIlxcY2lyYyBcXHNpIiwyXSxbNCw1LCIiLDIseyJzdHlsZSI6eyJ0YWlsIjp7Im5hbWUiOiJtYXBzIHRvIn19fV0sWzUsNiwiIiwyLHsic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9fX1dLFs0LDcsIiIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XSxbNyw2LCIiLDAseyJzdHlsZSI6eyJ0YWlsIjp7Im5hbWUiOiJtYXBzIHRvIn19fV1d
+\[\begin{tikzcd}
+	{\Pshgrpd(\De,Q)} &&& {[\De,\ptgrpd]} \\
+	& {(\be \circ \si,\al \circ \si,B \circ \si_A)} & {?} \\
+	& {(\be,\al,B)} & {\pair_\Ga(\be,\al,B)} \\
+	{\Pshgrpd(\Ga,Q)} &&& {[\Ga,\ptgrpd]}
+	\arrow["{\pair_\De}", from=1-1, to=1-4]
+	\arrow[maps to, from=2-2, to=2-3]
+	\arrow[maps to, from=3-2, to=2-2]
+	\arrow[maps to, from=3-2, to=3-3]
+	\arrow[maps to, from=3-3, to=2-3]
+	\arrow["{\circ \si}", from=4-1, to=1-1]
+	\arrow["{\pair_\Ga}"', from=4-1, to=4-4]
+	\arrow["{\circ \si}"', from=4-4, to=1-4]
+\end{tikzcd}\]
+
+  So we check that for any $x \in \Ga$,
+  \begin{align*}
+    & \pair_\De (\be \circ \si, \al \circ \si, B \circ \si_A) \, x \\
+    = \, & (\Si_{A \circ \si} B \circ \si_A \, x, (a_x, b_{a_x})) \\
+    = \, & ((\Si_{A} B) \circ \si \, x, (a_x, b_{a_x})) \\
+    = \, & \pair_\Ga (\be, \al, B) \circ \si \, x
+  \end{align*}
+  where
+  \[ \al \circ \si \, x = (A \circ \si x, a_{x})
+    \quad
+    \text{and}
+    \quad
+    \be \circ \si \, x = (\ev{\al}{B} \circ \si \, x, b_{a_{x}})
+  \]
+  and so on.
+
+  It follows from the definition of $\pair$ that the square commutes.
+  To show that it is pullback, it suffices to show that for each $\Ga$,
+ % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBzaGdycGQgKFxcR2EsIFEpIl0sWzAsMSwiXFxQc2hncnBkKFxcR2EsXFxQb2x5e1xcdHB9e1xcVHlwZX0pIl0sWzEsMCwiW1xcR2EsXFxwdGdycGRdIl0sWzEsMSwiW1xcR2EsXFxncnBkXSJdLFswLDEsIlxcdHAgXFx0cmlhbmdsZWxlZnQgXFx0cCBcXGNpcmMgLSIsMl0sWzAsMiwiXFxwYWlyX1xcR2EiXSxbMiwzLCJVIFxcY2lyYyAtIl0sWzEsMywiXFxTaV9cXEdhIiwyXV0=
+\[\begin{tikzcd}
+	{\Pshgrpd (\Ga, Q)} & {[\Ga,\ptgrpd]} \\
+	{\Pshgrpd(\Ga,\Poly{\tp}{\Type})} & {[\Ga,\grpd]}
+	\arrow["{\pair_\Ga}", from=1-1, to=1-2]
+	\arrow["{\tp \triangleleft \tp \circ -}"', from=1-1, to=2-1]
+	\arrow["{U \circ -}", from=1-2, to=2-2]
+	\arrow["{\Si_\Ga}"', from=2-1, to=2-2]
+\end{tikzcd}\]
+  is a pullback.
+  Since we are in $\Set$,
+  it suffices to just show the universal property applied to a point:
+  so for any $A : \Ga \to \grpd$, any $B : \Ga \cdot A \to \grpd$,
+  and any $p : \Ga \to \ptgrpd$,
+  such that
+  \[ U \circ p = \Si_{\Ga} (A, B)\]
+  there exists a unique $(\be, \al, B) : \Ga \to Q$
+  such that
+  \[ \pair_{\Ga}(\be,\al,B) = p
+    \quad
+    \text{and}
+    \quad
+    \tp \triangleleft \tp \circ (B,\al, B) = (A, B)
+  \]
+  Indeed if we write
+  \[ p \, x = (\Si_{A} B \, x ,
+    (a_{x} {\color{gray} \in A x}, b_{x} {\color{gray} \in B(x, a_{x})}))\]
+  this uniquely determines $\al$ and $\be$ as
+  \[ \al \, x =  (A x, a_{x})
+    \quad
+    \text{and}
+    \quad
+    \be \, x = (\ev{\al}{B} \, x, b_{x})
+  \]
+
+
+
+\end{proof}

@@ -1,0 +1,115 @@
+\subsection{Types}
+
+Assume an inaccessible cardinal $\lambda$. Write $\Set$ for the category of all sets. Say that a set $A$ is $\lambda$-small if $|A| < \lambda$.  Write $\Set_\lambda$ for the full
+subcategory of $\Set$ spanned by  $\lambda$-small sets.
+
+Let $\mathbb{C}$ be a small category, i.e.~a category whose class of objects is a set and
+whose hom-classes are sets.
+% We do not assume that $\mathbb{C}$ is $\lambda$-small for
+% the moment.
+
+We write $\pshC$ for the category of presheaves over $\catC$,
+\[
+\pshC \defeq [\catC^\op, \Set]
+\]
+
+% Because of the assumption of the existence of $\lambda$, $\pshC$ has additional structure. Let
+% \[
+% \Term \to \Type
+% \]
+% be the Hofmann-Streicher universe in $\pshC$ associated to $\lambda$. In particular,
+% \[
+% \Type(c) \defeq \{  A \co (\catC_{/c})^\op \to \Set_{\lambda} \}
+% \]
+
+The Natural Model associated to a presentable map $\tp \co \Term \to \Type$ consists of
+\begin{itemize}
+\item contexts as objects $\Gamma, \Delta, \ldots \in \catC$,
+\item a type in context $\yo (\Gamma)$ as a map $A \co \yo(\Gamma) \to \Type$,
+\item a term of type $A$ in context $\Gamma$ as a map $a \co \yo(\Gamma) \to \Term$ such that
+\[
+\xymatrix{
+ & \Term \ar[d]^{\tp} \\
+\Gamma \ar[r]_-A \ar[ur]^{a} & \Type}
+\]
+commutes,
+\item an operation called ``context extension'' which given a context $\Gamma$ and a type $A \co \yo(\Gamma) \to \Type$ produces a context $\Gamma\cdot A$ which fits into a pullback diagram below.
+\[
+\xymatrix{
+\yo(\Gamma.A) \ar[r] \ar[d] & \Term \ar[d] \\
+\yo(\Gamma) \ar[r]_-{A} & \Type}
+\]
+\end{itemize}
+
+% In the internal type theory of $\pshC$, we write
+% \[
+%  (\Gamma) \ A \co \Type \qquad  (\Gamma) \ a \co A
+% \]
+% to mean that $A$ is a type in context $\Gamma$ and that $a$ is an element of type $A$ in context
+% $\Gamma$, respectively.
+
+
+
+
+{\bf Remark.}
+Sometimes, we first construct a presheaf $X$ over $\Gamma$ and observe that it can be classified by a map into $\Type$. We write
+\[
+\xymatrix@C=1cm{
+X \ar[r] \ar[d]& \Term \ar[d] \\
+\yo(\Gamma) \ar[r]_-{\ulcorner X \urcorner} & \Type}
+\]
+to express this situation, i.e.~$X \cong \yo(\Gamma \cdot \ulcorner X \urcorner)$.
+
+\medskip
+
+
+
+\subsection{A type of small types}
+
+We now wish to formulate a condition that allows us to have a type of small types, written $\U$, not just {\em judgement} expressing that something is a type. With this notation, the judgements that we would like to derive is
+\[
+ \U \co \Type \qquad
+ \begin{prooftree}
+ a \co \U
+ \justifies
+ \El(a) \co \Type
+ \end{prooftree}
+\]
+
+(A sufficient and natural condition for this seems to be that we now have another inaccessible cardinal $\kappa$, with $\kappa < \lambda$.)
+
+In the Natural Model, a universe $\U$ is postulated by a map
+\[
+\pi \co \E \to \U
+\]
+
+In the Natural Model:
+\begin{itemize}
+\item There is a pullback diagram of the form
+\[
+\xymatrix{
+\U \ar[r] \ar[d] & \Term \ar[d] \\
+1 \ar[r]_-{\ulcorner \U \urcorner } & \Type }
+\]
+\item There is an inclusion of $\U$ into $\Type$
+\[
+\El \co \U \rightarrowtail \Type
+\]
+\item $\pi : \E \to \U$ is obtained as pullback of $\tp$; There is a pullback diagram
+\[
+\xymatrix{
+E \ar@{>->}[r] \ar[d] & \Term \ar[d] \\
+\U \ar@{>->}[r]_-{\El} & \Type }
+\]
+ \end{itemize}
+
+With the notation above, we get
+\[
+\xymatrix{
+\yo (\Gamma.\El(a)) \ar[r] \ar[d] & \E \ar[r] \ar[d] & \Term \ar[d] \\
+\yo (\Gamma) \ar[r]_a  \ar@/_2pc/[rr]_-{A} & \U \ar[r]_{\El} & \Type}
+\]
+Both squares above are pullback squares.
+
+
+\subsection{The Universe in Embedded Type Theory (HoTT0) and the relationship to the Natural Model}

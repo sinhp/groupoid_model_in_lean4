@@ -16,18 +16,41 @@
 
 \usepackage{expl3}
 
-\usepackage{amssymb, amsthm, mathtools}
+\usepackage{amsthm,amssymb,mathtools}
 \usepackage[unicode,colorlinks=true,linkcolor=blue,urlcolor=magenta, citecolor=blue]{hyperref}
 
 \usepackage[warnings-off={mathtools-colon,mathtools-overbracket}]{unicode-math}
 
+\usepackage{amsmath,stmaryrd,enumerate,a4,array}
+\usepackage{geometry}
+\usepackage{url}
+\usepackage[cmtip,all]{xy}
+\usepackage{subcaption}
+\usepackage{cleveref}
+\numberwithin{equation}{section}
+\usepackage[parfill]{parskip}
+\usepackage{tikz, tikz-cd, float} % Commutative Diagrams
+
+\input{macros/prooftree}
 \input{macros/common}
 \input{macros/print}
 
 \title{A Groupoidal Natural Model of HoTT in Lean 4}
-\author{Sina Hazratpour, Joseph Huan}
+\author{Sina Hazratpour, Joseph Hua}
 
 \begin{document}
 \maketitle
-\input{content}
+
+
+\section{Natural Models}
+\input{natural_model}
+
+\section{The Groupoid Model}
+\input{groupoid_model}
+
+
+\bibliography{refs.bib}{}
+\bibliographystyle{alpha}
+
+
 \end{document}

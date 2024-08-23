@@ -1,0 +1,20 @@
+\begin{thebibliography}{Awo23}
+
+\bibitem[Awo23]{awodey2023hofmannstreicheruniverses}
+Steve Awodey.
+\newblock On hofmann-streicher universes, 2023.
+
+\bibitem[HS98]{hofmannstreicher1996}
+Martin Hofmann and Thomas Streicher.
+\newblock The groupoid interpretation of type theory.
+\newblock In {\em Twenty-five years of constructive type theory ({V}enice,
+  1995)}, volume~36 of {\em Oxford Logic Guides}, pages 83--111. Oxford Univ.
+  Press, New York, 1998.
+
+\bibitem[Joy]{joyalnlabmodelstructuresoncat}
+André Joyal.
+\newblock Model structures on cat.
+\newblock
+  \url{https://ncatlab.org/joyalscatlab/published/Model+structures+on+Cat}.
+
+\end{thebibliography}
