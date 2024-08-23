@@ -1,17 +1,32 @@
+In this section we describe the categorical semantics of
+HoTT via Natural Models.
+This will not be a detailed account of the syntax of HoTT,
+but will be a detailed account of what is needed to interpret such syntax.
+
+\medskip
+
+\begin{notation*}
+  We will have two universe sizes - one small and one large.
+  We denote the category of small sets as $\set$ and the large sets as $\Set$.
+  For example, we could take the small sets $\set$ to be those in $\Set$ bounded in cardinality
+  by some inaccessible cardinal.
+\end{notation*}
+
 \subsection{Types}
 
-Assume an inaccessible cardinal $\lambda$. Write $\Set$ for the category of all sets. Say that a set $A$ is $\lambda$-small if $|A| < \lambda$.  Write $\Set_\lambda$ for the full
-subcategory of $\Set$ spanned by  $\lambda$-small sets.
+% Assume an inaccessible cardinal $\lambda$. Write $\Set$ for the category of all sets. Say that a set $A$ is $\lambda$-small if $|A| < \lambda$.  Write $\Set_\lambda$ for the full
+% subcategory of $\Set$ spanned by  $\lambda$-small sets.
 
-Let $\mathbb{C}$ be a small category, i.e.~a category whose class of objects is a set and
-whose hom-classes are sets.
+Let $\catC$ be a small category, i.e.~a category whose class of objects is a $\set$ and
+whose hom-classes are from $\set$.
 % We do not assume that $\mathbb{C}$ is $\lambda$-small for
 % the moment.
-
 We write $\pshC$ for the category of presheaves over $\catC$,
 \[
 \pshC \defeq [\catC^\op, \Set]
 \]
+
+\medskip
 
 % Because of the assumption of the existence of $\lambda$, $\pshC$ has additional structure. Let
 % \[
@@ -21,6 +36,26 @@ We write $\pshC$ for the category of presheaves over $\catC$,
 % \[
 % \Type(c) \defeq \{  A \co (\catC_{/c})^\op \to \Set_{\lambda} \}
 % \]
+
+\begin{defn}
+  Following Awodey \cite{awodey2017naturalmodelshomotopytype},
+  we say that a map $\tp : \Term \to \Type$ is presentable when
+  any fiber of a representable is representable.
+  In other words, given any $\Ga \in \catC$ and a map $A : \yo (\Ga) \to \Type$,
+  there is some representable $\Ga \cdot A \in \catC$ and maps $\disp{A} : \Ga \cdot A \to \Ga$
+  and $\var_{A} : \yo (\Ga \cdot A) \to \Term$ forming a pullback
+  % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXHlvIChcXEdhIFxcY2RvdCBBKSJdLFswLDEsIlxceW8gKFxcR2EpIl0sWzEsMSwiXFxUeXBlIl0sWzEsMCwiXFxUZXJtIl0sWzAsMSwiXFx5byAoXFxkaXNwe0F9KSIsMl0sWzEsMiwiQSIsMl0sWzMsMl0sWzAsMywiXFx2YXJfQSJdXQ==
+\[\begin{tikzcd}
+	{\yo (\Ga \cdot A)} & \Term \\
+	{\yo (\Ga)} & \Type
+	\arrow["{\var_A}", from=1-1, to=1-2]
+	\arrow["{\yo (\disp{A})}"', from=1-1, to=2-1]
+	\arrow[from=1-2, to=2-2]
+	\arrow["A"', from=2-1, to=2-2]
+\end{tikzcd}\]
+\end{defn}
+
+\medskip
 
 The Natural Model associated to a presentable map $\tp \co \Term \to \Type$ consists of
 \begin{itemize}
