@@ -14,9 +14,6 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
 \medskip
 
 \begin{notation*}
-  We will have two universe sizes - one small and one large.
-  We denote the category of small sets as $\set$ and the large sets as $\Set$
-  (in the previous sections this would have been $\Set_{\lambda}$ and $\Set$ respectively).
   We denote the category of small categories as $\cat$ and the large categories as $\Cat$.
   We denote the category of small groupoids as $\grpd$. %% and the large groupoids as $\GRPD$.
 
@@ -567,98 +564,21 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
 
 \medskip
 
-\subsection{Polynomial endofunctors}
+\subsection{Classifying type dependency}
 
-\begin{defn}[Polynomial endofunctor on a morphism
-  in an locally Cartesian closed category]
-  Let $\catC$ be a locally Cartesian closed category
-  (we will take presheaves on small groupoids).
-  This means for each morphism $t : B \to A$ we have an adjoint triple
-  % https://q.uiver.app/#q=WzAsMyxbMCwyXSxbMSwyLCJcXGNhdEMgLyBBIl0sWzEsMCwiXFxjYXRDIC8gQiJdLFsyLDEsInRfKiIsMCx7Im9mZnNldCI6LTV9XSxbMiwxLCJ0XyEiLDIseyJvZmZzZXQiOjV9XSxbMSwyLCJ0XioiLDFdLFs1LDMsIiIsMix7ImxldmVsIjoxLCJzdHlsZSI6eyJuYW1lIjoiYWRqdW5jdGlvbiJ9fV0sWzQsNSwiIiwyLHsibGV2ZWwiOjEsInN0eWxlIjp7Im5hbWUiOiJhZGp1bmN0aW9uIn19XV0=
-  \[\begin{tikzcd}
-    & {\catC / B} \\
-    \\
-    {} & {\catC / A}
-    \arrow[""{name=0, anchor=center, inner sep=0}, "{t_*}", bend left, shift left=5, from=1-2, to=3-2]
-    \arrow[""{name=1, anchor=center, inner sep=0}, "{t_!}"', bend right, shift right=5, from=1-2, to=3-2]
-    \arrow[""{name=2, anchor=center, inner sep=0}, "{t^*}"{description}, from=3-2, to=1-2]
-    \arrow["\dashv"{anchor=center}, draw=none, from=1, to=2]
-    \arrow["\dashv"{anchor=center}, draw=none, from=2, to=0]
-  \end{tikzcd}\]
-  where $t^{*}$ is pullback, and $t_{!}$ is composition with $t$.
-
-  Let $t : B \to A$ be a morphism in $\catC$.
-  Then define $\Poly{t} : \catC \to \catC$ be the composition
-  \[
-    \Poly{t} := A_{!} \circ t_{*} \circ B^{*}
-    \quad \quad \quad
-    % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXGNhdEMiXSxbMSwwLCJcXGNhdEMgLyBCIl0sWzIsMCwiXFxjYXRDIC8gQSJdLFszLDAsIlxcY2F0QyJdLFswLDEsIkJeKiJdLFsxLDIsInRfKiJdLFsyLDMsIkFfISJdXQ==
-    \begin{tikzcd}
-    \catC & {\catC / B} & {\catC / A} & \catC
-    \arrow["{B^*}", from=1-1, to=1-2]
-    \arrow["{t_*}", from=1-2, to=1-3]
-    \arrow["{A_!}", from=1-3, to=1-4]
-  \end{tikzcd}\]
-\end{defn}
-
-\medskip
-
-\begin{prop}
-  The data of a map into the polynomial applied to an object in $\catC$
-  % https://q.uiver.app/#q=WzAsMixbMCwwLCJYIl0sWzEsMCwiXFxQb2x5e3R9IFkiXSxbMCwxXV0=
-  \[\begin{tikzcd}
-    X & {\Poly{t} Y}
-    \arrow["\phi", from=1-1, to=1-2]
-  \end{tikzcd}\]
-  corresponds to
-  % https://q.uiver.app/#q=WzAsMyxbMCwwLCJYIl0sWzIsMCwiXFxQb2x5e3R9IFkiXSxbMSwxLCJBIl0sWzAsMSwiXFxwaGkiXSxbMSwyLCJ0XyogQl4qIFkiXSxbMCwyLCJcXGFsIiwyLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
-  \[\begin{tikzcd}
-    X && {\Poly{t} Y} \\
-    & A
-    \arrow["\phi", from=1-1, to=1-3]
-    \arrow["\al"', dashed, from=1-1, to=2-2]
-    \arrow["{t_* B^* Y}", from=1-3, to=2-2]
-  \end{tikzcd}\]
-  Applying the adjunction $A_{!} \dashv A^{*}$, this corresponds to
-  % https://q.uiver.app/#q=WzAsMyxbMCwwLCJCXyEgdF4qXFxhbCJdLFsyLDAsIkIgXFx0aW1lcyBZIl0sWzEsMSwiQiJdLFswLDEsIlxcdGlsZGV7XFxwaGl9IiwwLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzEsMiwiQl4qIFkiXSxbMCwyLCJ0XipcXGFsIiwyXV0=
-  \[
-    \al : X \to A
-    \quad \quad \text{ and }
-    \quad \quad
-    \begin{tikzcd}
-    {B_! t^*\al} && {B \times Y} \\
-    & B
-    \arrow["{\tilde{\phi}}", dashed, from=1-1, to=1-3]
-    \arrow["{t^*\al}"', from=1-1, to=2-2]
-    \arrow["{B^* Y}", from=1-3, to=2-2]
-  \end{tikzcd}\]
-  Applying the adjunction $t^{*} \dashv t_{*}$,
-  this corresponds to
-  % https://q.uiver.app/#q=WzAsMixbMCwwLCJCXyEgdF4qXFxhbCJdLFsyLDAsIlkiXSxbMCwxLCJcXHRpbGRle1xcdGlsZGV7XFxwaGl9fSIsMCx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dXQ==
-  \[
-    \al : X \to A
-    \quad \quad \text{ and }
-    \quad \quad
-    \begin{tikzcd}
-    {B_! t^*\al} && Y
-    \arrow["{\beta}", dashed, from=1-1, to=1-3]
-  \end{tikzcd}\]
-\end{prop}
-
-\medskip
-
-\begin{prop}[$\Poly{\tp}\Type$ classifies dependent types]\label{tp_classifies}
+\begin{prop}[$\Poly{\tp}$ classifies type dependency]\label{tp_classifies}
   Specialized to $\tp : \Term \to \Type$ in $\Pshgrpd$,
-  the previous proposition says that a map
+  the characterizing property of polynomial endofunctors
+  \cref{polynomial_endofunctor_property} says that a map
   from a representable
-  $\Ga \to \Poly{\tp}\Type$
+  $\Ga \to \Poly{\tp}X$
   corresponds to the data of
   \[
     A : \Ga \to \Type
     \quad \quad
     \text{ and }
     \quad \quad
-    B : \Ga \cdot A \to \Type
+    B : \Ga \cdot A \to X
   \]
   which by Yoneda corresponds to the data in $\Cat$ of
   \[
@@ -666,21 +586,31 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
     \quad \quad
     \text{ and }
     \quad \quad
-    B : \Ga \cdot A \to \grpd
+    B : \Ga \cdot A \to X
   \]
+  The special case of when $X$ is also $\Type$ gives us a
+  classifier for dependent types.
 
   Furthermore, if $\si : \De \to \Ga$ were a representable map,
-  then we have a naturality square
-% https://q.uiver.app/#q=WzAsNixbMywwLCJcXFBvbHl7XFx0cH0gW1xcR2EsXFxjYXRDXSAiXSxbMywxLCJcXFBvbHl7XFx0cH0gW1xcRGUsXFxjYXRDXSAiXSxbMCwxLCJcXERlIl0sWzAsMCwiXFxHYSJdLFsyLDAsIlxcU2lfe0EgXFxpbiBbXFxHYSxcXGdycGRdfSAgW1xcR2EuQSxcXGNhdENdIl0sWzIsMSwiXFxTaV97QSBcXGluIFtcXERlLFxcZ3JwZF19ICBbXFxEZS5BLFxcY2F0Q10iXSxbMiwzLCJcXHNpIl0sWzAsMSwiXFxQb2x5e1xcdHB9ey0gXFxjaXJjIFxcc2l9IiwxXSxbNCwwLCJcXGlzbyJdLFs1LDEsIlxcaXNvIiwyXSxbNCw1LCIoLSBcXGNpcmMgXFxzaSwtIFxcY2lyYyBcXHNpX0EpIiwxXV0=
+  then we have
+% https://q.uiver.app/#q=WzAsNCxbMiwxLCJcXFBvbHl7XFx0cH0gWCJdLFswLDFdLFsxLDEsIlxcR2EiXSxbMSwwLCJcXERlIl0sWzMsMiwiXFxzaSIsMl0sWzMsMCwiKEFcXGNpcmMgXFxzaSwgQiBcXGNpcmMgXFx0cF4qIFxcc2kpIl0sWzIsMCwiKEEsIEIpIiwyXV0=
 \[\begin{tikzcd}
-	\Ga && {\Si_{A \in [\Ga,\grpd]}  [\Ga.A,\catC]} & {\Poly{\tp} \Type \, \Ga } \\
-	\De && {\Si_{A \in [\De,\grpd]}  [\De.A,\catC]} & {\Poly{\tp} \Type \, \De }
-	\arrow["\iso", from=1-3, to=1-4]
-	\arrow["{(- \circ \si,- \circ \si_A)}"{description}, from=1-3, to=2-3]
-	\arrow["{\Poly{\tp}{- \circ \si}}"{description}, from=1-4, to=2-4]
-	\arrow["\si", from=2-1, to=1-1]
-	\arrow["\iso"', from=2-3, to=2-4]
+	& \De \\
+	{} & \Ga & {\Poly{\tp} X}
+	\arrow["\si"', from=1-2, to=2-2]
+	\arrow["{(A\circ \si, B \circ \tp^* \si)}", from=1-2, to=2-3]
+	\arrow["{(A, B)}"', from=2-2, to=2-3]
 \end{tikzcd}\]
+% % https://q.uiver.app/#q=WzAsNixbMywwLCJcXFBvbHl7XFx0cH0gW1xcR2EsXFxjYXRDXSAiXSxbMywxLCJcXFBvbHl7XFx0cH0gW1xcRGUsXFxjYXRDXSAiXSxbMCwxLCJcXERlIl0sWzAsMCwiXFxHYSJdLFsyLDAsIlxcU2lfe0EgXFxpbiBbXFxHYSxcXGdycGRdfSAgW1xcR2EuQSxcXGNhdENdIl0sWzIsMSwiXFxTaV97QSBcXGluIFtcXERlLFxcZ3JwZF19ICBbXFxEZS5BLFxcY2F0Q10iXSxbMiwzLCJcXHNpIl0sWzAsMSwiXFxQb2x5e1xcdHB9ey0gXFxjaXJjIFxcc2l9IiwxXSxbNCwwLCJcXGlzbyJdLFs1LDEsIlxcaXNvIiwyXSxbNCw1LCIoLSBcXGNpcmMgXFxzaSwtIFxcY2lyYyBcXHNpX0EpIiwxXV0=
+% \[\begin{tikzcd}
+% 	\Ga && {\Si_{A \in [\Ga,\grpd]}  [\Ga.A,\catC]} & {\Poly{\tp} \Type \, \Ga } \\
+% 	\De && {\Si_{A \in [\De,\grpd]}  [\De.A,\catC]} & {\Poly{\tp} \Type \, \De }
+% 	\arrow["\iso", from=1-3, to=1-4]
+% 	\arrow["{(- \circ \si,- \circ \si_A)}"{description}, from=1-3, to=2-3]
+% 	\arrow["{\Poly{\tp}{- \circ \si}}"{description}, from=1-4, to=2-4]
+% 	\arrow["\si", from=2-1, to=1-1]
+% 	\arrow["\iso"', from=2-3, to=2-4]
+% \end{tikzcd}\]
 \end{prop}
 
 \medskip
