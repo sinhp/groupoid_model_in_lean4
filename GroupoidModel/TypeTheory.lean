@@ -2,21 +2,44 @@ import GroupoidModel.NaturalModel
 
 set_option autoImplicit true
 
-namespace Bla
+section RawSyntax
 
 mutual
 inductive TyExpr where
   | univ
   | el (A : Expr)
   | pi (ty A : TyExpr)
+  deriving Repr
 
 inductive Expr where
+  /-- A de Bruijn index. -/
   | bvar (n : Nat)
   | app (f a : Expr)
   | lam (ty : TyExpr) (val : Expr)
   | pi (ty A : Expr)
+  deriving Repr
 end
 
+/-! In this section we compute the action of substitutions.
+
+Write `↑ⁿ` for the `n`-fold weakening substitution `{n+i/i}`.
+Write `σ:k` for `σ.vₖ₋₁.….v₁.v₀`.
+
+The substitution `↑ⁿ⁺ᵏ:k`,
+i.e., `{0/0,…,k-1/k-1, k+n/k,k+1+n/k+1,…}`,
+arises by starting with `↑ⁿ` and traversing under `k` binders:
+for example, `(ΠA. B)[↑¹] = ΠA[↑¹]. B[↑².v₀]`.
+
+The substitution `↑ᵏ.e[↑ᵏ]:k`,
+i.e., `{0/0,…,k-1/k-1, e[↑ᵏ]/k, k/k+1,k+2/k+3,…}`,
+arises by starting with `id.e` and traversing under `k` binders:
+for example `(ΠA. B)[id.e] = ΠA[id.e]. B[↑.e[↑].v₀]`.
+
+The substitution `id.e` is used in `β`-reduction:
+`(λa) b ↝ a[id.b]`. -/
+section Substitutions
+
+/-- Evaluate `↑ⁿ⁺ᵏ:k` at a de Bruijn index `i`. -/
 def liftVar (n i : Nat) (k := 0) : Nat := if i < k then i else n + i
 
 theorem liftVar_lt (h : i < k) : liftVar n i k = i := if_pos h
@@ -37,34 +60,50 @@ theorem liftVar_lt_add (self : i < k) : liftVar n i j < k + n := by
 
 variable (n : Nat) in
 mutual
-@[semireducible] def TyExpr.liftN : TyExpr → (k :_:= 0) → TyExpr
+/-- Evaluate `↑ⁿ⁺ᵏ:k` at a type expression. -/
+@[semireducible] def TyExpr.liftN : TyExpr → (k : Nat := 0) → TyExpr
   | .univ, _ => .univ
   | .el A, k => .el (A.liftN k)
   | .pi ty body, k => .pi (ty.liftN k) (body.liftN (k+1))
-@[semireducible] def Expr.liftN : Expr → (k :_:= 0) → Expr
+
+/-- Evaluate `↑ⁿ⁺ᵏ:k` at an expression. -/
+@[semireducible] def Expr.liftN : Expr → (k : Nat := 0) → Expr
   | .bvar i, k => .bvar (liftVar n i k)
   | .app fn arg, k => .app (fn.liftN k) (arg.liftN k)
   | .lam ty body, k => .lam (ty.liftN k) (body.liftN (k+1))
   | .pi ty body, k => .pi (ty.liftN k) (body.liftN (k+1))
 end
 
+/-- Evaluate `↑¹` at a type expression. -/
 abbrev TyExpr.lift := TyExpr.liftN 1
+/-- Evaluate `↑¹` at an expression. -/
 abbrev Expr.lift := Expr.liftN 1
 
+/-- Evaluate `↑ᵏ.e[↑ᵏ]:k` at a de Bruijn index `i`. -/
 def instVar (i : Nat) (e : Expr) (k := 0) : Expr :=
   if i < k then .bvar i else if i = k then .liftN k e else .bvar (i - 1)
 
 mutual
+/-- Evaluate `↑ᵏ.e[↑ᵏ]:k` at a type expression. -/
+def TyExpr.inst : TyExpr → Expr → (k :_:= 0) → TyExpr
+  | .univ, _, _ => .univ
+  | .el a, e, k => .el (a.inst e k)
+  | .pi ty body, e, k => .pi (ty.inst e k) (body.inst e (k+1))
+
+/-- Evaluate `↑ᵏ.e[↑ᵏ]:k` at an expression. -/
 def Expr.inst : Expr → Expr → (k :_:= 0) → Expr
   | .bvar i, e, k => instVar i e k
   | .app fn arg, e, k => .app (fn.inst e k) (arg.inst e k)
   | .lam ty body, e, k => .lam (ty.inst e k) (body.inst e (k+1))
   | .pi ty body, e, k => .pi (ty.inst e k) (body.inst e (k+1))
-def TyExpr.inst : TyExpr → Expr → (k :_:= 0) → TyExpr
-  | .univ, _, _ => .univ
-  | .el a, e, k => .el (a.inst e k)
-  | .pi ty body, e, k => .pi (ty.inst e k) (body.inst e (k+1))
 end
+
+end Substitutions
+end RawSyntax
+
+/-! In this section we specify typing judgments of the type theory
+as `Prop`-valued relations. -/
+section Typing
 
 mutual
 inductive HasType : List TyExpr → Expr → TyExpr → Prop
@@ -74,10 +113,14 @@ inductive HasType : List TyExpr → Expr → TyExpr → Prop
   | lam {A B e Γ} : IsType Γ A → HasType (A :: Γ) e B → HasType Γ (.lam A e) (.pi A B)
 
 inductive IsType : List TyExpr → TyExpr → Prop
+  -- Note: works in any context, including ill-formed ones,
+  -- so we do not have wf-ctx inversion.
   | univ {Γ} : IsType Γ .univ
   | el {A Γ} : HasType Γ A .univ → IsType Γ (.el A)
   | pi {A B Γ} : IsType Γ A → IsType (A :: Γ) B → IsType Γ (.pi A B)
 end
+
+end Typing
 
 open CategoryTheory NaturalModel
 open Functor Limits Opposite Representable
