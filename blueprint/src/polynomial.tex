@@ -74,7 +74,7 @@ in the rest of the notes.
     \quad \quad \text{ and }
     \quad \quad
     \begin{tikzcd}
-    {B_! t^*\al} && Y
+    {\Ga \cdot \al := B_! t^*\al} && Y
     \arrow["{\beta}", dashed, from=1-1, to=1-3]
   \end{tikzcd}\]
 
@@ -82,8 +82,8 @@ in the rest of the notes.
   \[ (\al, \be) : \Ga \to \Poly{t} Y\]
   for this map,
   since it is uniquely determined by this data.
-  We also have that for any $\si : \De \to \Ga$,
-  the following triangle commutes
+  Furthermore, precomposition by $\si : \De \to \Ga$,
+  acts on such a pair by
 % https://q.uiver.app/#q=WzAsNCxbMiwxLCJcXFBvbHl7dH0gWSJdLFswLDFdLFsxLDEsIlxcR2EiXSxbMSwwLCJcXERlIl0sWzMsMiwiXFxzaSIsMl0sWzMsMCwiKFxcYWwgXFxjaXJjIFxcc2ksIFxcYmUgXFxjaXJjIHReKiBcXHNpKSJdLFsyLDAsIihcXGFsLCBcXGJlKSIsMl1d
 \[\begin{tikzcd}
 	& \De \\
@@ -93,5 +93,222 @@ in the rest of the notes.
 	\arrow["{(\al, \be)}"', from=2-2, to=2-3]
 \end{tikzcd}\]
 \end{prop}
+
+\medskip
+
+\begin{lemma}\label{R_classifies}
+  Use $R$ to denote the fiber product
+% https://q.uiver.app/#q=WzAsNCxbMSwwLCJcXFBvbHl7dH0ge1l9Il0sWzEsMSwiQSJdLFswLDAsIlIiXSxbMCwxLCJCIl0sWzAsMSwidF8qIEJeKiBZIl0sWzIsMCwiXFxyaG9fe1xcUG9seXt9fSJdLFsyLDMsInReKiB0X3sqfSBCXiogWT0gXFxyaG9fXFxUZXJtIiwyXSxbMywxLCJ0IiwyXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
+\[\begin{tikzcd}
+	R & {\Poly{t} {Y}} \\
+	B & A
+	\arrow["{\rho_{\Poly{}}}", from=1-1, to=1-2]
+	\arrow["{t^* t_{*} B^* Y= \rho_\Term}"', from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow["{t_* B^* Y}", from=1-2, to=2-2]
+	\arrow["t"', from=2-1, to=2-2]
+\end{tikzcd}\]
+
+  By the universal property of pullbacks
+  and \cref{polynomial_endofunctor_property},
+  The data of a map $\Ga \to R$
+  corresponds to the data of
+  $\be : \Ga \to B$ and $(t \circ \be,y) : \Ga \to \Poly{t}{Y}$,
+  or just $\be : \Ga \to B$ and $y : \Ga \cdot t \circ \be \to Y$
+% https://q.uiver.app/#q=WzAsNSxbMiwxLCJcXFBvbHl7dH0ge1l9Il0sWzIsMiwiQSJdLFsxLDEsIlIiXSxbMSwyLCJCIl0sWzAsMCwiXFxHYSJdLFswLDEsInRfKiBCXiogWSJdLFsyLDAsIlxccmhvX3tcXFBvbHl7fX0iXSxbMiwzLCJcXHJob19cXFRlcm0iLDFdLFszLDEsInQiLDJdLFsyLDEsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs0LDMsIlxcYmUiLDJdLFs0LDIsIihcXGJlLCB5KSIsMV0sWzQsMCwiKHQgXFxjaXJjIFxcYmUseSkiXV0=
+\[\begin{tikzcd}
+	\Ga \\
+	& R & {\Poly{t} {Y}} \\
+	& B & A
+	\arrow["{(\be, y)}"{description}, from=1-1, to=2-2]
+	\arrow["{(t \circ \be,y)}", bend left, from=1-1, to=2-3]
+	\arrow["\be"', bend right, from=1-1, to=3-2]
+	\arrow["{\rho_{\Poly{}}}", from=2-2, to=2-3]
+	\arrow["{\rho_\Term}"{description}, from=2-2, to=3-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+	\arrow["{t_* B^* Y}", from=2-3, to=3-3]
+	\arrow["t"', from=3-2, to=3-3]
+\end{tikzcd}\]
+
+  By uniqueness in the universal property of pullbacks and \cref{polynomial_endofunctor_property},
+  Precomposition by a map $\si : \De \to \Ga$ acts on such a pair by
+% https://q.uiver.app/#q=WzAsNCxbMiwxLCJSIl0sWzAsMV0sWzEsMSwiXFxHYSJdLFsxLDAsIlxcRGUiXSxbMywyLCJcXHNpIiwyXSxbMywwLCIoXFxiZVxcY2lyYyBcXHNpLCB5IFxcY2lyYyB0XiogXFxzaSkiXSxbMiwwLCIoXFxiZSwgeSkiLDJdXQ==
+\[\begin{tikzcd}
+	& \De \\
+	{} & \Ga & R
+	\arrow["\si"', from=1-2, to=2-2]
+	\arrow["{(\be\circ \si, y \circ t^* \si)}", from=1-2, to=2-3]
+	\arrow["{(\be, y)}"', from=2-2, to=2-3]
+\end{tikzcd}\]
+\end{lemma}
+
+\medskip
+
+\begin{lemma}[Evaluation] \label{evaluation}
+  Suppose $(\be,y) : \Ga \to R$, as in \cref{R_classifies}
+  \[ \be : \Ga \to B \quad \text{ and } \quad y : \Ga \cdot t \circ \be \to Y\]
+  Then the evaluation of $y$ at $\be$ can be described in the following two ways
+  \[ y \circ b = \pi_{Y} \circ \counit \circ (\be, y)\]
+  where
+% https://q.uiver.app/#q=WzAsNSxbMSwyLCJcXEdhIl0sWzIsMiwiQSJdLFsyLDEsIkIiXSxbMSwxLCJcXEdhIFxcY2RvdCB0IFxcY2lyYyBcXGJlIl0sWzAsMCwiXFxHYSJdLFswLDEsInQgXFxjaXJjIFxcYmUiLDJdLFsyLDEsInQiXSxbMywwXSxbMywyXSxbNCwzLCJiIiwxLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzQsMCwiIiwxLHsibGV2ZWwiOjIsInN0eWxlIjp7ImhlYWQiOnsibmFtZSI6Im5vbmUifX19XSxbNCwyLCJcXGJlIiwxXSxbMywxLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
+\[\begin{tikzcd}
+	\Ga \\
+	& {\Ga \cdot t \circ \be} & B \\
+	& \Ga & A
+	\arrow["b"{description}, dashed, from=1-1, to=2-2]
+	\arrow["\be"{description}, bend left, from=1-1, to=2-3]
+	\arrow[Rightarrow, bend right, no head, from=1-1, to=3-2]
+	\arrow["v"', from=2-2, to=2-3]
+	\arrow["d", from=2-2, to=3-2]
+	\arrow["t", from=2-3, to=3-3]
+	\arrow["{t \circ \be}"', from=3-2, to=3-3]
+  \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+\end{tikzcd}\]
+  and
+% https://q.uiver.app/#q=WzAsNyxbMywxLCJcXFBvbHl7dH0ge1l9Il0sWzMsMiwiQSJdLFsyLDEsIlIiXSxbMiwyLCJCIl0sWzEsMiwiWSBcXHRpbWVzIEIiXSxbMSwwLCJcXEdhIl0sWzAsMiwiWSJdLFswLDEsInRfKiBCXiogWSJdLFsyLDBdLFsyLDNdLFszLDEsInQiLDJdLFsyLDEsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFsyLDQsIlxcY291bml0IiwxXSxbNCwzLCJcXHBpX0IiLDJdLFs1LDAsIih0IFxcY2lyYyBcXGJlLHkpIiwxLHsiY3VydmUiOi0yfV0sWzUsMiwiKFxcYmUseSkiLDFdLFs1LDQsIih5IFxcY2lyYyBiLFxcYmUpIiwxLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzUsNiwieSBcXGNpcmMgYiIsMSx7ImN1cnZlIjoyLCJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNCw2LCJcXHBpX1kiXV0=
+\[\begin{tikzcd}
+	& \Ga \\
+	&& R & {\Poly{t} {Y}} \\
+	Y & {Y \times B} & B & A
+	\arrow["{(\be,y)}"{description}, from=1-2, to=2-3]
+	\arrow["{(t \circ \be,y)}"{description}, bend left, from=1-2, to=2-4]
+	\arrow["{y \circ b}"{description}, bend right, dashed, from=1-2, to=3-1]
+	\arrow["{(y \circ b,\be)}"{description}, dashed, from=1-2, to=3-2]
+	\arrow[from=2-3, to=2-4]
+	\arrow["\counit"{description}, from=2-3, to=3-2]
+	\arrow[from=2-3, to=3-3]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-3, to=3-4]
+	\arrow["{t_* B^* Y}", from=2-4, to=3-4]
+	\arrow["{\pi_Y}", from=3-2, to=3-1]
+	\arrow["{\pi_B}"', from=3-2, to=3-3]
+	\arrow["t"', from=3-3, to=3-4]
+\end{tikzcd}\]
+\end{lemma}
+\begin{proof}
+	It suffices to show
+	$(\counit \circ (\be, y)) = (y \circ b , \be)$ instead.
+	\begin{align*}
+		  & \, \counit \circ (\be, y) \\
+		= & \, \counit \circ (v \circ b, y \circ t^{*} d \circ t^{*} b)
+		& \cref{evaluation_computation_diagram1} \\
+		= & \, \counit \circ (v, y \circ t^{*} d) \circ b
+		& \cref{R_classifies,evaluation_computation_diagram2}\\
+		= & \, \counit \circ t^{*} (t \circ \be, y) \circ b
+		& \cref{evaluation_computation_diagram3}\\
+		% = & \, \overline{\widetilde{\counit} \circ (t \circ \be, y)} \circ b \\
+		= & \, \overline{(t \circ \be, y)} \circ b
+    & \cref{evaluation_computation_diagram4}\\
+		= & \, (y, v) \circ b
+		& \cref{evaluation_computation_diagram5} \\
+		= & \, (y \circ b, v \circ b)\\
+		= & \, (y \circ b, \be)\\
+	\end{align*}
+
+\begin{figure}[h]
+  \centering% https://q.uiver.app/#q=WzAsOCxbMSwxLCJcXEdhIFxcY2RvdCB0IFxcY2lyYyBcXGJlIl0sWzIsMSwiXFxHYSJdLFswLDEsIlxcR2EiXSxbMiwwLCJcXEdhIFxcY2RvdCB0IFxcY2lyYyBcXGJlIl0sWzEsMCwiXFxHYSBcXGNkb3QgdCBcXGNpcmMgXFxiZSBcXGNkb3QgdCBcXGNpcmMgXFxiZSJdLFszLDAsIkIiXSxbMywxLCJBIl0sWzAsMCwiXFxHYSBcXGNkb3QgdCBcXGNpcmMgXFxiZSJdLFswLDEsImQiLDJdLFsyLDAsImIiLDJdLFszLDEsImQiXSxbMiwxLCIiLDAseyJjdXJ2ZSI6MywibGV2ZWwiOjIsInN0eWxlIjp7ImhlYWQiOnsibmFtZSI6Im5vbmUifX19XSxbNCwwXSxbNCwzLCJ0XiogZCIsMCx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFszLDUsInYiXSxbNSw2LCJ0Il0sWzEsNiwidCBcXGNpcmMgXFxiZSIsMl0sWzcsNCwidF4qIGIiLDAseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNywyLCJkIl0sWzcsMywiIiwwLHsiY3VydmUiOi00LCJsZXZlbCI6Miwic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dLFszLDYsIiIsMCx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs0LDEsIiIsMCx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs3LDAsIiIsMCx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
+\[\begin{tikzcd}
+	{\Ga \cdot t \circ \be} & {\Ga \cdot t \circ \be \cdot t \circ \be} & {\Ga \cdot t \circ \be} & B \\
+	\Ga & {\Ga \cdot t \circ \be} & \Ga & A
+	\arrow["{t^* b}", dashed, from=1-1, to=1-2]
+	\arrow[bend left, Rightarrow, no head, from=1-1, to=1-3]
+	\arrow[bend right, Rightarrow, no head, from=2-1, to=2-3]
+	\arrow["d", from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow["{t^* d}", dashed, from=1-2, to=1-3]
+	\arrow[from=1-2, to=2-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-2, to=2-3]
+	\arrow["v", from=1-3, to=1-4]
+	\arrow["d", from=1-3, to=2-3]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-3, to=2-4]
+	\arrow["t", from=1-4, to=2-4]
+	\arrow["b"', from=2-1, to=2-2]
+	\arrow["d"', from=2-2, to=2-3]
+	\arrow["{t \circ \be}"', from=2-3, to=2-4]
+\end{tikzcd}\]
+  \caption{$t^{*} d \circ t^{*} b = \id_{\Ga \cdot t \circ \be}$}
+  \label{evaluation_computation_diagram1}
+\end{figure}
+
+\begin{figure}[h]
+% https://q.uiver.app/#q=WzAsMyxbMCwwLCJcXEdhIl0sWzAsMSwiXFxHYSBcXGNkb3QgdCBcXGNpcmMgXFxiZSJdLFsxLDEsIlIiXSxbMCwxLCJiIiwyXSxbMSwyLCIodiwgeSBcXGNpcmMgdF57Kn0gZCkiLDJdLFswLDIsIih2IFxcY2lyYyBiLCB5IFxcY2lyYyB0XnsqfSBkIFxcY2lyYyB0XnsqfSBiKSJdXQ==
+\[\begin{tikzcd}
+	\Ga \\
+	{\Ga \cdot t \circ \be} & R
+	\arrow["b"', from=1-1, to=2-1]
+	\arrow["{(v \circ b, y \circ t^{*} d \circ t^{*} b)}", from=1-1, to=2-2]
+	\arrow["{(v, y \circ t^{*} d)}"', from=2-1, to=2-2]
+\end{tikzcd}\]
+  \caption{$(v, y \circ t^{*} d) \circ b = (v \circ b, y \circ t^{*} d \circ t^{*} b)$}
+  \label{evaluation_computation_diagram2}
+\end{figure}
+
+\begin{figure}[h]
+% https://q.uiver.app/#q=WzAsNixbMSwwLCJSIl0sWzIsMCwiQiJdLFsxLDEsIlxcUG9seXt0fXtZfSJdLFsyLDEsIkEiXSxbMCwwLCJcXEdhIFxcY2RvdCB0IFxcY2lyYyBcXGJlIl0sWzAsMSwiXFxHYSJdLFswLDFdLFswLDJdLFsxLDMsInQiXSxbMiwzLCJ0XyogQl4qIFkiLDJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs0LDAsIih2LHkgXFxjaXJjIHReKiBkKSIsMCx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFs0LDUsImQiLDFdLFs1LDIsIih0IFxcY2lyYyBcXGJlLCB5KSIsMl0sWzUsMywidCBcXGNpcmMgXFxiZSIsMSx7Im9mZnNldCI6MywiY3VydmUiOjN9XSxbNCwxLCJ2IiwxLHsib2Zmc2V0IjotMywiY3VydmUiOi0zfV0sWzQsMiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
+\[\begin{tikzcd}
+	{\Ga \cdot t \circ \be} & R & B \\
+	\Ga & {\Poly{t}{Y}} & A
+	\arrow["{(v,y \circ t^* d)}", dashed, from=1-1, to=1-2]
+	\arrow["v"{description}, shift left=3, bend left, from=1-1, to=1-3]
+	\arrow["d"{description}, from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow[from=1-2, to=1-3]
+	\arrow[from=1-2, to=2-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-2, to=2-3]
+	\arrow["t", from=1-3, to=2-3]
+	\arrow["{(t \circ \be, y)}"', from=2-1, to=2-2]
+	\arrow["{t \circ \be}"{description}, shift right=3, bend right, from=2-1, to=2-3]
+	\arrow["{t_* B^* Y}"', from=2-2, to=2-3]
+\end{tikzcd} \quad
+	% https://q.uiver.app/#q=WzAsMyxbMSwxLCJcXFBvbHl7dH17WX0iXSxbMCwxLCJcXEdhIl0sWzAsMCwiXFxHYSBcXGNkb3QgdCBcXGNpcmMgXFxiZSJdLFsxLDAsIih0IFxcY2lyYyBcXGJlLCB5KSIsMl0sWzIsMSwiZCIsMl0sWzIsMCwiKHQgXFxjaXJjIFxcYmUgXFxjaXJjIGQsIHkgXFxjaXJjIHReKiBkKSJdXQ==
+\begin{tikzcd}
+	{\Ga \cdot t \circ \be} \\
+	\Ga & {\Poly{t}{Y}}
+	\arrow["d"', from=1-1, to=2-1]
+	\arrow["{(t \circ \be \circ d, y \circ t^* d)}", from=1-1, to=2-2]
+	\arrow["{(t \circ \be, y)}"', from=2-1, to=2-2]
+\end{tikzcd}
+\quad \text{ using \cref{polynomial_endofunctor_property,R_classifies}}
+\]
+
+  \caption{$t^{*}(t \circ \be, y) = (v, y \circ t^{*}d)$}
+	\label{evaluation_computation_diagram3}
+\end{figure}
+
+\begin{figure}[h]
+% https://q.uiver.app/#q=WzAsOCxbMCwwLCJ0XioodCBcXGNpcmMgXFxiZSkiXSxbMCwxLCJ0XiogdF8qIEJeKiBZIl0sWzEsMSwiQl4qWSJdLFsyLDBdLFsyLDFdLFszLDAsInQgXFxjaXJjIFxcYmUiXSxbMywxLCJ0XyogQl4qIFkiXSxbNCwxLCJ0XyogQl4qWSJdLFswLDEsInReKiAodCBcXGNpcmMgXFxiZSwgeSkiLDJdLFsxLDIsIlxcY291bml0IiwyXSxbMCwyLCJcXG92ZXJsaW5leyh0IFxcY2lyYyBcXGJlLHkpfSIsMCx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFszLDQsIiIsMCx7ImxldmVsIjoyLCJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzYsNywiXFx3aWRldGlsZGV7XFxjb3VuaXR9IiwyLHsibGV2ZWwiOjIsInN0eWxlIjp7ImhlYWQiOnsibmFtZSI6Im5vbmUifX19XSxbNSw2LCIodCBcXGNpcmMgXFxiZSwgeSkiLDJdLFs1LDcsIih0IFxcY2lyYyBcXGJlLHkpIl1d
+\[\begin{tikzcd}
+	{t^*(t \circ \be)} && {} & {t \circ \be} \\
+	{t^* t_* B^* Y} & {B^*Y} & { t^{*} \dashv t_{*}} & {t_* B^* Y} & {t_* B^*Y}
+	\arrow["{t^* (t \circ \be, y)}"', from=1-1, to=2-1]
+	\arrow["{\overline{(t \circ \be,y)}}", dashed, from=1-1, to=2-2]
+	\arrow[Rightarrow, no head, from=1-3, to=2-3]
+	\arrow["{(t \circ \be, y)}"', from=1-4, to=2-4]
+	\arrow["{(t \circ \be,y)}", from=1-4, to=2-5]
+	\arrow["\counit"', from=2-1, to=2-2]
+	\arrow["{\widetilde{\counit}}"', Rightarrow, no head, from=2-4, to=2-5]
+\end{tikzcd}
+\]
+  \caption{$\counit \circ t^{*} (t \circ \be, y) = \overline{(t \circ \be, y)}$}
+	\label{evaluation_computation_diagram4}
+\end{figure}
+
+\begin{figure}[h]
+% https://q.uiver.app/#q=WzAsOCxbMCwwLCJcXEdhIFxcY2RvdCB0IFxcY2lyYyBcXGJlIl0sWzAsMSwiQiJdLFsxLDAsIlkgXFx0aW1lcyBCIl0sWzIsMF0sWzIsMSwidF4qIFxcZGFzaHYgdF8qIl0sWzMsMCwiXFxHYSJdLFszLDEsIkEiXSxbNCwwLCJcXFBvbHl7dH17WX0iXSxbMCwxLCJ2ID0gdF4qICh0IFxcY2lyYyBcXGJlKSIsMl0sWzAsMiwiKHksdikiLDAseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbMyw0LCIiLDAseyJsZXZlbCI6Miwic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dLFs1LDYsInQgXFxjaXJjIFxcYmUiLDJdLFs1LDcsIih0IFxcY2lyYyBcXGJlLHkpIl0sWzcsNiwidF8qQl4qWSJdLFsyLDEsIkJeKlkiXV0=
+\[\begin{tikzcd}
+	{\Ga \cdot t \circ \be} & {Y \times B} & {} & \Ga & {\Poly{t}{Y}} \\
+	B && {t^* \dashv t_*} & A
+	\arrow["{(y,v)}", dashed, from=1-1, to=1-2]
+	\arrow["{v = t^* (t \circ \be)}"', from=1-1, to=2-1]
+	\arrow["{B^*Y}", from=1-2, to=2-1]
+	\arrow[Rightarrow, no head, from=1-3, to=2-3]
+	\arrow["{(t \circ \be,y)}", from=1-4, to=1-5]
+	\arrow["{t \circ \be}"', from=1-4, to=2-4]
+	\arrow["{t_*B^*Y}", from=1-5, to=2-4]
+\end{tikzcd}\]
+	\caption{$\overline{(t \circ \be, y)} = (y,v)$}
+	\label{evaluation_computation_diagram5}
+\end{figure}
+
+\end{proof}
 
 \medskip

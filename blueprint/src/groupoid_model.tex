@@ -580,20 +580,20 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
     \quad \quad
     B : \Ga \cdot A \to X
   \]
-  which by Yoneda corresponds to the data in $\Cat$ of
+  The special case of when $X$ is also $\Type$ gives us a
+  classifier for dependent types;
+  by Yoneda the above corresponds to the data in $\Cat$ of
   \[
     A : \Ga \to \grpd
     \quad \quad
     \text{ and }
     \quad \quad
-    B : \Ga \cdot A \to X
+    B : \Ga \cdot A \to \grpd
   \]
-  The special case of when $X$ is also $\Type$ gives us a
-  classifier for dependent types.
 
-  Furthermore, if $\si : \De \to \Ga$ were a representable map,
-  then we have
-% https://q.uiver.app/#q=WzAsNCxbMiwxLCJcXFBvbHl7XFx0cH0gWCJdLFswLDFdLFsxLDEsIlxcR2EiXSxbMSwwLCJcXERlIl0sWzMsMiwiXFxzaSIsMl0sWzMsMCwiKEFcXGNpcmMgXFxzaSwgQiBcXGNpcmMgXFx0cF4qIFxcc2kpIl0sWzIsMCwiKEEsIEIpIiwyXV0=
+  Furthermore, precomposition by a substitution $\si : \De \to \Ga$ acts on
+  such a pair by
+  % https://q.uiver.app/#q=WzAsNCxbMiwxLCJcXFBvbHl7XFx0cH0gWCJdLFswLDFdLFsxLDEsIlxcR2EiXSxbMSwwLCJcXERlIl0sWzMsMiwiXFxzaSIsMl0sWzMsMCwiKEFcXGNpcmMgXFxzaSwgQiBcXGNpcmMgXFx0cF4qIFxcc2kpIl0sWzIsMCwiKEEsIEIpIiwyXV0=
 \[\begin{tikzcd}
 	& \De \\
 	{} & \Ga & {\Poly{\tp} X}
@@ -700,35 +700,42 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
   The square commutes and is a pullback if and only it pointwise
   commutes and pointwise gives pullbacks, i.e.
   for each groupoid $\Ga$
-  % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSBcXEdhIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcVHlwZX0gXFxHYSJdLFsxLDAsIltcXEdhLFxccHRncnBkXSJdLFsxLDEsIltcXEdhLFxcZ3JwZF0iXSxbMCwxLCJcXFBvbHl7XFx0cH17XFx0cH1fXFxHYSIsMl0sWzAsMiwiXFxsYV9cXEdhIl0sWzIsMywiVSBcXGNpcmMgLSJdLFsxLDMsIlxcUGlfXFxHYSIsMl0sWzAsMywiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
+% https://q.uiver.app/#q=WzAsOSxbMSwxLCJcXFBzaGdycGQoXFxHYSxcXFBvbHl7XFx0cH17XFxUZXJtfSkiXSxbMSwyLCJcXFBzaGdycGQoXFxHYSxcXFBvbHl7XFx0cH17XFxUeXBlfSkiXSxbMiwxLCJbXFxHYSxcXHB0Z3JwZF0iXSxbMiwyLCJbXFxHYSxcXGdycGRdIl0sWzAsMCwiKEEsXFxiZSkiXSxbMCwzLCIoQSxVXFxjaXJjIFxcYmUpIl0sWzMsMCwiXFxsYV9BIFxcYmUiXSxbMywzLCJVIFxcY2lyYyBcXGxhX0EgXFxiZSJdLFsyLDMsIlxcUGlfXFxHYSBVIFxcY2lyYyBcXGJlIl0sWzAsMSwiXFxQc2hncnBkKFxcR2EsIFxcUG9seXtcXHRwfXtcXHRwfSkiLDJdLFswLDIsIlxcbGFfXFxHYSJdLFsyLDMsIlUgXFxjaXJjIC0iXSxbMSwzLCJcXFBpX1xcR2EiLDJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs0LDUsIiIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XSxbNCw2LCIiLDIseyJzdHlsZSI6eyJ0YWlsIjp7Im5hbWUiOiJtYXBzIHRvIn19fV0sWzYsNywiIiwyLHsic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9fX1dLFs1LDgsIiIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XSxbOCw3LCIiLDAseyJsZXZlbCI6Miwic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dXQ==
 \[\begin{tikzcd}
-	{\Poly{\tp}{\Term} \, \Ga} & {[\Ga,\ptgrpd]} \\
-	{\Poly{\tp}{\Type} \, \Ga} & {[\Ga,\grpd]}
-	\arrow["{\la_\Ga}", from=1-1, to=1-2]
-	\arrow["{\Poly{\tp}{\tp}_\Ga}"', from=1-1, to=2-1]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
-	\arrow["{U \circ -}", from=1-2, to=2-2]
-	\arrow["{\Pi_\Ga}"', from=2-1, to=2-2]
+	{(A,\be)} &&& {\la_A \be} \\
+	& {\Pshgrpd(\Ga,\Poly{\tp}{\Term})} & {[\Ga,\ptgrpd]} \\
+	& {\Pshgrpd(\Ga,\Poly{\tp}{\Type})} & {[\Ga,\grpd]} \\
+	{(A,U\circ \be)} && {\Pi_\Ga U \circ \be} & {U \circ \la_A \be}
+	\arrow[maps to, from=1-1, to=1-4]
+	\arrow[maps to, from=1-1, to=4-1]
+	\arrow[maps to, from=1-4, to=4-4]
+	\arrow["{\la_\Ga}", from=2-2, to=2-3]
+	\arrow["{\Pshgrpd(\Ga, \Poly{\tp}{\tp})}"', from=2-2, to=3-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+	\arrow["{U \circ -}", from=2-3, to=3-3]
+	\arrow["{\Pi_\Ga}"', from=3-2, to=3-3]
+	\arrow[maps to, from=4-1, to=4-3]
+	\arrow[Rightarrow, no head, from=4-3, to=4-4]
 \end{tikzcd}\]
+  where we have used \cref{tp_classifies}.
+  That this commutes follows from the definitions of $\Pi$ and $\la$.
 
-by \cref{tp_classifies} this holds if and only if
-% https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFNpX3tBIFxcaW4gW1xcR2EsXFxncnBkXX0gIFtcXEdhLkEsXFxwdGdycGRdIl0sWzAsMSwiXFxTaV97QSBcXGluIFtcXEdhLFxcZ3JwZF19ICBbXFxHYS5BLFxcZ3JwZF0iXSxbMSwwLCJbXFxHYSxcXHB0Z3JwZF0iXSxbMSwxLCJbXFxHYSxcXGdycGRdIl0sWzAsMSwiKC0gXFxjaXJjIFxcc2ksLSBcXGNpcmMgXFxzaV9BKSIsMl0sWzAsMiwiXFxsYSJdLFsyLDMsIlUgXFxjaXJjIC0iXSxbMSwzLCJcXFBpIiwyXSxbMCwzLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
-\[\begin{tikzcd}
-	{\Si_{A \in [\Ga,\grpd]}  [\Ga.A,\ptgrpd]} & {[\Ga,\ptgrpd]} \\
-	{\Si_{A \in [\Ga,\grpd]}  [\Ga.A,\grpd]} & {[\Ga,\grpd]}
-	\arrow["\la", from=1-1, to=1-2]
-	\arrow["{(- \circ \si,- \circ \si_A)}"', from=1-1, to=2-1]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
-	\arrow["{U \circ -}", from=1-2, to=2-2]
-	\arrow["\Pi"', from=2-1, to=2-2]
-\end{tikzcd}\]
+  To show it is pullback it suffices to note that for any $f : \Ga \to \ptgrpd$
+  and $(A,B) : \Ga \to \Poly{\tp} \Type$ such that $U \circ f = \Pi_{A} B$,
+  there exists a unique $(A, \be) : \Ga \to \Poly{\tp} \Term$ such that
+  $U \circ \be = B$ and $\la_{A} \be = f$.
+  Indeed $\be$ is fully determined by the above conditions to be
+  \begin{align*}
+    \be : \Ga \cdot A & \to \ptgrpd \\
+          (x, a) & \mapsto (B(x,a), f \, x \, a)
+  \end{align*}
 
-which follows from the definitions of $\Pi$ and $\la$.
 \end{proof}
 
 \medskip
 
-\begin{lemma}\label{R_classifies}
+\begin{lemma}\label{R_classifies_tp}
+  This is a specialization of \cref{R_classifies}.
   Use $R$ to denote the fiber product
   % https://q.uiver.app/#q=WzAsNCxbMSwwLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMSwxLCJcXFR5cGUiXSxbMCwwLCJSIl0sWzAsMSwiXFxUZXJtIl0sWzAsMSwiXFx0cF8qIFxcVGVybV4qIFxcVHlwZSJdLFsyLDAsIlxccmhvX1xcUG9seXt9Il0sWzIsMywiXFx0cF4qIFxcdHBfKiBcXFRlcm1eKiBcXFR5cGU9IFxccmhvX1xcVGVybSIsMl0sWzMsMSwiXFx0cCIsMl0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
 \[\begin{tikzcd}
@@ -762,8 +769,15 @@ which follows from the definitions of $\Pi$ and $\la$.
 	\arrow["\tp"', from=3-2, to=3-3]
 \end{tikzcd}\]
 
-  Precomposition by a substitution $\si : \De \to \Ga$ then act on such a pair by
-  \[ (\al, B) \mapsto (\al \circ \si, B \circ \si_{U \circ \al})\]
+  Precomposition by a substitution $\si : \De \to \Ga$ then acts on such a pair by
+% https://q.uiver.app/#q=WzAsNCxbMiwxLCJSIl0sWzAsMV0sWzEsMSwiXFxHYSJdLFsxLDAsIlxcRGUiXSxbMywyLCJcXHNpIiwyXSxbMywwLCIoXFxhbCBcXGNpcmMgXFxzaSwgQiBcXGNpcmMgXFx0cF4qXFxzaSkiXSxbMiwwLCIoXFxhbCwgQikiLDJdXQ==
+\[\begin{tikzcd}
+	& \De \\
+	{} & \Ga & R
+	\arrow["\si"', from=1-2, to=2-2]
+	\arrow["{(\al \circ \si, B \circ \tp^*\si)}", from=1-2, to=2-3]
+	\arrow["{(\al, B)}"', from=2-2, to=2-3]
+\end{tikzcd}\]
 \end{lemma}
 
 \medskip
@@ -827,90 +841,94 @@ which follows from the definitions of $\Pi$ and $\la$.
 \end{tikzcd}\]
 \end{lemma}
 \begin{proof}
-  Since $\counit = (\ev{}{}, \rho_{\Term}) : R \to \Type$,
-  it suffices to find out how the counit computes.
-  The adjunction $\tp^{*} \dashv \tp_{*}$
-  suggests that we use the way
-  \[ \widetilde{\counit} = \id_{\Poly{\tp}\Type}\]
-  computes. Namely for any $A : \Ga \to \grpd$ and $B : \Ga \cdot A \to \grpd$
-  \begin{equation}
-    \widetilde{\counit} \circ (A, B) = (A, B) : \Ga \to \Poly{\tp}\Type
-    \label{evaluation_computation_equation1}
-  \end{equation}
-
-  Working on both sides of \cref{evaluation_computation_equation1} we get
-  \begin{align*}
-    & (\ev{\var_{A}}{B} \circ U^{*}\disp{A}, \var_{A}) \\
-    = \, & (\ev{}{}, \rho_{\Type}) \circ (\var_{A}, B \circ U^{*}(\disp{A})) \\
-    = \, & (\ev{}{}, \rho_{\Type}) \circ \tp^{*} (A, B)
-         & \cref{evaluation_computation_diagram1} \\
-    = \, & \counit \circ \tp^{*} (A, B) \\
-    = \, & \overline{\widetilde{\counit} \circ (A, B)} \\
-    = \, & \overline{(A, B)} \\
-    = \, & (B, \var_{A})
-  \end{align*}
-  Hence we know that evaluation of $B$
-  (weakened to the context $\Ga \cdot A \cdot A$)
-  on a variable of type $A$
-  is just $B$.
-  \[ \ev{\var_{A}}{B} \circ U^{*}\disp{A} = B\]
-  % diagrams TODO
-
-  Then the naturality square for the natural transformation
-  $\ev{}{} : R \to \Type$ on $a : \Ga \to \Ga \cdot A$
-  tells us that
-  \begin{align*}
-    & \ev{\al}{B} \\
-    = \, & \ev{\Ga}{} (\al, B) \\
-    = \, & \ev{\Ga}{} (\var_{A} \circ a, B \circ \U^{*} (\id_{\Ga}) \\
-    = \, & \ev{\Ga}{} (\var_{A} \circ a, B \circ \U^{*} (\disp{A} \circ a)) \\
-    = \, & \ev{\Ga}{} (\var_{A} \circ a, B \circ \U^{*} \disp{A} \circ U^{*} a) \\
-    = \, & \ev{\Ga}{} ((\var_{A}, B \circ \U^{*} \disp{A}) \circ a) \\
-    = \, & (\ev{\Ga \cdot A}{} (\var_{A}, B \circ \U^{*} \disp{A}) \circ a
-         & \text{by naturality}\\
-    = \, & (\ev{\var_{A}}{B \circ \U^{*} \disp{A}}) \circ a \\
-    = \, & B \circ a
-  \end{align*}
-
-
- \begin{figure}
-\centering
-\begin{subfigure}{.5\textwidth}
-  \centering
-% https://q.uiver.app/#q=WzAsNixbMSwxLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMSwyLCJcXFR5cGUiXSxbMCwxLCJSIl0sWzAsMiwiXFxUZXJtIl0sWzEsMCwiXFxHYSJdLFswLDAsIlxcR2EgXFxjZG90IEEiXSxbMCwxLCJcXHRwXyogXFxUZXJtXiogXFxUeXBlIiwxXSxbMiwwLCJcXHJob197XFxQb2x5e319Il0sWzIsMywiXFxyaG9fXFxUZXJtIiwxXSxbMywxLCJcXHRwIiwyXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwwLCIoQSxCKSIsMV0sWzUsNCwiXFxkaXNwe0F9Il0sWzUsMiwiXFx0cF4qKEEsQikiLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNSwzLCJcXHZhcl9BIiwyLHsiY3VydmUiOjR9XSxbNCwxLCJBIiwwLHsiY3VydmUiOi00fV1d
-\begin{tikzcd}
-	{\Ga \cdot A} & \Ga \\
-	R & {\Poly{\tp} {\Type}} \\
-	\Term & \Type
-	\arrow["{\disp{A}}", from=1-1, to=1-2]
-	\arrow["{\tp^*(A,B)}"{description}, dashed, from=1-1, to=2-1]
-	\arrow["{\var_A}"', bend right = 60, from=1-1, to=3-1]
-	\arrow["{(A,B)}"{description}, from=1-2, to=2-2]
-	\arrow["A", bend left = 60, from=1-2, to=3-2]
-	\arrow["{\rho_{\Poly{}}}", from=2-1, to=2-2]
-	\arrow["{\rho_\Term}"{description}, from=2-1, to=3-1]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-1, to=3-2]
-	\arrow["{\tp_* \Term^* \Type}"{description}, from=2-2, to=3-2]
-	\arrow["\tp"', from=3-1, to=3-2]
-\end{tikzcd}
-  \caption{$\tp^{*}(A,B)$}
-\end{subfigure}%
-\begin{subfigure}{.5\textwidth}
-  \centering
-      \begin{align*}
-        & \rho_{\Poly{}} \circ \tp^*(A,B) \\
-        = \, & (A, B) \circ \disp{A} \\
-        = \, & (A \circ \disp{A}, B \circ U^{*}\disp{A}) \\
-        \text{Hence}
-      \end{align*}
-  \caption{$\tp^{*}(A,B) = (\var_{A}, B \circ U^{*}\disp{A})$}
-  \label{evaluation_computation_diagram1}
-\end{subfigure}
-\end{figure}
-  % (\var_{A}, B \circ \tp^* \disp_A)
-
-
+  This is a specialization of \cref{evaluation}
+  with liberal applications of Yoneda.
 \end{proof}
+% \begin{proof}
+%   Since $\counit = (\ev{}{}, \rho_{\Term}) : R \to \Type$,
+%   it suffices to find out how the counit computes.
+%   The adjunction $\tp^{*} \dashv \tp_{*}$
+%   suggests that we use the way
+%   \[ \widetilde{\counit} = \id_{\Poly{\tp}\Type}\]
+%   computes. Namely for any $A : \Ga \to \grpd$ and $B : \Ga \cdot A \to \grpd$
+%   \begin{equation}
+%     \widetilde{\counit} \circ (A, B) = (A, B) : \Ga \to \Poly{\tp}\Type
+%     \label{evaluation_computation_equation1}
+%   \end{equation}
+
+%   Working on both sides of \cref{evaluation_computation_equation1} we get
+%   \begin{align*}
+%     & (\ev{\var_{A}}{B} \circ U^{*}\disp{A}, \var_{A}) \\
+%     = \, & (\ev{}{}, \rho_{\Type}) \circ (\var_{A}, B \circ U^{*}(\disp{A})) \\
+%     = \, & (\ev{}{}, \rho_{\Type}) \circ \tp^{*} (A, B)
+%          & \cref{evaluation_computation_diagram1} \\
+%     = \, & \counit \circ \tp^{*} (A, B) \\
+%     = \, & \overline{\widetilde{\counit} \circ (A, B)} \\
+%     = \, & \overline{(A, B)} \\
+%     = \, & (B, \var_{A})
+%   \end{align*}
+%   Hence we know that evaluation of $B$
+%   (weakened to the context $\Ga \cdot A \cdot A$)
+%   on a variable of type $A$
+%   is just $B$.
+%   \[ \ev{\var_{A}}{B} \circ U^{*}\disp{A} = B\]
+%   % diagrams TODO
+
+%   Then the naturality square for the natural transformation
+%   $\ev{}{} : R \to \Type$ on $a : \Ga \to \Ga \cdot A$
+%   tells us that
+%   \begin{align*}
+%     & \ev{\al}{B} \\
+%     = \, & \ev{\Ga}{} (\al, B) \\
+%     = \, & \ev{\Ga}{} (\var_{A} \circ a, B \circ \U^{*} (\id_{\Ga}) \\
+%     = \, & \ev{\Ga}{} (\var_{A} \circ a, B \circ \U^{*} (\disp{A} \circ a)) \\
+%     = \, & \ev{\Ga}{} (\var_{A} \circ a, B \circ \U^{*} \disp{A} \circ U^{*} a) \\
+%     = \, & \ev{\Ga}{} ((\var_{A}, B \circ \U^{*} \disp{A}) \circ a) \\
+%     = \, & (\ev{\Ga \cdot A}{} (\var_{A}, B \circ \U^{*} \disp{A}) \circ a
+%          & \text{by naturality}\\
+%     = \, & (\ev{\var_{A}}{B \circ \U^{*} \disp{A}}) \circ a \\
+%     = \, & B \circ a
+%   \end{align*}
+
+
+%  \begin{figure}
+% \centering
+% \begin{subfigure}{.5\textwidth}
+%   \centering
+% % https://q.uiver.app/#q=WzAsNixbMSwxLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMSwyLCJcXFR5cGUiXSxbMCwxLCJSIl0sWzAsMiwiXFxUZXJtIl0sWzEsMCwiXFxHYSJdLFswLDAsIlxcR2EgXFxjZG90IEEiXSxbMCwxLCJcXHRwXyogXFxUZXJtXiogXFxUeXBlIiwxXSxbMiwwLCJcXHJob197XFxQb2x5e319Il0sWzIsMywiXFxyaG9fXFxUZXJtIiwxXSxbMywxLCJcXHRwIiwyXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwwLCIoQSxCKSIsMV0sWzUsNCwiXFxkaXNwe0F9Il0sWzUsMiwiXFx0cF4qKEEsQikiLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNSwzLCJcXHZhcl9BIiwyLHsiY3VydmUiOjR9XSxbNCwxLCJBIiwwLHsiY3VydmUiOi00fV1d
+% \begin{tikzcd}
+% 	{\Ga \cdot A} & \Ga \\
+% 	R & {\Poly{\tp} {\Type}} \\
+% 	\Term & \Type
+% 	\arrow["{\disp{A}}", from=1-1, to=1-2]
+% 	\arrow["{\tp^*(A,B)}"{description}, dashed, from=1-1, to=2-1]
+% 	\arrow["{\var_A}"', bend right = 60, from=1-1, to=3-1]
+% 	\arrow["{(A,B)}"{description}, from=1-2, to=2-2]
+% 	\arrow["A", bend left = 60, from=1-2, to=3-2]
+% 	\arrow["{\rho_{\Poly{}}}", from=2-1, to=2-2]
+% 	\arrow["{\rho_\Term}"{description}, from=2-1, to=3-1]
+% 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-1, to=3-2]
+% 	\arrow["{\tp_* \Term^* \Type}"{description}, from=2-2, to=3-2]
+% 	\arrow["\tp"', from=3-1, to=3-2]
+% \end{tikzcd}
+%   \caption{$\tp^{*}(A,B)$}
+% \end{subfigure}%
+% \begin{subfigure}{.5\textwidth}
+%   \centering
+%       \begin{align*}
+%         & \rho_{\Poly{}} \circ \tp^*(A,B) \\
+%         = \, & (A, B) \circ \disp{A} \\
+%         = \, & (A \circ \disp{A}, B \circ U^{*}\disp{A}) \\
+%         \text{Hence}
+%       \end{align*}
+%   \caption{$\tp^{*}(A,B) = (\var_{A}, B \circ U^{*}\disp{A})$}
+%   \label{evaluation_computation_diagram1}
+% \end{subfigure}
+% \end{figure}
+%   % (\var_{A}, B \circ \tp^* \disp_A)
+
+
+% \end{proof}
 
 \medskip
 
