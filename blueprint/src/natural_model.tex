@@ -2,6 +2,10 @@ In this section we describe the categorical semantics of
 HoTT via Natural Models.
 This will not be a detailed account of the syntax of HoTT,
 but will be a detailed account of what is needed to interpret such syntax.
+It will follow \cite{awodey2017naturalmodelshomotopytype},
+but with a more compact description of identity types
+using the technology of polynomial endofunctors,
+and a universe of small types.
 
 \medskip
 
@@ -50,7 +54,7 @@ We write $\pshC$ for the category of presheaves over $\catC$,
 	{\yo (\Ga)} & \Type
 	\arrow["{\var_A}", from=1-1, to=1-2]
 	\arrow["{\yo (\disp{A})}"', from=1-1, to=2-1]
-	\arrow[from=1-2, to=2-2]
+	\arrow["\tp", from=1-2, to=2-2]
 	\arrow["A"', from=2-1, to=2-2]
 \end{tikzcd}\]
 \end{defn}
@@ -97,7 +101,132 @@ to express this situation, i.e.~$X \cong \yo(\Gamma \cdot \ulcorner X \urcorner)
 
 \medskip
 
+\subsection{Pi types}
 
+We will use $\Poly{\tp}$ to denote the polynomial endofunctor
+(\cref{polynomial_endofunctor}) associated with our presentable map $\tp$.
+Then an interpretation of $\Pi$ types consists of a pullback square
+% https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSJdLFswLDEsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzEsMCwiXFxUZXJtIl0sWzEsMSwiXFxUeXBlIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcdHB9IiwyXSxbMCwyLCJcXGxhIl0sWzIsMywiXFx0cCJdLFsxLDMsIlxcUGkiLDJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
+\[\begin{tikzcd}
+	{\Poly{\tp}{\Term}} & \Term \\
+	{\Poly{\tp}{\Type}} & \Type
+	\arrow["\la", from=1-1, to=1-2]
+	\arrow["{\Poly{\tp}{\tp}}"', from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow["\tp", from=1-2, to=2-2]
+	\arrow["\Pi"', from=2-1, to=2-2]
+\end{tikzcd}\]
+
+% TODO: details, interpretation of syntax
+
+\subsection{Sigma types}
+
+An interpretation of $\Si$ types consists of a pullback square
+% https://q.uiver.app/#q=WzAsNCxbMCwwLCJRIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcVHlwZX0iXSxbMSwwLCJcXFRlcm0iXSxbMSwxLCJcXFR5cGUiXSxbMCwxLCJcXHRwIFxcdHJpYW5nbGVsZWZ0IFxcdHAiLDJdLFswLDIsIlxccGFpciJdLFsyLDMsIlxcdHAiXSxbMSwzLCJcXFNpIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
+\[\begin{tikzcd}
+	Q & \Term \\
+	{\Poly{\tp}{\Type}} & \Type
+	\arrow["\pair", from=1-1, to=1-2]
+	\arrow["{\tp \triangleleft \tp}"', from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow["\tp", from=1-2, to=2-2]
+	\arrow["\Si"', from=2-1, to=2-2]
+\end{tikzcd}\]
+
+% TODO: details, interpretation of syntax
+
+\subsection{Identity types}
+
+To interpret the formation and introduction rules for identity types
+we require a commutative square (this need not be pullback)
+% https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFRlcm0iXSxbMCwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwxLCJcXFR5cGUiXSxbMSwwLCJcXFRlcm0iXSxbMCwxLCJcXGRlIiwyXSxbMSwyLCJcXElkIiwyXSxbMywyLCJcXHRwIl0sWzAsMywiXFxyZWZsIl1d
+\[\begin{tikzcd}
+	\Term & \Term \\
+	{\tp \times_\Type \tp} & \Type
+	\arrow["\refl", from=1-1, to=1-2]
+	\arrow["\de"', from=1-1, to=2-1]
+	\arrow["\tp", from=1-2, to=2-2]
+	\arrow["\Id"', from=2-1, to=2-2]
+\end{tikzcd}\]
+where $\de$ is the diagonal:
+% https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXFRlcm0iXSxbMSwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMiwxLCJcXFRlcm0iXSxbMiwyLCJcXFR5cGUiXSxbMSwyLCJcXFRlcm0iXSxbMCwxLCJcXGRlIiwyXSxbMCwyXSxbMSwyXSxbMiwzLCJcXHRwIl0sWzQsMywiXFx0cCIsMl0sWzEsNF0sWzEsMywiIiwyLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzAsNCwiIiwwLHsibGV2ZWwiOjIsInN0eWxlIjp7ImhlYWQiOnsibmFtZSI6Im5vbmUifX19XV0=
+\[\begin{tikzcd}
+	\Term \\
+	& {\tp \times_\Type \tp} & \Term \\
+	& \Term & \Type
+	\arrow["\de"', from=1-1, to=2-2]
+	\arrow[Rightarrow, no head, bend left, from=1-1, to=2-3]
+	\arrow[Rightarrow, no head, bend right, from=1-1, to=3-2]
+	\arrow[from=2-2, to=2-3]
+	\arrow[from=2-2, to=3-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+	\arrow["\tp", from=2-3, to=3-3]
+	\arrow["\tp"', from=3-2, to=3-3]
+\end{tikzcd}\]
+
+Then let $I$ be the pullback.
+We get a comparison map $\rho$
+% https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXFRlcm0iXSxbMSwyLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMiwyLCJcXFR5cGUiXSxbMiwxLCJcXFRlcm0iXSxbMSwxLCJJIl0sWzAsMSwiXFxkZSIsMix7ImN1cnZlIjoyfV0sWzEsMiwiXFxJZCIsMl0sWzMsMiwiXFx0cCJdLFswLDMsIlxccmVmbCIsMCx7ImN1cnZlIjotM31dLFs0LDFdLFs0LDNdLFs0LDIsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFswLDQsIlxccmhvIiwxLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
+\[\begin{tikzcd}
+	\Term \\
+	& I & \Term \\
+	& {\tp \times_\Type \tp} & \Type
+	\arrow["\rho"{description}, dashed, from=1-1, to=2-2]
+	\arrow["\refl", bend left, from=1-1, to=2-3]
+	\arrow["\de", bend right, from=1-1, to=3-2]
+	\arrow[from=2-2, to=2-3]
+	\arrow[from=2-2, to=3-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+	\arrow["\tp", from=2-3, to=3-3]
+	\arrow["\Id"', from=3-2, to=3-3]
+\end{tikzcd}\]
+
+Then view $\rho : \tp \to q$ as a map in the slice over $\Type$.
+% https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXFRlcm0iXSxbMSwyLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwxLCJJIl0sWzEsMywiXFxUZXJtIl0sWzEsNCwiXFxUeXBlIl0sWzAsMSwiXFxkZSIsMSx7ImN1cnZlIjoxfV0sWzIsMV0sWzAsMiwiXFxyaG8iLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbMSwzLCJcXGZzdCIsMl0sWzMsNF0sWzAsNCwiXFx0cCIsMix7ImN1cnZlIjozfV0sWzAsMywiIiwyLHsiY3VydmUiOjIsImxldmVsIjoyLCJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzIsNCwicSIsMCx7ImN1cnZlIjotNX1dXQ==
+\[\begin{tikzcd}
+	\Term \\
+	& I \\
+	& {\tp \times_\Type \tp} \\
+	& \Term \\
+	& \Type
+	\arrow["\rho"{description}, dashed, from=1-1, to=2-2]
+	\arrow["\de"{description}, bend right = 10, from=1-1, to=3-2]
+	\arrow[bend right = 25, Rightarrow, no head, from=1-1, to=4-2]
+	\arrow["\tp"', bend right = 40, from=1-1, to=5-2]
+	\arrow[from=2-2, to=3-2]
+	\arrow["q", bend left = 50, from=2-2, to=5-2]
+	\arrow["\fst"', from=3-2, to=4-2]
+	\arrow[from=4-2, to=5-2]
+\end{tikzcd}\]
+
+Now applying $\Poly : \Arr(\pshC) \to [\pshC, \pshC]$ to $\rho : \tp \to q$
+gives us a naturality square (this also need not be pullback).
+% https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7cX0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcVHlwZX0iXSxbMSwxLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMSwwLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcdHB9IiwyXSxbMSwyLCJ7XFxyaG99Xip7XFxUeXBlfSIsMl0sWzMsMiwiXFxQb2x5e1xcdHB9IHtcXHRwfSJdLFswLDMsIntcXHJob31eKntcXFRlcm19Il1d
+\[\begin{tikzcd}
+	{\Poly{q} {\Term}} & {\Poly{\tp} {\Term}} \\
+	{\Poly{q} {\Type}} & {\Poly{\tp} {\Term}}
+	\arrow["{{\rho}^*{\Term}}", from=1-1, to=1-2]
+	\arrow["{\Poly{q} {\tp}}"', from=1-1, to=2-1]
+	\arrow["{\Poly{\tp} {\tp}}", from=1-2, to=2-2]
+	\arrow["{{\rho}^*{\Type}}"', from=2-1, to=2-2]
+\end{tikzcd}\]
+Taking the pullback $T$ and the comparison map $\ep$ we have
+% https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXFBvbHl7cX0ge1xcVGVybX0iXSxbMSwyLCJcXFBvbHl7cX0ge1xcVHlwZX0iXSxbMiwyLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMiwxLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMSwxLCJUIl0sWzAsMSwiXFxQb2x5e3F9IHtcXHRwfSIsMix7ImN1cnZlIjoyfV0sWzEsMiwie1xccmhvfV4qe1xcVHlwZX0iLDJdLFszLDIsIlxcUG9seXtcXHRwfSB7XFx0cH0iXSxbMCwzLCJ7XFxyaG99Xip7XFxUZXJtfSIsMCx7ImN1cnZlIjotM31dLFs0LDFdLFs0LDNdLFs0LDIsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFswLDQsIlxcZXAiLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XV0=
+\[\begin{tikzcd}
+	{\Poly{q} {\Term}} \\
+	& T & {\Poly{\tp} {\Term}} \\
+	& {\Poly{q} {\Type}} & {\Poly{\tp} {\Term}}
+	\arrow["\ep"{description}, dashed, from=1-1, to=2-2]
+	\arrow["{{\rho}^*{\Term}}", bend left, from=1-1, to=2-3]
+	\arrow["{\Poly{q} {\tp}}"', bend right, from=1-1, to=3-2]
+	\arrow[from=2-2, to=2-3]
+	\arrow[from=2-2, to=3-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+	\arrow["{\Poly{\tp} {\tp}}", from=2-3, to=3-3]
+	\arrow["{{\rho}^*{\Type}}"', from=3-2, to=3-3]
+\end{tikzcd}\]
+Finally, we require a section $J : T \to \Poly{q}{\Term}$ of $\ep$,
+to interpret the identity elimination rule.
 
 \subsection{A type of small types}
 

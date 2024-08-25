@@ -963,7 +963,7 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
 \end{tikzcd}\]
 
   By the universal property of pullbacks,
-  a data of a map with representable domain $\ep : \Ga \to Q$ corresponds to the
+  the data of a map with representable domain $\ep : \Ga \to Q$ corresponds to the
   data of a triple of maps $\al, \be : \Ga \to \Term$
   and $(A,B) : \Ga \to \Poly{\tp} \Type$ such that
   $\tp \circ \be = \pi_{\Type} \circ \counit \circ (\al, B)$
@@ -1013,6 +1013,17 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
   which consists of $(A, B)$.
   It is in this sense that $Q$ classifies pairs of dependent terms,
   and $\tp \triangleleft \tp$ extracts the underlying types.}
+
+  Precomposition with a substitution $\si : \De \to \Ga$ acts on this
+  triple by
+ % https://q.uiver.app/#q=WzAsMyxbMCwxLCJcXEdhIl0sWzAsMCwiXFxEZSJdLFsxLDEsIlEiXSxbMSwwLCJcXHNpIiwyXSxbMCwyLCIoXFxiZSwgXFxhbCwgQikiLDJdLFsxLDIsIihcXGJlIFxcY2lyYyBcXHNpLCBcXGFsIFxcY2lyYyBcXHNpLCBCIFxcY2lyYyBcXHRwXiogXFxzaSkiXV0=
+\[\begin{tikzcd}
+	\De \\
+	\Ga & Q
+	\arrow["\si"', from=1-1, to=2-1]
+	\arrow["{(\be \circ \si, \al \circ \si, B \circ \tp^* \si)}", from=1-1, to=2-2]
+	\arrow["{(\be, \al, B)}"', from=2-1, to=2-2]
+\end{tikzcd}\]
 \end{defn}
 
 \medskip
@@ -1064,7 +1075,7 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
 % https://q.uiver.app/#q=WzAsOCxbMCwwLCJcXFBzaGdycGQoXFxEZSxRKSJdLFswLDMsIlxcUHNoZ3JwZChcXEdhLFEpIl0sWzMsMywiW1xcR2EsXFxwdGdycGRdIl0sWzMsMCwiW1xcRGUsXFxwdGdycGRdIl0sWzEsMiwiKFxcYmUsXFxhbCxCKSJdLFsxLDEsIihcXGJlIFxcY2lyYyBcXHNpLFxcYWwgXFxjaXJjIFxcc2ksQiBcXGNpcmMgXFxzaV9BKSJdLFsyLDEsIj8iXSxbMiwyLCJcXHBhaXJfXFxHYShcXGJlLFxcYWwsQikiXSxbMSwwLCJcXGNpcmMgXFxzaSJdLFsxLDIsIlxccGFpcl9cXEdhIiwyXSxbMCwzLCJcXHBhaXJfXFxEZSJdLFsyLDMsIlxcY2lyYyBcXHNpIiwyXSxbNCw1LCIiLDIseyJzdHlsZSI6eyJ0YWlsIjp7Im5hbWUiOiJtYXBzIHRvIn19fV0sWzUsNiwiIiwyLHsic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9fX1dLFs0LDcsIiIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XSxbNyw2LCIiLDAseyJzdHlsZSI6eyJ0YWlsIjp7Im5hbWUiOiJtYXBzIHRvIn19fV1d
 \[\begin{tikzcd}
 	{\Pshgrpd(\De,Q)} &&& {[\De,\ptgrpd]} \\
-	& {(\be \circ \si,\al \circ \si,B \circ \si_A)} & {?} \\
+	& {(\be \circ \si,\al \circ \si,B \circ \tp^{*}\si)} & {?} \\
 	& {(\be,\al,B)} & {\pair_\Ga(\be,\al,B)} \\
 	{\Pshgrpd(\Ga,Q)} &&& {[\Ga,\ptgrpd]}
 	\arrow["{\pair_\De}", from=1-1, to=1-4]
