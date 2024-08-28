@@ -95,6 +95,16 @@ in the rest of the notes.
 	\arrow["{(\al \circ \si, \be \circ t^* \si)}", from=1-2, to=2-3]
 	\arrow["{(\al, \be)}"', from=2-2, to=2-3]
 \end{tikzcd}\]
+  and given a morphism $f : X \to Y$,
+  the morphism $\Poly{t}{f}$ acts on such a pair by
+% https://q.uiver.app/#q=WzAsNCxbMiwwLCJcXFBvbHl7dH0gWCJdLFswLDBdLFsxLDAsIlxcR2EiXSxbMiwxLCJcXFBvbHl7dH17WX0iXSxbMiwwLCIoXFxhbCwgXFxiZSkiXSxbMCwzLCJcXFBvbHl7dH17Zn0iXSxbMiwzLCIoXFxhbCwgZiBcXGNpcmMgXFxiZSkiLDJdXQ==
+\[\begin{tikzcd}
+	{} & \Ga & {\Poly{t} X} \\
+	&& {\Poly{t}{Y}}
+	\arrow["{(\al, \be)}", from=1-2, to=1-3]
+	\arrow["{(\al, f \circ \be)}"', from=1-2, to=2-3]
+	\arrow["{\Poly{t}{f}}", from=1-3, to=2-3]
+\end{tikzcd}\]
 \end{prop}
 
 \medskip
@@ -208,7 +218,8 @@ in the rest of the notes.
 	\end{align*}
 
 \begin{figure}[h]
-  \centering% https://q.uiver.app/#q=WzAsOCxbMSwxLCJcXEdhIFxcY2RvdCB0IFxcY2lyYyBcXGJlIl0sWzIsMSwiXFxHYSJdLFswLDEsIlxcR2EiXSxbMiwwLCJcXEdhIFxcY2RvdCB0IFxcY2lyYyBcXGJlIl0sWzEsMCwiXFxHYSBcXGNkb3QgdCBcXGNpcmMgXFxiZSBcXGNkb3QgdCBcXGNpcmMgXFxiZSJdLFszLDAsIkIiXSxbMywxLCJBIl0sWzAsMCwiXFxHYSBcXGNkb3QgdCBcXGNpcmMgXFxiZSJdLFswLDEsImQiLDJdLFsyLDAsImIiLDJdLFszLDEsImQiXSxbMiwxLCIiLDAseyJjdXJ2ZSI6MywibGV2ZWwiOjIsInN0eWxlIjp7ImhlYWQiOnsibmFtZSI6Im5vbmUifX19XSxbNCwwXSxbNCwzLCJ0XiogZCIsMCx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFszLDUsInYiXSxbNSw2LCJ0Il0sWzEsNiwidCBcXGNpcmMgXFxiZSIsMl0sWzcsNCwidF4qIGIiLDAseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNywyLCJkIl0sWzcsMywiIiwwLHsiY3VydmUiOi00LCJsZXZlbCI6Miwic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dLFszLDYsIiIsMCx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs0LDEsIiIsMCx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs3LDAsIiIsMCx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
+  \centering
+  % https://q.uiver.app/#q=WzAsOCxbMSwxLCJcXEdhIFxcY2RvdCB0IFxcY2lyYyBcXGJlIl0sWzIsMSwiXFxHYSJdLFswLDEsIlxcR2EiXSxbMiwwLCJcXEdhIFxcY2RvdCB0IFxcY2lyYyBcXGJlIl0sWzEsMCwiXFxHYSBcXGNkb3QgdCBcXGNpcmMgXFxiZSBcXGNkb3QgdCBcXGNpcmMgXFxiZSJdLFszLDAsIkIiXSxbMywxLCJBIl0sWzAsMCwiXFxHYSBcXGNkb3QgdCBcXGNpcmMgXFxiZSJdLFswLDEsImQiLDJdLFsyLDAsImIiLDJdLFszLDEsImQiXSxbMiwxLCIiLDAseyJjdXJ2ZSI6MywibGV2ZWwiOjIsInN0eWxlIjp7ImhlYWQiOnsibmFtZSI6Im5vbmUifX19XSxbNCwwXSxbNCwzLCJ0XiogZCIsMCx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFszLDUsInYiXSxbNSw2LCJ0Il0sWzEsNiwidCBcXGNpcmMgXFxiZSIsMl0sWzcsNCwidF4qIGIiLDAseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNywyLCJkIl0sWzcsMywiIiwwLHsiY3VydmUiOi00LCJsZXZlbCI6Miwic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dLFszLDYsIiIsMCx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs0LDEsIiIsMCx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs3LDAsIiIsMCx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
 \[\begin{tikzcd}
 	{\Ga \cdot t \circ \be} & {\Ga \cdot t \circ \be \cdot t \circ \be} & {\Ga \cdot t \circ \be} & B \\
 	\Ga & {\Ga \cdot t \circ \be} & \Ga & A
@@ -313,5 +324,321 @@ in the rest of the notes.
 \end{figure}
 
 \end{proof}
+
+\begin{defn}
+  \label{mate}
+  Suppose
+  % https://q.uiver.app/#q=WzAsMyxbMCwwLCJDIl0sWzEsMSwiQSJdLFsyLDAsIkIiXSxbMCwxLCJzIiwyXSxbMiwxLCJ0Il0sWzAsMiwiXFxyaG8iXV0=
+\[\begin{tikzcd}
+	C && B \\
+	& A
+	\arrow["\rho", from=1-1, to=1-3]
+	\arrow["s"', from=1-1, to=2-2]
+	\arrow["t", from=1-3, to=2-2]
+\end{tikzcd}\]
+  Then we have a mate $\mu_{!} : \rho_{!} \circ s^{*} \Rightarrow t^{*}$.
+  This is given by the universal property of pullbacks:
+  given $f : x \to y$ in the slice $\catC / A$ we have
+% https://q.uiver.app/#q=WzAsOSxbMiwxLCJZIl0sWzIsMCwiWCJdLFsyLDIsIkEiXSxbMSwyLCJCIl0sWzAsMiwiQyJdLFswLDEsIlxcYnVsbGV0Il0sWzEsMSwiXFxidWxsZXQiXSxbMSwwLCJcXGJ1bGxldCJdLFswLDAsIlxcYnVsbGV0Il0sWzEsMCwiZiJdLFswLDIsInkiXSxbMywyLCJ0IiwyXSxbNCwzLCJcXHJobyIsMl0sWzYsMF0sWzYsMywidF4qIHkiLDJdLFs2LDIsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs1LDQsInNeKiB5IiwyXSxbNSw2LCJcXG11X3sheX0iLDJdLFs1LDMsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs3LDYsInReKiBmIl0sWzcsMV0sWzcsMCwiIiwwLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzgsNSwic14qIGYiLDJdLFs4LDcsIlxcbXVfeyF4fSJdLFs4LDYsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFsxLDIsIngiLDAseyJjdXJ2ZSI6LTN9XSxbMjIsMTksIlxcbXVfISIsMSx7InNob3J0ZW4iOnsic291cmNlIjoyMCwidGFyZ2V0IjoyMH19XV0=
+\[\begin{tikzcd}
+	\bullet & \bullet & X \\
+	\bullet & \bullet & Y \\
+	C & B & A
+	\arrow["{\mu_{!x}}", from=1-1, to=1-2]
+	\arrow[""{name=0, anchor=center, inner sep=0}, "{s^* f}"', from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow[from=1-2, to=1-3]
+	\arrow[""{name=1, anchor=center, inner sep=0}, "{t^* f}", from=1-2, to=2-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-2, to=2-3]
+	\arrow["f", from=1-3, to=2-3]
+	\arrow["x", bend left = 70, from=1-3, to=3-3]
+	\arrow["{\mu_{!y}}"', from=2-1, to=2-2]
+	\arrow["{s^* y}"', from=2-1, to=3-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-1, to=3-2]
+	\arrow[from=2-2, to=2-3]
+	\arrow["{t^* y}"', from=2-2, to=3-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+	\arrow["y", from=2-3, to=3-3]
+	\arrow["\rho"', from=3-1, to=3-2]
+	\arrow["t"', from=3-2, to=3-3]
+	\arrow["{\mu_!}"{description}, shorten <=6pt, shorten >=6pt, Rightarrow, from=0, to=1]
+\end{tikzcd}\]
+  By the calculus of mates we also have a reversed mate between the right adjoints
+  $\mu^{*} : t_{*} \to s_{*} \circ \rho^{*}$.
+  Explicitely $\mu^{*}$ is the composition
+  % https://q.uiver.app/#q=WzAsNCxbMCwwLCJ0XyoiXSxbMSwwLCJzXyogXFxyaG9eKiBcXHJob18hIHNeKiB0XyoiXSxbMiwwLCJzXyogXFxyaG9eKiB0XiogdF8qIl0sWzMsMCwic18qIFxccmhvXioiXSxbMSwyLCJzXyogXFxyaG9eKiBcXG11XyEgdF8qIl0sWzAsMSwiXFx1bml0IHRfKiJdLFsyLDMsInNfKiBcXHJob14qIFxcY291bml0Il1d
+\[\begin{tikzcd}
+	{t_*} & {s_* \rho^* \rho_! s^* t_*} & {s_* \rho^* t^* t_*} & {s_* \rho^*}
+	\arrow["{\unit t_*}", from=1-1, to=1-2]
+	\arrow["{s_* \rho^* \mu_! t_*}", from=1-2, to=1-3]
+	\arrow["{s_* \rho^* \counit}", from=1-3, to=1-4]
+\end{tikzcd}\]
+\end{defn}
+
+\begin{defn}[$\Poly{-}$ action on a slice morphism] \label{polynomial_on_slice_map}
+  Let $\Poly{-} : (\catC / A)^{\op} \to [\catC, \catC]$
+  be defined by taking $s \mapsto \Poly{s}$ on objects and
+  act on a morphism
+  % https://q.uiver.app/#q=WzAsMyxbMCwwLCJDIl0sWzEsMSwiQSJdLFsyLDAsIkIiXSxbMCwxLCJzIiwyXSxbMiwxLCJ0Il0sWzAsMiwiXFxyaG8iXV0=
+\[\begin{tikzcd}
+	C && B \\
+	& A
+	\arrow["\rho", from=1-1, to=1-3]
+	\arrow["s"', from=1-1, to=2-2]
+	\arrow["t", from=1-3, to=2-2]
+\end{tikzcd}\]
+  by $\rho \mapsto \Star{\rho} := A_{!} (s_{*} \eta \circ \mu B^{*}) : \Poly{t} \tp \Poly{s}$
+% https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXGNhdEMiXSxbMCwxLCJcXGNhdEMgLyBDIl0sWzEsMSwiXFxjYXRDIC8gQiJdLFswLDIsIlxcY2F0QyAvIEEiXSxbMCwzLCJcXGNhdEMiXSxbMCwxLCJDXioiLDJdLFswLDIsIkJeKiJdLFsyLDEsIlxccmhvXioiLDFdLFsxLDMsInNfKiIsMl0sWzIsMywidF8qIl0sWzMsNCwiQV8hIl0sWzAsNCwiXFxQb2x5e3N9IiwyLHsiY3VydmUiOjV9XSxbMCw0LCJcXFBvbHl7dH0iLDAseyJvZmZzZXQiOi01LCJjdXJ2ZSI6LTV9XSxbMiw1LCJcXGV0YSIsMSx7InNob3J0ZW4iOnsic291cmNlIjozMCwidGFyZ2V0IjozMH19XSxbOSwxLCJcXG11IiwxLHsic2hvcnRlbiI6eyJzb3VyY2UiOjIwfX1dXQ==
+\[\begin{tikzcd}[row sep = large]
+	\catC \\
+	{\catC / C} & {\catC / B} \\
+	{\catC / A} \\
+	\catC
+	\arrow[""{name=0, anchor=center, inner sep=0}, "{C^*}"', from=1-1, to=2-1]
+	\arrow["{B^*}", from=1-1, to=2-2]
+	\arrow["{s_*}"', from=2-1, to=3-1]
+	\arrow["{\rho^*}"{description}, from=2-2, to=2-1]
+	\arrow[""{name=1, anchor=center, inner sep=0}, "{t_*}", from=2-2, to=3-1]
+	\arrow["{A_!}", from=3-1, to=4-1]
+	\arrow["\eta"{description}, shorten <=9pt, shorten >=9pt, Rightarrow, from=2-2, to=0]
+	\arrow["\mu"{description}, shorten <=2pt, Rightarrow, from=1, to=2-1]
+	\arrow["{\Poly{s}}"', bend right = 70, from=1-1, to=4-1]
+	\arrow["{\Poly{t}}", bend left = 100, shift left = 15, from=1-1, to=4-1]
+\end{tikzcd}\]
+  where $\mu = \mu^{*}$ is the mate from \cref{mate},
+  and $\eta$ is the natural isomorphism given by pullback pasting.
+
+  Pointwise, this natural transformation acts on a pair
+  $(\al, \be) : \Ga \to \Poly{t}{X}$ by
+% https://q.uiver.app/#q=WzAsNCxbMiwwLCJcXFBvbHl7dH0gWCJdLFswLDBdLFsxLDAsIlxcR2EiXSxbMiwxLCJcXFBvbHl7c317WH0iXSxbMiwwLCIoXFxhbCwgXFxiZSkiXSxbMCwzLCJcXFN0YXJ7XFxyaG99X1giXSxbMiwzLCIoXFxhbCwgXFxiZSBcXGNpcmMgXFxhbF4qIFxccmhvKSIsMl1d
+\[\begin{tikzcd}
+	{} & \Ga & {\Poly{t} X} \\
+	&& {\Poly{s}{X}}
+	\arrow["{(\al, \be)}", from=1-2, to=1-3]
+	\arrow["{(\al, \be \circ \al^* \rho)}"', from=1-2, to=2-3]
+	\arrow["{\Star{\rho}_X}", from=1-3, to=2-3]
+\end{tikzcd}\]
+  where $\al^{*} \rho$ is defined as
+% https://q.uiver.app/#q=WzAsNixbMCwyLCJcXEdhIl0sWzEsMiwiQSJdLFsxLDEsIkIiXSxbMSwwLCJDIl0sWzAsMCwiXFxHYSBcXGNkb3RfcyBcXGFsIl0sWzAsMSwiXFxHYSBcXGNkb3RfdCBcXGFsIl0sWzAsMSwiXFxhbCIsMl0sWzIsMSwidCJdLFszLDIsIlxccmhvIl0sWzUsMF0sWzUsMiwidF4qIHkiXSxbNSwxLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwzLCJzXiogeSJdLFs0LDUsIlxcYWxeKiBcXHJobyIsMix7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFs0LDIsIiIsMCx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
+\[\begin{tikzcd}
+	{\Ga \cdot_s \al} & C \\
+	{\Ga \cdot_t \al} & B \\
+	\Ga & A
+	\arrow["{s^* y}", from=1-1, to=1-2]
+	\arrow["{\al^* \rho}"', dashed, from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow["\rho", from=1-2, to=2-2]
+	\arrow["{t^* y}", from=2-1, to=2-2]
+	\arrow[from=2-1, to=3-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-1, to=3-2]
+	\arrow["t", from=2-2, to=3-2]
+	\arrow["\al"', from=3-1, to=3-2]
+\end{tikzcd}\]
+  We prove this now.
+\end{defn}
+\begin{proof}
+
+  Firstly $\Star{\rho}_{X} = A_{!} (s_{*} \eta_{X} \circ \mu_{B^{*}X})$,
+  so the first component $\al : \Ga \to A$
+  is preserved by $\Star{\rho}_{X}$ and it suffices to show, in $\catC / A$
+  % https://q.uiver.app/#q=WzAsNCxbMiwwLCJ0XyogQl4qIFgiXSxbMCwwXSxbMSwwLCJcXGFsIl0sWzIsMSwic18qIENeKiBYIl0sWzIsMCwiKFxcYWwsIFxcYmUpIl0sWzAsMywic197Kn0gXFxldGFfe1h9IFxcY2lyYyBcXG11X3tCXnsqfVh9Il0sWzIsMywiKFxcYWwsIFxcYmUgXFxjaXJjIFxcYWxeKiBcXHJobykiLDJdXQ==
+\[\begin{tikzcd}
+	{} & \al & {t_* B^* X} \\
+	&& {s_* C^* X}
+	\arrow["{(\al, \be)}", from=1-2, to=1-3]
+	\arrow["{(\al, \be \circ \al^* \rho)}"', from=1-2, to=2-3]
+	\arrow["{s_{*} \eta_{X} \circ \mu_{B^{*}X}}", from=1-3, to=2-3]
+\end{tikzcd}\]
+
+  By the adjunction $s^{*} \dashv s_{*}$, it suffices to show, in $\catC / C$
+% https://q.uiver.app/#q=WzAsNCxbMiwwLCJzXip0XyogQl4qIFgiXSxbMCwwXSxbMSwwLCJzXiogXFxhbCJdLFsyLDEsIkNeKiBYIl0sWzIsMCwic14qIChcXGFsLCBcXGJlKSJdLFswLDMsIlxcb3ZlcmxpbmV7c197Kn0gXFxldGFfe1h9IFxcY2lyYyBcXG11X3tCXnsqfVh9fSJdLFsyLDMsIlxcb3ZlcmxpbmV7KFxcYWwsIFxcYmUgXFxjaXJjIFxcYWxeKiBcXHJobyl9IiwyXV0=
+\[\begin{tikzcd}
+	{} & {s^* \al} & {s^*t_* B^* X} \\
+	&& {C^* X}
+	\arrow["{s^* (\al, \be)}", from=1-2, to=1-3]
+	\arrow["{\overline{(\al, \be \circ \al^* \rho)}}"', from=1-2, to=2-3]
+	\arrow["{\overline{s_{*} \eta_{X} \circ \mu_{B^{*}X}}}", from=1-3, to=2-3]
+\end{tikzcd}\]
+
+
+Now we calculate $\overline{s_{*} \eta_{X} \circ \mu_{B^{*}X}} = \eta_{X} \circ \overline{\mu_{B^{*}X}}$.
+So that our goal is to show
+% https://q.uiver.app/#q=WzAsNSxbMiwwLCJzXip0XyogQl4qIFgiXSxbMCwwXSxbMSwwLCJzXiogXFxhbCJdLFsyLDEsIkNeKiBYIl0sWzMsMCwiXFxyaG9eKiBCXipYIl0sWzIsMCwic14qIChcXGFsLCBcXGJlKSJdLFsyLDMsIlxcb3ZlcmxpbmV7KFxcYWwsIFxcYmUgXFxjaXJjIFxcYWxeKiBcXHJobyl9IiwyXSxbMCw0LCJcXG92ZXJsaW5le1xcbXVfe0Jeeyp9WH19Il0sWzQsMywiXFxldGFfe1h9Il1d
+\[\begin{tikzcd}
+	{} & {s^* \al} & {s^*t_* B^* X} & {\rho^* B^*X} \\
+	&& {C^* X}
+	\arrow["{s^* (\al, \be)}", from=1-2, to=1-3]
+	\arrow["{\overline{(\al, \be \circ \al^* \rho)}}"', from=1-2, to=2-3]
+	\arrow["{\overline{\mu_{B^{*}X}}}", from=1-3, to=1-4]
+	\arrow["{\eta_{X}}", "{\sim}"', outer sep = -1pt, from=1-4, to=2-3]
+\end{tikzcd}\]
+Since $\eta_{X}$ is an isomorphism between two limits of the same diagram,
+namely $X \times C \iso C_{!} C^{*} X \iso C_{!} \rho^{*} B^{*} X$,
+it suffices to show that both $\overline{\mu_{B^{*}X}} \circ s^{*}(\al, \be)$
+and $\overline{(\al, \be \circ \al^{*} \rho)}$ are uniquely determined by
+the same two maps into $X$ and $C$.
+
+By the characterising property of polynomial endofunctors (\cref{polynomial_endofunctor_property})
+we calculate
+\[ \overline{(\al, \be \circ \al^{*} \rho)} = (\be \circ \al^{*} \rho, s^{*} \al)\]
+% https://q.uiver.app/#q=WzAsMTAsWzAsMSwiXFxhbCJdLFsxLDEsInNfKiBDXiogWCJdLFsyLDBdLFsyLDJdLFszLDEsInNeKiBcXGFsIl0sWzQsMSwiQ14qIFgiXSxbNSwwXSxbNSwyXSxbNiwxLCJDXyEgc14qIFxcYWwiXSxbNywxLCJYIl0sWzAsMSwiKFxcYWwsIFxcYmUgXFxjaXJjIFxcYWxeKiBcXHJobykiXSxbMiwzLCIiLDAseyJsZXZlbCI6Miwic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dLFs0LDUsIlxcb3ZlcmxpbmV7KFxcYWwsXFxiZSBcXGNpcmMgXFxhbF4qIFxccmhvKX0iXSxbNCw1LCIoXFxiZSBcXGNpcmMgXFxhbF4qIFxccmhvLCBzXiogXFxhbCkiLDJdLFs2LDcsIiIsMix7ImxldmVsIjoyLCJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzgsOSwiXFxiZSBcXGNpcmMgXFxhbF4qIFxccmhvIiwyXV0=
+\[\begin{tikzcd}
+	&& {} &&& {} \\
+	\al & {s_* C^* X} && {s^* \al} & {C^* X} && {C_! s^* \al} & X \\
+	&& {} &&& {}
+	\arrow[Rightarrow, no head, from=1-3, to=3-3]
+	\arrow[Rightarrow, no head, from=1-6, to=3-6]
+	\arrow["{(\al, \be \circ \al^* \rho)}", from=2-1, to=2-2]
+	\arrow["{\overline{(\al,\be \circ \al^* \rho)}}", from=2-4, to=2-5]
+	\arrow["{(\be \circ \al^* \rho, s^* \al)}"', from=2-4, to=2-5]
+	\arrow["{\be \circ \al^* \rho}"', from=2-7, to=2-8]
+\end{tikzcd}\]
+More formally, this means
+$\be \circ \al^{*} \rho : C_{!} s^{*} \al \to X$ and
+$s^{*} \al : C_{!} s^{*} \al \to C$ are the two maps that uniquely determine
+the map
+$C_{!} \overline{\al, \be \circ \al^{*} \rho} : C_{!} s^{*} \al \to X \times C$.
+
+On the other hand,
+% https://q.uiver.app/#q=WzAsMjMsWzEsMywic14qdF8qIEJeKiBYIl0sWzAsMywic14qIFxcYWwiXSxbNCwzLCJcXHJob14qIEJeKlgiXSxbMiwzLCJcXHJob14qIFxccmhvXyEgc14qdF8qIEJeKlgiXSxbMywzLCJcXHJob14qICB0XiogdF8qIEJeKlgiXSxbMCwwLCJcXGFsIl0sWzEsMCwidF8qIEJeKiBYIl0sWzIsMCwic18qIFxccmhvXiogXFxyaG9fISBzXip0XyogQl4qWCJdLFszLDAsInNfKiBcXHJob14qICB0XiogdF8qIEJeKlgiXSxbNCwwLCJzXyogXFxyaG8qIEJeKiBYIl0sWzAsMl0sWzQsMiwic14qIFxcZGFzaHYgc18qIl0sWzAsNV0sWzQsNSwiXFxyaG9fISBcXGRhc2h2IFxccmhvXioiXSxbMCw2LCJcXHJob18hIHNeKiBcXGFsIl0sWzEsNiwiXFxyaG9fISBzXip0XyogQl4qIFgiXSxbMiw2LCIgXFxyaG9fISBzXip0XyogQl4qWCJdLFszLDYsIiAgdF4qIHRfKiBCXipYIl0sWzQsNiwiIEJeKlgiXSxbMyw3LCJSIl0sWzQsNywiWCBcXHRpbWVzIEIiXSxbMSw3LCJTIl0sWzAsNywiXFxHYSBcXGNkb3RfcyBcXGFsIl0sWzEsMCwic14qIChcXGFsLCBcXGJlKSJdLFswLDIsIlxcb3ZlcmxpbmV7XFxtdV97Ql57Kn1YfX0iLDAseyJjdXJ2ZSI6NX1dLFs1LDYsIihcXGFsLCBcXGJlKSJdLFs2LDcsIlxcdW5pdF97dF8qIEJeKiBYfSJdLFs3LDgsInNfKiBcXHJob14qIFxcbXVfISB0XyogQl4qWCJdLFs4LDksInNfKiBcXHJob14qIFxcY291bml0X3tCXipYfSJdLFs2LDksIntcXG11X3tCXnsqfVh9fSIsMCx7ImN1cnZlIjo1fV0sWzAsMywiXFxvdmVybGluZXtcXHVuaXRfe3RfKiBCXiogWH19Il0sWzMsNCwiXFxyaG9eKiBcXG11XyEgdF8qIEJeKlgiXSxbNCwyLCJcXHJob14qIFxcY291bml0X3tCXipYfSJdLFsxMCwxMSwiIiwwLHsibGV2ZWwiOjIsInN0eWxlIjp7ImhlYWQiOnsibmFtZSI6Im5vbmUifX19XSxbMTIsMTMsIiIsMCx7ImxldmVsIjoyLCJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzE0LDE1LCJcXHJob18hIHNeKiAoXFxhbCwgXFxiZSkiXSxbMTUsMTYsIlxcb3ZlcmxpbmV7XFxvdmVybGluZXtcXHVuaXRfe3RfKiBCXiogWH19fSIsMCx7ImxldmVsIjoyLCJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzE2LDE3LCJcXG11XyEgdF8qIEJeKlgiXSxbMTcsMTgsIlxcY291bml0X3tCXipYfSJdLFsxNywxOSwiIiwwLHsibGV2ZWwiOjIsInN0eWxlIjp7ImhlYWQiOnsibmFtZSI6Im5vbmUifX19XSxbMTgsMjAsIiIsMCx7ImxldmVsIjoyLCJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzE1LDIxLCIiLDAseyJsZXZlbCI6Miwic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dLFsxNCwyMiwiIiwyLHsibGV2ZWwiOjIsInN0eWxlIjp7ImhlYWQiOnsibmFtZSI6Im5vbmUifX19XV0=
+\[\begin{tikzcd}
+	\al & {t_* B^* X} & {s_* \rho^* \rho_! s^*t_* B^*X} & {s_* \rho^*  t^* t_* B^*X} & {s_* \rho* B^* X} \\
+	\\
+	{} &&&& {s^* \dashv s_*} \\
+	{s^* \al} & {s^*t_* B^* X} & {\rho^* \rho_! s^*t_* B^*X} & {\rho^*  t^* t_* B^*X} & {\rho^* B^*X} \\
+	\\
+	{} &&&& {\rho_! \dashv \rho^*} \\
+	{\rho_! s^* \al} & {\rho_! s^*t_* B^* X} & { \rho_! s^*t_* B^*X} & {  t^* t_* B^*X} & { B^*X} \\
+	{\Ga \cdot_s \al} & S && R & {X \times B} \\
+	\arrow["{(\al, \be)}", from=1-1, to=1-2]
+	\arrow["{\unit_{t_* B^* X}}", from=1-2, to=1-3]
+	\arrow["{{\mu_{B^{*}X}}}", bend right, from=1-2, to=1-5]
+	\arrow["{s_* \rho^* \mu_! t_* B^*X}", outer sep = 5pt,  from=1-3, to=1-4]
+	\arrow["{s_* \rho^* \counit_{B^*X}}", outer sep = 5pt, from=1-4, to=1-5]
+	\arrow[Rightarrow, no head, from=3-1, to=3-5]
+	\arrow["{s^* (\al, \be)}", from=4-1, to=4-2]
+	\arrow["{\overline{\unit_{t_* B^* X}}}", from=4-2, to=4-3]
+	\arrow["{\overline{\mu_{B^{*}X}}}", bend right, from=4-2, to=4-5]
+	\arrow["{\rho^* \mu_! t_* B^*X}", outer sep = 5pt, from=4-3, to=4-4]
+	\arrow["{\rho^* \counit_{B^*X}}", outer sep = 5pt, from=4-4, to=4-5]
+	\arrow[Rightarrow, no head, from=6-1, to=6-5]
+	\arrow["{\rho_! s^* (\al, \be)}", from=7-1, to=7-2]
+	\arrow["{\overline{\overline{\unit_{t_* B^* X}}}}", outer sep = 5pt, Rightarrow, no head, from=7-2, to=7-3]
+	\arrow["{\mu_! t_* B^*X}", from=7-3, to=7-4]
+	\arrow["{\counit_{B^*X}}", from=7-4, to=7-5]
+  \arrow[Rightarrow, no head, from=7-1, to=8-1]
+  \arrow[Rightarrow, no head, from=7-2, to=8-2]
+	\arrow[Rightarrow, no head, from=7-4, to=8-4]
+	\arrow[Rightarrow, no head, from=7-5, to=8-5]
+\end{tikzcd}\]
+
+  The mate $\mu_{!}$ is calculated via the universal map
+  into the pullback $R$ (dotted below).
+% https://q.uiver.app/#q=WzAsOSxbMiwyLCJBIl0sWzEsMiwiQiJdLFswLDIsIkMiXSxbMiwxLCJcXFBvbHl7dH0gWCJdLFsyLDAsIlxcR2EiXSxbMSwwLCJcXEdhIFxcY2RvdF90IFxcYWwiXSxbMSwxLCJSIl0sWzAsMSwiUyJdLFswLDAsIlxcR2EgXFxjZG90X3MgXFxhbCJdLFsxLDAsInQiLDJdLFsyLDEsIlxccmhvIiwyXSxbMywwLCJ0XyogQl4qIFgiXSxbNCwzLCIoXFxhbCwgXFxiZSkiXSxbNSw2XSxbNiwxLCJ0XiogdF8qIEJeKiBYIl0sWzYsM10sWzYsMCwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzcsMiwic14qIHRfKkJeKiBYIiwyXSxbNyw2LCJcXG11XyEgdF8qIEJeKlgiLDIseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbOCw3LCJzXiogKFxcYWwsIFxcYmUpIiwyXSxbOCw1XSxbNSw0XSxbNCwwLCJcXGFsIiwwLHsiY3VydmUiOi01fV0sWzgsMiwic14qIFxcYWwiLDIseyJjdXJ2ZSI6NX1dXQ==
+\[\begin{tikzcd}
+	{\Ga \cdot_s \al} & {\Ga \cdot_t \al} & \Ga \\
+	S & R & {\Poly{t} X} \\
+	\quad C \quad & B & A
+	\arrow[from=1-1, to=1-2]
+	\arrow["{s^* (\al, \be)}"', from=1-1, to=2-1]
+	\arrow["{s^* \al}"', bend right = 70, shift right = 4, from=1-1, to=3-1]
+	\arrow[from=1-2, to=1-3]
+	\arrow[from=1-2, to=2-2]
+	\arrow["{(\al, \be)}", from=1-3, to=2-3]
+	\arrow["\al", bend left = 70, shift left = 4, from=1-3, to=3-3]
+	\arrow["{\mu_! t_* B^*X}"', dashed, from=2-1, to=2-2]
+	\arrow["{s^* t_*B^* X}"', from=2-1, to=3-1]
+	\arrow[from=2-2, to=2-3]
+	\arrow["{t^* t_* B^* X}", from=2-2, to=3-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+	\arrow["{t_* B^* X}", from=2-3, to=3-3]
+	\arrow["\rho"', from=3-1, to=3-2]
+	\arrow["t"', from=3-2, to=3-3]
+\end{tikzcd}\]
+
+  Using the characterization of maps into $R$ from \cref{R_classifies}
+  we can calculate
+  \[ \mu_! t_* B^*X \circ s^* (\al, \be) =
+    (\rho \circ s^{*} \al, \be \circ t^{*}\al^{*} s)\]
+  since the first component is simply the map $\Ga \cdot_{s} \al \to B$
+  and the second component is the second component of the map
+  \[ (\al \circ \al^{*} s, \be \circ t^{*} \al^{*} s)
+    = (\al, \be) \circ \al^{*} s : \Ga \cdot_{s} \al \to \Poly{t}{X}\]
+
+  Then using \cref{evaluation}
+  \begin{align} \label{polynomial_star_equation1}
+    & \overline{\overline{\mu_{B^{*}X}} \circ s^{*}(\al, \be)} \\
+    = \, & \counit_{B^{*} X} \circ \mu_! t_* B^*X \circ s^* (\al, \be)\\
+    = \, & \counit_{B^{*} X} \circ (\rho \circ s^{*} \al, \be \circ t^{*}\al^{*} s)\\
+    = \, & (\be \circ t^{*}\al^{*} s \circ r, \rho \circ s^{*} \al) \\
+    = \, & (\be \circ \al^{*} \rho, \rho \circ s^{*} \al) \\
+    : \, \, & \Ga \cdot_s \al \to X \times B
+  \end{align}
+  where
+ % https://q.uiver.app/#q=WzAsNSxbMiwyLCJBIl0sWzEsMiwiXFxHYSBcXGNkb3RfcyBcXGFsIl0sWzIsMSwiQiJdLFsxLDEsIlxcR2EgXFxjZG90X3MgXFxhbCBcXGNkb3RfdCBcXGFsIFxcY2lyYyBcXGFsXipzIl0sWzAsMCwiXFxHYSBcXGNkb3RfcyBcXGFsIl0sWzIsMCwidCJdLFszLDFdLFs0LDMsInIiLDIseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNCwxLCIiLDIseyJjdXJ2ZSI6NSwibGV2ZWwiOjIsInN0eWxlIjp7ImhlYWQiOnsibmFtZSI6Im5vbmUifX19XSxbNCwyLCJcXHJobyBcXGNpcmMgc14qIFxcYWwiLDAseyJjdXJ2ZSI6LTN9XSxbMywyXSxbMSwwLCJcXGFsIFxcY2lyYyBcXGFsXiogcyIsMl1d
+\[\begin{tikzcd}
+	{\Ga \cdot_s \al} \\
+	& {\Ga \cdot_s \al \cdot_t \al \circ \al^*s} & B \\
+	& {\Ga \cdot_s \al} & A
+	\arrow["r"', dashed, from=1-1, to=2-2]
+	\arrow["{\rho \circ s^* \al}", bend left, from=1-1, to=2-3]
+	\arrow[bend right, Rightarrow, no head, from=1-1, to=3-2]
+	\arrow[from=2-2, to=2-3]
+	\arrow[from=2-2, to=3-2]
+	\arrow["t", from=2-3, to=3-3]
+	\arrow["{\al \circ \al^* s}"', from=3-2, to=3-3]
+\end{tikzcd}\]
+and
+% https://q.uiver.app/#q=WzAsOSxbMiwyLCJBIl0sWzEsMiwiXFxHYSJdLFswLDIsIlxcR2EgXFxjZG90X3MgXFxhbCJdLFsyLDEsIkIiXSxbMiwwLCJDIl0sWzEsMCwiXFxHYSBcXGNkb3RfcyBcXGFsIl0sWzEsMSwiXFxHYSBcXGNkb3RfdCBcXGFsIl0sWzAsMSwiXFxHYSBcXGNkb3RfcyBcXGFsIFxcY2RvdF90IFxcYWwgXFxjaXJjIFxcYWxeKnMiXSxbMCwwLCJcXEdhIFxcY2RvdF9zIFxcYWwiXSxbMSwwLCJcXGFsIiwyXSxbMiwxLCJcXGFsKnMiLDJdLFszLDAsInQiXSxbNCwzLCJcXHJobyJdLFs1LDYsIlxcYWxeKiBcXHJobyJdLFs2LDFdLFs2LDNdLFs2LDAsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs3LDJdLFs3LDYsInReKiBcXGFsXiogcyIsMix7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFs4LDcsInIiLDIseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbOCw1LCIiLDAseyJsZXZlbCI6Miwic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dLFs1LDQsInNeKiBcXGFsIl0sWzQsMCwicyIsMCx7ImN1cnZlIjotNX1dLFs4LDIsIiIsMix7ImN1cnZlIjo1LCJsZXZlbCI6Miwic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dLFs1LDMsIiIsMCx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs3LDEsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
+\[\begin{tikzcd}
+	{\Ga \cdot_s \al} & {\Ga \cdot_s \al} & C \\
+	{\Ga \cdot_s \al \cdot_t \al \circ \al^*s} & {\Ga \cdot_t \al} & B \\
+	{\Ga \cdot_s \al} & \Ga & A
+	\arrow[Rightarrow, no head, from=1-1, to=1-2]
+	\arrow["r"', dashed, from=1-1, to=2-1]
+	\arrow[bend right = 50, shift right = 7, Rightarrow, no head, from=1-1, to=3-1]
+	\arrow["s", bend left = 50, from=1-3, to=3-3]
+	\arrow["{s^* \al}", from=1-2, to=1-3]
+	\arrow["{\al^* \rho}", from=1-2, to=2-2]
+	\arrow["\rho", from=1-3, to=2-3]
+	\arrow["{t^* \al^* s}"', dashed, from=2-1, to=2-2]
+	\arrow[from=2-1, to=3-1]
+	\arrow[from=2-2, to=2-3]
+	\arrow[from=2-2, to=3-2]
+	\arrow["t", from=2-3, to=3-3]
+	\arrow["{\al*s}"', from=3-1, to=3-2]
+	\arrow["\al"', from=3-2, to=3-3]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-2, to=2-3]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-1, to=3-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+\end{tikzcd}\]
+  Moving back along the adjunction $\rho_{!} \dashv \rho^{*}$
+  \cref{polynomial_star_equation1} tells us that
+ % https://q.uiver.app/#q=WzAsOSxbMywxLCJDIl0sWzMsMiwiQiJdLFszLDMsIjEiXSxbMiwzLCJYIl0sWzIsMiwiWCBcXHRpbWVzIEIiXSxbMiwxLCJYIFxcdGltZXMgQyJdLFswLDAsIlxcR2EgXFxjZG90X3MgXFxhbCJdLFsxLDBdLFsxLDJdLFswLDEsIlxccmhvIl0sWzEsMl0sWzMsMl0sWzQsMV0sWzQsM10sWzUsMF0sWzUsNF0sWzUsMSwiIiwwLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzQsMiwiIiwwLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzYsMywiXFxiZSBcXGNpcmMgXFxhbF4qIFxccmhvIiwyLHsiY3VydmUiOjN9XSxbNiw0LCJcXG92ZXJsaW5le1xcb3ZlcmxpbmV7XFxtdV97Ql57Kn1YfX0gXFxjaXJjIHNeeyp9KFxcYWwsIFxcYmUpfSIsMSx7ImN1cnZlIjoxfV0sWzYsNSwiXFxvdmVybGluZXtcXG11X3tCXnsqfVh9fSBcXGNpcmMgc157Kn0oXFxhbCwgXFxiZSkiLDFdLFs2LDAsInNeKiBcXGFsIiwwLHsiY3VydmUiOi0yfV1d
+\[\begin{tikzcd}
+	{\Ga \cdot_s \al} & {} \\
+	&& {X \times C} & C \\
+	& {} & {X \times B} & B \\
+	&& X & 1
+	\arrow["{\overline{\mu_{B^{*}X}} \circ s^{*}(\al, \be)}"{description}, from=1-1, to=2-3]
+	\arrow["{s^* \al}", bend left, from=1-1, to=2-4]
+	\arrow["{\overline{\overline{\mu_{B^{*}X}} \circ s^{*}(\al, \be)}}"{description}, bend right, from=1-1, to=3-3]
+	\arrow["{\be \circ \al^* \rho}"', bend right = 60, from=1-1, to=4-3]
+	\arrow[from=2-3, to=2-4]
+	\arrow[from=2-3, to=3-3]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-3, to=3-4]
+	\arrow["\rho", from=2-4, to=3-4]
+	\arrow[from=3-3, to=3-4]
+	\arrow[from=3-3, to=4-3]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=3-3, to=4-4]
+	\arrow[from=3-4, to=4-4]
+	\arrow[from=4-3, to=4-4]
+\end{tikzcd}\]
+
+  So that, as required, $\overline{\mu_{B^{*}X}} \circ s^{*}(\al, \be)$
+  and $\overline{(\al, \be \circ \al^{*} \rho)}$ are uniquely determined by
+  the same two maps into $X$ and $C$.
+\end{proof}
+
 
 \medskip
