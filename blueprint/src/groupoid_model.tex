@@ -39,6 +39,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
 \medskip
 
 \begin{defn}[The display map classifier]
+  \label{tp_defn}
   We would like to define a natural transformation in
   $\Pshgrpd$
   \[ \tp \co \Term \to \Type \]
@@ -60,15 +61,16 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
       in \quad $\PshCat$.
     }
   \]
-  Since any small groupoid is also a large category $\grpd \hookrightarrow \Cat$,
-  we can restrict $\Cat$ indexed presheaves to be $\grpd$ indexed presheaves.
+  Since any small groupoid is also a large category $i : \grpd \hookrightarrow \Cat$,
+  we can restrict $\Cat$ indexed presheaves to be $\grpd$ indexed presheaves
+  (this the nerve in $i_{!} \dashv \mathsf{res}$).
   We define $\tp \co \Term \to \Type$ as the image of $U \circ$ under this restriction.
   % https://q.uiver.app/#q=WzAsNixbMCwwLCJcXENhdCJdLFsxLDAsIlxcUHNoQ2F0Il0sWzIsMCwiXFxQc2hncnBkIl0sWzAsMSwiXFxncnBkIl0sWzEsMSwiWy0sXFxncnBkXSJdLFsyLDEsIlxcVHlwZSJdLFswLDEsInkiXSxbMSwyLCJcXHRleHRzZntyZXN9Il0sWzMsNCwiIiwwLHsic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9fX1dLFs0LDUsIiIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XV0=
   \[\begin{tikzcd}[row sep = tiny]
     \Cat & \PshCat & \Pshgrpd \\
     \grpd & {[-,\grpd]} & \Type
     \arrow["\yo", from=1-1, to=1-2]
-    \arrow["{\textsf{res}}", from=1-2, to=1-3]
+    \arrow["{\mathsf{res}}", from=1-2, to=1-3]
     \arrow[maps to, from=2-1, to=2-2]
     \arrow[maps to, from=2-2, to=2-3]
   \end{tikzcd}\]
@@ -171,7 +173,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
     \arrow[from=1-2, to=2-2]
     \arrow["A"', from=2-1, to=2-2]
   \end{tikzcd}\]
-  We send this square along $\textsf{res} \circ \yo$ in the following
+  We send this square along $\mathsf{res} \circ \yo$ in the following
   % https://q.uiver.app/#q=WzAsNSxbMiwxLCJcXFBzaGdycGQiXSxbMSwyXSxbMiwwLCJcXFBzaENhdCJdLFswLDAsIlxcQ2F0Il0sWzAsMSwiXFxncnBkIl0sWzMsMiwiXFx5byJdLFsyLDAsIlxcdGV4dHNme3Jlc30iXSxbMywwXSxbNCwzXSxbNCwwLCJcXHlvIl1d
   \[\begin{tikzcd}
     \Cat && \PshCat \\
@@ -179,13 +181,13 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
     & {}
     \arrow["\yo", from=1-1, to=1-3]
     \arrow[from=1-1, to=2-3]
-    \arrow["{\textsf{res}}", from=1-3, to=2-3]
+    \arrow["{\mathsf{res}}", from=1-3, to=2-3]
     \arrow[from=2-1, to=1-1]
     \arrow["\yo", from=2-1, to=2-3]
   \end{tikzcd}\]
   The Yoneda embedding $\yo : \Cat \to \PshCat$ preserves pullbacks,
-  as does $\textsf{res}$ since it is a right adjoint
-  (with left Kan extension $\io_{!} \dashv \textsf{res}_{\io}$).
+  as does $\mathsf{res}$ since it is a right adjoint
+  (with left Kan extension $\io_{!} \dashv \mathsf{res}_{\io}$).
 \end{proof}
 
 \medskip
@@ -1140,8 +1142,70 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
     \quad
     \be \, x = (\ev{\al}{B} \, x, b_{x})
   \]
+\end{proof}
 
 \subsection{Identity types}
 
+\begin{defn}[Identity formation and introduction]
+  To define the commutative square in $\Pshgrpd$
+  % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFRlcm0iXSxbMCwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwxLCJcXFR5cGUiXSxbMSwwLCJcXFRlcm0iXSxbMCwxLCJcXGRlIiwyXSxbMSwyLCJcXElkIiwyXSxbMywyLCJcXHRwIl0sWzAsMywiXFxyZWZsIl1d
+\[\begin{tikzcd}
+	\Term & \Term \\
+	{\tp \times_\Type \tp} & \Type
+	\arrow["\refl", from=1-1, to=1-2]
+	\arrow["\de"', from=1-1, to=2-1]
+	\arrow["\tp", from=1-2, to=2-2]
+	\arrow["\Id"', from=2-1, to=2-2]
+\end{tikzcd}\]
 
+  We first note that both $\de$ and $\tp$ in the are
+  in the essential image
+  of the composition from \cref{tp_defn}
+  % https://q.uiver.app/#q=WzAsMyxbMCwwLCJcXENhdCJdLFsxLDAsIlxcUHNoQ2F0Il0sWzIsMCwiXFxQc2hncnBkIl0sWzAsMSwiXFx5byJdLFsxLDIsIlxcbWF0aHNme3Jlc30iXV0=
+\[\begin{tikzcd}
+	\Cat & \PshCat & \Pshgrpd
+	\arrow["\yo", from=1-1, to=1-2]
+	\arrow["{\mathsf{res}}", from=1-2, to=1-3]
+\end{tikzcd}\]
+  since the composition preserves pullbacks.
+  So we first define in $\Cat$
+% https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXHB0Z3JwZCJdLFswLDEsIlUgXFx0aW1lc19cXGdycGQgVSJdLFsxLDEsIlxcZ3JwZCJdLFsxLDAsIlxccHRncnBkIl0sWzAsMSwiXFxkZSIsMl0sWzEsMiwiXFxJZCciLDJdLFszLDIsIlUiXSxbMCwzLCJcXHJlZmwnIl1d
+  \begin{equation}
+    \label{id_diagram1}
+    \begin{tikzcd}
+	\ptgrpd & \ptgrpd \\
+	{U \times_\grpd U} & \grpd
+	\arrow["{\refl'}", from=1-1, to=1-2]
+	\arrow["\de"', from=1-1, to=2-1]
+	\arrow["U", from=1-2, to=2-2]
+	\arrow["{\Id'}"', from=2-1, to=2-2]
+\end{tikzcd}
+  \end{equation}
+  Then obtain $\Id$ and $\refl$ in $\Pshgrpd$
+  by applying $\mathsf{res} \circ \yo$ to this diagram.
+
+  To this end,
+  let $\Id' : U \times_{\grpd} U \to \grpd$ act on objects by
+  taking the \textit{set} - the discrete groupoid - of isomorphisms
+  \[ (A, a_{0}, a_{1}) \mapsto A(a_{0}, a_{1})\]
+  and on morphisms
+  $(f, \phi_{0}, \phi_{1}) : (A, a_{0}, a_{1}) \to (B, b_{0}, b_{1})$ by
+  \[(f : {\color{gray} A \to B},
+    \phi_{0} : {\color{gray} f a_{0} \to b_{0}},
+    \phi_{1} : {\color{gray} f a_{1} \to b_{1}}) \mapsto \phi_{1} \circ f(-) \circ \phi_{0}^{-1}\]
+
+  Let $\refl' : \ptgrpd \to \ptgrpd$ act on objects by
+  \[ (A, a) \mapsto (A(a,a), \id_{a}) \]
+  and on morphisms $(f, \phi) : (A, a) \to (B, b)$ by
+  \[ (f : {\color{gray} A \to B}, \phi : {\color{gray} (A, a) \to (B, b)})
+    \mapsto (\phi \circ f(-) \circ \phi^{-1}, \_) \]
+  where the second component has to be the identity on the object $\id_{d}$,
+  since $B(b,b)$ is a discrete groupoid.
+  So we need a merely propositional proof that the two maps are equal,
+  indeed
+  \[ \phi \circ f(\id_{a}) \circ \phi^{-1} = \id_{b}\]
+\end{defn}
+\begin{proof}
+  Since $\de (A,a) = (A, a, a)$, it follows that the square
+  in \cref{id_diagram1} commutes.
 \end{proof}
