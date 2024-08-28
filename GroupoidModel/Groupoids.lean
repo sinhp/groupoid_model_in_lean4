@@ -450,15 +450,15 @@ def GrothendieckLimisLim {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u,u}) : Limits.IsLimit
   refine (Grothendieck.UnivesalMap A s.pt FL (FR ⋙ (Down_uni Γ)) ?_) ⋙ (Up_uni (Grothendieck A))
   exact (((s.π).naturality (Limits.WalkingCospan.Hom.inl)).symm).trans ((s.π).naturality (Limits.WalkingCospan.Hom.inr))
   refine ⟨?_,?_,?_⟩
-  exact Grothendieck.UnivesalMap_CatVar'_Comm A s.pt FL (FR ⋙ (Down_uni Γ)) Comm
-  exact rfl
-  dsimp
-  intros m h1 h2
-  have r := Grothendieck.UnivesalMap_Uniq A s.pt FL (FR ⋙ (Down_uni Γ)) Comm (m ⋙ (Down_uni (Grothendieck A))) h1 ?C
-  exact ((Up_Down (Grothendieck.UnivesalMap A s.pt FL (FR ⋙ Down_uni ↑Γ) Comm) m).mpr r.symm).symm
-  dsimp [CategoryStruct.comp] at h2
-  rw [<- Functor.assoc,<- Functor.assoc] at h2
-  exact ((Up_Down (((m ⋙ Down_uni (Grothendieck A)) ⋙ Grothendieck.forget A)) s.snd).mp h2)
+  · exact Grothendieck.UnivesalMap_CatVar'_Comm A s.pt FL (FR ⋙ (Down_uni Γ)) Comm
+  . rfl
+  · dsimp
+    intro m h1 h2
+    have r := Grothendieck.UnivesalMap_Uniq A s.pt FL (FR ⋙ (Down_uni Γ)) Comm (m ⋙ (Down_uni (Grothendieck A))) h1 ?C
+    exact ((Up_Down (Grothendieck.UnivesalMap A s.pt FL (FR ⋙ Down_uni ↑Γ) Comm) m).mpr r.symm).symm
+    dsimp [CategoryStruct.comp] at h2
+    rw [<- Functor.assoc,<- Functor.assoc] at h2
+    exact ((Up_Down (((m ⋙ Down_uni (Grothendieck A)) ⋙ Grothendieck.forget A)) s.snd).mp h2)
 
 -- This converts the proof of the limit to the proof of a pull back
 theorem GrothendieckLimisPullBack {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u,u}) : @IsPullback (Cat.{u,u+1}) _ (Cat.of (ULift.{u+1,u} (Grothendieck A))) (Cat.of PCat.{u,u}) (Cat.of (ULift.{u+1,u} Γ)) (Cat.of Cat.{u,u}) ((Down_uni (Grothendieck A)) ⋙ (CatVar' Γ A)) ((Down_uni (Grothendieck A)) ⋙ (Grothendieck.forget A) ⋙ (Up_uni Γ)) (PCat.forgetPoint) ((Down_uni Γ) ⋙ A) := by
@@ -485,9 +485,7 @@ def Tm_functor : Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1) where
 
 -- This is the typing natural transformation
 def tp_NatTrans : NatTrans Tm_functor Ty_functor where
-  app x := by
-    intro a
-    exact a ⋙ PGrpd.forgetPoint
+  app x := fun a ↦ a ⋙ PGrpd.forgetPoint
 
 -- This is the var construction of var before applying yoneda
 def var' (Γ : Grpd)(A : Γ ⥤ Grpd) : (GroupoidalGrothendieck A) ⥤ PGrpd where
