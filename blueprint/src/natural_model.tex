@@ -202,29 +202,29 @@ Then view $\rho : \tp \to q$ as a map in the slice over $\Type$.
 Now (by \cref{polynomial_on_slice_map})
 applying $\Poly{-} : (\pshC / \Type) ^{\op} \to [\pshC, \pshC]$ to $\rho : \tp \to q$
 gives us a naturality square (this also need not be pullback).
-% https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7cX0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcVHlwZX0iXSxbMSwxLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMSwwLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcdHB9IiwyXSxbMSwyLCJ7XFxyaG99Xip7XFxUeXBlfSIsMl0sWzMsMiwiXFxQb2x5e1xcdHB9IHtcXHRwfSJdLFswLDMsIntcXHJob31eKntcXFRlcm19Il1d
+% https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7cX0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcVHlwZX0iXSxbMSwxLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMSwwLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcdHB9IiwyXSxbMSwyLCJcXFN0YXJ7XFxyaG99X3tcXFR5cGV9IiwyXSxbMywyLCJcXFBvbHl7XFx0cH0ge1xcdHB9Il0sWzAsMywiXFxTdGFye1xccmhvfV97XFxUZXJtfSJdXQ==
 \[\begin{tikzcd}
 	{\Poly{q} {\Term}} & {\Poly{\tp} {\Term}} \\
 	{\Poly{q} {\Type}} & {\Poly{\tp} {\Term}}
-	\arrow["{{\rho}^*{\Term}}", from=1-1, to=1-2]
+	\arrow["{\Star{\rho}_{\Term}}", from=1-1, to=1-2]
 	\arrow["{\Poly{q} {\tp}}"', from=1-1, to=2-1]
 	\arrow["{\Poly{\tp} {\tp}}", from=1-2, to=2-2]
-	\arrow["{{\rho}^*{\Type}}"', from=2-1, to=2-2]
+	\arrow["{\Star{\rho}_{\Type}}"', from=2-1, to=2-2]
 \end{tikzcd}\]
 Taking the pullback $T$ and the comparison map $\ep$ we have
-% https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXFBvbHl7cX0ge1xcVGVybX0iXSxbMSwyLCJcXFBvbHl7cX0ge1xcVHlwZX0iXSxbMiwyLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMiwxLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMSwxLCJUIl0sWzAsMSwiXFxQb2x5e3F9IHtcXHRwfSIsMix7ImN1cnZlIjoyfV0sWzEsMiwie1xccmhvfV4qe1xcVHlwZX0iLDJdLFszLDIsIlxcUG9seXtcXHRwfSB7XFx0cH0iXSxbMCwzLCJ7XFxyaG99Xip7XFxUZXJtfSIsMCx7ImN1cnZlIjotM31dLFs0LDFdLFs0LDNdLFs0LDIsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFswLDQsIlxcZXAiLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XV0=
+% https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXFBvbHl7cX0ge1xcVGVybX0iXSxbMSwyLCJcXFBvbHl7cX0ge1xcVHlwZX0iXSxbMiwyLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMiwxLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMSwxLCJUIl0sWzAsMSwiXFxQb2x5e3F9IHtcXHRwfSIsMix7ImN1cnZlIjoyfV0sWzEsMiwiXFxTdGFye1xccmhvfV97XFxUeXBlfSIsMl0sWzMsMiwiXFxQb2x5e1xcdHB9IHtcXHRwfSJdLFswLDMsIlxcU3RhcntcXHJob31fe1xcVGVybX0iLDAseyJjdXJ2ZSI6LTN9XSxbNCwxXSxbNCwzXSxbNCwyLCIiLDIseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMCw0LCJcXGVwIiwxLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
 \[\begin{tikzcd}
 	{\Poly{q} {\Term}} \\
 	& T & {\Poly{\tp} {\Term}} \\
 	& {\Poly{q} {\Type}} & {\Poly{\tp} {\Term}}
 	\arrow["\ep"{description}, dashed, from=1-1, to=2-2]
-	\arrow["{{\rho}^*{\Term}}", bend left, from=1-1, to=2-3]
+	\arrow["{\Star{\rho}_{\Term}}", bend left, from=1-1, to=2-3]
 	\arrow["{\Poly{q} {\tp}}"', bend right, from=1-1, to=3-2]
 	\arrow[from=2-2, to=2-3]
 	\arrow[from=2-2, to=3-2]
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
 	\arrow["{\Poly{\tp} {\tp}}", from=2-3, to=3-3]
-	\arrow["{{\rho}^*{\Type}}"', from=3-2, to=3-3]
+	\arrow["{\Star{\rho}_{\Type}}"', from=3-2, to=3-3]
 \end{tikzcd}\]
 Finally, we require a section $J : T \to \Poly{q}{\Term}$ of $\ep$,
 to interpret the identity elimination rule.

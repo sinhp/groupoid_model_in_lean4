@@ -1198,14 +1198,43 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
   \[ (A, a) \mapsto (A(a,a), \id_{a}) \]
   and on morphisms $(f, \phi) : (A, a) \to (B, b)$ by
   \[ (f : {\color{gray} A \to B}, \phi : {\color{gray} (A, a) \to (B, b)})
-    \mapsto (\phi \circ f(-) \circ \phi^{-1}, \_) \]
+    \mapsto (\phi \circ f(-) \circ \phi^{-1},
+    \phi \circ f(\id_{a}) \circ \phi^{-1} = \id_{b}) \]
   where the second component has to be the identity on the object $\id_{d}$,
   since $B(b,b)$ is a discrete groupoid.
   So we need a merely propositional proof that the two maps are equal,
-  indeed
-  \[ \phi \circ f(\id_{a}) \circ \phi^{-1} = \id_{b}\]
+  which in this case is clear.
 \end{defn}
 \begin{proof}
   Since $\de (A,a) = (A, a, a)$, it follows that the square
   in \cref{id_diagram1} commutes.
 \end{proof}
+
+% \begin{lemma}
+%   We can then construct the pullback $I'$
+%   % https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXHB0Z3JwZCJdLFsxLDIsIlUgXFx0aW1lc19cXGdycGQgVSJdLFsyLDIsIlxcZ3JwZCJdLFsyLDEsIlxccHRncnBkIl0sWzEsMSwiSSciXSxbMCwxLCJcXGRlIiwyLHsiY3VydmUiOjJ9XSxbMSwyLCJcXElkJyIsMl0sWzMsMiwiVSJdLFswLDMsIlxccmVmbCciLDAseyJjdXJ2ZSI6LTJ9XSxbNCwxXSxbNCwzXSxbMCw0LCJcXHJobyciLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNCwyLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
+% \[\begin{tikzcd}
+% 	\ptgrpd \\
+% 	& {I'} & \ptgrpd \\
+% 	& {U \times_\grpd U} & \grpd
+% 	\arrow["{\rho'}"{description}, dashed, from=1-1, to=2-2]
+% 	\arrow["{\refl'}", bend left, from=1-1, to=2-3]
+% 	\arrow["\de"', bend right, from=1-1, to=3-2]
+% 	\arrow[from=2-2, to=2-3]
+% 	\arrow[from=2-2, to=3-2]
+% 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+% 	\arrow["U", from=2-3, to=3-3]
+% 	\arrow["{\Id'}"', from=3-2, to=3-3]
+% \end{tikzcd}\]
+%   as the groupoid with objects $(A, a_{0}, a_{1}, h)$
+%   where $A$ is a groupoid with $a_{0}, a_{1} \in A$ and $h  : a_{0} \to a_{1}$,
+%   and morphisms
+%   \[(f, \phi_{0}, \phi_{1}, A h = k) :
+%     (A, a_{0}, a_{1}, h : a_{0} \to a_{1}) \to
+%     (B, b_{0}, b_{1}, k : b_{0} \to b_{1})\]
+%   where $f : A \to B$,
+%   $\phi_{i} : f a_{i} \to b_{i}$ and $A h = k$ represents a merely propositional
+%   proof of equality.
+%   Then we can also compute
+%   \[\rho' (A, a) = (A, a, a, \id_{a})\]
+% \end{lemma}
