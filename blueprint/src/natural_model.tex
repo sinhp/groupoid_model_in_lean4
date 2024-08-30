@@ -251,11 +251,11 @@ In the Natural Model, a universe $\U$ is postulated by a map
 In the Natural Model:
 \begin{itemize}
 \item There is a pullback diagram of the form
-\[
+\begin{equation}
 \xymatrix{
 \U \ar[r] \ar[d] & \Term \ar[d] \\
 1 \ar[r]_-{\ulcorner \U \urcorner } & \Type }
-\]
+\end{equation}
 \item There is an inclusion of $\U$ into $\Type$
 \[
 \El \co \U \rightarrowtail \Type
@@ -276,5 +276,38 @@ With the notation above, we get
 \]
 Both squares above are pullback squares.
 
+\subsection{Defining the dependent function and product types for the universe}
 
-\subsection{The Universe in Embedded Type Theory (HoTT0) and the relationship to the Natural Model}
+Take the pullback diagram \cref{diag:universe-pullback}. That is a morphism in the category of polynomials. We have a cartesian natural transformation $P_\pi \to P_{\tp}$ induced by the pullback \cref{diag:universe-pullback}. This cartesian natural transformation induces the diagrams of the left cube in below; all of the squares in the left cube are pullback squares.
+
+Now, consider the right cube only. The right-side face of the cube is a pullback square due to the definition of $\pi$. The left-side is also because polynomials are left exact functors and therefore they preserve pullbacks. Observe also that the front face is a pullback square by the definition of $\Pi$ for $\Type$.
+
+\[
+\begin{tikzcd}[row sep=scriptsize, column sep=scriptsize]
+& P_\pi E \arrow[dd] \arrow[rr] \arrow[ld] & & P_\tp E \arrow[dl]  \arrow[rr] \arrow[dd] & & E \arrow[dl] \arrow[dd] \\
+P_\pi \Term \arrow[rr, crossing over] \arrow[dd] && P_\tp \Term \arrow[rr, crossing over, pos=0.6, "\lambda"] \arrow[dd, crossing over] & & \Term \\
+& P_\pi \U \arrow[rr] \arrow[ld] &&  P_\tp U \arrow[dl] \arrow[rr, dashed] & & U \arrow[dl] \\
+P_\pi \Type \arrow[rr] && P_\tp \Type \arrow[rr, swap, "\Pi"] & & \Type \arrow[from=uu, crossing over]\\
+\end{tikzcd}
+\]
+
+We define $\Pi_ U \colon P_\pi U \to U$ as a dashed arrow which makes the bottom square in the right cube commute, that is the following square commutes.
+
+\begin{equation}\label{diag:universe-pullback-3}
+\xymatrix{
+P_\tp \U \ar@{->}[r] \ar@{-->}[d]_{\Pi_\U} & P_\tp \Type \ar[d]^{\Pi_\Type} \\
+\U \ar@{->}[r]_-{\El} & \Type }
+\end{equation}
+
+By the universal property of the pullback which defines $\pi$ we get a unique arrow $ P_\tp E \to E$ which we shall name $\lambda_\U$. By the pullback pasting lemma it follows that the square involving $\Pi_ U$ and $\lambda_U$ is a pullback square.
+
+\begin{equation}\label{diag:universe-pullback-3}
+\xymatrix{
+P_\tp \E \ar@{->}[r]^{\lambda_\U} \ar[d]_{P_\tp \pi} & E \ar[d]^{P_\tp \pi} \\
+P_\tp \U \ar@{->}[r]_-{\Pi_\U} & \U }
+\end{equation}
+
+This concludes the construction of $\Pi$ type former for the universe $\U$. The only data we needed to supply for the definition of $\Pi_U$ was a lift of $\Pi \colon P_\tp \Type \to \Type$ to $U$.
+
+
+% \subsection{The Universe in Embedded Type Theory (HoTT0) and the relationship to the Natural Model}
