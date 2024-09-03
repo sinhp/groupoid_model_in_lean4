@@ -24,6 +24,10 @@ import Mathlib.CategoryTheory.Category.Grpd
 import Mathlib.CategoryTheory.Grothendieck
 import GroupoidModel.NaturalModel
 import Mathlib.CategoryTheory.Category.Cat.Limit
+import Mathlib.CategoryTheory.Limits.Shapes.Pullback.Pasting
+import Mathlib.CategoryTheory.Limits.Yoneda
+import Mathlib.CategoryTheory.Adjunction.Limits
+import Mathlib.CategoryTheory.Functor.KanExtension.Adjunction
 --
 
 universe u v u₁ v₁ u₂ v₂
@@ -657,12 +661,20 @@ def GrothendieckLimisLim {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u,u}) : Limits.IsLimit
         exact ((Up_Down (((m ⋙ Down_uni (Grothendieck A)) ⋙ Grothendieck.forget A)) s.snd).mp h2)
 
 -- This converts the proof of the limit to the proof of a pull back
-theorem GrothendieckLimisPullBack {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u,u}) : @IsPullback (Cat.{u,u+1}) _ (Cat.of (ULift.{u+1,u} (Grothendieck A))) (Cat.of PCat.{u,u}) (Cat.of (ULift.{u+1,u} Γ)) (Cat.of Cat.{u,u}) ((Down_uni (Grothendieck A)) ⋙ (CatVar' Γ A)) ((Down_uni (Grothendieck A)) ⋙ (Grothendieck.forget A) ⋙ (Up_uni Γ)) (PCat.forgetPoint) ((Down_uni Γ) ⋙ A) := by
-  fconstructor
-  · constructor
-    exact Comm A
-  · constructor
-    exact GrothendieckLimisLim A
+theorem GrothendieckLimisPullBack {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u,u}) :
+  @IsPullback (Cat.{u,u+1}) _
+  (Cat.of (ULift.{u+1,u} (Grothendieck A)))
+  (Cat.of PCat.{u,u}) (Cat.of (ULift.{u+1,u} Γ))
+  (Cat.of Cat.{u,u})
+  ((Down_uni (Grothendieck A)) ⋙ (CatVar' Γ A))
+  ((Down_uni (Grothendieck A)) ⋙ (Grothendieck.forget A) ⋙ (Up_uni Γ))
+  (PCat.forgetPoint)
+  ((Down_uni Γ) ⋙ A) := by
+    fconstructor
+    · constructor
+      exact Comm A
+    · constructor
+      exact GrothendieckLimisLim A
 
 end GrothendieckPullBack
 section PointedPullBack
@@ -686,23 +698,23 @@ theorem PComm : PGrpd.forgetToCat.{u,u} ⋙ PCat.forgetPoint.{u,u} = PGrpd.forge
 -- This is the type of cones
 abbrev PointedCones := @CategoryTheory.Limits.PullbackCone
   Cat.{u,u+1} _
-  (Cat.of.{u,u+1} PCat.{u,u})
   (Cat.of.{u,u+1} Grpd.{u,u})
+  (Cat.of.{u,u+1} PCat.{u,u})
   (Cat.of.{u,u+1} Cat.{u,u})
-  PCat.forgetPoint.{u,u}
   (Grpd.forgetToCat)
+  PCat.forgetPoint.{u,u}
 
 -- This is the cone we will show to be the limit
 abbrev PointedLim : PointedCones :=
   @Limits.PullbackCone.mk Cat.{u,u+1} _
-    (Cat.of.{u,u+1} PCat.{u,u})
     (Cat.of.{u,u+1} Grpd.{u,u})
+    (Cat.of.{u,u+1} PCat.{u,u})
     (Cat.of.{u,u+1} Cat.{u,u})
-    PCat.forgetPoint.{u,u}
     (Grpd.forgetToCat)
+    PCat.forgetPoint.{u,u}
     (Cat.of PGrpd)
-    PGrpd.forgetToCat
     PGrpd.forgetPoint
+    PGrpd.forgetToCat
     PComm
 
 /-- This is the construction of the universal map for the limit-/
@@ -727,6 +739,7 @@ def Pointed.UnivesalMap (C : Cat.{u,u+1}) (F1 : C ⥤ PCat.{u,u})(F2 : C ⥤ Grp
       · sorry
       · sorry
 
+
 def Pointed.UnivesalMap_Uniq (s : PointedCones) : s ⟶ PointedLim := by
   refine { hom := ?hom, w := ?w }
   · sorry
@@ -742,16 +755,53 @@ def PointedLimisLim : Limits.IsLimit PointedLim := by
     · sorry
     · sorry
 
-
 end PointedPullBack
 end Pullbacks
 
 section NaturalModelBase
 
+def CatLift : Cat.{u,u} ⥤ Cat.{u,u+1} where
+    obj x := Cat.of (ULift.{u + 1, u} ↑x)
+    map {x y} f := (Down_uni x) ⋙ f ⋙ (Up_uni y)
+
+#check whiskeringLeft
+def PshGrpd : Cat.{u,u+1} ⥤ (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) := by
+  refine yoneda ⋙ ?_
+  refine (whiskeringLeft (Grpd.{u,u}ᵒᵖ) (Cat.{u,u+1}ᵒᵖ) (Type (u + 1))).obj ?_
+  refine Grpd.forgetToCat.op ⋙ CatLift.op
+
+def PshGrpdPreservesLim : Limits.PreservesLimits PshGrpd := by
+  dsimp [PshGrpd,Limits.PreservesLimits]
+  refine @Limits.compPreservesLimits ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_
+  · exact yonedaFunctorPreservesLimits
+  · refine @Adjunction.rightAdjointPreservesLimits ?_ ?_ ?_ ?_ ?_ ?_ ?_
+    · refine @Functor.lan ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_
+      · exact (Grpd.forgetToCat.op ⋙ CatLift.op)
+      · intro F
+        exact Functor.instHasLeftKanExtension (Grpd.forgetToCat.op ⋙ CatLift.op) F
+    · exact (Grpd.forgetToCat.op ⋙ CatLift.op).lanAdjunction (Type (u + 1))
+
+
 -- This is a Covariant Functor that takes a Groupoid Γ to Γ ⥤ Grpd
 def Ty_functor : Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1) where
   obj x := x.unop ⥤ Grpd.{u,u}
   map f A := f.unop ⋙ A
+
+def Ty_functor_iso_PshGrpd_Grpd : Ty_functor ≅ PshGrpd.obj (Cat.of Grpd.{u,u}) where
+  hom := by
+    fconstructor
+    · unfold Ty_functor
+      unfold PshGrpd
+      intro X F
+      refine ?_ ⋙ F ⋙ ?_
+      · refine (down_uni X?
+
+
+
+
+
+
+
 
 -- This is a Covariant Functor that takes a Groupoid Γ to Γ ⥤ PointedGroupoid
 def Tm_functor : Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1) where
@@ -759,7 +809,7 @@ def Tm_functor : Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1) where
   map f A := f.unop ⋙ A
 
 -- This is the typing natural transformation
-def tp_NatTrans : NatTrans Tm_functor Ty_functor where
+def tp_NatTrans : Tm_functor ⟶ Ty_functor where
   app x := by
     intro a
     exact a ⋙ PGrpd.forgetPoint
@@ -782,6 +832,96 @@ def var' (Γ : Grpd)(A : Γ ⥤ Grpd) : (GroupoidalGrothendieck A) ⥤ PGrpd whe
     simp [Grpd.forgetToCat]
     simp[A.map_comp,CategoryStruct.comp]
 
+#check IsPullback
+
+#check Limits.leftSquareIsPullback
+/-
+
+GGrothendieck A -----var'--------> PGrpd---PGrpd.forgetToCat--->PCat
+        |                             |                           |
+        |                             |                           |
+GGrothendieck.forget           PGrpd.forgetPoint         PCat.forgetPoint
+        |                             |                           |
+        v                             v                           v
+        Γ--------------A-----------> Grpd----Grpd.forgetToCat---->Cat
+-/
+
+theorem LeftSquareComutes {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}) : (Down_uni (GroupoidalGrothendieck A)) ⋙ (var' Γ A) ⋙ PGrpd.forgetPoint
+ = ((Down_uni (GroupoidalGrothendieck A)) ⋙ (GroupoidalGrothendieck.forget) ⋙ (Up_uni Γ)) ⋙ (Down_uni Γ) ⋙ A := by sorry
+
+-- This is the type of cones
+abbrev GroupoidCones {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}) := @CategoryTheory.Limits.PullbackCone
+  Cat.{u,u+1} _
+  (Cat.of.{u,u+1} (ULift.{u+1,u} Γ))
+  (Cat.of.{u,u+1} PGrpd.{u,u})
+  (Cat.of.{u,u+1} Grpd.{u,u})
+  ((Down_uni Γ) ⋙ A)
+  PGrpd.forgetPoint.{u,u}
+
+-- This is the cone we will prove is the limit
+abbrev GroupoidLim {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}): (GroupoidCones A) :=
+  @Limits.PullbackCone.mk Cat.{u,u+1} _
+    (Cat.of (ULift.{u + 1, u} Γ))
+    (Cat.of PGrpd.{u,u})
+    (Cat.of Grpd.{u,u})
+    ((Down_uni Γ) ⋙ A)
+    (PGrpd.forgetPoint.{u,u})
+    (Cat.of (ULift.{u+1,u} (GroupoidalGrothendieck A)))
+    (Down_uni (GroupoidalGrothendieck A) ⋙ GroupoidalGrothendieck.forget ⋙ Up_uni Γ)
+    ((Down_uni (GroupoidalGrothendieck A)) ⋙ var' Γ A)
+    (LeftSquareComutes A)
+
+def PBasLim {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}) : Limits.IsLimit (GroupoidLim A) := by
+  dsimp [GroupoidLim]
+  refine @Limits.leftSquareIsPullback (Cat.{u,u+1}) _
+    (Cat.of (ULift.{u+1,u} (GroupoidalGrothendieck A)))
+    (Cat.of PGrpd.{u,u})
+    (Cat.of PCat.{u,u})
+    (Cat.of (ULift.{u+1,u} Γ))
+    (Cat.of Grpd.{u,u})
+    (Cat.of Cat.{u,u})
+    ((Down_uni (GroupoidalGrothendieck A)) ⋙ var' Γ A)
+    (PGrpd.forgetToCat)
+    ((Down_uni Γ) ⋙ A)
+    (Grpd.forgetToCat)
+    ((Down_uni (GroupoidalGrothendieck A)) ⋙ (GroupoidalGrothendieck.forget) ⋙ (Up_uni Γ))
+    (PGrpd.forgetPoint)
+    (PCat.forgetPoint)
+    ?_
+    PComm
+    PointedLimisLim
+    ?H'
+  sorry
+
+def PBasPB {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}) : @IsPullback (Cat.{u,u+1}) _
+  (Cat.of (ULift.{u+1,u} (GroupoidalGrothendieck A)))
+  (Cat.of PGrpd.{u,u})
+  (Cat.of (ULift.{u+1,u} Γ))
+  (Cat.of Grpd.{u,u})
+  ((Down_uni (GroupoidalGrothendieck A)) ⋙ (var' Γ A))
+  ((Down_uni (GroupoidalGrothendieck A)) ⋙ (GroupoidalGrothendieck.forget) ⋙ (Up_uni Γ))
+  (PGrpd.forgetPoint)
+  ((Down_uni Γ) ⋙ A) := by
+    refine IsPullback.flip ?_ -- This filips the pullback, There is on that is done sidways further up that should be fixed
+    fconstructor
+    · constructor
+      exact LeftSquareComutes A
+    · constructor
+      exact PBasLim A
+
+#check Functor.map_isPullback
+
+def YonedaOfPullBack (Γ : Grpd.{u,u})(A : Γ ⥤ Grpd.{u,u}) := Functor.map_isPullback yoneda (PBasPB A)
+
+
+theorem YonedaPreservesPullBacks {C : Type}[Category C] {P X Y Z : C} {f : P ⟶ X} {g : P ⟶ Y} {h : X ⟶ Z} {k : Y ⟶ Z}
+  (pb : IsPullback f g h k) : IsPullback (yoneda.map f) (yoneda.map g) (yoneda.map h) (yoneda.map k)  := by
+  exact Functor.map_isPullback yoneda pb
+
+
+
+
+
 open GroupoidalGrothendieck
 
 -- Here I am using sGrpd to be a small category version of Grpd. There is likely a better way to do this.
@@ -798,6 +938,8 @@ def SmallGrpd.forget : sGrpd.{u} ⥤ Grpd.{u,u} where
 This is the Natural Model on sGrpd. I am not sure this belongs in this file but I keep it here so that I can
 get an idea of what needs to be done.
 -/
+#check Limits.PreservesLimitsOfSize
+
 instance GroupoidNM : NaturalModel.NaturalModelBase sGrpd.{u} where
   Ty := SmallGrpd.forget.op ⋙ Ty_functor
   Tm := SmallGrpd.forget.op ⋙ Tm_functor
@@ -808,8 +950,9 @@ instance GroupoidNM : NaturalModel.NaturalModelBase sGrpd.{u} where
     exact Grothendieck.forget (yonedaEquiv A ⋙ Grpd.forgetToCat)
   var Γ A := yonedaEquiv.invFun (var' (SmallGrpd.forget.obj Γ) (yonedaEquiv A))
   disp_pullback A := by
-    dsimp
+    dsimp [tp_NatTrans]
     sorry
+
 
 end NaturalModelBase
 
