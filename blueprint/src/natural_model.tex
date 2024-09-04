@@ -21,11 +21,11 @@ and a universe of small types.
 % Assume an inaccessible cardinal $\lambda$. Write $\Set$ for the category of all sets. Say that a set $A$ is $\lambda$-small if $|A| < \lambda$.  Write $\Set_\lambda$ for the full
 % subcategory of $\Set$ spanned by  $\lambda$-small sets.
 
-Let $\catC$ be a small category, i.e.~a category whose class of objects is a $\set$ and
+Let $\catC$ be a locally small category, i.e.~a category whose class of objects is a $\Set$ and
 whose hom-classes are from $\set$.
 % We do not assume that $\mathbb{C}$ is $\lambda$-small for
 % the moment.
-We write $\pshC$ for the category of presheaves over $\catC$,
+We write $\pshC$ for the category of (large) presheaves over $\catC$,
 \[
 \pshC \defeq [\catC^\op, \Set]
 \]
@@ -241,7 +241,10 @@ We now wish to formulate a condition that allows us to have a type of small type
  \end{prooftree}
 \]
 
-(A sufficient and natural condition for this seems to be that we now have another inaccessible cardinal $\kappa$, with $\kappa < \lambda$.)
+% (For example, a sufficient and natural condition for this seems to be
+% that we now have two inaccessible cardinals $\kappa$, with $\kappa < \lambda$.
+% Then $\kappa$ would be the size of $\U = \Set_{< \kappa}$
+% and $\lambda$ would be the size of $\set = \Set_{< \lambda}$.)
 
 In the Natural Model, a universe $\U$ is postulated by a map
 \[

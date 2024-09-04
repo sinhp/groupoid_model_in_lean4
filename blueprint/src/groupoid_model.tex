@@ -17,7 +17,8 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
   We denote the category of small categories as $\cat$ and the large categories as $\Cat$.
   We denote the category of small groupoids as $\grpd$. %% and the large groupoids as $\GRPD$.
 
-  We are primarily working in the category of large presheaves indexed by small groupoids,
+  We are primarily working in the category of large presheaves indexed by
+  the (large, locally small) category of small groupoids,
   which we will denote by
   \[ \Pshgrpd = [\grpd^{\op}, \Set]\]
 
@@ -1599,3 +1600,55 @@ and rebuild the required fibration by exponentiation in the slice.
   \end{align*}
 \end{proof}
 
+\subsection{Universe of Discrete Groupoids}
+In this section we assume \textit{three} different universe sizes,
+which we will distinguish by all lowercase (small), capitalized first letter (large),
+and all-caps (extra large), respectively.
+For example, the three categories of sets will be nested as follows
+\[ \set \hookrightarrow \Set \hookrightarrow \SET \]
+We shift all of our previous work up by one universe level,
+so that we are working in the category $\PSH{\Grpd}$ of extra large
+presheaves, indexed by the
+(extra large, locally large)
+category of large groupoids.
+We would then have $\Type = [-, \Grpd]$ and $\Term = [-, \ptGrpd]$.
+
+\medskip
+
+\begin{defn}[Universe of discrete groupoids]
+  Let $\U$ be the groupoid of small sets,
+  i.e. let $\U$ have $\set$ as its objects
+  and morphisms between two small sets as all the bijections between them.
+  To define a map $\ulcorner \U \urcorner : \terminal \to \Type$,
+  it suffices to give a single large groupoid,
+  for which we will take $\U \in \Grpd$.
+
+  Then we define $\El : \yo \U \to \Type$ by defining $\El : \U \to \Grpd$
+  as the inclusion - any small set can be regarded as a large discrete groupoid.
+  % https://q.uiver.app/#q=WzAsMyxbMCwwLCJcXFUiXSxbMSwwLCJcXGdycGQiXSxbMSwxLCJcXEdycGQiXSxbMCwxLCIiLDAseyJzdHlsZSI6eyJ0YWlsIjp7Im5hbWUiOiJob29rIiwic2lkZSI6InRvcCJ9fX1dLFsxLDIsIiIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Imhvb2siLCJzaWRlIjoidG9wIn19fV0sWzAsMiwiXFxFbCIsMix7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Imhvb2siLCJzaWRlIjoidG9wIn19fV1d
+  \[\begin{tikzcd}
+    \U & \grpd \\
+    & \Grpd
+    \arrow[hook, from=1-1, to=1-2]
+    \arrow["\El"', hook, from=1-1, to=2-2]
+    \arrow[hook, from=1-2, to=2-2]
+  \end{tikzcd}\]
+
+  Then we take $\pi := \disp{\El}$, giving us
+% https://q.uiver.app/#q=WzAsNCxbMCwxLCJcXFUiXSxbMSwxLCJcXFR5cGUiXSxbMSwwLCJcXFRlcm0iXSxbMCwwLCJcXEUiXSxbMCwxLCJcXEVsIiwyXSxbMiwxLCJcXHRwIl0sWzMsMCwiXFxwaSIsMl0sWzMsMl0sWzMsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
+\[\begin{tikzcd}
+	\E & \Term \\
+	\U & \Type
+	\arrow[from=1-1, to=1-2]
+	\arrow["\pi"', from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow["\tp", from=1-2, to=2-2]
+	\arrow["\El"', from=2-1, to=2-2]
+\end{tikzcd}\]
+
+  We can compute the groupoid $E$ as that with
+  objects that are pairs $(X,x)$ where $x \in X \in \set$,
+  and morphisms
+  \[ E((X,x), (Y,y)) = \{f : X \to Y \st f \, x = y \}\]
+  Then $\pi : E \to U$ is the forgetful functor.
+\end{defn}
