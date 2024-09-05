@@ -133,6 +133,37 @@ An interpretation of $\Si$ types consists of a pullback square
 	\arrow["\Si"', from=2-1, to=2-2]
 \end{tikzcd}\]
 
+	where the composition of polynomials
+	$\tp \triangleleft \tp : Q \to \Poly{\tp}{\Type}$ is given by
+
+% https://q.uiver.app/#q=WzAsMTEsWzMsMCwiXFxQb2x5e1xcdHB9IHtcXFR5cGV9Il0sWzMsMSwiXFxUeXBlIl0sWzIsMCwiUiJdLFsyLDEsIlxcVGVybSJdLFsxLDEsIlxcVGVybSBcXHRpbWVzIFxcVHlwZSJdLFsxLDIsIlxcVHlwZSJdLFsyLDIsIlxcdGVybWluYWwiXSxbMCwxLCJcXFRlcm0gXFx0aW1lcyBcXFRlcm0iXSxbMCwyLCJcXFRlcm0iXSxbMSwwLCJSIl0sWzAsMCwiUSJdLFswLDEsIlxcdHBfKiBcXFRlcm1eKiBcXFR5cGUiXSxbMiwwXSxbMiwzXSxbMywxLCJcXHRwIiwyXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwzXSxbNCw1XSxbNSw2XSxbMyw2XSxbNCw2LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNyw0XSxbNyw4XSxbOCw1LCJcXHRwIiwyXSxbNyw1LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMTAsN10sWzEwLDQsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs5LDIsIiIsMSx7ImxldmVsIjoyLCJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzEwLDldLFs5LDQsIlxcY291bml0IiwxXSxbMTAsMCwiXFx0cCBcXHRyaWFuZ2xlbGVmdCBcXHRwIiwxLHsiY3VydmUiOi0zfV1d
+\[\begin{tikzcd}
+	Q & R & R & {\Poly{\tp} {\Type}} \\
+	{\Term \times \Term} & {\Type \times \Term} & \Term & \Type \\
+	\Term & \Type & \terminal
+	\arrow[from=1-1, to=1-2]
+	\arrow["{\tp \triangleleft \tp}"{description}, bend left, from=1-1, to=1-4]
+	\arrow[from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow[Rightarrow, no head, from=1-2, to=1-3]
+	\arrow["\counit"{description}, from=1-2, to=2-2]
+	\arrow[from=1-3, to=1-4]
+	\arrow[from=1-3, to=2-3]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-3, to=2-4]
+	\arrow["{\tp_* \Term^* \Type}", from=1-4, to=2-4]
+	\arrow[from=2-1, to=2-2]
+	\arrow[from=2-1, to=3-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-1, to=3-2]
+	\arrow[from=2-2, to=2-3]
+	\arrow[from=2-2, to=3-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+	\arrow["\tp"', from=2-3, to=2-4]
+	\arrow[from=2-3, to=3-3]
+	\arrow["\tp"', from=3-1, to=3-2]
+	\arrow[from=3-2, to=3-3]
+\end{tikzcd}\]
+  Here, $\counit : \tp^{*} \tp_{*} \Term^{*} \Type \to \Term^{*} \Type$
+  is the counit of the adjunction $\tp^{*} \dashv \tp_{*}$ at $\Term^{*} \Type \in \Pshgrpd / \Term$.
 % TODO: details, interpretation of syntax
 
 \subsection{Identity types}
@@ -279,38 +310,178 @@ With the notation above, we get
 \]
 Both squares above are pullback squares.
 
-\subsection{Defining the dependent function and product types for the universe}
+\subsection{Stablity of the universe under type formers}
 
-Take the pullback diagram \cref{diag:universe-pullback}. That is a morphism in the category of polynomials. We have a cartesian natural transformation $P_\pi \to P_{\tp}$ induced by the pullback \cref{diag:universe-pullback}. This cartesian natural transformation induces the diagrams of the left cube in below; all of the squares in the left cube are pullback squares.
-
-Now, consider the right cube only. The right-side face of the cube is a pullback square due to the definition of $\pi$. The left-side is also because polynomials are left exact functors and therefore they preserve pullbacks. Observe also that the front face is a pullback square by the definition of $\Pi$ for $\Type$.
+Take the pullback diagram \cref{diag:universe-pullback}.
+That is a morphism in the category of polynomials.
+We have a cartesian natural transformation $P_\pi \to P_{\tp}$ induced by the pullback \cref{diag:universe-pullback}. This cartesian natural transformation induces cube diagram below;
+all of the squares in the cube are pullback squares.
 
 \[
 \begin{tikzcd}[row sep=scriptsize, column sep=scriptsize]
-& P_\pi E \arrow[dd] \arrow[rr] \arrow[ld] & & P_\tp E \arrow[dl]  \arrow[rr] \arrow[dd] & & E \arrow[dl] \arrow[dd] \\
-P_\pi \Term \arrow[rr, crossing over] \arrow[dd] && P_\tp \Term \arrow[rr, crossing over, pos=0.6, "\lambda"] \arrow[dd, crossing over] & & \Term \\
-& P_\pi \U \arrow[rr] \arrow[ld] &&  P_\tp U \arrow[dl] \arrow[rr, dashed] & & U \arrow[dl] \\
-P_\pi \Type \arrow[rr] && P_\tp \Type \arrow[rr, swap, "\Pi"] & & \Type \arrow[from=uu, crossing over]\\
+& P_\pi E \arrow[dd] \arrow[rr] \arrow[ld] & & P_\tp E \arrow[dl]  \arrow[dd]  \\
+P_\pi \Term \arrow[rr, crossing over] \arrow[dd] && P_\tp \Term \arrow[dd, crossing over] \\
+& P_\pi \U \arrow[rr] \arrow[ld] &&  P_\tp U \arrow[dl] \\
+P_\pi \Type \arrow[rr] && P_\tp \Type \\
 \end{tikzcd}
 \]
+We will use the compositions $\Poly{\pi}{U} \to \Poly{\tp}{\Type}$ and
+$\Poly{\pi}{E} \to \Poly{\tp}{\Term}$ below.
 
-We define $\Pi_ U \colon P_\pi U \to U$ as a dashed arrow which makes the bottom square in the right cube commute, that is the following square commutes.
+\medskip
 
+\begin{defn}
+  We will say that universe $\U$ is closed under formation of $\Pi$-types when we have some map
+	$\Pi_{U} : \Poly{\pi}{\U} \to \U$ making the following square commute
 \begin{equation}\label{diag:universe-pullback-3}
 \xymatrix{
-P_\tp \U \ar@{->}[r] \ar@{-->}[d]_{\Pi_\U} & P_\tp \Type \ar[d]^{\Pi_\Type} \\
+\Poly{\pi}{\U} \ar@{->}[r] \ar@{-->}[d]_{\Pi_\U} & \Poly{\tp}{\Type} \ar[d]^{\Pi_\Type} \\
+\U \ar@{->}[r]_-{\El} & \Type }
+\end{equation}
+	Note that this is merely propositional when $\El$ is a monomorphism.
+\end{defn}
+
+\medskip
+
+From the universal property of pullbacks we can define $\la_{U} \Poly{\pi}{\E} \to \E$.
+% https://q.uiver.app/#q=WzAsOCxbMCwzLCJQX1xcdHAgXFxUeXBlIl0sWzIsMywiXFxUeXBlIl0sWzMsMiwiVSJdLFszLDAsIkUiXSxbMiwxLCJcXFRlcm0iXSxbMCwxLCJQX1xcdHAgXFxUZXJtIl0sWzEsMiwiUF9cXHBpIFUiXSxbMSwwLCJQX1xcdHAgRSJdLFswLDEsIlxcUGkiLDJdLFsyLDEsIlxcRWwiLDFdLFszLDJdLFszLDRdLFs0LDEsIiIsMSx7ImxhYmVsX3Bvc2l0aW9uIjozMH1dLFs1LDBdLFs3LDMsIlxcbGFfVSIsMSx7ImxhYmVsX3Bvc2l0aW9uIjo3MCwic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzcsNV0sWzcsNl0sWzYsMF0sWzUsNCwiXFxsYSIsMSx7ImxhYmVsX3Bvc2l0aW9uIjo3MH1dLFs2LDIsIlxcUGlfVSIsMSx7ImxhYmVsX3Bvc2l0aW9uIjo3MH1dXQ==
+\[\begin{tikzcd}
+	& {P_\tp E} && E \\
+	{P_\tp \Term} && \Term \\
+	& {P_\pi U} && U \\
+	{P_\tp \Type} && \Type
+	\arrow["{\la_U}"{description, pos=0.7}, dashed, from=1-2, to=1-4]
+	\arrow[from=1-2, to=2-1]
+	\arrow[from=1-2, to=3-2]
+	\arrow[from=1-4, to=2-3]
+	\arrow[from=1-4, to=3-4]
+	\arrow["\la"{description, pos=0.7}, from=2-1, to=2-3]
+	\arrow[from=2-1, to=4-1]
+	\arrow["{\Pi_U}"{description, pos=0.7}, from=3-2, to=3-4]
+	\arrow[from=2-3, to=4-3, crossing over]
+	\arrow[from=3-2, to=4-1]
+	\arrow["\El"{description}, from=3-4, to=4-3]
+	\arrow["\Pi"', from=4-1, to=4-3]
+\end{tikzcd}\]
+The top and bottom squares in the cube above are not pullbacks,
+but we know three of the vertical faces are pullback squares.
+By the pullback pasting lemma it follows that the back square
+involving $\Pi_ U$ and $\lambda_U$ is also a pullback square.
+This concludes the construction of $\Pi$ type former for the universe $\U$.
+% The only data we needed to supply for the definition of $\Pi_U$ was a lift of $\Pi \colon P_\tp \Type \to \Type$ to $U$.
+
+\medskip
+
+\begin{defn}
+  We will say that universe $\U$ is closed under formation of $\Si$-types when we have some map
+	$\Si_{U} : \Poly{\pi}{\U} \to \U$ making the following square commute
+\begin{equation}\label{diag:universe-pullback-3}
+\xymatrix{
+\Poly{\pi}{\U} \ar@{->}[r] \ar@{-->}[d]_{\Si_\U} & \Poly{\tp}{\Type} \ar[d]^{\Pi_\Type} \\
 \U \ar@{->}[r]_-{\El} & \Type }
 \end{equation}
 
-By the universal property of the pullback which defines $\pi$ we get a unique arrow $ P_\tp E \to E$ which we shall name $\lambda_\U$. By the pullback pasting lemma it follows that the square involving $\Pi_ U$ and $\lambda_U$ is a pullback square.
+	Again, this is merely propositional when $\El$ is a monomorphism.
+\end{defn}
 
-\begin{equation}\label{diag:universe-pullback-3}
-\xymatrix{
-P_\tp \E \ar@{->}[r]^{\lambda_\U} \ar[d]_{P_\tp \pi} & E \ar[d]^{P_\tp \pi} \\
-P_\tp \U \ar@{->}[r]_-{\Pi_\U} & \U }
-\end{equation}
+Now consider the polynomial composition $\pi \triangleleft \pi$.
+% https://q.uiver.app/#q=WzAsMjAsWzQsMywiXFxQb2x5e1xcdHB9IHtcXFR5cGV9Il0sWzQsNCwiXFxUeXBlIl0sWzMsMywiUiJdLFszLDQsIlxcVGVybSJdLFsyLDQsIlxcVGVybSBcXHRpbWVzIFxcVHlwZSJdLFsyLDUsIlxcVHlwZSJdLFsxLDQsIlxcVGVybSBcXHRpbWVzIFxcVGVybSJdLFsxLDUsIlxcVGVybSJdLFsyLDMsIlIiXSxbMSwzLCJRIl0sWzMsMSwiVSJdLFsyLDEsIkUiXSxbMSwxLCJFIFxcdGltZXMgVSJdLFswLDEsIkUgXFx0aW1lcyBFIl0sWzAsMiwiRSJdLFsxLDIsIlUiXSxbMSwwLCJSX1UiXSxbMCwwLCJRX1UiXSxbMiwwLCJSX1UiXSxbMywwLCJcXFBvbHl7XFxwaX17VX0iXSxbMCwxLCJcXHRwXyogXFxUZXJtXiogXFxUeXBlIl0sWzIsMF0sWzIsM10sWzMsMSwiXFx0cCIsMV0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzQsM10sWzQsNV0sWzYsNF0sWzYsN10sWzcsNSwiXFx0cCIsMl0sWzYsNSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzksNl0sWzksNCwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzgsMiwiIiwxLHsibGV2ZWwiOjIsInN0eWxlIjp7ImhlYWQiOnsibmFtZSI6Im5vbmUifX19XSxbOSw4XSxbOCw0LCJcXGNvdW5pdCIsMV0sWzEwLDFdLFsxMSwzXSxbMTEsMTAsIlxccGkiLDFdLFsxMiw0XSxbMTIsMTFdLFsxMyw2XSxbMTQsMTVdLFsxMywxNF0sWzEyLDE1XSxbMTMsMTJdLFsxMywxNSwiIiwwLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzE2LDEyLCJcXGNvdW5pdCIsMV0sWzE3LDEzXSxbMTcsMTZdLFsxNywxMiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzE2LDE4LCIiLDEseyJsZXZlbCI6Miwic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dLFsxOCwxOV0sWzE5LDEwXSxbMTgsMTFdLFsxOCwxMCwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzE1LDVdLFsxNCw3XSxbMTcsOV0sWzE2LDhdLFsxOCwyXSxbMTksMF0sWzE3LDE5LCJcXHBpIFxcdHJpYW5nbGVsZWZ0IFxccGkiLDEseyJjdXJ2ZSI6LTR9XV0=
+\[\begin{tikzcd}
+	{Q_U} & {R_U} & {R_U} & {\Poly{\pi}{U}} \\
+	{E \times E} & {E \times U} & E & U \\
+	E & U \\
+	& Q & R & R & {\Poly{\tp} {\Type}} \\
+	& {\Term \times \Term} & {\Term \times \Type} & \Term & \Type \\
+	& \Term & \Type
+	\arrow[from=1-1, to=1-2]
+	\arrow["{\pi \triangleleft \pi}"{description}, bend left, from=1-1, to=1-4]
+	\arrow[from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow[Rightarrow, no head, from=1-2, to=1-3]
+	\arrow[from=1-2, to=2-2]
+	\arrow[from=1-3, to=1-4]
+	\arrow[from=1-3, to=2-3]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-3, to=2-4]
+	\arrow[from=1-4, to=2-4]
+	\arrow[from=1-4, to=4-5]
+	\arrow[from=2-1, to=2-2]
+	\arrow[from=2-1, to=3-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-1, to=3-2]
+	\arrow[from=2-2, to=2-3]
+	\arrow[from=2-2, to=3-2]
+	\arrow[from=2-2, to=5-3, dashed]
+	\arrow["\pi"{description}, from=2-3, to=2-4]
+	\arrow[from=2-3, to=5-4]
+	\arrow[from=2-4, to=5-5]
+	\arrow[from=3-1, to=3-2]
+	\arrow[from=3-1, to=6-2]
+	\arrow[from=3-2, to=6-3]
+	\arrow[from=4-2, to=5-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=4-2, to=5-3]
+	\arrow[from=4-3, to=5-3]
+	\arrow[from=4-4, to=5-4]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=4-4, to=5-5]
+	\arrow["{\tp_* \Term^* \Type}", from=4-5, to=5-5]
+	\arrow[from=5-2, to=6-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=5-2, to=6-3]
+	\arrow[from=5-3, to=5-4]
+	\arrow[from=5-3, to=6-3]
+	\arrow["\tp"{description}, from=5-4, to=5-5]
+	\arrow["\tp"', from=6-2, to=6-3]
+	\arrow[from=1-1, dashed, to=4-2, crossing over]
+	\arrow[from=1-2, dashed, to=4-3, crossing over]
+	\arrow[from=1-3, to=4-4, dashed, crossing over]
+	\arrow[from=2-1, dashed, to=5-2, crossing over]
+	\arrow[from=4-2, to=4-3, crossing over]
+	\arrow[Rightarrow, no head, from=4-3, to=4-4, crossing over]
+	\arrow[from=4-4, to=4-5, crossing over]
+	\arrow[from=5-2, to=5-3, crossing over]
+\end{tikzcd}\]
 
-This concludes the construction of $\Pi$ type former for the universe $\U$. The only data we needed to supply for the definition of $\Pi_U$ was a lift of $\Pi \colon P_\tp \Type \to \Type$ to $U$.
+Using pullback pasting, we see that the horizontal faces of the left cuboid
+and the right cube are all pullbacks. Hence we have a pullback
+% https://q.uiver.app/#q=WzAsNixbMiwxLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMSwxLCJSIl0sWzAsMSwiUSJdLFswLDAsIlFfVSJdLFsxLDAsIlJfVSJdLFsyLDAsIlxcUG9seXtcXHBpfXtVfSJdLFsxLDBdLFs0LDVdLFszLDJdLFs0LDFdLFs1LDBdLFszLDUsIlxccGkgXFx0cmlhbmdsZWxlZnQgXFxwaSIsMSx7ImN1cnZlIjotNH1dLFszLDRdLFsyLDFdLFsyLDAsIlxcdHAgXFx0cmlhbmdsZWxlZnQgXFx0cCIsMSx7ImN1cnZlIjozfV0sWzQsMCwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzMsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
+\[\begin{tikzcd}
+	{Q_U} & {R_U} & {\Poly{\pi}{U}} \\
+	Q & R & {\Poly{\tp} {\Type}}
+	\arrow[from=1-1, to=1-2]
+	\arrow["{\pi \triangleleft \pi}"{description}, bend left, from=1-1, to=1-3]
+	\arrow[from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow[from=1-2, to=1-3]
+	\arrow[from=1-2, to=2-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-2, to=2-3]
+	\arrow[from=1-3, to=2-3]
+	\arrow[from=2-1, to=2-2]
+	\arrow["{\tp \triangleleft \tp}"{description}, bend right, from=2-1, to=2-3]
+	\arrow[from=2-2, to=2-3]
+\end{tikzcd}\]
+
+which is the left side of the following cube
+% https://q.uiver.app/#q=WzAsOCxbMCwzLCJQX1xcdHAgXFxUeXBlIl0sWzIsMywiXFxUeXBlIl0sWzMsMiwiVSJdLFszLDAsIkUiXSxbMiwxLCJcXFRlcm0iXSxbMCwxLCJRIl0sWzEsMiwiUF9cXHBpIFUiXSxbMSwwLCJRX1UiXSxbMCwxLCJcXFNpIiwyXSxbMiwxLCJcXEVsIiwxXSxbMywyXSxbMyw0XSxbNCwxLCIiLDEseyJsYWJlbF9wb3NpdGlvbiI6MzB9XSxbNSwwLCJcXHRwIFxcdHJpYW5nbGVsZWZ0IFxcdHAiLDJdLFs3LDMsIlxccGFpcl9VIiwxLHsibGFiZWxfcG9zaXRpb24iOjcwLCJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNyw1XSxbNyw2LCJcXHBpIFxcdHJpYW5nbGVsZWZ0IFxccGkiLDIseyJsYWJlbF9wb3NpdGlvbiI6ODB9XSxbNiwwXSxbNSw0LCJcXHBhaXIiLDEseyJsYWJlbF9wb3NpdGlvbiI6ODB9XSxbNiwyLCJcXFNpX1UiLDEseyJsYWJlbF9wb3NpdGlvbiI6NzB9XV0=
+\[\begin{tikzcd}
+	& {Q_U} && E \\
+	Q && \Term \\
+	& {P_\pi U} && U \\
+	{P_\tp \Type} && \Type
+	\arrow["{\pair_U}"{description, pos=0.7}, dashed, from=1-2, to=1-4]
+	\arrow[from=1-2, to=2-1]
+	\arrow["{\pi \triangleleft \pi}"'{pos=0.8}, from=1-2, to=3-2]
+	\arrow[from=1-4, to=2-3]
+	\arrow[from=1-4, to=3-4]
+	\arrow["\pair"{description, pos=0.8}, from=2-1, to=2-3]
+	\arrow["{\tp \triangleleft \tp}"', from=2-1, to=4-1]
+	\arrow[from=2-3, to=4-3]
+	\arrow["{\Si_U}"{description, pos=0.7}, from=3-2, to=3-4]
+	\arrow[from=3-2, to=4-1]
+	\arrow["\El"{description}, from=3-4, to=4-3]
+	\arrow["\Si"', from=4-1, to=4-3]
+\end{tikzcd}\]
+As was the case for $\Pi$, pullback pasting along the vertical faces
+shows that the back face involving $\Si_ U$ and $\pair_U$ is also a pullback square.
+This concludes the construction of $\Si$ type former for the universe $\U$.
+
+
 
 
 % \subsection{The Universe in Embedded Type Theory (HoTT0) and the relationship to the Natural Model}
