@@ -1616,12 +1616,10 @@ We would then have $\Type = [-, \Grpd]$ and $\Term = [-, \ptGrpd]$.
 \medskip
 
 \begin{defn}[Universe of discrete groupoids]
-  Let $\U$ be the groupoid of small sets,
+  Let $\U$ be the (large) groupoid of small sets,
   i.e. let $\U$ have $\set$ as its objects
   and morphisms between two small sets as all the bijections between them.
-  To define a map $\ulcorner \U \urcorner : \terminal \to \Type$,
-  it suffices to give a single large groupoid,
-  for which we will take $\U \in \Grpd$.
+  This gives us $\ulcorner \U \urcorner : \terminal \to \Type$.
 
   Then we define $\El : \yo \U \to \Type$ by defining $\El : \U \to \Grpd$
   as the inclusion - any small set can be regarded as a large discrete groupoid.
@@ -1650,5 +1648,21 @@ We would then have $\Type = [-, \Grpd]$ and $\Term = [-, \ptGrpd]$.
   objects that are pairs $(X,x)$ where $x \in X \in \set$,
   and morphisms
   \[ E((X,x), (Y,y)) = \{f : X \to Y \st f \, x = y \}\]
-  Then $\pi : E \to U$ is the forgetful functor.
+  Then $\pi : E \to U$ is the forgetful functor $(X,x) \mapsto X$.
 \end{defn}
+
+\medskip
+
+Showing that this universe is closed under $\Pi, \Si, \Id$ formation
+depends on how we formalize $\set \hookrightarrow \Set$.
+In both cases we need to check that discreteness is preserved by
+the type formers, which is straightforward.
+If we are working with sets and cardinality,
+i.e. taking $\set = \Set_{<\la} \subset \Set_{< \kappa} = \Set$
+for some inaccessible cardinals $\la < \kappa$,
+then it is straightforward to check that the type formers
+do not make ``larger'' types.
+If we are working with type theoretic universes with a lift
+operation $\mathsf{ULift} : \set \to \Set$ then
+it may \textit{not} be true that $\mathsf{ULift}$ commutes with
+our type formers.
