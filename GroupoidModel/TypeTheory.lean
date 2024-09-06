@@ -8,7 +8,7 @@ mutual
 inductive TyExpr where
   | univ
   | el (A : Expr)
-  | pi (ty A : TyExpr)
+  | pi (A B : TyExpr)
   deriving Repr
 
 inductive Expr where
@@ -16,7 +16,7 @@ inductive Expr where
   | bvar (n : Nat)
   | app (f a : Expr)
   | lam (ty : TyExpr) (val : Expr)
-  | pi (ty A : Expr)
+  | pi (A B : Expr)
   deriving Repr
 end
 
@@ -130,6 +130,12 @@ variable {Ctx : Type u} [SmallCategory Ctx] [HasTerminal Ctx] [M : NaturalModel 
 
 def wU : y(Γ) ⟶ M.Ty := yoneda.map (terminal.from Γ) ≫ U
 
+@[simp]
+theorem comp_wU (Δ Γ : Ctx) (f : y(Δ) ⟶ y(Γ)) : f ≫ wU = wU := by
+  aesop (add norm wU)
+
+/-- `CtxStack Γ` witnesses that the semantic context `Γ`
+is built by successive context extension operations. -/
 inductive CtxStack : Ctx → Type u where
   | nil : CtxStack (⊤_ Ctx)
   | cons {Γ} (A : y(Γ) ⟶ Ty) : CtxStack Γ → CtxStack (M.ext Γ A)
@@ -352,7 +358,7 @@ theorem ofTerm_correct_tp {Γ A} (H : HasType Γ e A) {Γ'} (hΓ : Γ' ∈ ofCtx
 theorem ofType_correct {Γ A} (H : IsType Γ A) {Γ'} (hΓ : Γ' ∈ ofCtx (Ctx := Ctx) Γ) :
     (ofType Γ' A).Dom := ofTerm_ofType_correct.2 H hΓ
 
-def foo : Type → Type := fun x : Type => x
+section Examples
 
 def Typed (Γ A) := { e // HasType Γ e A }
 
@@ -371,3 +377,5 @@ theorem toModel_type {A} (e : Typed [] A) : toModel e ≫ tp = toModelType (Ctx 
   ofTerm_correct_tp (Ctx := Ctx) e.2 ⟨trivial, rfl⟩
 
 example : y(⊤_ _) ⟶ M.Tm := toModel foo._hott
+
+end Examples
