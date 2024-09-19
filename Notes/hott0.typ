@@ -194,7 +194,7 @@ $"(de Bruijn index)" i     &∈ ℕ \
     prooftree(
       #axiom($Γ.A.A[↑_A]."Id"(bold(v)_1, bold(v)_0) ⊢ B "type"$),
       #axiom($Γ.A ⊢ t : B[id_(Γ.A) . v_0 . "refl"_v_0]$),
-      #rule($Γ.A.A[↑_A]."Id"(bold(v)_1, bold(v)_0) ⊢ J_B (t) B$, n: 2)
+      #rule($Γ.A.A[↑_A]."Id"(bold(v)_1, bold(v)_0) ⊢ J_B (t) : B$, n: 2)
     )
 
     \ \
