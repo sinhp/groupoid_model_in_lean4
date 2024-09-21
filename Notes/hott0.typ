@@ -217,3 +217,168 @@ $"(de Bruijn index)" i     &∈ ℕ \
   $ "(TODO: standard)"
   $
 ))
+
+
+== Nondepenent functions and binary products
+
+
+  $
+    prooftree(
+      #axiom($Γ ⊢ A "type"$),
+      #axiom($Γ ⊢ B "type"$),
+      #rule($Γ ⊢ A × B ≜ ∑_A B[↑_A]$, n: 2))
+
+    #h(1cm)
+
+    prooftree(
+      #axiom($Γ ⊢ A "type"$),
+      #axiom($Γ ⊢ B "type"$),
+      #rule($Γ ⊢ A → B ≜ ∏_A B[↑_A]$, n: 2))
+  $
+
+  $
+    prooftree(
+      #axiom($Γ ⊢ t : U$),
+      #axiom($Γ ⊢ u : U$),
+      #rule($Γ ⊢ t × u ≜ Σ_t u[↑_("El" t)]$, n: 2))
+
+    #h(1cm)
+
+    prooftree(
+      #axiom($Γ ⊢ t : U$),
+      #axiom($Γ ⊢ u : U$),
+      #rule($Γ ⊢ t → u ≜ Π_t u[↑_("El" t)]$, n: 2))
+  $
+== Univalence
+
+In the following we will use $[↑^?]$ to denote a series of weakening substitutions,
+which will be clear from context.
+
+Univalence will be a term of the (merely propositional) type
+$ Γ.U.U[↑] ⊢ "IsBigEquiv"[id_( Γ.U.U[↑] ) . "IdToEquiv"] "type" $
+Here $"IsBigEquiv"$ and its components $"BigLinv"$ and $"BigRinv"$ (defined later)
+are shorthand for longer type expressions,
+whereas "IdToEquiv" is a term expression.
+In order to write the type expressions as shorthands internal to the type theory
+it is necessary and sufficient to have a second,
+larger universe containing $"U"$ as a term.
+
+Supposing that $Γ ⊢ A "type"$ and $Γ ⊢ B "type"$ we define the shorthands
+
+$ Γ.A → B ⊢
+  "BigLinv"_(A,B) ≜ ∑_((B → A)[↑^?]) ∏_(A[↑^?])
+  "Id"( bold(v_1)(bold(v_2) #sp bold(v_0)) , bold(v_0) ) $
+
+$ Γ.A → B ⊢
+  "BigRinv"_(A,B) ≜ ∑_((B → A)[↑^?]) ∏_(B[↑^?])
+  "Id"( bold(v_2)(bold(v_1) #sp bold(v_0)) , bold(v_0) ) $
+
+$ Γ.A → B ⊢ "IsBigEquiv"_(A,B) ≜ "BigLinv"_(A,B) × "BigRinv"_(A,B) $
+
+We can verify that
+
+$
+  Γ.A → B ⊢ "BigLinv"_(A,B) "type"
+  #h(1cm)
+  Γ.A → B ⊢ "BigRinv"_(A,B) "type"
+  #h(1cm)
+  Γ.A → B ⊢ "IsBigEquiv"_(A,B) "type"
+$
+
+There are also versions of these bounded by the universe $"U"$.
+// Supposing that we have two codes for small types
+// $Γ ⊢ u_A : U$ and $Γ ⊢ u_B : U$
+
+#let easy(x) = text(fill: blue, $#x$)
+
+// $ Γ."El"(u_A → u_B) ⊢ "Linv" ≜ Σ_((u_B → u_A)[↑^?]) Π_(u_A [↑^?]) "I "_(u_A [↑^?])
+//   ( bold(v_1)(bold(v_2) #sp bold(v_0)) , bold(v_0) ) : U[↑^?] $
+
+$ Γ.U.U[↑]."El"(bold(v_0) → bold(v_1)) ⊢
+  "Linv" ≜ Σ_(bold(v_1) → bold(v_2)) Π_(bold(v_3))
+  "I "_(bold(v_4))( bold(v_1)(bold(v_2) #sp bold(v_0)) , bold(v_0) ) : U[↑^?] $
+$ easy(Γ.a:U.b:U.f:"El"(a → b) ⊢
+  "Linv" ≜ Σ_(g:"El" (b → a)) Π_(x: "El" a)
+  "I "_a ( g(f #sp x) , x ) : U ) $
+
+$ Γ.U.U[↑]."El"(bold(v_0) → bold(v_1)) ⊢
+  "Rinv" ≜ Σ_(bold(v_1) → bold(v_2)) Π_(bold(v_3))
+  "I "_(bold(v_4))( bold(v_1)(bold(v_2) #sp bold(v_0)) , bold(v_0) ) : U[↑^?] $
+$ easy(Γ.a:U.b:U.f:"El"(a → b) ⊢
+  "Rinv" ≜ Σ_(g:"El" (b → a)) Π_(x: "El" b) "I "_b ( f(g #sp x) , x ) : U) $
+
+// $ Γ."El"(u_A → u_B) ⊢ "Rinv" ≜ Σ_((u_B → u_A)[↑^?]) Π_(u_B[↑^?])
+//   "I "_(u_B) ( bold(v_2)(bold(v_1) #sp bold(v_0)) , bold(v_0) ) $
+
+$ Γ.U.U[↑]."El"(bold(v_0) → bold(v_1)) ⊢ "IsEquiv" ≜ "Linv" × "Rinv" : U[↑^?] $
+
+$ Γ.U.U[↑] ⊢ "Equiv" ≜ Σ_(bold(v_1) → bold(v_0)) "IsEquiv" : U[↑^?] $
+
+When we define
+$Γ.U.U[↑] ⊢ "IdToEquiv" : "Id"(bold(v_1), bold(v_0)) → "Equiv"$,
+we see the necessesity of defining both big and small equivalences;
+given $u_0 , u_1 : U$ we do not have $"Id"(u_0, u_1) : U$.
+
+The underlying function in our equivalence transports along the given identity
+$ Γ.U.U[↑]."Id"(bold(v_1) , bold(v_0)) ⊢ "IdToFun" ≜
+  J_("El"(bold(v_2) → bold(v_1))) (λ_("El"bold(v_0)) v_0) : "El"(bold(v_2) → bold(v_1)) $
+
+$ easy(Γ.a:U.b:U."Id"(a, b) ⊢ "IdToFun" ≜ J_("El"(a → b)) id_("El" a) : "El"(a → b)) $
+// $ Γ.U.U[↑] ⊢ "IdToFun" ≜
+//   λ_("Id"(bold(v_1) , bold(v_0)))
+//   ( J_("El"(bold(v_2) → bold(v_1))) (λ_("El"bold(v_0)) v_0) ) :
+//   "Id"(bold(v_1) , bold(v_0)) → "El"(bold(v_2) → bold(v_1)) $
+
+// $ easy(Γ.a:U.b:U ⊢ "IdToFun" ≜
+//   λ_("Id"(a, b)) ( J_("El"(a → b)) id_("El" a) ) : "El"(a → b)) $
+
+Identity is symmetrical, which we use to construct the inverse in the equivalence.
+$ Γ.A.A[↑]."Id"(bold(v_1) , bold(v_0)) ⊢
+  "sym"_A ≜  J_("Id"(bold(v_1), bold(v_2))) "refl"_(bold(v_0)) : "Id"(bold(v_1), bold(v_2)) $
+
+$ easy(Γ.x:A.y:A."Id"(x, y) ⊢ "sym"_A ≜ J_("Id"(y,x)) "refl"_x : "Id"(y,x)) $
+
+The inverse of the equivalence
+$ Γ.U.U[↑]."Id"(bold(v_1) , bold(v_0)) ⊢ "IdToInv" ≜
+  "IdToFun"[id_Γ.bold(v_1).bold(v_2)."sym"_U] : "El"(bold(v_1) → bold(v_2)) $
+
+$ easy(Γ.a:U.b:U."Id"(a, b) ⊢ "IdToInv" ≜ "IdToFun"[id_Γ.b.a."sym"_U] : "El"(b → a)) $
+
+That it is a left inverse and a right inverse can be proven with path induction,
+where the diagonal case is an equality that holds definitionally,
+by the computation rule for $J$.
+$ Γ.U.U[↑]."Id"(bold(v_1) , bold(v_0)) ⊢ "LinvIdToFun" ≜ ⟨ "IdToInv",
+  J_("El"(Π_(bold(v_2)) "I "_(bold(v_3))( "IdToInv"[↑]("IdToFun"[↑] #sp bold(v_0)) , bold(v_0) )))
+  (λ_("El" bold(v_0)) "refl"_(bold(v_0)))
+  ⟩ $
+$ : "Linv"[↑_("Id"(bold(v_1), bold(v_0))) . "IdToFun"[↑]]  $
+
+$ Γ.U.U[↑]."Id"(bold(v_1) , bold(v_0)) ⊢ "RinvIdToFun" ≜ ⟨ "IdToInv",
+  J_("El"(Π_(bold(v_1)) "I "_(bold(v_2))( "IdToInv"[↑]("IdToFun"[↑] #sp bold(v_0)) , bold(v_0) )))
+  (λ_("El" bold(v_0)) "refl"_(bold(v_0)))
+  ⟩ $
+$ : "Rinv"[↑_("Id"(bold(v_1), bold(v_0))) . "IdToFun"[↑]]  $
+
+Now we have all the components for defining $"IdToEquiv"$
+
+$ Γ.U.U[↑]."Id"(bold(v_1) , bold(v_0)) ⊢ "IsEquivIdToFun" ≜ ⟨ "IdToFun",
+  ⟨
+  "LinvIdToFun",
+  "RinvIdToFun"
+  ⟩
+  ⟩ $
+$ : "IsEquiv"[↑_("Id"(bold(v_1), bold(v_0))) . "IdToFun"[↑]]  $
+
+
+$ Γ.U.U[↑] ⊢ "IdToEquiv" ≜ λ_("Id"(bold(v_1), bold(v_0))) ⟨ "IdToFun" , "IsEquivIdToFun" ⟩ : "Id"(bold(v_1), bold(v_0)) → "Equiv" $
+
+// $ easy(Γ.U.U[↑] ⊢ "IdToEquiv" ≜ λ_("Id"(bold(v_1), bold(v_0))) ⟨ "IdToFun" , "IsEquivIdToFun" ⟩ : "Id"(bold(v_1), bold(v_0)) → "Equiv") $
+
+Finally, the univalence axiom states
+
+$
+  prooftree(
+  #rule($Γ.U.U[↑] ⊢ "ua" : "IsBigEquiv"[id_( Γ.U.U[↑] ) . "IdToEquiv"]$, n: 0)
+)
+
+$
