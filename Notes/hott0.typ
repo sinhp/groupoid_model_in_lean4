@@ -249,6 +249,7 @@ $"(de Bruijn index)" i     &∈ ℕ \
       #axiom($Γ ⊢ u : U$),
       #rule($Γ ⊢ t → u ≜ Π_t u[↑_("El" t)]$, n: 2))
   $
+
 == Univalence
 
 In the following we will use $[↑^?]$ to denote a series of weakening substitutions,
@@ -381,4 +382,22 @@ $
   #rule($Γ.U.U[↑] ⊢ "ua" : "IsBigEquiv"[id_( Γ.U.U[↑] ) . "IdToEquiv"]$, n: 0)
 )
 
+$
+
+== Uniqueness of Identity Principle
+
+In the groupoid model of HoTT,
+we could take the universe $"U"$ to be all small discrete groupoids,
+i.e. small sets.
+In lean, these would satisfy the uniqueness of identity principle (UIP).
+
+$
+  prooftree(
+  #axiom($Γ ⊢ u_A : U$),
+  #axiom($Γ ⊢ t_0 : "El" u_A$),
+  #axiom($Γ ⊢ t_1 : "El" u_A$),
+  #axiom($Γ ⊢ p : "Id"(t_0,t_1)$),
+  #axiom($Γ ⊢ q : "Id"(t_0,t_1)$),
+  #rule($Γ ⊢ p ≡ q : "Id"(t_0,t_1)$,n:5)
+)
 $
