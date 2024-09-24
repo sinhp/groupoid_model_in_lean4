@@ -107,7 +107,9 @@ We will use $\Poly{\tp}$ to denote the polynomial endofunctor
 (\cref{polynomial_endofunctor}) associated with our presentable map $\tp$.
 Then an interpretation of $\Pi$ types consists of a pullback square
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSJdLFswLDEsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzEsMCwiXFxUZXJtIl0sWzEsMSwiXFxUeXBlIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcdHB9IiwyXSxbMCwyLCJcXGxhIl0sWzIsMywiXFx0cCJdLFsxLDMsIlxcUGkiLDJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
-\[\begin{tikzcd}
+\begin{equation}
+  \label{fig:pi_intp_pullback}
+	\begin{tikzcd}
 	{\Poly{\tp}{\Term}} & \Term \\
 	{\Poly{\tp}{\Type}} & \Type
 	\arrow["\la", from=1-1, to=1-2]
@@ -115,7 +117,8 @@ Then an interpretation of $\Pi$ types consists of a pullback square
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
 	\arrow["\tp", from=1-2, to=2-2]
 	\arrow["\Pi"', from=2-1, to=2-2]
-\end{tikzcd}\]
+\end{tikzcd}
+\end{equation}
 
 % TODO: details, interpretation of syntax
 
@@ -123,7 +126,9 @@ Then an interpretation of $\Pi$ types consists of a pullback square
 
 An interpretation of $\Si$ types consists of a pullback square
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJRIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcVHlwZX0iXSxbMSwwLCJcXFRlcm0iXSxbMSwxLCJcXFR5cGUiXSxbMCwxLCJcXHRwIFxcdHJpYW5nbGVsZWZ0IFxcdHAiLDJdLFswLDIsIlxccGFpciJdLFsyLDMsIlxcdHAiXSxbMSwzLCJcXFNpIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
-\[\begin{tikzcd}
+\begin{equation}
+  \label{fig:si_intp_pullback}
+	\begin{tikzcd}
 	Q & \Term \\
 	{\Poly{\tp}{\Type}} & \Type
 	\arrow["\pair", from=1-1, to=1-2]
@@ -131,7 +136,8 @@ An interpretation of $\Si$ types consists of a pullback square
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
 	\arrow["\tp", from=1-2, to=2-2]
 	\arrow["\Si"', from=2-1, to=2-2]
-\end{tikzcd}\]
+\end{tikzcd}
+\end{equation}
 
 	where the composition of polynomials
 	$\tp \triangleleft \tp : Q \to \Poly{\tp}{\Type}$ is given by
@@ -171,14 +177,18 @@ An interpretation of $\Si$ types consists of a pullback square
 To interpret the formation and introduction rules for identity types
 we require a commutative square (this need not be pullback)
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFRlcm0iXSxbMCwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwxLCJcXFR5cGUiXSxbMSwwLCJcXFRlcm0iXSxbMCwxLCJcXGRlIiwyXSxbMSwyLCJcXElkIiwyXSxbMywyLCJcXHRwIl0sWzAsMywiXFxyZWZsIl1d
-\[\begin{tikzcd}
+\begin{equation}
+  \label{figure:id_pullback_def}
+\begin{tikzcd}
 	\Term & \Term \\
 	{\tp \times_\Type \tp} & \Type
 	\arrow["\refl", from=1-1, to=1-2]
 	\arrow["\de"', from=1-1, to=2-1]
 	\arrow["\tp", from=1-2, to=2-2]
 	\arrow["\Id"', from=2-1, to=2-2]
-\end{tikzcd}\]
+\end{tikzcd}
+\end{equation}
+
 where $\de$ is the diagonal:
 % https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXFRlcm0iXSxbMSwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMiwxLCJcXFRlcm0iXSxbMiwyLCJcXFR5cGUiXSxbMSwyLCJcXFRlcm0iXSxbMCwxLCJcXGRlIiwyXSxbMCwyXSxbMSwyXSxbMiwzLCJcXHRwIl0sWzQsMywiXFx0cCIsMl0sWzEsNF0sWzEsMywiIiwyLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzAsNCwiIiwwLHsibGV2ZWwiOjIsInN0eWxlIjp7ImhlYWQiOnsibmFtZSI6Im5vbmUifX19XV0=
 \[\begin{tikzcd}
@@ -234,14 +244,17 @@ Now (by \cref{polynomial_on_slice_map})
 applying $\Poly{-} : (\pshC / \Type) ^{\op} \to [\pshC, \pshC]$ to $\rho : \tp \to q$
 gives us a naturality square (this also need not be pullback).
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7cX0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcVHlwZX0iXSxbMSwxLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMSwwLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcdHB9IiwyXSxbMSwyLCJcXFN0YXJ7XFxyaG99X3tcXFR5cGV9IiwyXSxbMywyLCJcXFBvbHl7XFx0cH0ge1xcdHB9Il0sWzAsMywiXFxTdGFye1xccmhvfV97XFxUZXJtfSJdXQ==
-\[\begin{tikzcd}
+\begin{equation}
+  \label{J_definition_diagram}
+\begin{tikzcd}
 	{\Poly{q} {\Term}} & {\Poly{\tp} {\Term}} \\
 	{\Poly{q} {\Type}} & {\Poly{\tp} {\Term}}
 	\arrow["{\Star{\rho}_{\Term}}", from=1-1, to=1-2]
 	\arrow["{\Poly{q} {\tp}}"', from=1-1, to=2-1]
 	\arrow["{\Poly{\tp} {\tp}}", from=1-2, to=2-2]
 	\arrow["{\Star{\rho}_{\Type}}"', from=2-1, to=2-2]
-\end{tikzcd}\]
+\end{tikzcd}
+\end{equation}
 Taking the pullback $T$ and the comparison map $\ep$ we have
 % https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXFBvbHl7cX0ge1xcVGVybX0iXSxbMSwyLCJcXFBvbHl7cX0ge1xcVHlwZX0iXSxbMiwyLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMiwxLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMSwxLCJUIl0sWzAsMSwiXFxQb2x5e3F9IHtcXHRwfSIsMix7ImN1cnZlIjoyfV0sWzEsMiwiXFxTdGFye1xccmhvfV97XFxUeXBlfSIsMl0sWzMsMiwiXFxQb2x5e1xcdHB9IHtcXHRwfSJdLFswLDMsIlxcU3RhcntcXHJob31fe1xcVGVybX0iLDAseyJjdXJ2ZSI6LTN9XSxbNCwxXSxbNCwzXSxbNCwyLCIiLDIseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMCw0LCJcXGVwIiwxLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
 \begin{equation}
@@ -713,3 +726,260 @@ This concludes the construction of the $\Id$ type former for the universe $\U$.
 Again, the only data we needed to supply was the lift $\Id_U$ of $\Id$ to the universe $\U$.
 
 % \subsection{The Universe in Embedded Type Theory (HoTT0) and the relationship to the Natural Model}
+
+\subsection{Binary products and Exponentials}
+
+It is convenient to specialize $\Si$ and $\Pi$ types to their non-dependent
+counterparts.
+In the natural model we can construct these by considering first the map
+
+\[ (\fst, \snd) : \Type \times \Type \to \Poly{\tp}{\Type}\]
+
+which we can visualize in
+
+% https://q.uiver.app/#q=WzAsNSxbMiwwLCJcXFRlcm0iXSxbMiwxLCJcXFR5cGUiXSxbMSwxLCJcXFR5cGUgXFx0aW1lcyBcXFR5cGUiXSxbMSwwLCJcXFRlcm0gXFx0aW1lcyBcXFR5cGUiXSxbMCwwLCJcXFR5cGUiXSxbMCwxLCJcXHRwIl0sWzIsMSwiXFxmc3QiLDJdLFszLDIsIlxcZnN0XiogXFx0cCIsMl0sWzMsMF0sWzMsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzMsNCwiXFxzbmQiLDFdXQ==
+\[\begin{tikzcd}
+	\Type & {\Term \times \Type} & \Term \\
+	& {\Type \times \Type} & \Type
+	\arrow["\snd"{description}, from=1-2, to=1-1]
+	\arrow[from=1-2, to=1-3]
+	\arrow["{\fst^* \tp}"', from=1-2, to=2-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-2, to=2-3]
+	\arrow["\tp", from=1-3, to=2-3]
+	\arrow["\fst"', from=2-2, to=2-3]
+\end{tikzcd}\]
+
+Then, respectively, the pullback of the diagrams \cref{fig:pi_intp_pullback}
+and \cref{fig:si_intp_pullback} for interpreting $\Pi$ and $\Si$
+rules along this map give us pullback diagrams for interpreting
+function types and product types.
+% https://q.uiver.app/#q=WzAsNixbMSwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSJdLFsxLDEsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzIsMCwiXFxUZXJtIl0sWzIsMSwiXFxUeXBlIl0sWzAsMSwiXFxUeXBlIFxcdGltZXMgXFxUeXBlIl0sWzAsMCwiRiJdLFswLDEsIlxcUG9seXtcXHRwfXtcXHRwfSIsMl0sWzAsMiwiXFxsYSJdLFsyLDMsIlxcdHAiXSxbMSwzLCJcXFBpIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwxLCIoXFxmc3QsXFxzbmQpIiwyXSxbNSw0LCIoXFxkb20sXFxjb2QpIiwyXSxbNSwwLCIoXFxkb20sXFxmdW4pIiwyXSxbNCwzLCJcXEV4cCIsMix7ImN1cnZlIjo1fV0sWzUsMiwiXFxsYSIsMCx7ImN1cnZlIjotNH1dLFs1LDEsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
+\[\begin{tikzcd}[column sep = large]
+	F & {\Poly{\tp}{\Term}} & \Term \\
+	{\Type \times \Type} & {\Poly{\tp}{\Type}} & \Type
+	\arrow["{(\dom,\fun)}", from=1-1, to=1-2]
+	\arrow["\la", bend left, from=1-1, to=1-3]
+	\arrow["{(\dom,\cod)}"', from=1-1, to=2-1]
+	\arrow["\la", from=1-2, to=1-3]
+	\arrow["{\Poly{\tp}{\tp}}"', from=1-2, to=2-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-2, to=2-3]
+	\arrow["\tp", from=1-3, to=2-3]
+	\arrow["{(\fst,\snd)}"', from=2-1, to=2-2]
+	\arrow["\Exp"', bend right, from=2-1, to=2-3]
+	\arrow["\Pi"', from=2-2, to=2-3]
+\end{tikzcd}\]
+
+% https://q.uiver.app/#q=WzAsNixbMSwwLCJRIl0sWzEsMSwiXFxQb2x5e1xcdHB9e1xcVHlwZX0iXSxbMiwwLCJcXFRlcm0iXSxbMiwxLCJcXFR5cGUiXSxbMCwxLCJcXFR5cGUgXFx0aW1lcyBcXFR5cGUiXSxbMCwwLCJcXFRtIFxcdGltZXMgXFxUbSJdLFswLDEsIlxcdHAgXFx0cmlhbmdsZWxlZnQgXFx0cCIsMl0sWzAsMiwiXFxwYWlyIl0sWzIsMywiXFx0cCJdLFsxLDMsIlxcU2kiLDJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs0LDEsIihcXGZzdCxcXHNuZCkiLDJdLFs1LDQsIlxcdHAgXFx0aW1lcyBcXHRwIiwyXSxbNSwwLCIoXFxzbmQsIFxcZnN0LCBcXHRwIFxcY2lyYyBcXHNuZCkiXSxbNCwzLCJcXHRpbWVzIiwyLHsiY3VydmUiOjV9XSxbNSwyLCJcXHBhaXIiLDAseyJjdXJ2ZSI6LTR9XSxbNSwxLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
+\[\begin{tikzcd}[column sep = large]
+	{\Term \times \Term} & Q & \Term \\
+	{\Type \times \Type} & {\Poly{\tp}{\Type}} & \Type
+	\arrow["{(\snd, \fst, \tp \circ \snd)}", from=1-1, to=1-2]
+	\arrow["\pair", bend left, from=1-1, to=1-3]
+	\arrow["{\tp \times \tp}"', from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow["\pair", from=1-2, to=1-3]
+	\arrow["{\tp \triangleleft \tp}"', from=1-2, to=2-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-2, to=2-3]
+	\arrow["\tp", from=1-3, to=2-3]
+	\arrow["{(\fst,\snd)}"', from=2-1, to=2-2]
+	\arrow["\times"', bend right, from=2-1, to=2-3]
+	\arrow["\Si"', from=2-2, to=2-3]
+\end{tikzcd}\]
+
+By the universal property of pullbacks and
+\cref{polynomial_endofunctor_property}
+We can write a map $\Ga \to F$ as a triple $(A,B,f)$
+such that $A, B: \Ga \to \Type$ and
+% https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXEdhIFxcY2RvdCBBIl0sWzEsMCwiXFxUZXJtIl0sWzEsMSwiXFxUeXBlIl0sWzAsMSwiXFxHYSJdLFswLDEsImYiXSxbMSwyLCJcXHRwIl0sWzMsMiwiQiIsMl0sWzAsMywiXFxkaXNwe0F9IiwyXV0=
+\[\begin{tikzcd}
+	{\Ga \cdot A} & \Term \\
+	\Ga & \Type
+	\arrow["f", from=1-1, to=1-2]
+	\arrow["{\disp{A}}"', from=1-1, to=2-1]
+	\arrow["\tp", from=1-2, to=2-2]
+	\arrow["B"', from=2-1, to=2-2]
+\end{tikzcd}\]
+
+This gives us four equivalent ways we can view a function.
+Namely, as $f : \Ga \cdot A \to \Term$ in the above diagram,
+$\la \circ f : \Ga \to \Term$,
+as $(A,B,f) : \Ga \to F$, or as a map between the displays
+$\disp{A} \to \disp{B}$
+
+% https://q.uiver.app/#q=WzAsNSxbMSwyLCJcXEdhIl0sWzAsMCwiXFxHYSBcXGNkb3QgQSJdLFsxLDEsIlxcR2EgXFxjZG90IEIiXSxbMiwxLCJcXFRlcm0iXSxbMiwyLCJcXFR5cGUiXSxbMSwwLCJcXGRpc3B7QX0iLDJdLFsyLDAsIlxcZGlzcHtCfSIsMV0sWzEsMiwiKFxcZGlzcHtBfSxmKSIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFsyLDNdLFszLDRdLFswLDQsIkIiLDJdLFsyLDQsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFsxLDMsImYiXV0=
+\[\begin{tikzcd}
+	{\Ga \cdot A} \\
+	& {\Ga \cdot B} & \Term \\
+	& \Ga & \Type
+	\arrow["{(\disp{A},f)}"{description}, dashed, from=1-1, to=2-2]
+	\arrow["f", bend left, from=1-1, to=2-3]
+	\arrow["{\disp{A}}"', bend right, from=1-1, to=3-2]
+	\arrow[from=2-2, to=2-3]
+	\arrow["{\disp{B}}"{description}, from=2-2, to=3-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+	\arrow[from=2-3, to=3-3]
+	\arrow["B"', from=3-2, to=3-3]
+\end{tikzcd}\]
+
+For the formalization, we need not prove that the pullback of
+$\tp \triangleleft \tp$ is $\tp \times \tp$.
+Rather, we can also use the universal property of pullbacks
+and \cref{polynomial_endofunctor_property}
+to classify a map into the pullback (whatever it may be) as a
+pair $(\al, \be)$, where $\al, \be : \Ga \to \Term$.
+This could then be adapted to a proof that the pullback is
+what the diagram claims it to be.
+
+Naturally, there are the same constructions bounded by the universe,
+which will exist when $\Pi_{U}$ and $\Si_{U}$ exist.
+% https://q.uiver.app/#q=WzAsOCxbMCwwLCJcXFUgXFx0aW1lcyBcXFUiXSxbMCwxLCJcXFR5cGUgXFx0aW1lcyBcXFR5cGUiXSxbMSwxLCJcXFR5cGUiXSxbMSwwLCJcXFUiXSxbMywwLCJcXFUgXFx0aW1lcyBcXFUiXSxbMywxLCJcXFR5cGUgXFx0aW1lcyBcXFR5cGUiXSxbNCwwLCJcXFUiXSxbNCwxLCJcXFR5cGUiXSxbMCwxLCJcXEVsIFxcdGltZXMgXFxFbCIsMl0sWzEsMiwiXFxFeHAiLDJdLFswLDMsIlxcRXhwX1UiXSxbMywyLCJcXEVsIl0sWzQsNSwiXFxFbCBcXHRpbWVzIFxcRWwiLDJdLFs0LDYsIlxcdGltZXNfVSJdLFs1LDcsIlxcdGltZXMiLDJdLFs2LDcsIlxcRWwiXV0=
+\[\begin{tikzcd}
+	{\U \times \U} & \U && {\U \times \U} & \U \\
+	{\Type \times \Type} & \Type && {\Type \times \Type} & \Type
+	\arrow["{\Exp_U}", from=1-1, to=1-2]
+	\arrow["{\El \times \El}"', from=1-1, to=2-1]
+	\arrow["\El", from=1-2, to=2-2]
+	\arrow["{\times_U}", from=1-4, to=1-5]
+	\arrow["{\El \times \El}"', from=1-4, to=2-4]
+	\arrow["\El", from=1-5, to=2-5]
+	\arrow["\Exp"', from=2-1, to=2-2]
+	\arrow["\times"', from=2-4, to=2-5]
+\end{tikzcd}\]
+
+The identity function $\id_{A} : \Ga \to \Term$ of type $\Exp \circ (A,A) : \Ga \to \Type$
+can be defined by the following
+
+% https://q.uiver.app/#q=WzAsOSxbMCwyLCJcXEdhIl0sWzAsMSwiXFxHYSBcXGNkb3QgQSJdLFsxLDEsIlxcVGVybSJdLFsxLDIsIlxcVHlwZSJdLFszLDAsIlxcR2EiXSxbNCwxLCJGIl0sWzUsMSwiXFxUZXJtIl0sWzUsMiwiXFxUeXBlIl0sWzQsMiwiXFxUeXBlIFxcdGltZXMgXFxUeXBlIl0sWzEsMCwiXFxkaXNwe0F9IiwxXSxbMSwyLCJcXHZhcl97QX0iLDJdLFsyLDMsIlxcdHAiXSxbMCwzLCJBIiwyXSxbMSwzLCIiLDIseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCw1LCIoQSxBLFxcdmFyX3tBfSkiLDFdLFs1LDYsIlxcbGEiXSxbNiw3LCJcXHRwIl0sWzgsNywiXFxFeHAiLDJdLFs1LDgsIihcXGRvbSwgXFxjb2QpIiwxXSxbNCw4LCIoQSxBKSIsMl0sWzQsNiwiXFxpZF9BIiwwLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
+\[\begin{tikzcd}
+	&&& \Ga \\
+	{\Ga \cdot A} & \Term &&& F & \Term \\
+	\Ga & \Type &&& {\Type \times \Type} & \Type
+	\arrow["{(A,A,\var_{A})}"{description}, from=1-4, to=2-5]
+	\arrow["{\id_A}", bend left, dashed, from=1-4, to=2-6]
+	\arrow["{(A,A)}"', bend right, from=1-4, to=3-5]
+	\arrow["{\var_{A}}"', from=2-1, to=2-2]
+	\arrow["{\disp{A}}"{description}, from=2-1, to=3-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-1, to=3-2]
+	\arrow["\tp", from=2-2, to=3-2]
+	\arrow["\la", from=2-5, to=2-6]
+	\arrow["{(\dom, \cod)}"{description}, from=2-5, to=3-5]
+	\arrow["\tp", from=2-6, to=3-6]
+	\arrow["A"', from=3-1, to=3-2]
+	\arrow["\Exp"', from=3-5, to=3-6]
+\end{tikzcd}\]
+
+Viewed as a map between the display maps, this is simply the identity
+$\Ga \cdot A \to \Ga \cdot A$.
+% https://q.uiver.app/#q=WzAsNSxbMSwyLCJcXEdhIl0sWzEsMSwiXFxHYSBcXGNkb3QgQSJdLFsyLDEsIlxcVGVybSJdLFsyLDIsIlxcVHlwZSJdLFswLDAsIlxcR2EgXFxjZG90IEEiXSxbMSwwLCJcXGRpc3B7QX0iLDFdLFsxLDIsIlxcdmFyX3tBfSIsMl0sWzIsMywiXFx0cCJdLFswLDMsIkEiLDJdLFsxLDMsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs0LDAsIlxcZGlzcHtBfSIsMl0sWzQsMSwiIiwxLHsibGV2ZWwiOjIsInN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9LCJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzQsMiwiXFx2YXJfQSJdXQ==
+\[\begin{tikzcd}
+	{\Ga \cdot A} \\
+	& {\Ga \cdot A} & \Term \\
+	& \Ga & \Type
+	\arrow[Rightarrow, dashed, no head, from=1-1, to=2-2]
+	\arrow["{\var_A}", bend left, from=1-1, to=2-3]
+	\arrow["{\disp{A}}"', bend right, from=1-1, to=3-2]
+	\arrow["{\var_{A}}"', from=2-2, to=2-3]
+	\arrow["{\disp{A}}"{description}, from=2-2, to=3-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+	\arrow["\tp", from=2-3, to=3-3]
+	\arrow["A"', from=3-2, to=3-3]
+\end{tikzcd}\]
+
+Composition is also simplest when viewed as an operation on maps between fibers.
+Given $f : \disp{A} \to \disp{B}$ and $g : \disp{B} \to \disp{C}$,
+the composition is $g \circ f : \disp{A} \to \disp{C}$.
+
+\subsection{Univalence}
+
+For two types $A B : \Ga \to \Type$
+and two functions $f, g : A \to B$ we can define internally
+a \textit{homotopy} from $f$ to $g$ as
+\[ f \sim g := \Pi_{a : A} \, \Id (f \, a, g \, a) \]
+We define the types of left and right inverses of $f : A \to B$ as
+\[ \mathsf{BigLinv} f := \Si_{g : B \to A} \, g \circ f \sim \id_{A} \]
+\[ \mathsf{BigRinv} f := \Si_{g : B \to A} \, f \circ g \sim \id_{B} \]
+and the property of being an equivalence
+\[ \mathsf{IsBigEquiv} f := \mathsf{BigLinv} f \times \mathsf{BigRinv} f \]
+
+We could do the same for two small types $A, B : \Ga \to \U$
+
+\[ \mathsf{IsEquiv} f := \mathsf{Linv} f \times \mathsf{Rinv} f \]
+\[ \mathsf{Equiv} A \, B := \Si_{f : A \to B} \mathsf{IsEquiv} f\]
+
+Again, internally we can define a function
+\[ \mathsf{IdToEquiv} A \, B : \Id (A, B) \to \mathsf{Equiv} A \, B \]
+which uses $J$ to transport along the proof of equality to produce an equivalence.
+Univalence for universe $\U$ states that this itself is an equivalence
+\[ \mathsf{ua} : \mathsf{IsBigEquiv} (\mathsf{IdToEquiv} A \, B)\]
+Note that this statement is large, i.e. not a type in the universe $\U$.
+% https://q.uiver.app/#q=WzAsMyxbMSwxLCJcXFUgXFxjZG90IFxcVSJdLFswLDAsIlxcVSBcXGNkb3QgXFxVIFxcY2RvdCBcXElkIl0sWzIsMCwiXFxVIFxcY2RvdCBcXFUgXFxjZG90IFxcbWF0aHNme0VxdWl2fSJdLFsxLDBdLFsyLDBdLFsxLDIsIlxcbWF0aHNme0lkVG9FcXVpdn0iXV0=
+\[\begin{tikzcd}
+	{\U \cdot \U \cdot \Id} && {\U \cdot \U \cdot \mathsf{Equiv}} \\
+	& {\U \cdot \U}
+	\arrow["{\mathsf{IdToEquiv}}", from=1-1, to=1-3]
+	\arrow[from=1-1, to=2-2]
+	\arrow[from=1-3, to=2-2]
+\end{tikzcd}\]
+
+\subsection{Extensional identity types and UIP}
+
+In this section we outline variations on the identity type in the
+natural model.
+We will describe these as additional structure on $\Id$,
+as opposed to introducing different identity types.
+The first option is fully extensional identity types,
+i.e. those satisfying equality reflection and uniqueness of identity proofs (UIP).
+Equality reflection says that if one can construct a term satisfying $\Id(a,b)$
+then we have that definitionally $a \equiv b$,
+i.e. they are equal morphisms in the natural model.
+This amounts to requiring that \cref{figure:id_pullback_def} is a pullback,
+i.e. $\rho$ is an isomorphism
+% https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFRlcm0iXSxbMCwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwxLCJcXFR5cGUiXSxbMSwwLCJcXFRlcm0iXSxbMCwxLCJcXGRlIiwyXSxbMSwyLCJcXElkIiwyXSxbMywyLCJcXHRwIl0sWzAsMywiXFxyZWZsIl0sWzAsMiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
+\[\begin{tikzcd}
+	\Term & \Term \\
+	{\tp \times_\Type \tp} & \Type
+	\arrow["\refl", from=1-1, to=1-2]
+	\arrow["\de"', from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow["\tp", from=1-2, to=2-2]
+	\arrow["\Id"', from=2-1, to=2-2]
+\end{tikzcd}\]
+Note that this means $\Star{\rho}$ is an isomorphism,
+from which it follows that \cref{J_definition_diagram} is also a pullback,
+i.e. $\ep$ is an isomorphism.
+% https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7cX0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcVHlwZX0iXSxbMSwxLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMSwwLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcdHB9IiwyXSxbMSwyLCJcXFN0YXJ7XFxyaG99X3tcXFR5cGV9IiwyXSxbMywyLCJcXFBvbHl7XFx0cH0ge1xcdHB9Il0sWzAsMywiXFxTdGFye1xccmhvfV97XFxUZXJtfSJdLFswLDIsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
+\[\begin{tikzcd}
+	{\Poly{q} {\Term}} & {\Poly{\tp} {\Term}} \\
+	{\Poly{q} {\Type}} & {\Poly{\tp} {\Term}}
+	\arrow["{\Star{\rho}_{\Term}}", from=1-1, to=1-2]
+	\arrow["{\Poly{q} {\tp}}"', from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow["{\Poly{\tp} {\tp}}", from=1-2, to=2-2]
+	\arrow["{\Star{\rho}_{\Type}}"', from=2-1, to=2-2]
+\end{tikzcd}\]
+
+If we were to only require UIP then this is asking that
+$I \to \tp \times_{\Type} \tp$ is a strict proposition,
+meaning for any $(a,b) : \Ga \to \tp \times_{\Type} \tp$
+there it at most one lift
+% https://q.uiver.app/#q=WzAsMyxbMCwxLCJcXEdhIl0sWzEsMSwiXFx0cCBcXHRpbWVzX1xcVHlwZSBcXHRwIl0sWzEsMCwiSSJdLFswLDEsIihhLGIpIiwyXSxbMiwxXSxbMCwyLCIhIiwwLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
+\[\begin{tikzcd}
+	& I \\
+	\Ga & {\tp \times_\Type \tp}
+	\arrow[from=1-2, to=2-2]
+	\arrow["{!}", dashed, from=2-1, to=1-2]
+	\arrow["{(a,b)}"', from=2-1, to=2-2]
+\end{tikzcd}\]
+
+One might wonder what other variations we could
+come up with by tweaking the pullback conditions.
+In fact, only requiring that $\rho$ has a section
+is equivalent to requiring that $\rho$ is an isomorphism.
+So this just the extensional case again.
+
+If we require instead that $\ep$ is an isomorphism
+then this is giving an $\eta$-rule for $J$,
+from which we can prove equality reflection and UIP
+\cite{streicher1995ExtensionalConceptsInIntensionalTypeTheory}.
+So this just the extensional case again.
