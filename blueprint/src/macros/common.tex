@@ -1,0 +1,123 @@
+% In this file you should put all LaTeX macros and settings to be used both by
+% the pdf version and the web version.
+% This should be most of your macros.
+
+% The theorem-like environments defined below are those that appear by default
+% in the dependency graph. See the README of leanblueprint if you need help to
+% customize this. 
+% The configuration below use the theorem counter for all those environments
+% (this is what the [theorem] arguments mean) and never resets it.
+% If you want for instance to number them within chapters then you can add
+% [chapter] at the end of the next line.
+
+%%%%%%% THEOREMS %%%%%%%%%
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem*{theorem*}{Theorem}
+\newtheorem{prop}[theorem]{Proposition}
+\newtheorem{obs}[theorem]{Observation}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{cor}[theorem]{Corollary}
+\newtheorem{applemma}{Lemma}[section]
+
+\theoremstyle{definition}
+\newtheorem{defn}[theorem]{Definition}
+
+\theoremstyle{remark}
+\newtheorem{rmk}[theorem]{Remark}
+\newtheorem*{eg}{Example}
+\newtheorem{ex}{Exercise}
+\newtheorem*{remark*}{Remark}
+\newtheorem*{remarks*}{Remarks}
+\newtheorem*{notation*}{Notation}
+\newtheorem*{convention*}{Convention}
+
+\newenvironment{comment}{\begin{quote} \em Comment. }{\end{quote}}
+
+%%%%%%% SYMBOLS %%%%%%%%%
+
+\newcommand{\defeq}{=_{\mathrm{def}}}
+\newcommand{\iso}{\cong}
+\newcommand{\equi}{\simeq}
+\newcommand{\retequi}{\unlhd}
+\newcommand{\op}{\mathrm{op}}
+\newcommand{\Nat}{\mathbb{N}}
+\newcommand{\co}{\colon}
+\newcommand{\st}{\,|\,}
+
+% \newcommand{\cat}{\mathbb}
+\newcommand{\catC}{\mathbb{C}}
+\newcommand{\tcat}{\mathbf}
+\newcommand{\id}{\mathsf{id}}
+\newcommand{\psh}[1]{\mathbf{Psh}(#1)} %% consider renaming to \Psh
+\newcommand{\PSH}[1]{\mathbf{PSH}(#1)}
+\newcommand{\yo}{\mathsf{y}}
+\newcommand{\pshC}{\psh{\catC}}
+\newcommand{\Arr}{\mathsf{Arr}}
+\newcommand{\CartArr}{\mathsf{CartArr}}
+\newcommand{\unit}{\, \mathsf{unit} \, }
+\newcommand{\counit}{\, \mathsf{counit} \, }
+\newcommand{\terminal}{\bullet}
+\newcommand{\Two}{\bullet+\bullet}
+
+\newcommand{\set}{\tcat{set}}
+\newcommand{\Set}{\tcat{Set}}
+\newcommand{\SET}{\tcat{SET}}
+\newcommand{\cat}{\tcat{cat}}
+\newcommand{\ptcat}{\tcat{cat}_\bullet}
+\newcommand{\Cat}{\tcat{Cat}}
+\newcommand{\ptCat}{\tcat{Cat}_\bullet}
+\newcommand{\grpd}{\tcat{grpd}}
+\newcommand{\Grpd}{\tcat{Grpd}}
+\newcommand{\ptgrpd}{\tcat{grpd}_\bullet}
+\newcommand{\ptGrpd}{\tcat{Grpd}_\bullet}
+\newcommand{\Pshgrpd}{\mathbf{Psh}(\grpd)}
+\newcommand{\PshCat}{\mathbf{Psh}(\Cat)}
+
+\newcommand{\Poly}[1]{P_{#1}}
+\newcommand{\Star}[1]{{#1}^{\star}}
+
+\newcommand{\Type}{\mathsf{Ty}}
+\newcommand{\Term}{\mathsf{Tm}}
+\newcommand{\tp}{\mathsf{tp}}
+\newcommand{\disp}[1]{\mathsf{disp}_{#1}}
+\newcommand{\var}{\mathsf{var}}
+\newcommand{\Prop}{\mathsf{Prop}}
+\newcommand{\U}{\mathsf{U}}
+\newcommand{\E}{\mathsf{E}}
+\newcommand{\El}{\mathsf{El}}
+\newcommand{\pair}{\mathsf{pair}}
+\newcommand{\Id}{\mathsf{Id}}
+\newcommand{\refl}{\mathsf{refl}}
+\newcommand{\J}{\mathsf{J}}
+\newcommand{\fst}{\mathsf{fst}}
+\newcommand{\snd}{\mathsf{snd}}
+\newcommand{\ev}[2]{\mathsf{ev}_{#1} \, #2}
+\newcommand{\dom}{\mathsf{dom}}
+\newcommand{\cod}{\mathsf{cod}}
+\newcommand{\Exp}{\mathsf{Exp}}
+\newcommand{\fun}{\mathsf{fun}}
+
+\newcommand{\Fib}{\mathsf{Fib}}
+\newcommand{\lift}[2]{\mathsf{lift} \, #1 \, #2}
+\newcommand{\fiber}{\mathsf{fiber}}
+\newcommand{\Interval}{\mathbb{I}}
+
+
+% % Greek
+\newcommand{\al}{\alpha}
+\newcommand{\be}{\beta}
+\newcommand{\ga}{\gamma}
+\newcommand{\de}{\delta}
+\newcommand{\ep}{\varepsilon}
+\newcommand{\io}{\iota}
+\newcommand{\ka}{\kappa}
+\newcommand{\la}{\lambda}
+\newcommand{\om}{\omega}
+\newcommand{\si}{\sigma}
+
+\newcommand{\Ga}{\Gamma}
+\newcommand{\De}{\Delta}
+\newcommand{\Th}{\Theta}
+\newcommand{\La}{\Lambda}
+\newcommand{\Si}{\Sigma}
+\newcommand{\Om}{\Omega}

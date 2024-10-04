@@ -10,7 +10,6 @@ import GroupoidModel.NaturalModel
 
 -- (SH) TODO: Make the proof and construction work with `Disp` rather than `Disp'`.
 
-
 universe u
 
 open CategoryTheory Category Limits
@@ -35,7 +34,6 @@ structure Disp' where
   p : T ⟶ B
   disp : DisplayStruct π p := by infer_instance
 
-
 variable (C) in
 
 /-- `Cart C` is a typeclass synonym for `Arrow C` which comes equipped with
@@ -51,8 +49,8 @@ lemma IsPullback.of_horiz_id {X Y : C} (f : X ⟶ Y) : IsPullback (𝟙 X) f f (
 instance : Category (Cart C) where
   Hom p q := { v : p ⟶ q // IsPullback v.left p.hom q.hom v.right}
   id p := ⟨ ⟨𝟙 _, 𝟙 _, by simp⟩, IsPullback.of_horiz_id p.hom⟩
-  comp {p q r} u v := ⟨⟨u.1.left ≫ v.1.left, u.1.right ≫ v.1.right, by simp⟩, by
-    apply IsPullback.paste_horiz u.2 v.2⟩
+  comp {p q r} u v := ⟨⟨u.1.left ≫ v.1.left, u.1.right ≫ v.1.right, by simp⟩,
+    IsPullback.paste_horiz u.2 v.2⟩
   id_comp {p q} f:= by
     simp only [Functor.id_obj, Arrow.mk_left, Arrow.mk_right, id_comp]
     rfl -- we can replace by aesop, but they are a bit slow

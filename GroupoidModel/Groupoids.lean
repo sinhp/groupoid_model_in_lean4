@@ -760,9 +760,7 @@ def Tm_functor : Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1) where
 
 -- This is the typing natural transformation
 def tp_NatTrans : NatTrans Tm_functor Ty_functor where
-  app x := by
-    intro a
-    exact a ⋙ PGrpd.forgetPoint
+  app x := fun a ↦ a ⋙ PGrpd.forgetPoint
 
 -- This is the var construction of var before applying yoneda
 def var' (Γ : Grpd)(A : Γ ⥤ Grpd) : (GroupoidalGrothendieck A) ⥤ PGrpd where
