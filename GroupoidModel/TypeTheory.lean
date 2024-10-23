@@ -159,29 +159,44 @@ def Context.weak (Γ : Context Ctx) (A : Γ.ty)
   {P : Psh Ctx} (f : y(Γ.1) ⟶ P) : y((cons Γ A).1) ⟶ P :=
   yoneda.map (disp Γ.1 A) ≫ f
 
-protected def Context.var (Γ : Context Ctx) (i : ℕ) : Part Γ.tm :=
-  match Γ, i with
-  | ⟨_, .nil⟩, _ => .none
-  | ⟨_, .cons _ _⟩, 0 => pure <| var ..
-  | ⟨_, .cons _ Γ⟩, n+1 => Context.weak ⟨_, Γ⟩ _ <$> Context.var ⟨_, Γ⟩ n
+protected def CtxStack.var {Γ : Ctx} : CtxStack Γ → ℕ → Part (y(Γ) ⟶ Tm)
+  | .nil, _ => .none
+  | .cons _ _, 0 => pure <| var ..
+  | .cons _ S, n+1 => Context.weak ⟨_, S⟩ _ <$> S.var n
 
-def substCons {Γ Δ : Ctx} (σ : Γ ⟶ Δ)
-    (e : y(Γ) ⟶ Tm) (A : y(Δ) ⟶ Ty) (eTy : e ≫ tp = yoneda.map σ ≫ A) :
-    Γ ⟶ ext Δ A := by
-  refine Yoneda.fullyFaithful.1 <| (disp_pullback A).isLimit.lift <|
-    PullbackCone.mk e (yoneda.map σ) ?_
+protected def Context.var (Γ : Context Ctx) (i : ℕ) : Part Γ.tm := Γ.2.var i
+
+def substCons {Γ Δ : Ctx} (σ : y(Γ) ⟶ y(Δ))
+    (e : y(Γ) ⟶ Tm) (A : y(Δ) ⟶ Ty) (eTy : e ≫ tp = σ ≫ A) :
+    y(Γ) ⟶ y(ext Δ A) := by
+  refine yoneda.map <| Yoneda.fullyFaithful.1 <| (disp_pullback A).isLimit.lift <|
+    PullbackCone.mk e σ ?_
   ext; simp [← eTy]
 
-def substFst {Γ Δ : Ctx} {A : y(Δ) ⟶ Ty} (σ : Γ ⟶ ext Δ A) : Γ ⟶ Δ := σ ≫ disp _ _
+@[reassoc (attr := simp)] theorem substCons_var {Γ Δ : Ctx} (σ : y(Γ) ⟶ y(Δ))
+    (e : y(Γ) ⟶ Tm) (A : y(Δ) ⟶ Ty) (eTy : e ≫ tp = σ ≫ A) :
+    substCons σ e A eTy ≫ var _ _ = e := by
+  simpa [substCons] using (disp_pullback A).isLimit.fac _ (some .left)
 
-def substSnd {Γ Δ : Ctx} {A : y(Δ) ⟶ Ty} (σ : Γ ⟶ ext Δ A) : y(Γ) ⟶ Tm := yoneda.map σ ≫ var _ _
+@[reassoc (attr := simp)] theorem substCons_disp {Γ Δ : Ctx} (σ : y(Γ) ⟶ y(Δ))
+    (e : y(Γ) ⟶ Tm) (A : y(Δ) ⟶ Ty) (eTy : e ≫ tp = σ ≫ A) :
+    substCons σ e A eTy ≫ yoneda.map (disp _ _) = σ := by
+  simpa [substCons] using (disp_pullback A).isLimit.fac _ (some .right)
 
-theorem substSnd_ty {Γ Δ : Ctx} {A : y(Δ) ⟶ Ty} (σ : Γ ⟶ ext Δ A) :
-    substSnd σ ≫ tp = yoneda.map (substFst σ) ≫ A := by
+def substFst {Γ Δ : Ctx} {A : y(Δ) ⟶ Ty} (σ : y(Γ) ⟶ y(ext Δ A)) : y(Γ) ⟶ y(Δ) :=
+  σ ≫ yoneda.map (disp _ _)
+
+def substSnd {Γ Δ : Ctx} {A : y(Δ) ⟶ Ty} (σ : y(Γ) ⟶ y(ext Δ A)) : y(Γ) ⟶ Tm := σ ≫ var _ _
+
+theorem substSnd_ty {Γ Δ : Ctx} {A : y(Δ) ⟶ Ty} (σ : y(Γ) ⟶ y(ext Δ A)) :
+    substSnd σ ≫ tp = substFst σ ≫ A := by
   simp [substSnd, substFst]; rw [(disp_pullback _).w]
 
+def weakSubst {Δ Γ : Ctx} (f : y(Δ) ⟶ y(Γ)) (A : y(Γ) ⟶ Ty) : y(ext Δ (f ≫ A)) ⟶ y(ext Γ A) :=
+  substCons (yoneda.map (disp ..) ≫ f) (var ..) _ (by simpa using (disp_pullback (f ≫ A)).w)
+
 def mkEl {Γ : Context Ctx} (A : Γ.typed wU) : Γ.ty :=
-  yoneda.map (substCons (terminal.from _) A.1 _ A.2) ≫ El
+  substCons (yoneda.map $ terminal.from _) A.1 _ A.2 ≫ El
 
 def mkP_equiv {Γ : Ctx} {X : Psh Ctx} :
     (y(Γ) ⟶ (P tp).obj X) ≃ (A : y(Γ) ⟶ Ty) × (y(ext Γ A) ⟶ X) :=
@@ -197,18 +212,28 @@ theorem mkP_app {Γ : Ctx} {X Y : Psh Ctx} (A : y(Γ) ⟶ Ty)
     mkP A B ≫ (P tp).map F = mkP A (B ≫ F) := by
   sorry
 
+theorem comp_mkP {Δ Γ : Ctx} (f : y(Δ) ⟶ y(Γ)) (A : y(Γ) ⟶ Ty) (B : y(ext Γ A) ⟶ X) :
+    f ≫ mkP A B = mkP (f ≫ A) (weakSubst f A ≫ B) := by
+  sorry
+
 def mkPi {Γ : Context Ctx} (A : Γ.ty) (B : (Γ.cons A).ty) : Γ.ty :=
   mkP A B ≫ NaturalModelPi.Pi
+
+theorem comp_mkPi {Γ Δ : Context Ctx} (f : y(Δ.1) ⟶ y(Γ.1)) (A : Γ.ty) (B : (Γ.cons A).ty) :
+    f ≫ mkPi A B = mkPi (f ≫ A) (weakSubst f A ≫ B) := by simp [mkPi, ← comp_mkP]
 
 def mkLam' {Γ : Context Ctx} (A : Γ.ty) (e : (Γ.cons A).tm) : Γ.tm :=
   mkP A e ≫ NaturalModelPi.lam
 
+theorem comp_mkLam' {Γ Δ : Context Ctx} (f : y(Δ.1) ⟶ y(Γ.1)) (A : Γ.ty) (B : (Γ.cons A).tm) :
+    f ≫ mkLam' A B = mkLam' (f ≫ A) (weakSubst f A ≫ B) := by simp [mkLam', ← comp_mkP]
+
 def Context.subst {Γ : Context Ctx} {X : Psh Ctx}
     (A : Γ.ty) (B : y((Γ.cons A).1) ⟶ X) (a : Γ.typed A) : y(Γ.1) ⟶ X :=
-  yoneda.map (substCons (𝟙 _) a.1 A (by simpa using a.2)) ≫ B
+  substCons (𝟙 _) a.1 A (by simpa using a.2) ≫ B
 
-def mkTyped {Γ Δ : Context Ctx} {A : Δ.ty} (σ : Γ.1 ⟶ ext Δ.1 A)
-    {Aσ} (eq : yoneda.map (substFst σ) ≫ A = Aσ) :
+def mkTyped {Γ Δ : Context Ctx} {A : Δ.ty} (σ : y(Γ.1) ⟶ y(ext Δ.1 A))
+    {Aσ} (eq : substFst σ ≫ A = Aσ) :
     Γ.typed Aσ := ⟨substSnd _, eq ▸ substSnd_ty _⟩
 
 def mkLam {Γ : Context Ctx} (A : Γ.ty) (B : (Γ.cons A).ty) (e : (Γ.cons A).typed B) :
@@ -239,12 +264,13 @@ def mkApp {Γ : Context Ctx} (A : Γ.ty) (B : (Γ.cons A).ty)
   congr! 1; exact (mkPApp A B f).2
 
 def mkSmallPi {Γ : Context Ctx} (A : Γ.typed wU) (B : (Γ.cons (mkEl A)).typed wU) : Γ.typed wU := by
-  refine mkTyped (Δ := .nil)
-    (Yoneda.fullyFaithful.preimage (?_ ≫ NaturalModelSmallPi.SmallPi (Ctx := Ctx)))
-    (by simp [wU, Context.nil]; congr; ext)
+  refine mkTyped (Δ := .nil) (?a ≫ NaturalModelSmallPi.SmallPi (Ctx := Ctx)) ?b
+  case b =>
+    simp only [Context.nil, Psh, wU, substFst]; congr
+    apply Yoneda.fullyFaithful.homEquiv.symm.injective; ext
   refine ((uvPoly _).equiv' _ _).2 ⟨?_, ?_⟩
-  · exact yoneda.map (substCons (terminal.from _) A.1 _ A.2)
-  · refine ?_ ≫ yoneda.map (substCons (terminal.from _) B.1 _ B.2)
+  · exact substCons (yoneda.map $ terminal.from _) A.1 _ A.2
+  · refine ?_ ≫ substCons (yoneda.map $ terminal.from _) B.1 _ B.2
     dsimp [uvPoly]
     refine (disp_pullback (Ctx := Ctx) _).isLimit.lift <|
       PullbackCone.mk (pullback.fst ≫ var _ _) pullback.snd ?_
@@ -288,10 +314,118 @@ def ofCtx : List TyExpr → Part (Context Ctx)
   | [] => pure .nil
   | A :: Γ => do let Γ ← ofCtx Γ; Γ.cons (← ofType Γ A)
 
+theorem ofTerm_app (Γ : Context Ctx) {f a e'} :
+    e' ∈ ofTerm Γ (.app f a) ↔ ∃ f' ∈ ofTerm Γ f, ∃ a' ∈ ofTerm Γ a, ∃ t', ∃ ht' : a' ≫ tp = t',
+      ∃ B, ∃ hB : f' ≫ tp = mkPi t' B, e' = (mkApp _ B ⟨f', hB⟩ ⟨a', ht'⟩).1 := by
+  simp [ofTerm]
+  refine exists_congr fun f' => and_congr_right fun hf => ?_
+  refine exists_congr fun a' => and_congr_right fun ha => ?_
+  refine ⟨fun ⟨⟨B, hB⟩, H⟩ => ⟨_, rfl, _, _, H⟩,
+    fun ⟨_, rfl, B, hB, H⟩ => have h := ⟨B, hB⟩; ⟨h, ?_⟩⟩
+  suffices ∀ B', f' ≫ tp = mkPi (a' ≫ tp) B' → B = B' by
+    specialize this h.choose h.choose_spec
+    subst B; exact H
+  intro B' hB'
+  simp [hB, mkPi] at hB'
+  sorry
+
 -- mutual
 
 -- theorem ofTerm_lift (h : e' ∈ ofTerm Γ (.liftN e k)) : e' ∈ ofTerm Γ (.liftN e k) := sorry
 -- end
+
+@[simp] def CtxStack.size {Γ : Ctx} : CtxStack Γ → Nat
+  | .nil => 0
+  | .cons _ S => S.size + 1
+
+@[simp] def CtxStack.dropN {Γ : Ctx} : ∀ k (S : CtxStack Γ), k ≤ S.size → Context Ctx
+  | 0, S, _ => ⟨Γ, S⟩
+  | _+1, .cons .., h => CtxStack.dropN _ _ (Nat.le_of_succ_le_succ h)
+
+@[simp] def CtxStack.dropN_disp {Γ : Ctx} :
+    ∀ (k : Nat) (S : CtxStack Γ) (h : k ≤ S.size), Γ ⟶ (S.dropN k h).1
+  | 0, _, _ => 𝟙 _
+  | _+1, .cons .., h => disp .. ≫ CtxStack.dropN_disp _ _ (Nat.le_of_succ_le_succ h)
+
+@[simp] def CtxStack.extN {Γ : Ctx} : ∀ {k : Nat} {S : CtxStack Γ} {h : k ≤ S.size},
+    (S.dropN k h).ty → Σ Δ : Context Ctx, y(Δ.1) ⟶ y(Γ)
+  | 0, _, _, X => ⟨.cons _ X, yoneda.map (disp ..)⟩
+  | _+1, .cons A _, h, X =>
+    let ⟨Δ, wk⟩ := CtxStack.extN (h := Nat.le_of_succ_le_succ h) X
+    ⟨.cons Δ (wk ≫ A), weakSubst ..⟩
+
+def Context.tyN (Γ : Context Ctx) (k : Nat) : Type u := Σ' h : k ≤ Γ.2.size, (Γ.2.dropN k h).ty
+
+def Context.tyN.up {Γ : Context Ctx} {k : Nat} {A} : Γ.tyN k → (Γ.cons A).tyN (k+1)
+  | ⟨h, X⟩ => ⟨Nat.succ_le_succ h, X⟩
+
+def Context.tyN.down {Γ : Context Ctx} {k : Nat} {A} : (Γ.cons A).tyN (k+1) → Γ.tyN k
+  | ⟨h, X⟩ => ⟨Nat.le_of_succ_le_succ h, X⟩
+
+def Context.consN (Γ : Context Ctx) (A : Γ.tyN k) : Context Ctx := (Γ.2.extN A.2).1
+
+def Context.dispN (Γ : Context Ctx) (A : Γ.tyN k) : y((consN Γ A).1) ⟶ y(Γ.1) := (Γ.2.extN A.2).2
+
+def Context.weakN (Γ : Context Ctx) (A : Γ.tyN k)
+  {P : Psh Ctx} (f : y(Γ.1) ⟶ P) : y((consN Γ A).1) ⟶ P := dispN Γ A ≫ f
+
+mutual
+
+theorem ofType_liftN {k : Nat} {Γ : Context Ctx} :
+  ∀ {A A'} (X : Γ.tyN k), A' ∈ ofType Γ A → Context.weakN Γ X A' ∈ ofType (Γ.consN X) (A.liftN 1 k)
+  | .univ, _, _, H => by
+    simp [ofType] at H; subst H; simp [TyExpr.liftN, ofType]; apply comp_wU
+  | .pi A B, _, X, H => by
+    simp [ofType] at H
+    obtain ⟨A', hA, B', hB, rfl⟩ := H
+    simp [TyExpr.liftN, ofType]
+    refine ⟨_, ofType_liftN X hA, _, ofType_liftN X.up hB, ?_⟩
+    apply comp_mkPi
+  | .el A, _, X, H => by
+    simp [ofType] at H
+    obtain ⟨A', hA, ha, rfl⟩ := H
+    simp [TyExpr.liftN, ofType, ofTerm]
+    refine ⟨_, ofTerm_liftN X hA, by simp [Context.weakN, ha], ?_⟩
+    simp only [Context.weakN, mkEl, ← Category.assoc]; congr 1
+    sorry
+
+theorem ofTerm_liftN {k : Nat} {Γ : Context Ctx} : ∀ {e e'} (X : Γ.tyN k),
+    e' ∈ ofTerm Γ e → Context.weakN Γ X e' ∈ ofTerm (Γ.consN X) (e.liftN 1 k)
+  | .bvar n, e', ⟨hX, X⟩, H => by
+    let ⟨Γ, S⟩ := Γ
+    simp only [Expr.liftN, ofTerm, Context.var, Context.consN, Context.weakN, Context.dispN] at H ⊢
+    dsimp [Context.tm] at X hX e'
+    induction k generalizing n Γ with
+    | zero =>
+      simp [Context.cons, CtxStack.var]
+      exact ⟨_, H, rfl⟩
+    | succ k ih =>
+      obtain _ | ⟨A, S⟩ := S; · nomatch hX
+      cases n with simp [CtxStack.var] at H
+      | zero => subst e'; simp [CtxStack.var, weakSubst]
+      | succ n =>
+        obtain ⟨e, he, rfl⟩ := H
+        simp [CtxStack.var]
+        refine ⟨_, ih n _ S e (Nat.le_of_succ_le_succ hX) X he, ?_⟩
+        simp [Context.weak, weakSubst]
+  | .app f a, _, X, H => by
+    simp [Expr.liftN, ofTerm_app] at H ⊢
+    obtain ⟨f', hf, a', ha, _, rfl, B, hB, rfl⟩ := H
+    refine ⟨_, ofTerm_liftN X hf, _, ofTerm_liftN X ha, ?_⟩
+    refine ⟨Γ.weakN X (a' ≫ tp), ?_, Context.weakN _ X.up B, ?_, ?_⟩
+    · simp [Context.weakN]
+    · simp [Context.weakN, hB, comp_mkPi]; rfl
+    · sorry
+  | .lam ty val, _, _, H => sorry
+  | .pi A B, _, _, H => sorry
+
+end
+
+theorem ofType_lift {Γ : Context Ctx} {A A'} (X : Γ.ty) (H : A' ∈ ofType Γ A) :
+    Context.weak Γ X A' ∈ ofType (Γ.cons X) A.lift := ofType_liftN ⟨Nat.zero_le _, X⟩ H
+
+theorem ofTerm_lift {Γ : Context Ctx} {e e'} (X : Γ.ty) (H : e' ∈ ofTerm Γ e) :
+    Context.weak Γ X e' ∈ ofTerm (Γ.cons X) e.lift := ofTerm_liftN ⟨Nat.zero_le _, X⟩ H
 
 theorem ofTerm_ofType_correct :
     (∀ {Γ e A} (H : HasType Γ e A) {Γ'} (hΓ : Γ' ∈ ofCtx (Ctx := Ctx) Γ),
@@ -302,39 +436,44 @@ theorem ofTerm_ofType_correct :
       ∃ A' ∈ ofType Γ' A, ∃ e' ∈ ofTerm Γ' e, e' ≫ tp = A'
   let ofType_correct Γ A := ∀ {Γ'}, Γ' ∈ ofCtx (Ctx := Ctx) Γ → (ofType Γ' A).Dom
   refine
-    ⟨@HasType.rec
-      (fun Γ e A _ => ofTerm_correct Γ e A)
-      (fun Γ A _ => ofType_correct Γ A)
+    ⟨@HasType.rec (fun Γ e A _ => ofTerm_correct Γ e A) (fun Γ A _ => ofType_correct Γ A)
       ?weak ?bvar ?app ?lam ?univ ?el ?pi,
-     @IsType.rec
-      (fun Γ e A _ => ofTerm_correct Γ e A)
-      (fun Γ A _ => ofType_correct Γ A)
+     @IsType.rec (fun Γ e A _ => ofTerm_correct Γ e A) (fun Γ A _ => ofType_correct Γ A)
       ?weak ?bvar ?app ?lam ?univ ?el ?pi⟩
-  stop
   case bvar =>
     intro A Γ Γ' hΓ
     simp [ofCtx] at hΓ
     obtain ⟨Γ', hΓ', A', hA, rfl⟩ := hΓ
-    refine ⟨_, _, _⟩
+    refine ⟨_, ofType_lift A' hA, _, by rw [ofTerm]; apply Part.mem_some, ?_⟩
+    rw [(disp_pullback A').w]; rfl
   case weak =>
-    intro A Γ Γ' hΓ
+    intro e A Γ he ihe Γ' hΓ
+    simp [ofCtx] at hΓ
+    obtain ⟨Γ', hΓ, A', hA, rfl⟩ := hΓ
+    obtain ⟨_, hA', e', he', rfl⟩ := ihe hΓ
+    cases Part.mem_unique hA hA'
+    refine ⟨_, ofType_lift _ hA, _, ofTerm_lift _ he', by simp [Context.weak]⟩
   case app =>
-    intro A Γ Γ' hΓ
+    intro A B f a Γ hf ha ihf iha Γ' hΓ
+    sorry
   case lam =>
-    intro A Γ Γ' hΓ
+    intro A B e Γ hA he ihA ihe Γ' hΓ
+    have ⟨A', hA⟩ := Part.dom_iff_mem.1 (ihA hΓ)
+    obtain ⟨_, hB, e', he, rfl⟩ := ihe (by simpa [ofCtx] using ⟨_, hΓ, _, hA, rfl⟩)
+    simp [ofType, ofTerm]
+    exact ⟨_, ⟨_, hA, _, hB, rfl⟩, _, ⟨_, hA, _, he, rfl⟩, (mkLam ..).2⟩
   case el =>
-    intro A Γ Γ' hΓ
+    intro A Γ hA ihA Γ' hΓ
+    simp [ofType, Part.assert]
+    have := ihA hΓ; simp [ofType] at this
+    have ⟨_, ⟨h, rfl⟩, eq⟩ := this
+    exact ⟨h, eq⟩
   case pi =>
-    intro A Γ Γ' hΓ
-  case univ =>
-    intro A Γ Γ' hΓ
-
-  -- have := @HasType.recOn
-  --   (motive_1 := fun Γ e A _ => ∀ {Γ'} (hΓ : Γ' ∈ ofCtx (Ctx := Ctx) Γ),
-  --     ∃ A' ∈ ofType Γ' A, ∃ e' ∈ ofTerm Γ' e, e' ≫ tp = A')
-  --   (motive_2 := fun Γ A _ => ∀ {Γ'} (hΓ : Γ' ∈ ofCtx (Ctx := Ctx) Γ),
-  --     (ofType Γ' A).Dom)
-
+    intro A B Γ hA hB ihA ihB Γ' hΓ
+    simp [ofType]
+    refine ⟨ihA hΓ, ihB ?_⟩; simp [ofCtx]
+    exact ⟨_, hΓ, _, Part.get_mem _, rfl⟩
+  case univ => intro Γ Γ' hΓ; simp [ofType]
 
 theorem ofTerm_correct {Γ e A} (H : HasType Γ e A) {Γ'} (hΓ : Γ' ∈ ofCtx (Ctx := Ctx) Γ) :
     ∃ A' ∈ ofType Γ' A, ∃ e' ∈ ofTerm Γ' e, e' ≫ tp = A' := ofTerm_ofType_correct.1 H hΓ
