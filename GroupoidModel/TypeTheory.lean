@@ -192,6 +192,7 @@ theorem comp_substUnit {Δ Γ : Ctx} (σ : y(Δ) ⟶ y(Γ)) (f : Γ ⟶ ⊤_ Ctx
     σ ≫ yoneda.map f = yoneda.map f' := by
   apply Yoneda.fullyFaithful.homEquiv.symm.injective; ext
 
+@[reassoc]
 theorem comp_substCons {Γ Γ' Δ : Ctx} (τ : y(Γ') ⟶ y(Γ)) (σ : y(Γ) ⟶ y(Δ))
     (e : y(Γ) ⟶ Tm) (A : y(Δ) ⟶ Ty) (eTy : e ≫ tp = σ ≫ A) :
     τ ≫ substCons σ e A eTy = substCons (τ ≫ σ) (τ ≫ e) A (by simp [eTy]) := by
@@ -234,11 +235,11 @@ def mkP {Γ : Ctx} {X : Psh Ctx} (A : y(Γ) ⟶ Ty) (B : y(ext Γ A) ⟶ X) :
 theorem mkP_app {Γ : Ctx} {X Y : Psh Ctx} (A : y(Γ) ⟶ Ty)
     (F : X ⟶ Y) (B : y(ext Γ A) ⟶ X) :
     mkP A B ≫ (P tp).map F = mkP A (B ≫ F) := by
-  sorry
+  sorry -- left naturality of UvPoly.equiv + left naturality of sigmaCongrRight
 
 theorem comp_mkP {Δ Γ : Ctx} (σ : y(Δ) ⟶ y(Γ)) (A : y(Γ) ⟶ Ty) (B : y(ext Γ A) ⟶ X) :
     σ ≫ mkP A B = mkP (σ ≫ A) (weakSubst σ A ≫ B) := by
-  sorry
+  sorry -- right naturality of UvPoly.equiv + right naturality of sigmaCongrRight
 
 def mkPi {Γ : Context Ctx} (A : Γ.ty) (B : (Γ.cons A).ty) : Γ.ty :=
   mkP A B ≫ NaturalModelPi.Pi
@@ -259,7 +260,7 @@ def Context.subst {Γ : Context Ctx} {X : Psh Ctx}
 theorem Context.comp_subst {Γ Δ : Context Ctx} (σ : y(Δ.1) ⟶ y(Γ.1)) {X : Psh Ctx}
     (A : Γ.ty) (B : y((Γ.cons A).1) ⟶ X) (a : Γ.typed A) :
     σ ≫ Γ.subst A B a = Δ.subst (σ ≫ A) (weakSubst σ A ≫ B) (a.subst σ) := by
-  sorry
+  simp [subst, weakSubst, comp_substCons_assoc]
 
 def mkTyped {Γ Δ : Context Ctx} {A : Δ.ty} (σ : y(Γ.1) ⟶ y(ext Δ.1 A))
     {Aσ} (eq : substFst σ ≫ A = Aσ) :
