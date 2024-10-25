@@ -173,20 +173,19 @@ protected def Context.var (Γ : Context Ctx) (i : ℕ) : Part Γ.tm := Γ.2.var 
 
 def substCons {Γ Δ : Ctx} (σ : y(Γ) ⟶ y(Δ))
     (e : y(Γ) ⟶ Tm) (A : y(Δ) ⟶ Ty) (eTy : e ≫ tp = σ ≫ A) :
-    y(Γ) ⟶ y(ext Δ A) := by
-  refine yoneda.map <| Yoneda.fullyFaithful.1 <| (disp_pullback A).isLimit.lift <|
-    PullbackCone.mk e σ ?_
-  ext; simp [← eTy]
+    y(Γ) ⟶ y(ext Δ A) :=
+  let i : y(ext Δ A) ≅ pullback tp A := (disp_pullback A).isoPullback
+  pullback.lift e σ eTy ≫ i.inv
 
 @[reassoc (attr := simp)] theorem substCons_var {Γ Δ : Ctx} (σ : y(Γ) ⟶ y(Δ))
     (e : y(Γ) ⟶ Tm) (A : y(Δ) ⟶ Ty) (eTy : e ≫ tp = σ ≫ A) :
     substCons σ e A eTy ≫ var _ _ = e := by
-  simpa [substCons] using (disp_pullback A).isLimit.fac _ (some .left)
+  simp [substCons]
 
 @[reassoc (attr := simp)] theorem substCons_disp {Γ Δ : Ctx} (σ : y(Γ) ⟶ y(Δ))
     (e : y(Γ) ⟶ Tm) (A : y(Δ) ⟶ Ty) (eTy : e ≫ tp = σ ≫ A) :
-    substCons σ e A eTy ≫ yoneda.map (disp _ _) = σ := by
-  simpa [substCons] using (disp_pullback A).isLimit.fac _ (some .right)
+    substCons σ e A eTy ≫ yoneda.map (disp ..) = σ := by
+  simp [substCons]
 
 theorem comp_substUnit {Δ Γ : Ctx} (σ : y(Δ) ⟶ y(Γ)) (f : Γ ⟶ ⊤_ Ctx) (f' : Δ ⟶ ⊤_ Ctx) :
     σ ≫ yoneda.map f = yoneda.map f' := by
@@ -196,7 +195,9 @@ theorem comp_substUnit {Δ Γ : Ctx} (σ : y(Δ) ⟶ y(Γ)) (f : Γ ⟶ ⊤_ Ctx
 theorem comp_substCons {Γ Γ' Δ : Ctx} (τ : y(Γ') ⟶ y(Γ)) (σ : y(Γ) ⟶ y(Δ))
     (e : y(Γ) ⟶ Tm) (A : y(Δ) ⟶ Ty) (eTy : e ≫ tp = σ ≫ A) :
     τ ≫ substCons σ e A eTy = substCons (τ ≫ σ) (τ ≫ e) A (by simp [eTy]) := by
-  sorry
+  simp only [substCons, ← Category.assoc]
+  congr 1
+  apply pullback.hom_ext <;> simp
 
 def substFst {Γ Δ : Ctx} {A : y(Δ) ⟶ Ty} (σ : y(Γ) ⟶ y(ext Δ A)) : y(Γ) ⟶ y(Δ) :=
   σ ≫ yoneda.map (disp _ _)
