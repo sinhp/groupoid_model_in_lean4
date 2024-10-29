@@ -1,4 +1,5 @@
 import GroupoidModel.NaturalModel
+import GroupoidModel.ForMathlib
 
 set_option autoImplicit true
 
@@ -153,6 +154,10 @@ def Context.typed (Γ : Context Ctx) (A : Γ.ty) := { x : Γ.tm // x ≫ tp = A 
 def Context.typed.cast {Γ : Context Ctx} {A B : Γ.ty} (h : A = B) (x : Γ.typed A) : Γ.typed B :=
   ⟨x.1, h ▸ x.2⟩
 
+@[simp]
+lemma Context.typed.val_cast {Γ : Context Ctx} {A B : Γ.ty} (h : A = B) (x : Γ.typed A) :
+    (x.cast h).val = x.val := rfl
+
 def Context.nil : Context Ctx := ⟨_, .nil⟩
 
 def Context.cons (Γ : Context Ctx) (A : Γ.ty) : Context Ctx := ⟨_, .cons A Γ.2⟩
@@ -230,8 +235,15 @@ def mkP_equiv {Γ : Ctx} {X : Psh Ctx} :
   Equiv.sigmaCongrRight fun A =>
   ((yoneda.obj X).mapIso (disp_pullback A).isoPullback.op).toEquiv
 
+theorem mkP_equiv_naturality_left {Δ Γ : Ctx} {X : Psh Ctx} (σ : y(Δ) ⟶ y(Γ))
+    (f : y(Γ) ⟶ (P tp).obj X) :
+    mkP_equiv (σ ≫ f) =
+      let ⟨A, a⟩ := mkP_equiv f
+      ⟨σ ≫ A, weakSubst σ A ≫ a⟩ := by
+  sorry
+
 def mkP {Γ : Ctx} {X : Psh Ctx} (A : y(Γ) ⟶ Ty) (B : y(ext Γ A) ⟶ X) :
-    y(Γ) ⟶ (P tp).obj X := mkP_equiv.2 ⟨A, B⟩
+    y(Γ) ⟶ (P tp).obj X := mkP_equiv.symm ⟨A, B⟩
 
 theorem mkP_app {Γ : Ctx} {X Y : Psh Ctx} (A : y(Γ) ⟶ Ty)
     (F : X ⟶ Y) (B : y(ext Γ A) ⟶ X) :
@@ -278,26 +290,80 @@ theorem comp_mkLam {Γ Δ : Context Ctx} (σ : y(Δ.1) ⟶ y(Γ.1))
     σ ≫ (mkLam A B e).1 = (mkLam (σ ≫ A) (weakSubst σ A ≫ B) (e.subst (weakSubst σ A))).1 := by
   simp [mkLam, comp_mkLam']
 
-def mkPApp {Γ : Context Ctx} (A : Γ.ty) (B : (Γ.cons A).ty)
-    (f : Γ.typed (mkPi A B)) : (Γ.cons A).typed B := by
-  let total' : y(Γ.1) ⟶ (P tp).obj Tm :=
+def mkPApp'_aux {Γ : Ctx} (A : y(Γ) ⟶ Ty) (B : y(ext Γ A) ⟶ Ty)
+    (f : y(Γ) ⟶ Tm) (f_tp : f ≫ tp = mkP A B ≫ NaturalModelPi.Pi) :
+    (A : y(Γ) ⟶ Ty) × (y(ext Γ A) ⟶ Tm) :=
+  mkP_equiv <|
     NaturalModelPi.Pi_pullback.isLimit.lift <|
-    PullbackCone.mk f.1 (mkP A B) f.2
-  have : total' ≫ (P tp).map tp = mkP A B :=
+      PullbackCone.mk f (mkP A B) f_tp
+
+theorem mkPApp'_aux_tp {Γ : Ctx} (A : y(Γ) ⟶ Ty) (B : y(ext Γ A) ⟶ Ty)
+    (f : y(Γ) ⟶ Tm) (f_tp : f ≫ tp = mkP A B ≫ NaturalModelPi.Pi) :
+    let p := mkPApp'_aux A B f f_tp
+    (⟨p.1, p.2 ≫ tp⟩ : (A : y(Γ) ⟶ Ty) × (y(ext Γ A) ⟶ Ty)) = ⟨A, B⟩ := by
+  unfold mkPApp'_aux
+  set g := NaturalModelPi.Pi_pullback.isLimit.lift (PullbackCone.mk f (mkP A B) f_tp)
+  intro p
+  apply mkP_equiv.symm.injective
+  have : g ≫ (P tp).map tp = mkP A B :=
     NaturalModelPi.Pi_pullback.isLimit.fac _ (some .right)
-  let total := mkP_equiv.1 total'
-  have := mkP_equiv.symm.injective <|
-    show mkP total.1 (total.2 ≫ tp) = mkP A B by
-      rw [← mkP_app]; simp [mkP, total, this]
-  have aeq : total.1 = A := congrArg Sigma.fst this
-  refine ⟨aeq ▸ total.2, ?_⟩
-  clear_value total'; cases this; rfl
+  show mkP p.1 (p.2 ≫ tp) = mkP A B
+  rw [← mkP_app]
+  simp [mkP, p, this]
+
+@[simp]
+theorem mkPApp'_aux_fst {Γ : Ctx} (A : y(Γ) ⟶ Ty) (B : y(ext Γ A) ⟶ Ty)
+    (f : y(Γ) ⟶ Tm) (f_tp : f ≫ tp = mkP A B ≫ NaturalModelPi.Pi) :
+    (mkPApp'_aux A B f f_tp).fst = A :=
+  congrArg Sigma.fst (mkPApp'_aux_tp ..)
+
+@[simp]
+theorem mkPApp'_aux_snd_tp {Γ : Ctx} (A : y(Γ) ⟶ Ty) (B : y(ext Γ A) ⟶ Ty)
+    (f : y(Γ) ⟶ Tm) (f_tp : f ≫ tp = mkP A B ≫ NaturalModelPi.Pi) :
+    (mkPApp'_aux A B f f_tp).snd ≫ tp = eqToHom (by simp) ≫ B := by
+  have h := mkPApp'_aux_tp A B f f_tp
+  simp only [Sigma.mk.inj_iff, mkPApp'_aux_fst, true_and] at h
+  set B' := eqToHom _ ≫ B
+  have : HEq B B' := by -- purely HEq nonsense
+    simp only [B']
+    set pf := of_eq_true _
+    . clear_value pf
+      have := mkPApp'_aux_fst A B f f_tp
+      generalize (mkPApp'_aux A B f f_tp).fst = x at pf this
+      cases this
+      simp
+    . simp
+  exact eq_of_heq (h.trans this)
+
+def comp_mkPApp'_aux {Δ Γ : Ctx} (σ : y(Δ) ⟶ y(Γ))
+    (A : y(Γ) ⟶ Ty) (B : y(ext Γ A) ⟶ Ty)
+    (f : y(Γ) ⟶ Tm) (f_tp : f ≫ tp = mkP A B ≫ NaturalModelPi.Pi) :
+    mkPApp'_aux (σ ≫ A) (weakSubst σ A ≫ B) (σ ≫ f) (by simp [f_tp, ← comp_mkP]) =
+      let ⟨A, a⟩ := mkPApp'_aux A B f f_tp
+      ⟨σ ≫ A, weakSubst σ A ≫ a⟩ := by
+  have := mkP_equiv_naturality_left σ
+    (NaturalModelPi.Pi_pullback.isLimit.lift (PullbackCone.mk f (mkP A B) f_tp))
+  dsimp at this -- bad; `mkP_equiv_naturality_left` is not about dsimpNFs
+  simp only [mkPApp'_aux, ← this, PullbackCone.IsLimit.comp_lift]
+  congr 3
+  simp [comp_mkP]
+
+def mkPApp {Γ : Context Ctx} (A : Γ.ty) (B : (Γ.cons A).ty)
+    (f : Γ.typed (mkPi A B)) : (Γ.cons A).typed B :=
+  ⟨eqToHom (by simp) ≫ (mkPApp'_aux A B f.1 f.2).2, by simp⟩
 
 theorem comp_mkPApp {Γ Δ : Context Ctx} (σ : y(Δ.1) ⟶ y(Γ.1)) (A : Γ.ty) (B : (Γ.cons A).ty)
     (f : Γ.typed (mkPi A B)) :
     weakSubst σ A ≫ (mkPApp A B f).1 =
     (mkPApp (σ ≫ A) (weakSubst σ A ≫ B) ((f.subst σ).cast (comp_mkPi ..))).1 := by
-  sorry
+  simp only [mkPApp, Context.typed.val_cast, Context.typed.subst_coe]
+  slice_lhs 1 2 => rw [eqToHom_naturality _ (mkPApp'_aux_fst ..).symm]
+  simp only [Category.assoc]
+  congr! 1
+  . congr 2
+    rw [comp_mkPApp'_aux]
+  . congr! 1
+  . rw [comp_mkPApp'_aux]
 
 def mkApp {Γ : Context Ctx} (A : Γ.ty) (B : (Γ.cons A).ty)
     (f : Γ.typed (mkPi A B)) (a : Γ.typed A) : Γ.typed (Γ.subst A B a) := by
