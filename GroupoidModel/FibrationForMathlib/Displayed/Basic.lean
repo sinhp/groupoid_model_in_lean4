@@ -125,7 +125,7 @@ class DisplayStruct where
   comp_over : ∀ {I J K : C} {f₁ : I ⟶ J} {f₂ : J ⟶ K} {X : F I} {Y : F J}
   {Z : F K}, HomOver f₁ X Y → HomOver f₂ Y Z → HomOver (f₁ ≫ f₂) X Z
 
-notation X " ⟶[" f "] " Y => DisplayStruct.HomOver f X Y
+notation (name := homOverNotation) (priority := high)  X " ⟶[" f "] " Y => DisplayStruct.HomOver f X Y
 notation "𝟙ₒ" => DisplayStruct.id_over
 scoped infixr:80 " ≫ₒ "  => DisplayStruct.comp_over
 
