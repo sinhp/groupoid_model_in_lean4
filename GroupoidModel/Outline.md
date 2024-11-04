@@ -42,7 +42,7 @@ We will need at least the following:
   -/
 
   /-
-# 3. HoTT 0
+# 3. HoTT_0
 No idea how to do this in practice!
 But it would be nice if the user could:
 - interact with types, terms, and type families, rather than
@@ -56,7 +56,7 @@ But it would be nice if the user could:
 
 /-
 # Targets
-Here are some things that should be doable in HoTT 0:
+Here are some things that should be doable in HoTT_0:
 - HoTT Book real numbers and cumulative hierarchy,
 - univalent set theory,
 - structure identity principle for general algebraic structures,

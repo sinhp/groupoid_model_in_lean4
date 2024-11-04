@@ -1,0 +1,58 @@
+% This file makes a printable version of the blueprint
+% It should include all the \usepackage needed for the pdf version.
+% The template version assume you want to use a modern TeX compiler
+% such as xeLaTeX or luaLaTeX including support for unicode
+% and Latin Modern Math font with standard bugfixes applied.
+% It also uses expl3 in order to support macros related to the dependency graph.
+% It also includes standard AMS packages (and their improved version
+% mathtools) as well as support for links with a sober decoration
+% (no ugly rectangles around links).
+% It is otherwise a very minimal preamble (you should probably at least
+% add cleveref and tikz-cd).
+
+\documentclass[a4paper]{report}
+
+\usepackage{geometry}
+
+\usepackage{expl3}
+
+\usepackage{amsthm,amssymb,mathtools}
+\usepackage[unicode,colorlinks=true,linkcolor=blue,urlcolor=magenta, citecolor=blue]{hyperref}
+
+\usepackage[warnings-off={mathtools-colon,mathtools-overbracket}]{unicode-math}
+
+\usepackage{amsmath,stmaryrd,enumerate,a4,array}
+\usepackage{geometry}
+\usepackage{url}
+\usepackage[cmtip,all]{xy}
+\usepackage{subcaption}
+\usepackage{cleveref}
+\numberwithin{equation}{section}
+\usepackage[parfill]{parskip}
+\usepackage{tikz, tikz-cd, float} % Commutative Diagrams
+
+\input{macros/prooftree}
+\input{macros/common}
+\input{macros/print}
+
+\title{A Groupoidal Natural Model of HoTT in Lean 4}
+\author{Sina Hazratpour, Joseph Hua}
+
+\begin{document}
+\maketitle
+
+\section{Natural Models}
+\input{natural_model}
+
+\section{The Groupoid Model}
+\input{groupoid_model}
+
+\section{Polynomial Endofunctors}
+\input{polynomial}
+
+
+\bibliography{refs.bib}{}
+\bibliographystyle{alpha}
+
+
+\end{document}

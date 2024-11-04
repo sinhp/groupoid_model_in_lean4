@@ -858,10 +858,15 @@ def Tm_functor_iso_PshGrpd_PGrpd : Tm_functor ≅ PshGrpd.obj (Cat.of PGrpd.{u,u
       exact rfl
 
 -- This is the typing natural transformation
+<<<<<<< HEAD
 def tp_NatTrans : Tm_functor ⟶ Ty_functor where
   app x := by
     intro a
     exact a ⋙ PGrpd.forgetPoint
+=======
+def tp_NatTrans : NatTrans Tm_functor Ty_functor where
+  app x := fun a ↦ a ⋙ PGrpd.forgetPoint
+>>>>>>> refs/remotes/origin/master
 
 -- This is the var construction of var before applying yoneda
 def var' (Γ : Grpd)(A : Γ ⥤ Grpd) : (GroupoidalGrothendieck A) ⥤ PGrpd where
