@@ -135,6 +135,8 @@ instance groupoid : Groupoid (GroupoidalGrothendieck F) where
 def forget : GroupoidalGrothendieck F ⥤ C :=
   Grothendieck.forget (F ⋙ Grpd.forgetToCat)
 -- note: maybe come up with a better name?
+
+
 def ToGrpd : GroupoidalGrothendieck F ⥤ Grpd.{v₂,u₂} := forget ⋙ F
 
 def functorial {C D : Grpd.{v₁,u₁}} (F : C ⟶ D) (G : D ⥤ Grpd.{v₂,u₂})
@@ -195,6 +197,7 @@ theorem PointedFunctor.congr_point {C : Type*}[pc :PointedCategory C]{D : Type*}
     apply h
     rw[eq]
 
+/-- The extensionality principle for pointed functors-/
 @[ext]
 theorem PointedFunctor.ext {C : Type*}[pc :PointedCategory C]{D : Type*}[PointedCategory D]
   (F G: PointedFunctor C D)(h_func : F.toFunctor = G.toFunctor)(h_point : F.point = (eqToHom (Functor.congr_obj h_func pc.pt)) ≫ G.point) : F = G := by
@@ -741,12 +744,13 @@ def Pointed.UnivesalMap (C : Cat.{u,u+1}) (F1 : C ⥤ PCat.{u,u})(F2 : C ⥤ Grp
       · sorry
       · sorry
 
-
+/- The proof of uniquness of the universal map-/
 def Pointed.UnivesalMap_Uniq (s : PointedCones) : s ⟶ PointedLim := by
   refine { hom := ?hom, w := ?w }
   · sorry
   · sorry
 
+/- The proof that PointedLim is a limit-/
 def PointedLimisLim : Limits.IsLimit PointedLim := by
   refine Limits.PullbackCone.isLimitAux' PointedLim ?_
   intros s
@@ -774,7 +778,6 @@ def CatLift_BackUp (C : Cat.{u,u}) : C ⥤ CatLift.obj C where
     obj x := {down := x}
     map f := f
 
-#check whiskeringLeft
 def PshGrpd : Cat.{u,u+1} ⥤ (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) := by
   refine yoneda ⋙ ?_
   refine (whiskeringLeft (Grpd.{u,u}ᵒᵖ) (Cat.{u,u+1}ᵒᵖ) (Type (u + 1))).obj ?_
@@ -827,6 +830,7 @@ def Tm_functor : Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1) where
   obj x := x.unop ⥤ PGrpd.{u,u}
   map f A := f.unop ⋙ A
 
+-- I am not sure if this iso will be helpfull but it works as a sanity check to make sure Tm is defined correctly
 def Tm_functor_iso_PshGrpd_PGrpd : Tm_functor ≅ PshGrpd.obj (Cat.of PGrpd.{u,u}) where
   hom := by
     fconstructor
@@ -877,9 +881,6 @@ def var' (Γ : Grpd)(A : Γ ⥤ Grpd) : (GroupoidalGrothendieck A) ⥤ PGrpd whe
     simp [Grpd.forgetToCat]
     simp[A.map_comp,CategoryStruct.comp]
 
-#check IsPullback
-
-#check Limits.leftSquareIsPullback
 /-
 
 GGrothendieck A -----var'--------> PGrpd---PGrpd.forgetToCat--->PCat
@@ -977,43 +978,70 @@ def SmallGrpd.forget : sGrpd.{u} ⥤ Grpd.{u,u} where
   obj x := Grpd.of x.α
   map f := f.down
 
+def PshsGrpd : (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) ⥤ (sGrpd.{u}ᵒᵖ ⥤ Type (u + 1)) := (whiskeringLeft _ _ _).obj SmallGrpd.forget.op
+
+
+instance PshsGrpdPreservesLim : Limits.PreservesLimits PshsGrpd := by
+  dsimp [PshsGrpd,Limits.PreservesLimits]
+  exact whiskeringLeftPreservesLimits SmallGrpd.forget.op
+
+#check GroupoidalGrothendieck
+
+#check IsPullback
+
+instance GroupoidNM : NaturalModel.NaturalModelBase sGrpd.{u} where
+  Ty := PshsGrpd.obj (PshGrpd.obj (Cat.of Grpd.{u,u}))
+  Tm := PshsGrpd.obj (PshGrpd.obj (Cat.of PGrpd.{u,u}))
+  tp := PshsGrpd.map (PshGrpd.map (PGrpd.forgetPoint))
+  ext Γ A := by
+    let Γ' : Grpd.{u,u} := SmallGrpd.forget.obj Γ
+    let A' : Γ' ⥤ Grpd.{u,u} := by
+      have h1 := yonedaEquiv.toFun A
+      dsimp [PshsGrpd,PshGrpd,CatLift,Quiver.Hom,Cat.of,Bundled.of,Grpd.forgetToCat] at h1
+      refine ?_ ⋙ h1
+      exact Up_uni ↑Γ'
+    exact sGrpd.of (Grpd.of (GroupoidalGrothendieck A'))
+  disp Γ A := by
+    constructor
+    simp[ULiftHom.objDown,Quiver.Hom]
+    refine Grothendieck.forget _ ⋙ ?_
+    exact 𝟭 ↑(SmallGrpd.forget.obj Γ)
+  var Γ A := by
+    refine yonedaEquiv.invFun ?_
+    simp[PshGrpd,CatLift,Cat.of,Bundled.of,Quiver.Hom,Grpd.forgetToCat,SmallGrpd.forget]
+    have v' := var' _ (Up_uni (@Bundled.α Groupoid Γ) ⋙ yonedaEquiv A)
+    refine ?_ ⋙ v'
+    exact Down_uni (GroupoidalGrothendieck (Up_uni (@Bundled.α Groupoid Γ) ⋙ yonedaEquiv A))
+  disp_pullback A := by
+    rename_i Γ
+    let Γ' : Grpd.{u,u} := SmallGrpd.forget.obj Γ
+    let A' : Γ' ⥤ Grpd.{u,u} := by
+      have h1 := yonedaEquiv.toFun A
+      dsimp [PshsGrpd,PshGrpd,CatLift,Quiver.Hom,Cat.of,Bundled.of,Grpd.forgetToCat] at h1
+      refine ?_ ⋙ h1
+      exact Up_uni ↑Γ'
+    have pb := Functor.map_isPullback PshsGrpd (PshGrpdPB A')
+    dsimp [PshGrpd]
+    dsimp [PshGrpd] at pb
+    sorry
+
+
 /-
 This is the Natural Model on sGrpd. I am not sure this belongs in this file but I keep it here so that I can
 get an idea of what needs to be done.
 -/
-#check Limits.PreservesLimitsOfSize
-
-#check yonedaEquiv
-
 -- instance GroupoidNM : NaturalModel.NaturalModelBase sGrpd.{u} where
---   Ty := SmallGrpd.forget.op ⋙ (PshGrpd.obj (Cat.of Grpd.{u,u}))
---   Tm := SmallGrpd.forget.op ⋙ (PshGrpd.obj (Cat.of PGrpd.{u,u}))
---   tp := NatTrans.hcomp (NatTrans.id SmallGrpd.forget.op) (PshGrpd.map (PGrpd.forgetPoint))
---   ext Γ f := sGrpd.of (GroupoidalGrothendieck ((@yonedaEquiv _ _ Γ (SmallGrpd.forget.op ⋙ (PshGrpd.obj (Cat.of Grpd.{u,u})))).toFun f))
+--   Ty := SmallGrpd.forget.op ⋙ Ty_functor
+--   Tm := SmallGrpd.forget.op ⋙ Tm_functor
+--   tp := NatTrans.hcomp (NatTrans.id SmallGrpd.forget.op) (tp_NatTrans)
+--   ext Γ f := sGrpd.of (GroupoidalGrothendieck ((@yonedaEquiv _ _ Γ (SmallGrpd.forget.op ⋙ Ty_functor)).toFun f))
 --   disp Γ A := by
---     dsimp [Quiver.Hom]
---     refine { down := ?down }
 --     constructor
 --     exact Grothendieck.forget (yonedaEquiv A ⋙ Grpd.forgetToCat)
 --   var Γ A := yonedaEquiv.invFun (var' (SmallGrpd.forget.obj Γ) (yonedaEquiv A))
 --   disp_pullback A := by
---     simp
+--     rename_i Γ
 --     sorry
-
-instance GroupoidNM : NaturalModel.NaturalModelBase sGrpd.{u} where
-  Ty := SmallGrpd.forget.op ⋙ Ty_functor
-  Tm := SmallGrpd.forget.op ⋙ Tm_functor
-  tp := NatTrans.hcomp (NatTrans.id SmallGrpd.forget.op) (tp_NatTrans)
-  ext Γ f := sGrpd.of (GroupoidalGrothendieck ((@yonedaEquiv _ _ Γ (SmallGrpd.forget.op ⋙ Ty_functor)).toFun f))
-  disp Γ A := by
-    constructor
-    exact Grothendieck.forget (yonedaEquiv A ⋙ Grpd.forgetToCat)
-  var Γ A := yonedaEquiv.invFun (var' (SmallGrpd.forget.obj Γ) (yonedaEquiv A))
-  disp_pullback A := by
-    have pb := PshGrpdPB (yonedaEquiv A)
-    simp [tp_NatTrans]
-    sorry
-
 
 end NaturalModelBase
 
@@ -1042,7 +1070,69 @@ def Grpd2 : Type (u+2) := InducedCategory sGrpd.{u+1} Groupoid2.toLarge
 
 section NaturalModelPi
 
-instance GroupoidNMPi : NaturalModel.NaturalModelPi sgrpdwhere
+def PolyDataGet (Γ : sGrpdᵒᵖ) (Q : ((NaturalModel.P NaturalModel.tp).obj NaturalModel.Ty).obj Γ) : yoneda.obj (Opposite.unop Γ) ⟶ ((NaturalModel.P NaturalModel.tp).obj NaturalModel.Ty) := by
+  apply yonedaEquiv.invFun
+  exact Q
+
+
+instance GroupoidNMSigma : NaturalModel.NaturalModelSigma sGrpd.{u} where
+  Sig := by
+    fconstructor
+    . dsimp [Quiver.Hom]
+      intro Γ Q
+      have φ' := PolyDataGet Γ Q
+      have pp := UvPoly.polyPair (NaturalModel.uvPoly NaturalModel.tp) (yoneda.obj Γ.unop) (NaturalModel.Ty) φ'
+      rcases pp with ⟨A,pb⟩
+      let dp := NaturalModel.disp_pullback A
+      let help : yoneda.obj (NaturalModel.ext (Opposite.unop Γ) A) ≅ (Limits.pullback A NaturalModel.tp) := by
+        exact CategoryTheory.IsPullback.isoPullback (CategoryTheory.IsPullback.flip dp)
+      let h' := (help.hom.app Γ)
+      let pb' := pb.app Γ
+      dsimp [NaturalModel.uvPoly] at pb'
+      let diag := h' ≫ pb'
+      dsimp[NaturalModel.ext,Quiver.Hom,ULiftHom.objDown,sGrpd.of] at diag
+
+
+      constructor
+
+
+      sorry
+    . intros Γ1 Γ2 f
+      simp
+      aesop_cat
+  pair := by
+    sorry
+  Sig_pullback := by
+    sorry
+
+
+
+
+instance GroupoidNMPi : NaturalModel.NaturalModelPi sGrpd.{u} where
+  Pi := by
+    sorry
+  lam := by
+    sorry
+  Pi_pullback := by
+    apply?
+
+
+
+  pair := by
+    sorry
+  Sig_pullback := by
+    sorry
+
+
+
+end NaturalModelPi
+
+end GroupoidModelPi
+end GroupoidModel
+end NaturalModelPi
+end NaturalModel
+end CategoryTheory
+end Lean
 
 
 end NaturalModelPi

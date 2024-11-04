@@ -1,3 +1,8 @@
+/-
+Here we define pointed categorys and poitned groupoids as well as prove some basic lemmas.
+-/
+
+
 import Mathlib.CategoryTheory.ConcreteCategory.Bundled
 import Mathlib.CategoryTheory.DiscreteCategory
 import Mathlib.CategoryTheory.Types
@@ -12,6 +17,7 @@ import Mathlib.CategoryTheory.Limits.Shapes.Pullback.Pasting
 import Mathlib.CategoryTheory.Limits.Yoneda
 import Mathlib.CategoryTheory.Adjunction.Limits
 import Mathlib.CategoryTheory.Functor.KanExtension.Adjunction
+
 
 universe u v u₁ v₁ u₂ v₂
 

@@ -1,3 +1,7 @@
+/-
+Here we show some lemmas about pullbacks
+-/
+
 import Mathlib.CategoryTheory.ConcreteCategory.Bundled
 import Mathlib.CategoryTheory.DiscreteCategory
 import Mathlib.CategoryTheory.Types
@@ -114,6 +118,7 @@ theorem CastEqToHomSolve {C : Type v} [Category C] {x x1 x2 y y1 y2: C} (eqx1 : 
     exact heq
 
 end Lemmas
+
 
 
 section GrothendieckPullBack

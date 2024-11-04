@@ -1,3 +1,7 @@
+/-
+Here we define the Grothendik construction for groupoids
+-/
+
 import Mathlib.CategoryTheory.ConcreteCategory.Bundled
 import Mathlib.CategoryTheory.DiscreteCategory
 import Mathlib.CategoryTheory.Types

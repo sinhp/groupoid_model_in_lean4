@@ -1,3 +1,7 @@
+/-
+Here we construct the natral model for groupoids.
+-/
+
 import Mathlib.CategoryTheory.ConcreteCategory.Bundled
 import Mathlib.CategoryTheory.DiscreteCategory
 import Mathlib.CategoryTheory.Types
@@ -19,7 +23,6 @@ import GroupoidModel.Groupoids.PullBackProofs
 universe u v u₁ v₁ u₂ v₂
 
 namespace CategoryTheory
-
 
 noncomputable section
 
@@ -107,8 +110,7 @@ def PolyDataGet (Γ : sGrpdᵒᵖ) (Q : ((NaturalModel.P NaturalModel.tp).obj Na
 instance GroupoidNMSigma : NaturalModel.NaturalModelSigma sGrpd.{u} where
   Sig := by
     fconstructor
-    . dsimp [Quiver.Hom]
-      intro Γ Q
+    . intro Γ Q
       have φ' := PolyDataGet Γ Q
       have pp := UvPoly.polyPair (NaturalModel.uvPoly NaturalModel.tp) (yoneda.obj Γ.unop) (NaturalModel.Ty) φ'
       rcases pp with ⟨A,pb⟩
@@ -117,20 +119,21 @@ instance GroupoidNMSigma : NaturalModel.NaturalModelSigma sGrpd.{u} where
         exact CategoryTheory.IsPullback.isoPullback (CategoryTheory.IsPullback.flip dp)
       let h' := (help.hom.app Γ)
       let pb' := pb.app Γ
+      dsimp [NaturalModel.Ty,PshsGrpd,PshGrpd,Quiver.Hom]
+      fconstructor
+      . fconstructor
+        . intro γ
+          let yA := (yonedaEquiv.toFun A)
+          dsimp [NaturalModel.Ty,PshGrpd,PshsGrpd,Quiver.Hom] at yA
+          let Aγ : Grpd := (yA).obj γ
+          let ΓA : Grpd := SmallGrpd.forget.obj (NaturalModel.ext (Opposite.unop Γ) A)
+          sorry
+        . sorry
       dsimp [NaturalModel.uvPoly] at pb'
       let diag := h' ≫ pb'
-      dsimp[NaturalModel.ext,Quiver.Hom,ULiftHom.objDown,sGrpd.of] at diag
-      apply diag
-      constructor
-
-
-      constructor
-
-
       sorry
-    . intros Γ1 Γ2 f
-      simp
-      aesop_cat
+      sorry
+    . sorry
   pair := by
     sorry
   Sig_pullback := by
@@ -138,18 +141,3 @@ instance GroupoidNMSigma : NaturalModel.NaturalModelSigma sGrpd.{u} where
 
 
 end NaturalModelSigma
-
-instance GroupoidNMPi : NaturalModel.NaturalModelPi sGrpd.{u} where
-  Pi := by
-    sorry
-  lam := by
-    sorry
-  Pi_pullback := by
-    apply?
-
-
-
-  pair := by
-    sorry
-  Sig_pullback := by
-    sorry
