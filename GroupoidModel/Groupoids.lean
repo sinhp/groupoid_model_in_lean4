@@ -51,7 +51,7 @@ Need at least the following, some of which is already in MathLib:
   - eventually we will want some groupoid quotients as well
   -/
 
-@[simps?!]
+@[simps!]
 def toCat {C : Type u₁} [Category.{v₁,u₁} C] (G : C ⥤ Grpd) : C ⥤ Cat := G ⋙ Grpd.forgetToCat
 namespace Grothendieck
 
@@ -71,7 +71,7 @@ def mkIso {X Y : Grothendieck G} (s : X.base ≅ Y.base) (t : (G |>.map s.hom).o
     apply ext
     erw [comp_fiber]
     simp only [Cat.comp_obj, id_eq, map_hom_inv_id_assoc,
-      eqToHom_trans, id_fiber'] at *
+      eqToHom_trans, id_fiber] at *
     erw [comp_base, id_base]
     dsimp
     rw [s.hom_inv_id]
@@ -139,14 +139,13 @@ def functorial {C D : Grpd.{v₁,u₁}} (F : C ⟶ D) (G : D ⥤ Grpd.{v₂,u₂
     map_id X := by
       fapply Grothendieck.ext
       · exact F.map_id X.base
-      · simp only [Grothendieck.id_fiber', eqToHom_trans]
+      · simp only [Grothendieck.id_fiber, eqToHom_trans]
     map_comp {X Y Z} f g := by
       simp only [Grothendieck.comp]
       fapply Grothendieck.ext
       · exact F.map_comp f.base g.base
       · erw [Grothendieck.comp_fiber (F:= toCat (F ⋙ G)) f g]
         simp [eqToHom_trans]
-        erw [Grothendieck.comp_fiber]; rfl
 
 end GroupoidalGrothendieck
 
@@ -169,7 +168,7 @@ structure PointedFunctor (C : Type*)(D : Type*)[cp : PointedCategory C][dp : Poi
 /-- The identity `PointedFunctor` whose underlying functor is the identity functor-/
 @[simps!]
 def PointedFunctor.id (C : Type*)[PointedCategory C] : PointedFunctor C C where
-  toFunctor := Functor.id C
+  toFunctor := 𝟭 C
   point := 𝟙 PointedCategory.pt
 
 /-- Composition of `PointedFunctor` that composes there underling functors and shows that the point is preserved-/
@@ -184,12 +183,12 @@ theorem PointedFunctor.congr_func {C : Type*}[PointedCategory C]{D : Type*}[Poin
 
 theorem PointedFunctor.congr_point {C : Type*}[pc :PointedCategory C]{D : Type*}[PointedCategory D]
   {F G: PointedFunctor C D}(eq : F = G)  : F.point = (eqToHom (Functor.congr_obj (congr_func eq) pc.pt)) ≫ G.point := by
-    have h := (Functor.conj_eqToHom_iff_heq F.point G.point (Functor.congr_obj (congr_func eq) pc.pt) rfl).mpr
+    have h := (conj_eqToHom_iff_heq F.point G.point (Functor.congr_obj (congr_func eq) pc.pt) rfl).mpr
     simp at h
     apply h
     rw[eq]
 
-@[ext]
+@[ext (iff := false)]
 theorem PointedFunctor.ext {C : Type*}[pc :PointedCategory C]{D : Type*}[PointedCategory D]
   (F G: PointedFunctor C D)(h_func : F.toFunctor = G.toFunctor)(h_point : F.point = (eqToHom (Functor.congr_obj h_func pc.pt)) ≫ G.point) : F = G := by
   rcases F with ⟨F.func,F.point⟩
@@ -199,7 +198,7 @@ theorem PointedFunctor.ext {C : Type*}[pc :PointedCategory C]{D : Type*}[Pointed
   have temp : G.point = G.point ≫ (eqToHom rfl) := by simp
   rw [temp] at h_point
   exact
-    (Functor.conj_eqToHom_iff_heq F.point G.point
+    (conj_eqToHom_iff_heq F.point G.point
           (congrFun (congrArg Prefunctor.obj (congrArg Functor.toPrefunctor h_func))
             PointedCategory.pt)
           rfl).mp
@@ -238,7 +237,21 @@ instance category : LargeCategory.{max v u} PCat.{v, u} where
     simp
     simp [PointedFunctor.comp,Functor.assoc]
 
+@[simp]
+lemma comp_toFunctor {C D E : PCat.{v,u}} (F : C ⟶ D) (G : D ⟶ E) :
+    (F ≫ G).point = G.map (F.point) ≫ G.point := rfl
 
+@[simp]
+lemma comp_point {C D E : PCat.{v,u}} (F : C ⟶ D) (G : D ⟶ E) :
+    (F ≫ G).toFunctor = F.toFunctor ⋙ G.toFunctor := rfl
+
+@[simp]
+lemma id_toFunctor {C : PCat.{v,u}} : PointedFunctor.toFunctor (𝟙 C) = 𝟭 C :=
+  rfl
+
+@[simp]
+lemma id_point {C : PCat.{v,u}} : PointedFunctor.point (𝟙 C) = 𝟙 PointedCategory.pt :=
+  rfl
 
 /-- The functor that takes PCat to Cat by forgetting the points-/
 def forgetPoint : PCat ⥤ Cat where
@@ -303,6 +316,22 @@ def forgetToCat : PGrpd ⥤ PCat where
   obj x := PCat.of x
   map f := f
 
+@[simp]
+lemma comp_toFunctor {C D E : PGrpd.{v,u}} (F : C ⟶ D) (G : D ⟶ E) :
+    (F ≫ G).point = G.map (F.point) ≫ G.point := rfl
+
+@[simp]
+lemma comp_point {C D E : PGrpd.{v,u}} (F : C ⟶ D) (G : D ⟶ E) :
+    (F ≫ G).toFunctor = F.toFunctor ⋙ G.toFunctor := rfl
+
+@[simp]
+lemma id_toFunctor {C : PGrpd.{v,u}} : PointedFunctor.toFunctor (𝟙 C) = 𝟭 C :=
+  rfl
+
+@[simp]
+lemma id_point {C : PGrpd.{v,u}} : PointedFunctor.point (𝟙 C) = 𝟙 PointedCategory.pt :=
+  rfl
+
 end PGrpd
 
 end PointedCategories
@@ -366,19 +395,19 @@ theorem Grothendieck.ext' {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}(g1 g2 : Grothen
 theorem Grothendieck.eqToHom_base {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}(g1 g2 : Grothendieck A)
   (eq : g1 = g2) : (eqToHom eq).base = (eqToHom (congrArg (Grothendieck.forget A).obj eq)) := by
     cases eq
-    simp[CategoryStruct.id]
+    simp
 
 /-- This is the proof of equality used in the eqToHom in `Grothendieck.eqToHom_fiber` -/
 theorem Grothendieck.eqToHom_fiber_help {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}{g1 g2 : Grothendieck A}
   (eq : g1 = g2) : (A.map (eqToHom eq).base).obj g1.fiber = g2.fiber := by
     cases eq
-    simp [Hom.base,A.map_id,CategoryStruct.id]
+    simp
 
 /-- This proves that fiber of an eqToHom morphism in the category Grothendieck A is an eqToHom morphism -/
 theorem Grothendieck.eqToHom_fiber {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}{g1 g2 : Grothendieck A}
   (eq : g1 = g2) : (eqToHom eq).fiber = eqToHom (Grothendieck.eqToHom_fiber_help eq) := by
     cases eq
-    simp[CategoryStruct.id]
+    simp
 
 /-- This eliminates an eqToHom on the right side of an equality-/
 theorem RightSidedEqToHom {C : Type v} [Category C] {x y z : C} (eq : y = z) {f : x ⟶ y} {g : x ⟶ z}
@@ -451,15 +480,15 @@ def CatVar' (Γ : Cat)(A : Γ ⥤ Cat) : (Grothendieck A) ⥤ PCat where
     dsimp
     let _ := (PointedCategory.of (A.obj x.base) x.fiber)
     apply PointedFunctor.ext
-    · simp[CategoryStruct.id]
-    · simp[CategoryStruct.id,PointedFunctor.id]
+    · simp [CategoryStruct.id]
+    · simp [CategoryStruct.id, PointedFunctor.id]
   map_comp {x y z} f g := by
-    dsimp [CategoryStruct.comp,PointedFunctor.comp]
+    dsimp [PointedFunctor.comp]
     let _ := (PointedCategory.of (A.obj x.base) x.fiber)
     let _ := (PointedCategory.of (A.obj z.base) z.fiber)
     apply PointedFunctor.ext
     · simp
-    · simp [A.map_comp,CategoryStruct.comp]
+    · simp [A.map_comp]; rfl
 
 -- This is the proof that the square commutes
 theorem Comm {Γ : Cat}(A : Γ ⥤ Cat) : (Down_uni (Grothendieck A) ⋙ CatVar' Γ A) ⋙ PCat.forgetPoint =
@@ -472,9 +501,8 @@ theorem Comm {Γ : Cat}(A : Γ ⥤ Cat) : (Down_uni (Grothendieck A) ⋙ CatVar'
       exact rfl
 
 -- This is a helper functor from from a pointed category to itself without a point
-def ForgetPointFunctor (P : PCat.{u,u}) : P ⥤ (PCat.forgetPoint.obj P) := by
-  simp[PCat.forgetPoint]
-  exact Functor.id P
+def ForgetPointFunctor (P : PCat.{u,u}) : P ⥤ (PCat.forgetPoint.obj P) :=
+  Functor.id P
 
 -- This is the construction of universal map of th limit
 def Grothendieck.UnivesalMap {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u,u})(C : Cat.{u,u+1})
@@ -557,14 +585,9 @@ theorem Grothendieck.UnivesalMap_CatVar'_Comm {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u
           simp
         rw [rwHelp1]
         refine heq_of_cast_eq ?_ ?_
-        · congr 1
-          simp [PointedFunctor.eqToHom_toFunctor]
+        · congr 1 <;> simp [PointedFunctor.eqToHom_toFunctor]
+          rfl
         · simp [Cat.eqToHom_hom,PCat.eqToHom_hom]
-          refine (RightSidedEqToHom ?_ ?_).symm
-          refine (@HEq.trans _ _ _ _ ((F1.map f).point) _ ?_ ?_)
-          · apply cast_heq
-          · apply HEq.symm
-            apply cast_heq
       · have r := Functor.congr_hom Comm.symm f
         simp
         simp [PCat.forgetPoint] at r
@@ -590,17 +613,17 @@ theorem Grothendieck.UnivesalMap_Uniq {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u,u})(C :
         aesop_cat
     . intros X Y f
       fapply Grothendieck.ext
-      . dsimp[UnivesalMap,CategoryStruct.comp]
+      . dsimp[UnivesalMap]
         dsimp [forget,Functor.comp] at F2comm
         have h := Functor.congr_hom F2comm f
         simp at h
-        rw [h,Grothendieck.eqToHom_base,Grothendieck.eqToHom_base]
-      . dsimp[UnivesalMap,CategoryStruct.comp]
+        simp [h, Grothendieck.eqToHom_base]
+      . dsimp[UnivesalMap]
         dsimp [CatVar',Functor.comp] at F1comm
         have h := (PointedFunctor.congr_point ((Functor.congr_hom F1comm f)))
         simp at h
         rw [h]
-        simp [eqToHom_map,CategoryStruct.comp,PointedFunctor.eqToHom_point,Grothendieck.eqToHom_fiber,CastFunc,Cat.equivOfIso]
+        simp [eqToHom_map,PointedFunctor.eqToHom_point,Grothendieck.eqToHom_fiber,CastFunc,Cat.equivOfIso]
         have hh : ∀{G1 G2 : Grothendieck A}(eq : G1 = G2), A.map (eqToHom eq).base = eqToHom ?_ := by
           simp[Grothendieck.eqToHom_base,eqToHom_map]
         · congr
@@ -640,7 +663,6 @@ def GrothendieckLimisLim {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u,u}) : Limits.IsLimit
   let FL := (s.π).app (Option.some Limits.WalkingPair.left)
   let FR := (s.π).app (Option.some Limits.WalkingPair.right)
   let Comm := (((s.π).naturality (Limits.WalkingCospan.Hom.inl)).symm).trans ((s.π).naturality (Limits.WalkingCospan.Hom.inr))
-  dsimp [Quiver.Hom] at FL FR Comm
   fconstructor
   · dsimp [GrothendieckLim,Quiver.Hom,Cat.of,Bundled.of]
     refine (Grothendieck.UnivesalMap A s.pt FL (FR ⋙ (Down_uni Γ)) ?_) ⋙ (Up_uni (Grothendieck A))
@@ -648,13 +670,10 @@ def GrothendieckLimisLim {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u,u}) : Limits.IsLimit
   · refine ⟨?_,?_,?_⟩
     · exact Grothendieck.UnivesalMap_CatVar'_Comm A s.pt FL (FR ⋙ (Down_uni Γ)) Comm
     · exact rfl
-    · dsimp
-      intros m h1 h2
+    · intros m h1 h2
       have r := Grothendieck.UnivesalMap_Uniq A s.pt FL (FR ⋙ (Down_uni Γ)) Comm (m ⋙ (Down_uni (Grothendieck A))) h1 ?C
       · exact ((Up_Down (Grothendieck.UnivesalMap A s.pt FL (FR ⋙ Down_uni ↑Γ) Comm) m).mpr r.symm).symm
-      · dsimp [CategoryStruct.comp] at h2
-        rw [<- Functor.assoc,<- Functor.assoc] at h2
-        exact ((Up_Down (((m ⋙ Down_uni (Grothendieck A)) ⋙ Grothendieck.forget A)) s.snd).mp h2)
+      · exact ((Up_Down (((m ⋙ Down_uni (Grothendieck A)) ⋙ Grothendieck.forget A)) s.snd).mp h2)
 
 -- This converts the proof of the limit to the proof of a pull back
 theorem GrothendieckLimisPullBack {Γ : Cat.{u,u}}(A : Γ ⥤ Cat.{u,u}) : @IsPullback (Cat.{u,u+1}) _ (Cat.of (ULift.{u+1,u} (Grothendieck A))) (Cat.of PCat.{u,u}) (Cat.of (ULift.{u+1,u} Γ)) (Cat.of Cat.{u,u}) ((Down_uni (Grothendieck A)) ⋙ (CatVar' Γ A)) ((Down_uni (Grothendieck A)) ⋙ (Grothendieck.forget A) ⋙ (Up_uni Γ)) (PCat.forgetPoint) ((Down_uni Γ) ⋙ A) := by
@@ -769,16 +788,18 @@ def var' (Γ : Grpd)(A : Γ ⥤ Grpd) : (GroupoidalGrothendieck A) ⥤ PGrpd whe
   map_id x := by
     dsimp
     let _ := (PointedCategory.of (A.obj x.base) x.fiber)
-    apply PointedFunctor.ext
-    simp[CategoryStruct.id]
-    simp[CategoryStruct.id,PointedFunctor.id]
+    dsimp [GroupoidalGrothendieck] at x ⊢
+    apply PointedFunctor.ext <;>
+      simp only [PGrpd.id_toFunctor, Functor.id_obj, PGrpd.id_point,
+        Category.comp_id, Functor.map_id]
+    rfl
   map_comp {x y z} f g := by
-    dsimp [CategoryStruct.comp,PointedFunctor.comp]
+    dsimp [GroupoidalGrothendieck]
     let _ := (PointedCategory.of (A.obj x.base) x.fiber)
     let _ := (PointedCategory.of (A.obj z.base) z.fiber)
     apply PointedFunctor.ext
-    simp [Grpd.forgetToCat]
-    simp[A.map_comp,CategoryStruct.comp]
+    . simp [A.map_comp, Grothendieck.comp_fiber, Grpd.forgetToCat]
+    . simp; rfl
 
 open GroupoidalGrothendieck
 
