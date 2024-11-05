@@ -1,23 +1,17 @@
-/-
-Here we show some lemmas about pullbacks
--/
-
-import Mathlib.CategoryTheory.ConcreteCategory.Bundled
-import Mathlib.CategoryTheory.DiscreteCategory
-import Mathlib.CategoryTheory.Types
-import Mathlib.CategoryTheory.Bicategory.Strict
-import Mathlib.CategoryTheory.Groupoid
-import Mathlib.CategoryTheory.Category.Grpd
-import Mathlib.CategoryTheory.Grothendieck
-import GroupoidModel.NaturalModel
-import GroupoidModel.FibrationForMathlib.Displayed.Basic
-import Mathlib.CategoryTheory.Category.Cat.Limit
-import Mathlib.CategoryTheory.Limits.Shapes.Pullback.Pasting
 import Mathlib.CategoryTheory.Limits.Yoneda
-import Mathlib.CategoryTheory.Adjunction.Limits
 import Mathlib.CategoryTheory.Functor.KanExtension.Adjunction
+import Mathlib.CategoryTheory.Limits.Preserves.Finite
+import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
+
 import GroupoidModel.Groupoids.GroupoidalGrothendieck
 import GroupoidModel.Groupoids.PointedCat
+-- TODO: some proofs fail without these two imports; investigate why
+import GroupoidModel.NaturalModel
+import GroupoidModel.FibrationForMathlib.Displayed.Basic
+
+/-!
+Here we show some lemmas about pullbacks
+-/
 
 universe u v u₁ v₁ u₂ v₂
 

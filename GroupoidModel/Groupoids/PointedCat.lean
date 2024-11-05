@@ -1,72 +1,61 @@
-/-
-Here we define pointed categorys and poitned groupoids as well as prove some basic lemmas.
--/
-
-
-import Mathlib.CategoryTheory.ConcreteCategory.Bundled
-import Mathlib.CategoryTheory.DiscreteCategory
-import Mathlib.CategoryTheory.Types
-import Mathlib.CategoryTheory.Bicategory.Strict
-import Mathlib.CategoryTheory.Groupoid
 import Mathlib.CategoryTheory.Category.Grpd
-import Mathlib.CategoryTheory.Grothendieck
-import GroupoidModel.NaturalModel
-import GroupoidModel.FibrationForMathlib.Displayed.Basic
-import Mathlib.CategoryTheory.Category.Cat.Limit
-import Mathlib.CategoryTheory.Limits.Shapes.Pullback.Pasting
-import Mathlib.CategoryTheory.Limits.Yoneda
-import Mathlib.CategoryTheory.Adjunction.Limits
-import Mathlib.CategoryTheory.Functor.KanExtension.Adjunction
 
+/-!
+Here we define pointed categories and pointed groupoids as well as prove some basic lemmas.
+-/
 
 universe u v u₁ v₁ u₂ v₂
 
 namespace CategoryTheory
 
-noncomputable section
+noncomputable section PointedCategories
 
-
-section PointedCategories
-
-/-- The class of pointed pointed categorys. -/
+/-- A typeclass for pointed categories. -/
 class PointedCategory.{w,z} (C : Type z) extends Category.{w} C where
   pt : C
 
-/-- A constructor that makes a pointed categorys from a category and a point. -/
-def PointedCategory.of (C : Type*) (pt : C)[Category C]: PointedCategory C where
+/-- A constructor that makes a pointed category from a category and a point. -/
+def PointedCategory.of (C : Type*) (pt : C) [Category C] : PointedCategory C where
   pt := pt
 
-/-- The structure of a functor from C to D along with a morphism from the image of the point of C to the point of D -/
-structure PointedFunctor (C : Type*)(D : Type*)[cp : PointedCategory C][dp : PointedCategory D] extends C ⥤ D where
+/-- The structure of a functor from C to D
+along with a morphism from the image of the point of C to the point of D. -/
+structure PointedFunctor (C D : Type*) [cp : PointedCategory C] [dp : PointedCategory D]
+    extends C ⥤ D where
   point : obj (cp.pt) ⟶ (dp.pt)
+
+namespace PointedFunctor
 
 /-- The identity `PointedFunctor` whose underlying functor is the identity functor-/
 @[simps!]
-def PointedFunctor.id (C : Type*)[PointedCategory C] : PointedFunctor C C where
+def id (C : Type*) [PointedCategory C] : PointedFunctor C C where
   toFunctor := Functor.id C
   point := 𝟙 PointedCategory.pt
 
-/-- Composition of `PointedFunctor` that composes there underling functors and shows that the point is preserved-/
+variable {C D E : Type*} [cp : PointedCategory C] [PointedCategory D] [PointedCategory E]
+
+/-- Composition of `PointedFunctor` composes the underlying functors and the point morphisms. -/
 @[simps!]
-def PointedFunctor.comp {C : Type*}[PointedCategory C]{D : Type*}[PointedCategory D]{E : Type*}[PointedCategory E]
-  (F : PointedFunctor C D)(G : PointedFunctor D E)  : PointedFunctor C E where
+def comp (F : PointedFunctor C D) (G : PointedFunctor D E) : PointedFunctor C E where
   toFunctor := F.toFunctor ⋙ G.toFunctor
   point := (G.map F.point) ≫ (G.point)
 
-theorem PointedFunctor.congr_func {C : Type*}[PointedCategory C]{D : Type*}[PointedCategory D]
-  {F G: PointedFunctor C D}(eq : F = G)  : F.toFunctor = G.toFunctor := congrArg toFunctor eq
+theorem congr_func {F G: PointedFunctor C D} (eq : F = G) : F.toFunctor = G.toFunctor :=
+  congrArg toFunctor eq
 
-theorem PointedFunctor.congr_point {C : Type*}[pc :PointedCategory C]{D : Type*}[PointedCategory D]
-  {F G: PointedFunctor C D}(eq : F = G)  : F.point = (eqToHom (Functor.congr_obj (congr_func eq) pc.pt)) ≫ G.point := by
-    have h := (Functor.conj_eqToHom_iff_heq F.point G.point (Functor.congr_obj (congr_func eq) pc.pt) rfl).mpr
+theorem congr_point {F G: PointedFunctor C D} (eq : F = G) :
+      F.point = (eqToHom (Functor.congr_obj (congr_func eq) cp.pt)) ≫ G.point := by
+    have h :=
+      (Functor.conj_eqToHom_iff_heq
+        F.point G.point (Functor.congr_obj (congr_func eq) cp.pt) rfl).mpr
     simp at h
     apply h
-    rw[eq]
+    rw [eq]
 
 /-- The extensionality principle for pointed functors-/
 @[ext]
-theorem PointedFunctor.ext {C : Type*}[pc :PointedCategory C]{D : Type*}[PointedCategory D]
-  (F G: PointedFunctor C D)(h_func : F.toFunctor = G.toFunctor)(h_point : F.point = (eqToHom (Functor.congr_obj h_func pc.pt)) ≫ G.point) : F = G := by
+theorem ext (F G: PointedFunctor C D) (h_func : F.toFunctor = G.toFunctor)
+    (h_point : F.point = (eqToHom (Functor.congr_obj h_func cp.pt)) ≫ G.point) : F = G := by
   rcases F with ⟨F.func,F.point⟩
   rcases G with ⟨G.func,G.point⟩
   congr
@@ -79,6 +68,8 @@ theorem PointedFunctor.ext {C : Type*}[pc :PointedCategory C]{D : Type*}[Pointed
             PointedCategory.pt)
           rfl).mp
       h_point
+
+end PointedFunctor
 
 /-- The category of pointed categorys and pointed functors-/
 def PCat.{w,z} :=
@@ -112,8 +103,6 @@ instance category : LargeCategory.{max v u} PCat.{v, u} where
     apply PointedFunctor.ext
     simp
     simp [PointedFunctor.comp,Functor.assoc]
-
-
 
 /-- The functor that takes PCat to Cat by forgetting the points-/
 def forgetPoint : PCat ⥤ Cat where

@@ -1,21 +1,9 @@
-/-
-Here we define the Grothendik construction for groupoids
--/
-
-import Mathlib.CategoryTheory.ConcreteCategory.Bundled
-import Mathlib.CategoryTheory.DiscreteCategory
-import Mathlib.CategoryTheory.Types
-import Mathlib.CategoryTheory.Bicategory.Strict
-import Mathlib.CategoryTheory.Groupoid
-import Mathlib.CategoryTheory.Category.Grpd
 import Mathlib.CategoryTheory.Grothendieck
-import GroupoidModel.NaturalModel
-import GroupoidModel.FibrationForMathlib.Displayed.Basic
-import Mathlib.CategoryTheory.Category.Cat.Limit
-import Mathlib.CategoryTheory.Limits.Shapes.Pullback.Pasting
-import Mathlib.CategoryTheory.Limits.Yoneda
-import Mathlib.CategoryTheory.Adjunction.Limits
-import Mathlib.CategoryTheory.Functor.KanExtension.Adjunction
+import Mathlib.CategoryTheory.Category.Grpd
+
+/-!
+Here we define the Grothendieck construction for groupoids
+-/
 
 universe u v u₁ v₁ u₂ v₂
 
@@ -23,7 +11,7 @@ namespace CategoryTheory
 
 noncomputable section
 
-@[simps?!]
+@[simps!]
 def toCat {C : Type u₁} [Category.{v₁,u₁} C] (G : C ⥤ Grpd) : C ⥤ Cat := G ⋙ Grpd.forgetToCat
 namespace Grothendieck
 
@@ -31,9 +19,11 @@ open CategoryTheory Iso
 
 variable {C : Type u₁} [Category.{v₁,u₁} C] {G : C ⥤ Cat.{v₂,u₂}}
 
-/-- A morphism in the Grothendieck construction is an isomorphism if the morphism in the base is an isomorphism and the fiber morphism is an isomorphism. -/
-def mkIso {X Y : Grothendieck G} (s : X.base ≅ Y.base) (t : (G |>.map s.hom).obj X.fiber ≅ Y.fiber) :
-    X ≅ Y where
+/-- A morphism in the Grothendieck construction is an isomorphism if
+- the morphism in the base is an isomorphism; and
+- the fiber morphism is an isomorphism. -/
+def mkIso {X Y : Grothendieck G}
+    (s : X.base ≅ Y.base) (t : (G |>.map s.hom).obj X.fiber ≅ Y.fiber) : X ≅ Y where
   hom := { base := s.hom, fiber := t.hom }
   inv.base := s.inv
   inv.fiber := (G.map (s.inv)).map (t.inv) ≫
@@ -76,12 +66,9 @@ variable (F) in
 -/
 def GroupoidalGrothendieck := Grothendieck (toCat F)
 
-
 namespace GroupoidalGrothendieck
 
-
 instance : Category (GroupoidalGrothendieck F) := inferInstanceAs (Category (Grothendieck _))
-
 
 instance (X : C) : Groupoid (toCat F |>.obj X) where
   inv f := ((F.obj X).str').inv f
@@ -98,29 +85,27 @@ instance groupoid : Groupoid (GroupoidalGrothendieck F) where
   inv_comp f := (isoMk f).inv_hom_id
   comp_inv f := (isoMk f).hom_inv_id
 
-
 def forget : GroupoidalGrothendieck F ⥤ C :=
   Grothendieck.forget (F ⋙ Grpd.forgetToCat)
 -- note: maybe come up with a better name?
 
-
 def ToGrpd : GroupoidalGrothendieck F ⥤ Grpd.{v₂,u₂} := forget ⋙ F
 
-def functorial {C D : Grpd.{v₁,u₁}} (F : C ⟶ D) (G : D ⥤ Grpd.{v₂,u₂})
-  : Grothendieck (toCat (F ⋙ G)) ⥤ Grothendieck (toCat G) where
-    obj X := ⟨F.obj X.base, X.fiber⟩
-    map {X Y} f := ⟨F.map f.base, f.fiber⟩
-    map_id X := by
-      fapply Grothendieck.ext
-      · exact F.map_id X.base
-      · simp only [Grothendieck.id_fiber', eqToHom_trans]
-    map_comp {X Y Z} f g := by
-      simp only [Grothendieck.comp]
-      fapply Grothendieck.ext
-      · exact F.map_comp f.base g.base
-      · erw [Grothendieck.comp_fiber (F:= toCat (F ⋙ G)) f g]
-        simp [eqToHom_trans]
-        erw [Grothendieck.comp_fiber]; rfl
+def functorial {C D : Grpd.{v₁,u₁}} (F : C ⟶ D) (G : D ⥤ Grpd.{v₂,u₂}) :
+    Grothendieck (toCat (F ⋙ G)) ⥤ Grothendieck (toCat G) where
+  obj X := ⟨F.obj X.base, X.fiber⟩
+  map {X Y} f := ⟨F.map f.base, f.fiber⟩
+  map_id X := by
+    fapply Grothendieck.ext
+    · exact F.map_id X.base
+    · simp only [Grothendieck.id_fiber', eqToHom_trans]
+  map_comp {X Y Z} f g := by
+    simp only [Grothendieck.comp]
+    fapply Grothendieck.ext
+    · exact F.map_comp f.base g.base
+    · erw [Grothendieck.comp_fiber (F:= toCat (F ⋙ G)) f g]
+      simp [eqToHom_trans]
+      erw [Grothendieck.comp_fiber]; rfl
 
 end GroupoidalGrothendieck
 
