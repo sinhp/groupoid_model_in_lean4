@@ -1,3 +1,6 @@
+import Mathlib.CategoryTheory.Limits.Preserves.FunctorCategory
+
+import GroupoidModel.NaturalModel
 import GroupoidModel.Groupoids.PullBackProofs
 
 /-!
@@ -98,8 +101,7 @@ instance GroupoidNMSigma : NaturalModel.NaturalModelSigma sGrpd.{u} where
     fconstructor
     . intro Γ Q
       have φ' := PolyDataGet Γ Q
-      have pp := UvPoly.polyPair
-        (NaturalModel.uvPoly NaturalModel.tp) (yoneda.obj Γ.unop) (NaturalModel.Ty) φ'
+      have pp := (NaturalModel.uvPoly NaturalModel.tp).polyPair φ'
       rcases pp with ⟨A,pb⟩
       let dp := NaturalModel.disp_pullback A
       let help : yoneda.obj (NaturalModel.ext (Opposite.unop Γ) A) ≅

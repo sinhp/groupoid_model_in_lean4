@@ -46,14 +46,14 @@ theorem congr_func {F G: PointedFunctor C D} (eq : F = G) : F.toFunctor = G.toFu
 theorem congr_point {F G: PointedFunctor C D} (eq : F = G) :
       F.point = (eqToHom (Functor.congr_obj (congr_func eq) cp.pt)) ≫ G.point := by
     have h :=
-      (Functor.conj_eqToHom_iff_heq
+      (conj_eqToHom_iff_heq
         F.point G.point (Functor.congr_obj (congr_func eq) cp.pt) rfl).mpr
     simp at h
     apply h
     rw [eq]
 
 /-- The extensionality principle for pointed functors-/
-@[ext]
+@[ext (iff := false)]
 theorem ext (F G: PointedFunctor C D) (h_func : F.toFunctor = G.toFunctor)
     (h_point : F.point = (eqToHom (Functor.congr_obj h_func cp.pt)) ≫ G.point) : F = G := by
   rcases F with ⟨F.func,F.point⟩
@@ -63,7 +63,7 @@ theorem ext (F G: PointedFunctor C D) (h_func : F.toFunctor = G.toFunctor)
   have temp : G.point = G.point ≫ (eqToHom rfl) := by simp
   rw [temp] at h_point
   exact
-    (Functor.conj_eqToHom_iff_heq F.point G.point
+    (conj_eqToHom_iff_heq F.point G.point
           (congrFun (congrArg Prefunctor.obj (congrArg Functor.toPrefunctor h_func))
             PointedCategory.pt)
           rfl).mp
@@ -109,9 +109,43 @@ def forgetPoint : PCat ⥤ Cat where
   obj x := Cat.of x
   map f := f.toFunctor
 
+@[simp]
+theorem id_obj {C : PCat} (X : C) : (𝟙 C : PointedFunctor C C).obj X = X :=
+  rfl
+
+@[simp]
+theorem id_map {C : PCat} {X Y : C} (f : X ⟶ Y) : (𝟙 C : PointedFunctor C C).map f = f :=
+  rfl
+
+@[simp]
+lemma id_toFunctor {C : PCat} : (𝟙 C : PointedFunctor C C).toFunctor = 𝟭 C :=
+  rfl
+
+@[simp]
+lemma id_point {C : PCat} : (𝟙 C : PointedFunctor C C).point = 𝟙 PointedCategory.pt :=
+  rfl
+
+@[simp]
+theorem comp_obj {C D E : PCat} (F : C ⟶ D) (G : D ⟶ E) (X : C) :
+    (F ≫ G).obj X = G.obj (F.obj X) :=
+  rfl
+
+@[simp]
+theorem comp_map {C D E : PCat} (F : C ⟶ D) (G : D ⟶ E) {X Y : C} (f : X ⟶ Y) :
+    (F ≫ G).map f = G.map (F.map f) :=
+  rfl
+
+@[simp]
+lemma comp_toFunctor {C D E : PCat} (F : C ⟶ D) (G : D ⟶ E) :
+    (F ≫ G).toFunctor = F.toFunctor ⋙ G.toFunctor := rfl
+
+@[simp]
+lemma comp_point {C D E : PCat} (F : C ⟶ D) (G : D ⟶ E) :
+    (F ≫ G).point = G.map (F.point) ≫ G.point := rfl
+
 end PCat
 
-/-- The class of pointed pointed groupoids. -/
+/-- The class of pointed groupoids. -/
 class PointedGroupoid.{w,z} (C : Type z) extends Groupoid.{w} C, PointedCategory.{w,z} C
 
 /-- A constructor that makes a pointed groupoid from a groupoid and a point. -/
@@ -166,6 +200,40 @@ def forgetPoint : PGrpd ⥤ Grpd where
 def forgetToCat : PGrpd ⥤ PCat where
   obj x := PCat.of x
   map f := f
+
+@[simp]
+theorem id_obj {C : PGrpd} (X : C) : (𝟙 C : PointedFunctor C C).obj X = X :=
+  rfl
+
+@[simp]
+theorem id_map {C : PGrpd} {X Y : C} (f : X ⟶ Y) : (𝟙 C : PointedFunctor C C).map f = f :=
+  rfl
+
+@[simp]
+lemma id_toFunctor {C : PGrpd} : (𝟙 C : PointedFunctor C C).toFunctor = 𝟭 C :=
+  rfl
+
+@[simp]
+lemma id_point {C : PGrpd} : (𝟙 C : PointedFunctor C C).point = 𝟙 PointedCategory.pt :=
+  rfl
+
+@[simp]
+theorem comp_obj {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) (X : C) :
+    (F ≫ G).obj X = G.obj (F.obj X) :=
+  rfl
+
+@[simp]
+theorem comp_map {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) {X Y : C} (f : X ⟶ Y) :
+    (F ≫ G).map f = G.map (F.map f) :=
+  rfl
+
+@[simp]
+lemma comp_toFunctor {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) :
+    (F ≫ G).toFunctor = F.toFunctor ⋙ G.toFunctor := rfl
+
+@[simp]
+lemma comp_point {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) :
+    (F ≫ G).point = G.map (F.point) ≫ G.point := rfl
 
 end PGrpd
 

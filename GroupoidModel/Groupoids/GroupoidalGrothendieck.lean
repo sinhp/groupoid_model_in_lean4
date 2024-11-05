@@ -33,7 +33,7 @@ def mkIso {X Y : Grothendieck G}
     apply ext
     erw [comp_fiber]
     simp only [Cat.comp_obj, id_eq, map_hom_inv_id_assoc,
-      eqToHom_trans, id_fiber'] at *
+      eqToHom_trans, id_fiber] at *
     erw [comp_base, id_base]
     dsimp
     rw [s.hom_inv_id]
@@ -98,14 +98,13 @@ def functorial {C D : Grpd.{v₁,u₁}} (F : C ⟶ D) (G : D ⥤ Grpd.{v₂,u₂
   map_id X := by
     fapply Grothendieck.ext
     · exact F.map_id X.base
-    · simp only [Grothendieck.id_fiber', eqToHom_trans]
+    · simp only [Grothendieck.id_fiber, eqToHom_trans]
   map_comp {X Y Z} f g := by
     simp only [Grothendieck.comp]
     fapply Grothendieck.ext
     · exact F.map_comp f.base g.base
     · erw [Grothendieck.comp_fiber (F:= toCat (F ⋙ G)) f g]
       simp [eqToHom_trans]
-      erw [Grothendieck.comp_fiber]; rfl
 
 end GroupoidalGrothendieck
 

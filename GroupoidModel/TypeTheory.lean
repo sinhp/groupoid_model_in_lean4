@@ -62,13 +62,13 @@ theorem liftVar_lt_add (self : i < k) : liftVar n i j < k + n := by
 variable (n : Nat) in
 mutual
 /-- Evaluate `↑ⁿ⁺ᵏ:k` at a type expression. -/
-@[semireducible] def TyExpr.liftN : TyExpr → (k : Nat := 0) → TyExpr
+def TyExpr.liftN : TyExpr → (k : Nat := 0) → TyExpr
   | .univ, _ => .univ
   | .el A, k => .el (A.liftN k)
   | .pi ty body, k => .pi (ty.liftN k) (body.liftN (k+1))
 
 /-- Evaluate `↑ⁿ⁺ᵏ:k` at an expression. -/
-@[semireducible] def Expr.liftN : Expr → (k : Nat := 0) → Expr
+def Expr.liftN : Expr → (k : Nat := 0) → Expr
   | .bvar i, k => .bvar (liftVar n i k)
   | .app B fn arg, k => .app (B.liftN (k+1)) (fn.liftN k) (arg.liftN k)
   | .lam ty body, k => .lam (ty.liftN k) (body.liftN (k+1))
@@ -126,7 +126,7 @@ end
 end Typing
 
 open CategoryTheory NaturalModel
-open Functor Limits Opposite Representable
+open Functor Limits Opposite
 noncomputable section
 
 variable {Ctx : Type u} [SmallCategory Ctx] [HasTerminal Ctx] [M : NaturalModel Ctx]
@@ -385,7 +385,7 @@ def mkSmallPi {Γ : Context Ctx} (A : Γ.typed wU) (B : (Γ.cons (mkEl A)).typed
   · refine ?_ ≫ substCons (yoneda.map $ terminal.from _) B.1 _ B.2
     dsimp [uvPoly]
     refine (disp_pullback (Ctx := Ctx) _).isLimit.lift <|
-      PullbackCone.mk (pullback.fst ≫ var _ _) pullback.snd ?_
+      PullbackCone.mk (pullback.fst .. ≫ var _ _) (pullback.snd ..) ?_
     rw [mkEl, Category.assoc, (disp_pullback _).w, ← Category.assoc,
       pullback.condition, Category.assoc]
 
