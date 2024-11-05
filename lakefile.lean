@@ -10,12 +10,11 @@ package groupoid_model where
   ]
   -- add any additional package configuration options here
 
-require Poly from git
-  "https://github.com/sinhp/Poly.git"
+require Poly from git "https://github.com/Vtec234/Poly" @ "bump/v4.14.0-rc1"
 
 @[default_target]
 lean_lib GroupoidModel where
-  globs := #[.andSubmodules `GroupoidModel]
+  globs := #[`GroupoidModel]
   -- add any library configuration options here
 
 require checkdecls from git "https://github.com/PatrickMassot/checkdecls.git"

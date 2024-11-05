@@ -27,7 +27,7 @@ universe u v
 
 namespace CategoryTheory
 
-open Functor Limits Opposite Representable
+open Functor Limits Opposite
 
 noncomputable section
 
@@ -60,7 +60,7 @@ structure UvPoly' {C : Type*} [Category C] [HasFiniteWidePullbacks C] (E B : C) 
 
 namespace UvPoly
 
-variable {𝒞} [Category 𝒞] [HasPullbacks 𝒞]
+variable {𝒞} [Category 𝒞] [HasTerminal 𝒞] [HasPullbacks 𝒞]
 
 /-- Universal property of the polynomial functor. -/
 def _root_.UvPoly.equiv' {E B : 𝒞} (P : UvPoly E B) (Γ X : 𝒞) :
@@ -176,7 +176,7 @@ variable [NaturalModelIdBase Ctx]
 open NaturalModelIdBase
 
 def I : Psh Ctx := pullback Id tp
-def q : I ⟶ M.Ty := pullback.fst ≫ pullback.fst ≫ tp
+def q : I ⟶ M.Ty := pullback.fst .. ≫ pullback.fst .. ≫ tp
 def ρ : M.Tm ⟶ I := pullback.lift δ i Id_commute
 
 def ρs : P q ⟶ P M.tp :=

@@ -121,9 +121,9 @@ def pullback {D A E B : C} (π : E ⟶ B) (p : D ⟶ A) (q : E ⟶ B)
     exact (IsPullback.of_right h₂ (i.disp_pullback.isLimit.fac c (some .right)) h₁)
 
 def displayMapOfPullback {D A B : C} (p : D ⟶ A) [i : DisplayStruct π p] (t : B ⟶ A) :
-    DisplayStruct π (pullback.snd : Limits.pullback p t ⟶ B) where
+    DisplayStruct π (pullback.snd p t) where
   char := t ≫ i.char
-  var := pullback.fst ≫ i.var
+  var := pullback.fst .. ≫ i.var
   disp_pullback := IsPullback.paste_horiz (IsPullback.of_hasPullback _ _) i.disp_pullback
 
 end DisplayStruct
