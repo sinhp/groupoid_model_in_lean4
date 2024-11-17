@@ -9,8 +9,7 @@ Here we construct the natural model for groupoids.
 
 universe u v u₁ v₁ u₂ v₂
 
-namespace CategoryTheory
-
+open CategoryTheory
 noncomputable section
 
 -- Here I am using sGrpd to be a small category version of Grpd. There is likely a better way to do this.

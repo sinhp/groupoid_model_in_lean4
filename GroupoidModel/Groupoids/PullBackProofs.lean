@@ -658,3 +658,7 @@ def PshGrpdPB {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}) : @IsPullback (Grpd.{u,u}
   (PshGrpd.map ((Down_uni (GroupoidalGrothendieck A)) ⋙ (GroupoidalGrothendieck.forget) ⋙ (Up_uni Γ)))
   (PshGrpd.map (PGrpd.forgetPoint))
   (PshGrpd.map ((Down_uni Γ) ⋙ A)) := Functor.map_isPullback PshGrpd (PBasPB A)
+
+end
+
+end CategoryTheory

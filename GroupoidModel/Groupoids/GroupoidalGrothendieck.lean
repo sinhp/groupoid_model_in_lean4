@@ -8,7 +8,6 @@ Here we define the Grothendieck construction for groupoids
 universe u v u₁ v₁ u₂ v₂
 
 namespace CategoryTheory
-
 noncomputable section
 
 @[simps!]
@@ -109,3 +108,7 @@ def functorial {C D : Grpd.{v₁,u₁}} (F : C ⟶ D) (G : D ⥤ Grpd.{v₂,u₂
 end GroupoidalGrothendieck
 
 end
+end
+
+end CategoryTheory
+

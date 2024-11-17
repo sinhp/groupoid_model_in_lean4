@@ -238,3 +238,5 @@ lemma comp_point {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) :
 end PGrpd
 
 end PointedCategories
+
+end CategoryTheory
