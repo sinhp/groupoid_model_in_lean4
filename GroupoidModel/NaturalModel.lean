@@ -238,6 +238,10 @@ theorem NaturalModelSmallPi.pullback [NaturalModelU Ctx] [NaturalModelPi Ctx] :
 
 end NaturalModelSmallPi
 
+-- These are placeholders for definitions
+def NaturalModelSmallSigma : Type := sorry
+def NaturalModelSmallId : Type := sorry
+def NaturalModelUnivalentU : Type := sorry
 
 /-
 we will also want to say that the universe U is closed under Sigma, Pi, and Id,
