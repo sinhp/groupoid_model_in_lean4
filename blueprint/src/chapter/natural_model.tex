@@ -108,7 +108,7 @@ to express this situation, i.e.~$X \cong \yo(\Gamma \cdot \ulcorner X \urcorner)
 \lean{CategoryTheory.NaturalModel.NaturalModelPi} \leanok
 \uses{defn:NaturalModel}
 We will use $\Poly{\tp}$ to denote the polynomial endofunctor
-(\cref{polynomial_endofunctor}) associated with our presentable map $\tp$.
+(\ref{polynomial_endofunctor}) associated with our presentable map $\tp$.
 Then an interpretation of $\Pi$ types consists of a pullback square
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSJdLFswLDEsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzEsMCwiXFxUZXJtIl0sWzEsMSwiXFxUeXBlIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcdHB9IiwyXSxbMCwyLCJcXGxhIl0sWzIsMywiXFx0cCJdLFsxLDMsIlxcUGkiLDJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
 \begin{equation}
@@ -130,7 +130,7 @@ Then an interpretation of $\Pi$ types consists of a pullback square
 
 \subsection{Sigma types}
 
-\begin{defn}
+\begin{defn}\label{defn:NaturalModelSigma}
 \lean{CategoryTheory.NaturalModel.NaturalModelSigma} \leanok
 \uses{defn:NaturalModel}
 
@@ -186,7 +186,7 @@ An interpretation of $\Si$ types consists of a pullback square
 
 \subsection{Identity types}
 
-\begin{defn}
+\begin{defn}\label{defn:NaturalModelId}
 \lean{CategoryTheory.NaturalModel.NaturalModelId} \leanok
 \uses{defn:NaturalModel}
 To interpret the formation and introduction rules for identity types
@@ -255,7 +255,7 @@ Then view $\rho : \tp \to q$ as a map in the slice over $\Type$.
 	\arrow[from=4-2, to=5-2]
 \end{tikzcd}\]
 
-Now (by \cref{polynomial_on_slice_map})
+Now (by \ref{polynomial_on_slice_map})
 applying $\Poly{-} : (\pshC / \Type) ^{\op} \to [\pshC, \pshC]$ to $\rho : \tp \to q$
 gives us a naturality square (this also need not be pullback).
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7cX0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcVHlwZX0iXSxbMSwxLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMSwwLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcdHB9IiwyXSxbMSwyLCJcXFN0YXJ7XFxyaG99X3tcXFR5cGV9IiwyXSxbMywyLCJcXFBvbHl7XFx0cH0ge1xcdHB9Il0sWzAsMywiXFxTdGFye1xccmhvfV97XFxUZXJtfSJdXQ==
@@ -310,7 +310,7 @@ We now wish to formulate a condition that allows us to have a type of small type
 % Then $\kappa$ would be the size of $\U = \Set_{< \kappa}$
 % and $\lambda$ would be the size of $\set = \Set_{< \lambda}$.)
 
-\begin{defn}
+\begin{defn}\label{defn:NaturalModelU}
 \lean{CategoryTheory.NaturalModel.NaturalModelU} \leanok
 \uses{defn:NaturalModel}
 In the Natural Model, a universe $\U$ is postulated by a map
@@ -350,10 +350,10 @@ Both squares above are pullback squares.
 
 \subsection{Stability of the universe under type formers}
 
-Take the pullback diagram \cref{diag:universe-pullback}.
+Take the pullback diagram \ref{diag:universe-pullback}.
 That is a morphism in the category of polynomials.
-By \cref{polynomial_on_cartesian_square} we have a cartesian natural transformation $P_\pi \to P_{\tp}$
-induced by the pullback \cref{diag:universe-pullback}.
+By \ref{polynomial_on_cartesian_square} we have a cartesian natural transformation $P_\pi \to P_{\tp}$
+induced by the pullback \ref{diag:universe-pullback}.
 This cartesian natural transformation induces the cube diagram below;
 all of the squares in the cube are pullback squares.
 
@@ -645,7 +645,7 @@ It remains to construct $\J_{U}$, a section of $\ep_{U}$, given below
 \end{equation}
 
 Now the above give us the following pullback
-factorization of \cref{diag:universe-pullback}
+factorization of \ref{diag:universe-pullback}
 % https://q.uiver.app/#q=WzAsOCxbMCwyLCJJX1UiXSxbMCwzLCJcXFUiXSxbMSwyLCJJIl0sWzEsMywiXFxUeXBlIl0sWzAsMSwiXFxFIl0sWzEsMSwiXFxUZXJtIl0sWzAsMCwiXFxwaSJdLFsxLDAsIlxcdHAiXSxbMCwyLCIgIiwyXSxbMiwzLCJxIiwxXSxbMSwzLCJcXEVsIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwwLCJcXHJob19VIl0sWzUsMiwiXFxyaG8iLDJdLFs0LDUsIiAiLDFdLFs0LDEsIlxccGkiLDIseyJjdXJ2ZSI6M31dLFs1LDMsIlxcdHAiLDAseyJjdXJ2ZSI6LTN9XSxbNCwyLCIiLDIseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNiw3LCJcXGthcHBhIiwyLHsibGV2ZWwiOjJ9XSxbMCwxLCJxX1UiLDFdLFsxOSw5LCJcXGthcHBhX3EiLDAseyJzaG9ydGVuIjp7InNvdXJjZSI6MjAsInRhcmdldCI6MjB9fV1d
 \[\begin{tikzcd}
 	\pi & \tp \\
@@ -667,12 +667,12 @@ factorization of \cref{diag:universe-pullback}
 	\arrow["{\kappa_q}", shorten <=7pt, shorten >=7pt, Rightarrow, from=0, to=1]
 \end{tikzcd}\]
 
-If we apply \cref{polynomial_on_cartesian_square} to
+If we apply \ref{polynomial_on_cartesian_square} to
 the lower pullback square, i.e. $\ka_{q}$ then we will get
 a cartesian natural tranformation
 $\Poly{\ka_{U}} : \Poly{q_{U}} \to \Poly{q}$.
-Like in \cref{diag:universe-dependent-type-classifier-pullback-cube},
-evaluating this at the pullback square \cref{diag:universe-pullback}
+Like in \ref{diag:universe-dependent-type-classifier-pullback-cube},
+evaluating this at the pullback square \ref{diag:universe-pullback}
 induces the cube below with pullbacks on every face.
 % https://q.uiver.app/#q=WzAsOCxbMSwwLCJcXFBvbHl7cV9VfSBcXEUiXSxbMywwLCJcXFBvbHl7cX0gXFxFIl0sWzAsMSwiXFxQb2x5e3FfVX0gXFxUZXJtIl0sWzIsMSwiXFxQb2x5e3F9IFxcVGVybSJdLFsxLDIsIlxcUG9seXtxX1V9IFxcVSJdLFszLDIsIlxcUG9seXtxfSBcXFUiXSxbMCwzLCJcXFBvbHl7cV9VfSBcXFR5cGUiXSxbMiwzLCJcXFBvbHl7cX0gXFxUeXBlIl0sWzAsNF0sWzAsMV0sWzAsMl0sWzEsM10sWzEsNV0sWzIsM10sWzIsNl0sWzMsN10sWzQsNV0sWzQsNl0sWzUsN10sWzYsN11d
 \begin{equation}
@@ -725,13 +725,13 @@ Now we consider the diagrams for both $\ep$ and $\ep_{U}$
 	\arrow["\ep"{description}, from=3-1, to=3-2, crossing over]
 \end{tikzcd}\]
 The right face is the composed diagonal pullback square from
-\cref{diag:universe-dependent-type-classifier-pullback-cube}.
+\ref{diag:universe-dependent-type-classifier-pullback-cube}.
 The left face of the outer cube is the composed diagonal pullback square from
-\cref{diag:universe-identity-type-classifier-pullback-cube}.
+\ref{diag:universe-identity-type-classifier-pullback-cube}.
 The front face of the outer cube is the naturality square for $\Star{\rho}$ from
-\cref{diag:J_definition}
+\ref{diag:J_definition}
 and similarly the back face is the naturality square for $\Star{\rho_{U}}$ from
-\cref{diag:J_U_definition}.
+\ref{diag:J_U_definition}.
 
 Since the left face is a pullback square,
 to make $J_{U} : T_{U} \to \Poly{q_{U}}{\E}$ it suffices to consider
@@ -779,8 +779,8 @@ which we can visualize in
 	\arrow["\fst"', from=2-2, to=2-3]
 \end{tikzcd}\]
 
-Then, respectively, the pullback of the diagrams \cref{fig:pi_intp_pullback}
-and \cref{fig:si_intp_pullback} for interpreting $\Pi$ and $\Si$
+Then, respectively, the pullback of the diagrams \ref{fig:pi_intp_pullback}
+and \ref{fig:si_intp_pullback} for interpreting $\Pi$ and $\Si$
 rules along this map give us pullback diagrams for interpreting
 function types and product types.
 % https://q.uiver.app/#q=WzAsNixbMSwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSJdLFsxLDEsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzIsMCwiXFxUZXJtIl0sWzIsMSwiXFxUeXBlIl0sWzAsMSwiXFxUeXBlIFxcdGltZXMgXFxUeXBlIl0sWzAsMCwiRiJdLFswLDEsIlxcUG9seXtcXHRwfXtcXHRwfSIsMl0sWzAsMiwiXFxsYSJdLFsyLDMsIlxcdHAiXSxbMSwzLCJcXFBpIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwxLCIoXFxmc3QsXFxzbmQpIiwyXSxbNSw0LCIoXFxkb20sXFxjb2QpIiwyXSxbNSwwLCIoXFxkb20sXFxmdW4pIiwyXSxbNCwzLCJcXEV4cCIsMix7ImN1cnZlIjo1fV0sWzUsMiwiXFxsYSIsMCx7ImN1cnZlIjotNH1dLFs1LDEsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
@@ -818,7 +818,7 @@ function types and product types.
 \end{tikzcd}\]
 
 By the universal property of pullbacks and
-\cref{polynomial_endofunctor_property}
+\ref{polynomial_endofunctor_property}
 We can write a map $\Ga \to F$ as a triple $(A,B,f)$
 such that $A, B: \Ga \to \Type$ and
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXEdhIFxcY2RvdCBBIl0sWzEsMCwiXFxUZXJtIl0sWzEsMSwiXFxUeXBlIl0sWzAsMSwiXFxHYSJdLFswLDEsImYiXSxbMSwyLCJcXHRwIl0sWzMsMiwiQiIsMl0sWzAsMywiXFxkaXNwe0F9IiwyXV0=
@@ -855,7 +855,7 @@ $\disp{A} \to \disp{B}$
 For the formalization, we need not prove that the pullback of
 $\tp \triangleleft \tp$ is $\tp \times \tp$.
 Rather, we can also use the universal property of pullbacks
-and \cref{polynomial_endofunctor_property}
+and \ref{polynomial_endofunctor_property}
 to classify a map into the pullback (whatever it may be) as a
 pair $(\al, \be)$, where $\al, \be : \Ga \to \Term$.
 This could then be adapted to a proof that the pullback is
@@ -970,7 +970,7 @@ i.e. those satisfying equality reflection and uniqueness of identity proofs (UIP
 Equality reflection says that if one can construct a term satisfying $\Id(a,b)$
 then we have that definitionally $a \equiv b$,
 i.e. they are equal morphisms in the natural model.
-This amounts to requiring that \cref{figure:id_pullback_def} is a pullback,
+This amounts to requiring that \ref{figure:id_pullback_def} is a pullback,
 i.e. $\rho$ is an isomorphism
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFRlcm0iXSxbMCwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwxLCJcXFR5cGUiXSxbMSwwLCJcXFRlcm0iXSxbMCwxLCJcXGRlIiwyXSxbMSwyLCJcXElkIiwyXSxbMywyLCJcXHRwIl0sWzAsMywiXFxyZWZsIl0sWzAsMiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
 \[\begin{tikzcd}
@@ -983,7 +983,7 @@ i.e. $\rho$ is an isomorphism
 	\arrow["\Id"', from=2-1, to=2-2]
 \end{tikzcd}\]
 Note that this means $\Star{\rho}$ is an isomorphism,
-from which it follows that \cref{J_definition_diagram} is also a pullback,
+from which it follows that \ref{J_definition_diagram} is also a pullback,
 i.e. $\ep$ is an isomorphism.
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7cX0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcVHlwZX0iXSxbMSwxLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMSwwLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcdHB9IiwyXSxbMSwyLCJcXFN0YXJ7XFxyaG99X3tcXFR5cGV9IiwyXSxbMywyLCJcXFBvbHl7XFx0cH0ge1xcdHB9Il0sWzAsMywiXFxTdGFye1xccmhvfV97XFxUZXJtfSJdLFswLDIsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
 \[\begin{tikzcd}

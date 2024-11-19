@@ -622,7 +622,7 @@ and rebuild the required fibration by exponentiation in the slice.
 \begin{prop}[$\Poly{\tp}$ classifies type dependency]\label{tp_classifies}
   Specialized to $\tp : \Term \to \Type$ in $\Pshgrpd$,
   the characterizing property of polynomial endofunctors
-  \cref{polynomial_endofunctor_property} says that a map
+  \ref{polynomial_endofunctor_property} says that a map
   from a representable
   $\Ga \to \Poly{\tp}X$
   corresponds to the data of
@@ -694,7 +694,7 @@ and rebuild the required fibration by exponentiation in the slice.
   for every $\si : \De \to \Ga$ in $\grpd$.
 \end{lemma}
 \begin{proof}
-  Using \cref{tp_classifies}
+  Using \ref{tp_classifies}
 % https://q.uiver.app/#q=WzAsOSxbMSwxLCJcXFBzaGdycGQoXFxHYSwgXFxQb2x5e1xcdHB9IFgpICJdLFsxLDIsIlxcUHNoZ3JwZChcXERlLCBcXFBvbHl7XFx0cH0gWCkgIl0sWzAsMCwiKEEsIEIpIl0sWzAsMywiKEEgXFxjaXJjIFxcc2ksIEIgXFxjaXJjIFxcdHBeKiBcXHNpKSJdLFsyLDEsIlxcUHNoZ3JwZChcXEdhLCBYKSJdLFsyLDIsIlxcUHNoZ3JwZChcXERlLCBYKSJdLFsyLDMsIkZfe0EgXFxjaXJjIFxcc2l9IEIgXFxjaXJjIFxcdHBeKiBcXHNpIl0sWzMsMywiKEZfQSBCKSBcXGNpcmMgXFxzaSJdLFszLDAsIkZfQUIiXSxbMCwxLCItIFxcY2lyYyBcXHNpIiwyXSxbMiwzLCIiLDIseyJzdHlsZSI6eyJ0YWlsIjp7Im5hbWUiOiJtYXBzIHRvIn19fV0sWzAsNCwiXFx0aWxkZXtGfV97XFxHYX0iXSxbNCw1LCItIFxcY2lyYyBcXHNpIl0sWzEsNSwiXFx0aWxkZXtGfV97XFxEZX0iLDJdLFszLDYsIiIsMix7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XSxbNiw3LCIiLDIseyJsZXZlbCI6Miwic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn0sImhlYWQiOnsibmFtZSI6Im5vbmUifX19XSxbMiw4LCIiLDAseyJzdHlsZSI6eyJ0YWlsIjp7Im5hbWUiOiJtYXBzIHRvIn19fV0sWzgsNywiIiwwLHsic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9fX1dXQ==
 \[\begin{tikzcd}[column sep = small]
 	{(A, B)} &&& {F_AB} \\
@@ -716,7 +716,7 @@ and rebuild the required fibration by exponentiation in the slice.
 \begin{defn}[Interpretation of $\Pi$ types]
   We define the natural transformation
   $\Pi : \Poly{\tp} \Type \to \Type$
-  as that which is induced (\cref{BC_iff_nat_trans}) by the $\Pi$-former operation (\cref{pi_classifier_op}).
+  as that which is induced (\ref{BC_iff_nat_trans}) by the $\Pi$-former operation (\ref{pi_classifier_op}).
 
   Then we define the natural transformation
   $\la : \Poly{\tp} \Type \to \Type$
@@ -770,7 +770,7 @@ and rebuild the required fibration by exponentiation in the slice.
 	\arrow[maps to, from=4-1, to=4-3]
 	\arrow[Rightarrow, no head, from=4-3, to=4-4]
 \end{tikzcd}\]
-  where we have used \cref{tp_classifies}.
+  where we have used \ref{tp_classifies}.
   That this commutes follows from the definitions of $\Pi$ and $\la$.
 
   To show it is pullback it suffices to note that for any $f : \Ga \to \ptgrpd$
@@ -788,7 +788,7 @@ and rebuild the required fibration by exponentiation in the slice.
 \medskip
 
 \begin{lemma}\label{R_classifies_tp}
-  This is a specialization of \cref{R_classifies}.
+  This is a specialization of \ref{R_classifies}.
   Use $R$ to denote the fiber product
   % https://q.uiver.app/#q=WzAsNCxbMSwwLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMSwxLCJcXFR5cGUiXSxbMCwwLCJSIl0sWzAsMSwiXFxUZXJtIl0sWzAsMSwiXFx0cF8qIFxcVGVybV4qIFxcVHlwZSJdLFsyLDAsIlxccmhvX1xcUG9seXt9Il0sWzIsMywiXFx0cF4qIFxcdHBfKiBcXFRlcm1eKiBcXFR5cGU9IFxccmhvX1xcVGVybSIsMl0sWzMsMSwiXFx0cCIsMl0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
 \[\begin{tikzcd}
@@ -805,7 +805,7 @@ and rebuild the required fibration by exponentiation in the slice.
   The data of a map from a representable $\ep : \Ga \to R$
   corresponds to the data of
   $\al : \Ga \to \Term$ and $(U \circ \al,B) : \Ga \to \Poly{\tp}{\Type}$.
-  Then by \cref{tp_classifies} this corresponds to the data of
+  Then by \ref{tp_classifies} this corresponds to the data of
   $\al : \Ga \to \Term$ and $B : \Ga \cdot U \circ \al \to \Type$.
   % https://q.uiver.app/#q=WzAsNSxbMiwxLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMiwyLCJcXFR5cGUiXSxbMSwxLCJSIl0sWzEsMiwiXFxUZXJtIl0sWzAsMCwiXFxHYSJdLFswLDEsIlxcdHBfKiBcXFRlcm1eKiBcXFR5cGUiXSxbMiwwLCJcXHJob19cXFBvbHl7fSJdLFsyLDMsIlxcdHBeKiBcXHRwXyogXFxUZXJtXiogXFxUeXBlPSBcXHJob19cXFRlcm0iLDJdLFszLDEsIlxcdHAiLDJdLFsyLDEsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs0LDAsIihVIFxcY2lyYyBcXGFsLEIpIl0sWzQsMywiXFxhbCIsMl0sWzQsMiwiKFxcYWwsQikiLDFdXQ==
 \[\begin{tikzcd}
@@ -894,7 +894,7 @@ and rebuild the required fibration by exponentiation in the slice.
 \end{tikzcd}\]
 \end{lemma}
 \begin{proof}
-  This is a specialization of \cref{evaluation}
+  This is a specialization of \ref{evaluation}
   with liberal applications of Yoneda.
 \end{proof}
 % \begin{proof}
@@ -909,12 +909,12 @@ and rebuild the required fibration by exponentiation in the slice.
 %     \label{evaluation_computation_equation1}
 %   \end{equation}
 
-%   Working on both sides of \cref{evaluation_computation_equation1} we get
+%   Working on both sides of \ref{evaluation_computation_equation1} we get
 %   \begin{align*}
 %     & (\ev{\var_{A}}{B} \circ U^{*}\disp{A}, \var_{A}) \\
 %     = \, & (\ev{}{}, \rho_{\Type}) \circ (\var_{A}, B \circ U^{*}(\disp{A})) \\
 %     = \, & (\ev{}{}, \rho_{\Type}) \circ \tp^{*} (A, B)
-%          & \cref{evaluation_computation_diagram1} \\
+%          & \ref{evaluation_computation_diagram1} \\
 %     = \, & \counit \circ \tp^{*} (A, B) \\
 %     = \, & \overline{\widetilde{\counit} \circ (A, B)} \\
 %     = \, & \overline{(A, B)} \\
@@ -1084,7 +1084,7 @@ and rebuild the required fibration by exponentiation in the slice.
 \begin{defn}[Interpretation of $\Si$]
   We define the natural transformation
   \[\Si : \Poly{\tp} \Type \to \Type\]
-  as that which is induced (\cref{BC_iff_nat_trans}) by the $\Si$-former operation (\cref{pi_classifier_op}).
+  as that which is induced (\ref{BC_iff_nat_trans}) by the $\Si$-former operation (\ref{pi_classifier_op}).
 
   To define $\pair : Q \to \Term$, let $\Ga$ be a groupoid
   % \begin{align*}
@@ -1099,11 +1099,11 @@ and rebuild the required fibration by exponentiation in the slice.
   We define a functor $\pair_{\Ga}(\be,\al,B) : \Ga \to \ptgrpd$ such that
   on objects $x \in \Ga$, the functor returns $(\Si_{A} B \, x, (a_{x}, b_{a_{x}}))$,
   where
-  (using \cref{evaluation_computation}
+  (using \ref{evaluation_computation}
   $U \circ \be x = \ev{\al}{B} x = B(x, a_{x})$)
   \[\al \, x = (A \, x, a_{x}) \quad \text{ and } \quad \be \, x = (B (x , a_{x}), b_{a_{x}})\]
   and on morphisms $f : x \to y$, the functor returns $(\Si_{A} B \, f, (\phi_{f}, \psi_{f}))$,
-  where (using \cref{evaluation_computation}
+  where (using \ref{evaluation_computation}
   $U \circ \be f = \ev{\al}{B} f = B(f, \phi_{f})$)
   \[\al \, f = (A \, f, \phi_{f} { \color{gray} : A \, f \, a_{x} \to a_{y}})
     \quad \text{ and } \quad
@@ -1211,7 +1211,7 @@ and rebuild the required fibration by exponentiation in the slice.
 
   We first note that both $\de$ and $\tp$ in the are
   in the essential image
-  of the composition from \cref{tp_defn}
+  of the composition from \ref{tp_defn}
   % https://q.uiver.app/#q=WzAsMyxbMCwwLCJcXENhdCJdLFsxLDAsIlxcUHNoQ2F0Il0sWzIsMCwiXFxQc2hncnBkIl0sWzAsMSwiXFx5byJdLFsxLDIsIlxcbWF0aHNme3Jlc30iXV0=
 \[\begin{tikzcd}
 	\Cat & \PshCat & \Pshgrpd
@@ -1258,7 +1258,7 @@ and rebuild the required fibration by exponentiation in the slice.
 \end{defn}
 \begin{proof}
   Since $\de (A,a) = (A, a, a)$, it follows that the square
-  in \cref{id_diagram1} commutes.
+  in \ref{id_diagram1} commutes.
 \end{proof}
 
 \begin{lemma}
@@ -1296,7 +1296,7 @@ and rebuild the required fibration by exponentiation in the slice.
 
   Specialized to $q : I \to \Type$ in $\Pshgrpd$,
   the characterizing property of polynomial endofunctors
-  \cref{polynomial_endofunctor_property} says that a map
+  \ref{polynomial_endofunctor_property} says that a map
   from a representable
   $\ep : \Ga \to \Poly{q}X$
   corresponds to the data of
@@ -1414,7 +1414,7 @@ and rebuild the required fibration by exponentiation in the slice.
   $(A, C) : \Ga \to \Poly{q}{\Type}$ and $(A',\ga_\refl) : \Ga \to \Poly{\tp}{\Term}$
   such that
   \[ \Star{\rho}_{\Type} \circ (A, C) = \Poly{\tp} {\tp} \circ (A', \ga_\refl) \]
-  By \cref{polynomial_on_slice_map} and \cref{polynomial_endofunctor_property}
+  By \ref{polynomial_on_slice_map} and \ref{polynomial_endofunctor_property}
   this says
   \[ (A, C \circ A^{*} \rho) = (A', \tp \circ \ga_\refl)\]
   so the above is equivalent to having $A = A', C, \ga_\refl$ such that
@@ -1431,8 +1431,8 @@ and rebuild the required fibration by exponentiation in the slice.
   \end{align*}
 \end{prop}
 \begin{proof}
-  This follows from the computation for $T$ \cref{T_classifies},
-  the polynomial action on slice morphisms \cref{polynomial_on_slice_map}, and \cref{polynomial_endofunctor_property}.
+  This follows from the computation for $T$ \ref{T_classifies},
+  the polynomial action on slice morphisms \ref{polynomial_on_slice_map}, and \ref{polynomial_endofunctor_property}.
 \end{proof}
 
 \begin{defn}[Identity elimination]
@@ -1443,7 +1443,7 @@ and rebuild the required fibration by exponentiation in the slice.
   \end{align*}
   for some
   $\ga : \Ga \cdot A \cdot A \cdot \Id \to \ptgrpd$ which we will define below.
-  We first use $T$ \cref{T_classifies} to describe the given data:
+  We first use $T$ \ref{T_classifies} to describe the given data:
 % https://q.uiver.app/#q=WzAsMTYsWzMsMiwiVSBcXHRpbWVzX1xcZ3JwZCBVIl0sWzMsMSwiSSciXSxbMywzLCJcXHB0Z3JwZCJdLFszLDQsIlxcZ3JwZCJdLFsyLDQsIlxcR2EiXSxbMiwzLCJcXEdhIFxcY2RvdCBBIl0sWzQsMCwiXFxwdGdycGQiXSxbNCwxLCJcXGdycGQiXSxbMiwyLCJcXEdhIFxcY2RvdCBBIFxcY2RvdCBBIl0sWzIsMSwiXFxHYSBcXGNkb3QgQSBcXGNkb3QgQSBcXGNkb3QgXFxJZCJdLFs0LDIsIlxccHRncnBkIl0sWzQsMywiXFxncnBkIl0sWzAsMCwiXFxwdGdycGQiXSxbMiwwLCJcXEdhIFxcY2RvdCBBIl0sWzMsMCwiXFxwdGdycGQiXSxbMCwxLCJcXGdycGQiXSxbMSwwXSxbMCwyLCJcXGZzdCIsMV0sWzIsMywiVSJdLFs0LDMsIkEiLDJdLFs1LDQsIlxcZGlzcHtBfSIsMl0sWzEsNl0sWzYsNywiVSJdLFswLDcsIlxcSWQnIiwxXSxbNSwyLCJcXHZhcl9BIiwxXSxbOCw1LCJcXGRpc3B7VSBcXGNpcmMgXFx2YXJfQX0iLDJdLFs4LDBdLFs5LDgsIlxcZGlzcHtcXElkJyBcXGNpcmMgVV4qIFxcdmFyX0F9IiwyXSxbOSwxXSxbNSwzLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbOCwyLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbOSwwLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMSw3LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMCwxMCwiXFxzbmQiLDJdLFsxMCwxMSwiVSIsMl0sWzIsMTEsIlUiLDJdLFswLDExLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbOSwxMiwiXFxnYSIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFsxMyw5LCJBXiogXFxyaG8nIiwxXSxbMTQsMSwiXFxyaG8nIiwxXSxbMTMsMTQsIlxcdmFyX0EiXSxbMTMsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzEyLDE1LCJVIiwyXSxbOSwxNSwiQyIsMV0sWzEzLDEyLCJcXGdhX1xccmVmbCIsMV1d
 \[\begin{tikzcd}
 	\ptgrpd && {\Ga \cdot A} & \ptgrpd & \ptgrpd \\
@@ -1513,7 +1513,7 @@ and rebuild the required fibration by exponentiation in the slice.
     (x, a_{0}, a_{1}, h) \mapsto (C (x, a_{0}, a_{1}, h),
     C(\id_{x}, \id_{a_{0}}, h, \_) \, c_{\refl}(x, a_{0}))\]
   noting that from the computation of $\rho'$ given in
-  \cref{I'_classifies} it follows that
+  \ref{I'_classifies} it follows that
   \[ c_{\refl} (x, a_{0}) \in C \circ A^{*} \rho' (x, a_{0})
     = C(x, a_{0}, a_{1}, h)\]
   Define $\ga$ on morphism
@@ -1586,7 +1586,7 @@ and rebuild the required fibration by exponentiation in the slice.
 \begin{proof}
   Let $(A, C, \ga_{\refl}) : \Ga \to T$ be a map from a representable.
   Then using the definition of $J$ and the computation of $\ep$
-  \cref{ep_computation}
+  \ref{ep_computation}
   \[\ep_{\Ga} \circ J_{\Ga} \, (A, C, \ga_{\refl})
     = \ep_{\Ga} (A, \ga)
     = (A, U \circ \ga, \ga \circ A^{*} \rho')

@@ -123,7 +123,7 @@ in the rest of the notes.
 \end{tikzcd}\]
 
   By the universal property of pullbacks
-  and \cref{polynomial_endofunctor_property},
+  and \ref{polynomial_endofunctor_property},
   The data of a map $\Ga \to R$
   corresponds to the data of
   $\be : \Ga \to B$ and $(t \circ \be,y) : \Ga \to \Poly{t}{Y}$,
@@ -143,7 +143,7 @@ in the rest of the notes.
 	\arrow["t"', from=3-2, to=3-3]
 \end{tikzcd}\]
 
-  By uniqueness in the universal property of pullbacks and \cref{polynomial_endofunctor_property},
+  By uniqueness in the universal property of pullbacks and \ref{polynomial_endofunctor_property},
   Precomposition by a map $\si : \De \to \Ga$ acts on such a pair by
 % https://q.uiver.app/#q=WzAsNCxbMiwxLCJSIl0sWzAsMV0sWzEsMSwiXFxHYSJdLFsxLDAsIlxcRGUiXSxbMywyLCJcXHNpIiwyXSxbMywwLCIoXFxiZVxcY2lyYyBcXHNpLCB5IFxcY2lyYyB0XiogXFxzaSkiXSxbMiwwLCIoXFxiZSwgeSkiLDJdXQ==
 \[\begin{tikzcd}
@@ -158,7 +158,7 @@ in the rest of the notes.
 \medskip
 
 \begin{lemma}[Evaluation] \label{evaluation}
-  Suppose $(\be,y) : \Ga \to R$, as in \cref{R_classifies}
+  Suppose $(\be,y) : \Ga \to R$, as in \ref{R_classifies}
   \[ \be : \Ga \to B \quad \text{ and } \quad y : \Ga \cdot t \circ \be \to Y\]
   Then the evaluation of $y$ at $\be$ can be described in the following two ways
   \[ y \circ b = \pi_{Y} \circ \counit \circ (\be, y)\]
@@ -203,16 +203,16 @@ in the rest of the notes.
 	\begin{align*}
 		  & \, \counit \circ (\be, y) \\
 		= & \, \counit \circ (v \circ b, y \circ t^{*} d \circ t^{*} b)
-		& \cref{evaluation_computation_diagram1} \\
+		& \ref{evaluation_computation_diagram1} \\
 		= & \, \counit \circ (v, y \circ t^{*} d) \circ b
-		& \cref{R_classifies,evaluation_computation_diagram2}\\
+		& \ref{R_classifies,evaluation_computation_diagram2}\\
 		= & \, \counit \circ t^{*} (t \circ \be, y) \circ b
-		& \cref{evaluation_computation_diagram3}\\
+		& \ref{evaluation_computation_diagram3}\\
 		% = & \, \overline{\widetilde{\counit} \circ (t \circ \be, y)} \circ b \\
 		= & \, \overline{(t \circ \be, y)} \circ b
-    & \cref{evaluation_computation_diagram4}\\
+    & \ref{evaluation_computation_diagram4}\\
 		= & \, (y, v) \circ b
-		& \cref{evaluation_computation_diagram5} \\
+		& \ref{evaluation_computation_diagram5} \\
 		= & \, (y \circ b, v \circ b)\\
 		= & \, (y \circ b, \be)\\
 	\end{align*}
@@ -281,7 +281,7 @@ in the rest of the notes.
 	\arrow["{(t \circ \be \circ d, y \circ t^* d)}", from=1-1, to=2-2]
 	\arrow["{(t \circ \be, y)}"', from=2-1, to=2-2]
 \end{tikzcd}
-\quad \text{ using \cref{polynomial_endofunctor_property,R_classifies}}
+\quad \text{ using \ref{polynomial_endofunctor_property,R_classifies}}
 \]
 
   \caption{$t^{*}(t \circ \be, y) = (v, y \circ t^{*}d)$}
@@ -409,7 +409,7 @@ where
 	\arrow["{\Poly{s}}"', bend right = 70, from=1-1, to=4-1]
 	\arrow["{\Poly{t}}", bend left = 100, shift left = 15, from=1-1, to=4-1]
 \end{tikzcd}\]
-  where $\mu = \mu^{*}$ is the mate from \cref{mate},
+  where $\mu = \mu^{*}$ is the mate from \ref{mate},
   and $\eta$ is the natural isomorphism given by pullback pasting.
 
   Pointwise, this natural transformation acts on a pair
@@ -482,7 +482,7 @@ it suffices to show that both $\overline{\mu_{B^{*}X}} \circ s^{*}(\al, \be)$
 and $\overline{(\al, \be \circ \al^{*} \rho)}$ are uniquely determined by
 the same two maps into $X$ and $C$.
 
-By the characterising property of polynomial endofunctors (\cref{polynomial_endofunctor_property})
+By the characterising property of polynomial endofunctors (\ref{polynomial_endofunctor_property})
 we calculate
 \[ \overline{(\al, \be \circ \al^{*} \rho)} = (\be \circ \al^{*} \rho, s^{*} \al)\]
 % https://q.uiver.app/#q=WzAsMTAsWzAsMSwiXFxhbCJdLFsxLDEsInNfKiBDXiogWCJdLFsyLDBdLFsyLDJdLFszLDEsInNeKiBcXGFsIl0sWzQsMSwiQ14qIFgiXSxbNSwwXSxbNSwyXSxbNiwxLCJDXyEgc14qIFxcYWwiXSxbNywxLCJYIl0sWzAsMSwiKFxcYWwsIFxcYmUgXFxjaXJjIFxcYWxeKiBcXHJobykiXSxbMiwzLCIiLDAseyJsZXZlbCI6Miwic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dLFs0LDUsIlxcb3ZlcmxpbmV7KFxcYWwsXFxiZSBcXGNpcmMgXFxhbF4qIFxccmhvKX0iXSxbNCw1LCIoXFxiZSBcXGNpcmMgXFxhbF4qIFxccmhvLCBzXiogXFxhbCkiLDJdLFs2LDcsIiIsMix7ImxldmVsIjoyLCJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzgsOSwiXFxiZSBcXGNpcmMgXFxhbF4qIFxccmhvIiwyXV0=
@@ -560,7 +560,7 @@ On the other hand,
 	\arrow["t"', from=3-2, to=3-3]
 \end{tikzcd}\]
 
-  Using the characterization of maps into $R$ from \cref{R_classifies}
+  Using the characterization of maps into $R$ from \ref{R_classifies}
   we can calculate
   \[ \mu_! t_* B^*X \circ s^* (\al, \be) =
     (\rho \circ s^{*} \al, \be \circ t^{*}\al^{*} s)\]
@@ -569,7 +569,7 @@ On the other hand,
   \[ (\al \circ \al^{*} s, \be \circ t^{*} \al^{*} s)
     = (\al, \be) \circ \al^{*} s : \Ga \cdot_{s} \al \to \Poly{t}{X}\]
 
-  Then using \cref{evaluation}
+  Then using \ref{evaluation}
   \begin{align} \label{polynomial_star_equation1}
     & \overline{\overline{\mu_{B^{*}X}} \circ s^{*}(\al, \be)} \\
     = \, & \counit_{B^{*} X} \circ \mu_! t_* B^*X \circ s^* (\al, \be)\\
@@ -617,7 +617,7 @@ and
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
 \end{tikzcd}\]
   Moving back along the adjunction $\rho_{!} \dashv \rho^{*}$
-  \cref{polynomial_star_equation1} tells us that
+  \ref{polynomial_star_equation1} tells us that
  % https://q.uiver.app/#q=WzAsOSxbMywxLCJDIl0sWzMsMiwiQiJdLFszLDMsIjEiXSxbMiwzLCJYIl0sWzIsMiwiWCBcXHRpbWVzIEIiXSxbMiwxLCJYIFxcdGltZXMgQyJdLFswLDAsIlxcR2EgXFxjZG90X3MgXFxhbCJdLFsxLDBdLFsxLDJdLFswLDEsIlxccmhvIl0sWzEsMl0sWzMsMl0sWzQsMV0sWzQsM10sWzUsMF0sWzUsNF0sWzUsMSwiIiwwLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzQsMiwiIiwwLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzYsMywiXFxiZSBcXGNpcmMgXFxhbF4qIFxccmhvIiwyLHsiY3VydmUiOjN9XSxbNiw0LCJcXG92ZXJsaW5le1xcb3ZlcmxpbmV7XFxtdV97Ql57Kn1YfX0gXFxjaXJjIHNeeyp9KFxcYWwsIFxcYmUpfSIsMSx7ImN1cnZlIjoxfV0sWzYsNSwiXFxvdmVybGluZXtcXG11X3tCXnsqfVh9fSBcXGNpcmMgc157Kn0oXFxhbCwgXFxiZSkiLDFdLFs2LDAsInNeKiBcXGFsIiwwLHsiY3VydmUiOi0yfV1d
 \[\begin{tikzcd}
 	{\Ga \cdot_s \al} & {} \\

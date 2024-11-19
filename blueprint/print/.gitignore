@@ -1,9 +1,5 @@
-*.synctex.gz
-*.out
-*.log
-*.fdb_latexmk
-*.blg
-*.bbl
-*.fls
-*.aux
-*.auctex-auto
+# Ignore all
+*
+
+#except for print.pdf
+!print.pdf

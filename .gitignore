@@ -5,8 +5,7 @@
 .cache/*
 ## Blueprint
 blueprint/web/
-blueprint/print/
-blueprint/src/print.pdf
+blueprint/src/chapter/auto
 blueprint/lean_decls
 ## Docs
 docs/_includes/sorries.md
