@@ -2,6 +2,9 @@
 # The Groupoid Model of HoTT in Lean 4
 
 This repository formalizes in Lean4 the groupoid model of HoTT.
+A web version of the mathematics, `lean4` documentation, 
+and a dependency graph on the progress of formalization can be found
+[here](https://sinhp.github.io/groupoid_model_in_lean4/).
 
 This could be the basis for a HoTT mode in Lean.
 
@@ -26,3 +29,5 @@ and to get the cached files and override your potentially corrupted `.olean` fil
 ```
 lake exe cache get!
 ```
+
+
