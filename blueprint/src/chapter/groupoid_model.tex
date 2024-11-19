@@ -29,6 +29,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
 \medskip
 
 \begin{defn}[Pointed]
+  \label{defn:PCat}
   \lean{CategoryTheory.PCat} \leanok
   We will take the category of pointed small categories $\ptcat$
   to have objects as pairs $(\catC \in \cat, c \in \catC)$
@@ -41,7 +42,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
 \medskip
 
 \begin{defn}[The display map classifier]
-  \label{tp_defn}
+  \label{defn:GroupoidNM}
   \lean{GroupoidNM} \leanok %%This should probably just be GroupoidNM or GroupoidNM.Base
   We would like to define a natural transformation in
   $\Pshgrpd$
@@ -431,7 +432,7 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
 
 \medskip
 
-\begin{defn}[$\Pi$-former operation]\label{pi_classifier_op}
+\begin{defn}[$\Pi$-former operation]\label{defn:GroupoidPi}
   Given $A : \Ga \to \grpd$ and $B : \Ga \cdot A \to \grpd$
   we will define $\Pi_{A} B : \Ga \to \grpd$ such that
   for any $C : \Ga \to \grpd$ we have an isomorphism
@@ -619,7 +620,7 @@ and rebuild the required fibration by exponentiation in the slice.
 
 \subsection{Classifying type dependency}
 
-\begin{prop}[$\Poly{\tp}$ classifies type dependency]\label{tp_classifies}
+\begin{prop}[$\Poly{\tp}$ classifies type dependency]\label{prop:GroupoidPtpUniversalProperty}
   Specialized to $\tp : \Term \to \Type$ in $\Pshgrpd$,
   the characterizing property of polynomial endofunctors
   \ref{polynomial_endofunctor_property} says that a map
@@ -676,7 +677,7 @@ and rebuild the required fibration by exponentiation in the slice.
 
 \medskip
 
-\begin{lemma}\label{BC_iff_nat_trans}
+\begin{lemma}\label{lem:GroupoidBeckChevalleyIffNatural}
   $X \in \Pshgrpd$ be a presheaf.
   Let $F$ be an operation that takes a groupoid $\Ga$,
   a functor $A : \Ga \to \grpd$
@@ -694,7 +695,7 @@ and rebuild the required fibration by exponentiation in the slice.
   for every $\si : \De \to \Ga$ in $\grpd$.
 \end{lemma}
 \begin{proof}
-  Using \ref{tp_classifies}
+  Using \ref{prop:GroupoidPtpUniversalProperty}
 % https://q.uiver.app/#q=WzAsOSxbMSwxLCJcXFBzaGdycGQoXFxHYSwgXFxQb2x5e1xcdHB9IFgpICJdLFsxLDIsIlxcUHNoZ3JwZChcXERlLCBcXFBvbHl7XFx0cH0gWCkgIl0sWzAsMCwiKEEsIEIpIl0sWzAsMywiKEEgXFxjaXJjIFxcc2ksIEIgXFxjaXJjIFxcdHBeKiBcXHNpKSJdLFsyLDEsIlxcUHNoZ3JwZChcXEdhLCBYKSJdLFsyLDIsIlxcUHNoZ3JwZChcXERlLCBYKSJdLFsyLDMsIkZfe0EgXFxjaXJjIFxcc2l9IEIgXFxjaXJjIFxcdHBeKiBcXHNpIl0sWzMsMywiKEZfQSBCKSBcXGNpcmMgXFxzaSJdLFszLDAsIkZfQUIiXSxbMCwxLCItIFxcY2lyYyBcXHNpIiwyXSxbMiwzLCIiLDIseyJzdHlsZSI6eyJ0YWlsIjp7Im5hbWUiOiJtYXBzIHRvIn19fV0sWzAsNCwiXFx0aWxkZXtGfV97XFxHYX0iXSxbNCw1LCItIFxcY2lyYyBcXHNpIl0sWzEsNSwiXFx0aWxkZXtGfV97XFxEZX0iLDJdLFszLDYsIiIsMix7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XSxbNiw3LCIiLDIseyJsZXZlbCI6Miwic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn0sImhlYWQiOnsibmFtZSI6Im5vbmUifX19XSxbMiw4LCIiLDAseyJzdHlsZSI6eyJ0YWlsIjp7Im5hbWUiOiJtYXBzIHRvIn19fV0sWzgsNywiIiwwLHsic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9fX1dXQ==
 \[\begin{tikzcd}[column sep = small]
 	{(A, B)} &&& {F_AB} \\
@@ -716,7 +717,7 @@ and rebuild the required fibration by exponentiation in the slice.
 \begin{defn}[Interpretation of $\Pi$ types]
   We define the natural transformation
   $\Pi : \Poly{\tp} \Type \to \Type$
-  as that which is induced (\ref{BC_iff_nat_trans}) by the $\Pi$-former operation (\ref{pi_classifier_op}).
+  as that which is induced (\ref{lem:GroupoidBeckChevalleyIffNatural}) by the $\Pi$-former operation (\ref{defn:GroupoidPi}).
 
   Then we define the natural transformation
   $\la : \Poly{\tp} \Type \to \Type$
@@ -770,7 +771,7 @@ and rebuild the required fibration by exponentiation in the slice.
 	\arrow[maps to, from=4-1, to=4-3]
 	\arrow[Rightarrow, no head, from=4-3, to=4-4]
 \end{tikzcd}\]
-  where we have used \ref{tp_classifies}.
+  where we have used \ref{prop:GroupoidPtpUniversalProperty}.
   That this commutes follows from the definitions of $\Pi$ and $\la$.
 
   To show it is pullback it suffices to note that for any $f : \Ga \to \ptgrpd$
@@ -787,7 +788,7 @@ and rebuild the required fibration by exponentiation in the slice.
 
 \medskip
 
-\begin{lemma}\label{R_classifies_tp}
+\begin{lemma}\label{lem:GroupoidR}
   This is a specialization of \ref{R_classifies}.
   Use $R$ to denote the fiber product
   % https://q.uiver.app/#q=WzAsNCxbMSwwLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMSwxLCJcXFR5cGUiXSxbMCwwLCJSIl0sWzAsMSwiXFxUZXJtIl0sWzAsMSwiXFx0cF8qIFxcVGVybV4qIFxcVHlwZSJdLFsyLDAsIlxccmhvX1xcUG9seXt9Il0sWzIsMywiXFx0cF4qIFxcdHBfKiBcXFRlcm1eKiBcXFR5cGU9IFxccmhvX1xcVGVybSIsMl0sWzMsMSwiXFx0cCIsMl0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
@@ -805,7 +806,7 @@ and rebuild the required fibration by exponentiation in the slice.
   The data of a map from a representable $\ep : \Ga \to R$
   corresponds to the data of
   $\al : \Ga \to \Term$ and $(U \circ \al,B) : \Ga \to \Poly{\tp}{\Type}$.
-  Then by \ref{tp_classifies} this corresponds to the data of
+  Then by \ref{prop:GroupoidPtpUniversalProperty} this corresponds to the data of
   $\al : \Ga \to \Term$ and $B : \Ga \cdot U \circ \al \to \Type$.
   % https://q.uiver.app/#q=WzAsNSxbMiwxLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMiwyLCJcXFR5cGUiXSxbMSwxLCJSIl0sWzEsMiwiXFxUZXJtIl0sWzAsMCwiXFxHYSJdLFswLDEsIlxcdHBfKiBcXFRlcm1eKiBcXFR5cGUiXSxbMiwwLCJcXHJob19cXFBvbHl7fSJdLFsyLDMsIlxcdHBeKiBcXHRwXyogXFxUZXJtXiogXFxUeXBlPSBcXHJob19cXFRlcm0iLDJdLFszLDEsIlxcdHAiLDJdLFsyLDEsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs0LDAsIihVIFxcY2lyYyBcXGFsLEIpIl0sWzQsMywiXFxhbCIsMl0sWzQsMiwiKFxcYWwsQikiLDFdXQ==
 \[\begin{tikzcd}
@@ -874,7 +875,7 @@ and rebuild the required fibration by exponentiation in the slice.
 
 \medskip
 
-\begin{lemma}\label{evaluation_computation}
+\begin{lemma}\label{prop:GroupoidEvComputation}
   The functor $\ev{\al}{B} : \Ga \to \grpd$ can be computed as
   \[ \ev{\al}{B} = B \circ a \]
   where
@@ -906,15 +907,15 @@ and rebuild the required fibration by exponentiation in the slice.
 %   computes. Namely for any $A : \Ga \to \grpd$ and $B : \Ga \cdot A \to \grpd$
 %   \begin{equation}
 %     \widetilde{\counit} \circ (A, B) = (A, B) : \Ga \to \Poly{\tp}\Type
-%     \label{evaluation_computation_equation1}
+%     \label{prop:GroupoidEvComputation_equation1}
 %   \end{equation}
 
-%   Working on both sides of \ref{evaluation_computation_equation1} we get
+%   Working on both sides of \ref{prop:GroupoidEvComputation_equation1} we get
 %   \begin{align*}
 %     & (\ev{\var_{A}}{B} \circ U^{*}\disp{A}, \var_{A}) \\
 %     = \, & (\ev{}{}, \rho_{\Type}) \circ (\var_{A}, B \circ U^{*}(\disp{A})) \\
 %     = \, & (\ev{}{}, \rho_{\Type}) \circ \tp^{*} (A, B)
-%          & \ref{evaluation_computation_diagram1} \\
+%          & \ref{prop:GroupoidEvComputation_diagram1} \\
 %     = \, & \counit \circ \tp^{*} (A, B) \\
 %     = \, & \overline{\widetilde{\counit} \circ (A, B)} \\
 %     = \, & \overline{(A, B)} \\
@@ -975,7 +976,7 @@ and rebuild the required fibration by exponentiation in the slice.
 %         \text{Hence}
 %       \end{align*}
 %   \caption{$\tp^{*}(A,B) = (\var_{A}, B \circ U^{*}\disp{A})$}
-%   \label{evaluation_computation_diagram1}
+%   \label{prop:GroupoidEvComputation_diagram1}
 % \end{subfigure}
 % \end{figure}
 %   % (\var_{A}, B \circ \tp^* \disp_A)
@@ -985,7 +986,7 @@ and rebuild the required fibration by exponentiation in the slice.
 
 \medskip
 
-\begin{defn}[Classifier for dependent pairs]\label{dependent_pair_classifier}
+\begin{defn}[Classifier for dependent pairs]\label{defn:GroupoidQ}
   Recall the following definition of composition of polynomial endofunctors,
   specialized to our situation
 % https://q.uiver.app/#q=WzAsMTEsWzMsMCwiXFxQb2x5e1xcdHB9IHtcXFR5cGV9Il0sWzMsMSwiXFxUeXBlIl0sWzIsMCwiUiJdLFsyLDEsIlxcVGVybSJdLFsxLDEsIlxcVGVybSBcXHRpbWVzIFxcVHlwZSJdLFsxLDIsIlxcVHlwZSJdLFsyLDIsIlxcdGVybWluYWwiXSxbMCwxLCJcXFRlcm0gXFx0aW1lcyBcXFRlcm0iXSxbMCwyLCJcXFRlcm0iXSxbMSwwLCJSIl0sWzAsMCwiUSJdLFswLDEsIlxcdHBfKiBcXFRlcm1eKiBcXFR5cGUiXSxbMiwwXSxbMiwzXSxbMywxLCJcXHRwIiwyXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwzXSxbNCw1XSxbNSw2XSxbMyw2XSxbNCw2LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNyw0XSxbNyw4XSxbOCw1LCJcXHRwIiwyXSxbNyw1LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMTAsN10sWzEwLDQsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs5LDIsIiIsMSx7ImxldmVsIjoyLCJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzEwLDldLFs5LDQsIlxcY291bml0IiwxXSxbMTAsMCwiXFx0cCBcXHRyaWFuZ2xlbGVmdCBcXHRwIiwxLHsiY3VydmUiOi0zfV1d
@@ -1084,7 +1085,8 @@ and rebuild the required fibration by exponentiation in the slice.
 \begin{defn}[Interpretation of $\Si$]
   We define the natural transformation
   \[\Si : \Poly{\tp} \Type \to \Type\]
-  as that which is induced (\ref{BC_iff_nat_trans}) by the $\Si$-former operation (\ref{pi_classifier_op}).
+  as that which is induced (\ref{lem:GroupoidBeckChevalleyIffNatural}) by the $\Si$-former
+  operation (\ref{defn:GroupoidPi}).
 
   To define $\pair : Q \to \Term$, let $\Ga$ be a groupoid
   % \begin{align*}
@@ -1099,11 +1101,11 @@ and rebuild the required fibration by exponentiation in the slice.
   We define a functor $\pair_{\Ga}(\be,\al,B) : \Ga \to \ptgrpd$ such that
   on objects $x \in \Ga$, the functor returns $(\Si_{A} B \, x, (a_{x}, b_{a_{x}}))$,
   where
-  (using \ref{evaluation_computation}
+  (using \ref{prop:GroupoidEvComputation}
   $U \circ \be x = \ev{\al}{B} x = B(x, a_{x})$)
   \[\al \, x = (A \, x, a_{x}) \quad \text{ and } \quad \be \, x = (B (x , a_{x}), b_{a_{x}})\]
   and on morphisms $f : x \to y$, the functor returns $(\Si_{A} B \, f, (\phi_{f}, \psi_{f}))$,
-  where (using \ref{evaluation_computation}
+  where (using \ref{prop:GroupoidEvComputation}
   $U \circ \be f = \ev{\al}{B} f = B(f, \phi_{f})$)
   \[\al \, f = (A \, f, \phi_{f} { \color{gray} : A \, f \, a_{x} \to a_{y}})
     \quad \text{ and } \quad
@@ -1211,7 +1213,7 @@ and rebuild the required fibration by exponentiation in the slice.
 
   We first note that both $\de$ and $\tp$ in the are
   in the essential image
-  of the composition from \ref{tp_defn}
+  of the composition from \ref{defn:GroupoidNM}
   % https://q.uiver.app/#q=WzAsMyxbMCwwLCJcXENhdCJdLFsxLDAsIlxcUHNoQ2F0Il0sWzIsMCwiXFxQc2hncnBkIl0sWzAsMSwiXFx5byJdLFsxLDIsIlxcbWF0aHNme3Jlc30iXV0=
 \[\begin{tikzcd}
 	\Cat & \PshCat & \Pshgrpd
@@ -1222,7 +1224,7 @@ and rebuild the required fibration by exponentiation in the slice.
   So we first define in $\Cat$
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXHB0Z3JwZCJdLFswLDEsIlUgXFx0aW1lc19cXGdycGQgVSJdLFsxLDEsIlxcZ3JwZCJdLFsxLDAsIlxccHRncnBkIl0sWzAsMSwiXFxkZSIsMl0sWzEsMiwiXFxJZCciLDJdLFszLDIsIlUiXSxbMCwzLCJcXHJlZmwnIl1d
   \begin{equation}
-    \label{id_diagram1}
+    \label{fig:id_diagram1}
     \begin{tikzcd}
 	\ptgrpd & \ptgrpd \\
 	{U \times_\grpd U} & \grpd
@@ -1258,11 +1260,11 @@ and rebuild the required fibration by exponentiation in the slice.
 \end{defn}
 \begin{proof}
   Since $\de (A,a) = (A, a, a)$, it follows that the square
-  in \ref{id_diagram1} commutes.
+  in \ref{fig:id_diagram1} commutes.
 \end{proof}
 
 \begin{lemma}
-  \label{I'_classifies}
+  \label{lem:GroupoidI}
   We can then construct the pullback $I'$
   % https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXHB0Z3JwZCJdLFsxLDIsIlUgXFx0aW1lc19cXGdycGQgVSJdLFsyLDIsIlxcZ3JwZCJdLFsyLDEsIlxccHRncnBkIl0sWzEsMSwiSSciXSxbMCwxLCJcXGRlIiwyLHsiY3VydmUiOjJ9XSxbMSwyLCJcXElkJyIsMl0sWzMsMiwiVSJdLFswLDMsIlxccmVmbCciLDAseyJjdXJ2ZSI6LTJ9XSxbNCwxXSxbNCwzXSxbMCw0LCJcXHJobyciLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNCwyLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
 \[\begin{tikzcd}
@@ -1292,7 +1294,7 @@ and rebuild the required fibration by exponentiation in the slice.
 \end{lemma}
 
 \begin{lemma}
-  \label{q_classifies}
+  \label{lem:GroupoidI.q}
 
   Specialized to $q : I \to \Type$ in $\Pshgrpd$,
   the characterizing property of polynomial endofunctors
@@ -1336,7 +1338,21 @@ and rebuild the required fibration by exponentiation in the slice.
 \end{lemma}
 
 \begin{lemma}
-  \label{T_classifies}
+  \label{lem:GroupoidT}
+% https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXEdhIl0sWzEsMiwiXFxQb2x5e3F9IHtcXFR5cGV9Il0sWzIsMiwiXFxQb2x5e1xcdHB9IHtcXFRlcm19Il0sWzIsMSwiXFxQb2x5e1xcdHB9IHtcXFRlcm19Il0sWzEsMSwiVCJdLFswLDEsIihBLCBDKSIsMix7ImN1cnZlIjoyLCJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbMSwyLCJcXFN0YXJ7XFxyaG99X3tcXFR5cGV9IiwyXSxbMywyLCJcXFBvbHl7XFx0cH0ge1xcdHB9Il0sWzAsMywiKEEsIFxcZ2FfXFxyZWZsKSIsMCx7ImN1cnZlIjotMywic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzQsMV0sWzQsM10sWzQsMiwiIiwyLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzAsNCwiIiwxLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
+\[\begin{tikzcd}
+	\Ga \\
+	& T & {\Poly{\tp} {\Term}} \\
+	& {\Poly{q} {\Type}} & {\Poly{\tp} {\Term}}
+	\arrow[dashed, from=1-1, to=2-2]
+	\arrow["{(A, \ga_\refl)}", bend left, dashed, from=1-1, to=2-3]
+	\arrow["{(A, C)}"', bend right, dashed, from=1-1, to=3-2]
+	\arrow[from=2-2, to=2-3]
+	\arrow[from=2-2, to=3-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
+	\arrow["{\Poly{\tp} {\tp}}", from=2-3, to=3-3]
+	\arrow["{\Star{\rho}_{\Type}}"', from=3-2, to=3-3]
+\end{tikzcd}\]
   The data of a map $(A, C, \ga_{\refl}) : \Ga \to T$
   corresponds to the data of
   \begin{align*}
@@ -1423,7 +1439,7 @@ and rebuild the required fibration by exponentiation in the slice.
   \[ C \circ A^{*} \rho' = U \circ \ga_\refl \text{ in } \Cat \]
 \end{proof}
 
-\begin{prop} \label{ep_computation}
+\begin{prop} \label{prop:GroupoidI.epComputation}
   We can compute $\ep : \Poly{q}{\Term} \to T$ via
   \begin{align*}
     \ep_{\Ga} : \,& \Pshgrpd (\Ga, \Poly{q}{\Term}) \to \Pshgrpd (\Ga, T) \\
@@ -1431,7 +1447,7 @@ and rebuild the required fibration by exponentiation in the slice.
   \end{align*}
 \end{prop}
 \begin{proof}
-  This follows from the computation for $T$ \ref{T_classifies},
+  This follows from the computation for $T$ \ref{lem:GroupoidT},
   the polynomial action on slice morphisms \ref{polynomial_on_slice_map}, and \ref{polynomial_endofunctor_property}.
 \end{proof}
 
@@ -1443,7 +1459,7 @@ and rebuild the required fibration by exponentiation in the slice.
   \end{align*}
   for some
   $\ga : \Ga \cdot A \cdot A \cdot \Id \to \ptgrpd$ which we will define below.
-  We first use $T$ \ref{T_classifies} to describe the given data:
+  We first use $T$ \ref{lem:GroupoidT} to describe the given data:
 % https://q.uiver.app/#q=WzAsMTYsWzMsMiwiVSBcXHRpbWVzX1xcZ3JwZCBVIl0sWzMsMSwiSSciXSxbMywzLCJcXHB0Z3JwZCJdLFszLDQsIlxcZ3JwZCJdLFsyLDQsIlxcR2EiXSxbMiwzLCJcXEdhIFxcY2RvdCBBIl0sWzQsMCwiXFxwdGdycGQiXSxbNCwxLCJcXGdycGQiXSxbMiwyLCJcXEdhIFxcY2RvdCBBIFxcY2RvdCBBIl0sWzIsMSwiXFxHYSBcXGNkb3QgQSBcXGNkb3QgQSBcXGNkb3QgXFxJZCJdLFs0LDIsIlxccHRncnBkIl0sWzQsMywiXFxncnBkIl0sWzAsMCwiXFxwdGdycGQiXSxbMiwwLCJcXEdhIFxcY2RvdCBBIl0sWzMsMCwiXFxwdGdycGQiXSxbMCwxLCJcXGdycGQiXSxbMSwwXSxbMCwyLCJcXGZzdCIsMV0sWzIsMywiVSJdLFs0LDMsIkEiLDJdLFs1LDQsIlxcZGlzcHtBfSIsMl0sWzEsNl0sWzYsNywiVSJdLFswLDcsIlxcSWQnIiwxXSxbNSwyLCJcXHZhcl9BIiwxXSxbOCw1LCJcXGRpc3B7VSBcXGNpcmMgXFx2YXJfQX0iLDJdLFs4LDBdLFs5LDgsIlxcZGlzcHtcXElkJyBcXGNpcmMgVV4qIFxcdmFyX0F9IiwyXSxbOSwxXSxbNSwzLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbOCwyLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbOSwwLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMSw3LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMCwxMCwiXFxzbmQiLDJdLFsxMCwxMSwiVSIsMl0sWzIsMTEsIlUiLDJdLFswLDExLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbOSwxMiwiXFxnYSIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFsxMyw5LCJBXiogXFxyaG8nIiwxXSxbMTQsMSwiXFxyaG8nIiwxXSxbMTMsMTQsIlxcdmFyX0EiXSxbMTMsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzEyLDE1LCJVIiwyXSxbOSwxNSwiQyIsMV0sWzEzLDEyLCJcXGdhX1xccmVmbCIsMV1d
 \[\begin{tikzcd}
 	\ptgrpd && {\Ga \cdot A} & \ptgrpd & \ptgrpd \\
@@ -1513,7 +1529,7 @@ and rebuild the required fibration by exponentiation in the slice.
     (x, a_{0}, a_{1}, h) \mapsto (C (x, a_{0}, a_{1}, h),
     C(\id_{x}, \id_{a_{0}}, h, \_) \, c_{\refl}(x, a_{0}))\]
   noting that from the computation of $\rho'$ given in
-  \ref{I'_classifies} it follows that
+  \ref{lem:GroupoidI} it follows that
   \[ c_{\refl} (x, a_{0}) \in C \circ A^{*} \rho' (x, a_{0})
     = C(x, a_{0}, a_{1}, h)\]
   Define $\ga$ on morphism
@@ -1586,7 +1602,7 @@ and rebuild the required fibration by exponentiation in the slice.
 \begin{proof}
   Let $(A, C, \ga_{\refl}) : \Ga \to T$ be a map from a representable.
   Then using the definition of $J$ and the computation of $\ep$
-  \ref{ep_computation}
+  \ref{prop:GroupoidI.epComputation}
   \[\ep_{\Ga} \circ J_{\Ga} \, (A, C, \ga_{\refl})
     = \ep_{\Ga} (A, \ga)
     = (A, U \circ \ga, \ga \circ A^{*} \rho')

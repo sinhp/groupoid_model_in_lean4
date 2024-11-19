@@ -41,7 +41,8 @@ We write $\pshC$ for the category of (large) presheaves over $\catC$,
 % \Type(c) \defeq \{  A \co (\catC_{/c})^\op \to \Set_{\lambda} \}
 % \]
 
-\begin{defn}\label{defn:NaturalModel}
+\begin{defn}
+  \label{defn:NaturalModel}
   \lean{CategoryTheory.NaturalModel.NaturalModelBase} \leanok
   Following Awodey \cite{awodey2017naturalmodelshomotopytype},
   we say that a map $\tp : \Term \to \Type$ is presentable when
@@ -370,7 +371,7 @@ $\Poly{\pi}{E} \to \Poly{\tp}{\Term}$ below.
 
 \medskip
 
-\begin{defn}
+\begin{defn}\label{defn:NaturalModelSmallPi}
 \lean{CategoryTheory.NaturalModel.NaturalModelSmallPi} \leanok
 \uses{defn:NaturalModelU, defn:NaturalModelPi}
   We will say that universe $\U$ is closed under formation of $\Pi$-types when we have some map
@@ -415,7 +416,7 @@ of $\Pi \colon P_\tp \Type \to \Type$ to the universe $\U$.
 
 \medskip
 
-\begin{defn}
+\begin{defn}\label{def:NaturalModelSmallSigma}
 \lean{CategoryTheory.NaturalModel.NaturalModelSmallSigma}
 \notready
 \uses{defn:NaturalModelU, defn:NaturalModelSigma}
@@ -553,7 +554,7 @@ of $\Si \colon P_\tp \Type \to \Type$ to the universe $\U$.
 
 \medskip
 
-\begin{defn}
+\begin{defn}\label{defn:NaturalModelSmallId}
 \lean{CategoryTheory.NaturalModel.NaturalModelSmallId}
 \notready
 \uses{defn:NaturalModelU, defn:NaturalModelId}
@@ -941,7 +942,7 @@ Again, internally we can define a function
 \[ \mathsf{IdToEquiv} A \, B : \Id (A, B) \to \mathsf{Equiv} A \, B \]
 which uses $J$ to transport along the proof of equality to produce an equivalence.
 
-\begin{defn}
+\begin{defn}\label{defn:NaturalModelUnivalentU}
 \lean{CategoryTheory.NaturalModel.NaturalModelUnivalentU}
 \notready
 \uses{defn:NaturalModelU}
