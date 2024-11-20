@@ -109,7 +109,7 @@ to express this situation, i.e.~$X \cong \yo(\Gamma \cdot \ulcorner X \urcorner)
 \lean{CategoryTheory.NaturalModel.NaturalModelPi} \leanok
 \uses{defn:NaturalModel}
 We will use $\Poly{\tp}$ to denote the polynomial endofunctor
-(\ref{polynomial_endofunctor}) associated with our presentable map $\tp$.
+(\ref{defn:UVPoly}) associated with our presentable map $\tp$.
 Then an interpretation of $\Pi$ types consists of a pullback square
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSJdLFswLDEsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzEsMCwiXFxUZXJtIl0sWzEsMSwiXFxUeXBlIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcdHB9IiwyXSxbMCwyLCJcXGxhIl0sWzIsMywiXFx0cCJdLFsxLDMsIlxcUGkiLDJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
 \begin{equation}
@@ -819,7 +819,7 @@ function types and product types.
 \end{tikzcd}\]
 
 By the universal property of pullbacks and
-\ref{polynomial_endofunctor_property}
+\ref{prop:UVPoly.equiv}
 We can write a map $\Ga \to F$ as a triple $(A,B,f)$
 such that $A, B: \Ga \to \Type$ and
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXEdhIFxcY2RvdCBBIl0sWzEsMCwiXFxUZXJtIl0sWzEsMSwiXFxUeXBlIl0sWzAsMSwiXFxHYSJdLFswLDEsImYiXSxbMSwyLCJcXHRwIl0sWzMsMiwiQiIsMl0sWzAsMywiXFxkaXNwe0F9IiwyXV0=
@@ -856,7 +856,7 @@ $\disp{A} \to \disp{B}$
 For the formalization, we need not prove that the pullback of
 $\tp \triangleleft \tp$ is $\tp \times \tp$.
 Rather, we can also use the universal property of pullbacks
-and \ref{polynomial_endofunctor_property}
+and \ref{prop:UVPoly.equiv}
 to classify a map into the pullback (whatever it may be) as a
 pair $(\al, \be)$, where $\al, \be : \Ga \to \Term$.
 This could then be adapted to a proof that the pullback is

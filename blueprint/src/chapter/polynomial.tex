@@ -5,7 +5,7 @@ in the rest of the notes.
 \medskip
 
 \begin{defn}[Polynomial endofunctor]
-  \label{polynomial_endofunctor} \lean{UvPoly} \leanok
+  \label{defn:UVPoly} \lean{UvPoly} \leanok
   Let $\catC$ be a locally Cartesian closed category
   (in our case, presheaves on the category of contexts).
   This means for each morphism $t : B \to A$ we have an adjoint triple
@@ -39,7 +39,7 @@ in the rest of the notes.
 \medskip
 
 \begin{prop}[Characterising property of Polynomial Endofunctors]
-  \label{polynomial_endofunctor_property} \lean{UvPoly.equiv} \leanok
+  \label{prop:UVPoly.equiv} \lean{UvPoly.equiv} \leanok
   The data of a map into the polynomial applied to an object in $\catC$
 % https://q.uiver.app/#q=WzAsMixbMCwwLCJcXEdhIl0sWzEsMCwiXFxQb2x5e3R9IFkiXSxbMCwxXV0=
 \[\begin{tikzcd}
@@ -109,7 +109,7 @@ in the rest of the notes.
 
 \medskip
 
-\begin{lemma}\label{R_classifies}
+\begin{lemma}\label{lem:R}
   Use $R$ to denote the fiber product
 % https://q.uiver.app/#q=WzAsNCxbMSwwLCJcXFBvbHl7dH0ge1l9Il0sWzEsMSwiQSJdLFswLDAsIlIiXSxbMCwxLCJCIl0sWzAsMSwidF8qIEJeKiBZIl0sWzIsMCwiXFxyaG9fe1xcUG9seXt9fSJdLFsyLDMsInReKiB0X3sqfSBCXiogWT0gXFxyaG9fXFxUZXJtIiwyXSxbMywxLCJ0IiwyXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
 \[\begin{tikzcd}
@@ -123,7 +123,7 @@ in the rest of the notes.
 \end{tikzcd}\]
 
   By the universal property of pullbacks
-  and \ref{polynomial_endofunctor_property},
+  and \ref{prop:UVPoly.equiv},
   The data of a map $\Ga \to R$
   corresponds to the data of
   $\be : \Ga \to B$ and $(t \circ \be,y) : \Ga \to \Poly{t}{Y}$,
@@ -143,7 +143,7 @@ in the rest of the notes.
 	\arrow["t"', from=3-2, to=3-3]
 \end{tikzcd}\]
 
-  By uniqueness in the universal property of pullbacks and \ref{polynomial_endofunctor_property},
+  By uniqueness in the universal property of pullbacks and \ref{prop:UVPoly.equiv},
   Precomposition by a map $\si : \De \to \Ga$ acts on such a pair by
 % https://q.uiver.app/#q=WzAsNCxbMiwxLCJSIl0sWzAsMV0sWzEsMSwiXFxHYSJdLFsxLDAsIlxcRGUiXSxbMywyLCJcXHNpIiwyXSxbMywwLCIoXFxiZVxcY2lyYyBcXHNpLCB5IFxcY2lyYyB0XiogXFxzaSkiXSxbMiwwLCIoXFxiZSwgeSkiLDJdXQ==
 \[\begin{tikzcd}
@@ -157,8 +157,8 @@ in the rest of the notes.
 
 \medskip
 
-\begin{lemma}[Evaluation] \label{evaluation}
-  Suppose $(\be,y) : \Ga \to R$, as in \ref{R_classifies}
+\begin{lemma}[Evaluation] \label{lem:UVPolyEv}
+  Suppose $(\be,y) : \Ga \to R$, as in \ref{lem:R}
   \[ \be : \Ga \to B \quad \text{ and } \quad y : \Ga \cdot t \circ \be \to Y\]
   Then the evaluation of $y$ at $\be$ can be described in the following two ways
   \[ y \circ b = \pi_{Y} \circ \counit \circ (\be, y)\]
@@ -205,7 +205,7 @@ in the rest of the notes.
 		= & \, \counit \circ (v \circ b, y \circ t^{*} d \circ t^{*} b)
 		& \ref{evaluation_computation_diagram1} \\
 		= & \, \counit \circ (v, y \circ t^{*} d) \circ b
-		& \ref{R_classifies},\ref{evaluation_computation_diagram2}\\
+		& \ref{lem:R},\ref{evaluation_computation_diagram2}\\
 		= & \, \counit \circ t^{*} (t \circ \be, y) \circ b
 		& \ref{evaluation_computation_diagram3}\\
 		% = & \, \overline{\widetilde{\counit} \circ (t \circ \be, y)} \circ b \\
@@ -281,7 +281,7 @@ in the rest of the notes.
 	\arrow["{(t \circ \be \circ d, y \circ t^* d)}", from=1-1, to=2-2]
 	\arrow["{(t \circ \be, y)}"', from=2-1, to=2-2]
 \end{tikzcd}
-\quad \text{ using \ref{polynomial_endofunctor_property,R_classifies}}
+\quad \text{ using \ref{prop:UVPoly.equiv,lem:R}}
 \]
 
   \caption{$t^{*}(t \circ \be, y) = (v, y \circ t^{*}d)$}
@@ -375,7 +375,7 @@ in the rest of the notes.
 \end{tikzcd}\]
 \end{defn}
 
-\begin{defn}[Contravariant of $\Poly{-}$ on a slice] \label{polynomial_on_slice_map}
+\begin{defn}[Contravariant action of $\Poly{-}$ on a slice] \label{polynomial_on_slice_map}
   Let $\Poly{-} : (\catC / A)^{\op} \to [\catC, \catC]$
   be defined by taking $s \mapsto \Poly{s}$ on objects and
   act on a morphism by
@@ -482,7 +482,7 @@ it suffices to show that both $\overline{\mu_{B^{*}X}} \circ s^{*}(\al, \be)$
 and $\overline{(\al, \be \circ \al^{*} \rho)}$ are uniquely determined by
 the same two maps into $X$ and $C$.
 
-By the characterising property of polynomial endofunctors (\ref{polynomial_endofunctor_property})
+By the characterising property of polynomial endofunctors (\ref{prop:UVPoly.equiv})
 we calculate
 \[ \overline{(\al, \be \circ \al^{*} \rho)} = (\be \circ \al^{*} \rho, s^{*} \al)\]
 % https://q.uiver.app/#q=WzAsMTAsWzAsMSwiXFxhbCJdLFsxLDEsInNfKiBDXiogWCJdLFsyLDBdLFsyLDJdLFszLDEsInNeKiBcXGFsIl0sWzQsMSwiQ14qIFgiXSxbNSwwXSxbNSwyXSxbNiwxLCJDXyEgc14qIFxcYWwiXSxbNywxLCJYIl0sWzAsMSwiKFxcYWwsIFxcYmUgXFxjaXJjIFxcYWxeKiBcXHJobykiXSxbMiwzLCIiLDAseyJsZXZlbCI6Miwic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dLFs0LDUsIlxcb3ZlcmxpbmV7KFxcYWwsXFxiZSBcXGNpcmMgXFxhbF4qIFxccmhvKX0iXSxbNCw1LCIoXFxiZSBcXGNpcmMgXFxhbF4qIFxccmhvLCBzXiogXFxhbCkiLDJdLFs2LDcsIiIsMix7ImxldmVsIjoyLCJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzgsOSwiXFxiZSBcXGNpcmMgXFxhbF4qIFxccmhvIiwyXV0=
@@ -560,7 +560,7 @@ On the other hand,
 	\arrow["t"', from=3-2, to=3-3]
 \end{tikzcd}\]
 
-  Using the characterization of maps into $R$ from \ref{R_classifies}
+  Using the characterization of maps into $R$ from \ref{lem:R}
   we can calculate
   \[ \mu_! t_* B^*X \circ s^* (\al, \be) =
     (\rho \circ s^{*} \al, \be \circ t^{*}\al^{*} s)\]
@@ -569,7 +569,7 @@ On the other hand,
   \[ (\al \circ \al^{*} s, \be \circ t^{*} \al^{*} s)
     = (\al, \be) \circ \al^{*} s : \Ga \cdot_{s} \al \to \Poly{t}{X}\]
 
-  Then using \ref{evaluation}
+  Then using \ref{lem:UVPolyEv}
   \begin{align} \label{polynomial_star_equation1}
     & \overline{\overline{\mu_{B^{*}X}} \circ s^{*}(\al, \be)} \\
     = \, & \counit_{B^{*} X} \circ \mu_! t_* B^*X \circ s^* (\al, \be)\\
