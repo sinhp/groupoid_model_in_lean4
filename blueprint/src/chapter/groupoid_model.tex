@@ -94,7 +94,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
 
 \medskip
 
-\begin{defn}[Grothendieck construction]
+\begin{defn}[Grothendieck construction]\label{defn:CategoryTheory.Grothendieck}
   From $\catC$ a small category and $F : \catC \to \cat$
   a functor, we construct a small category $\int F$.
   For any $c$ in $\catC$ we refer to $F c$ as the fiber over $c$.
@@ -122,6 +122,8 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
 \medskip
 
 \begin{defn}[Grothendieck construction for groupoids]
+  \label{defn:GroupoidGrothendieck}
+  \lean{CategoryTheory.GroupoidalGrothendieck} \leanok
   Let $\Ga$ be a groupoid and $A \co \Ga \to \grpd$ a functor,
   we can compose $F$ with the inclusion $i \co \grpd \hookrightarrow \Cat$
   and form the Grothendieck construction which we denote as
@@ -148,7 +150,9 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
 
 \medskip
 
-\begin{cor}[The display map classifier is presentable]
+\begin{cor}[The display map classifier is
+  presentable]\label{prop:ContextExtension}
+  \lean{GroupoidNM} \leanok
   For any small groupoid $\Ga$ and $A : \yo \Ga \to \Type$,
   the pullback of $\tp$ along $A$ can be given by the representable
   map $\yo \disp{A}$.
@@ -198,7 +202,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
 
 \subsection{Groupoid fibrations}
 
-\begin{defn}[Fibration]
+\begin{defn}[Fibration]\defn{defn:GroupoidFibration}
   Let $p : \catC_{1} \to \catC_{0}$ be a functor.
   We say $p$ is a \textit{split Grothendieck fibration}
   if we have a dependent function $\lift{a}{f}$ satisfying the following:
@@ -236,7 +240,7 @@ since for any $(x \in \Ga, a \in A \, x)$ and $f \co x \to y$ in $\Ga$
 we have a morphism $(f, \id_{A \, f \, a}) : (x, a) \to (y, A \, f \, a)$
 lifting $f$. Furthermore
 
-\begin{prop}
+\begin{prop}\label{GroupoidFibrationsClassified}
   There is an adjoint equivalence
  % https://q.uiver.app/#q=WzAsMixbMCwwLCJbXFxHYSwgXFxncnBkXSJdLFsyLDAsIlxcRmliX1xcR2EiXSxbMCwxLCJcXGRpc3B7fSIsMCx7Im9mZnNldCI6LTJ9XSxbMSwwLCJcXHRleHRzZntmaWJlcn0iLDAseyJvZmZzZXQiOi0yfV0sWzAsMSwiXFxzaW1lcSIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6Im5vbmUifSwiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dXQ==
   \[\begin{tikzcd}
@@ -247,7 +251,7 @@ lifting $f$. Furthermore
   \end{tikzcd}\]
   where for each fibration $\de : \De \to \Ga$ and each
   object $x \in \Ga$
-  \[\fiber_{\de} \, x = \text{\emph {full subcategory}} \, \{a \in \De \st \de \, a = x\}\]
+  \[\fiber_{\de} \, x = \textit{full subcategory} \, \{a \in \De \st \de \, a = x\}\]
   It follows that all fibrations are pullbacks of the classifier
   $U : \ptgrpd \to \grpd$, when viewed as morphisms in $\Cat$.
 \end{prop}
@@ -266,7 +270,7 @@ instead of fibrations.
 
 \medskip
 
-\begin{prop}[Strictly coherent pullback]
+\begin{prop}[Strictly coherent pullback]\label{prop:GroupoidNM.Substitution}
   Let $\si : \De \to \Ga$ be a functor between groupoids.
   Since display maps are pullbacks
   of the classifier $U : \ptgrpd \to \grpd$ we have
@@ -292,7 +296,7 @@ instead of fibrations.
 
 \medskip
 
-\begin{cor}[Fibrations are stable under pullback]
+\begin{cor}[Fibrations are stable under pullback]\label{prop:GroupoidFibrationsPullbackStable}
   % https://q.uiver.app/#q=WzAsNCxbMCwwLCJbXFxHYSwgXFxncnBkXSJdLFsyLDAsIlxcRmliX1xcR2EiXSxbMCwxLCJbXFxEZSwgXFxncnBkXSJdLFsyLDEsIlxcRmliX1xcRGUiXSxbMSwwLCJcXHRleHRzZntmaWJlcn0iLDJdLFswLDIsIlxcY2lyYyBcXHNpIiwyXSxbMiwzLCJcXGRpc3B7fSIsMl0sWzEsMywiXFxzaV4qIiwwLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
   \[\begin{tikzcd}
     {[\Ga, \grpd]} && {\Fib_\Ga} \\
@@ -317,7 +321,7 @@ Thus we again define these as operations on classifiers $[\Ga,\grpd]$.
 
 \medskip
 
-\begin{defn}[$\Si$-former operation]
+\begin{defn}[$\Si$-former operation]\label{defn:GroupoidSigma}
   Then given $A : \Ga \to \grpd$ and $B : \Ga\cdot A \to \grpd$ we define
   $\Si_{A}B : \Ga \to \grpd$ such that
   $\Si_{A}B$ acts on objects by forming fiberwise Grothendieck constructions
@@ -380,7 +384,8 @@ for $x \in \Ga$, $a \in A(x)$ and $b \in B(x,a)$,
 whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
 
 \medskip
-\begin{prop}[Strict Beck-Chevalley for $\Si$]
+
+\begin{prop}[Strict Beck-Chevalley for $\Si$]\label{prop:GroupoidSigmaBeckChevalley}
   Let $\si : \De \to \Ga$, $A : \Ga \to \grpd$ and $B : \Ga\cdot A \to \grpd$.
   Then
   \[ (\Si_{A}B) \circ \si = \Si_{A \circ \si}(B \circ \si_{A})\]
@@ -466,7 +471,7 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
 
 \medskip
 
-\begin{cor}[Fibrations are closed under pushforward]
+\begin{cor}[Fibrations are closed under pushforward]\label{prop:GroupoidFibrationsPushforward}
   Stated in terms of fibrations, we have
   % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFhpIl0sWzAsMSwiXFxEZSJdLFsxLDEsIlxcR2EiXSxbMSwwLCJcXEdhXyEgXFxzaV8qIFxcdGF1Il0sWzAsMSwiXFx0YXUiLDIseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMSwyLCJcXHNpIiwyLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV0sWzMsMiwiXFxzaV8qIFxcdGF1IiwwLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV1d
   \[\begin{tikzcd}
@@ -483,7 +488,7 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
 
 \medskip
 
-\begin{prop}[Strict Beck-Chevalley for $\Pi$]
+\begin{prop}[Strict Beck-Chevalley for $\Pi$]\label{prop:GroupoidPiBeckChevalley}
   Let $\si : \De \to \Ga$, $A : \Ga \to \grpd$ and $B : \Ga\cdot A \to \grpd$.
   Then
   \[ (\Pi_{A}B) \circ \si = \Pi_{A \circ \si}(B \circ \si_{A})\]
@@ -514,7 +519,7 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
 
 \medskip
 
-\begin{prop}[All objects are fibrant]
+\begin{prop}[All objects are fibrant]\label{prop:GroupoidObjectsFibrant}
   Let $\terminal$ denote the terminal groupoid,
   namely that with a single object and morphism.
   Then the unique map $\Ga \to \terminal$ is a fibration.
@@ -522,7 +527,7 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
 
 \medskip
 
-\begin{defn}[Interval]
+\begin{defn}[Interval]\label{defn:GroupoidInterval}
   Let the interval groupoid $\Interval$ be the small groupoid with two objects
   and a single non-identity isomorphism.
   There are two distinct morphisms $\de_{0}, \de_{1} : \terminal \to \Interval$
@@ -548,7 +553,7 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
 
 \medskip
 
-\begin{prop}[Path object fibration]
+\begin{prop}[Path object fibration]\label{prop:GroupoidPathObjectFibrant}
   Let $A$ be a small groupoid.
   Recall that $\grpd$ is Cartesian closed,
   so we can take the image of the above diagram under the functor $A^{-}$.
@@ -714,7 +719,7 @@ and rebuild the required fibration by exponentiation in the slice.
 \end{tikzcd}\]
 \end{proof}
 
-\begin{defn}[Interpretation of $\Pi$ types]
+\begin{defn}[Interpretation of $\Pi$ types]\label{defn:GroupoidNMPi}
   We define the natural transformation
   $\Pi : \Poly{\tp} \Type \to \Type$
   as that which is induced (\ref{lem:GroupoidBeckChevalleyIffNatural}) by the $\Pi$-former operation (\ref{defn:GroupoidPi}).
@@ -836,7 +841,7 @@ and rebuild the required fibration by exponentiation in the slice.
 
 \medskip
 
-\begin{defn}[Evaluation]
+\begin{defn}[Evaluation]\label{defn:GroupoidEv}
   Define the operation of evaluation $\ev{\al}{B}$ to take
   $\al : \Ga \to \ptgrpd$ and $B : \Ga \cdot U \circ \al \to \grpd$
   and return $\ev{\al}{B} : \Ga \to \grpd$, described below.
@@ -1082,7 +1087,7 @@ and rebuild the required fibration by exponentiation in the slice.
 
 \medskip
 
-\begin{defn}[Interpretation of $\Si$]
+\begin{defn}[Interpretation of $\Si$]\label{defn:GroupoidNMSigma}
   We define the natural transformation
   \[\Si : \Poly{\tp} \Type \to \Type\]
   as that which is induced (\ref{lem:GroupoidBeckChevalleyIffNatural}) by the $\Si$-former
@@ -1199,7 +1204,7 @@ and rebuild the required fibration by exponentiation in the slice.
 
 \subsection{Identity types}
 
-\begin{defn}[Identity formation and introduction]
+\begin{defn}[Identity formation and introduction]\label{defn:GroupoidNMId}
   To define the commutative square in $\Pshgrpd$
   % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFRlcm0iXSxbMCwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwxLCJcXFR5cGUiXSxbMSwwLCJcXFRlcm0iXSxbMCwxLCJcXGRlIiwyXSxbMSwyLCJcXElkIiwyXSxbMywyLCJcXHRwIl0sWzAsMywiXFxyZWZsIl1d
 \[\begin{tikzcd}
@@ -1596,7 +1601,7 @@ and rebuild the required fibration by exponentiation in the slice.
    and similarly for morphisms.
 \end{proof}
 
-\begin{prop}
+\begin{prop}\label{prop:GroupoidNMId.JSection}
   $J : T \to \Poly{q}{\Term}$, as defined above is a section of $\ep$.
 \end{prop}
 \begin{proof}
@@ -1633,7 +1638,7 @@ We would then have $\Type = [-, \Grpd]$ and $\Term = [-, \ptGrpd]$.
 
 \medskip
 
-\begin{defn}[Universe of discrete groupoids]
+\begin{defn}[Universe of discrete groupoids]\label{defn:GroupoidNMDiscreteU}
   Let $\U$ be the (large) groupoid of small sets,
   i.e. let $\U$ have $\set$ as its objects
   and morphisms between two small sets as all the bijections between them.
