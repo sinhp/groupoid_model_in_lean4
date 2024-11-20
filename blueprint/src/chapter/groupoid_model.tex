@@ -623,7 +623,7 @@ and rebuild the required fibration by exponentiation in the slice.
 \begin{prop}[$\Poly{\tp}$ classifies type dependency]\label{prop:GroupoidPtpUniversalProperty}
   Specialized to $\tp : \Term \to \Type$ in $\Pshgrpd$,
   the characterizing property of polynomial endofunctors
-  \ref{polynomial_endofunctor_property} says that a map
+  \ref{prop:UVPoly.equiv} says that a map
   from a representable
   $\Ga \to \Poly{\tp}X$
   corresponds to the data of
@@ -789,7 +789,7 @@ and rebuild the required fibration by exponentiation in the slice.
 \medskip
 
 \begin{lemma}\label{lem:GroupoidR}
-  This is a specialization of \ref{R_classifies}.
+  This is a specialization of \ref{lem:R}.
   Use $R$ to denote the fiber product
   % https://q.uiver.app/#q=WzAsNCxbMSwwLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMSwxLCJcXFR5cGUiXSxbMCwwLCJSIl0sWzAsMSwiXFxUZXJtIl0sWzAsMSwiXFx0cF8qIFxcVGVybV4qIFxcVHlwZSJdLFsyLDAsIlxccmhvX1xcUG9seXt9Il0sWzIsMywiXFx0cF4qIFxcdHBfKiBcXFRlcm1eKiBcXFR5cGU9IFxccmhvX1xcVGVybSIsMl0sWzMsMSwiXFx0cCIsMl0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
 \[\begin{tikzcd}
@@ -895,7 +895,7 @@ and rebuild the required fibration by exponentiation in the slice.
 \end{tikzcd}\]
 \end{lemma}
 \begin{proof}
-  This is a specialization of \ref{evaluation}
+  This is a specialization of \ref{lem:UVPolyEv}
   with liberal applications of Yoneda.
 \end{proof}
 % \begin{proof}
@@ -1298,7 +1298,7 @@ and rebuild the required fibration by exponentiation in the slice.
 
   Specialized to $q : I \to \Type$ in $\Pshgrpd$,
   the characterizing property of polynomial endofunctors
-  \ref{polynomial_endofunctor_property} says that a map
+  \ref{prop:UVPoly.equiv} says that a map
   from a representable
   $\ep : \Ga \to \Poly{q}X$
   corresponds to the data of
@@ -1430,7 +1430,7 @@ and rebuild the required fibration by exponentiation in the slice.
   $(A, C) : \Ga \to \Poly{q}{\Type}$ and $(A',\ga_\refl) : \Ga \to \Poly{\tp}{\Term}$
   such that
   \[ \Star{\rho}_{\Type} \circ (A, C) = \Poly{\tp} {\tp} \circ (A', \ga_\refl) \]
-  By \ref{polynomial_on_slice_map} and \ref{polynomial_endofunctor_property}
+  By \ref{polynomial_on_slice_map} and \ref{prop:UVPoly.equiv}
   this says
   \[ (A, C \circ A^{*} \rho) = (A', \tp \circ \ga_\refl)\]
   so the above is equivalent to having $A = A', C, \ga_\refl$ such that
@@ -1448,7 +1448,7 @@ and rebuild the required fibration by exponentiation in the slice.
 \end{prop}
 \begin{proof}
   This follows from the computation for $T$ \ref{lem:GroupoidT},
-  the polynomial action on slice morphisms \ref{polynomial_on_slice_map}, and \ref{polynomial_endofunctor_property}.
+  the polynomial action on slice morphisms \ref{polynomial_on_slice_map}, and \ref{prop:UVPoly.equiv}.
 \end{proof}
 
 \begin{defn}[Identity elimination]
