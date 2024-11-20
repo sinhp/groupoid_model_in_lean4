@@ -1430,7 +1430,7 @@ and rebuild the required fibration by exponentiation in the slice.
   $(A, C) : \Ga \to \Poly{q}{\Type}$ and $(A',\ga_\refl) : \Ga \to \Poly{\tp}{\Term}$
   such that
   \[ \Star{\rho}_{\Type} \circ (A, C) = \Poly{\tp} {\tp} \circ (A', \ga_\refl) \]
-  By \ref{polynomial_on_slice_map} and \ref{prop:UVPoly.equiv}
+  By \ref{defn:UVPolySlice} and \ref{prop:UVPoly.equiv}
   this says
   \[ (A, C \circ A^{*} \rho) = (A', \tp \circ \ga_\refl)\]
   so the above is equivalent to having $A = A', C, \ga_\refl$ such that
@@ -1448,10 +1448,10 @@ and rebuild the required fibration by exponentiation in the slice.
 \end{prop}
 \begin{proof}
   This follows from the computation for $T$ \ref{lem:GroupoidT},
-  the polynomial action on slice morphisms \ref{polynomial_on_slice_map}, and \ref{prop:UVPoly.equiv}.
+  the polynomial action on slice morphisms \ref{defn:UVPolySlice}, and \ref{prop:UVPoly.equiv}.
 \end{proof}
 
-\begin{defn}[Identity elimination]
+\begin{defn}[Identity elimination]\label{defn:GroupoidNMId.J}
   We want to define $J : T \to \Poly{q}{\Term}$
   \begin{align*}
     J_{\Ga} : \Pshgrpd (\Ga, T) \to \, & \Pshgrpd (\Ga, \Poly{q}{\Term})\\
