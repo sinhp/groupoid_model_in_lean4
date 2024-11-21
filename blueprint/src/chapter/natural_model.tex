@@ -51,14 +51,16 @@ We write $\pshC$ for the category of (large) presheaves over $\catC$,
   there is some representable $\Ga \cdot A \in \catC$ and maps $\disp{A} : \Ga \cdot A \to \Ga$
   and $\var_{A} : \yo (\Ga \cdot A) \to \Term$ forming a pullback
   % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXHlvIChcXEdhIFxcY2RvdCBBKSJdLFswLDEsIlxceW8gKFxcR2EpIl0sWzEsMSwiXFxUeXBlIl0sWzEsMCwiXFxUZXJtIl0sWzAsMSwiXFx5byAoXFxkaXNwe0F9KSIsMl0sWzEsMiwiQSIsMl0sWzMsMl0sWzAsMywiXFx2YXJfQSJdXQ==
-\[\begin{tikzcd}
+\begin{center}
+	\begin{tikzcd}
 	{\yo (\Ga \cdot A)} & \Term \\
 	{\yo (\Ga)} & \Type
 	\arrow["{\var_A}", from=1-1, to=1-2]
 	\arrow["{\yo (\disp{A})}"', from=1-1, to=2-1]
 	\arrow["\tp", from=1-2, to=2-2]
 	\arrow["A"', from=2-1, to=2-2]
-\end{tikzcd}\]
+\end{tikzcd}
+\end{center}
 \end{defn}
 
 \medskip
@@ -68,18 +70,28 @@ The Natural Model associated to a presentable map $\tp \co \Term \to \Type$ cons
 \item contexts as objects $\Gamma, \Delta, \ldots \in \catC$,
 \item a type in context $\yo (\Gamma)$ as a map $A \co \yo(\Gamma) \to \Type$,
 \item a term of type $A$ in context $\Gamma$ as a map $a \co \yo(\Gamma) \to \Term$ such that
-\[
-\xymatrix{
- & \Term \ar[d]^{\tp} \\
-\Gamma \ar[r]_-A \ar[ur]^{a} & \Type}
-\]
+\begin{center}
+% replacing xymatrix with a tikzcd one
+\begin{tikzcd}
+ & \Term \ar[d, "{\tp}"] \\
+\Gamma \ar[r, "A"'] \ar[ur, "a"] & \Type
+\end{tikzcd}
+\end{center}
+% \xymatrix{
+%  & \Term \ar[d]^{\tp} \\
+% \Gamma \ar[r]_-A \ar[ur]^{a} & \Type}
 commutes,
 \item an operation called ``context extension'' which given a context $\Gamma$ and a type $A \co \yo(\Gamma) \to \Type$ produces a context $\Gamma\cdot A$ which fits into a pullback diagram below.
-\[
-\xymatrix{
-\yo(\Gamma.A) \ar[r] \ar[d] & \Term \ar[d] \\
-\yo(\Gamma) \ar[r]_-{A} & \Type}
-\]
+\begin{center}
+% replacing xymatrix with a tikzcd one
+\begin{tikzcd}
+\yo(\Gamma \cdot A) \ar[r] \ar[d] & \Term \ar[d] \\
+\yo(\Gamma) \ar[r, "A"'] & \Type
+\end{tikzcd}
+\end{center}
+% \xymatrix{
+% \yo(\Gamma.A) \ar[r] \ar[d] & \Term \ar[d] \\
+% \yo(\Gamma) \ar[r]_-{A} & \Type}
 \end{itemize}
 
 % In the internal type theory of $\pshC$, we write
@@ -89,16 +101,21 @@ commutes,
 % to mean that $A$ is a type in context $\Gamma$ and that $a$ is an element of type $A$ in context
 % $\Gamma$, respectively.
 
-
-
-
 {\bf Remark.}
 Sometimes, we first construct a presheaf $X$ over $\Gamma$ and observe that it can be classified by a map into $\Type$. We write
-\[
-\xymatrix@C=1cm{
-X \ar[r] \ar[d]& \Term \ar[d] \\
-\yo(\Gamma) \ar[r]_-{\ulcorner X \urcorner} & \Type}
-\]
+
+\begin{center}
+\begin{tikzcd}
+X \ar[r] \ar[d] & \Term \ar[d] \\
+\yo(\Gamma) \arrow[r, "\name{X}"'] & \Type
+\end{tikzcd}
+\end{center}
+
+% \[
+% \xymatrix@C=1cm{
+% X \ar[r] \ar[d]& \Term \ar[d] \\
+% \yo(\Gamma) \ar[r]_-{\ulcorner X \urcorner} & \Type}
+
 to express this situation, i.e.~$X \cong \yo(\Gamma \cdot \ulcorner X \urcorner)$.
 
 \medskip
@@ -112,7 +129,7 @@ We will use $\Poly{\tp}$ to denote the polynomial endofunctor
 (\ref{defn:UVPoly}) associated with our presentable map $\tp$.
 Then an interpretation of $\Pi$ types consists of a pullback square
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSJdLFswLDEsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzEsMCwiXFxUZXJtIl0sWzEsMSwiXFxUeXBlIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcdHB9IiwyXSxbMCwyLCJcXGxhIl0sWzIsMywiXFx0cCJdLFsxLDMsIlxcUGkiLDJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
-\begin{equation}
+\begin{center}
   \label{fig:pi_intp_pullback}
 	\begin{tikzcd}
 	{\Poly{\tp}{\Term}} & \Term \\
@@ -123,7 +140,7 @@ Then an interpretation of $\Pi$ types consists of a pullback square
 	\arrow["\tp", from=1-2, to=2-2]
 	\arrow["\Pi"', from=2-1, to=2-2]
 \end{tikzcd}
-\end{equation}
+\end{center}
 \end{defn}
 
 
@@ -137,7 +154,7 @@ Then an interpretation of $\Pi$ types consists of a pullback square
 
 An interpretation of $\Si$ types consists of a pullback square
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJRIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcVHlwZX0iXSxbMSwwLCJcXFRlcm0iXSxbMSwxLCJcXFR5cGUiXSxbMCwxLCJcXHRwIFxcdHJpYW5nbGVsZWZ0IFxcdHAiLDJdLFswLDIsIlxccGFpciJdLFsyLDMsIlxcdHAiXSxbMSwzLCJcXFNpIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
-\begin{equation}
+\begin{center}
   \label{fig:si_intp_pullback}
 	\begin{tikzcd}
 	Q & \Term \\
@@ -148,13 +165,14 @@ An interpretation of $\Si$ types consists of a pullback square
 	\arrow["\tp", from=1-2, to=2-2]
 	\arrow["\Si"', from=2-1, to=2-2]
 \end{tikzcd}
-\end{equation}
+\end{center}
 
 	where the composition of polynomials
 	$\tp \cdot \tp : Q \to \Poly{\tp}{\Type}$ is given by
 
 % https://q.uiver.app/#q=WzAsMTEsWzMsMCwiXFxQb2x5e1xcdHB9IHtcXFR5cGV9Il0sWzMsMSwiXFxUeXBlIl0sWzIsMCwiUiJdLFsyLDEsIlxcVGVybSJdLFsxLDEsIlxcVGVybSBcXHRpbWVzIFxcVHlwZSJdLFsxLDIsIlxcVHlwZSJdLFsyLDIsIlxcdGVybWluYWwiXSxbMCwxLCJcXFRlcm0gXFx0aW1lcyBcXFRlcm0iXSxbMCwyLCJcXFRlcm0iXSxbMSwwLCJSIl0sWzAsMCwiUSJdLFswLDEsIlxcdHBfKiBcXFRlcm1eKiBcXFR5cGUiXSxbMiwwXSxbMiwzXSxbMywxLCJcXHRwIiwyXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwzXSxbNCw1XSxbNSw2XSxbMyw2XSxbNCw2LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNyw0XSxbNyw4XSxbOCw1LCJcXHRwIiwyXSxbNyw1LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMTAsN10sWzEwLDQsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs5LDIsIiIsMSx7ImxldmVsIjoyLCJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzEwLDldLFs5LDQsIlxcY291bml0IiwxXSxbMTAsMCwiXFx0cCBcXHRyaWFuZ2xlbGVmdCBcXHRwIiwxLHsiY3VydmUiOi0zfV1d
-\[\begin{tikzcd}
+\begin{center}
+\begin{tikzcd}
 	Q & R & R & {\Poly{\tp} {\Type}} \\
 	{\Term \times \Term} & {\Type \times \Term} & \Term & \Type \\
 	\Term & \Type & \terminal
@@ -178,7 +196,8 @@ An interpretation of $\Si$ types consists of a pullback square
 	\arrow[from=2-3, to=3-3]
 	\arrow["\tp"', from=3-1, to=3-2]
 	\arrow[from=3-2, to=3-3]
-\end{tikzcd}\]
+\end{tikzcd}
+\end{center}
   Here, $\counit : \tp^{*} \tp_{*} \Term^{*} \Type \to \Term^{*} \Type$
   is the counit of the adjunction $\tp^{*} \dashv \tp_{*}$ at $\Term^{*} \Type \in \Pshgrpd / \Term$.
 \end{defn}
@@ -193,7 +212,7 @@ An interpretation of $\Si$ types consists of a pullback square
 To interpret the formation and introduction rules for identity types
 we require a commutative square (this need not be pullback)
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFRlcm0iXSxbMCwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwxLCJcXFR5cGUiXSxbMSwwLCJcXFRlcm0iXSxbMCwxLCJcXGRlIiwyXSxbMSwyLCJcXElkIiwyXSxbMywyLCJcXHRwIl0sWzAsMywiXFxyZWZsIl1d
-\begin{equation}
+\begin{center}
   \label{figure:id_pullback_def}
 \begin{tikzcd}
 	\Term & \Term \\
@@ -203,11 +222,12 @@ we require a commutative square (this need not be pullback)
 	\arrow["\tp", from=1-2, to=2-2]
 	\arrow["\Id"', from=2-1, to=2-2]
 \end{tikzcd}
-\end{equation}
+\end{center}
 
 where $\de$ is the diagonal:
 % https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXFRlcm0iXSxbMSwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMiwxLCJcXFRlcm0iXSxbMiwyLCJcXFR5cGUiXSxbMSwyLCJcXFRlcm0iXSxbMCwxLCJcXGRlIiwyXSxbMCwyXSxbMSwyXSxbMiwzLCJcXHRwIl0sWzQsMywiXFx0cCIsMl0sWzEsNF0sWzEsMywiIiwyLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzAsNCwiIiwwLHsibGV2ZWwiOjIsInN0eWxlIjp7ImhlYWQiOnsibmFtZSI6Im5vbmUifX19XV0=
-\[\begin{tikzcd}
+\begin{center}
+\begin{tikzcd}
 	\Term \\
 	& {\tp \times_\Type \tp} & \Term \\
 	& \Term & \Type
@@ -219,12 +239,14 @@ where $\de$ is the diagonal:
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
 	\arrow["\tp", from=2-3, to=3-3]
 	\arrow["\tp"', from=3-2, to=3-3]
-\end{tikzcd}\]
+\end{tikzcd}
+\end{center}
 
 Then let $I$ be the pullback.
 We get a comparison map $\rho$
 % https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXFRlcm0iXSxbMSwyLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMiwyLCJcXFR5cGUiXSxbMiwxLCJcXFRlcm0iXSxbMSwxLCJJIl0sWzAsMSwiXFxkZSIsMix7ImN1cnZlIjoyfV0sWzEsMiwiXFxJZCIsMl0sWzMsMiwiXFx0cCJdLFswLDMsIlxccmVmbCIsMCx7ImN1cnZlIjotM31dLFs0LDFdLFs0LDNdLFs0LDIsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFswLDQsIlxccmhvIiwxLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
-\[\begin{tikzcd}
+\begin{center}
+\begin{tikzcd}
 	\Term \\
 	& I & \Term \\
 	& {\tp \times_\Type \tp} & \Type
@@ -236,11 +258,13 @@ We get a comparison map $\rho$
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
 	\arrow["\tp", from=2-3, to=3-3]
 	\arrow["\Id"', from=3-2, to=3-3]
-\end{tikzcd}\]
+\end{tikzcd}
+\end{center}
 
 Then view $\rho : \tp \to q$ as a map in the slice over $\Type$.
 % https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXFRlcm0iXSxbMSwyLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwxLCJJIl0sWzEsMywiXFxUZXJtIl0sWzEsNCwiXFxUeXBlIl0sWzAsMSwiXFxkZSIsMSx7ImN1cnZlIjoxfV0sWzIsMV0sWzAsMiwiXFxyaG8iLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbMSwzLCJcXGZzdCIsMl0sWzMsNF0sWzAsNCwiXFx0cCIsMix7ImN1cnZlIjozfV0sWzAsMywiIiwyLHsiY3VydmUiOjIsImxldmVsIjoyLCJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzIsNCwicSIsMCx7ImN1cnZlIjotNX1dXQ==
-\[\begin{tikzcd}
+\begin{center}
+\begin{tikzcd}
 	\Term \\
 	& I \\
 	& {\tp \times_\Type \tp} \\
@@ -254,13 +278,14 @@ Then view $\rho : \tp \to q$ as a map in the slice over $\Type$.
 	\arrow["q", bend left = 50, from=2-2, to=5-2]
 	\arrow["\fst"', from=3-2, to=4-2]
 	\arrow[from=4-2, to=5-2]
-\end{tikzcd}\]
+\end{tikzcd}
+\end{center}
 
 Now (by \ref{defn:UVPolySlice})
 applying $\Poly{-} : (\pshC / \Type) ^{\op} \to [\pshC, \pshC]$ to $\rho : \tp \to q$
 gives us a naturality square (this also need not be pullback).
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7cX0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcVHlwZX0iXSxbMSwxLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMSwwLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcdHB9IiwyXSxbMSwyLCJcXFN0YXJ7XFxyaG99X3tcXFR5cGV9IiwyXSxbMywyLCJcXFBvbHl7XFx0cH0ge1xcdHB9Il0sWzAsMywiXFxTdGFye1xccmhvfV97XFxUZXJtfSJdXQ==
-\begin{equation}
+\begin{center}
   \label{J_definition_diagram}
 \begin{tikzcd}
 	{\Poly{q} {\Term}} & {\Poly{\tp} {\Term}} \\
@@ -270,10 +295,10 @@ gives us a naturality square (this also need not be pullback).
 	\arrow["{\Poly{\tp} {\tp}}", from=1-2, to=2-2]
 	\arrow["{\Star{\rho}_{\Type}}"', from=2-1, to=2-2]
 \end{tikzcd}
-\end{equation}
+\end{center}
 Taking the pullback $T$ and the comparison map $\ep$ we have
 % https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXFBvbHl7cX0ge1xcVGVybX0iXSxbMSwyLCJcXFBvbHl7cX0ge1xcVHlwZX0iXSxbMiwyLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMiwxLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMSwxLCJUIl0sWzAsMSwiXFxQb2x5e3F9IHtcXHRwfSIsMix7ImN1cnZlIjoyfV0sWzEsMiwiXFxTdGFye1xccmhvfV97XFxUeXBlfSIsMl0sWzMsMiwiXFxQb2x5e1xcdHB9IHtcXHRwfSJdLFswLDMsIlxcU3RhcntcXHJob31fe1xcVGVybX0iLDAseyJjdXJ2ZSI6LTN9XSxbNCwxXSxbNCwzXSxbNCwyLCIiLDIseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMCw0LCJcXGVwIiwxLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
-\begin{equation}
+\begin{center}
 	\label{diag:J_definition}
 \begin{tikzcd}
 	{\Poly{q} {\Term}} \\
@@ -288,7 +313,7 @@ Taking the pullback $T$ and the comparison map $\ep$ we have
 	\arrow["{\Poly{\tp} {\tp}}", from=2-3, to=3-3]
 	\arrow["{\Star{\rho}_{\Type}}"', from=3-2, to=3-3]
 \end{tikzcd}
-\end{equation}
+\end{center}
 Finally, we require a section $\J : T \to \Poly{q}{\Term}$ of $\ep$,
 to interpret the identity elimination rule.
 
@@ -318,28 +343,40 @@ In the Natural Model, a universe $\U$ is postulated by a map
 \[
 \pi \co \E \to \U
 \]
-
 In the Natural Model:
 \begin{itemize}
 \item There is a pullback diagram of the form
-\begin{equation}
-\xymatrix{
+\begin{center}
+\begin{tikzcd}
 \U \ar[r] \ar[d] & \Term \ar[d] \\
-1 \ar[r]_-{\ulcorner \U \urcorner } & \Type }
-\end{equation}
-\item There is an inclusion of $\U$ into $\Type$
-\[
-\El \co \U \rightarrowtail \Type
-\]
-\item $\pi : \E \to \U$ is obtained as pullback of $\tp$; There is a pullback diagram
-\begin{equation}\label{diag:universe-pullback}
-\xymatrix{
-E \ar@{>->}[r] \ar[d] & \Term \ar[d] \\
-\U \ar@{>->}[r]_-{\El} & \Type }
-\end{equation}
- \end{itemize}
+1 \ar[r, "{\name{U}}"'] & \Type
+\end{tikzcd}
+\end{center}
+% \begin{equation}
+% 	\xymatrix{
+% 	\U \ar[r] \ar[d] & \Term \ar[d] \\
+% 	1 \ar[r]_-{\ulcorner \U \urcorner } & \Type }
+% 	\end{equation}
 
+\item There is an inclusion of $\U$ into $\Type$
+	\[
+	\El \co \U \rightarrowtail \Type
+	\]
+\item $\pi : \E \to \U$ is obtained as pullback of $\tp$; There is a pullback diagram
+	\begin{center}
+	\begin{tikzcd}
+	\E \ar[r, tail] \ar[d] & \Term \ar[d] \\
+	\U \ar[r, "\El"', tail] & \Type
+	\end{tikzcd}
+	\end{center}
+\end{itemize}
 \end{defn}
+
+	% \begin{equation}\label{diag:universe-pullback}
+	% \xymatrix{
+	% E \ar@{>->}[r] \ar[d] & \Term \ar[d] \\
+	% \U \ar@{>->}[r]_-{\El} & \Type }
+	% \end{equation}
 
 With the notation above, we get
 \[
@@ -386,7 +423,7 @@ $\Poly{\pi}{E} \to \Poly{\tp}{\Term}$ below.
 
 \medskip
 
-From the universal property of pullbacks we can define $\la_{U} \Poly{\pi}{\E} \to \E$.
+From the universal property of pullbacks we can define $\la_{U} : \Poly{\pi}{\E} \to \E$.
 % https://q.uiver.app/#q=WzAsOCxbMCwzLCJQX1xcdHAgXFxUeXBlIl0sWzIsMywiXFxUeXBlIl0sWzMsMiwiVSJdLFszLDAsIkUiXSxbMiwxLCJcXFRlcm0iXSxbMCwxLCJQX1xcdHAgXFxUZXJtIl0sWzEsMiwiUF9cXHBpIFUiXSxbMSwwLCJQX1xcdHAgRSJdLFswLDEsIlxcUGkiLDJdLFsyLDEsIlxcRWwiLDFdLFszLDJdLFszLDRdLFs0LDEsIiIsMSx7ImxhYmVsX3Bvc2l0aW9uIjozMH1dLFs1LDBdLFs3LDMsIlxcbGFfVSIsMSx7ImxhYmVsX3Bvc2l0aW9uIjo3MCwic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzcsNV0sWzcsNl0sWzYsMF0sWzUsNCwiXFxsYSIsMSx7ImxhYmVsX3Bvc2l0aW9uIjo3MH1dLFs2LDIsIlxcUGlfVSIsMSx7ImxhYmVsX3Bvc2l0aW9uIjo3MH1dXQ==
 \[\begin{tikzcd}
 	& {P_\tp E} && E \\
