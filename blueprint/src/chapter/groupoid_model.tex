@@ -150,8 +150,8 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
 
 \medskip
 
-\begin{cor}[The display map classifier is
-  presentable]\label{prop:ContextExtension}
+\begin{cor}[The display map classifier is presentable]
+  \label{prop:ContextExtension}
   \lean{GroupoidNM} \leanok
   For any small groupoid $\Ga$ and $A : \yo \Ga \to \Type$,
   the pullback of $\tp$ along $A$ can be given by the representable
@@ -202,7 +202,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
 
 \subsection{Groupoid fibrations}
 
-\begin{defn}[Fibration]\defn{defn:GroupoidFibration}
+\begin{defn}[Fibration]\label{defn:GroupoidFibration}
   Let $p : \catC_{1} \to \catC_{0}$ be a functor.
   We say $p$ is a \textit{split Grothendieck fibration}
   if we have a dependent function $\lift{a}{f}$ satisfying the following:
@@ -240,7 +240,7 @@ since for any $(x \in \Ga, a \in A \, x)$ and $f \co x \to y$ in $\Ga$
 we have a morphism $(f, \id_{A \, f \, a}) : (x, a) \to (y, A \, f \, a)$
 lifting $f$. Furthermore
 
-\begin{prop}\label{GroupoidFibrationsClassified}
+\begin{prop}\label{prop:GroupoidFibrationClassified}
   There is an adjoint equivalence
  % https://q.uiver.app/#q=WzAsMixbMCwwLCJbXFxHYSwgXFxncnBkXSJdLFsyLDAsIlxcRmliX1xcR2EiXSxbMCwxLCJcXGRpc3B7fSIsMCx7Im9mZnNldCI6LTJ9XSxbMSwwLCJcXHRleHRzZntmaWJlcn0iLDAseyJvZmZzZXQiOi0yfV0sWzAsMSwiXFxzaW1lcSIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6Im5vbmUifSwiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dXQ==
   \[\begin{tikzcd}
@@ -296,7 +296,7 @@ instead of fibrations.
 
 \medskip
 
-\begin{cor}[Fibrations are stable under pullback]\label{prop:GroupoidFibrationsPullbackStable}
+\begin{cor}[Fibrations are stable under pullback]\label{prop:GroupoidFibrationPullbackStable}
   % https://q.uiver.app/#q=WzAsNCxbMCwwLCJbXFxHYSwgXFxncnBkXSJdLFsyLDAsIlxcRmliX1xcR2EiXSxbMCwxLCJbXFxEZSwgXFxncnBkXSJdLFsyLDEsIlxcRmliX1xcRGUiXSxbMSwwLCJcXHRleHRzZntmaWJlcn0iLDJdLFswLDIsIlxcY2lyYyBcXHNpIiwyXSxbMiwzLCJcXGRpc3B7fSIsMl0sWzEsMywiXFxzaV4qIiwwLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
   \[\begin{tikzcd}
     {[\Ga, \grpd]} && {\Fib_\Ga} \\
@@ -359,7 +359,7 @@ Thus we again define these as operations on classifiers $[\Ga,\grpd]$.
 
 \medskip
 
-\begin{prop}[Fibrations are closed under composition]
+\begin{prop}[Fibrations are closed under composition]\label{prop:GroupoidFibrationComposition}
   The corresponding fact about fibrations is that
   the composition of two fibrations is a fibration.
   % https://q.uiver.app/#q=WzAsMyxbMCwwLCJcXFhpIl0sWzAsMSwiXFxEZSJdLFsxLDEsIlxcR2EiXSxbMCwxLCIiLDAseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMSwyLCIiLDAseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMCwyLCIiLDIseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifSwiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV1d
@@ -471,7 +471,7 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
 
 \medskip
 
-\begin{cor}[Fibrations are closed under pushforward]\label{prop:GroupoidFibrationsPushforward}
+\begin{cor}[Fibrations are closed under pushforward]\label{prop:GroupoidFibrationPushforward}
   Stated in terms of fibrations, we have
   % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFhpIl0sWzAsMSwiXFxEZSJdLFsxLDEsIlxcR2EiXSxbMSwwLCJcXEdhXyEgXFxzaV8qIFxcdGF1Il0sWzAsMSwiXFx0YXUiLDIseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMSwyLCJcXHNpIiwyLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV0sWzMsMiwiXFxzaV8qIFxcdGF1IiwwLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV1d
   \[\begin{tikzcd}
