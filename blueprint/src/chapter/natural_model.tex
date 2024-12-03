@@ -130,7 +130,6 @@ We will use $\Poly{\tp}$ to denote the polynomial endofunctor
 Then an interpretation of $\Pi$ types consists of a pullback square
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSJdLFswLDEsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzEsMCwiXFxUZXJtIl0sWzEsMSwiXFxUeXBlIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcdHB9IiwyXSxbMCwyLCJcXGxhIl0sWzIsMywiXFx0cCJdLFsxLDMsIlxcUGkiLDJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
 \begin{center}
-  \label{fig:pi_intp_pullback}
 	\begin{tikzcd}
 	{\Poly{\tp}{\Term}} & \Term \\
 	{\Poly{\tp}{\Type}} & \Type
@@ -140,6 +139,9 @@ Then an interpretation of $\Pi$ types consists of a pullback square
 	\arrow["\tp", from=1-2, to=2-2]
 	\arrow["\Pi"', from=2-1, to=2-2]
 \end{tikzcd}
+\begin{equation}
+  \label{diag:pi_intp_pullback}
+\end{equation}
 \end{center}
 \end{defn}
 
@@ -155,7 +157,6 @@ Then an interpretation of $\Pi$ types consists of a pullback square
 An interpretation of $\Si$ types consists of a pullback square
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJRIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcVHlwZX0iXSxbMSwwLCJcXFRlcm0iXSxbMSwxLCJcXFR5cGUiXSxbMCwxLCJcXHRwIFxcdHJpYW5nbGVsZWZ0IFxcdHAiLDJdLFswLDIsIlxccGFpciJdLFsyLDMsIlxcdHAiXSxbMSwzLCJcXFNpIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
 \begin{center}
-  \label{fig:si_intp_pullback}
 	\begin{tikzcd}
 	Q & \Term \\
 	{\Poly{\tp}{\Type}} & \Type
@@ -165,6 +166,9 @@ An interpretation of $\Si$ types consists of a pullback square
 	\arrow["\tp", from=1-2, to=2-2]
 	\arrow["\Si"', from=2-1, to=2-2]
 \end{tikzcd}
+\begin{equation}
+    \label{diag:si_intp_pullback}
+\end{equation}
 \end{center}
 
 	where the composition of polynomials
@@ -213,7 +217,6 @@ To interpret the formation and introduction rules for identity types
 we require a commutative square (this need not be pullback)
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFRlcm0iXSxbMCwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwxLCJcXFR5cGUiXSxbMSwwLCJcXFRlcm0iXSxbMCwxLCJcXGRlIiwyXSxbMSwyLCJcXElkIiwyXSxbMywyLCJcXHRwIl0sWzAsMywiXFxyZWZsIl1d
 \begin{center}
-  \label{figure:id_pullback_def}
 \begin{tikzcd}
 	\Term & \Term \\
 	{\tp \times_\Type \tp} & \Type
@@ -222,6 +225,9 @@ we require a commutative square (this need not be pullback)
 	\arrow["\tp", from=1-2, to=2-2]
 	\arrow["\Id"', from=2-1, to=2-2]
 \end{tikzcd}
+\begin{equation}
+  \label{diag:id_pullback_def}
+\end{equation}
 \end{center}
 
 where $\de$ is the diagonal:
@@ -286,7 +292,6 @@ applying $\Poly{-} : (\pshC / \Type) ^{\op} \to [\pshC, \pshC]$ to $\rho : \tp \
 gives us a naturality square (this also need not be pullback).
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7cX0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcVHlwZX0iXSxbMSwxLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMSwwLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcdHB9IiwyXSxbMSwyLCJcXFN0YXJ7XFxyaG99X3tcXFR5cGV9IiwyXSxbMywyLCJcXFBvbHl7XFx0cH0ge1xcdHB9Il0sWzAsMywiXFxTdGFye1xccmhvfV97XFxUZXJtfSJdXQ==
 \begin{center}
-  \label{J_definition_diagram}
 \begin{tikzcd}
 	{\Poly{q} {\Term}} & {\Poly{\tp} {\Term}} \\
 	{\Poly{q} {\Type}} & {\Poly{\tp} {\Type}}
@@ -295,11 +300,13 @@ gives us a naturality square (this also need not be pullback).
 	\arrow["{\Poly{\tp} {\tp}}", from=1-2, to=2-2]
 	\arrow["{\Star{\rho}_{\Type}}"', from=2-1, to=2-2]
 \end{tikzcd}
+\begin{equation}
+    \label{diag:J_definition_diagram}
+\end{equation}
 \end{center}
 Taking the pullback $T$ and the comparison map $\ep$ we have
 % https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXFBvbHl7cX0ge1xcVGVybX0iXSxbMSwyLCJcXFBvbHl7cX0ge1xcVHlwZX0iXSxbMiwyLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMiwxLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMSwxLCJUIl0sWzAsMSwiXFxQb2x5e3F9IHtcXHRwfSIsMix7ImN1cnZlIjoyfV0sWzEsMiwiXFxTdGFye1xccmhvfV97XFxUeXBlfSIsMl0sWzMsMiwiXFxQb2x5e1xcdHB9IHtcXHRwfSJdLFswLDMsIlxcU3RhcntcXHJob31fe1xcVGVybX0iLDAseyJjdXJ2ZSI6LTN9XSxbNCwxXSxbNCwzXSxbNCwyLCIiLDIseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMCw0LCJcXGVwIiwxLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
 \begin{center}
-	\label{diag:J_definition}
 \begin{tikzcd}
 	{\Poly{q} {\Term}} \\
 	& T & {\Poly{\tp} {\Term}} \\
@@ -313,6 +320,9 @@ Taking the pullback $T$ and the comparison map $\ep$ we have
 	\arrow["{\Poly{\tp} {\tp}}", from=2-3, to=3-3]
 	\arrow["{\Star{\rho}_{\Type}}"', from=3-2, to=3-3]
 \end{tikzcd}
+\begin{equation}
+  	\label{diag:J_definition}
+\end{equation}
 \end{center}
 Finally, we require a section $\J : T \to \Poly{q}{\Term}$ of $\ep$,
 to interpret the identity elimination rule.
@@ -364,6 +374,7 @@ In the Natural Model:
 	\]
 \item $\pi : \E \to \U$ is obtained as pullback of $\tp$; There is a pullback diagram
 	\begin{center}
+    \label{diag:universe-pullback}
 	\begin{tikzcd}
 	\E \ar[r, tail] \ar[d] & \Term \ar[d] \\
 	\U \ar[r, "\El"', tail] & \Type
@@ -446,10 +457,13 @@ $\Poly{\pi}{E} \to \Poly{\tp}{\Term}$ below.
 	\arrow["\Pi", from=1-2, to=2-2]
 	\arrow["\El"', from=2-1, to=2-2]
 \end{tikzcd}
+\begin{equation}
+  \label{diag:universe-pullback-3}
+\end{equation}
 \end{center}
 
 %% TODO: fix this label
-%% \label{diag:universe-pullback-3}
+%% 
 
 Note that this is merely propositional when $\El$ is a monomorphism.
 \end{defn}
@@ -687,7 +701,6 @@ universal property of $\tp \times_{\Type} \tp$.
 It remains to construct $\J_{U}$, a section of $\ep_{U}$, given below
 % https://q.uiver.app/#q=WzAsMjIsWzAsMCwiXFxFIl0sWzEsMCwiSV9VIl0sWzIsMCwiXFxFIl0sWzIsMSwiXFxVIl0sWzEsMSwiXFxwaSBcXHRpbWVzX1xcVSBcXHBpIl0sWzQsMSwiSV9VIl0sWzUsMCwiXFxFIl0sWzQsMiwiXFxwaSBcXHRpbWVzX1xcVSBcXHBpIl0sWzQsMywiXFxFIl0sWzQsNCwiXFxVIl0sWzYsMCwiXFxUZXJtIl0sWzUsMiwiXFx0cCBcXHRpbWVzX1xcVHlwZSBcXHRwIl0sWzYsMSwiXFxUeXBlIl0sWzUsMSwiSSJdLFs1LDMsIlxcVGVybSJdLFs1LDQsIlxcVHlwZSJdLFswLDMsIlxcUG9seXtxX1V9e1xcRX0iXSxbMSwzLCJUX1UiXSxbMiwzLCJcXFBvbHl7XFxwaX17XFxFfSJdLFsyLDQsIlxcUG9seXtcXHBpfXtcXFV9Il0sWzEsNCwiXFxQb2x5e3FfVX17XFxVfSJdLFs2LDJdLFswLDEsIlxccmhvX1UiLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbMSwyXSxbMSw0XSxbNCwzLCJcXElkX1UiLDJdLFs1LDZdLFs1LDddLFs3LDhdLFs4LDldLFs2LDEwXSxbNywxMV0sWzExLDEyXSxbMTAsMTJdLFsxMywxMF0sWzUsMTMsIiIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFsxMywxMV0sWzgsMTRdLFs5LDE1XSxbMTEsMTRdLFsxNCwxNV0sWzIsMywiXFxwaSJdLFswLDQsIlxcZGUiLDJdLFswLDIsIlxccmVmbF9VIiwxLHsiY3VydmUiOi0zfV0sWzE2LDE3LCJcXGVwX1UiLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbMTcsMThdLFsxOCwxOSwiXFxQb2x5e1xccGl9e1xccGl9Il0sWzE3LDIwXSxbMjAsMTksIihcXFN0YXJ7XFxyaG9fVX0pX1xcVSIsMl0sWzE2LDE4LCIoXFxTdGFye1xccmhvX1V9KV9cXEUiLDAseyJjdXJ2ZSI6LTN9XSxbMTYsMjAsIlxcUG9seXtxX1V9e1xcdHB9IiwyXSxbMSwzLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMTcsMTksIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs4LDE1LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNywxNCwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzUsMTEsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs1LDksInFfVSIsMSx7ImN1cnZlIjo0fV0sWzEzLDIxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
 \begin{center}
-  \label{diag:J_U_definition}
 \begin{tikzcd}
 	\E & {I_U} & \E &&& \E & \Term \\
 	& {\pi \times_\U \pi} & \U && {I_U} & I & \Type \\
@@ -731,6 +744,9 @@ It remains to construct $\J_{U}$, a section of $\ep_{U}$, given below
 	\arrow["{(\Star{\rho_U})_\U}"', from=5-2, to=5-3]
 	\arrow[from=5-5, to=5-6]
 \end{tikzcd}
+\begin{equation}
+  \label{diag:J_U_definition}
+\end{equation}
 \end{center}
 
 Now the above give us the following pullback
@@ -868,8 +884,8 @@ which we can visualize in
 	\arrow["\fst"', from=2-2, to=2-3]
 \end{tikzcd}\end{center}
 
-Then, respectively, the pullback of the diagrams \ref{fig:pi_intp_pullback}
-and \ref{fig:si_intp_pullback} for interpreting $\Pi$ and $\Si$
+Then, respectively, the pullback of the diagrams \ref{diag:pi_intp_pullback}
+and \ref{diag:si_intp_pullback} for interpreting $\Pi$ and $\Si$
 rules along this map give us pullback diagrams for interpreting
 function types and product types.
 % https://q.uiver.app/#q=WzAsNixbMSwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSJdLFsxLDEsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzIsMCwiXFxUZXJtIl0sWzIsMSwiXFxUeXBlIl0sWzAsMSwiXFxUeXBlIFxcdGltZXMgXFxUeXBlIl0sWzAsMCwiRiJdLFswLDEsIlxcUG9seXtcXHRwfXtcXHRwfSIsMl0sWzAsMiwiXFxsYSJdLFsyLDMsIlxcdHAiXSxbMSwzLCJcXFBpIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwxLCIoXFxmc3QsXFxzbmQpIiwyXSxbNSw0LCIoXFxkb20sXFxjb2QpIiwyXSxbNSwwLCIoXFxkb20sXFxmdW4pIiwyXSxbNCwzLCJcXEV4cCIsMix7ImN1cnZlIjo1fV0sWzUsMiwiXFxsYSIsMCx7ImN1cnZlIjotNH1dLFs1LDEsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
@@ -1059,7 +1075,7 @@ i.e. those satisfying equality reflection and uniqueness of identity proofs (UIP
 Equality reflection says that if one can construct a term satisfying $\Id(a,b)$
 then we have that definitionally $a \equiv b$,
 i.e. they are equal morphisms in the natural model.
-This amounts to requiring that \ref{figure:id_pullback_def} is a pullback,
+This amounts to requiring that \ref{diag:id_pullback_def} is a pullback,
 i.e. $\rho$ is an isomorphism
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFRlcm0iXSxbMCwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwxLCJcXFR5cGUiXSxbMSwwLCJcXFRlcm0iXSxbMCwxLCJcXGRlIiwyXSxbMSwyLCJcXElkIiwyXSxbMywyLCJcXHRwIl0sWzAsMywiXFxyZWZsIl0sWzAsMiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
 \begin{center}\begin{tikzcd}
@@ -1072,7 +1088,7 @@ i.e. $\rho$ is an isomorphism
 	\arrow["\Id"', from=2-1, to=2-2]
 \end{tikzcd}\end{center}
 Note that this means $\Star{\rho}$ is an isomorphism,
-from which it follows that \ref{J_definition_diagram} is also a pullback,
+from which it follows that \ref{diag:J_definition_diagram} is also a pullback,
 i.e. $\ep$ is an isomorphism.
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7cX0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcVHlwZX0iXSxbMSwxLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMSwwLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcdHB9IiwyXSxbMSwyLCJcXFN0YXJ7XFxyaG99X3tcXFR5cGV9IiwyXSxbMywyLCJcXFBvbHl7XFx0cH0ge1xcdHB9Il0sWzAsMywiXFxTdGFye1xccmhvfV97XFxUZXJtfSJdLFswLDIsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
 \begin{center}\begin{tikzcd}
