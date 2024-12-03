@@ -379,11 +379,28 @@ In the Natural Model:
 	% \end{equation}
 
 With the notation above, we get
-\[
-\xymatrix{
-\yo (\Gamma.\El(a)) \ar[r] \ar[d] & \E \ar[r] \ar[d] & \Term \ar[d] \\
-\yo (\Gamma) \ar[r]_a  \ar@/_2pc/[rr]_-{A} & \U \ar[r]_{\El} & \Type}
-\]
+\begin{center}
+% https://q.uiver.app/#q=WzAsNixbMCwwLCJcXHlvIChcXEdhIFxcY2RvdCBcXEVsKGEpKSJdLFsxLDAsIlxcRSJdLFsyLDAsIlxcVGVybSJdLFsyLDEsIlxcVHlwZSJdLFsxLDEsIlxcVSJdLFswLDEsIlxceW8oXFxHYSkiXSxbMCwxXSxbMSwyXSxbMiwzXSxbNCwzLCJcXEVsIiwyXSxbMSw0XSxbMCw1XSxbNSw0LCJhIiwyXSxbNSwzLCJBIiwyLHsiY3VydmUiOjN9XSxbMCw0LCIiLDIseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMSwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
+\begin{tikzcd}
+	{\yo (\Ga \cdot \El(a))} & \E & \Term \\
+	{\yo(\Ga)} & \U & \Type
+	\arrow[from=1-1, to=1-2]
+	\arrow[from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
+	\arrow[from=1-2, to=1-3]
+	\arrow[from=1-2, to=2-2]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-2, to=2-3]
+	\arrow[from=1-3, to=2-3]
+	\arrow["a"', from=2-1, to=2-2]
+	\arrow["A"', bend right, from=2-1, to=2-3]
+	\arrow["\El"', from=2-2, to=2-3]
+\end{tikzcd}
+\end{center}
+% \[
+% \xymatrix{
+% \yo (\Gamma.\El(a)) \ar[r] \ar[d] & \E \ar[r] \ar[d] & \Term \ar[d] \\
+% \yo (\Gamma) \ar[r]_a  \ar@/_2pc/[rr]_-{A} & \U \ar[r]_{\El} & \Type}
+% \]
 Both squares above are pullback squares.
 
 \subsection{Stability of the universe under type formers}
@@ -413,19 +430,36 @@ $\Poly{\pi}{E} \to \Poly{\tp}{\Term}$ below.
 \uses{defn:NaturalModelU, defn:NaturalModelPi}
   We will say that universe $\U$ is closed under formation of $\Pi$-types when we have some map
 	$\Pi_{U} : \Poly{\pi}{\U} \to \U$ making the following square commute
-\begin{equation}\label{diag:universe-pullback-3}
-\xymatrix{
-\Poly{\pi}{\U} \ar@{->}[r] \ar@{-->}[d]_{\Pi_\U} & \Poly{\tp}{\Type} \ar[d]^{\Pi} \\
-\U \ar@{->}[r]_-{\El} & \Type }
-\end{equation}
-	Note that this is merely propositional when $\El$ is a monomorphism.
+% \begin{equation}
+% \xymatrix{
+% \Poly{\pi}{\U} \ar@{->}[r] \ar@{-->}[d]_{\Pi_\U} & \Poly{\tp}{\Type} \ar[d]^{\Pi} \\
+% \U \ar@{->}[r]_-{\El} & \Type }
+% \end{equation}
+
+% https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7XFxwaX17XFxVfSJdLFsxLDAsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzEsMSwiXFxUeXBlIl0sWzAsMSwiXFxVIl0sWzAsMV0sWzEsMiwiXFxQaSJdLFswLDMsIlxcUGlfXFxVIiwyLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzMsMiwiXFxFbCIsMl1d
+\begin{center}
+\begin{tikzcd}
+	{\Poly{\pi}{\U}} & {\Poly{\tp}{\Type}} \\
+	\U & \Type
+	\arrow[from=1-1, to=1-2]
+	\arrow["{\Pi_\U}"', dashed, from=1-1, to=2-1]
+	\arrow["\Pi", from=1-2, to=2-2]
+	\arrow["\El"', from=2-1, to=2-2]
+\end{tikzcd}
+\end{center}
+
+%% TODO: fix this label
+%% \label{diag:universe-pullback-3}
+
+Note that this is merely propositional when $\El$ is a monomorphism.
 \end{defn}
 
 \medskip
 
 From the universal property of pullbacks we can define $\la_{U} : \Poly{\pi}{\E} \to \E$.
 % https://q.uiver.app/#q=WzAsOCxbMCwzLCJQX1xcdHAgXFxUeXBlIl0sWzIsMywiXFxUeXBlIl0sWzMsMiwiVSJdLFszLDAsIkUiXSxbMiwxLCJcXFRlcm0iXSxbMCwxLCJQX1xcdHAgXFxUZXJtIl0sWzEsMiwiUF9cXHBpIFUiXSxbMSwwLCJQX1xcdHAgRSJdLFswLDEsIlxcUGkiLDJdLFsyLDEsIlxcRWwiLDFdLFszLDJdLFszLDRdLFs0LDEsIiIsMSx7ImxhYmVsX3Bvc2l0aW9uIjozMH1dLFs1LDBdLFs3LDMsIlxcbGFfVSIsMSx7ImxhYmVsX3Bvc2l0aW9uIjo3MCwic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzcsNV0sWzcsNl0sWzYsMF0sWzUsNCwiXFxsYSIsMSx7ImxhYmVsX3Bvc2l0aW9uIjo3MH1dLFs2LDIsIlxcUGlfVSIsMSx7ImxhYmVsX3Bvc2l0aW9uIjo3MH1dXQ==
-\[\begin{tikzcd}
+\begin{center}
+  \begin{tikzcd}
 	& {P_\tp E} && E \\
 	{P_\tp \Term} && \Term \\
 	& {P_\pi U} && U \\
@@ -442,7 +476,8 @@ From the universal property of pullbacks we can define $\la_{U} : \Poly{\pi}{\E}
 	\arrow[from=3-2, to=4-1]
 	\arrow["\El"{description}, from=3-4, to=4-3]
 	\arrow["\Pi"', from=4-1, to=4-3]
-\end{tikzcd}\]
+\end{tikzcd}
+\end{center}
 The top and bottom squares in the cube above are not pullbacks,
 but we know three of the vertical faces are pullback squares.
 By the pullback pasting lemma it follows that the back square
@@ -459,18 +494,29 @@ of $\Pi \colon P_\tp \Type \to \Type$ to the universe $\U$.
 \uses{defn:NaturalModelU, defn:NaturalModelSigma}
   We will say that universe $\U$ is closed under formation of $\Si$-types when we have some map
 	$\Si_{U} : \Poly{\pi}{\U} \to \U$ making the following square commute
-\begin{equation}
-\xymatrix{
-\Poly{\pi}{\U} \ar@{->}[r] \ar@{-->}[d]_{\Si_\U} & \Poly{\tp}{\Type} \ar[d]^{\Si} \\
-\U \ar@{->}[r]_-{\El} & \Type }
-\end{equation}
-
+% \begin{equation}
+% \xymatrix{
+% \Poly{\pi}{\U} \ar@{->}[r] \ar@{-->}[d]_{\Si_\U} & \Poly{\tp}{\Type} \ar[d]^{\Si} \\
+% \U \ar@{->}[r]_-{\El} & \Type }
+% \end{equation}
+  
+% https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7XFxwaX17XFxVfSJdLFsxLDAsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzEsMSwiXFxUeXBlIl0sWzAsMSwiXFxVIl0sWzAsMV0sWzEsMiwiXFxQaSJdLFswLDMsIlxcUGlfXFxVIiwyLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzMsMiwiXFxFbCIsMl1d
+\begin{center}
+\begin{tikzcd}
+	{\Poly{\pi}{\U}} & {\Poly{\tp}{\Type}} \\
+	\U & \Type
+	\arrow[from=1-1, to=1-2]
+	\arrow["{\Si_\U}"', dashed, from=1-1, to=2-1]
+	\arrow["\Si", from=1-2, to=2-2]
+	\arrow["\El"', from=2-1, to=2-2]
+\end{tikzcd}
+\end{center}
 	Again, this is merely propositional when $\El$ is a monomorphism.
 \end{defn}
 
 Now consider the polynomial composition $\pi \cdot \pi$.
 % https://q.uiver.app/#q=WzAsMjAsWzQsMywiXFxQb2x5e1xcdHB9IHtcXFR5cGV9Il0sWzQsNCwiXFxUeXBlIl0sWzMsMywiUiJdLFszLDQsIlxcVGVybSJdLFsyLDQsIlxcVGVybSBcXHRpbWVzIFxcVHlwZSJdLFsyLDUsIlxcVHlwZSJdLFsxLDQsIlxcVGVybSBcXHRpbWVzIFxcVGVybSJdLFsxLDUsIlxcVGVybSJdLFsyLDMsIlIiXSxbMSwzLCJRIl0sWzMsMSwiVSJdLFsyLDEsIkUiXSxbMSwxLCJFIFxcdGltZXMgVSJdLFswLDEsIkUgXFx0aW1lcyBFIl0sWzAsMiwiRSJdLFsxLDIsIlUiXSxbMSwwLCJSX1UiXSxbMCwwLCJRX1UiXSxbMiwwLCJSX1UiXSxbMywwLCJcXFBvbHl7XFxwaX17VX0iXSxbMCwxLCJcXHRwXyogXFxUZXJtXiogXFxUeXBlIl0sWzIsMF0sWzIsM10sWzMsMSwiXFx0cCIsMV0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzQsM10sWzQsNV0sWzYsNF0sWzYsN10sWzcsNSwiXFx0cCIsMl0sWzYsNSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzksNl0sWzksNCwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzgsMiwiIiwxLHsibGV2ZWwiOjIsInN0eWxlIjp7ImhlYWQiOnsibmFtZSI6Im5vbmUifX19XSxbOSw4XSxbOCw0LCJcXGNvdW5pdCIsMV0sWzEwLDFdLFsxMSwzXSxbMTEsMTAsIlxccGkiLDFdLFsxMiw0XSxbMTIsMTFdLFsxMyw2XSxbMTQsMTVdLFsxMywxNF0sWzEyLDE1XSxbMTMsMTJdLFsxMywxNSwiIiwwLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzE2LDEyLCJcXGNvdW5pdCIsMV0sWzE3LDEzXSxbMTcsMTZdLFsxNywxMiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzE2LDE4LCIiLDEseyJsZXZlbCI6Miwic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dLFsxOCwxOV0sWzE5LDEwXSxbMTgsMTFdLFsxOCwxMCwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzE1LDVdLFsxNCw3XSxbMTcsOV0sWzE2LDhdLFsxOCwyXSxbMTksMF0sWzE3LDE5LCJcXHBpIFxcdHJpYW5nbGVsZWZ0IFxccGkiLDEseyJjdXJ2ZSI6LTR9XV0=
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	{Q_U} & {R_U} & {R_U} & {\Poly{\pi}{U}} \\
 	{E \times E} & {E \times U} & E & U \\
 	E & U \\
@@ -520,12 +566,14 @@ Now consider the polynomial composition $\pi \cdot \pi$.
 	\arrow[Rightarrow, no head, from=4-3, to=4-4, crossing over]
 	\arrow[from=4-4, to=4-5, crossing over]
 	\arrow[from=5-2, to=5-3, crossing over]
-\end{tikzcd}\]
+\end{tikzcd}
+\end{center}
 
 Using pullback pasting, we see that the horizontal faces of the left cuboid
 and the right cube are all pullbacks. Hence we have a pullback
 % https://q.uiver.app/#q=WzAsNixbMiwxLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMSwxLCJSIl0sWzAsMSwiUSJdLFswLDAsIlFfVSJdLFsxLDAsIlJfVSJdLFsyLDAsIlxcUG9seXtcXHBpfXtVfSJdLFsxLDBdLFs0LDVdLFszLDJdLFs0LDFdLFs1LDBdLFszLDUsIlxccGkgXFx0cmlhbmdsZWxlZnQgXFxwaSIsMSx7ImN1cnZlIjotNH1dLFszLDRdLFsyLDFdLFsyLDAsIlxcdHAgXFx0cmlhbmdsZWxlZnQgXFx0cCIsMSx7ImN1cnZlIjozfV0sWzQsMCwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzMsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
-\[\begin{tikzcd}
+\begin{center}
+\begin{tikzcd}
 	{Q_U} & {R_U} & {\Poly{\pi}{U}} \\
 	Q & R & {\Poly{\tp} {\Type}}
 	\arrow[from=1-1, to=1-2]
@@ -539,11 +587,13 @@ and the right cube are all pullbacks. Hence we have a pullback
 	\arrow[from=2-1, to=2-2]
 	\arrow["{\tp \triangleleft \tp}"{description}, bend right, from=2-1, to=2-3]
 	\arrow[from=2-2, to=2-3]
-\end{tikzcd}\]
+\end{tikzcd}
+\end{center}
 
 which is the left side of the following cube
 % https://q.uiver.app/#q=WzAsOCxbMCwzLCJQX1xcdHAgXFxUeXBlIl0sWzIsMywiXFxUeXBlIl0sWzMsMiwiVSJdLFszLDAsIkUiXSxbMiwxLCJcXFRlcm0iXSxbMCwxLCJRIl0sWzEsMiwiUF9cXHBpIFUiXSxbMSwwLCJRX1UiXSxbMCwxLCJcXFNpIiwyXSxbMiwxLCJcXEVsIiwxXSxbMywyXSxbMyw0XSxbNCwxLCIiLDEseyJsYWJlbF9wb3NpdGlvbiI6MzB9XSxbNSwwLCJcXHRwIFxcdHJpYW5nbGVsZWZ0IFxcdHAiLDJdLFs3LDMsIlxccGFpcl9VIiwxLHsibGFiZWxfcG9zaXRpb24iOjcwLCJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNyw1XSxbNyw2LCJcXHBpIFxcdHJpYW5nbGVsZWZ0IFxccGkiLDIseyJsYWJlbF9wb3NpdGlvbiI6ODB9XSxbNiwwXSxbNSw0LCJcXHBhaXIiLDEseyJsYWJlbF9wb3NpdGlvbiI6ODB9XSxbNiwyLCJcXFNpX1UiLDEseyJsYWJlbF9wb3NpdGlvbiI6NzB9XV0=
-\[\begin{tikzcd}
+\begin{center}
+\begin{tikzcd}
 	& {Q_U} && E \\
 	Q && \Term \\
 	& {P_\pi U} && U \\
@@ -560,7 +610,8 @@ which is the left side of the following cube
 	\arrow[from=3-2, to=4-1]
 	\arrow["\El"{description}, from=3-4, to=4-3]
 	\arrow["\Si"', from=4-1, to=4-3]
-\end{tikzcd}\]
+\end{tikzcd}
+\end{center}
 As was the case for $\Pi$, pullback pasting along the vertical faces
 shows that the back face involving $\Si_ U$ and $\pair_U$ is also a pullback square.
 This concludes the construction of the $\Si$ type former for the universe $\U$.
@@ -568,7 +619,7 @@ Again, the only data we needed to supply was the lift $\Si_U$
 of $\Si \colon P_\tp \Type \to \Type$ to the universe $\U$.
 
 % https://q.uiver.app/#q=WzAsOCxbMiwzLCJcXFR5cGUiXSxbMywyLCJcXFUiXSxbMywwLCJcXEUiXSxbMiwxLCJcXFRlcm0iXSxbMCwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwyLCJcXEUiXSxbMSwwLCJcXHBpIFxcdGltZXNfXFxVIFxccGkiXSxbMCwzLCJcXFRlcm0iXSxbMSwwXSxbMiwxXSxbMiwzXSxbMywwLCIiLDEseyJsYWJlbF9wb3NpdGlvbiI6MzB9XSxbNiw0LCIiLDAseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNiw1XSxbNCwzLCIiLDEseyJsYWJlbF9wb3NpdGlvbiI6NzB9XSxbNSwxLCIiLDEseyJsYWJlbF9wb3NpdGlvbiI6NzB9XSxbNiwyXSxbNywwXSxbNCw3XSxbNSw3XSxbNiwxLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwwLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	& {\pi \times_\U \pi} && \E \\
 	{\tp \times_\Type \tp} && \Term \\
 	& \E && \U \\
@@ -587,7 +638,7 @@ of $\Si \colon P_\tp \Type \to \Type$ to the universe $\U$.
 	\arrow[from=3-2, to=4-1]
 	\arrow[from=3-4, to=4-3]
 	\arrow[from=4-1, to=4-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
 \medskip
 
@@ -598,7 +649,7 @@ of $\Si \colon P_\tp \Type \to \Type$ to the universe $\U$.
   We will say that universe $\U$ is closed under formation of $\Id$-types when we have some map
 	$\Id_{U} : \pi \times_{\U} \pi \to \U$ making the following square commute
 % https://q.uiver.app/#q=WzAsNCxbMCwyLCJcXFUiXSxbMiwyLCJcXFR5cGUiXSxbMiwwLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMCwwLCJcXHBpIFxcdGltZXNfXFxVIFxccGkiXSxbMCwxLCJcXEVsIiwyXSxbMywwLCJcXElkX1UiLDIseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbMywyXSxbMiwxLCJcXElkIl1d
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	{\pi \times_\U \pi} && {\tp \times_\Type \tp} \\
 	\\
 	\U && \Type
@@ -606,14 +657,14 @@ of $\Si \colon P_\tp \Type \to \Type$ to the universe $\U$.
 	\arrow["{\Id_U}"', dashed, from=1-1, to=3-1]
 	\arrow["\Id", from=1-3, to=3-3]
 	\arrow["\El"', from=3-1, to=3-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
 	Again, this is merely propositional when $\El$ is a monomorphism.
 \end{defn}
 
 From this we can obtain $\refl_{U}$ since $\E$ is a pulback.
 % https://q.uiver.app/#q=WzAsOCxbMCwzLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMiwzLCJcXFR5cGUiXSxbMywyLCJVIl0sWzMsMCwiRSJdLFsyLDEsIlxcVGVybSJdLFswLDEsIlxcVGVybSJdLFsxLDIsIlxccGkgXFx0aW1lc19cXFUgXFxwaSJdLFsxLDAsIkUiXSxbMCwxLCJcXElkIiwyXSxbMiwxLCJcXEVsIiwxXSxbMywyXSxbMyw0XSxbNCwxLCIiLDEseyJsYWJlbF9wb3NpdGlvbiI6MzB9XSxbNSwwLCJcXGRlIiwyXSxbNywzLCJcXHJlZmxfVSIsMSx7ImxhYmVsX3Bvc2l0aW9uIjo3MCwic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzcsNV0sWzcsNiwiXFxkZV9VIiwyLHsibGFiZWxfcG9zaXRpb24iOjMwfV0sWzYsMF0sWzUsNCwiXFxyZWZsIiwxLHsibGFiZWxfcG9zaXRpb24iOjcwfV0sWzYsMiwiXFxJZF9VIiwxLHsibGFiZWxfcG9zaXRpb24iOjcwfV1d
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	& E && E \\
 	\Term && \Term \\
 	& {\pi \times_\U \pi} && U \\
@@ -630,7 +681,7 @@ From this we can obtain $\refl_{U}$ since $\E$ is a pulback.
 	\arrow[from=3-2, to=4-1]
 	\arrow["\El"{description}, from=3-4, to=4-3]
 	\arrow["\Id"', from=4-1, to=4-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 We must ensure that the left face commutes - which we can prove using the
 universal property of $\tp \times_{\Type} \tp$.
 It remains to construct $\J_{U}$, a section of $\ep_{U}$, given below
@@ -685,7 +736,7 @@ It remains to construct $\J_{U}$, a section of $\ep_{U}$, given below
 Now the above give us the following pullback
 factorization of \ref{diag:universe-pullback}
 % https://q.uiver.app/#q=WzAsOCxbMCwyLCJJX1UiXSxbMCwzLCJcXFUiXSxbMSwyLCJJIl0sWzEsMywiXFxUeXBlIl0sWzAsMSwiXFxFIl0sWzEsMSwiXFxUZXJtIl0sWzAsMCwiXFxwaSJdLFsxLDAsIlxcdHAiXSxbMCwyLCIgIiwyXSxbMiwzLCJxIiwxXSxbMSwzLCJcXEVsIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwwLCJcXHJob19VIl0sWzUsMiwiXFxyaG8iLDJdLFs0LDUsIiAiLDFdLFs0LDEsIlxccGkiLDIseyJjdXJ2ZSI6M31dLFs1LDMsIlxcdHAiLDAseyJjdXJ2ZSI6LTN9XSxbNCwyLCIiLDIseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNiw3LCJcXGthcHBhIiwyLHsibGV2ZWwiOjJ9XSxbMCwxLCJxX1UiLDFdLFsxOSw5LCJcXGthcHBhX3EiLDAseyJzaG9ydGVuIjp7InNvdXJjZSI6MjAsInRhcmdldCI6MjB9fV1d
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	\pi & \tp \\
 	\E & \Term \\
 	{I_U} & I \\
@@ -703,7 +754,7 @@ factorization of \ref{diag:universe-pullback}
 	\arrow[""{name=1, anchor=center, inner sep=0}, "q"{description}, from=3-2, to=4-2]
 	\arrow["\El"', from=4-1, to=4-2]
 	\arrow["{\kappa_q}", shorten <=7pt, shorten >=7pt, Rightarrow, from=0, to=1]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
 If we apply \ref{defn:UVPolyCartesianAction} to
 the lower pullback square, i.e. $\ka_{q}$ then we will get
@@ -737,7 +788,7 @@ induces the cube below with pullbacks on every face.
 
 Now we consider the diagrams for both $\ep$ and $\ep_{U}$
 % https://q.uiver.app/#q=WzAsMTAsWzAsMiwiXFxQb2x5e3F9IHtcXFRlcm19Il0sWzAsMywiXFxQb2x5e3F9IHtcXFR5cGV9Il0sWzIsMywiXFxQb2x5e1xcdHB9IHtcXFR5cGV9Il0sWzIsMiwiXFxQb2x5e1xcdHB9IHtcXFRlcm19Il0sWzEsMiwiVCJdLFszLDAsIlxcUG9seXtcXHBpfXtcXEV9Il0sWzMsMSwiXFxQb2x5e1xccGl9IHtcXFV9Il0sWzEsMSwiXFxQb2x5e3FfVX0ge1xcVX0iXSxbMiwwLCJUX1UiXSxbMSwwLCJcXFBvbHl7cV9VfSB7XFxFfSJdLFswLDFdLFsxLDJdLFszLDJdLFs0LDFdLFs0LDNdLFs0LDIsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFswLDQsIlxcZXAiLDFdLFs4LDQsIiIsMCx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFs3LDFdLFs2LDJdLFs1LDNdLFs3LDZdLFs4LDVdLFs4LDddLFs5LDBdLFs5LDddLFs4LDYsIiIsMCx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs1LDZdLFs5LDgsIlxcZXBfVSIsMV1d
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	& {\Poly{q_U} {\E}} & {T_U} & {\Poly{\pi}{\E}} \\
 	& {\Poly{q_U} {\U}} && {\Poly{\pi} {\U}} \\
 	{\Poly{q} {\Term}} & T & {\Poly{\tp} {\Term}} \\
@@ -761,7 +812,7 @@ Now we consider the diagrams for both $\ep$ and $\ep_{U}$
 	\arrow[dashed, from=1-3, to=3-2, crossing over]
 	\arrow[from=1-4, to=3-3, crossing over]
 	\arrow["\ep"{description}, from=3-1, to=3-2, crossing over]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 The right face is the composed diagonal pullback square from
 \ref{diag:universe-dependent-type-classifier-pullback-cube}.
 The left face of the outer cube is the composed diagonal pullback square from
@@ -774,7 +825,7 @@ and similarly the back face is the naturality square for $\Star{\rho_{U}}$ from
 Since the left face is a pullback square,
 to make $J_{U} : T_{U} \to \Poly{q_{U}}{\E}$ it suffices to consider
 % https://q.uiver.app/#q=WzAsNixbMiwxLCJcXFBvbHl7cX0ge1xcVGVybX0iXSxbMiwyLCJcXFBvbHl7cX0ge1xcVHlwZX0iXSxbMiwwLCJUIl0sWzEsMiwiXFxQb2x5e3FfVX0ge1xcVX0iXSxbMCwwLCJUX1UiXSxbMSwxLCJcXFBvbHl7cV9VfSB7XFxFfSJdLFswLDFdLFsyLDAsIkoiLDFdLFs0LDIsImQiLDAseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbMywxXSxbNSwwXSxbNSwzXSxbNCwzXSxbNCw1LCJKX1UiLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNSwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	{T_U} && T \\
 	& {\Poly{q_U} {\E}} & {\Poly{q} {\Term}} \\
 	& {\Poly{q_U} {\U}} & {\Poly{q} {\Type}}
@@ -787,7 +838,7 @@ to make $J_{U} : T_{U} \to \Poly{q_{U}}{\E}$ it suffices to consider
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
 	\arrow[from=2-3, to=3-3]
 	\arrow[from=3-2, to=3-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 It follows from uniqueness of maps into pullbakcs
 that $J_{U}$ so defined is a section of $\ep_{U}$.
 This concludes the construction of the $\Id$ type former for the universe $\U$.
@@ -806,7 +857,7 @@ In the natural model we can construct these by considering first the map
 which we can visualize in
 
 % https://q.uiver.app/#q=WzAsNSxbMiwwLCJcXFRlcm0iXSxbMiwxLCJcXFR5cGUiXSxbMSwxLCJcXFR5cGUgXFx0aW1lcyBcXFR5cGUiXSxbMSwwLCJcXFRlcm0gXFx0aW1lcyBcXFR5cGUiXSxbMCwwLCJcXFR5cGUiXSxbMCwxLCJcXHRwIl0sWzIsMSwiXFxmc3QiLDJdLFszLDIsIlxcZnN0XiogXFx0cCIsMl0sWzMsMF0sWzMsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzMsNCwiXFxzbmQiLDFdXQ==
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	\Type & {\Term \times \Type} & \Term \\
 	& {\Type \times \Type} & \Type
 	\arrow["\snd"{description}, from=1-2, to=1-1]
@@ -815,14 +866,14 @@ which we can visualize in
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-2, to=2-3]
 	\arrow["\tp", from=1-3, to=2-3]
 	\arrow["\fst"', from=2-2, to=2-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
 Then, respectively, the pullback of the diagrams \ref{fig:pi_intp_pullback}
 and \ref{fig:si_intp_pullback} for interpreting $\Pi$ and $\Si$
 rules along this map give us pullback diagrams for interpreting
 function types and product types.
 % https://q.uiver.app/#q=WzAsNixbMSwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSJdLFsxLDEsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzIsMCwiXFxUZXJtIl0sWzIsMSwiXFxUeXBlIl0sWzAsMSwiXFxUeXBlIFxcdGltZXMgXFxUeXBlIl0sWzAsMCwiRiJdLFswLDEsIlxcUG9seXtcXHRwfXtcXHRwfSIsMl0sWzAsMiwiXFxsYSJdLFsyLDMsIlxcdHAiXSxbMSwzLCJcXFBpIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwxLCIoXFxmc3QsXFxzbmQpIiwyXSxbNSw0LCIoXFxkb20sXFxjb2QpIiwyXSxbNSwwLCIoXFxkb20sXFxmdW4pIiwyXSxbNCwzLCJcXEV4cCIsMix7ImN1cnZlIjo1fV0sWzUsMiwiXFxsYSIsMCx7ImN1cnZlIjotNH1dLFs1LDEsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
-\[\begin{tikzcd}[column sep = large]
+\begin{center}\begin{tikzcd}[column sep = large]
 	F & {\Poly{\tp}{\Term}} & \Term \\
 	{\Type \times \Type} & {\Poly{\tp}{\Type}} & \Type
 	\arrow["{(\dom,\fun)}", from=1-1, to=1-2]
@@ -836,10 +887,10 @@ function types and product types.
 	\arrow["{(\fst,\snd)}"', from=2-1, to=2-2]
 	\arrow["\Exp"', bend right, from=2-1, to=2-3]
 	\arrow["\Pi"', from=2-2, to=2-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
 % https://q.uiver.app/#q=WzAsNixbMSwwLCJRIl0sWzEsMSwiXFxQb2x5e1xcdHB9e1xcVHlwZX0iXSxbMiwwLCJcXFRlcm0iXSxbMiwxLCJcXFR5cGUiXSxbMCwxLCJcXFR5cGUgXFx0aW1lcyBcXFR5cGUiXSxbMCwwLCJcXFRtIFxcdGltZXMgXFxUbSJdLFswLDEsIlxcdHAgXFx0cmlhbmdsZWxlZnQgXFx0cCIsMl0sWzAsMiwiXFxwYWlyIl0sWzIsMywiXFx0cCJdLFsxLDMsIlxcU2kiLDJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs0LDEsIihcXGZzdCxcXHNuZCkiLDJdLFs1LDQsIlxcdHAgXFx0aW1lcyBcXHRwIiwyXSxbNSwwLCIoXFxzbmQsIFxcZnN0LCBcXHRwIFxcY2lyYyBcXHNuZCkiXSxbNCwzLCJcXHRpbWVzIiwyLHsiY3VydmUiOjV9XSxbNSwyLCJcXHBhaXIiLDAseyJjdXJ2ZSI6LTR9XSxbNSwxLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
-\[\begin{tikzcd}[column sep = large]
+\begin{center}\begin{tikzcd}[column sep = large]
 	{\Term \times \Term} & Q & \Term \\
 	{\Type \times \Type} & {\Poly{\tp}{\Type}} & \Type
 	\arrow["{(\snd, \fst, \tp \circ \snd)}", from=1-1, to=1-2]
@@ -853,21 +904,21 @@ function types and product types.
 	\arrow["{(\fst,\snd)}"', from=2-1, to=2-2]
 	\arrow["\times"', bend right, from=2-1, to=2-3]
 	\arrow["\Si"', from=2-2, to=2-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
 By the universal property of pullbacks and
 \ref{prop:UVPoly.equiv}
 We can write a map $\Ga \to F$ as a triple $(A,B,f)$
 such that $A, B: \Ga \to \Type$ and
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXEdhIFxcY2RvdCBBIl0sWzEsMCwiXFxUZXJtIl0sWzEsMSwiXFxUeXBlIl0sWzAsMSwiXFxHYSJdLFswLDEsImYiXSxbMSwyLCJcXHRwIl0sWzMsMiwiQiIsMl0sWzAsMywiXFxkaXNwe0F9IiwyXV0=
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	{\Ga \cdot A} & \Term \\
 	\Ga & \Type
 	\arrow["f", from=1-1, to=1-2]
 	\arrow["{\disp{A}}"', from=1-1, to=2-1]
 	\arrow["\tp", from=1-2, to=2-2]
 	\arrow["B"', from=2-1, to=2-2]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
 This gives us four equivalent ways we can view a function.
 Namely, as $f : \Ga \cdot A \to \Term$ in the above diagram,
@@ -876,7 +927,7 @@ as $(A,B,f) : \Ga \to F$, or as a map between the displays
 $\disp{A} \to \disp{B}$
 
 % https://q.uiver.app/#q=WzAsNSxbMSwyLCJcXEdhIl0sWzAsMCwiXFxHYSBcXGNkb3QgQSJdLFsxLDEsIlxcR2EgXFxjZG90IEIiXSxbMiwxLCJcXFRlcm0iXSxbMiwyLCJcXFR5cGUiXSxbMSwwLCJcXGRpc3B7QX0iLDJdLFsyLDAsIlxcZGlzcHtCfSIsMV0sWzEsMiwiKFxcZGlzcHtBfSxmKSIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFsyLDNdLFszLDRdLFswLDQsIkIiLDJdLFsyLDQsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFsxLDMsImYiXV0=
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	{\Ga \cdot A} \\
 	& {\Ga \cdot B} & \Term \\
 	& \Ga & \Type
@@ -888,7 +939,7 @@ $\disp{A} \to \disp{B}$
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
 	\arrow[from=2-3, to=3-3]
 	\arrow["B"', from=3-2, to=3-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
 For the formalization, we need not prove that the pullback of
 $\tp \triangleleft \tp$ is $\tp \times \tp$.
@@ -902,7 +953,7 @@ what the diagram claims it to be.
 Naturally, there are the same constructions bounded by the universe,
 which will exist when $\Pi_{U}$ and $\Si_{U}$ exist.
 % https://q.uiver.app/#q=WzAsOCxbMCwwLCJcXFUgXFx0aW1lcyBcXFUiXSxbMCwxLCJcXFR5cGUgXFx0aW1lcyBcXFR5cGUiXSxbMSwxLCJcXFR5cGUiXSxbMSwwLCJcXFUiXSxbMywwLCJcXFUgXFx0aW1lcyBcXFUiXSxbMywxLCJcXFR5cGUgXFx0aW1lcyBcXFR5cGUiXSxbNCwwLCJcXFUiXSxbNCwxLCJcXFR5cGUiXSxbMCwxLCJcXEVsIFxcdGltZXMgXFxFbCIsMl0sWzEsMiwiXFxFeHAiLDJdLFswLDMsIlxcRXhwX1UiXSxbMywyLCJcXEVsIl0sWzQsNSwiXFxFbCBcXHRpbWVzIFxcRWwiLDJdLFs0LDYsIlxcdGltZXNfVSJdLFs1LDcsIlxcdGltZXMiLDJdLFs2LDcsIlxcRWwiXV0=
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	{\U \times \U} & \U && {\U \times \U} & \U \\
 	{\Type \times \Type} & \Type && {\Type \times \Type} & \Type
 	\arrow["{\Exp_U}", from=1-1, to=1-2]
@@ -913,13 +964,13 @@ which will exist when $\Pi_{U}$ and $\Si_{U}$ exist.
 	\arrow["\El", from=1-5, to=2-5]
 	\arrow["\Exp"', from=2-1, to=2-2]
 	\arrow["\times"', from=2-4, to=2-5]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
 The identity function $\id_{A} : \Ga \to \Term$ of type $\Exp \circ (A,A) : \Ga \to \Type$
 can be defined by the following
 
 % https://q.uiver.app/#q=WzAsOSxbMCwyLCJcXEdhIl0sWzAsMSwiXFxHYSBcXGNkb3QgQSJdLFsxLDEsIlxcVGVybSJdLFsxLDIsIlxcVHlwZSJdLFszLDAsIlxcR2EiXSxbNCwxLCJGIl0sWzUsMSwiXFxUZXJtIl0sWzUsMiwiXFxUeXBlIl0sWzQsMiwiXFxUeXBlIFxcdGltZXMgXFxUeXBlIl0sWzEsMCwiXFxkaXNwe0F9IiwxXSxbMSwyLCJcXHZhcl97QX0iLDJdLFsyLDMsIlxcdHAiXSxbMCwzLCJBIiwyXSxbMSwzLCIiLDIseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCw1LCIoQSxBLFxcdmFyX3tBfSkiLDFdLFs1LDYsIlxcbGEiXSxbNiw3LCJcXHRwIl0sWzgsNywiXFxFeHAiLDJdLFs1LDgsIihcXGRvbSwgXFxjb2QpIiwxXSxbNCw4LCIoQSxBKSIsMl0sWzQsNiwiXFxpZF9BIiwwLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	&&& \Ga \\
 	{\Ga \cdot A} & \Term &&& F & \Term \\
 	\Ga & \Type &&& {\Type \times \Type} & \Type
@@ -935,12 +986,12 @@ can be defined by the following
 	\arrow["\tp", from=2-6, to=3-6]
 	\arrow["A"', from=3-1, to=3-2]
 	\arrow["\Exp"', from=3-5, to=3-6]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
 Viewed as a map between the display maps, this is simply the identity
 $\Ga \cdot A \to \Ga \cdot A$.
 % https://q.uiver.app/#q=WzAsNSxbMSwyLCJcXEdhIl0sWzEsMSwiXFxHYSBcXGNkb3QgQSJdLFsyLDEsIlxcVGVybSJdLFsyLDIsIlxcVHlwZSJdLFswLDAsIlxcR2EgXFxjZG90IEEiXSxbMSwwLCJcXGRpc3B7QX0iLDFdLFsxLDIsIlxcdmFyX3tBfSIsMl0sWzIsMywiXFx0cCJdLFswLDMsIkEiLDJdLFsxLDMsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs0LDAsIlxcZGlzcHtBfSIsMl0sWzQsMSwiIiwxLHsibGV2ZWwiOjIsInN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9LCJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzQsMiwiXFx2YXJfQSJdXQ==
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	{\Ga \cdot A} \\
 	& {\Ga \cdot A} & \Term \\
 	& \Ga & \Type
@@ -952,7 +1003,7 @@ $\Ga \cdot A \to \Ga \cdot A$.
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
 	\arrow["\tp", from=2-3, to=3-3]
 	\arrow["A"', from=3-2, to=3-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
 Composition is also simplest when viewed as an operation on maps between fibers.
 Given $f : \disp{A} \to \disp{B}$ and $g : \disp{B} \to \disp{C}$,
@@ -987,13 +1038,13 @@ which uses $J$ to transport along the proof of equality to produce an equivalenc
   \[ \mathsf{ua} : \mathsf{IsBigEquiv} (\mathsf{IdToEquiv} A \, B)\]
   Note that this statement is large, i.e. not a type in the universe $\U$.
   % https://q.uiver.app/#q=WzAsMyxbMSwxLCJcXFUgXFxjZG90IFxcVSJdLFswLDAsIlxcVSBcXGNkb3QgXFxVIFxcY2RvdCBcXElkIl0sWzIsMCwiXFxVIFxcY2RvdCBcXFUgXFxjZG90IFxcbWF0aHNme0VxdWl2fSJdLFsxLDBdLFsyLDBdLFsxLDIsIlxcbWF0aHNme0lkVG9FcXVpdn0iXV0=
-  \[\begin{tikzcd}
+  \begin{center}\begin{tikzcd}
 	          {\U \cdot \U \cdot \Id} && {\U \cdot \U \cdot \mathsf{Equiv}} \\
 	          & {\U \cdot \U}
 	          \arrow["{\mathsf{IdToEquiv}}", from=1-1, to=1-3]
 	          \arrow[from=1-1, to=2-2]
 	          \arrow[from=1-3, to=2-2]
-  \end{tikzcd}\]
+  \end{tikzcd}\end{center}
 
 \end{defn}
 
@@ -1011,7 +1062,7 @@ i.e. they are equal morphisms in the natural model.
 This amounts to requiring that \ref{figure:id_pullback_def} is a pullback,
 i.e. $\rho$ is an isomorphism
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFRlcm0iXSxbMCwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwxLCJcXFR5cGUiXSxbMSwwLCJcXFRlcm0iXSxbMCwxLCJcXGRlIiwyXSxbMSwyLCJcXElkIiwyXSxbMywyLCJcXHRwIl0sWzAsMywiXFxyZWZsIl0sWzAsMiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	\Term & \Term \\
 	{\tp \times_\Type \tp} & \Type
 	\arrow["\refl", from=1-1, to=1-2]
@@ -1019,12 +1070,12 @@ i.e. $\rho$ is an isomorphism
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
 	\arrow["\tp", from=1-2, to=2-2]
 	\arrow["\Id"', from=2-1, to=2-2]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 Note that this means $\Star{\rho}$ is an isomorphism,
 from which it follows that \ref{J_definition_diagram} is also a pullback,
 i.e. $\ep$ is an isomorphism.
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7cX0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcVHlwZX0iXSxbMSwxLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMSwwLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcdHB9IiwyXSxbMSwyLCJcXFN0YXJ7XFxyaG99X3tcXFR5cGV9IiwyXSxbMywyLCJcXFBvbHl7XFx0cH0ge1xcdHB9Il0sWzAsMywiXFxTdGFye1xccmhvfV97XFxUZXJtfSJdLFswLDIsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	{\Poly{q} {\Term}} & {\Poly{\tp} {\Term}} \\
 	{\Poly{q} {\Type}} & {\Poly{\tp} {\Term}}
 	\arrow["{\Star{\rho}_{\Term}}", from=1-1, to=1-2]
@@ -1032,20 +1083,20 @@ i.e. $\ep$ is an isomorphism.
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
 	\arrow["{\Poly{\tp} {\tp}}", from=1-2, to=2-2]
 	\arrow["{\Star{\rho}_{\Type}}"', from=2-1, to=2-2]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
 If we were to only require UIP then this is asking that
 $I \to \tp \times_{\Type} \tp$ is a strict proposition,
 meaning for any $(a,b) : \Ga \to \tp \times_{\Type} \tp$
 there it at most one lift
 % https://q.uiver.app/#q=WzAsMyxbMCwxLCJcXEdhIl0sWzEsMSwiXFx0cCBcXHRpbWVzX1xcVHlwZSBcXHRwIl0sWzEsMCwiSSJdLFswLDEsIihhLGIpIiwyXSxbMiwxXSxbMCwyLCIhIiwwLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	& I \\
 	\Ga & {\tp \times_\Type \tp}
 	\arrow[from=1-2, to=2-2]
 	\arrow["{!}", dashed, from=2-1, to=1-2]
 	\arrow["{(a,b)}"', from=2-1, to=2-2]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
 One might wonder what other variations we could
 come up with by tweaking the pullback conditions.
