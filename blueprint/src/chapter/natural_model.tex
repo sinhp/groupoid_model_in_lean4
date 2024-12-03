@@ -412,14 +412,14 @@ induced by the pullback \ref{diag:universe-pullback}.
 This cartesian natural transformation induces the cube diagram below;
 all of the squares in the cube are pullback squares.
 
-\begin{equation} \label{diag:universe-dependent-type-classifier-pullback-cube}
+\begin{center} \label{diag:universe-dependent-type-classifier-pullback-cube}
 \begin{tikzcd}[row sep=scriptsize, column sep=scriptsize]
 & P_\pi E \arrow[dd] \arrow[rr] \arrow[ld] & & P_\tp E \arrow[dl]  \arrow[dd]  \\
 P_\pi \Term \arrow[rr, crossing over] \arrow[dd] && P_\tp \Term \arrow[dd, crossing over] \\
 & P_\pi \U \arrow[rr] \arrow[ld] &&  P_\tp U \arrow[dl] \\
 P_\pi \Type \arrow[rr] && P_\tp \Type \\
 \end{tikzcd}
-\end{equation}
+\end{center}
 We will use the compositions $\Poly{\pi}{U} \to \Poly{\tp}{\Type}$ and
 $\Poly{\pi}{E} \to \Poly{\tp}{\Term}$ below.
 
@@ -686,7 +686,7 @@ We must ensure that the left face commutes - which we can prove using the
 universal property of $\tp \times_{\Type} \tp$.
 It remains to construct $\J_{U}$, a section of $\ep_{U}$, given below
 % https://q.uiver.app/#q=WzAsMjIsWzAsMCwiXFxFIl0sWzEsMCwiSV9VIl0sWzIsMCwiXFxFIl0sWzIsMSwiXFxVIl0sWzEsMSwiXFxwaSBcXHRpbWVzX1xcVSBcXHBpIl0sWzQsMSwiSV9VIl0sWzUsMCwiXFxFIl0sWzQsMiwiXFxwaSBcXHRpbWVzX1xcVSBcXHBpIl0sWzQsMywiXFxFIl0sWzQsNCwiXFxVIl0sWzYsMCwiXFxUZXJtIl0sWzUsMiwiXFx0cCBcXHRpbWVzX1xcVHlwZSBcXHRwIl0sWzYsMSwiXFxUeXBlIl0sWzUsMSwiSSJdLFs1LDMsIlxcVGVybSJdLFs1LDQsIlxcVHlwZSJdLFswLDMsIlxcUG9seXtxX1V9e1xcRX0iXSxbMSwzLCJUX1UiXSxbMiwzLCJcXFBvbHl7XFxwaX17XFxFfSJdLFsyLDQsIlxcUG9seXtcXHBpfXtcXFV9Il0sWzEsNCwiXFxQb2x5e3FfVX17XFxVfSJdLFs2LDJdLFswLDEsIlxccmhvX1UiLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbMSwyXSxbMSw0XSxbNCwzLCJcXElkX1UiLDJdLFs1LDZdLFs1LDddLFs3LDhdLFs4LDldLFs2LDEwXSxbNywxMV0sWzExLDEyXSxbMTAsMTJdLFsxMywxMF0sWzUsMTMsIiIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFsxMywxMV0sWzgsMTRdLFs5LDE1XSxbMTEsMTRdLFsxNCwxNV0sWzIsMywiXFxwaSJdLFswLDQsIlxcZGUiLDJdLFswLDIsIlxccmVmbF9VIiwxLHsiY3VydmUiOi0zfV0sWzE2LDE3LCJcXGVwX1UiLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbMTcsMThdLFsxOCwxOSwiXFxQb2x5e1xccGl9e1xccGl9Il0sWzE3LDIwXSxbMjAsMTksIihcXFN0YXJ7XFxyaG9fVX0pX1xcVSIsMl0sWzE2LDE4LCIoXFxTdGFye1xccmhvX1V9KV9cXEUiLDAseyJjdXJ2ZSI6LTN9XSxbMTYsMjAsIlxcUG9seXtxX1V9e1xcdHB9IiwyXSxbMSwzLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMTcsMTksIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs4LDE1LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNywxNCwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzUsMTEsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs1LDksInFfVSIsMSx7ImN1cnZlIjo0fV0sWzEzLDIxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
-\begin{equation}
+\begin{center}
   \label{diag:J_U_definition}
 \begin{tikzcd}
 	\E & {I_U} & \E &&& \E & \Term \\
@@ -731,7 +731,7 @@ It remains to construct $\J_{U}$, a section of $\ep_{U}$, given below
 	\arrow["{(\Star{\rho_U})_\U}"', from=5-2, to=5-3]
 	\arrow[from=5-5, to=5-6]
 \end{tikzcd}
-\end{equation}
+\end{center}
 
 Now the above give us the following pullback
 factorization of \ref{diag:universe-pullback}
@@ -764,7 +764,7 @@ Like in \ref{diag:universe-dependent-type-classifier-pullback-cube},
 evaluating this at the pullback square \ref{diag:universe-pullback}
 induces the cube below with pullbacks on every face.
 % https://q.uiver.app/#q=WzAsOCxbMSwwLCJcXFBvbHl7cV9VfSBcXEUiXSxbMywwLCJcXFBvbHl7cX0gXFxFIl0sWzAsMSwiXFxQb2x5e3FfVX0gXFxUZXJtIl0sWzIsMSwiXFxQb2x5e3F9IFxcVGVybSJdLFsxLDIsIlxcUG9seXtxX1V9IFxcVSJdLFszLDIsIlxcUG9seXtxfSBcXFUiXSxbMCwzLCJcXFBvbHl7cV9VfSBcXFR5cGUiXSxbMiwzLCJcXFBvbHl7cX0gXFxUeXBlIl0sWzAsNF0sWzAsMV0sWzAsMl0sWzEsM10sWzEsNV0sWzIsM10sWzIsNl0sWzMsN10sWzQsNV0sWzQsNl0sWzUsN10sWzYsN11d
-\begin{equation}
+\begin{center}
 	\label{diag:universe-identity-type-classifier-pullback-cube}
 \begin{tikzcd}
 	& {\Poly{q_U} \E} && {\Poly{q} \E} \\
@@ -784,7 +784,7 @@ induces the cube below with pullbacks on every face.
 	\arrow[from=3-4, to=4-3]
 	\arrow[from=4-1, to=4-3]
 \end{tikzcd}
-\end{equation}
+\end{center}
 
 Now we consider the diagrams for both $\ep$ and $\ep_{U}$
 % https://q.uiver.app/#q=WzAsMTAsWzAsMiwiXFxQb2x5e3F9IHtcXFRlcm19Il0sWzAsMywiXFxQb2x5e3F9IHtcXFR5cGV9Il0sWzIsMywiXFxQb2x5e1xcdHB9IHtcXFR5cGV9Il0sWzIsMiwiXFxQb2x5e1xcdHB9IHtcXFRlcm19Il0sWzEsMiwiVCJdLFszLDAsIlxcUG9seXtcXHBpfXtcXEV9Il0sWzMsMSwiXFxQb2x5e1xccGl9IHtcXFV9Il0sWzEsMSwiXFxQb2x5e3FfVX0ge1xcVX0iXSxbMiwwLCJUX1UiXSxbMSwwLCJcXFBvbHl7cV9VfSB7XFxFfSJdLFswLDFdLFsxLDJdLFszLDJdLFs0LDFdLFs0LDNdLFs0LDIsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFswLDQsIlxcZXAiLDFdLFs4LDQsIiIsMCx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFs3LDFdLFs2LDJdLFs1LDNdLFs3LDZdLFs4LDVdLFs4LDddLFs5LDBdLFs5LDddLFs4LDYsIiIsMCx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs1LDZdLFs5LDgsIlxcZXBfVSIsMV1d
