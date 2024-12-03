@@ -70,14 +70,14 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
   (this the nerve in $i_{!} \dashv \mathsf{res}$).
   We define $\tp \co \Term \to \Type$ as the image of $U \circ$ under this restriction.
   % https://q.uiver.app/#q=WzAsNixbMCwwLCJcXENhdCJdLFsxLDAsIlxcUHNoQ2F0Il0sWzIsMCwiXFxQc2hncnBkIl0sWzAsMSwiXFxncnBkIl0sWzEsMSwiWy0sXFxncnBkXSJdLFsyLDEsIlxcVHlwZSJdLFswLDEsInkiXSxbMSwyLCJcXHRleHRzZntyZXN9Il0sWzMsNCwiIiwwLHsic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9fX1dLFs0LDUsIiIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XV0=
-  \[\begin{tikzcd}[row sep = tiny]
+  \begin{center}\begin{tikzcd}[row sep = tiny]
     \Cat & \PshCat & \Pshgrpd \\
     \grpd & {[-,\grpd]} & \Type
     \arrow["\yo", from=1-1, to=1-2]
     \arrow["{\mathsf{res}}", from=1-2, to=1-3]
     \arrow[maps to, from=2-1, to=2-2]
     \arrow[maps to, from=2-2, to=2-3]
-  \end{tikzcd}\]
+  \end{tikzcd}\end{center}
   Note that $\Term$ and $\Type$ are not representable in $\Pshgrpd$.
 \end{defn}
 
@@ -103,7 +103,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
   are pairs $(f : c \to d, \phi : F \, f \, x \to y)$.
   This makes the following pullback in $\Cat$
   % https://q.uiver.app/#q=WzAsMTEsWzEsMSwiXFxpbnQgRiJdLFsxLDIsIlxcY2F0QyJdLFsyLDEsIlxccHRjYXQiXSxbMiwyLCJcXGNhdCJdLFswLDEsIihjLHgpIl0sWzAsMiwiYyJdLFsxLDAsIihjLHgpIl0sWzIsMCwiKEZjLCB4KSJdLFsxLDNdLFszLDEsIihDLGMpIl0sWzMsMiwiQyJdLFswLDFdLFswLDJdLFsyLDNdLFsxLDMsIkYiLDJdLFs0LDUsIiIsMix7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XSxbNiw3LCIiLDIseyJzdHlsZSI6eyJ0YWlsIjp7Im5hbWUiOiJtYXBzIHRvIn19fV0sWzAsMywiIiwyLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzksMTAsIiIsMix7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XV0=
-  \[\begin{tikzcd}
+  \begin{center}\begin{tikzcd}
     & {(c,x)} & {(Fc, x)} \\
     {(c,x)} & {\int F} & \ptcat & {(C,c)} \\
     c & \catC & \cat & C \\
@@ -116,7 +116,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
     \arrow[from=2-3, to=3-3]
     \arrow[maps to, from=2-4, to=3-4]
     \arrow["F"', from=3-2, to=3-3]
-  \end{tikzcd}\]
+  \end{tikzcd}\end{center}
 \end{defn}
 
 \medskip
@@ -132,7 +132,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
   pairs of morphisms from groupoids $\Ga$ and $A x$ for $x \in \Ga$.
   Furthermore the pullback factors through (pointed) groupoids.
   % https://q.uiver.app/#q=WzAsNyxbMCwwLCJcXEdhIFxcY2RvdCBBIl0sWzAsMSwiXFxHYSJdLFsxLDAsIlxccHRncnBkIl0sWzEsMSwiXFxncnBkIl0sWzAsMl0sWzIsMCwiXFxwdENhdCJdLFsyLDEsIlxcQ2F0Il0sWzAsMV0sWzAsMl0sWzIsM10sWzEsMywiQSIsMl0sWzAsMywiIiwyLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzIsNV0sWzMsNl0sWzUsNl0sWzIsNiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
-  \[\begin{tikzcd}
+  \begin{center}\begin{tikzcd}
     {\Ga \cdot A} & \ptgrpd & \ptcat \\
     \Ga & \grpd & \cat \\
     {}
@@ -145,7 +145,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
     \arrow[from=1-3, to=2-3]
     \arrow["A"', from=2-1, to=2-2]
     \arrow[from=2-2, to=2-3]
-  \end{tikzcd}\]
+  \end{tikzcd}\end{center}
 \end{defn}
 
 \medskip
@@ -157,7 +157,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
   the pullback of $\tp$ along $A$ can be given by the representable
   map $\yo \disp{A}$.
   % https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXHlvIFxcR2EgXFxjZG90IEEiXSxbMCwxLCJcXHlvIFxcR2EiXSxbMSwwLCJcXFRlcm0iXSxbMSwxLCJcXFR5cGUiXSxbMCwyXSxbMCwxLCJcXGRpc3AgQSIsMl0sWzAsMl0sWzIsMywiXFx0cCIsMl0sWzEsMywiQSIsMl0sWzAsMywiIiwyLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
-  \[\begin{tikzcd}
+  \begin{center}\begin{tikzcd}
     {\yo \Ga \cdot A} & \Term \\
     {\yo \Ga} & \Type \\
     {}
@@ -166,12 +166,12 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
     \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
     \arrow["\tp"', from=1-2, to=2-2]
     \arrow["A"', from=2-1, to=2-2]
-  \end{tikzcd}\]
+  \end{tikzcd}\end{center}
 \end{cor}
 \begin{proof}
   Consider the pullback in $\Cat$
   % https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXEdhIFxcY2RvdCBBIl0sWzAsMSwiXFxHYSJdLFsxLDAsIlxccHRncnBkIl0sWzEsMSwiXFxncnBkIl0sWzAsMl0sWzAsMV0sWzAsMl0sWzIsM10sWzEsMywiQSIsMl0sWzAsMywiIiwyLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
-  \[\begin{tikzcd}
+  \begin{center}\begin{tikzcd}
     {\Ga \cdot A} & \ptgrpd \\
     \Ga & \grpd \\
     {}
@@ -180,10 +180,10 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
     \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
     \arrow[from=1-2, to=2-2]
     \arrow["A"', from=2-1, to=2-2]
-  \end{tikzcd}\]
+  \end{tikzcd}\end{center}
   We send this square along $\mathsf{res} \circ \yo$ in the following
   % https://q.uiver.app/#q=WzAsNSxbMiwxLCJcXFBzaGdycGQiXSxbMSwyXSxbMiwwLCJcXFBzaENhdCJdLFswLDAsIlxcQ2F0Il0sWzAsMSwiXFxncnBkIl0sWzMsMiwiXFx5byJdLFsyLDAsIlxcdGV4dHNme3Jlc30iXSxbMywwXSxbNCwzXSxbNCwwLCJcXHlvIl1d
-  \[\begin{tikzcd}
+  \begin{center}\begin{tikzcd}
     \Cat && \PshCat \\
     \grpd && \Pshgrpd \\
     & {}
@@ -192,7 +192,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
     \arrow["{\mathsf{res}}", from=1-3, to=2-3]
     \arrow[from=2-1, to=1-1]
     \arrow["\yo", from=2-1, to=2-3]
-  \end{tikzcd}\]
+  \end{tikzcd}\end{center}
   The Yoneda embedding $\yo : \Cat \to \PshCat$ preserves pullbacks,
   as does $\mathsf{res}$ since it is a right adjoint
   (with left Kan extension $\io_{!} \dashv \mathsf{res}_{\io}$).
@@ -211,7 +211,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
   we have $\lift{a}{f} : a \to b$ in $\catC_{1}$ such that $p (\lift{a}{f}) = f$
   and moreover $\lift{a}{g \circ f} = \lift{b}{g} \circ \lift{a}{f}$
   % https://q.uiver.app/#q=WzAsNCxbMCwwLCJhIl0sWzEsMCwiYiJdLFswLDEsIngiXSxbMSwxLCJ5Il0sWzAsMSwiXFxsaWZ0e2F9e2Z9IiwwLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzAsMiwiIiwyLHsic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9fX1dLFsyLDMsImYiLDJdLFsxLDMsIiIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifSwiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzQsNiwiIiwwLHsic2hvcnRlbiI6eyJzb3VyY2UiOjIwLCJ0YXJnZXQiOjIwfSwic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9LCJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XV0=
-  \[\begin{tikzcd}
+  \begin{center}\begin{tikzcd}
     a & b \\
     x & y
     \arrow[""{name=0, anchor=center, inner sep=0}, "{\lift{a}{f}}", dashed, from=1-1, to=1-2]
@@ -219,7 +219,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
     \arrow[dashed, maps to, from=1-2, to=2-2]
     \arrow[""{name=1, anchor=center, inner sep=0}, "f"', from=2-1, to=2-2]
     \arrow[shorten <=4pt, shorten >=4pt, Rightarrow, dashed, maps to, from=0, to=1]
-  \end{tikzcd}\]
+  \end{tikzcd}\end{center}
 
   In particular, we are interested in split Grothendieck fibrations of groupoids,
   which are the same as \textit{isofibrations}
@@ -243,12 +243,12 @@ lifting $f$. Furthermore
 \begin{prop}\label{prop:GroupoidFibrationClassified}
   There is an adjoint equivalence
  % https://q.uiver.app/#q=WzAsMixbMCwwLCJbXFxHYSwgXFxncnBkXSJdLFsyLDAsIlxcRmliX1xcR2EiXSxbMCwxLCJcXGRpc3B7fSIsMCx7Im9mZnNldCI6LTJ9XSxbMSwwLCJcXHRleHRzZntmaWJlcn0iLDAseyJvZmZzZXQiOi0yfV0sWzAsMSwiXFxzaW1lcSIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6Im5vbmUifSwiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dXQ==
-  \[\begin{tikzcd}
+  \begin{center}\begin{tikzcd}
     {[\Ga, \grpd]} && {\Fib_\Ga}
     \arrow["{\disp{}}", shift left=2, from=1-1, to=1-3]
     \arrow["\simeq"{description}, draw=none, from=1-1, to=1-3]
     \arrow["{\fiber}", shift left=2, from=1-3, to=1-1]
-  \end{tikzcd}\]
+  \end{tikzcd}\end{center}
   where for each fibration $\de : \De \to \Ga$ and each
   object $x \in \Ga$
   \[\fiber_{\de} \, x = \textit{full subcategory} \, \{a \in \De \st \de \, a = x\}\]
@@ -276,7 +276,7 @@ instead of fibrations.
   of the classifier $U : \ptgrpd \to \grpd$ we have
   the pasting diagram
   % https://q.uiver.app/#q=WzAsNixbMSwwLCJcXEdhLkEiXSxbMSwxLCJcXEdhIl0sWzAsMSwiXFxEZSJdLFswLDAsIlxcRGUuQVxcc2kiXSxbMiwxLCJcXGdycGQiXSxbMiwwLCJcXHB0Z3JwZCJdLFswLDEsIlxcZGlzcHtBfSIsMSx7InN0eWxlIjp7ImhlYWQiOnsibmFtZSI6ImVwaSJ9fX1dLFsyLDEsIlxcc2kiLDJdLFsxLDQsIkEiLDJdLFswLDVdLFs1LDRdLFswLDQsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFszLDEsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFszLDIsIlxcZGlzcHtBXFxzaX0iLDEseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMywwLCJcXHNpX0EiLDIseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbMyw1LCIiLDEseyJjdXJ2ZSI6LTJ9XV0=
-  \[\begin{tikzcd}
+  \begin{center}\begin{tikzcd}
     {\De.A\si} & {\Ga.A} & \ptgrpd \\
     \De & \Ga & \grpd
     \arrow["{\si_A}"', dashed, from=1-1, to=1-2]
@@ -289,7 +289,7 @@ instead of fibrations.
     \arrow[from=1-3, to=2-3]
     \arrow["\si"', from=2-1, to=2-2]
     \arrow["A"', from=2-2, to=2-3]
-  \end{tikzcd}\]
+  \end{tikzcd}\end{center}
   This gives us a functor $\circ \si : [\Ga,\grpd] \to [\De,\grpd]$
   which is our strict version of pullback.
 \end{prop}
@@ -298,14 +298,14 @@ instead of fibrations.
 
 \begin{cor}[Fibrations are stable under pullback]\label{prop:GroupoidFibrationPullbackStable}
   % https://q.uiver.app/#q=WzAsNCxbMCwwLCJbXFxHYSwgXFxncnBkXSJdLFsyLDAsIlxcRmliX1xcR2EiXSxbMCwxLCJbXFxEZSwgXFxncnBkXSJdLFsyLDEsIlxcRmliX1xcRGUiXSxbMSwwLCJcXHRleHRzZntmaWJlcn0iLDJdLFswLDIsIlxcY2lyYyBcXHNpIiwyXSxbMiwzLCJcXGRpc3B7fSIsMl0sWzEsMywiXFxzaV4qIiwwLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
-  \[\begin{tikzcd}
+  \begin{center}\begin{tikzcd}
     {[\Ga, \grpd]} && {\Fib_\Ga} \\
     {[\De, \grpd]} && {\Fib_\De}
     \arrow["{\circ \si}"', from=1-1, to=2-1]
     \arrow["{\fiber}"', from=1-3, to=1-1]
     \arrow["{\si^*}", dashed, from=1-3, to=2-3]
     \arrow["{\disp{}}"', from=2-1, to=2-3]
-  \end{tikzcd}\]
+  \end{tikzcd}\end{center}
   We can deduce a corresponding fact about fibrations:
   since fibrations are closed under isomorphism,
   and since any pullback in $\grpd$ of a fibration $p$ is isomorphic to
@@ -329,7 +329,7 @@ Thus we again define these as operations on classifiers $[\Ga,\grpd]$.
   where $x_{A} : A(x) \to \Ga \cdot A$ takes $f : a_{0} \to a_{1}$ to
   $(\id_{x},f) : (x,a_{0}) \to (x,a_{1})$
   % https://q.uiver.app/#q=WzAsOSxbMSwxLCJcXEdhLkEiXSxbMSwyLCJcXEdhIl0sWzAsMSwiQSh4KSJdLFsyLDIsIlxcZ3JwZCJdLFsyLDEsIlxcZ3JwZCJdLFsxLDAsIlxcR2EuQS5CIl0sWzIsMCwiXFxidWxsZXQiXSxbMCwyLCJcXHRlcm1pbmFsIl0sWzAsMCwiQSh4KSBcXGNkb3QgQiBcXGNpcmMgeF9BIl0sWzAsMSwiXFxkaXNwe0F9IiwxLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV0sWzEsMywiQSIsMl0sWzAsNCwiQiJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFsyLDAsInhfQSIsMl0sWzUsMCwiXFxkaXNwe0J9IiwxXSxbNSw2XSxbNywxLCJ4IiwyXSxbMiw3LCIhIiwxXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbOCwyLCJcXGRpc3B7QiBcXGNpcmMgeF9BfSIsMSx7InN0eWxlIjp7ImhlYWQiOnsibmFtZSI6ImVwaSJ9fX1dLFs4LDUsIiIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dXQ==
-  \[\begin{tikzcd}
+  \begin{center}\begin{tikzcd}
     {A(x) \cdot B \circ x_A} & {\Ga.A.B} & \bullet \\
     {A(x)} & {\Ga.A} & \grpd \\
     \terminal & \Ga & \grpd
@@ -345,7 +345,7 @@ Thus we again define these as operations on classifiers $[\Ga,\grpd]$.
     \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
     \arrow["x"', from=3-1, to=3-2]
     \arrow["A"', from=3-2, to=3-3]
-  \end{tikzcd}\]
+  \end{tikzcd}\end{center}
   $\Si_{A}B$ acts on morphism $f : x \to y$ in $\Ga$ and $(a \in A(x), b \in B(x,a))$ by
   \[ \Si_{A}B \, f \, (a,b) := (A \, f \, a, B \, (f,\id_{{A \, f \, a}}) \, b) \]
   and for morphism $(\al : a_{0} \to a_{1} \in A(x),\be : B \, (\id_{x},\al) \, b_{0} \to b_{1} \in B(x,a_{1}))$
@@ -363,13 +363,13 @@ Thus we again define these as operations on classifiers $[\Ga,\grpd]$.
   The corresponding fact about fibrations is that
   the composition of two fibrations is a fibration.
   % https://q.uiver.app/#q=WzAsMyxbMCwwLCJcXFhpIl0sWzAsMSwiXFxEZSJdLFsxLDEsIlxcR2EiXSxbMCwxLCIiLDAseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMSwyLCIiLDAseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMCwyLCIiLDIseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifSwiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV1d
-  \[\begin{tikzcd}
+  \begin{center}\begin{tikzcd}
     \Xi \\
     \De & \Ga
     \arrow[two heads, from=1-1, to=2-1]
     \arrow[dashed, two heads, from=1-1, to=2-2]
     \arrow[two heads, from=2-1, to=2-2]
-  \end{tikzcd}\]
+  \end{tikzcd}\end{center}
 \end{prop}
 
 We can compare the two fibrations
@@ -391,7 +391,7 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
   \[ (\Si_{A}B) \circ \si = \Si_{A \circ \si}(B \circ \si_{A})\]
   where $\si_{A}$ is uniquely determined by the pullback in
   % https://q.uiver.app/#q=WzAsOSxbMiwxLCJcXEdhLkEiXSxbMiwyLCJcXEdhIl0sWzEsMSwiXFxEZSBcXGNkb3QgQSBcXHNpIl0sWzMsMiwiXFxncnBkIl0sWzMsMSwiXFxncnBkIl0sWzIsMCwiXFxHYS5BLkIiXSxbMSwyLCJcXERlIl0sWzEsMCwiXFxEZSBcXGNkb3QgQSBcXHNpIFxcY2RvdCBCIFxcY2lyYyBcXHNpX0EiXSxbMCwyLCJcXGdycGQiXSxbMCwxLCJcXGRpc3B7QX0iLDEseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMSwzLCJBIiwyXSxbMCw0LCJCIl0sWzAsMywiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzIsMCwiXFxzaV9BIiwyXSxbNSwwLCJcXGRpc3B7Qn0iLDEseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbNiwxLCJcXHNpIiwyXSxbMiw2LCJcXGRpc3B7QVxcc2l9IiwxXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNywyLCJcXGRpc3B7QiBcXGNpcmMgXFxzaV9BfSIsMSx7InN0eWxlIjp7ImhlYWQiOnsibmFtZSI6ImVwaSJ9fX1dLFs3LDUsIlxcc2lfe0EgXFxjZG90IEJ9IiwyXSxbNiw4LCJcXFNpX0EgQiBcXGNpcmMgXFxzaSIsMix7Im9mZnNldCI6MX1dLFs2LDgsIlxcU2lfe0EgXFxjaXJjIFxcc2l9IChCIFxcY2lyYyBcXHNpX0EpIiwwLHsib2Zmc2V0IjotMX1dXQ==
-  \[\begin{tikzcd}
+  \begin{center}\begin{tikzcd}
     & {\De \cdot A \si \cdot B \circ \si_A} & {\Ga.A.B} \\
     & {\De \cdot A \si} & {\Ga.A} & \grpd \\
     \grpd & \De & \Ga & \grpd
@@ -408,13 +408,13 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
     \arrow["{\Si_{A \circ \si} (B \circ \si_A)}", shift left, from=3-2, to=3-1]
     \arrow["\si"', from=3-2, to=3-3]
     \arrow["A"', from=3-3, to=3-4]
-  \end{tikzcd}\]
+  \end{tikzcd}\end{center}
 \end{prop}
 \begin{proof}
   By checking pointwise at $x \in \De$, this boils down to showing
   \[(\si x)_{A} = \si_{A} \circ x_{A \circ \si} : A (\si x) \to \Ga \cdot A\]
   % https://q.uiver.app/#q=WzAsOCxbMiwwLCJcXEdhLkEiXSxbMiwxLCJcXEdhIl0sWzEsMCwiXFxEZSBcXGNkb3QgQSBcXHNpIl0sWzMsMSwiXFxncnBkIl0sWzMsMCwiXFxncnBkIl0sWzEsMSwiXFxEZSJdLFswLDEsIlxcdGVybWluYWwiXSxbMCwwLCJBIChcXHNpIHgpIl0sWzAsMSwiXFxkaXNwe0F9IiwxLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV0sWzEsMywiQSIsMl0sWzAsNCwiQiJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFsyLDAsIlxcc2lfQSIsMl0sWzUsMSwiXFxzaSIsMl0sWzIsNSwiXFxkaXNwe0FcXHNpfSIsMV0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzYsNSwieCIsMl0sWzcsMiwieF97QSBcXHNpfSIsMl0sWzcsNiwiISIsMV0sWzcsMCwiKFxcc2kgeClfQSIsMCx7ImN1cnZlIjotM31dLFs3LDUsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
-  \[\begin{tikzcd}
+  \begin{center}\begin{tikzcd}
     {A (\si x)} & {\De \cdot A \si} & {\Ga.A} & \grpd \\
     \terminal & \De & \Ga & \grpd
     \arrow["{x_{A \si}}"', from=1-1, to=1-2]
@@ -430,7 +430,7 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
     \arrow["x"', from=2-1, to=2-2]
     \arrow["\si"', from=2-2, to=2-3]
     \arrow["A"', from=2-3, to=2-4]
-  \end{tikzcd}\]
+  \end{tikzcd}\end{center}
 
   which holds because of the universal property of pullback.
 \end{proof}
@@ -454,7 +454,7 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
 
   $\Pi_{A}B$ acts on morphisms via conjugation
   % https://q.uiver.app/#q=WzAsMTAsWzAsMCwieCJdLFswLDIsInkiXSxbMSwxXSxbMiwxXSxbMywwLCJcXFBpX0EgQiAoeCkiXSxbMywyLCJcXFBpX0EgQih5KSJdLFs2LDAsIkEgKHgpIl0sWzgsMCwiXFxTaV97QX1CICh4KSJdLFs2LDIsIkEgKHkpIl0sWzgsMiwiXFxTaV97QX1CICh5KSJdLFswLDEsImYiXSxbMiwzLCJcXFBpX0EgQiIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XSxbNCw1LCJcXFNpX0FCKGYpIFxcY2lyYyAtIFxcY2lyYyBBIChmXnstMX0pIl0sWzgsNiwiQShmXnstMX0pIiwxXSxbOCw5LCJcXFBpX0EgQiAoZikgKHMpIiwyLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzYsNywicyIsMV0sWzcsOSwiXFxTaV9BIEIoZikiLDFdXQ==
-  \[\begin{tikzcd}
+  \begin{center}\begin{tikzcd}
     x &&& {\Pi_A B (x)} &&& {A (x)} && {\Si_{A}B (x)} \\
     & {} & {} \\
     y &&& {\Pi_A B(y)} &&& {A (y)} && {\Si_{A}B (y)}
@@ -465,7 +465,7 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
     \arrow["{\Pi_A B}", maps to, from=2-2, to=2-3]
     \arrow["{A(f^{-1})}"{description}, from=3-7, to=1-7]
     \arrow["{\Pi_A B (f) (s)}"', dashed, from=3-7, to=3-9]
-  \end{tikzcd}\]
+  \end{tikzcd}\end{center}
   Note that conjugation is functorial and invertible.
 \end{proof}
 
@@ -474,13 +474,13 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
 \begin{cor}[Fibrations are closed under pushforward]\label{prop:GroupoidFibrationPushforward}
   Stated in terms of fibrations, we have
   % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFhpIl0sWzAsMSwiXFxEZSJdLFsxLDEsIlxcR2EiXSxbMSwwLCJcXEdhXyEgXFxzaV8qIFxcdGF1Il0sWzAsMSwiXFx0YXUiLDIseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMSwyLCJcXHNpIiwyLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV0sWzMsMiwiXFxzaV8qIFxcdGF1IiwwLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV1d
-  \[\begin{tikzcd}
+  \begin{center}\begin{tikzcd}
     \Xi & {\Ga_! \si_* \tau} \\
     \De & \Ga
     \arrow["\tau"', two heads, from=1-1, to=2-1]
     \arrow["{\si_* \tau}", two heads, from=1-2, to=2-2]
     \arrow["\si"', two heads, from=2-1, to=2-2]
-  \end{tikzcd}\]
+  \end{tikzcd}\end{center}
   with the universal property of pushforward
   \[ \Fib_{\De}(\si^{*}\rho, \tau) \iso \Fib_{\Ga}(\rho, \si_{*} \tau)\]
   natural in both $\tau$ and $\rho$.
@@ -494,7 +494,7 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
   \[ (\Pi_{A}B) \circ \si = \Pi_{A \circ \si}(B \circ \si_{A})\]
   where $\si_{A}$ is uniquely determined by the pullback in
   % https://q.uiver.app/#q=WzAsOSxbMiwxLCJcXEdhLkEiXSxbMiwyLCJcXEdhIl0sWzEsMSwiXFxEZSBcXGNkb3QgQSBcXHNpIl0sWzMsMiwiXFxncnBkIl0sWzMsMSwiXFxncnBkIl0sWzIsMCwiXFxHYS5BLkIiXSxbMSwyLCJcXERlIl0sWzEsMCwiXFxEZSBcXGNkb3QgQSBcXHNpIFxcY2RvdCBCIFxcY2lyYyBcXHNpX0EiXSxbMCwyLCJcXGdycGQiXSxbMCwxLCJcXGRpc3B7QX0iLDEseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMSwzLCJBIiwyXSxbMCw0LCJCIl0sWzAsMywiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzIsMCwiXFxzaV9BIiwyXSxbNSwwLCJcXGRpc3B7Qn0iLDEseyJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbNiwxLCJcXHNpIiwyXSxbMiw2LCJcXGRpc3B7QVxcc2l9IiwxXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNywyLCJcXGRpc3B7QiBcXGNpcmMgXFxzaV9BfSIsMSx7InN0eWxlIjp7ImhlYWQiOnsibmFtZSI6ImVwaSJ9fX1dLFs3LDUsIlxcc2lfe0EgXFxjZG90IEJ9IiwyXSxbNiw4LCJcXFBpX0EgQiBcXGNpcmMgXFxzaSIsMix7Im9mZnNldCI6MX1dLFs2LDgsIlxcUGlfe0EgXFxjaXJjIFxcc2l9IChCIFxcY2lyYyBcXHNpX0EpIiwwLHsib2Zmc2V0IjotMX1dXQ==
-  \[\begin{tikzcd}
+  \begin{center}\begin{tikzcd}
     & {\De \cdot A \si \cdot B \circ \si_A} & {\Ga.A.B} \\
     & {\De \cdot A \si} & {\Ga.A} & \grpd \\
     \grpd & \De & \Ga & \grpd
@@ -511,7 +511,7 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
     \arrow["{\Pi_{A \circ \si} (B \circ \si_A)}", shift left, from=3-2, to=3-1]
     \arrow["\si"', from=3-2, to=3-3]
     \arrow["A"', from=3-3, to=3-4]
-  \end{tikzcd}\]
+  \end{tikzcd}\end{center}
 \end{prop}
 \begin{proof}
   By checking pointwise, this boils down to Beck-Chevalley for $\Si$.
@@ -539,7 +539,7 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
   Then let $\partial : \Two \to \Interval$ be the unique map factoring $\de_{0}$ and $\de_{1}$.
 
   % https://q.uiver.app/#q=WzAsNCxbMSwxLCJcXFR3byJdLFsyLDIsIlxcSW50ZXJ2YWwiXSxbMCwxLCJcXHRlcm1pbmFsIl0sWzEsMCwiXFx0ZXJtaW5hbCJdLFswLDEsIlxccGFydGlhbCIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFsyLDEsIlxcZGVfMCIsMix7ImN1cnZlIjoxfV0sWzMsMSwiXFxkZV8xIiwwLHsiY3VydmUiOi0xfV0sWzIsMF0sWzMsMF1d
-  \[\begin{tikzcd}
+  \begin{center}\begin{tikzcd}
     & \terminal \\
     \terminal & \Two \\
     && \Interval
@@ -548,7 +548,7 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
     \arrow[from=2-1, to=2-2]
     \arrow["{\de_0}"', bend right, from=2-1, to=3-3]
     \arrow["\partial"{description}, dashed, from=2-2, to=3-3]
-  \end{tikzcd}\]
+  \end{tikzcd}\end{center}
 \end{defn}
 
 \medskip
@@ -558,7 +558,7 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
   Recall that $\grpd$ is Cartesian closed,
   so we can take the image of the above diagram under the functor $A^{-}$.
   % https://q.uiver.app/#q=WzAsNCxbMSwxLCJcXEdhIFxcdGltZXMgXFxHYSJdLFsxLDIsIlxcR2EiXSxbMiwxLCJcXEdhIl0sWzAsMCwiXFxHYV5cXEludGVydmFsIl0sWzAsMV0sWzAsMl0sWzMsMSwiXFxHYV57XFxkZV8wfSIsMix7ImN1cnZlIjoxLCJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMywyLCJcXEdhXntcXGRlXzF9IiwwLHsiY3VydmUiOi0xLCJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJlcGkifX19XSxbMywwLCJcXEdhXlxccGFydGlhbCIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9LCJoZWFkIjp7Im5hbWUiOiJlcGkifX19XV0=
-  \[\begin{tikzcd}
+  \begin{center}\begin{tikzcd}
     {A^{\Interval}} \\
     & {A \times A} & A \\
     & A
@@ -567,7 +567,7 @@ whereas an object in $\Ga \cdot {\Si_{A}(B)}$ would instead be $(x,(a,b))$.
     \arrow["{A^{\de_0}}"', bend right, two heads, from=1-1, to=3-2]
     \arrow[from=2-2, to=2-3]
     \arrow[from=2-2, to=3-2]
-  \end{tikzcd}\]
+  \end{tikzcd}\end{center}
   Then the indicated morphisms are fibrations,
   and $A^{\de_{0}}, A^{\de_{1}}$ form adjoint equivalences
   with $A^{!} : A \to A^{\Interval}$.
@@ -577,7 +577,7 @@ We can use this to justify the interpretation of the identity type later,
 where we will have the strictified versions (as in strictly stable under substitution)
 of the above
 % https://q.uiver.app/#q=WzAsMTksWzIsMiwiVSBcXHRpbWVzX1xcZ3JwZCBVIl0sWzIsMSwiSSciXSxbMiwzLCJcXHB0Z3JwZCJdLFsyLDQsIlxcZ3JwZCJdLFsxLDQsIlxcdGVybWluYWwiXSxbMSwzLCJcXHRlcm1pbmFsIFxcY2RvdCBBIl0sWzMsMCwiXFxwdGdycGQiXSxbMywxLCJcXGdycGQiXSxbMSwyLCJcXHRlcm1pbmFsIFxcY2RvdCBBIFxcY2RvdCBBIl0sWzEsMSwiXFx0ZXJtaW5hbCBcXGNkb3QgQSBcXGNkb3QgQSBcXGNkb3QgXFxJZCJdLFszLDIsIlxccHRncnBkIl0sWzMsMywiXFxncnBkIl0sWzEsMCwiXFx0ZXJtaW5hbCBcXGNkb3QgQSJdLFsyLDAsIlxccHRncnBkIl0sWzAsNF0sWzAsMywiQSJdLFswLDIsIkEgXFx0aW1lcyBBIl0sWzAsMSwiQV5cXEludGVydmFsIl0sWzAsMCwiQSJdLFsxLDBdLFswLDIsIlxcZnN0IiwxXSxbMiwzLCJVIl0sWzQsMywiQSIsMl0sWzUsNCwiXFxkaXNwe0F9IiwyXSxbMSw2XSxbNiw3LCJVIl0sWzAsNywiXFxJZCciLDFdLFs1LDIsIlxcdmFyX0EiLDFdLFs4LDUsIlxcZGlzcHtVIFxcY2lyYyBcXHZhcl9BfSIsMV0sWzgsMF0sWzksOCwiXFxkaXNwe1xcSWQnIFxcY2lyYyBVXiogXFx2YXJfQX0iLDFdLFs5LDFdLFs1LDMsIiIsMCx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs4LDIsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs5LDAsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFsxLDcsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFswLDEwLCJcXHNuZCIsMl0sWzEwLDExLCJVIiwyXSxbMiwxMSwiVSIsMl0sWzAsMTEsIiIsMCx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFsxMiw5LCJBXiogXFxyaG8nIiwxXSxbMTMsMSwiXFxyaG8nIiwxXSxbMTIsMTMsIlxcdmFyX0EiXSxbMTIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzE3LDE2LCJBXntcXHBhcnRpYWx9IiwxLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV0sWzE2LDgsIlxcaXNvIiwxXSxbMTUsNSwiXFxpc28iLDFdLFsxNiwxNSwiXFxmc3QiLDJdLFsxNyw5LCJcXGlzbyIsMV0sWzE4LDE3XSxbMTgsMTIsIlxcaXNvIiwxXV0=
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	A & {\terminal \cdot A} & \ptgrpd & \ptgrpd \\
 	{A^{\Interval}} & {\terminal \cdot A \cdot A \cdot \Id} & {I'} & \grpd \\
 	{A \times A} & {\terminal \cdot A \cdot A} & {U \times_\grpd U} & \ptgrpd \\
@@ -615,7 +615,7 @@ of the above
 	\arrow["U"', from=4-3, to=4-4]
 	\arrow["U", from=4-3, to=5-3]
 	\arrow["A"', from=5-2, to=5-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
 In general, we will want to build a pathspace for a type in any context,
 which requires us to pull back the interval along the context,
@@ -653,16 +653,16 @@ and rebuild the required fibration by exponentiation in the slice.
   Furthermore, precomposition by a substitution $\si : \De \to \Ga$ acts on
   such a pair by
   % https://q.uiver.app/#q=WzAsNCxbMiwxLCJcXFBvbHl7XFx0cH0gWCJdLFswLDFdLFsxLDEsIlxcR2EiXSxbMSwwLCJcXERlIl0sWzMsMiwiXFxzaSIsMl0sWzMsMCwiKEFcXGNpcmMgXFxzaSwgQiBcXGNpcmMgXFx0cF4qIFxcc2kpIl0sWzIsMCwiKEEsIEIpIiwyXV0=
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	& \De \\
 	{} & \Ga & {\Poly{\tp} X}
 	\arrow["\si"', from=1-2, to=2-2]
 	\arrow["{(A\circ \si, B \circ \tp^* \si)}", from=1-2, to=2-3]
 	\arrow["{(A, B)}"', from=2-2, to=2-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
   where $\tp^{*} \si$ is given by
 % https://q.uiver.app/#q=WzAsNixbMSwwLCJcXEdhXFxjZG90IEEiXSxbMSwxLCJcXEdhIl0sWzIsMSwiXFxncnBkIl0sWzIsMCwiXFxwdGdycGQiXSxbMCwxLCJcXERlIl0sWzAsMCwiXFxEZSBcXGNkb3QgQVxcY2lyYyBcXHNpIl0sWzAsMSwiIiwyLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV0sWzEsMiwiQSIsMl0sWzMsMl0sWzAsM10sWzQsMSwiXFxzaSIsMl0sWzUsNCwiIiwyLHsic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoiZXBpIn19fV0sWzUsMCwiXFx0cF4qIFxcc2kiLDAseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XV0=
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	{\De \cdot A\circ \si} & {\Ga\cdot A} & \ptgrpd \\
 	\De & \Ga & \grpd
 	\arrow["{\tp^* \si}", dashed, from=1-1, to=1-2]
@@ -672,7 +672,7 @@ and rebuild the required fibration by exponentiation in the slice.
 	\arrow[from=1-3, to=2-3]
 	\arrow["\si"', from=2-1, to=2-2]
 	\arrow["A"', from=2-2, to=2-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
 \end{prop}
 
@@ -702,7 +702,7 @@ and rebuild the required fibration by exponentiation in the slice.
 \begin{proof}
   Using \ref{prop:GroupoidPtpUniversalProperty}
 % https://q.uiver.app/#q=WzAsOSxbMSwxLCJcXFBzaGdycGQoXFxHYSwgXFxQb2x5e1xcdHB9IFgpICJdLFsxLDIsIlxcUHNoZ3JwZChcXERlLCBcXFBvbHl7XFx0cH0gWCkgIl0sWzAsMCwiKEEsIEIpIl0sWzAsMywiKEEgXFxjaXJjIFxcc2ksIEIgXFxjaXJjIFxcdHBeKiBcXHNpKSJdLFsyLDEsIlxcUHNoZ3JwZChcXEdhLCBYKSJdLFsyLDIsIlxcUHNoZ3JwZChcXERlLCBYKSJdLFsyLDMsIkZfe0EgXFxjaXJjIFxcc2l9IEIgXFxjaXJjIFxcdHBeKiBcXHNpIl0sWzMsMywiKEZfQSBCKSBcXGNpcmMgXFxzaSJdLFszLDAsIkZfQUIiXSxbMCwxLCItIFxcY2lyYyBcXHNpIiwyXSxbMiwzLCIiLDIseyJzdHlsZSI6eyJ0YWlsIjp7Im5hbWUiOiJtYXBzIHRvIn19fV0sWzAsNCwiXFx0aWxkZXtGfV97XFxHYX0iXSxbNCw1LCItIFxcY2lyYyBcXHNpIl0sWzEsNSwiXFx0aWxkZXtGfV97XFxEZX0iLDJdLFszLDYsIiIsMix7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XSxbNiw3LCIiLDIseyJsZXZlbCI6Miwic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn0sImhlYWQiOnsibmFtZSI6Im5vbmUifX19XSxbMiw4LCIiLDAseyJzdHlsZSI6eyJ0YWlsIjp7Im5hbWUiOiJtYXBzIHRvIn19fV0sWzgsNywiIiwwLHsic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9fX1dXQ==
-\[\begin{tikzcd}[column sep = small]
+\begin{center}\begin{tikzcd}[column sep = small]
 	{(A, B)} &&& {F_AB} \\
 	& {\Pshgrpd(\Ga, \Poly{\tp} X) } & {\Pshgrpd(\Ga, X)} \\
 	& {\Pshgrpd(\De, \Poly{\tp} X) } & {\Pshgrpd(\De, X)} \\
@@ -716,7 +716,7 @@ and rebuild the required fibration by exponentiation in the slice.
 	\arrow["{\tilde{F}_{\De}}"', from=3-2, to=3-3]
 	\arrow[maps to, from=4-1, to=4-3]
 	\arrow[Rightarrow, dashed, no head, from=4-3, to=4-4]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 \end{proof}
 
 \begin{defn}[Interpretation of $\Pi$ types]\label{defn:GroupoidNMPi}
@@ -741,7 +741,7 @@ and rebuild the required fibration by exponentiation in the slice.
 
   These combine to give us a pullback square
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSJdLFswLDEsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzEsMCwiXFxUZXJtIl0sWzEsMSwiXFxUeXBlIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcdHB9IiwyXSxbMCwyLCJcXGxhIl0sWzIsMywiXFx0cCJdLFsxLDMsIlxcUGkiLDJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	{\Poly{\tp}{\Term}} & \Term \\
 	{\Poly{\tp}{\Type}} & \Type
 	\arrow["\la", from=1-1, to=1-2]
@@ -749,7 +749,7 @@ and rebuild the required fibration by exponentiation in the slice.
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
 	\arrow["\tp", from=1-2, to=2-2]
 	\arrow["\Pi"', from=2-1, to=2-2]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 \end{defn}
 \begin{proof}
   We should check that the $\la$ operation satisfied Beck-Chevalley.
@@ -760,7 +760,7 @@ and rebuild the required fibration by exponentiation in the slice.
   commutes and pointwise gives pullbacks, i.e.
   for each groupoid $\Ga$
 % https://q.uiver.app/#q=WzAsOSxbMSwxLCJcXFBzaGdycGQoXFxHYSxcXFBvbHl7XFx0cH17XFxUZXJtfSkiXSxbMSwyLCJcXFBzaGdycGQoXFxHYSxcXFBvbHl7XFx0cH17XFxUeXBlfSkiXSxbMiwxLCJbXFxHYSxcXHB0Z3JwZF0iXSxbMiwyLCJbXFxHYSxcXGdycGRdIl0sWzAsMCwiKEEsXFxiZSkiXSxbMCwzLCIoQSxVXFxjaXJjIFxcYmUpIl0sWzMsMCwiXFxsYV9BIFxcYmUiXSxbMywzLCJVIFxcY2lyYyBcXGxhX0EgXFxiZSJdLFsyLDMsIlxcUGlfXFxHYSBVIFxcY2lyYyBcXGJlIl0sWzAsMSwiXFxQc2hncnBkKFxcR2EsIFxcUG9seXtcXHRwfXtcXHRwfSkiLDJdLFswLDIsIlxcbGFfXFxHYSJdLFsyLDMsIlUgXFxjaXJjIC0iXSxbMSwzLCJcXFBpX1xcR2EiLDJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs0LDUsIiIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XSxbNCw2LCIiLDIseyJzdHlsZSI6eyJ0YWlsIjp7Im5hbWUiOiJtYXBzIHRvIn19fV0sWzYsNywiIiwyLHsic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9fX1dLFs1LDgsIiIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XSxbOCw3LCIiLDAseyJsZXZlbCI6Miwic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dXQ==
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	{(A,\be)} &&& {\la_A \be} \\
 	& {\Pshgrpd(\Ga,\Poly{\tp}{\Term})} & {[\Ga,\ptgrpd]} \\
 	& {\Pshgrpd(\Ga,\Poly{\tp}{\Type})} & {[\Ga,\grpd]} \\
@@ -775,7 +775,7 @@ and rebuild the required fibration by exponentiation in the slice.
 	\arrow["{\Pi_\Ga}"', from=3-2, to=3-3]
 	\arrow[maps to, from=4-1, to=4-3]
 	\arrow[Rightarrow, no head, from=4-3, to=4-4]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
   where we have used \ref{prop:GroupoidPtpUniversalProperty}.
   That this commutes follows from the definitions of $\Pi$ and $\la$.
 
@@ -797,7 +797,7 @@ and rebuild the required fibration by exponentiation in the slice.
   This is a specialization of \ref{lem:R}.
   Use $R$ to denote the fiber product
   % https://q.uiver.app/#q=WzAsNCxbMSwwLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMSwxLCJcXFR5cGUiXSxbMCwwLCJSIl0sWzAsMSwiXFxUZXJtIl0sWzAsMSwiXFx0cF8qIFxcVGVybV4qIFxcVHlwZSJdLFsyLDAsIlxccmhvX1xcUG9seXt9Il0sWzIsMywiXFx0cF4qIFxcdHBfKiBcXFRlcm1eKiBcXFR5cGU9IFxccmhvX1xcVGVybSIsMl0sWzMsMSwiXFx0cCIsMl0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	R & {\Poly{\tp}{\Type}} \\
 	\Term & \Type
 	\arrow["{\rho_{\Poly{}}}", from=1-1, to=1-2]
@@ -805,7 +805,7 @@ and rebuild the required fibration by exponentiation in the slice.
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
 	\arrow["{\tp_* \Term^* \Type}", from=1-2, to=2-2]
 	\arrow["\tp"', from=2-1, to=2-2]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
   By the universal property of pullbacks,
   The data of a map from a representable $\ep : \Ga \to R$
@@ -814,7 +814,7 @@ and rebuild the required fibration by exponentiation in the slice.
   Then by \ref{prop:GroupoidPtpUniversalProperty} this corresponds to the data of
   $\al : \Ga \to \Term$ and $B : \Ga \cdot U \circ \al \to \Type$.
   % https://q.uiver.app/#q=WzAsNSxbMiwxLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMiwyLCJcXFR5cGUiXSxbMSwxLCJSIl0sWzEsMiwiXFxUZXJtIl0sWzAsMCwiXFxHYSJdLFswLDEsIlxcdHBfKiBcXFRlcm1eKiBcXFR5cGUiXSxbMiwwLCJcXHJob19cXFBvbHl7fSJdLFsyLDMsIlxcdHBeKiBcXHRwXyogXFxUZXJtXiogXFxUeXBlPSBcXHJob19cXFRlcm0iLDJdLFszLDEsIlxcdHAiLDJdLFsyLDEsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs0LDAsIihVIFxcY2lyYyBcXGFsLEIpIl0sWzQsMywiXFxhbCIsMl0sWzQsMiwiKFxcYWwsQikiLDFdXQ==
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	\Ga \\
 	& R & {\Poly{\tp} {\Type}} \\
 	& \Term & \Type
@@ -826,17 +826,17 @@ and rebuild the required fibration by exponentiation in the slice.
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
 	\arrow["{\tp_* \Term^* \Type}", from=2-3, to=3-3]
 	\arrow["\tp"', from=3-2, to=3-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
   Precomposition by a substitution $\si : \De \to \Ga$ then acts on such a pair by
 % https://q.uiver.app/#q=WzAsNCxbMiwxLCJSIl0sWzAsMV0sWzEsMSwiXFxHYSJdLFsxLDAsIlxcRGUiXSxbMywyLCJcXHNpIiwyXSxbMywwLCIoXFxhbCBcXGNpcmMgXFxzaSwgQiBcXGNpcmMgXFx0cF4qXFxzaSkiXSxbMiwwLCIoXFxhbCwgQikiLDJdXQ==
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	& \De \\
 	{} & \Ga & R
 	\arrow["\si"', from=1-2, to=2-2]
 	\arrow["{(\al \circ \si, B \circ \tp^*\si)}", from=1-2, to=2-3]
 	\arrow["{(\al, B)}"', from=2-2, to=2-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 \end{lemma}
 
 \medskip
@@ -846,7 +846,7 @@ and rebuild the required fibration by exponentiation in the slice.
   $\al : \Ga \to \ptgrpd$ and $B : \Ga \cdot U \circ \al \to \grpd$
   and return $\ev{\al}{B} : \Ga \to \grpd$, described below.
 % https://q.uiver.app/#q=WzAsOCxbMiwxLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMiwyLCJcXFR5cGUiXSxbMSwxLCJSIl0sWzEsMiwiXFxUZXJtIl0sWzAsMiwiXFxUZXJtIFxcdGltZXMgXFxUeXBlIl0sWzAsMywiXFxUZXJtIl0sWzEsMywiXFx0ZXJtaW5hbCJdLFswLDAsIlxcR2EiXSxbMCwxLCJcXHRwXyogXFxUZXJtXiogXFxUeXBlIl0sWzIsMF0sWzIsM10sWzMsMSwiXFx0cCIsMl0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzIsNCwiXFxjb3VuaXQiLDFdLFs0LDNdLFs0LDVdLFs1LDZdLFszLDZdLFs0LDYsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs3LDAsIihBLEIpIiwxXSxbNywzLCJcXGFsIiwxLHsibGFiZWxfcG9zaXRpb24iOjIwfV0sWzcsNSwiXFxldntcXGFsfXtCfSIsMSx7ImN1cnZlIjo1LCJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNywyLCIoXFxhbCxCKSIsMSx7ImxhYmVsX3Bvc2l0aW9uIjo3MH1dLFs3LDQsIihcXGV2e1xcYWx9e0J9LFxcYWwpIiwxLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	\Ga \\
 	& R & {\Poly{\tp}{\Type}} \\
 	{\Type \times \Term} & \Term & \Type \\
@@ -867,7 +867,7 @@ and rebuild the required fibration by exponentiation in the slice.
 	\arrow["\tp"', from=3-2, to=3-3]
 	\arrow[from=3-2, to=4-2]
 	\arrow[from=4-1, to=4-2]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
   where we write $A := U \circ \al$ and treat a map
   $\Ga \to \grpd$
   as the same
@@ -885,7 +885,7 @@ and rebuild the required fibration by exponentiation in the slice.
   \[ \ev{\al}{B} = B \circ a \]
   where
   % https://q.uiver.app/#q=WzAsNSxbMiwyLCJcXGdycGQiXSxbMiwxLCJcXHB0Z3JwZCJdLFsxLDIsIlxcR2EiXSxbMSwxLCJcXEdhIFxcY2RvdCBBIl0sWzAsMCwiXFxHYSJdLFsxLDBdLFsyLDAsIkEiLDJdLFszLDIsIlxcZGlzcHtBfSIsMl0sWzMsMV0sWzQsMiwiIiwwLHsibGV2ZWwiOjIsInN0eWxlIjp7ImhlYWQiOnsibmFtZSI6Im5vbmUifX19XSxbNCwxLCJcXGFsIl0sWzQsMywiYSIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFszLDAsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	\Ga \\
 	& {\Ga \cdot A} & \ptgrpd \\
 	& \Ga & \grpd
@@ -897,7 +897,7 @@ and rebuild the required fibration by exponentiation in the slice.
 	\arrow[from=2-3, to=3-3]
 	\arrow["A"', from=3-2, to=3-3]
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 \end{lemma}
 \begin{proof}
   This is a specialization of \ref{lem:UVPolyEv}
@@ -995,7 +995,7 @@ and rebuild the required fibration by exponentiation in the slice.
   Recall the following definition of composition of polynomial endofunctors,
   specialized to our situation
 % https://q.uiver.app/#q=WzAsMTEsWzMsMCwiXFxQb2x5e1xcdHB9IHtcXFR5cGV9Il0sWzMsMSwiXFxUeXBlIl0sWzIsMCwiUiJdLFsyLDEsIlxcVGVybSJdLFsxLDEsIlxcVGVybSBcXHRpbWVzIFxcVHlwZSJdLFsxLDIsIlxcVHlwZSJdLFsyLDIsIlxcdGVybWluYWwiXSxbMCwxLCJcXFRlcm0gXFx0aW1lcyBcXFRlcm0iXSxbMCwyLCJcXFRlcm0iXSxbMSwwLCJSIl0sWzAsMCwiUSJdLFswLDEsIlxcdHBfKiBcXFRlcm1eKiBcXFR5cGUiXSxbMiwwXSxbMiwzXSxbMywxLCJcXHRwIiwyXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwzXSxbNCw1XSxbNSw2XSxbMyw2XSxbNCw2LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNyw0XSxbNyw4XSxbOCw1LCJcXHRwIiwyXSxbNyw1LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMTAsN10sWzEwLDQsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs5LDIsIiIsMSx7ImxldmVsIjoyLCJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzEwLDldLFs5LDQsIlxcY291bml0IiwxXSxbMTAsMCwiXFx0cCBcXHRyaWFuZ2xlbGVmdCBcXHRwIiwxLHsiY3VydmUiOi0zfV1d
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	Q & R & R & {\Poly{\tp} {\Type}} \\
 	{\Term \times \Term} & {\Type \times \Term} & \Term & \Type \\
 	\Term & \Type & \terminal
@@ -1019,7 +1019,7 @@ and rebuild the required fibration by exponentiation in the slice.
 	\arrow[from=2-3, to=3-3]
 	\arrow["\tp"', from=3-1, to=3-2]
 	\arrow[from=3-2, to=3-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
   By the universal property of pullbacks,
   the data of a map with representable domain $\ep : \Ga \to Q$ corresponds to the
@@ -1028,7 +1028,7 @@ and rebuild the required fibration by exponentiation in the slice.
   $\tp \circ \be = \pi_{\Type} \circ \counit \circ (\al, B)$
   and $A = \tp \circ \al$.
 % https://q.uiver.app/#q=WzAsMTIsWzQsMSwiXFxQb2x5e1xcdHB9IHtcXFR5cGV9Il0sWzQsMiwiXFxUeXBlIl0sWzMsMSwiUiJdLFszLDIsIlxcVGVybSJdLFsyLDIsIlxcVGVybSBcXHRpbWVzIFxcVHlwZSJdLFsyLDMsIlxcVHlwZSJdLFszLDMsIlxcdGVybWluYWwiXSxbMSwyLCJcXFRlcm0gXFx0aW1lcyBcXFRlcm0iXSxbMSwzLCJcXFRlcm0iXSxbMiwxLCJSIl0sWzEsMSwiUSJdLFswLDAsIlxcR2EiXSxbMCwxLCJcXHRwXyogXFxUZXJtXiogXFxUeXBlIl0sWzIsMF0sWzIsM10sWzMsMSwiXFx0cCIsMl0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzQsM10sWzQsNV0sWzUsNl0sWzMsNl0sWzQsNiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzcsNF0sWzcsOF0sWzgsNSwiXFx0cCIsMl0sWzcsNSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzEwLDddLFsxMCw0LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbOSwyLCIiLDEseyJsZXZlbCI6Miwic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dLFsxMCw5XSxbOSw0LCJcXGNvdW5pdCIsMV0sWzExLDgsIlxcYmUiLDJdLFsxMSwxMCwiXFxlcCIsMV0sWzExLDAsIlxcZ2EiLDFdLFsxMSwzLCJcXGFsIiwxLHsibGFiZWxfcG9zaXRpb24iOjIwfV0sWzExLDI4LCJcXGxhbmdsZSBcXGFsICwgXFxnYSBcXHJhbmdsZSIsMSx7InNob3J0ZW4iOnsidGFyZ2V0IjoyMH0sImxldmVsIjoxfV1d
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	\Ga \\
 	& Q & R & R & {\Poly{\tp} {\Type}} \\
 	& {\Term \times \Term} & {\Type \times \Term} & \Term & \Type \\
@@ -1057,7 +1057,7 @@ and rebuild the required fibration by exponentiation in the slice.
 	\arrow["\al"{description, pos=0.2}, bend left = 10, from=1-1, to=3-4]
 	\arrow["\be"', from=1-1, bend right, to=4-2]
 	\arrow["{( \al , B ) }"{description}, bend left = 25, from=1-1, to=2-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
 
   This in turn corresponds to three functors $\al, \be : \Ga \to \ptgrpd$ and
@@ -1076,13 +1076,13 @@ and rebuild the required fibration by exponentiation in the slice.
   Precomposition with a substitution $\si : \De \to \Ga$ acts on this
   triple by
  % https://q.uiver.app/#q=WzAsMyxbMCwxLCJcXEdhIl0sWzAsMCwiXFxEZSJdLFsxLDEsIlEiXSxbMSwwLCJcXHNpIiwyXSxbMCwyLCIoXFxiZSwgXFxhbCwgQikiLDJdLFsxLDIsIihcXGJlIFxcY2lyYyBcXHNpLCBcXGFsIFxcY2lyYyBcXHNpLCBCIFxcY2lyYyBcXHRwXiogXFxzaSkiXV0=
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	\De \\
 	\Ga & Q
 	\arrow["\si"', from=1-1, to=2-1]
 	\arrow["{(\be \circ \si, \al \circ \si, B \circ \tp^* \si)}", from=1-1, to=2-2]
 	\arrow["{(\be, \al, B)}"', from=2-1, to=2-2]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 \end{defn}
 
 \medskip
@@ -1119,7 +1119,7 @@ and rebuild the required fibration by exponentiation in the slice.
 
   $\Si$ and $\pair$ combine to give us a pullback square
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJRIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcVHlwZX0iXSxbMSwwLCJcXFRlcm0iXSxbMSwxLCJcXFR5cGUiXSxbMCwxLCJcXHRwIFxcdHJpYW5nbGVsZWZ0IFxcdHAiLDJdLFswLDIsIlxccGFpciJdLFsyLDMsIlxcdHAiXSxbMSwzLCJcXFNpIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	Q & \Term \\
 	{\Poly{\tp}{\Type}} & \Type
 	\arrow["\pair", from=1-1, to=1-2]
@@ -1127,13 +1127,13 @@ and rebuild the required fibration by exponentiation in the slice.
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
 	\arrow["\tp", from=1-2, to=2-2]
 	\arrow["\Si"', from=2-1, to=2-2]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 \end{defn}
 \begin{proof}
   To show naturality of $\pair$,
   suppose $\si : \De \to \Ga$ is a functor between groupoids.
 % https://q.uiver.app/#q=WzAsOCxbMCwwLCJcXFBzaGdycGQoXFxEZSxRKSJdLFswLDMsIlxcUHNoZ3JwZChcXEdhLFEpIl0sWzMsMywiW1xcR2EsXFxwdGdycGRdIl0sWzMsMCwiW1xcRGUsXFxwdGdycGRdIl0sWzEsMiwiKFxcYmUsXFxhbCxCKSJdLFsxLDEsIihcXGJlIFxcY2lyYyBcXHNpLFxcYWwgXFxjaXJjIFxcc2ksQiBcXGNpcmMgXFxzaV9BKSJdLFsyLDEsIj8iXSxbMiwyLCJcXHBhaXJfXFxHYShcXGJlLFxcYWwsQikiXSxbMSwwLCJcXGNpcmMgXFxzaSJdLFsxLDIsIlxccGFpcl9cXEdhIiwyXSxbMCwzLCJcXHBhaXJfXFxEZSJdLFsyLDMsIlxcY2lyYyBcXHNpIiwyXSxbNCw1LCIiLDIseyJzdHlsZSI6eyJ0YWlsIjp7Im5hbWUiOiJtYXBzIHRvIn19fV0sWzUsNiwiIiwyLHsic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9fX1dLFs0LDcsIiIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XSxbNyw2LCIiLDAseyJzdHlsZSI6eyJ0YWlsIjp7Im5hbWUiOiJtYXBzIHRvIn19fV1d
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	{\Pshgrpd(\De,Q)} &&& {[\De,\ptgrpd]} \\
 	& {(\be \circ \si,\al \circ \si,B \circ \tp^{*}\si)} & {?} \\
 	& {(\be,\al,B)} & {\pair_\Ga(\be,\al,B)} \\
@@ -1146,7 +1146,7 @@ and rebuild the required fibration by exponentiation in the slice.
 	\arrow["{\circ \si}", from=4-1, to=1-1]
 	\arrow["{\pair_\Ga}"', from=4-1, to=4-4]
 	\arrow["{\circ \si}"', from=4-4, to=1-4]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
   So we check that for any $x \in \Ga$,
   \begin{align*}
@@ -1167,14 +1167,14 @@ and rebuild the required fibration by exponentiation in the slice.
   It follows from the definition of $\pair$ that the square commutes.
   To show that it is pullback, it suffices to show that for each $\Ga$,
  % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBzaGdycGQgKFxcR2EsIFEpIl0sWzAsMSwiXFxQc2hncnBkKFxcR2EsXFxQb2x5e1xcdHB9e1xcVHlwZX0pIl0sWzEsMCwiW1xcR2EsXFxwdGdycGRdIl0sWzEsMSwiW1xcR2EsXFxncnBkXSJdLFswLDEsIlxcdHAgXFx0cmlhbmdsZWxlZnQgXFx0cCBcXGNpcmMgLSIsMl0sWzAsMiwiXFxwYWlyX1xcR2EiXSxbMiwzLCJVIFxcY2lyYyAtIl0sWzEsMywiXFxTaV9cXEdhIiwyXV0=
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	{\Pshgrpd (\Ga, Q)} & {[\Ga,\ptgrpd]} \\
 	{\Pshgrpd(\Ga,\Poly{\tp}{\Type})} & {[\Ga,\grpd]}
 	\arrow["{\pair_\Ga}", from=1-1, to=1-2]
 	\arrow["{\tp \triangleleft \tp \circ -}"', from=1-1, to=2-1]
 	\arrow["{U \circ -}", from=1-2, to=2-2]
 	\arrow["{\Si_\Ga}"', from=2-1, to=2-2]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
   is a pullback.
   Since we are in $\Set$,
   it suffices to just show the universal property applied to a point:
@@ -1207,24 +1207,24 @@ and rebuild the required fibration by exponentiation in the slice.
 \begin{defn}[Identity formation and introduction]\label{defn:GroupoidNMId}
   To define the commutative square in $\Pshgrpd$
   % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFRlcm0iXSxbMCwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwxLCJcXFR5cGUiXSxbMSwwLCJcXFRlcm0iXSxbMCwxLCJcXGRlIiwyXSxbMSwyLCJcXElkIiwyXSxbMywyLCJcXHRwIl0sWzAsMywiXFxyZWZsIl1d
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	\Term & \Term \\
 	{\tp \times_\Type \tp} & \Type
 	\arrow["\refl", from=1-1, to=1-2]
 	\arrow["\de"', from=1-1, to=2-1]
 	\arrow["\tp", from=1-2, to=2-2]
 	\arrow["\Id"', from=2-1, to=2-2]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
   We first note that both $\de$ and $\tp$ in the are
   in the essential image
   of the composition from \ref{defn:GroupoidNM}
   % https://q.uiver.app/#q=WzAsMyxbMCwwLCJcXENhdCJdLFsxLDAsIlxcUHNoQ2F0Il0sWzIsMCwiXFxQc2hncnBkIl0sWzAsMSwiXFx5byJdLFsxLDIsIlxcbWF0aHNme3Jlc30iXV0=
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	\Cat & \PshCat & \Pshgrpd
 	\arrow["\yo", from=1-1, to=1-2]
 	\arrow["{\mathsf{res}}", from=1-2, to=1-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
   since the composition preserves pullbacks.
   So we first define in $\Cat$
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXHB0Z3JwZCJdLFswLDEsIlUgXFx0aW1lc19cXGdycGQgVSJdLFsxLDEsIlxcZ3JwZCJdLFsxLDAsIlxccHRncnBkIl0sWzAsMSwiXFxkZSIsMl0sWzEsMiwiXFxJZCciLDJdLFszLDIsIlUiXSxbMCwzLCJcXHJlZmwnIl1d
@@ -1272,7 +1272,7 @@ and rebuild the required fibration by exponentiation in the slice.
   \label{lem:GroupoidI}
   We can then construct the pullback $I'$
   % https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXHB0Z3JwZCJdLFsxLDIsIlUgXFx0aW1lc19cXGdycGQgVSJdLFsyLDIsIlxcZ3JwZCJdLFsyLDEsIlxccHRncnBkIl0sWzEsMSwiSSciXSxbMCwxLCJcXGRlIiwyLHsiY3VydmUiOjJ9XSxbMSwyLCJcXElkJyIsMl0sWzMsMiwiVSJdLFswLDMsIlxccmVmbCciLDAseyJjdXJ2ZSI6LTJ9XSxbNCwxXSxbNCwzXSxbMCw0LCJcXHJobyciLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNCwyLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	\ptgrpd \\
 	& {I'} & \ptgrpd \\
 	& {U \times_\grpd U} & \grpd
@@ -1284,7 +1284,7 @@ and rebuild the required fibration by exponentiation in the slice.
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
 	\arrow["U", from=2-3, to=3-3]
 	\arrow["{\Id'}"', from=3-2, to=3-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
   as the groupoid with objects $(A, a_{0}, a_{1}, h)$
   where $A$ is a groupoid with $a_{0}, a_{1} \in A$ and $h  : a_{0} \to a_{1}$,
   and morphisms
@@ -1316,7 +1316,7 @@ and rebuild the required fibration by exponentiation in the slice.
   \]
   where $A = q \circ \ep$ and
 % https://q.uiver.app/#q=WzAsMTEsWzIsMSwiVSBcXHRpbWVzX1xcZ3JwZCBVIl0sWzIsMCwiSSciXSxbMiwyLCJcXHB0Z3JwZCJdLFsyLDMsIlxcZ3JwZCJdLFsxLDMsIlxcR2EiXSxbMSwyLCJcXEdhIFxcY2RvdCBBIl0sWzMsMCwiXFxwdGdycGQiXSxbMywxLCJcXGdycGQiXSxbMSwxLCJcXEdhIFxcY2RvdCBBIFxcY2RvdCBBIl0sWzEsMCwiXFxHYSBcXGNkb3QgQSBcXGNkb3QgQSBcXGNkb3QgXFxJZCJdLFswLDAsIlgiXSxbMSwwXSxbMCwyLCJcXGZzdCIsMl0sWzIsMywiVSJdLFs0LDMsIkEiLDJdLFs1LDRdLFsxLDZdLFs2LDcsIlUiXSxbMCw3LCJcXElkJyIsMl0sWzUsMl0sWzgsNV0sWzgsMF0sWzksOF0sWzksMV0sWzUsMywiIiwwLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzgsMiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzksMCwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzEsNywiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzksMTAsIkMiLDJdXQ==
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	X & {\Ga \cdot A \cdot A \cdot \Id} & {I'} & \ptgrpd \\
 	& {\Ga \cdot A \cdot A} & {U \times_\grpd U} & \grpd \\
 	& {\Ga \cdot A} & \ptgrpd \\
@@ -1339,13 +1339,13 @@ and rebuild the required fibration by exponentiation in the slice.
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=3-2, to=4-3]
 	\arrow["U", from=3-3, to=4-3]
 	\arrow["A"', from=4-2, to=4-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 \end{lemma}
 
 \begin{lemma}
   \label{lem:GroupoidT}
 % https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXEdhIl0sWzEsMiwiXFxQb2x5e3F9IHtcXFR5cGV9Il0sWzIsMiwiXFxQb2x5e1xcdHB9IHtcXFRlcm19Il0sWzIsMSwiXFxQb2x5e1xcdHB9IHtcXFRlcm19Il0sWzEsMSwiVCJdLFswLDEsIihBLCBDKSIsMix7ImN1cnZlIjoyLCJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbMSwyLCJcXFN0YXJ7XFxyaG99X3tcXFR5cGV9IiwyXSxbMywyLCJcXFBvbHl7XFx0cH0ge1xcdHB9Il0sWzAsMywiKEEsIFxcZ2FfXFxyZWZsKSIsMCx7ImN1cnZlIjotMywic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzQsMV0sWzQsM10sWzQsMiwiIiwyLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzAsNCwiIiwxLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	\Ga \\
 	& T & {\Poly{\tp} {\Term}} \\
 	& {\Poly{q} {\Type}} & {\Poly{\tp} {\Term}}
@@ -1357,7 +1357,7 @@ and rebuild the required fibration by exponentiation in the slice.
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
 	\arrow["{\Poly{\tp} {\tp}}", from=2-3, to=3-3]
 	\arrow["{\Star{\rho}_{\Type}}"', from=3-2, to=3-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
   The data of a map $(A, C, \ga_{\refl}) : \Ga \to T$
   corresponds to the data of
   \begin{align*}
@@ -1367,7 +1367,7 @@ and rebuild the required fibration by exponentiation in the slice.
     \text{ such that }  \, & C \circ A^{*} \rho' = U \circ \ga_{\refl} \\
   \end{align*}
 % https://q.uiver.app/#q=WzAsMTYsWzMsMiwiVSBcXHRpbWVzX1xcZ3JwZCBVIl0sWzMsMSwiSSciXSxbMywzLCJcXHB0Z3JwZCJdLFszLDQsIlxcZ3JwZCJdLFsyLDQsIlxcR2EiXSxbMiwzLCJcXEdhIFxcY2RvdCBBIl0sWzQsMCwiXFxwdGdycGQiXSxbNCwxLCJcXGdycGQiXSxbMiwyLCJcXEdhIFxcY2RvdCBBIFxcY2RvdCBBIl0sWzIsMSwiXFxHYSBcXGNkb3QgQSBcXGNkb3QgQSBcXGNkb3QgXFxJZCJdLFs0LDIsIlxccHRncnBkIl0sWzQsMywiXFxncnBkIl0sWzAsMCwiXFxwdGdycGQiXSxbMiwwLCJcXEdhIFxcY2RvdCBBIl0sWzMsMCwiXFxwdGdycGQiXSxbMCwxLCJcXGdycGQiXSxbMSwwXSxbMCwyLCJcXGZzdCIsMV0sWzIsMywiVSJdLFs0LDMsIkEiLDJdLFs1LDQsIlxcZGlzcHtBfSIsMl0sWzEsNl0sWzYsNywiVSJdLFswLDcsIlxcSWQnIiwxXSxbNSwyLCJcXHZhcl9BIiwxXSxbOCw1LCJcXGRpc3B7VSBcXGNpcmMgXFx2YXJfQX0iLDJdLFs4LDBdLFs5LDgsIlxcZGlzcHtcXElkJyBcXGNpcmMgVV4qIFxcdmFyX0F9IiwyXSxbOSwxXSxbNSwzLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbOCwyLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbOSwwLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMSw3LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMCwxMCwiXFxzbmQiLDJdLFsxMCwxMSwiVSIsMl0sWzIsMTEsIlUiLDJdLFswLDExLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMTMsOSwiQV4qIFxccmhvJyIsMV0sWzE0LDEsIlxccmhvJyIsMV0sWzEzLDE0LCJcXHZhcl9BIl0sWzEzLDEsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFsxMiwxNSwiVSIsMl0sWzksMTUsIkMiLDFdLFsxMywxMiwiXFxnYV9cXHJlZmwiLDFdXQ==
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	\ptgrpd && {\Ga \cdot A} & \ptgrpd & \ptgrpd \\
 	\grpd && {\Ga \cdot A \cdot A \cdot \Id} & {I'} & \grpd \\
 	&& {\Ga \cdot A \cdot A} & {U \times_\grpd U} & \ptgrpd \\
@@ -1401,22 +1401,22 @@ and rebuild the required fibration by exponentiation in the slice.
 	\arrow["U"', from=4-4, to=4-5]
 	\arrow["U", from=4-4, to=5-4]
 	\arrow["A"', from=5-3, to=5-4]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
     Then precomposition with $\si : \De \to \Ga$
     acts on such a triple via
 % https://q.uiver.app/#q=WzAsNCxbMiwxLCJUIl0sWzAsMV0sWzEsMSwiXFxHYSJdLFsxLDAsIlxcRGUiXSxbMywyLCJcXHNpIiwyXSxbMywwLCIoQSBcXGNpcmMgXFxzaSwgQyBcXGNpcmMgcV4qIFxcc2ksIFxcZ2FfXFxyZWZsIFxcY2lyYyBcXHRwXipcXHNpICkiXSxbMiwwLCIoQSwgQywgXFxnYV9cXHJlZmwpIiwyXV0=
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	& \De \\
 	{} & \Ga & T
 	\arrow["\si"', from=1-2, to=2-2]
 	\arrow["{(A \circ \si, C \circ q^* \si, \ga_\refl \circ \tp^*\si )}", from=1-2, to=2-3]
 	\arrow["{(A, C, \ga_\refl)}"', from=2-2, to=2-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
 \end{lemma}
 \begin{proof}
 % https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXEdhIl0sWzEsMiwiXFxQb2x5e3F9IHtcXFR5cGV9Il0sWzIsMiwiXFxQb2x5e1xcdHB9IHtcXFRlcm19Il0sWzIsMSwiXFxQb2x5e1xcdHB9IHtcXFRlcm19Il0sWzEsMSwiVCJdLFswLDEsIihBLCBDKSIsMix7ImN1cnZlIjoyLCJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbMSwyLCJcXFN0YXJ7XFxyaG99X3tcXFR5cGV9IiwyXSxbMywyLCJcXFBvbHl7XFx0cH0ge1xcdHB9Il0sWzAsMywiKEEsIFxcZ2FfXFxyZWZsKSIsMCx7ImN1cnZlIjotMywic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzQsMV0sWzQsM10sWzQsMiwiIiwyLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzAsNCwiIiwxLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	\Ga \\
 	& T & {\Poly{\tp} {\Term}} \\
 	& {\Poly{q} {\Type}} & {\Poly{\tp} {\Term}}
@@ -1428,7 +1428,7 @@ and rebuild the required fibration by exponentiation in the slice.
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
 	\arrow["{\Poly{\tp} {\tp}}", from=2-3, to=3-3]
 	\arrow["{\Star{\rho}_{\Type}}"', from=3-2, to=3-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
   By the universal property of pullbacks,
   The data of a map from a respresentable $\Ga \to T$
   corresponds to the data of
@@ -1466,7 +1466,7 @@ and rebuild the required fibration by exponentiation in the slice.
   $\ga : \Ga \cdot A \cdot A \cdot \Id \to \ptgrpd$ which we will define below.
   We first use $T$ \ref{lem:GroupoidT} to describe the given data:
 % https://q.uiver.app/#q=WzAsMTYsWzMsMiwiVSBcXHRpbWVzX1xcZ3JwZCBVIl0sWzMsMSwiSSciXSxbMywzLCJcXHB0Z3JwZCJdLFszLDQsIlxcZ3JwZCJdLFsyLDQsIlxcR2EiXSxbMiwzLCJcXEdhIFxcY2RvdCBBIl0sWzQsMCwiXFxwdGdycGQiXSxbNCwxLCJcXGdycGQiXSxbMiwyLCJcXEdhIFxcY2RvdCBBIFxcY2RvdCBBIl0sWzIsMSwiXFxHYSBcXGNkb3QgQSBcXGNkb3QgQSBcXGNkb3QgXFxJZCJdLFs0LDIsIlxccHRncnBkIl0sWzQsMywiXFxncnBkIl0sWzAsMCwiXFxwdGdycGQiXSxbMiwwLCJcXEdhIFxcY2RvdCBBIl0sWzMsMCwiXFxwdGdycGQiXSxbMCwxLCJcXGdycGQiXSxbMSwwXSxbMCwyLCJcXGZzdCIsMV0sWzIsMywiVSJdLFs0LDMsIkEiLDJdLFs1LDQsIlxcZGlzcHtBfSIsMl0sWzEsNl0sWzYsNywiVSJdLFswLDcsIlxcSWQnIiwxXSxbNSwyLCJcXHZhcl9BIiwxXSxbOCw1LCJcXGRpc3B7VSBcXGNpcmMgXFx2YXJfQX0iLDJdLFs4LDBdLFs5LDgsIlxcZGlzcHtcXElkJyBcXGNpcmMgVV4qIFxcdmFyX0F9IiwyXSxbOSwxXSxbNSwzLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbOCwyLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbOSwwLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMSw3LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMCwxMCwiXFxzbmQiLDJdLFsxMCwxMSwiVSIsMl0sWzIsMTEsIlUiLDJdLFswLDExLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbOSwxMiwiXFxnYSIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFsxMyw5LCJBXiogXFxyaG8nIiwxXSxbMTQsMSwiXFxyaG8nIiwxXSxbMTMsMTQsIlxcdmFyX0EiXSxbMTMsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzEyLDE1LCJVIiwyXSxbOSwxNSwiQyIsMV0sWzEzLDEyLCJcXGdhX1xccmVmbCIsMV1d
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	\ptgrpd && {\Ga \cdot A} & \ptgrpd & \ptgrpd \\
 	\grpd && {\Ga \cdot A \cdot A \cdot \Id} & {I'} & \grpd \\
 	&& {\Ga \cdot A \cdot A} & {U \times_\grpd U} & \ptgrpd \\
@@ -1501,7 +1501,7 @@ and rebuild the required fibration by exponentiation in the slice.
 	\arrow["U"', from=4-4, to=4-5]
 	\arrow["U", from=4-4, to=5-4]
 	\arrow["A"', from=5-3, to=5-4]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
   Let us name the fibers over the diagonal
   \[C_{\refl} := U \circ \ga_{\refl} = C \circ A^{*} \rho' : \Ga \cdot A \to \grpd\]
   and its given points
@@ -1564,7 +1564,7 @@ and rebuild the required fibration by exponentiation in the slice.
   Functoriality of $\ga$ is routine.
   We show naturality of $J$. Suppose $\si : \De \to \Ga$ is representable
 % https://q.uiver.app/#q=WzAsMTAsWzEsMywiXFxQc2hncnBkKFxcR2EsIFQpIl0sWzIsMywiXFxQc2hncnBkKFxcR2EsIFxcUG9seXtxfXtcXFRlcm19KSJdLFsyLDIsIlxcUHNoZ3JwZChcXERlLCBcXFBvbHl7cX17XFxUZXJtfSkiXSxbMSwyLCJcXFBzaGdycGQoXFxEZSwgVCkiXSxbMSw0LCIoQSwgQywgXFxnYV9cXHJlZmwpIl0sWzAsMV0sWzIsMSwiKEEgXFxjaXJjIFxcc2ksIFxcZ2FfXFxHYSBcXGNpcmMgcV4qXFxzaSkiXSxbMiw0LCIoQSwgXFxnYV9cXEdhKSJdLFsyLDAsIlxccXVhZCBcXHF1YWQoQSBcXGNpcmMgXFxzaSwgXFxnYV9cXERlKSAiXSxbMSwwLCIoQSBcXGNpcmMgXFxzaSwgQyBcXGNpcmMgcV4qIFxcc2ksIFxcZ2FfXFxyZWZsIFxcY2lyYyBcXHRwXipcXHNpICkiXSxbMCwxLCJKX1xcR2EiLDJdLFsxLDIsIi0gXFxjaXJjIFxcc2kiLDJdLFswLDMsIi0gXFxjaXJjIFxcc2kiXSxbMywyLCJKX1xcRGUiXSxbNCw3LCIiLDIseyJzdHlsZSI6eyJ0YWlsIjp7Im5hbWUiOiJtYXBzIHRvIn19fV0sWzgsNiwiIiwwLHsibGV2ZWwiOjIsInN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9LCJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzksOCwiIiwwLHsic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9fX1dXQ==
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	& {(A \circ \si, C \circ q^* \si, \ga_\refl \circ \tp^*\si )} & {\quad \quad(A \circ \si, \ga_\De) } \\
 	{} && {(A \circ \si, \ga_\Ga \circ q^*\si)} \\
 	& {\Pshgrpd(\De, T)} & {\Pshgrpd(\De, \Poly{q}{\Term})} \\
@@ -1577,7 +1577,7 @@ and rebuild the required fibration by exponentiation in the slice.
 	\arrow["{J_\Ga}"', from=4-2, to=4-3]
 	\arrow["{- \circ \si}"', from=4-3, to=3-3]
 	\arrow[maps to, from=5-2, to=5-3]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
   So we want to show that on objects $(x, a_{0}, a_{1}, h) \in \De \cdot A \circ \si \cdot A \circ \si \cdot \Id$
   \[   \ga_{\De} \, (x, a_{0}, a_{1}, h) =
     \ga_{\Ga} \circ q^{*} \si \, (x, a_{0}, a_{1}, h)
@@ -1647,17 +1647,17 @@ We would then have $\Type = [-, \Grpd]$ and $\Term = [-, \ptGrpd]$.
   Then we define $\El : \yo \U \to \Type$ by defining $\El : \U \to \Grpd$
   as the inclusion - any small set can be regarded as a large discrete groupoid.
   % https://q.uiver.app/#q=WzAsMyxbMCwwLCJcXFUiXSxbMSwwLCJcXGdycGQiXSxbMSwxLCJcXEdycGQiXSxbMCwxLCIiLDAseyJzdHlsZSI6eyJ0YWlsIjp7Im5hbWUiOiJob29rIiwic2lkZSI6InRvcCJ9fX1dLFsxLDIsIiIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Imhvb2siLCJzaWRlIjoidG9wIn19fV0sWzAsMiwiXFxFbCIsMix7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Imhvb2siLCJzaWRlIjoidG9wIn19fV1d
-  \[\begin{tikzcd}
+  \begin{center}\begin{tikzcd}
     \U & \grpd \\
     & \Grpd
     \arrow[hook, from=1-1, to=1-2]
     \arrow["\El"', hook, from=1-1, to=2-2]
     \arrow[hook, from=1-2, to=2-2]
-  \end{tikzcd}\]
+  \end{tikzcd}\end{center}
 
   Then we take $\pi := \disp{\El}$, giving us
 % https://q.uiver.app/#q=WzAsNCxbMCwxLCJcXFUiXSxbMSwxLCJcXFR5cGUiXSxbMSwwLCJcXFRlcm0iXSxbMCwwLCJcXEUiXSxbMCwxLCJcXEVsIiwyXSxbMiwxLCJcXHRwIl0sWzMsMCwiXFxwaSIsMl0sWzMsMl0sWzMsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
-\[\begin{tikzcd}
+\begin{center}\begin{tikzcd}
 	\E & \Term \\
 	\U & \Type
 	\arrow[from=1-1, to=1-2]
@@ -1665,7 +1665,7 @@ We would then have $\Type = [-, \Grpd]$ and $\Term = [-, \ptGrpd]$.
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
 	\arrow["\tp", from=1-2, to=2-2]
 	\arrow["\El"', from=2-1, to=2-2]
-\end{tikzcd}\]
+\end{tikzcd}\end{center}
 
   We can compute the groupoid $E$ as that with
   objects that are pairs $(X,x)$ where $x \in X \in \set$,
