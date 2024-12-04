@@ -140,7 +140,7 @@ Then an interpretation of $\Pi$ types consists of a pullback square
 	\arrow["\Pi"', from=2-1, to=2-2]
 \end{tikzcd}
 \begin{equation}
-  \label{diag:pi_intp_pullback}
+  \label{eq:PiDefinition}
 \end{equation}
 \end{center}
 \end{defn}
@@ -167,7 +167,7 @@ An interpretation of $\Si$ types consists of a pullback square
 	\arrow["\Si"', from=2-1, to=2-2]
 \end{tikzcd}
 \begin{equation}
-    \label{diag:si_intp_pullback}
+    \label{eq:SiDefinition}
 \end{equation}
 \end{center}
 
@@ -226,7 +226,7 @@ we require a commutative square (this need not be pullback)
 	\arrow["\Id"', from=2-1, to=2-2]
 \end{tikzcd}
 \begin{equation}
-  \label{diag:id_pullback_def}
+  \label{eq:IdDefinition}
 \end{equation}
 \end{center}
 
@@ -745,7 +745,7 @@ It remains to construct $\J_{U}$, a section of $\ep_{U}$, given below
 	\arrow[from=5-5, to=5-6]
 \end{tikzcd}
 \begin{equation}
-  \label{diag:J_U_definition}
+  \label{eq:UJDefinition}
 \end{equation}
 \end{center}
 
@@ -836,7 +836,7 @@ The left face of the outer cube is the composed diagonal pullback square from
 The front face of the outer cube is the naturality square for $\Star{\rho}$ from
 \ref{eq:JDefinition2}
 and similarly the back face is the naturality square for $\Star{\rho_{U}}$ from
-\ref{diag:J_U_definition}.
+\ref{eq:UJDefinition}.
 
 Since the left face is a pullback square,
 to make $J_{U} : T_{U} \to \Poly{q_{U}}{\E}$ it suffices to consider
@@ -884,8 +884,8 @@ which we can visualize in
 	\arrow["\fst"', from=2-2, to=2-3]
 \end{tikzcd}\end{center}
 
-Then, respectively, the pullback of the diagrams \ref{diag:pi_intp_pullback}
-and \ref{diag:si_intp_pullback} for interpreting $\Pi$ and $\Si$
+Then, respectively, the pullback of the diagrams \ref{eq:PiDefinition}
+and \ref{eq:SiDefinition} for interpreting $\Pi$ and $\Si$
 rules along this map give us pullback diagrams for interpreting
 function types and product types.
 % https://q.uiver.app/#q=WzAsNixbMSwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSJdLFsxLDEsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzIsMCwiXFxUZXJtIl0sWzIsMSwiXFxUeXBlIl0sWzAsMSwiXFxUeXBlIFxcdGltZXMgXFxUeXBlIl0sWzAsMCwiRiJdLFswLDEsIlxcUG9seXtcXHRwfXtcXHRwfSIsMl0sWzAsMiwiXFxsYSJdLFsyLDMsIlxcdHAiXSxbMSwzLCJcXFBpIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwxLCIoXFxmc3QsXFxzbmQpIiwyXSxbNSw0LCIoXFxkb20sXFxjb2QpIiwyXSxbNSwwLCIoXFxkb20sXFxmdW4pIiwyXSxbNCwzLCJcXEV4cCIsMix7ImN1cnZlIjo1fV0sWzUsMiwiXFxsYSIsMCx7ImN1cnZlIjotNH1dLFs1LDEsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
@@ -1075,7 +1075,7 @@ i.e. those satisfying equality reflection and uniqueness of identity proofs (UIP
 Equality reflection says that if one can construct a term satisfying $\Id(a,b)$
 then we have that definitionally $a \equiv b$,
 i.e. they are equal morphisms in the natural model.
-This amounts to requiring that \ref{diag:id_pullback_def} is a pullback,
+This amounts to requiring that \ref{eq:IdDefinition} is a pullback,
 i.e. $\rho$ is an isomorphism
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFRlcm0iXSxbMCwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwxLCJcXFR5cGUiXSxbMSwwLCJcXFRlcm0iXSxbMCwxLCJcXGRlIiwyXSxbMSwyLCJcXElkIiwyXSxbMywyLCJcXHRwIl0sWzAsMywiXFxyZWZsIl0sWzAsMiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
 \begin{center}\begin{tikzcd}
