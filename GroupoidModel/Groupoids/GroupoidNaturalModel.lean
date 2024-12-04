@@ -95,6 +95,49 @@ def PolyDataGet (Γ : sGrpdᵒᵖ) (Q : ((NaturalModel.P NaturalModel.tp).obj Na
   apply yonedaEquiv.invFun
   exact Q
 
+
+def GroupoidSigma {Γ : Grpd} (A : Γ ⥤ Grpd) (B : (GroupoidalGrothendieck A) ⥤ Grpd) : Γ ⥤ Grpd where
+  obj x := by
+    let xA : (A.obj x) ⥤ GroupoidalGrothendieck A := by
+      fconstructor
+      . fconstructor
+        . intro a
+          fconstructor
+          . exact x
+          . exact a
+        . intros a1 a2 f
+          fconstructor
+          dsimp [Quiver.Hom]
+          exact 𝟙 x
+          dsimp [Grpd.forgetToCat, Quiver.Hom]
+          rw [A.map_id]
+          dsimp[CategoryStruct.id]
+          exact f
+      . aesop_cat
+      . sorry
+    refine Grpd.of (GroupoidalGrothendieck (xA ⋙ B))
+  map f := by
+    dsimp[Grpd.of,Bundled.of,Quiver.Hom]
+    rename_i X Y
+    fconstructor
+    . fconstructor
+      . intro a
+        rcases a with ⟨x,a⟩
+        dsimp at a
+        fconstructor
+        . exact (A.map f).obj x
+        . dsimp
+          let F : (B.obj { base := X, fiber := x }) ⟶ (B.obj { base := Y, fiber := (A.map f).obj x }) := by
+            refine B.map ?_
+            fconstructor
+            . exact f
+            . dsimp [Grpd.forgetToCat]
+              exact 𝟙 _
+          exact F.obj a
+      . aesop_cat
+    . aesop_cat
+    . aesop_cat
+
 instance GroupoidNMSigma : NaturalModel.NaturalModelSigma sGrpd.{u} where
   Sig := by
     fconstructor
