@@ -140,7 +140,7 @@ Then an interpretation of $\Pi$ types consists of a pullback square
 	\arrow["\Pi"', from=2-1, to=2-2]
 \end{tikzcd}
 \begin{equation}
-  \label{diag:pi_intp_pullback}
+  \label{eq:PiPullback}
 \end{equation}
 \end{center}
 \end{defn}
@@ -167,7 +167,7 @@ An interpretation of $\Si$ types consists of a pullback square
 	\arrow["\Si"', from=2-1, to=2-2]
 \end{tikzcd}
 \begin{equation}
-    \label{diag:si_intp_pullback}
+    \label{eq:SiPullback}
 \end{equation}
 \end{center}
 
@@ -331,15 +331,18 @@ to interpret the identity elimination rule.
 
 \subsection{A type of small types}
 
-We now wish to formulate a condition that allows us to have a type of small types, written $\U$, not just {\em judgement} expressing that something is a type. With this notation, the judgements that we would like to derive is
-\[
- \U \co \Type \qquad
+We now wish to formulate a condition that allows us to have a type of small
+types, written $\U$,
+not just {\em judgement} expressing that something is a type. With this
+notation, the judgements that we would like to derive is
+\begin{center}
+ $\U \co \Type$ \qquad
  \begin{prooftree}
  a \co \U
  \justifies
  \El(a) \co \Type
  \end{prooftree}
-\]
+\end{center}
 
 % (For example, a sufficient and natural condition for this seems to be
 % that we now have two inaccessible cardinals $\kappa$, with $\kappa < \lambda$.
@@ -886,8 +889,8 @@ which we can visualize in
 	\arrow["\fst"', from=2-2, to=2-3]
 \end{tikzcd}\end{center}
 
-Then, respectively, the pullback of the diagrams \ref{diag:pi_intp_pullback}
-and \ref{diag:si_intp_pullback} for interpreting $\Pi$ and $\Si$
+Then, respectively, the pullback of the diagrams \ref{eq:PiPullback}
+and \ref{eq:SiPullback} for interpreting $\Pi$ and $\Si$
 rules along this map give us pullback diagrams for interpreting
 function types and product types.
 % https://q.uiver.app/#q=WzAsNixbMSwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSJdLFsxLDEsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzIsMCwiXFxUZXJtIl0sWzIsMSwiXFxUeXBlIl0sWzAsMSwiXFxUeXBlIFxcdGltZXMgXFxUeXBlIl0sWzAsMCwiRiJdLFswLDEsIlxcUG9seXtcXHRwfXtcXHRwfSIsMl0sWzAsMiwiXFxsYSJdLFsyLDMsIlxcdHAiXSxbMSwzLCJcXFBpIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwxLCIoXFxmc3QsXFxzbmQpIiwyXSxbNSw0LCIoXFxkb20sXFxjb2QpIiwyXSxbNSwwLCIoXFxkb20sXFxmdW4pIiwyXSxbNCwzLCJcXEV4cCIsMix7ImN1cnZlIjo1fV0sWzUsMiwiXFxsYSIsMCx7ImN1cnZlIjotNH1dLFs1LDEsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
