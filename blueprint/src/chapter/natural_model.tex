@@ -226,7 +226,7 @@ we require a commutative square (this need not be pullback)
 	\arrow["\Id"', from=2-1, to=2-2]
 \end{tikzcd}
 \begin{equation}
-  \label{diag:id_pullback_def}
+  \label{eq:IdPullback}
 \end{equation}
 \end{center}
 
@@ -374,11 +374,13 @@ In the Natural Model:
 	\]
 \item $\pi : \E \to \U$ is obtained as pullback of $\tp$; There is a pullback diagram
 	\begin{center}
-    \label{diag:universe-pullback}
 	\begin{tikzcd}
 	\E \ar[r, tail] \ar[d] & \Term \ar[d] \\
 	\U \ar[r, "\El"', tail] & \Type
 	\end{tikzcd}
+  \begin{equation}
+    \label{eq:UniversePullback}
+  \end{equation}
 	\end{center}
 \end{itemize}
 \end{defn}
@@ -416,10 +418,10 @@ Both squares above are pullback squares.
 
 \subsection{Stability of the universe under type formers}
 
-Take the pullback diagram \ref{diag:universe-pullback}.
+Take the pullback diagram \ref{eq:UniversePullback}.
 That is a morphism in the category of polynomials.
 By \ref{defn:UVPolyCartesianAction} we have a cartesian natural transformation $P_\pi \to P_{\tp}$
-induced by the pullback \ref{diag:universe-pullback}.
+induced by the pullback \ref{eq:UniversePullback}.
 This cartesian natural transformation induces the cube diagram below;
 all of the squares in the cube are pullback squares.
 
@@ -750,7 +752,7 @@ It remains to construct $\J_{U}$, a section of $\ep_{U}$, given below
 \end{center}
 
 Now the above give us the following pullback
-factorization of \ref{diag:universe-pullback}
+factorization of \ref{eq:UniversePullback}
 % https://q.uiver.app/#q=WzAsOCxbMCwyLCJJX1UiXSxbMCwzLCJcXFUiXSxbMSwyLCJJIl0sWzEsMywiXFxUeXBlIl0sWzAsMSwiXFxFIl0sWzEsMSwiXFxUZXJtIl0sWzAsMCwiXFxwaSJdLFsxLDAsIlxcdHAiXSxbMCwyLCIgIiwyXSxbMiwzLCJxIiwxXSxbMSwzLCJcXEVsIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwwLCJcXHJob19VIl0sWzUsMiwiXFxyaG8iLDJdLFs0LDUsIiAiLDFdLFs0LDEsIlxccGkiLDIseyJjdXJ2ZSI6M31dLFs1LDMsIlxcdHAiLDAseyJjdXJ2ZSI6LTN9XSxbNCwyLCIiLDIseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNiw3LCJcXGthcHBhIiwyLHsibGV2ZWwiOjJ9XSxbMCwxLCJxX1UiLDFdLFsxOSw5LCJcXGthcHBhX3EiLDAseyJzaG9ydGVuIjp7InNvdXJjZSI6MjAsInRhcmdldCI6MjB9fV1d
 \begin{center}\begin{tikzcd}
 	\pi & \tp \\
@@ -777,7 +779,7 @@ the lower pullback square, i.e. $\ka_{q}$ then we will get
 a cartesian natural tranformation
 $\Poly{\ka_{U}} : \Poly{q_{U}} \to \Poly{q}$.
 Like in \ref{diag:universe-dependent-type-classifier-pullback-cube},
-evaluating this at the pullback square \ref{diag:universe-pullback}
+evaluating this at the pullback square \ref{eq:UniversePullback}
 induces the cube below with pullbacks on every face.
 % https://q.uiver.app/#q=WzAsOCxbMSwwLCJcXFBvbHl7cV9VfSBcXEUiXSxbMywwLCJcXFBvbHl7cX0gXFxFIl0sWzAsMSwiXFxQb2x5e3FfVX0gXFxUZXJtIl0sWzIsMSwiXFxQb2x5e3F9IFxcVGVybSJdLFsxLDIsIlxcUG9seXtxX1V9IFxcVSJdLFszLDIsIlxcUG9seXtxfSBcXFUiXSxbMCwzLCJcXFBvbHl7cV9VfSBcXFR5cGUiXSxbMiwzLCJcXFBvbHl7cX0gXFxUeXBlIl0sWzAsNF0sWzAsMV0sWzAsMl0sWzEsM10sWzEsNV0sWzIsM10sWzIsNl0sWzMsN10sWzQsNV0sWzQsNl0sWzUsN10sWzYsN11d
 \begin{center}
@@ -1075,7 +1077,7 @@ i.e. those satisfying equality reflection and uniqueness of identity proofs (UIP
 Equality reflection says that if one can construct a term satisfying $\Id(a,b)$
 then we have that definitionally $a \equiv b$,
 i.e. they are equal morphisms in the natural model.
-This amounts to requiring that \ref{diag:id_pullback_def} is a pullback,
+This amounts to requiring that \ref{eq:IdPullback} is a pullback,
 i.e. $\rho$ is an isomorphism
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFRlcm0iXSxbMCwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwxLCJcXFR5cGUiXSxbMSwwLCJcXFRlcm0iXSxbMCwxLCJcXGRlIiwyXSxbMSwyLCJcXElkIiwyXSxbMywyLCJcXHRwIl0sWzAsMywiXFxyZWZsIl0sWzAsMiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
 \begin{center}\begin{tikzcd}
