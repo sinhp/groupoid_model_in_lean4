@@ -38,7 +38,7 @@ We write $\pshC$ for the category of (large) presheaves over $\catC$,
 % \]
 % be the Hofmann-Streicher universe in $\pshC$ associated to $\lambda$. In particular,
 % \[
-% \Type(c) \defeq \{  A \co (\catC_{/c})^\op \to \Set_{\lambda} \}
+% \Type(c) \defeq \{  A : (\catC_{/c})^\op \to \Set_{\lambda} \}
 % \]
 
 \begin{defn}
@@ -65,11 +65,11 @@ We write $\pshC$ for the category of (large) presheaves over $\catC$,
 
 \medskip
 
-The Natural Model associated to a presentable map $\tp \co \Term \to \Type$ consists of
+The Natural Model associated to a presentable map $\tp : \Term \to \Type$ consists of
 \begin{itemize}
 \item contexts as objects $\Gamma, \Delta, \ldots \in \catC$,
-\item a type in context $\yo (\Gamma)$ as a map $A \co \yo(\Gamma) \to \Type$,
-\item a term of type $A$ in context $\Gamma$ as a map $a \co \yo(\Gamma) \to \Term$ such that
+\item a type in context $\yo (\Gamma)$ as a map $A : \yo(\Gamma) \to \Type$,
+\item a term of type $A$ in context $\Gamma$ as a map $a : \yo(\Gamma) \to \Term$ such that
 \begin{center}
 % replacing xymatrix with a tikzcd one
 \begin{tikzcd}
@@ -81,7 +81,7 @@ The Natural Model associated to a presentable map $\tp \co \Term \to \Type$ cons
 %  & \Term \ar[d]^{\tp} \\
 % \Gamma \ar[r]_-A \ar[ur]^{a} & \Type}
 commutes,
-\item an operation called ``context extension'' which given a context $\Gamma$ and a type $A \co \yo(\Gamma) \to \Type$ produces a context $\Gamma\cdot A$ which fits into a pullback diagram below.
+\item an operation called ``context extension'' which given a context $\Gamma$ and a type $A : \yo(\Gamma) \to \Type$ produces a context $\Gamma\cdot A$ which fits into a pullback diagram below.
 \begin{center}
 % replacing xymatrix with a tikzcd one
 \begin{tikzcd}
@@ -96,7 +96,7 @@ commutes,
 
 % In the internal type theory of $\pshC$, we write
 % \[
-%  (\Gamma) \ A \co \Type \qquad  (\Gamma) \ a \co A
+%  (\Gamma) \ A : \Type \qquad  (\Gamma) \ a : A
 % \]
 % to mean that $A$ is a type in context $\Gamma$ and that $a$ is an element of type $A$ in context
 % $\Gamma$, respectively.
@@ -116,7 +116,7 @@ X \ar[r] \ar[d] & \Term \ar[d] \\
 % X \ar[r] \ar[d]& \Term \ar[d] \\
 % \yo(\Gamma) \ar[r]_-{\ulcorner X \urcorner} & \Type}
 
-to express this situation, i.e.~$X \cong \yo(\Gamma \cdot \ulcorner X \urcorner)$.
+to express this situation, i.e.~$X :ng \yo(\Gamma \cdot \ulcorner X \urcorner)$.
 
 \medskip
 
@@ -140,7 +140,7 @@ Then an interpretation of $\Pi$ types consists of a pullback square
 	\arrow["\Pi"', from=2-1, to=2-2]
 \end{tikzcd}
 \begin{equation}
-  \label{diag:pi_intp_pullback}
+  \label{eq:PiPullback}
 \end{equation}
 \end{center}
 \end{defn}
@@ -167,7 +167,7 @@ An interpretation of $\Si$ types consists of a pullback square
 	\arrow["\Si"', from=2-1, to=2-2]
 \end{tikzcd}
 \begin{equation}
-    \label{diag:si_intp_pullback}
+    \label{eq:SiPullback}
 \end{equation}
 \end{center}
 
@@ -185,7 +185,7 @@ An interpretation of $\Si$ types consists of a pullback square
 	\arrow[from=1-1, to=2-1]
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
 	\arrow[Rightarrow, no head, from=1-2, to=1-3]
-	\arrow["\counit"{description}, from=1-2, to=2-2]
+	\arrow[":unit"{description}, from=1-2, to=2-2]
 	\arrow[from=1-3, to=1-4]
 	\arrow[from=1-3, to=2-3]
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-3, to=2-4]
@@ -202,7 +202,7 @@ An interpretation of $\Si$ types consists of a pullback square
 	\arrow[from=3-2, to=3-3]
 \end{tikzcd}
 \end{center}
-  Here, $\counit : \tp^{*} \tp_{*} \Term^{*} \Type \to \Term^{*} \Type$
+  Here, $:unit : \tp^{*} \tp_{*} \Term^{*} \Type \to \Term^{*} \Type$
   is the counit of the adjunction $\tp^{*} \dashv \tp_{*}$ at $\Term^{*} \Type \in \Pshgrpd / \Term$.
 \end{defn}
 
@@ -226,7 +226,7 @@ we require a commutative square (this need not be pullback)
 	\arrow["\Id"', from=2-1, to=2-2]
 \end{tikzcd}
 \begin{equation}
-  \label{diag:id_pullback_def}
+  \label{eq:IdPullback}
 \end{equation}
 \end{center}
 
@@ -301,7 +301,7 @@ gives us a naturality square (this also need not be pullback).
 	\arrow["{\Star{\rho}_{\Type}}"', from=2-1, to=2-2]
 \end{tikzcd}
 \begin{equation}
-    \label{diag:J_definition_diagram}
+    \label{eq:JDefinition1}
 \end{equation}
 \end{center}
 Taking the pullback $T$ and the comparison map $\ep$ we have
@@ -321,7 +321,7 @@ Taking the pullback $T$ and the comparison map $\ep$ we have
 	\arrow["{\Star{\rho}_{\Type}}"', from=3-2, to=3-3]
 \end{tikzcd}
 \begin{equation}
-  	\label{diag:J_definition}
+  	\label{eq:JDefinition2}
 \end{equation}
 \end{center}
 Finally, we require a section $\J : T \to \Poly{q}{\Term}$ of $\ep$,
@@ -331,15 +331,19 @@ to interpret the identity elimination rule.
 
 \subsection{A type of small types}
 
-We now wish to formulate a condition that allows us to have a type of small types, written $\U$, not just {\em judgement} expressing that something is a type. With this notation, the judgements that we would like to derive is
-\[
- \U \co \Type \qquad
- \begin{prooftree}
- a \co \U
- \justifies
- \El(a) \co \Type
- \end{prooftree}
-\]
+We now wish to formulate a condition that allows us to have a type of small
+types, written $\U$,
+not just {\em judgement} expressing that something is a type. With this
+notation, the judgements that we would like to derive are
+\begin{center}
+  \bottomAlignProof
+  \AxiomC{$\U : \Type$}
+  \DisplayProof
+  \qquad
+  \AxiomC{$a : \U$}
+  \UnaryInfC{$\El(a) : \Type$}
+  \DisplayProof
+\end{center}
 
 % (For example, a sufficient and natural condition for this seems to be
 % that we now have two inaccessible cardinals $\kappa$, with $\kappa < \lambda$.
@@ -351,7 +355,7 @@ We now wish to formulate a condition that allows us to have a type of small type
 \uses{defn:NaturalModel}
 In the Natural Model, a universe $\U$ is postulated by a map
 \[
-\pi \co \E \to \U
+\pi : \E \to \U
 \]
 In the Natural Model:
 \begin{itemize}
@@ -370,15 +374,17 @@ In the Natural Model:
 
 \item There is an inclusion of $\U$ into $\Type$
 	\[
-	\El \co \U \rightarrowtail \Type
+	\El : \U \rightarrowtail \Type
 	\]
 \item $\pi : \E \to \U$ is obtained as pullback of $\tp$; There is a pullback diagram
 	\begin{center}
-    \label{diag:universe-pullback}
 	\begin{tikzcd}
 	\E \ar[r, tail] \ar[d] & \Term \ar[d] \\
 	\U \ar[r, "\El"', tail] & \Type
 	\end{tikzcd}
+  \begin{equation}
+    \label{eq:UniversePullback}
+  \end{equation}
 	\end{center}
 \end{itemize}
 \end{defn}
@@ -416,10 +422,10 @@ Both squares above are pullback squares.
 
 \subsection{Stability of the universe under type formers}
 
-Take the pullback diagram \ref{diag:universe-pullback}.
+Take the pullback diagram \ref{eq:UniversePullback}.
 That is a morphism in the category of polynomials.
 By \ref{defn:UVPolyCartesianAction} we have a cartesian natural transformation $P_\pi \to P_{\tp}$
-induced by the pullback \ref{diag:universe-pullback}.
+induced by the pullback \ref{eq:UniversePullback}.
 This cartesian natural transformation induces the cube diagram below;
 all of the squares in the cube are pullback squares.
 
@@ -498,7 +504,7 @@ By the pullback pasting lemma it follows that the back square
 involving $\Pi_ U$ and $\lambda_U$ is also a pullback square.
 This concludes the construction of the $\Pi$ type former for the universe $\U$.
 The only data we needed to supply was the lift $\Pi_U$
-of $\Pi \colon P_\tp \Type \to \Type$ to the universe $\U$.
+of $\Pi :lon P_\tp \Type \to \Type$ to the universe $\U$.
 
 \medskip
 
@@ -630,7 +636,7 @@ As was the case for $\Pi$, pullback pasting along the vertical faces
 shows that the back face involving $\Si_ U$ and $\pair_U$ is also a pullback square.
 This concludes the construction of the $\Si$ type former for the universe $\U$.
 Again, the only data we needed to supply was the lift $\Si_U$
-of $\Si \colon P_\tp \Type \to \Type$ to the universe $\U$.
+of $\Si :lon P_\tp \Type \to \Type$ to the universe $\U$.
 
 % https://q.uiver.app/#q=WzAsOCxbMiwzLCJcXFR5cGUiXSxbMywyLCJcXFUiXSxbMywwLCJcXEUiXSxbMiwxLCJcXFRlcm0iXSxbMCwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwyLCJcXEUiXSxbMSwwLCJcXHBpIFxcdGltZXNfXFxVIFxccGkiXSxbMCwzLCJcXFRlcm0iXSxbMSwwXSxbMiwxXSxbMiwzXSxbMywwLCIiLDEseyJsYWJlbF9wb3NpdGlvbiI6MzB9XSxbNiw0LCIiLDAseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNiw1XSxbNCwzLCIiLDEseyJsYWJlbF9wb3NpdGlvbiI6NzB9XSxbNSwxLCIiLDEseyJsYWJlbF9wb3NpdGlvbiI6NzB9XSxbNiwyXSxbNywwXSxbNCw3XSxbNSw3XSxbNiwxLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwwLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
 \begin{center}\begin{tikzcd}
@@ -750,7 +756,7 @@ It remains to construct $\J_{U}$, a section of $\ep_{U}$, given below
 \end{center}
 
 Now the above give us the following pullback
-factorization of \ref{diag:universe-pullback}
+factorization of \ref{eq:UniversePullback}
 % https://q.uiver.app/#q=WzAsOCxbMCwyLCJJX1UiXSxbMCwzLCJcXFUiXSxbMSwyLCJJIl0sWzEsMywiXFxUeXBlIl0sWzAsMSwiXFxFIl0sWzEsMSwiXFxUZXJtIl0sWzAsMCwiXFxwaSJdLFsxLDAsIlxcdHAiXSxbMCwyLCIgIiwyXSxbMiwzLCJxIiwxXSxbMSwzLCJcXEVsIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwwLCJcXHJob19VIl0sWzUsMiwiXFxyaG8iLDJdLFs0LDUsIiAiLDFdLFs0LDEsIlxccGkiLDIseyJjdXJ2ZSI6M31dLFs1LDMsIlxcdHAiLDAseyJjdXJ2ZSI6LTN9XSxbNCwyLCIiLDIseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNiw3LCJcXGthcHBhIiwyLHsibGV2ZWwiOjJ9XSxbMCwxLCJxX1UiLDFdLFsxOSw5LCJcXGthcHBhX3EiLDAseyJzaG9ydGVuIjp7InNvdXJjZSI6MjAsInRhcmdldCI6MjB9fV1d
 \begin{center}\begin{tikzcd}
 	\pi & \tp \\
@@ -777,7 +783,7 @@ the lower pullback square, i.e. $\ka_{q}$ then we will get
 a cartesian natural tranformation
 $\Poly{\ka_{U}} : \Poly{q_{U}} \to \Poly{q}$.
 Like in \ref{diag:universe-dependent-type-classifier-pullback-cube},
-evaluating this at the pullback square \ref{diag:universe-pullback}
+evaluating this at the pullback square \ref{eq:UniversePullback}
 induces the cube below with pullbacks on every face.
 % https://q.uiver.app/#q=WzAsOCxbMSwwLCJcXFBvbHl7cV9VfSBcXEUiXSxbMywwLCJcXFBvbHl7cX0gXFxFIl0sWzAsMSwiXFxQb2x5e3FfVX0gXFxUZXJtIl0sWzIsMSwiXFxQb2x5e3F9IFxcVGVybSJdLFsxLDIsIlxcUG9seXtxX1V9IFxcVSJdLFszLDIsIlxcUG9seXtxfSBcXFUiXSxbMCwzLCJcXFBvbHl7cV9VfSBcXFR5cGUiXSxbMiwzLCJcXFBvbHl7cX0gXFxUeXBlIl0sWzAsNF0sWzAsMV0sWzAsMl0sWzEsM10sWzEsNV0sWzIsM10sWzIsNl0sWzMsN10sWzQsNV0sWzQsNl0sWzUsN10sWzYsN11d
 \begin{center}
@@ -834,7 +840,7 @@ The right face is the composed diagonal pullback square from
 The left face of the outer cube is the composed diagonal pullback square from
 \ref{diag:universe-identity-type-classifier-pullback-cube}.
 The front face of the outer cube is the naturality square for $\Star{\rho}$ from
-\ref{diag:J_definition}
+\ref{eq:JDefinition2}
 and similarly the back face is the naturality square for $\Star{\rho_{U}}$ from
 \ref{diag:J_U_definition}.
 
@@ -884,8 +890,8 @@ which we can visualize in
 	\arrow["\fst"', from=2-2, to=2-3]
 \end{tikzcd}\end{center}
 
-Then, respectively, the pullback of the diagrams \ref{diag:pi_intp_pullback}
-and \ref{diag:si_intp_pullback} for interpreting $\Pi$ and $\Si$
+Then, respectively, the pullback of the diagrams \ref{eq:PiPullback}
+and \ref{eq:SiPullback} for interpreting $\Pi$ and $\Si$
 rules along this map give us pullback diagrams for interpreting
 function types and product types.
 % https://q.uiver.app/#q=WzAsNixbMSwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSJdLFsxLDEsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzIsMCwiXFxUZXJtIl0sWzIsMSwiXFxUeXBlIl0sWzAsMSwiXFxUeXBlIFxcdGltZXMgXFxUeXBlIl0sWzAsMCwiRiJdLFswLDEsIlxcUG9seXtcXHRwfXtcXHRwfSIsMl0sWzAsMiwiXFxsYSJdLFsyLDMsIlxcdHAiXSxbMSwzLCJcXFBpIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwxLCIoXFxmc3QsXFxzbmQpIiwyXSxbNSw0LCIoXFxkb20sXFxjb2QpIiwyXSxbNSwwLCIoXFxkb20sXFxmdW4pIiwyXSxbNCwzLCJcXEV4cCIsMix7ImN1cnZlIjo1fV0sWzUsMiwiXFxsYSIsMCx7ImN1cnZlIjotNH1dLFs1LDEsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
@@ -894,7 +900,7 @@ function types and product types.
 	{\Type \times \Type} & {\Poly{\tp}{\Type}} & \Type
 	\arrow["{(\dom,\fun)}", from=1-1, to=1-2]
 	\arrow["\la", bend left, from=1-1, to=1-3]
-	\arrow["{(\dom,\cod)}"', from=1-1, to=2-1]
+	\arrow["{(\dom,:d)}"', from=1-1, to=2-1]
 	\arrow["\la", from=1-2, to=1-3]
 	\arrow["{\Poly{\tp}{\tp}}"', from=1-2, to=2-2]
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
@@ -998,7 +1004,7 @@ can be defined by the following
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-1, to=3-2]
 	\arrow["\tp", from=2-2, to=3-2]
 	\arrow["\la", from=2-5, to=2-6]
-	\arrow["{(\dom, \cod)}"{description}, from=2-5, to=3-5]
+	\arrow["{(\dom, :d)}"{description}, from=2-5, to=3-5]
 	\arrow["\tp", from=2-6, to=3-6]
 	\arrow["A"', from=3-1, to=3-2]
 	\arrow["\Exp"', from=3-5, to=3-6]
@@ -1075,7 +1081,7 @@ i.e. those satisfying equality reflection and uniqueness of identity proofs (UIP
 Equality reflection says that if one can construct a term satisfying $\Id(a,b)$
 then we have that definitionally $a \equiv b$,
 i.e. they are equal morphisms in the natural model.
-This amounts to requiring that \ref{diag:id_pullback_def} is a pullback,
+This amounts to requiring that \ref{eq:IdPullback} is a pullback,
 i.e. $\rho$ is an isomorphism
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFRlcm0iXSxbMCwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwxLCJcXFR5cGUiXSxbMSwwLCJcXFRlcm0iXSxbMCwxLCJcXGRlIiwyXSxbMSwyLCJcXElkIiwyXSxbMywyLCJcXHRwIl0sWzAsMywiXFxyZWZsIl0sWzAsMiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
 \begin{center}\begin{tikzcd}
@@ -1088,7 +1094,7 @@ i.e. $\rho$ is an isomorphism
 	\arrow["\Id"', from=2-1, to=2-2]
 \end{tikzcd}\end{center}
 Note that this means $\Star{\rho}$ is an isomorphism,
-from which it follows that \ref{diag:J_definition_diagram} is also a pullback,
+from which it follows that \ref{eq:JDefinition1} is also a pullback,
 i.e. $\ep$ is an isomorphism.
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7cX0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcVHlwZX0iXSxbMSwxLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMSwwLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcdHB9IiwyXSxbMSwyLCJcXFN0YXJ7XFxyaG99X3tcXFR5cGV9IiwyXSxbMywyLCJcXFBvbHl7XFx0cH0ge1xcdHB9Il0sWzAsMywiXFxTdGFye1xccmhvfV97XFxUZXJtfSJdLFswLDIsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
 \begin{center}\begin{tikzcd}
