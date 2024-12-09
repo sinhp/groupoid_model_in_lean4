@@ -105,10 +105,41 @@ def functorial {C D : Grpd.{v₁,u₁}} (F : C ⟶ D) (G : D ⥤ Grpd.{v₂,u₂
     · erw [Grothendieck.comp_fiber (F:= toCat (F ⋙ G)) f g]
       simp [eqToHom_trans]
 
+def Map (Δ Γ: Grpd) (σ : Δ ⥤ Γ) (A : Γ ⥤ Grpd) (B : (GroupoidalGrothendieck A) ⥤ Grpd) : GroupoidalGrothendieck (σ ⋙ A) ⥤ Grpd where
+  obj x := by
+    rcases x with ⟨x, a⟩
+    dsimp at a
+    let X : GroupoidalGrothendieck A := by
+      fconstructor
+      . exact σ.obj x
+      . exact a
+    exact B.obj X
+  map f := by
+    rename_i X Y
+    rcases X with ⟨x, xa⟩
+    rcases Y with ⟨y, ya⟩
+    let X : GroupoidalGrothendieck A := by
+      fconstructor
+      . exact σ.obj x
+      . exact xa
+    let Y : GroupoidalGrothendieck A := by
+      fconstructor
+      . exact σ.obj y
+      . exact ya
+    let F : X ⟶ Y := by
+      fconstructor
+      . exact σ.map f.base
+      . exact f.fiber
+    exact B.map F
+  map_comp := by
+    sorry
+  map_id x := by
+    sorry
+
 end GroupoidalGrothendieck
+
 
 end
 end
 
 end CategoryTheory
-
