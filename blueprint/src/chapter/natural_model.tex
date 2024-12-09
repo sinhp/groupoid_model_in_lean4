@@ -38,7 +38,7 @@ We write $\pshC$ for the category of (large) presheaves over $\catC$,
 % \]
 % be the Hofmann-Streicher universe in $\pshC$ associated to $\lambda$. In particular,
 % \[
-% \Type(c) \defeq \{  A \co (\catC_{/c})^\op \to \Set_{\lambda} \}
+% \Type(c) \defeq \{  A : (\catC_{/c})^\op \to \Set_{\lambda} \}
 % \]
 
 \begin{defn}
@@ -65,11 +65,11 @@ We write $\pshC$ for the category of (large) presheaves over $\catC$,
 
 \medskip
 
-The Natural Model associated to a presentable map $\tp \co \Term \to \Type$ consists of
+The Natural Model associated to a presentable map $\tp : \Term \to \Type$ consists of
 \begin{itemize}
 \item contexts as objects $\Gamma, \Delta, \ldots \in \catC$,
-\item a type in context $\yo (\Gamma)$ as a map $A \co \yo(\Gamma) \to \Type$,
-\item a term of type $A$ in context $\Gamma$ as a map $a \co \yo(\Gamma) \to \Term$ such that
+\item a type in context $\yo (\Gamma)$ as a map $A : \yo(\Gamma) \to \Type$,
+\item a term of type $A$ in context $\Gamma$ as a map $a : \yo(\Gamma) \to \Term$ such that
 \begin{center}
 % replacing xymatrix with a tikzcd one
 \begin{tikzcd}
@@ -81,7 +81,7 @@ The Natural Model associated to a presentable map $\tp \co \Term \to \Type$ cons
 %  & \Term \ar[d]^{\tp} \\
 % \Gamma \ar[r]_-A \ar[ur]^{a} & \Type}
 commutes,
-\item an operation called ``context extension'' which given a context $\Gamma$ and a type $A \co \yo(\Gamma) \to \Type$ produces a context $\Gamma\cdot A$ which fits into a pullback diagram below.
+\item an operation called ``context extension'' which given a context $\Gamma$ and a type $A : \yo(\Gamma) \to \Type$ produces a context $\Gamma\cdot A$ which fits into a pullback diagram below.
 \begin{center}
 % replacing xymatrix with a tikzcd one
 \begin{tikzcd}
@@ -96,7 +96,7 @@ commutes,
 
 % In the internal type theory of $\pshC$, we write
 % \[
-%  (\Gamma) \ A \co \Type \qquad  (\Gamma) \ a \co A
+%  (\Gamma) \ A : \Type \qquad  (\Gamma) \ a : A
 % \]
 % to mean that $A$ is a type in context $\Gamma$ and that $a$ is an element of type $A$ in context
 % $\Gamma$, respectively.
@@ -116,7 +116,7 @@ X \ar[r] \ar[d] & \Term \ar[d] \\
 % X \ar[r] \ar[d]& \Term \ar[d] \\
 % \yo(\Gamma) \ar[r]_-{\ulcorner X \urcorner} & \Type}
 
-to express this situation, i.e.~$X \cong \yo(\Gamma \cdot \ulcorner X \urcorner)$.
+to express this situation, i.e.~$X :ng \yo(\Gamma \cdot \ulcorner X \urcorner)$.
 
 \medskip
 
@@ -185,7 +185,7 @@ An interpretation of $\Si$ types consists of a pullback square
 	\arrow[from=1-1, to=2-1]
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
 	\arrow[Rightarrow, no head, from=1-2, to=1-3]
-	\arrow["\counit"{description}, from=1-2, to=2-2]
+	\arrow[":unit"{description}, from=1-2, to=2-2]
 	\arrow[from=1-3, to=1-4]
 	\arrow[from=1-3, to=2-3]
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-3, to=2-4]
@@ -202,7 +202,7 @@ An interpretation of $\Si$ types consists of a pullback square
 	\arrow[from=3-2, to=3-3]
 \end{tikzcd}
 \end{center}
-  Here, $\counit : \tp^{*} \tp_{*} \Term^{*} \Type \to \Term^{*} \Type$
+  Here, $:unit : \tp^{*} \tp_{*} \Term^{*} \Type \to \Term^{*} \Type$
   is the counit of the adjunction $\tp^{*} \dashv \tp_{*}$ at $\Term^{*} \Type \in \Pshgrpd / \Term$.
 \end{defn}
 
@@ -334,14 +334,15 @@ to interpret the identity elimination rule.
 We now wish to formulate a condition that allows us to have a type of small
 types, written $\U$,
 not just {\em judgement} expressing that something is a type. With this
-notation, the judgements that we would like to derive is
+notation, the judgements that we would like to derive are
 \begin{center}
- $\U \co \Type$ \qquad
- \begin{prooftree}
- a \co \U
- \justifies
- \El(a) \co \Type
- \end{prooftree}
+  \bottomAlignProof
+  \AxiomC{$\U : \Type$}
+  \DisplayProof
+  \qquad
+  \AxiomC{$a : \U$}
+  \UnaryInfC{$\El(a) : \Type$}
+  \DisplayProof
 \end{center}
 
 % (For example, a sufficient and natural condition for this seems to be
@@ -354,7 +355,7 @@ notation, the judgements that we would like to derive is
 \uses{defn:NaturalModel}
 In the Natural Model, a universe $\U$ is postulated by a map
 \[
-\pi \co \E \to \U
+\pi : \E \to \U
 \]
 In the Natural Model:
 \begin{itemize}
@@ -373,7 +374,7 @@ In the Natural Model:
 
 \item There is an inclusion of $\U$ into $\Type$
 	\[
-	\El \co \U \rightarrowtail \Type
+	\El : \U \rightarrowtail \Type
 	\]
 \item $\pi : \E \to \U$ is obtained as pullback of $\tp$; There is a pullback diagram
 	\begin{center}
@@ -503,7 +504,7 @@ By the pullback pasting lemma it follows that the back square
 involving $\Pi_ U$ and $\lambda_U$ is also a pullback square.
 This concludes the construction of the $\Pi$ type former for the universe $\U$.
 The only data we needed to supply was the lift $\Pi_U$
-of $\Pi \colon P_\tp \Type \to \Type$ to the universe $\U$.
+of $\Pi :lon P_\tp \Type \to \Type$ to the universe $\U$.
 
 \medskip
 
@@ -635,7 +636,7 @@ As was the case for $\Pi$, pullback pasting along the vertical faces
 shows that the back face involving $\Si_ U$ and $\pair_U$ is also a pullback square.
 This concludes the construction of the $\Si$ type former for the universe $\U$.
 Again, the only data we needed to supply was the lift $\Si_U$
-of $\Si \colon P_\tp \Type \to \Type$ to the universe $\U$.
+of $\Si :lon P_\tp \Type \to \Type$ to the universe $\U$.
 
 % https://q.uiver.app/#q=WzAsOCxbMiwzLCJcXFR5cGUiXSxbMywyLCJcXFUiXSxbMywwLCJcXEUiXSxbMiwxLCJcXFRlcm0iXSxbMCwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwyLCJcXEUiXSxbMSwwLCJcXHBpIFxcdGltZXNfXFxVIFxccGkiXSxbMCwzLCJcXFRlcm0iXSxbMSwwXSxbMiwxXSxbMiwzXSxbMywwLCIiLDEseyJsYWJlbF9wb3NpdGlvbiI6MzB9XSxbNiw0LCIiLDAseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNiw1XSxbNCwzLCIiLDEseyJsYWJlbF9wb3NpdGlvbiI6NzB9XSxbNSwxLCIiLDEseyJsYWJlbF9wb3NpdGlvbiI6NzB9XSxbNiwyXSxbNywwXSxbNCw3XSxbNSw3XSxbNiwxLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwwLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
 \begin{center}\begin{tikzcd}
@@ -899,7 +900,7 @@ function types and product types.
 	{\Type \times \Type} & {\Poly{\tp}{\Type}} & \Type
 	\arrow["{(\dom,\fun)}", from=1-1, to=1-2]
 	\arrow["\la", bend left, from=1-1, to=1-3]
-	\arrow["{(\dom,\cod)}"', from=1-1, to=2-1]
+	\arrow["{(\dom,:d)}"', from=1-1, to=2-1]
 	\arrow["\la", from=1-2, to=1-3]
 	\arrow["{\Poly{\tp}{\tp}}"', from=1-2, to=2-2]
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
@@ -1003,7 +1004,7 @@ can be defined by the following
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-1, to=3-2]
 	\arrow["\tp", from=2-2, to=3-2]
 	\arrow["\la", from=2-5, to=2-6]
-	\arrow["{(\dom, \cod)}"{description}, from=2-5, to=3-5]
+	\arrow["{(\dom, :d)}"{description}, from=2-5, to=3-5]
 	\arrow["\tp", from=2-6, to=3-6]
 	\arrow["A"', from=3-1, to=3-2]
 	\arrow["\Exp"', from=3-5, to=3-6]
