@@ -9,7 +9,7 @@ with the following additional features
   \item universe-variable $\Pi$-types and $\Si$-types,
     i.e. with possibly different universe level inputs,
     and landing in the largest universe
-    (immitating the type theory of \texttt{Lean4}).
+    (imitating the type theory of \texttt{Lean4}).
 \end{enumerate}
 
 \medskip
@@ -77,8 +77,8 @@ Fix a small category $\catC$.
   \begin{itemize}
     \item For each $i \leq N$ a natural model $\tp_i : \Term_i \to \Type_i$
     \item For each $i < N$ a lift $\Lift{i}{i+1} : \Type_i \to \Type_{i+1}$
-    \item For each $i < N$ a point $\U_i : 1 \to \Type_{i+1}$ such that 
-    \begin{center} 
+    \item For each $i < N$ a point $\U_i : 1 \to \Type_{i+1}$ such that
+    \begin{center}
     % https://q.uiver.app/#q=WzAsNSxbMywyLCJcXFR5cGVfe2krMX0iXSxbMSwyLCIxIl0sWzEsMCwiMSBcXGNkb3QgXFxVX2kiXSxbMywwLCJcXFRlcm1fe2krMX0iXSxbMCwwLCJcXFR5cGVfe2l9Il0sWzIsMV0sWzEsMCwiXFxVX2kiLDJdLFszLDAsIlxcdHBfe2krMX0iXSxbMiwzXSxbMiwwLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwyLCJcXGlzbyIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6Im5vbmUifSwiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dXQ==
     \begin{tikzcd}
       {\Type_{i}} & {1 \cdot \U_i} && {\Term_{i+1}} \\
@@ -98,7 +98,7 @@ Fix a small category $\catC$.
 \section{Pi types}
 
 \begin{defn}\label{defn:NaturalModelPi}
-% \lean{CategoryTheory.NaturalModel.NaturalModelRussellPi} 
+% \lean{CategoryTheory.NaturalModel.NaturalModelRussellPi}
 \uses{defn:NaturalModelRussell, defn:UvPoly}
 We will use $\Poly{\tp_i}$ to denote the polynomial endofunctor
 \ref{defn:UvPoly} associated with a natural model $\tp_i$.
@@ -438,7 +438,7 @@ the composition is $g \circ f : \disp{A} \to \disp{C}$.
 
 \section{Univalence}
 
-For two types $A, B : \Ga \to \Type$ 
+For two types $A, B : \Ga \to \Type$
 and two functions $f, g : A \to B$ we can define internally
 a \textit{homotopy} from $f$ to $g$ as
 \[ f \sim g := \Pi_{a : A} \, \Id (f \, a, g \, a) \]
