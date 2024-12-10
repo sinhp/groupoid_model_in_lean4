@@ -1,62 +1,64 @@
-In this section we describe the categorical semantics of
-HoTT via Natural Models.
-This will not be a detailed account of the syntax of HoTT,
-but will be a detailed account of what is needed to interpret such syntax.
-It will follow \cite{awodey2017naturalmodelshomotopytype},
-but with a more compact description of identity types
-using the technology of polynomial endofunctors,
-and a universe of small types.
+In this chapter we describe the categorical semantics of
+our syntax via natural models.
+It follows previous work on natural models \cite{awodey2017naturalmodelshomotopytype},
+with the following additional features
+\begin{enumerate}
+  \item A more compact description of identity types %TODO reference (Garner?)
+    exploiting the technology of polynomial endofunctors.
+  \item A collection of N Russell-style nested universes.
+  \item universe-variable $\Pi$-types and $\Si$-types,
+    i.e. with possibly different universe level inputs,
+    and landing in the largest universe
+    (immitating the type theory of \texttt{Lean4}).
+\end{enumerate}
 
 \medskip
 
-\begin{notation*}
-  We will have two universe sizes - one small and one large.
-  We denote the category of small sets as $\set$ and the large sets as $\Set$.
-  For example, we could take the small sets $\set$ to be those in $\Set$ bounded in cardinality
-  by some inaccessible cardinal.
-\end{notation*}
+\section{Interpretation of syntax}
 
-\subsection{Types}
+A very brief overview of the interpretation of syntax follows.
+We will work in a presheaf category $\pshC$.
+A context $\Ga$ will be interpreted as an object $\IntpCtx{\Ga} \in \catC$.
+We will often take the image of the context under the Yoneda embedding
+$\yo \IntpCtx{\Ga} \in \pshC$.
+If $i \le N$ is a universe level, then
+a typing judgment $\Ga \vdash_i a : A$ will be interpreted as
+a commuting triangle of the following form
+\begin{center}
+\begin{tikzcd}
+	& {\Term_i} \\
+	{\yo \IntpCtx{\Ga}} & {\Type_i}
+	\arrow["{\tp_i}", from=1-2, to=2-2]
+	\arrow["{\IntpTerm{a}}", from=2-1, to=1-2]
+	\arrow["{\IntpType{A}}"', from=2-1, to=2-2]
+\end{tikzcd}
+\end{center}
 
-% Assume an inaccessible cardinal $\lambda$. Write $\Set$ for the category of all sets. Say that a set $A$ is $\lambda$-small if $|A| < \lambda$.  Write $\Set_\lambda$ for the full
-% subcategory of $\Set$ spanned by  $\lambda$-small sets.
+\section{Natural model}
 
-Let $\catC$ be a locally small category, i.e.~a category whose class of objects is a $\Set$ and
-whose hom-classes are from $\set$.
-% We do not assume that $\mathbb{C}$ is $\lambda$-small for
-% the moment.
-We write $\pshC$ for the category of (large) presheaves over $\catC$,
-\[
-\pshC \defeq [\catC^\op, \Set]
-\]
+Fix a small category $\catC$.
 
 \medskip
 
-% Because of the assumption of the existence of $\lambda$, $\pshC$ has additional structure. Let
-% \[
-% \Term \to \Type
-% \]
-% be the Hofmann-Streicher universe in $\pshC$ associated to $\lambda$. In particular,
-% \[
-% \Type(c) \defeq \{  A : (\catC_{/c})^\op \to \Set_{\lambda} \}
-% \]
-
-\begin{defn}
+\begin{defn}[Natural model]
   \label{defn:NaturalModel}
   \lean{CategoryTheory.NaturalModel.NaturalModelBase} \leanok
   Following Awodey \cite{awodey2017naturalmodelshomotopytype},
-  we say that a map $\tp : \Term \to \Type$ is presentable when
+  we say that a map $\tp : \Term \to \Type$ in $\pshC$ is
+  \emph{fiberwise representable}
+  or a \emph{natural model} when
   any fiber of a representable is representable.
   In other words, given any $\Ga \in \catC$ and a map $A : \yo (\Ga) \to \Type$,
   there is some representable $\Ga \cdot A \in \catC$ and maps $\disp{A} : \Ga \cdot A \to \Ga$
   and $\var_{A} : \yo (\Ga \cdot A) \to \Term$ forming a pullback
-  % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXHlvIChcXEdhIFxcY2RvdCBBKSJdLFswLDEsIlxceW8gKFxcR2EpIl0sWzEsMSwiXFxUeXBlIl0sWzEsMCwiXFxUZXJtIl0sWzAsMSwiXFx5byAoXFxkaXNwe0F9KSIsMl0sWzEsMiwiQSIsMl0sWzMsMl0sWzAsMywiXFx2YXJfQSJdXQ==
+% https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXHlvIChcXEdhIFxcY2RvdCBBKSJdLFswLDEsIlxceW8gKFxcR2EpIl0sWzEsMSwiXFxUeXBlIl0sWzEsMCwiXFxUZXJtIl0sWzAsMSwiXFx5byAoXFxkaXNwe0F9KSIsMl0sWzEsMiwiQSIsMl0sWzMsMiwiXFx0cCJdLFswLDMsIlxcdmFyX0EiXSxbMCwyLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
 \begin{center}
 	\begin{tikzcd}
 	{\yo (\Ga \cdot A)} & \Term \\
 	{\yo (\Ga)} & \Type
 	\arrow["{\var_A}", from=1-1, to=1-2]
 	\arrow["{\yo (\disp{A})}"', from=1-1, to=2-1]
+	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
 	\arrow["\tp", from=1-2, to=2-2]
 	\arrow["A"', from=2-1, to=2-2]
 \end{tikzcd}
@@ -65,78 +67,52 @@ We write $\pshC$ for the category of (large) presheaves over $\catC$,
 
 \medskip
 
-The Natural Model associated to a presentable map $\tp : \Term \to \Type$ consists of
-\begin{itemize}
-\item contexts as objects $\Gamma, \Delta, \ldots \in \catC$,
-\item a type in context $\yo (\Gamma)$ as a map $A : \yo(\Gamma) \to \Type$,
-\item a term of type $A$ in context $\Gamma$ as a map $a : \yo(\Gamma) \to \Term$ such that
-\begin{center}
-% replacing xymatrix with a tikzcd one
-\begin{tikzcd}
- & \Term \ar[d, "{\tp}"] \\
-\Gamma \ar[r, "A"'] \ar[ur, "a"] & \Type
-\end{tikzcd}
-\end{center}
-% \xymatrix{
-%  & \Term \ar[d]^{\tp} \\
-% \Gamma \ar[r]_-A \ar[ur]^{a} & \Type}
-commutes,
-\item an operation called ``context extension'' which given a context $\Gamma$ and a type $A : \yo(\Gamma) \to \Type$ produces a context $\Gamma\cdot A$ which fits into a pullback diagram below.
-\begin{center}
-% replacing xymatrix with a tikzcd one
-\begin{tikzcd}
-\yo(\Gamma \cdot A) \ar[r] \ar[d] & \Term \ar[d] \\
-\yo(\Gamma) \ar[r, "A"'] & \Type
-\end{tikzcd}
-\end{center}
-% \xymatrix{
-% \yo(\Gamma.A) \ar[r] \ar[d] & \Term \ar[d] \\
-% \yo(\Gamma) \ar[r]_-{A} & \Type}
-\end{itemize}
+\begin{defn}[Russell universes]
+  \label{defn:NaturalModelRussell}
+  \uses{defn:NaturalModel}
+  % \lean{CategoryTheory.NaturalModel.NaturalModelRussell}
+  A collection of $N+1$ natural models with
+  $N$ Russell style universes and
+  lifts consists of
+  \begin{itemize}
+    \item For each $i \leq N$ a natural model $\tp_i : \Term_i \to \Type_i$
+    \item For each $i < N$ a lift $\Lift{i}{i+1} : \Type_i \to \Type_{i+1}$
+    \item For each $i < N$ a point $\U_i : 1 \to \Type_{i+1}$ such that 
+    \begin{center} 
+    % https://q.uiver.app/#q=WzAsNSxbMywyLCJcXFR5cGVfe2krMX0iXSxbMSwyLCIxIl0sWzEsMCwiMSBcXGNkb3QgXFxVX2kiXSxbMywwLCJcXFRlcm1fe2krMX0iXSxbMCwwLCJcXFR5cGVfe2l9Il0sWzIsMV0sWzEsMCwiXFxVX2kiLDJdLFszLDAsIlxcdHBfe2krMX0iXSxbMiwzXSxbMiwwLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwyLCJcXGlzbyIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6Im5vbmUifSwiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dXQ==
+    \begin{tikzcd}
+      {\Type_{i}} & {1 \cdot \U_i} && {\Term_{i+1}} \\
+      \\
+      & 1 && {\Type_{i+1}}
+      \arrow["\iso"{description}, draw=none, from=1-1, to=1-2]
+      \arrow[from=1-2, to=1-4]
+      \arrow[from=1-2, to=3-2]
+      \arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-2, to=3-4]
+      \arrow["{\tp_{i+1}}", from=1-4, to=3-4]
+      \arrow["{\U_i}"', from=3-2, to=3-4]
+    \end{tikzcd}
+    \end{center}
+    \end{itemize}
+\end{defn}
 
-% In the internal type theory of $\pshC$, we write
-% \[
-%  (\Gamma) \ A : \Type \qquad  (\Gamma) \ a : A
-% \]
-% to mean that $A$ is a type in context $\Gamma$ and that $a$ is an element of type $A$ in context
-% $\Gamma$, respectively.
-
-{\bf Remark.}
-Sometimes, we first construct a presheaf $X$ over $\Gamma$ and observe that it can be classified by a map into $\Type$. We write
-
-\begin{center}
-\begin{tikzcd}
-X \ar[r] \ar[d] & \Term \ar[d] \\
-\yo(\Gamma) \arrow[r, "\name{X}"'] & \Type
-\end{tikzcd}
-\end{center}
-
-% \[
-% \xymatrix@C=1cm{
-% X \ar[r] \ar[d]& \Term \ar[d] \\
-% \yo(\Gamma) \ar[r]_-{\ulcorner X \urcorner} & \Type}
-
-to express this situation, i.e.~$X :ng \yo(\Gamma \cdot \ulcorner X \urcorner)$.
-
-\medskip
-
-\subsection{Pi types}
+\section{Pi types}
 
 \begin{defn}\label{defn:NaturalModelPi}
-\lean{CategoryTheory.NaturalModel.NaturalModelPi} \leanok
-\uses{defn:NaturalModel}
-We will use $\Poly{\tp}$ to denote the polynomial endofunctor
-(\ref{defn:UVPoly}) associated with our presentable map $\tp$.
-Then an interpretation of $\Pi$ types consists of a pullback square
-% https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSJdLFswLDEsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzEsMCwiXFxUZXJtIl0sWzEsMSwiXFxUeXBlIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcdHB9IiwyXSxbMCwyLCJcXGxhIl0sWzIsMywiXFx0cCJdLFsxLDMsIlxcUGkiLDJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
+% \lean{CategoryTheory.NaturalModel.NaturalModelRussellPi} 
+\uses{defn:NaturalModelRussell, defn:UvPoly}
+We will use $\Poly{\tp_i}$ to denote the polynomial endofunctor
+\ref{defn:UvPoly} associated with a natural model $\tp_i$.
+Then additional structure of $\Pi$ types on our $N$ universes consists of,
+for each $i, j \le N$, a pullback square
 \begin{center}
-	\begin{tikzcd}
-	{\Poly{\tp}{\Term}} & \Term \\
-	{\Poly{\tp}{\Type}} & \Type
+% https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7XFx0cF9pfXtcXFRlcm1fan0iXSxbMCwxLCJcXFBvbHl7XFx0cF9pfXtcXFR5cGVfan0iXSxbMSwwLCJcXFRlcm1fe1xcbWF4KGksail9Il0sWzEsMSwiXFxUeXBlX3tcXG1heChpLGopfSJdLFswLDEsIlxcUG9seXtcXHRwX2l9e1xcdHBfan0iLDJdLFswLDIsIlxcbGEiXSxbMiwzLCJcXHRwX3tcXG1heChpLGopfSJdLFsxLDMsIlxcUGkiLDJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
+\begin{tikzcd}
+	{\Poly{\tp_i}{\Term_j}} & {\Term_{\max(i,j)}} \\
+	{\Poly{\tp_i}{\Type_j}} & {\Type_{\max(i,j)}}
 	\arrow["\la", from=1-1, to=1-2]
-	\arrow["{\Poly{\tp}{\tp}}"', from=1-1, to=2-1]
+	\arrow["{\Poly{\tp_i}{\tp_j}}"', from=1-1, to=2-1]
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
-	\arrow["\tp", from=1-2, to=2-2]
+	\arrow["{\tp_{\max(i,j)}}", from=1-2, to=2-2]
 	\arrow["\Pi"', from=2-1, to=2-2]
 \end{tikzcd}
 \begin{equation}
@@ -145,76 +121,45 @@ Then an interpretation of $\Pi$ types consists of a pullback square
 \end{center}
 \end{defn}
 
-
 % TODO: details, interpretation of syntax
 
-\subsection{Sigma types}
+\section{Sigma types}
 
 \begin{defn}\label{defn:NaturalModelSigma}
-\lean{CategoryTheory.NaturalModel.NaturalModelSigma} \leanok
-\uses{defn:NaturalModel}
+% \lean{CategoryTheory.NaturalModel.NaturalModelSigma} \leanok
+\uses{defn:NaturalModel, defn:NaturalModelRussell}
 
-An interpretation of $\Si$ types consists of a pullback square
-% https://q.uiver.app/#q=WzAsNCxbMCwwLCJRIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcVHlwZX0iXSxbMSwwLCJcXFRlcm0iXSxbMSwxLCJcXFR5cGUiXSxbMCwxLCJcXHRwIFxcdHJpYW5nbGVsZWZ0IFxcdHAiLDJdLFswLDIsIlxccGFpciJdLFsyLDMsIlxcdHAiXSxbMSwzLCJcXFNpIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
+We will use the polynomial composition of two maps
+\ref{defn:PolynomialComposition},
+$\tp_i \PolyComp \tp_j : Q \to \Poly{\tp_i}(\Type_j)$.
+Then additional structure of $\Si$ types on our $N$ universes consists of,
+for each $i, j \le N$, a pullback square
 \begin{center}
-	\begin{tikzcd}
-	Q & \Term \\
-	{\Poly{\tp}{\Type}} & \Type
+% https://q.uiver.app/#q=WzAsNCxbMCwwLCJRIl0sWzAsMSwiXFxQb2x5e1xcdHBfaX17XFxUeXBlX2p9Il0sWzEsMCwiXFxUZXJtX3tcXG1heChpLGopfSJdLFsxLDEsIlxcVHlwZV97XFxtYXgoaSxqKX0iXSxbMCwxLCJcXHRwX2kgXFxQb2x5Q29tcCBcXHRwX2oiLDJdLFswLDIsIlxccGFpciJdLFsyLDMsIlxcdHBfe1xcbWF4KGksail9Il0sWzEsMywiXFxTaSIsMl0sWzAsMywiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
+\begin{tikzcd}
+	Q & {\Term_{\max(i,j)}} \\
+	{\Poly{\tp_i}{\Type_j}} & {\Type_{\max(i,j)}}
 	\arrow["\pair", from=1-1, to=1-2]
-	\arrow["{\tp \cdot \tp}"', from=1-1, to=2-1]
+	\arrow["{\tp_i \PolyComp \tp_j}"', from=1-1, to=2-1]
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
-	\arrow["\tp", from=1-2, to=2-2]
+	\arrow["{\tp_{\max(i,j)}}", from=1-2, to=2-2]
 	\arrow["\Si"', from=2-1, to=2-2]
 \end{tikzcd}
 \begin{equation}
     \label{eq:SiPullback}
 \end{equation}
 \end{center}
-
-	where the composition of polynomials
-	$\tp \cdot \tp : Q \to \Poly{\tp}{\Type}$ is given by
-
-% https://q.uiver.app/#q=WzAsMTEsWzMsMCwiXFxQb2x5e1xcdHB9IHtcXFR5cGV9Il0sWzMsMSwiXFxUeXBlIl0sWzIsMCwiUiJdLFsyLDEsIlxcVGVybSJdLFsxLDEsIlxcVGVybSBcXHRpbWVzIFxcVHlwZSJdLFsxLDIsIlxcVHlwZSJdLFsyLDIsIlxcdGVybWluYWwiXSxbMCwxLCJcXFRlcm0gXFx0aW1lcyBcXFRlcm0iXSxbMCwyLCJcXFRlcm0iXSxbMSwwLCJSIl0sWzAsMCwiUSJdLFswLDEsIlxcdHBfKiBcXFRlcm1eKiBcXFR5cGUiXSxbMiwwXSxbMiwzXSxbMywxLCJcXHRwIiwyXSxbMiwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwzXSxbNCw1XSxbNSw2XSxbMyw2XSxbNCw2LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNyw0XSxbNyw4XSxbOCw1LCJcXHRwIiwyXSxbNyw1LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMTAsN10sWzEwLDQsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs5LDIsIiIsMSx7ImxldmVsIjoyLCJzdHlsZSI6eyJoZWFkIjp7Im5hbWUiOiJub25lIn19fV0sWzEwLDldLFs5LDQsIlxcY291bml0IiwxXSxbMTAsMCwiXFx0cCBcXHRyaWFuZ2xlbGVmdCBcXHRwIiwxLHsiY3VydmUiOi0zfV1d
-\begin{center}
-\begin{tikzcd}
-	Q & R & R & {\Poly{\tp} {\Type}} \\
-	{\Term \times \Term} & {\Type \times \Term} & \Term & \Type \\
-	\Term & \Type & \terminal
-	\arrow[from=1-1, to=1-2]
-	\arrow["{\tp \cdot \tp}"{description}, bend left, from=1-1, to=1-4]
-	\arrow[from=1-1, to=2-1]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
-	\arrow[Rightarrow, no head, from=1-2, to=1-3]
-	\arrow[":unit"{description}, from=1-2, to=2-2]
-	\arrow[from=1-3, to=1-4]
-	\arrow[from=1-3, to=2-3]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-3, to=2-4]
-	\arrow["{\tp_* \Term^* \Type}", from=1-4, to=2-4]
-	\arrow[from=2-1, to=2-2]
-	\arrow[from=2-1, to=3-1]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-1, to=3-2]
-	\arrow[from=2-2, to=2-3]
-	\arrow[from=2-2, to=3-2]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
-	\arrow["\tp"', from=2-3, to=2-4]
-	\arrow[from=2-3, to=3-3]
-	\arrow["\tp"', from=3-1, to=3-2]
-	\arrow[from=3-2, to=3-3]
-\end{tikzcd}
-\end{center}
-  Here, $:unit : \tp^{*} \tp_{*} \Term^{*} \Type \to \Term^{*} \Type$
-  is the counit of the adjunction $\tp^{*} \dashv \tp_{*}$ at $\Term^{*} \Type \in \Pshgrpd / \Term$.
 \end{defn}
 
-% TODO: details, interpretation of syntax
+% % TODO: details, interpretation of syntax
 
-\subsection{Identity types}
+\section{Identity types}
 
 \begin{defn}\label{defn:NaturalModelId}
 \lean{CategoryTheory.NaturalModel.NaturalModelId} \leanok
-\uses{defn:NaturalModel}
-To interpret the formation and introduction rules for identity types
-we require a commutative square (this need not be pullback)
+\uses{defn:NaturalModel, defn:UvPolySlice}
+Suppose $\tp : \Term \to \Type$ is a natural model and
+we have a commutative square (this need not be a pullback)
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFRlcm0iXSxbMCwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwxLCJcXFR5cGUiXSxbMSwwLCJcXFRlcm0iXSxbMCwxLCJcXGRlIiwyXSxbMSwyLCJcXElkIiwyXSxbMywyLCJcXHRwIl0sWzAsMywiXFxyZWZsIl1d
 \begin{center}
 \begin{tikzcd}
@@ -226,7 +171,7 @@ we require a commutative square (this need not be pullback)
 	\arrow["\Id"', from=2-1, to=2-2]
 \end{tikzcd}
 \begin{equation}
-  \label{eq:IdPullback}
+  \label{eq:Id}
 \end{equation}
 \end{center}
 
@@ -287,9 +232,9 @@ Then view $\rho : \tp \to q$ as a map in the slice over $\Type$.
 \end{tikzcd}
 \end{center}
 
-Now (by \ref{defn:UVPolySlice})
+Now (by \ref{defn:UvPolySlice})
 applying $\Poly{-} : (\pshC / \Type) ^{\op} \to [\pshC, \pshC]$ to $\rho : \tp \to q$
-gives us a naturality square (this also need not be pullback).
+gives us a naturality square (this also need not be a pullback).
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7cX0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcVHlwZX0iXSxbMSwxLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMSwwLCJcXFBvbHl7XFx0cH0ge1xcVGVybX0iXSxbMCwxLCJcXFBvbHl7cX0ge1xcdHB9IiwyXSxbMSwyLCJcXFN0YXJ7XFxyaG99X3tcXFR5cGV9IiwyXSxbMywyLCJcXFBvbHl7XFx0cH0ge1xcdHB9Il0sWzAsMywiXFxTdGFye1xccmhvfV97XFxUZXJtfSJdXQ==
 \begin{center}
 \begin{tikzcd}
@@ -324,576 +269,46 @@ Taking the pullback $T$ and the comparison map $\ep$ we have
   	\label{eq:JDefinition2}
 \end{equation}
 \end{center}
-Finally, we require a section $\J : T \to \Poly{q}{\Term}$ of $\ep$,
-to interpret the identity elimination rule.
-
+Then a natural model $\tp$ with identity types consists of a commutative square
+\ref{eq:Id}, with a section $\J : T \to \Poly{q}{\Term}$ of $\ep$.
 \end{defn}
 
-\subsection{A type of small types}
-
-We now wish to formulate a condition that allows us to have a type of small
-types, written $\U$,
-not just {\em judgement} expressing that something is a type. With this
-notation, the judgements that we would like to derive are
-\begin{center}
-  \bottomAlignProof
-  \AxiomC{$\U : \Type$}
-  \DisplayProof
-  \qquad
-  \AxiomC{$a : \U$}
-  \UnaryInfC{$\El(a) : \Type$}
-  \DisplayProof
-\end{center}
-
-% (For example, a sufficient and natural condition for this seems to be
-% that we now have two inaccessible cardinals $\kappa$, with $\kappa < \lambda$.
-% Then $\kappa$ would be the size of $\U = \Set_{< \kappa}$
-% and $\lambda$ would be the size of $\set = \Set_{< \lambda}$.)
-
-\begin{defn}\label{defn:NaturalModelU}
-\lean{CategoryTheory.NaturalModel.NaturalModelU} \leanok
-\uses{defn:NaturalModel}
-In the Natural Model, a universe $\U$ is postulated by a map
-\[
-\pi : \E \to \U
-\]
-In the Natural Model:
-\begin{itemize}
-\item There is a pullback diagram of the form
-\begin{center}
-\begin{tikzcd}
-\U \ar[r] \ar[d] & \Term \ar[d] \\
-1 \ar[r, "{\name{U}}"'] & \Type
-\end{tikzcd}
-\end{center}
-% \begin{equation}
-% 	\xymatrix{
-% 	\U \ar[r] \ar[d] & \Term \ar[d] \\
-% 	1 \ar[r]_-{\ulcorner \U \urcorner } & \Type }
-% 	\end{equation}
-
-\item There is an inclusion of $\U$ into $\Type$
-	\[
-	\El : \U \rightarrowtail \Type
-	\]
-\item $\pi : \E \to \U$ is obtained as pullback of $\tp$; There is a pullback diagram
-	\begin{center}
-	\begin{tikzcd}
-	\E \ar[r, tail] \ar[d] & \Term \ar[d] \\
-	\U \ar[r, "\El"', tail] & \Type
-	\end{tikzcd}
-  \begin{equation}
-    \label{eq:UniversePullback}
-  \end{equation}
-	\end{center}
-\end{itemize}
-\end{defn}
-
-	% \begin{equation}\label{diag:universe-pullback}
-	% \xymatrix{
-	% E \ar@{>->}[r] \ar[d] & \Term \ar[d] \\
-	% \U \ar@{>->}[r]_-{\El} & \Type }
-	% \end{equation}
-
-With the notation above, we get
-\begin{center}
-% https://q.uiver.app/#q=WzAsNixbMCwwLCJcXHlvIChcXEdhIFxcY2RvdCBcXEVsKGEpKSJdLFsxLDAsIlxcRSJdLFsyLDAsIlxcVGVybSJdLFsyLDEsIlxcVHlwZSJdLFsxLDEsIlxcVSJdLFswLDEsIlxceW8oXFxHYSkiXSxbMCwxXSxbMSwyXSxbMiwzXSxbNCwzLCJcXEVsIiwyXSxbMSw0XSxbMCw1XSxbNSw0LCJhIiwyXSxbNSwzLCJBIiwyLHsiY3VydmUiOjN9XSxbMCw0LCIiLDIseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMSwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
-\begin{tikzcd}
-	{\yo (\Ga \cdot \El(a))} & \E & \Term \\
-	{\yo(\Ga)} & \U & \Type
-	\arrow[from=1-1, to=1-2]
-	\arrow[from=1-1, to=2-1]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
-	\arrow[from=1-2, to=1-3]
-	\arrow[from=1-2, to=2-2]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-2, to=2-3]
-	\arrow[from=1-3, to=2-3]
-	\arrow["a"', from=2-1, to=2-2]
-	\arrow["A"', bend right, from=2-1, to=2-3]
-	\arrow["\El"', from=2-2, to=2-3]
-\end{tikzcd}
-\end{center}
-% \[
-% \xymatrix{
-% \yo (\Gamma.\El(a)) \ar[r] \ar[d] & \E \ar[r] \ar[d] & \Term \ar[d] \\
-% \yo (\Gamma) \ar[r]_a  \ar@/_2pc/[rr]_-{A} & \U \ar[r]_{\El} & \Type}
-% \]
-Both squares above are pullback squares.
-
-\subsection{Stability of the universe under type formers}
-
-Take the pullback diagram \ref{eq:UniversePullback}.
-That is a morphism in the category of polynomials.
-By \ref{defn:UVPolyCartesianAction} we have a cartesian natural transformation $P_\pi \to P_{\tp}$
-induced by the pullback \ref{eq:UniversePullback}.
-This cartesian natural transformation induces the cube diagram below;
-all of the squares in the cube are pullback squares.
-
-\begin{center} \label{diag:universe-dependent-type-classifier-pullback-cube}
-\begin{tikzcd}[row sep=scriptsize, column sep=scriptsize]
-& P_\pi E \arrow[dd] \arrow[rr] \arrow[ld] & & P_\tp E \arrow[dl]  \arrow[dd]  \\
-P_\pi \Term \arrow[rr, crossing over] \arrow[dd] && P_\tp \Term \arrow[dd, crossing over] \\
-& P_\pi \U \arrow[rr] \arrow[ld] &&  P_\tp U \arrow[dl] \\
-P_\pi \Type \arrow[rr] && P_\tp \Type \\
-\end{tikzcd}
-\end{center}
-We will use the compositions $\Poly{\pi}{U} \to \Poly{\tp}{\Type}$ and
-$\Poly{\pi}{E} \to \Poly{\tp}{\Term}$ below.
-
-\medskip
-
-\begin{defn}\label{defn:NaturalModelSmallPi}
-\lean{CategoryTheory.NaturalModel.NaturalModelSmallPi} \leanok
-\uses{defn:NaturalModelU, defn:NaturalModelPi}
-  We will say that universe $\U$ is closed under formation of $\Pi$-types when we have some map
-	$\Pi_{U} : \Poly{\pi}{\U} \to \U$ making the following square commute
-% \begin{equation}
-% \xymatrix{
-% \Poly{\pi}{\U} \ar@{->}[r] \ar@{-->}[d]_{\Pi_\U} & \Poly{\tp}{\Type} \ar[d]^{\Pi} \\
-% \U \ar@{->}[r]_-{\El} & \Type }
-% \end{equation}
-
-% https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7XFxwaX17XFxVfSJdLFsxLDAsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzEsMSwiXFxUeXBlIl0sWzAsMSwiXFxVIl0sWzAsMV0sWzEsMiwiXFxQaSJdLFswLDMsIlxcUGlfXFxVIiwyLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzMsMiwiXFxFbCIsMl1d
-\begin{center}
-\begin{tikzcd}
-	{\Poly{\pi}{\U}} & {\Poly{\tp}{\Type}} \\
-	\U & \Type
-	\arrow[from=1-1, to=1-2]
-	\arrow["{\Pi_\U}"', dashed, from=1-1, to=2-1]
-	\arrow["\Pi", from=1-2, to=2-2]
-	\arrow["\El"', from=2-1, to=2-2]
-\end{tikzcd}
-\begin{equation}
-  \label{diag:universe-pullback-3}
-\end{equation}
-\end{center}
-
-%% TODO: fix this label
-%% 
-
-Note that this is merely propositional when $\El$ is a monomorphism.
-\end{defn}
-
-\medskip
-
-From the universal property of pullbacks we can define $\la_{U} : \Poly{\pi}{\E} \to \E$.
-% https://q.uiver.app/#q=WzAsOCxbMCwzLCJQX1xcdHAgXFxUeXBlIl0sWzIsMywiXFxUeXBlIl0sWzMsMiwiVSJdLFszLDAsIkUiXSxbMiwxLCJcXFRlcm0iXSxbMCwxLCJQX1xcdHAgXFxUZXJtIl0sWzEsMiwiUF9cXHBpIFUiXSxbMSwwLCJQX1xcdHAgRSJdLFswLDEsIlxcUGkiLDJdLFsyLDEsIlxcRWwiLDFdLFszLDJdLFszLDRdLFs0LDEsIiIsMSx7ImxhYmVsX3Bvc2l0aW9uIjozMH1dLFs1LDBdLFs3LDMsIlxcbGFfVSIsMSx7ImxhYmVsX3Bvc2l0aW9uIjo3MCwic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzcsNV0sWzcsNl0sWzYsMF0sWzUsNCwiXFxsYSIsMSx7ImxhYmVsX3Bvc2l0aW9uIjo3MH1dLFs2LDIsIlxcUGlfVSIsMSx7ImxhYmVsX3Bvc2l0aW9uIjo3MH1dXQ==
-\begin{center}
-  \begin{tikzcd}
-	& {P_\tp E} && E \\
-	{P_\tp \Term} && \Term \\
-	& {P_\pi U} && U \\
-	{P_\tp \Type} && \Type
-	\arrow["{\la_U}"{description, pos=0.7}, dashed, from=1-2, to=1-4]
-	\arrow[from=1-2, to=2-1]
-	\arrow[from=1-2, to=3-2]
-	\arrow[from=1-4, to=2-3]
-	\arrow[from=1-4, to=3-4]
-	\arrow["\la"{description, pos=0.7}, from=2-1, to=2-3]
-	\arrow[from=2-1, to=4-1]
-	\arrow["{\Pi_U}"{description, pos=0.7}, from=3-2, to=3-4]
-	\arrow[from=2-3, to=4-3, crossing over]
-	\arrow[from=3-2, to=4-1]
-	\arrow["\El"{description}, from=3-4, to=4-3]
-	\arrow["\Pi"', from=4-1, to=4-3]
-\end{tikzcd}
-\end{center}
-The top and bottom squares in the cube above are not pullbacks,
-but we know three of the vertical faces are pullback squares.
-By the pullback pasting lemma it follows that the back square
-involving $\Pi_ U$ and $\lambda_U$ is also a pullback square.
-This concludes the construction of the $\Pi$ type former for the universe $\U$.
-The only data we needed to supply was the lift $\Pi_U$
-of $\Pi :lon P_\tp \Type \to \Type$ to the universe $\U$.
-
-\medskip
-
-\begin{defn}\label{def:NaturalModelSmallSigma}
-\lean{CategoryTheory.NaturalModel.NaturalModelSmallSigma}
-\notready
-\uses{defn:NaturalModelU, defn:NaturalModelSigma}
-  We will say that universe $\U$ is closed under formation of $\Si$-types when we have some map
-	$\Si_{U} : \Poly{\pi}{\U} \to \U$ making the following square commute
-% \begin{equation}
-% \xymatrix{
-% \Poly{\pi}{\U} \ar@{->}[r] \ar@{-->}[d]_{\Si_\U} & \Poly{\tp}{\Type} \ar[d]^{\Si} \\
-% \U \ar@{->}[r]_-{\El} & \Type }
-% \end{equation}
-  
-% https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7XFxwaX17XFxVfSJdLFsxLDAsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzEsMSwiXFxUeXBlIl0sWzAsMSwiXFxVIl0sWzAsMV0sWzEsMiwiXFxQaSJdLFswLDMsIlxcUGlfXFxVIiwyLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzMsMiwiXFxFbCIsMl1d
-\begin{center}
-\begin{tikzcd}
-	{\Poly{\pi}{\U}} & {\Poly{\tp}{\Type}} \\
-	\U & \Type
-	\arrow[from=1-1, to=1-2]
-	\arrow["{\Si_\U}"', dashed, from=1-1, to=2-1]
-	\arrow["\Si", from=1-2, to=2-2]
-	\arrow["\El"', from=2-1, to=2-2]
-\end{tikzcd}
-\end{center}
-	Again, this is merely propositional when $\El$ is a monomorphism.
-\end{defn}
-
-Now consider the polynomial composition $\pi \cdot \pi$.
-% https://q.uiver.app/#q=WzAsMjAsWzQsMywiXFxQb2x5e1xcdHB9IHtcXFR5cGV9Il0sWzQsNCwiXFxUeXBlIl0sWzMsMywiUiJdLFszLDQsIlxcVGVybSJdLFsyLDQsIlxcVGVybSBcXHRpbWVzIFxcVHlwZSJdLFsyLDUsIlxcVHlwZSJdLFsxLDQsIlxcVGVybSBcXHRpbWVzIFxcVGVybSJdLFsxLDUsIlxcVGVybSJdLFsyLDMsIlIiXSxbMSwzLCJRIl0sWzMsMSwiVSJdLFsyLDEsIkUiXSxbMSwxLCJFIFxcdGltZXMgVSJdLFswLDEsIkUgXFx0aW1lcyBFIl0sWzAsMiwiRSJdLFsxLDIsIlUiXSxbMSwwLCJSX1UiXSxbMCwwLCJRX1UiXSxbMiwwLCJSX1UiXSxbMywwLCJcXFBvbHl7XFxwaX17VX0iXSxbMCwxLCJcXHRwXyogXFxUZXJtXiogXFxUeXBlIl0sWzIsMF0sWzIsM10sWzMsMSwiXFx0cCIsMV0sWzIsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzQsM10sWzQsNV0sWzYsNF0sWzYsN10sWzcsNSwiXFx0cCIsMl0sWzYsNSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzksNl0sWzksNCwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzgsMiwiIiwxLHsibGV2ZWwiOjIsInN0eWxlIjp7ImhlYWQiOnsibmFtZSI6Im5vbmUifX19XSxbOSw4XSxbOCw0LCJcXGNvdW5pdCIsMV0sWzEwLDFdLFsxMSwzXSxbMTEsMTAsIlxccGkiLDFdLFsxMiw0XSxbMTIsMTFdLFsxMyw2XSxbMTQsMTVdLFsxMywxNF0sWzEyLDE1XSxbMTMsMTJdLFsxMywxNSwiIiwwLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzE2LDEyLCJcXGNvdW5pdCIsMV0sWzE3LDEzXSxbMTcsMTZdLFsxNywxMiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzE2LDE4LCIiLDEseyJsZXZlbCI6Miwic3R5bGUiOnsiaGVhZCI6eyJuYW1lIjoibm9uZSJ9fX1dLFsxOCwxOV0sWzE5LDEwXSxbMTgsMTFdLFsxOCwxMCwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzE1LDVdLFsxNCw3XSxbMTcsOV0sWzE2LDhdLFsxOCwyXSxbMTksMF0sWzE3LDE5LCJcXHBpIFxcdHJpYW5nbGVsZWZ0IFxccGkiLDEseyJjdXJ2ZSI6LTR9XV0=
-\begin{center}\begin{tikzcd}
-	{Q_U} & {R_U} & {R_U} & {\Poly{\pi}{U}} \\
-	{E \times E} & {E \times U} & E & U \\
-	E & U \\
-	& Q & R & R & {\Poly{\tp} {\Type}} \\
-	& {\Term \times \Term} & {\Term \times \Type} & \Term & \Type \\
-	& \Term & \Type
-	\arrow[from=1-1, to=1-2]
-	\arrow["{\pi \triangleleft \pi}"{description}, bend left, from=1-1, to=1-4]
-	\arrow[from=1-1, to=2-1]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
-	\arrow[Rightarrow, no head, from=1-2, to=1-3]
-	\arrow[from=1-2, to=2-2]
-	\arrow[from=1-3, to=1-4]
-	\arrow[from=1-3, to=2-3]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-3, to=2-4]
-	\arrow[from=1-4, to=2-4]
-	\arrow[from=1-4, to=4-5]
-	\arrow[from=2-1, to=2-2]
-	\arrow[from=2-1, to=3-1]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-1, to=3-2]
-	\arrow[from=2-2, to=2-3]
-	\arrow[from=2-2, to=3-2]
-	\arrow[from=2-2, to=5-3, dashed]
-	\arrow["\pi"{description}, from=2-3, to=2-4]
-	\arrow[from=2-3, to=5-4]
-	\arrow[from=2-4, to=5-5]
-	\arrow[from=3-1, to=3-2]
-	\arrow[from=3-1, to=6-2]
-	\arrow[from=3-2, to=6-3]
-	\arrow[from=4-2, to=5-2]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=4-2, to=5-3]
-	\arrow[from=4-3, to=5-3]
-	\arrow[from=4-4, to=5-4]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=4-4, to=5-5]
-	\arrow["{\tp_* \Term^* \Type}", from=4-5, to=5-5]
-	\arrow[from=5-2, to=6-2]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=5-2, to=6-3]
-	\arrow[from=5-3, to=5-4]
-	\arrow[from=5-3, to=6-3]
-	\arrow["\tp"{description}, from=5-4, to=5-5]
-	\arrow["\tp"', from=6-2, to=6-3]
-	\arrow[from=1-1, dashed, to=4-2, crossing over]
-	\arrow[from=1-2, dashed, to=4-3, crossing over]
-	\arrow[from=1-3, to=4-4, dashed, crossing over]
-	\arrow[from=2-1, dashed, to=5-2, crossing over]
-	\arrow[from=4-2, to=4-3, crossing over]
-	\arrow[Rightarrow, no head, from=4-3, to=4-4, crossing over]
-	\arrow[from=4-4, to=4-5, crossing over]
-	\arrow[from=5-2, to=5-3, crossing over]
-\end{tikzcd}
-\end{center}
-
-Using pullback pasting, we see that the horizontal faces of the left cuboid
-and the right cube are all pullbacks. Hence we have a pullback
-% https://q.uiver.app/#q=WzAsNixbMiwxLCJcXFBvbHl7XFx0cH0ge1xcVHlwZX0iXSxbMSwxLCJSIl0sWzAsMSwiUSJdLFswLDAsIlFfVSJdLFsxLDAsIlJfVSJdLFsyLDAsIlxcUG9seXtcXHBpfXtVfSJdLFsxLDBdLFs0LDVdLFszLDJdLFs0LDFdLFs1LDBdLFszLDUsIlxccGkgXFx0cmlhbmdsZWxlZnQgXFxwaSIsMSx7ImN1cnZlIjotNH1dLFszLDRdLFsyLDFdLFsyLDAsIlxcdHAgXFx0cmlhbmdsZWxlZnQgXFx0cCIsMSx7ImN1cnZlIjozfV0sWzQsMCwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzMsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
-\begin{center}
-\begin{tikzcd}
-	{Q_U} & {R_U} & {\Poly{\pi}{U}} \\
-	Q & R & {\Poly{\tp} {\Type}}
-	\arrow[from=1-1, to=1-2]
-	\arrow["{\pi \triangleleft \pi}"{description}, bend left, from=1-1, to=1-3]
-	\arrow[from=1-1, to=2-1]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
-	\arrow[from=1-2, to=1-3]
-	\arrow[from=1-2, to=2-2]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-2, to=2-3]
-	\arrow[from=1-3, to=2-3]
-	\arrow[from=2-1, to=2-2]
-	\arrow["{\tp \triangleleft \tp}"{description}, bend right, from=2-1, to=2-3]
-	\arrow[from=2-2, to=2-3]
-\end{tikzcd}
-\end{center}
-
-which is the left side of the following cube
-% https://q.uiver.app/#q=WzAsOCxbMCwzLCJQX1xcdHAgXFxUeXBlIl0sWzIsMywiXFxUeXBlIl0sWzMsMiwiVSJdLFszLDAsIkUiXSxbMiwxLCJcXFRlcm0iXSxbMCwxLCJRIl0sWzEsMiwiUF9cXHBpIFUiXSxbMSwwLCJRX1UiXSxbMCwxLCJcXFNpIiwyXSxbMiwxLCJcXEVsIiwxXSxbMywyXSxbMyw0XSxbNCwxLCIiLDEseyJsYWJlbF9wb3NpdGlvbiI6MzB9XSxbNSwwLCJcXHRwIFxcdHJpYW5nbGVsZWZ0IFxcdHAiLDJdLFs3LDMsIlxccGFpcl9VIiwxLHsibGFiZWxfcG9zaXRpb24iOjcwLCJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNyw1XSxbNyw2LCJcXHBpIFxcdHJpYW5nbGVsZWZ0IFxccGkiLDIseyJsYWJlbF9wb3NpdGlvbiI6ODB9XSxbNiwwXSxbNSw0LCJcXHBhaXIiLDEseyJsYWJlbF9wb3NpdGlvbiI6ODB9XSxbNiwyLCJcXFNpX1UiLDEseyJsYWJlbF9wb3NpdGlvbiI6NzB9XV0=
-\begin{center}
-\begin{tikzcd}
-	& {Q_U} && E \\
-	Q && \Term \\
-	& {P_\pi U} && U \\
-	{P_\tp \Type} && \Type
-	\arrow["{\pair_U}"{description, pos=0.7}, dashed, from=1-2, to=1-4]
-	\arrow[from=1-2, to=2-1]
-	\arrow["{\pi \triangleleft \pi}"'{pos=0.8}, from=1-2, to=3-2]
-	\arrow[from=1-4, to=2-3]
-	\arrow[from=1-4, to=3-4]
-	\arrow["\pair"{description, pos=0.8}, from=2-1, to=2-3]
-	\arrow["{\tp \triangleleft \tp}"', from=2-1, to=4-1]
-	\arrow[from=2-3, to=4-3]
-	\arrow["{\Si_U}"{description, pos=0.7}, from=3-2, to=3-4]
-	\arrow[from=3-2, to=4-1]
-	\arrow["\El"{description}, from=3-4, to=4-3]
-	\arrow["\Si"', from=4-1, to=4-3]
-\end{tikzcd}
-\end{center}
-As was the case for $\Pi$, pullback pasting along the vertical faces
-shows that the back face involving $\Si_ U$ and $\pair_U$ is also a pullback square.
-This concludes the construction of the $\Si$ type former for the universe $\U$.
-Again, the only data we needed to supply was the lift $\Si_U$
-of $\Si :lon P_\tp \Type \to \Type$ to the universe $\U$.
-
-% https://q.uiver.app/#q=WzAsOCxbMiwzLCJcXFR5cGUiXSxbMywyLCJcXFUiXSxbMywwLCJcXEUiXSxbMiwxLCJcXFRlcm0iXSxbMCwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwyLCJcXEUiXSxbMSwwLCJcXHBpIFxcdGltZXNfXFxVIFxccGkiXSxbMCwzLCJcXFRlcm0iXSxbMSwwXSxbMiwxXSxbMiwzXSxbMywwLCIiLDEseyJsYWJlbF9wb3NpdGlvbiI6MzB9XSxbNiw0LCIiLDAseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNiw1XSxbNCwzLCIiLDEseyJsYWJlbF9wb3NpdGlvbiI6NzB9XSxbNSwxLCIiLDEseyJsYWJlbF9wb3NpdGlvbiI6NzB9XSxbNiwyXSxbNywwXSxbNCw3XSxbNSw3XSxbNiwxLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwwLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
-\begin{center}\begin{tikzcd}
-	& {\pi \times_\U \pi} && \E \\
-	{\tp \times_\Type \tp} && \Term \\
-	& \E && \U \\
-	\Term && \Type
-	\arrow[from=1-2, to=1-4]
-	\arrow[dashed, from=1-2, to=2-1]
-	\arrow[from=1-2, to=3-2]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-2, to=3-4]
-	\arrow[from=1-4, to=2-3]
-	\arrow[from=1-4, to=3-4]
-	\arrow[from=2-1, to=2-3]
-	\arrow[from=2-1, to=4-1]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-1, to=4-3]
-	\arrow[from=2-3, to=4-3]
-	\arrow[from=3-2, to=3-4]
-	\arrow[from=3-2, to=4-1]
-	\arrow[from=3-4, to=4-3]
-	\arrow[from=4-1, to=4-3]
-\end{tikzcd}\end{center}
-
-\medskip
-
-\begin{defn}\label{defn:NaturalModelSmallId}
-\lean{CategoryTheory.NaturalModel.NaturalModelSmallId}
-\notready
-\uses{defn:NaturalModelU, defn:NaturalModelId}
-  We will say that universe $\U$ is closed under formation of $\Id$-types when we have some map
-	$\Id_{U} : \pi \times_{\U} \pi \to \U$ making the following square commute
-% https://q.uiver.app/#q=WzAsNCxbMCwyLCJcXFUiXSxbMiwyLCJcXFR5cGUiXSxbMiwwLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMCwwLCJcXHBpIFxcdGltZXNfXFxVIFxccGkiXSxbMCwxLCJcXEVsIiwyXSxbMywwLCJcXElkX1UiLDIseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbMywyXSxbMiwxLCJcXElkIl1d
-\begin{center}\begin{tikzcd}
-	{\pi \times_\U \pi} && {\tp \times_\Type \tp} \\
-	\\
-	\U && \Type
-	\arrow[from=1-1, to=1-3]
-	\arrow["{\Id_U}"', dashed, from=1-1, to=3-1]
-	\arrow["\Id", from=1-3, to=3-3]
-	\arrow["\El"', from=3-1, to=3-3]
-\end{tikzcd}\end{center}
-
-	Again, this is merely propositional when $\El$ is a monomorphism.
-\end{defn}
-
-From this we can obtain $\refl_{U}$ since $\E$ is a pulback.
-% https://q.uiver.app/#q=WzAsOCxbMCwzLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMiwzLCJcXFR5cGUiXSxbMywyLCJVIl0sWzMsMCwiRSJdLFsyLDEsIlxcVGVybSJdLFswLDEsIlxcVGVybSJdLFsxLDIsIlxccGkgXFx0aW1lc19cXFUgXFxwaSJdLFsxLDAsIkUiXSxbMCwxLCJcXElkIiwyXSxbMiwxLCJcXEVsIiwxXSxbMywyXSxbMyw0XSxbNCwxLCIiLDEseyJsYWJlbF9wb3NpdGlvbiI6MzB9XSxbNSwwLCJcXGRlIiwyXSxbNywzLCJcXHJlZmxfVSIsMSx7ImxhYmVsX3Bvc2l0aW9uIjo3MCwic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzcsNV0sWzcsNiwiXFxkZV9VIiwyLHsibGFiZWxfcG9zaXRpb24iOjMwfV0sWzYsMF0sWzUsNCwiXFxyZWZsIiwxLHsibGFiZWxfcG9zaXRpb24iOjcwfV0sWzYsMiwiXFxJZF9VIiwxLHsibGFiZWxfcG9zaXRpb24iOjcwfV1d
-\begin{center}\begin{tikzcd}
-	& E && E \\
-	\Term && \Term \\
-	& {\pi \times_\U \pi} && U \\
-	{\tp \times_\Type \tp} && \Type
-	\arrow["{\refl_U}"{description, pos=0.7}, dashed, from=1-2, to=1-4]
-	\arrow[from=1-2, to=2-1]
-	\arrow["{\de_U}"'{pos=0.3}, from=1-2, to=3-2]
-	\arrow[from=1-4, to=2-3]
-	\arrow[from=1-4, to=3-4]
-	\arrow["\refl"{description, pos=0.7}, from=2-1, to=2-3]
-	\arrow["\de"', from=2-1, to=4-1]
-	\arrow[from=2-3, to=4-3]
-	\arrow["{\Id_U}"{description, pos=0.7}, from=3-2, to=3-4]
-	\arrow[from=3-2, to=4-1]
-	\arrow["\El"{description}, from=3-4, to=4-3]
-	\arrow["\Id"', from=4-1, to=4-3]
-\end{tikzcd}\end{center}
-We must ensure that the left face commutes - which we can prove using the
-universal property of $\tp \times_{\Type} \tp$.
-It remains to construct $\J_{U}$, a section of $\ep_{U}$, given below
-% https://q.uiver.app/#q=WzAsMjIsWzAsMCwiXFxFIl0sWzEsMCwiSV9VIl0sWzIsMCwiXFxFIl0sWzIsMSwiXFxVIl0sWzEsMSwiXFxwaSBcXHRpbWVzX1xcVSBcXHBpIl0sWzQsMSwiSV9VIl0sWzUsMCwiXFxFIl0sWzQsMiwiXFxwaSBcXHRpbWVzX1xcVSBcXHBpIl0sWzQsMywiXFxFIl0sWzQsNCwiXFxVIl0sWzYsMCwiXFxUZXJtIl0sWzUsMiwiXFx0cCBcXHRpbWVzX1xcVHlwZSBcXHRwIl0sWzYsMSwiXFxUeXBlIl0sWzUsMSwiSSJdLFs1LDMsIlxcVGVybSJdLFs1LDQsIlxcVHlwZSJdLFswLDMsIlxcUG9seXtxX1V9e1xcRX0iXSxbMSwzLCJUX1UiXSxbMiwzLCJcXFBvbHl7XFxwaX17XFxFfSJdLFsyLDQsIlxcUG9seXtcXHBpfXtcXFV9Il0sWzEsNCwiXFxQb2x5e3FfVX17XFxVfSJdLFs2LDJdLFswLDEsIlxccmhvX1UiLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbMSwyXSxbMSw0XSxbNCwzLCJcXElkX1UiLDJdLFs1LDZdLFs1LDddLFs3LDhdLFs4LDldLFs2LDEwXSxbNywxMV0sWzExLDEyXSxbMTAsMTJdLFsxMywxMF0sWzUsMTMsIiIsMSx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFsxMywxMV0sWzgsMTRdLFs5LDE1XSxbMTEsMTRdLFsxNCwxNV0sWzIsMywiXFxwaSJdLFswLDQsIlxcZGUiLDJdLFswLDIsIlxccmVmbF9VIiwxLHsiY3VydmUiOi0zfV0sWzE2LDE3LCJcXGVwX1UiLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbMTcsMThdLFsxOCwxOSwiXFxQb2x5e1xccGl9e1xccGl9Il0sWzE3LDIwXSxbMjAsMTksIihcXFN0YXJ7XFxyaG9fVX0pX1xcVSIsMl0sWzE2LDE4LCIoXFxTdGFye1xccmhvX1V9KV9cXEUiLDAseyJjdXJ2ZSI6LTN9XSxbMTYsMjAsIlxcUG9seXtxX1V9e1xcdHB9IiwyXSxbMSwzLCIiLDAseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbMTcsMTksIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs4LDE1LCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNywxNCwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzUsMTEsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs1LDksInFfVSIsMSx7ImN1cnZlIjo0fV0sWzEzLDIxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
-\begin{center}
-\begin{tikzcd}
-	\E & {I_U} & \E &&& \E & \Term \\
-	& {\pi \times_\U \pi} & \U && {I_U} & I & \Type \\
-	&&&& {\pi \times_\U \pi} & {\tp \times_\Type \tp} & {} \\
-	{\Poly{q_U}{\E}} & {T_U} & {\Poly{\pi}{\E}} && \E & \Term \\
-	& {\Poly{q_U}{\U}} & {\Poly{\pi}{\U}} && \U & \Type
-	\arrow["{\rho_U}"{description}, dashed, from=1-1, to=1-2]
-	\arrow["{\refl_U}"{description}, bend left, from=1-1, to=1-3]
-	\arrow["\de"', from=1-1, to=2-2]
-	\arrow[from=1-2, to=1-3]
-	\arrow[from=1-2, to=2-2]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-2, to=2-3]
-	\arrow["\pi", from=1-3, to=2-3]
-	\arrow[from=1-6, to=1-7]
-	\arrow[from=1-7, to=2-7]
-	\arrow["{\Id_U}"', from=2-2, to=2-3]
-	\arrow[from=2-5, to=1-6]
-	\arrow[dashed, from=2-5, to=2-6]
-	\arrow[from=2-5, to=3-5]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-5, to=3-6]
-	\arrow["{q_U}"{description}, bend right = 40, from=2-5, to=5-5]
-	\arrow[from=2-6, to=1-7]
-	\arrow[from=2-6, to=3-6]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-6, to=3-7]
-	\arrow[from=3-5, to=3-6]
-	\arrow[from=3-5, to=4-5]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=3-5, to=4-6]
-	\arrow[from=3-6, to=2-7]
-	\arrow[from=3-6, to=4-6]
-	\arrow["{\ep_U}"{description}, dashed, from=4-1, to=4-2]
-	\arrow["{(\Star{\rho_U})_\E}", bend left, from=4-1, to=4-3]
-	\arrow["{\Poly{q_U}{\tp}}"', from=4-1, to=5-2]
-	\arrow[from=4-2, to=4-3]
-	\arrow[from=4-2, to=5-2]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=4-2, to=5-3]
-	\arrow["{\Poly{\pi}{\pi}}", from=4-3, to=5-3]
-	\arrow[from=4-5, to=4-6]
-	\arrow[from=4-5, to=5-5]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=4-5, to=5-6]
-	\arrow[from=4-6, to=5-6]
-	\arrow["{(\Star{\rho_U})_\U}"', from=5-2, to=5-3]
-	\arrow[from=5-5, to=5-6]
-\end{tikzcd}
-\begin{equation}
-  \label{diag:J_U_definition}
-\end{equation}
-\end{center}
-
-Now the above give us the following pullback
-factorization of \ref{eq:UniversePullback}
-% https://q.uiver.app/#q=WzAsOCxbMCwyLCJJX1UiXSxbMCwzLCJcXFUiXSxbMSwyLCJJIl0sWzEsMywiXFxUeXBlIl0sWzAsMSwiXFxFIl0sWzEsMSwiXFxUZXJtIl0sWzAsMCwiXFxwaSJdLFsxLDAsIlxcdHAiXSxbMCwyLCIgIiwyXSxbMiwzLCJxIiwxXSxbMSwzLCJcXEVsIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwwLCJcXHJob19VIl0sWzUsMiwiXFxyaG8iLDJdLFs0LDUsIiAiLDFdLFs0LDEsIlxccGkiLDIseyJjdXJ2ZSI6M31dLFs1LDMsIlxcdHAiLDAseyJjdXJ2ZSI6LTN9XSxbNCwyLCIiLDIseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNiw3LCJcXGthcHBhIiwyLHsibGV2ZWwiOjJ9XSxbMCwxLCJxX1UiLDFdLFsxOSw5LCJcXGthcHBhX3EiLDAseyJzaG9ydGVuIjp7InNvdXJjZSI6MjAsInRhcmdldCI6MjB9fV1d
-\begin{center}\begin{tikzcd}
-	\pi & \tp \\
-	\E & \Term \\
-	{I_U} & I \\
-	\U & \Type
-	\arrow["\kappa"', Rightarrow, from=1-1, to=1-2]
-	\arrow["{ }"{description}, from=2-1, to=2-2]
-	\arrow["{\rho_U}", from=2-1, to=3-1]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-1, to=3-2]
-	\arrow["\pi"', bend right, from=2-1, to=4-1]
-	\arrow["\rho"', from=2-2, to=3-2]
-	\arrow["\tp", bend left, from=2-2, to=4-2]
-	\arrow["{ }"', from=3-1, to=3-2]
-	\arrow[""{name=0, anchor=center, inner sep=0}, "{q_U}"{description}, from=3-1, to=4-1]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=3-1, to=4-2]
-	\arrow[""{name=1, anchor=center, inner sep=0}, "q"{description}, from=3-2, to=4-2]
-	\arrow["\El"', from=4-1, to=4-2]
-	\arrow["{\kappa_q}", shorten <=7pt, shorten >=7pt, Rightarrow, from=0, to=1]
-\end{tikzcd}\end{center}
-
-If we apply \ref{defn:UVPolyCartesianAction} to
-the lower pullback square, i.e. $\ka_{q}$ then we will get
-a cartesian natural tranformation
-$\Poly{\ka_{U}} : \Poly{q_{U}} \to \Poly{q}$.
-Like in \ref{diag:universe-dependent-type-classifier-pullback-cube},
-evaluating this at the pullback square \ref{eq:UniversePullback}
-induces the cube below with pullbacks on every face.
-% https://q.uiver.app/#q=WzAsOCxbMSwwLCJcXFBvbHl7cV9VfSBcXEUiXSxbMywwLCJcXFBvbHl7cX0gXFxFIl0sWzAsMSwiXFxQb2x5e3FfVX0gXFxUZXJtIl0sWzIsMSwiXFxQb2x5e3F9IFxcVGVybSJdLFsxLDIsIlxcUG9seXtxX1V9IFxcVSJdLFszLDIsIlxcUG9seXtxfSBcXFUiXSxbMCwzLCJcXFBvbHl7cV9VfSBcXFR5cGUiXSxbMiwzLCJcXFBvbHl7cX0gXFxUeXBlIl0sWzAsNF0sWzAsMV0sWzAsMl0sWzEsM10sWzEsNV0sWzIsM10sWzIsNl0sWzMsN10sWzQsNV0sWzQsNl0sWzUsN10sWzYsN11d
-\begin{center}
-	\label{diag:universe-identity-type-classifier-pullback-cube}
-\begin{tikzcd}
-	& {\Poly{q_U} \E} && {\Poly{q} \E} \\
-	{\Poly{q_U} \Term} && {\Poly{q} \Term} \\
-	& {\Poly{q_U} \U} && {\Poly{q} \U} \\
-	{\Poly{q_U} \Type} && {\Poly{q} \Type}
-	\arrow[from=1-2, to=1-4]
-	\arrow[from=1-2, to=2-1]
-	\arrow[from=1-2, to=3-2]
-	\arrow[from=1-4, to=2-3]
-	\arrow[from=1-4, to=3-4]
-	\arrow[from=2-1, to=2-3]
-	\arrow[from=2-1, to=4-1]
-	\arrow[from=2-3, to=4-3]
-	\arrow[from=3-2, to=3-4]
-	\arrow[from=3-2, to=4-1]
-	\arrow[from=3-4, to=4-3]
-	\arrow[from=4-1, to=4-3]
-\end{tikzcd}
-\end{center}
-
-Now we consider the diagrams for both $\ep$ and $\ep_{U}$
-% https://q.uiver.app/#q=WzAsMTAsWzAsMiwiXFxQb2x5e3F9IHtcXFRlcm19Il0sWzAsMywiXFxQb2x5e3F9IHtcXFR5cGV9Il0sWzIsMywiXFxQb2x5e1xcdHB9IHtcXFR5cGV9Il0sWzIsMiwiXFxQb2x5e1xcdHB9IHtcXFRlcm19Il0sWzEsMiwiVCJdLFszLDAsIlxcUG9seXtcXHBpfXtcXEV9Il0sWzMsMSwiXFxQb2x5e1xccGl9IHtcXFV9Il0sWzEsMSwiXFxQb2x5e3FfVX0ge1xcVX0iXSxbMiwwLCJUX1UiXSxbMSwwLCJcXFBvbHl7cV9VfSB7XFxFfSJdLFswLDFdLFsxLDJdLFszLDJdLFs0LDFdLFs0LDNdLFs0LDIsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFswLDQsIlxcZXAiLDFdLFs4LDQsIiIsMCx7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFs3LDFdLFs2LDJdLFs1LDNdLFs3LDZdLFs4LDVdLFs4LDddLFs5LDBdLFs5LDddLFs4LDYsIiIsMCx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dLFs1LDZdLFs5LDgsIlxcZXBfVSIsMV1d
-\begin{center}\begin{tikzcd}
-	& {\Poly{q_U} {\E}} & {T_U} & {\Poly{\pi}{\E}} \\
-	& {\Poly{q_U} {\U}} && {\Poly{\pi} {\U}} \\
-	{\Poly{q} {\Term}} & T & {\Poly{\tp} {\Term}} \\
-	{\Poly{q} {\Type}} && {\Poly{\tp} {\Type}}
-	\arrow["{\ep_U}"{description}, from=1-2, to=1-3]
-	\arrow[from=1-2, to=2-2]
-	\arrow[from=1-2, to=3-1]
-	\arrow[from=1-3, to=1-4]
-	\arrow[from=1-3, to=2-2]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-3, to=2-4]
-	\arrow[from=1-4, to=2-4]
-	\arrow[from=2-2, to=2-4]
-	\arrow[from=2-2, to=4-1]
-	\arrow[from=2-4, to=4-3]
-	\arrow[from=3-1, to=4-1]
-	\arrow[from=3-2, to=3-3]
-	\arrow[from=3-2, to=4-1]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=3-2, to=4-3]
-	\arrow[from=3-3, to=4-3]
-	\arrow[from=4-1, to=4-3]
-	\arrow[dashed, from=1-3, to=3-2, crossing over]
-	\arrow[from=1-4, to=3-3, crossing over]
-	\arrow["\ep"{description}, from=3-1, to=3-2, crossing over]
-\end{tikzcd}\end{center}
-The right face is the composed diagonal pullback square from
-\ref{diag:universe-dependent-type-classifier-pullback-cube}.
-The left face of the outer cube is the composed diagonal pullback square from
-\ref{diag:universe-identity-type-classifier-pullback-cube}.
-The front face of the outer cube is the naturality square for $\Star{\rho}$ from
-\ref{eq:JDefinition2}
-and similarly the back face is the naturality square for $\Star{\rho_{U}}$ from
-\ref{diag:J_U_definition}.
-
-Since the left face is a pullback square,
-to make $J_{U} : T_{U} \to \Poly{q_{U}}{\E}$ it suffices to consider
-% https://q.uiver.app/#q=WzAsNixbMiwxLCJcXFBvbHl7cX0ge1xcVGVybX0iXSxbMiwyLCJcXFBvbHl7cX0ge1xcVHlwZX0iXSxbMiwwLCJUIl0sWzEsMiwiXFxQb2x5e3FfVX0ge1xcVX0iXSxbMCwwLCJUX1UiXSxbMSwxLCJcXFBvbHl7cV9VfSB7XFxFfSJdLFswLDFdLFsyLDAsIkoiLDFdLFs0LDIsImQiLDAseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbMywxXSxbNSwwXSxbNSwzXSxbNCwzXSxbNCw1LCJKX1UiLDEseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbNSwxLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
-\begin{center}\begin{tikzcd}
-	{T_U} && T \\
-	& {\Poly{q_U} {\E}} & {\Poly{q} {\Term}} \\
-	& {\Poly{q_U} {\U}} & {\Poly{q} {\Type}}
-	\arrow["d", dashed, from=1-1, to=1-3]
-	\arrow["{J_U}"{description}, dashed, from=1-1, to=2-2]
-	\arrow[from=1-1, to=3-2]
-	\arrow["J"{description}, from=1-3, to=2-3]
-	\arrow[from=2-2, to=2-3]
-	\arrow[from=2-2, to=3-2]
-	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=2-2, to=3-3]
-	\arrow[from=2-3, to=3-3]
-	\arrow[from=3-2, to=3-3]
-\end{tikzcd}\end{center}
-It follows from uniqueness of maps into pullbakcs
-that $J_{U}$ so defined is a section of $\ep_{U}$.
-This concludes the construction of the $\Id$ type former for the universe $\U$.
-Again, the only data we needed to supply was the lift $\Id_U$ of $\Id$ to the universe $\U$.
-
-% \subsection{The Universe in Embedded Type Theory (HoTT0) and the relationship to the Natural Model}
-
-\subsection{Binary products and Exponentials}
+\section{Binary products and Exponentials}
 
 It is convenient to specialize $\Si$ and $\Pi$ types to their non-dependent
-counterparts.
-In the natural model we can construct these by considering first the map
+counterparts $\times$ and $\Exp$.
 
-\[ (\fst, \snd) : \Type \times \Type \to \Poly{\tp}{\Type}\]
+\begin{defn}[Products and exponentials]
+  \label{defn:ProductsExponentials}
+  \uses{defn:NaturalModelPi, defn:NaturalModelSigma, prop:UvPoly.equiv}
+In the natural model we can
+construct these by considering first the map
 
+\[ (\fst, \snd) : \Type_i \times \Type_j \to \Poly{\tp_i}{\Type_j}\]
+
+defined using the characterising property of polynomials
+\ref{prop:UvPoly.equiv},
 which we can visualize in
 
-% https://q.uiver.app/#q=WzAsNSxbMiwwLCJcXFRlcm0iXSxbMiwxLCJcXFR5cGUiXSxbMSwxLCJcXFR5cGUgXFx0aW1lcyBcXFR5cGUiXSxbMSwwLCJcXFRlcm0gXFx0aW1lcyBcXFR5cGUiXSxbMCwwLCJcXFR5cGUiXSxbMCwxLCJcXHRwIl0sWzIsMSwiXFxmc3QiLDJdLFszLDIsIlxcZnN0XiogXFx0cCIsMl0sWzMsMF0sWzMsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzMsNCwiXFxzbmQiLDFdXQ==
-\begin{center}\begin{tikzcd}
-	\Type & {\Term \times \Type} & \Term \\
-	& {\Type \times \Type} & \Type
-	\arrow["\snd"{description}, from=1-2, to=1-1]
+\begin{center}
+% https://q.uiver.app/#q=WzAsNSxbMiwwLCJcXFRlcm1faSJdLFsyLDEsIlxcVHlwZV9pIl0sWzEsMSwiXFxUeXBlX2kgXFx0aW1lcyBcXFR5cGVfaiJdLFsxLDAsIlxcVGVybV9pIFxcdGltZXMgXFxUeXBlX2oiXSxbMCwwLCJcXFR5cGVfaiJdLFswLDEsIlxcdHBfaSJdLFsyLDEsIlxcZnN0IiwyXSxbMywyLCJcXGZzdF4qIFxcdHBfaSIsMl0sWzMsMF0sWzMsMSwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV0sWzMsNCwiXFxzbmQiLDJdXQ==
+\begin{tikzcd}
+	{\Type_j} & {\Term_i \times \Type_j} & {\Term_i} \\
+	& {\Type_i \times \Type_j} & {\Type_i}
+	\arrow["\snd"', from=1-2, to=1-1]
 	\arrow[from=1-2, to=1-3]
-	\arrow["{\fst^* \tp}"', from=1-2, to=2-2]
+	\arrow["{\fst^* \tp_i}"', from=1-2, to=2-2]
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-2, to=2-3]
-	\arrow["\tp", from=1-3, to=2-3]
+	\arrow["{\tp_i}", from=1-3, to=2-3]
 	\arrow["\fst"', from=2-2, to=2-3]
-\end{tikzcd}\end{center}
+\end{tikzcd}
+\end{center}
 
 Then, respectively, the pullback of the diagrams \ref{eq:PiPullback}
 and \ref{eq:SiPullback} for interpreting $\Pi$ and $\Si$
 rules along this map give us pullback diagrams for interpreting
 function types and product types.
+(We simplify the situation to where $i = j$.)
 % https://q.uiver.app/#q=WzAsNixbMSwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSJdLFsxLDEsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzIsMCwiXFxUZXJtIl0sWzIsMSwiXFxUeXBlIl0sWzAsMSwiXFxUeXBlIFxcdGltZXMgXFxUeXBlIl0sWzAsMCwiRiJdLFswLDEsIlxcUG9seXtcXHRwfXtcXHRwfSIsMl0sWzAsMiwiXFxsYSJdLFsyLDMsIlxcdHAiXSxbMSwzLCJcXFBpIiwyXSxbMCwzLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XSxbNCwxLCIoXFxmc3QsXFxzbmQpIiwyXSxbNSw0LCIoXFxkb20sXFxjb2QpIiwyXSxbNSwwLCIoXFxkb20sXFxmdW4pIiwyXSxbNCwzLCJcXEV4cCIsMix7ImN1cnZlIjo1fV0sWzUsMiwiXFxsYSIsMCx7ImN1cnZlIjotNH1dLFs1LDEsIiIsMix7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
 \begin{center}\begin{tikzcd}[column sep = large]
 	F & {\Poly{\tp}{\Term}} & \Term \\
@@ -920,17 +335,19 @@ function types and product types.
 	\arrow["{\tp \times \tp}"', from=1-1, to=2-1]
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
 	\arrow["\pair", from=1-2, to=1-3]
-	\arrow["{\tp \triangleleft \tp}"', from=1-2, to=2-2]
+	\arrow["{\tp \PolyComp \tp}"', from=1-2, to=2-2]
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-2, to=2-3]
 	\arrow["\tp", from=1-3, to=2-3]
 	\arrow["{(\fst,\snd)}"', from=2-1, to=2-2]
 	\arrow["\times"', bend right, from=2-1, to=2-3]
 	\arrow["\Si"', from=2-2, to=2-3]
 \end{tikzcd}\end{center}
+\end{defn}
+
 
 By the universal property of pullbacks and
-\ref{prop:UVPoly.equiv}
-We can write a map $\Ga \to F$ as a triple $(A,B,f)$
+\ref{prop:UvPoly.equiv}
+we can write a map $\Ga \to F$ as a triple $(A,B,f)$
 such that $A, B: \Ga \to \Type$ and
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXEdhIFxcY2RvdCBBIl0sWzEsMCwiXFxUZXJtIl0sWzEsMSwiXFxUeXBlIl0sWzAsMSwiXFxHYSJdLFswLDEsImYiXSxbMSwyLCJcXHRwIl0sWzMsMiwiQiIsMl0sWzAsMywiXFxkaXNwe0F9IiwyXV0=
 \begin{center}\begin{tikzcd}
@@ -964,30 +381,17 @@ $\disp{A} \to \disp{B}$
 \end{tikzcd}\end{center}
 
 For the formalization, we need not prove that the pullback of
-$\tp \triangleleft \tp$ is $\tp \times \tp$.
+$\tp \PolyComp \tp$ is $\tp \times \tp$.
 Rather, we can also use the universal property of pullbacks
-and \ref{prop:UVPoly.equiv}
+and \ref{prop:UvPoly.equiv}
 to classify a map into the pullback (whatever it may be) as a
 pair $(\al, \be)$, where $\al, \be : \Ga \to \Term$.
 This could then be adapted to a proof that the pullback is
 what the diagram claims it to be.
 
-Naturally, there are the same constructions bounded by the universe,
-which will exist when $\Pi_{U}$ and $\Si_{U}$ exist.
-% https://q.uiver.app/#q=WzAsOCxbMCwwLCJcXFUgXFx0aW1lcyBcXFUiXSxbMCwxLCJcXFR5cGUgXFx0aW1lcyBcXFR5cGUiXSxbMSwxLCJcXFR5cGUiXSxbMSwwLCJcXFUiXSxbMywwLCJcXFUgXFx0aW1lcyBcXFUiXSxbMywxLCJcXFR5cGUgXFx0aW1lcyBcXFR5cGUiXSxbNCwwLCJcXFUiXSxbNCwxLCJcXFR5cGUiXSxbMCwxLCJcXEVsIFxcdGltZXMgXFxFbCIsMl0sWzEsMiwiXFxFeHAiLDJdLFswLDMsIlxcRXhwX1UiXSxbMywyLCJcXEVsIl0sWzQsNSwiXFxFbCBcXHRpbWVzIFxcRWwiLDJdLFs0LDYsIlxcdGltZXNfVSJdLFs1LDcsIlxcdGltZXMiLDJdLFs2LDcsIlxcRWwiXV0=
-\begin{center}\begin{tikzcd}
-	{\U \times \U} & \U && {\U \times \U} & \U \\
-	{\Type \times \Type} & \Type && {\Type \times \Type} & \Type
-	\arrow["{\Exp_U}", from=1-1, to=1-2]
-	\arrow["{\El \times \El}"', from=1-1, to=2-1]
-	\arrow["\El", from=1-2, to=2-2]
-	\arrow["{\times_U}", from=1-4, to=1-5]
-	\arrow["{\El \times \El}"', from=1-4, to=2-4]
-	\arrow["\El", from=1-5, to=2-5]
-	\arrow["\Exp"', from=2-1, to=2-2]
-	\arrow["\times"', from=2-4, to=2-5]
-\end{tikzcd}\end{center}
-
+\begin{defn}
+  \label{defn:IdComp}
+  \uses{defn:ProductsExponentials}
 The identity function $\id_{A} : \Ga \to \Term$ of type $\Exp \circ (A,A) : \Ga \to \Type$
 can be defined by the following
 
@@ -1030,10 +434,11 @@ $\Ga \cdot A \to \Ga \cdot A$.
 Composition is also simplest when viewed as an operation on maps between fibers.
 Given $f : \disp{A} \to \disp{B}$ and $g : \disp{B} \to \disp{C}$,
 the composition is $g \circ f : \disp{A} \to \disp{C}$.
+\end{defn}
 
-\subsection{Univalence}
+\section{Univalence}
 
-For two types $A B : \Ga \to \Type$
+For two types $A, B : \Ga \to \Type$ 
 and two functions $f, g : A \to B$ we can define internally
 a \textit{homotopy} from $f$ to $g$ as
 \[ f \sim g := \Pi_{a : A} \, \Id (f \, a, g \, a) \]
@@ -1055,7 +460,7 @@ which uses $J$ to transport along the proof of equality to produce an equivalenc
 \begin{defn}\label{defn:NaturalModelUnivalentU}
 \lean{CategoryTheory.NaturalModel.NaturalModelUnivalentU}
 \notready
-\uses{defn:NaturalModelU}
+\uses{defn:NaturalModelRussell}
   Univalence for universe $\U$ states that \textsf{IdToEquiv} itself is an equivalence
   \[ \mathsf{ua} : \mathsf{IsBigEquiv} (\mathsf{IdToEquiv} A \, B)\]
   Note that this statement is large, i.e. not a type in the universe $\U$.
@@ -1070,18 +475,24 @@ which uses $J$ to transport along the proof of equality to produce an equivalenc
 
 \end{defn}
 
-\subsection{Extensional identity types and UIP}
+\section{Extensional identity types and UIP}
 
 In this section we outline variations on the identity type in the
 natural model.
 We will describe these as additional structure on $\Id$,
 as opposed to introducing different identity types.
+
+\medskip
+
+\begin{defn}[Extensional types]
+  \label{defn:NaturalModelEq}
+  \uses{defn:NaturalModel}
 The first option is fully extensional identity types,
 i.e. those satisfying equality reflection and uniqueness of identity proofs (UIP).
 Equality reflection says that if one can construct a term satisfying $\Id(a,b)$
 then we have that definitionally $a \equiv b$,
 i.e. they are equal morphisms in the natural model.
-This amounts to requiring that \ref{eq:IdPullback} is a pullback,
+This amounts to just requiring that \ref{eq:Id} is a pullback,
 i.e. $\rho$ is an isomorphism
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFRlcm0iXSxbMCwxLCJcXHRwIFxcdGltZXNfXFxUeXBlIFxcdHAiXSxbMSwxLCJcXFR5cGUiXSxbMSwwLCJcXFRlcm0iXSxbMCwxLCJcXGRlIiwyXSxbMSwyLCJcXElkIiwyXSxbMywyLCJcXHRwIl0sWzAsMywiXFxyZWZsIl0sWzAsMiwiIiwxLHsic3R5bGUiOnsibmFtZSI6ImNvcm5lciJ9fV1d
 \begin{center}\begin{tikzcd}
@@ -1106,11 +517,21 @@ i.e. $\ep$ is an isomorphism.
 	\arrow["{\Poly{\tp} {\tp}}", from=1-2, to=2-2]
 	\arrow["{\Star{\rho}_{\Type}}"', from=2-1, to=2-2]
 \end{tikzcd}\end{center}
+\end{defn}
 
-If we were to only require UIP then this is asking that
-$I \to \tp \times_{\Type} \tp$ is a strict proposition,
-meaning for any $(a,b) : \Ga \to \tp \times_{\Type} \tp$
-there it at most one lift
+\medskip
+
+We could only require UIP:
+
+\medskip
+
+\begin{defn}[Identity types satisfying UIP]
+  \label{defn:NaturalModelIdUIP}
+  \uses{defn:NaturalModelId}
+  Say an identity type in a natural model satisfies UIP if
+  $I \to \tp \times_{\Type} \tp$ is a strict proposition,
+  meaning for any $(a,b) : \Ga \to \tp \times_{\Type} \tp$
+  there it at most one lift
 % https://q.uiver.app/#q=WzAsMyxbMCwxLCJcXEdhIl0sWzEsMSwiXFx0cCBcXHRpbWVzX1xcVHlwZSBcXHRwIl0sWzEsMCwiSSJdLFswLDEsIihhLGIpIiwyXSxbMiwxXSxbMCwyLCIhIiwwLHsic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV1d
 \begin{center}\begin{tikzcd}
 	& I \\
@@ -1119,6 +540,7 @@ there it at most one lift
 	\arrow["{!}", dashed, from=2-1, to=1-2]
 	\arrow["{(a,b)}"', from=2-1, to=2-2]
 \end{tikzcd}\end{center}
+\end{defn}
 
 One might wonder what other variations we could
 come up with by tweaking the pullback conditions.

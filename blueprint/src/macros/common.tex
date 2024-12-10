@@ -33,7 +33,7 @@
 
 \newenvironment{comment}{\begin{quote} \em Comment. }{\end{quote}}
 
-%%%%%%% SYMBOLS %%%%%%%%%
+%%%%%%% Relations
 
 \newcommand{\defeq}{=_{\mathrm{def}}}
 \newcommand{\iso}{\cong}
@@ -41,24 +41,26 @@
 \newcommand{\retequi}{\unlhd}
 \newcommand{\op}{\mathrm{op}}
 \newcommand{\Nat}{\mathbb{N}}
-\newcommand{\co}{\colon}
+% \newcommand{\co}{\colon}
 \newcommand{\st}{\,|\,}
 
-% \newcommand{\cat}{\mathbb}
-\newcommand{\catC}{\mathbb{C}}
-\newcommand{\tcat}{\mathbf}
+
+%%% Morphisms
+
 \newcommand{\id}{\mathsf{id}}
-\newcommand{\psh}[1]{\mathbf{Psh}(#1)} %% consider renaming to \Psh
-\newcommand{\PSH}[1]{\mathbf{PSH}(#1)}
 \newcommand{\yo}{\mathsf{y}}
-\newcommand{\pshC}{\psh{\catC}}
 \newcommand{\Arr}{\mathsf{Arr}}
 \newcommand{\CartArr}{\mathsf{CartArr}}
 \newcommand{\unit}{\, \mathsf{unit} \, }
 \newcommand{\counit}{\, \mathsf{counit} \, }
-\newcommand{\terminal}{\bullet}
-\newcommand{\Two}{\bullet+\bullet}
 
+%%%% Objects
+
+\newcommand{\tcat}{\mathbf}
+\newcommand{\catC}{\mathbb{C}}
+\newcommand{\pshC}{\psh{\catC}}
+\newcommand{\psh}[1]{\mathbf{Psh}(#1)} %% consider renaming to \Psh
+\newcommand{\PSH}[1]{\mathbf{PSH}(#1)}
 \newcommand{\set}{\tcat{set}}
 \newcommand{\Set}{\tcat{Set}}
 \newcommand{\SET}{\tcat{SET}}
@@ -73,8 +75,16 @@
 \newcommand{\Pshgrpd}{\mathbf{Psh}(\grpd)}
 \newcommand{\PshCat}{\mathbf{Psh}(\Cat)}
 
+\newcommand{\terminal}{\bullet}
+\newcommand{\Two}{\bullet+\bullet}
+
+%%% Polynomials
+\newcommand{\PolyComp}{\lhd}
 \newcommand{\Poly}[1]{P_{#1}}
 \newcommand{\Star}[1]{{#1}^{\star}}
+
+
+%%%% Syntax
 
 \newcommand{\Type}{\mathsf{Ty}}
 \newcommand{\Term}{\mathsf{Tm}}
@@ -102,7 +112,15 @@
 \newcommand{\lift}[2]{\mathsf{lift} \, #1 \, #2}
 \newcommand{\fiber}{\mathsf{fiber}}
 \newcommand{\Interval}{\mathbb{I}}
+\newcommand{\Lift}[2]{\mathsf{L}_{#1}^{#2}}
 
+%%%% Interpertation
+
+\newcommand{\doublesquarelbracket}{[\![}
+\newcommand{\doublesquarerbracket}{]\!]}
+\newcommand{\IntpCtx}[1]{\doublesquarelbracket #1 \doublesquarerbracket}
+\newcommand{\IntpType}[1]{\doublesquarelbracket #1 \doublesquarerbracket}
+\newcommand{\IntpTerm}[1]{\doublesquarelbracket #1 \doublesquarerbracket}
 
 % % Greek
 \newcommand{\al}{\alpha}

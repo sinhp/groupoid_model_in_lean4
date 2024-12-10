@@ -1,4 +1,4 @@
-In this section we construct a natural model in $\Pshgrpd$ the presheaf category
+In this chapter we construct a natural model in $\Pshgrpd$ the presheaf category
 indexed by the category $\grpd$ of (small) groupoids.
 We will build the classifier for display maps in the style of
 Hofmann and Streicher \cite{hofmannstreicher1996} and Awodey \cite{awodey2023hofmannstreicheruniverses}.
@@ -9,7 +9,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
 
 \medskip
 
-\subsection{Classifying display maps}
+\section{Classifying display maps}
 
 \medskip
 
@@ -34,7 +34,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
   We will take the category of pointed small categories $\ptcat$
   to have objects as pairs $(\catC \in \cat, c \in \catC)$
   and morphisms as pairs
-  \[ (F : \catC_{1} \to \catC_{0}, \phi : F c_{1} \to c_{0}) \co (\catC_{1}, c_{1}) \to (\catC_{0}, c_{0})\]
+  \[ (F : \catC_{1} \to \catC_{0}, \phi : F c_{1} \to c_{0}) : (\catC_{1}, c_{1}) \to (\catC_{0}, c_{0})\]
   Then the category of pointed small groupoids $\ptgrpd$ will be the full subcategory
   of objects $(\Ga, c)$ with $\Ga$ a groupoid.
 \end{defn}
@@ -46,20 +46,20 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
   \lean{GroupoidNM} \leanok %%This should probably just be GroupoidNM or GroupoidNM.Base
   We would like to define a natural transformation in
   $\Pshgrpd$
-  \[ \tp \co \Term \to \Type \]
+  \[ \tp : \Term \to \Type \]
   with representable fibers.
 
   Consider the functor that forgets the point
   \[
-    U \co \ptgrpd \to \grpd
+    U : \ptgrpd \to \grpd
     \quad \quad
     \text{
       in \quad $\Cat$.
     }
   \]
-  If we apply the Yoneda embedding $\yo \co \Cat \to \PshCat$ to $U$
+  If we apply the Yoneda embedding $\yo : \Cat \to \PshCat$ to $U$
   we obtain
-  \[ U \circ \co [ - , \ptgrpd] \to [ - , \grpd ]
+  \[ U \circ : [ - , \ptgrpd] \to [ - , \grpd ]
     \quad \quad
     \text{
       in \quad $\PshCat$.
@@ -68,7 +68,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
   Since any small groupoid is also a large category $i : \grpd \hookrightarrow \Cat$,
   we can restrict $\Cat$ indexed presheaves to be $\grpd$ indexed presheaves
   (this the nerve in $i_{!} \dashv \mathsf{res}$).
-  We define $\tp \co \Term \to \Type$ as the image of $U \circ$ under this restriction.
+  We define $\tp : \Term \to \Type$ as the image of $U \circ$ under this restriction.
   % https://q.uiver.app/#q=WzAsNixbMCwwLCJcXENhdCJdLFsxLDAsIlxcUHNoQ2F0Il0sWzIsMCwiXFxQc2hncnBkIl0sWzAsMSwiXFxncnBkIl0sWzEsMSwiWy0sXFxncnBkXSJdLFsyLDEsIlxcVHlwZSJdLFswLDEsInkiXSxbMSwyLCJcXHRleHRzZntyZXN9Il0sWzMsNCwiIiwwLHsic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9fX1dLFs0LDUsIiIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XV0=
   \begin{center}\begin{tikzcd}[row sep = tiny]
     \Cat & \PshCat & \Pshgrpd \\
@@ -124,10 +124,10 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
 \begin{defn}[Grothendieck construction for groupoids]
   \label{defn:GroupoidGrothendieck}
   \lean{CategoryTheory.GroupoidalGrothendieck} \leanok
-  Let $\Ga$ be a groupoid and $A \co \Ga \to \grpd$ a functor,
-  we can compose $F$ with the inclusion $i \co \grpd \hookrightarrow \Cat$
+  Let $\Ga$ be a groupoid and $A : \Ga \to \grpd$ a functor,
+  we can compose $F$ with the inclusion $i : \grpd \hookrightarrow \Cat$
   and form the Grothendieck construction which we denote as
-  \[ \Ga \cdot A := \int i \circ A \quad \quad \disp{A} \co \Ga \cdot A \to \Ga\]
+  \[ \Ga \cdot A := \int i \circ A \quad \quad \disp{A} : \Ga \cdot A \to \Ga\]
   This is also a small groupoid since the underlying morphisms are
   pairs of morphisms from groupoids $\Ga$ and $A x$ for $x \in \Ga$.
   Furthermore the pullback factors through (pointed) groupoids.
@@ -200,7 +200,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
 
 \medskip
 
-\subsection{Groupoid fibrations}
+\section{Groupoid fibrations}
 
 \begin{defn}[Fibration]\label{defn:GroupoidFibration}
   Let $p : \catC_{1} \to \catC_{0}$ be a functor.
@@ -235,8 +235,8 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
 
 \medskip
 
-Note that $\disp{A} \co \Ga \cdot A \to \Ga$ is a fibration,
-since for any $(x \in \Ga, a \in A \, x)$ and $f \co x \to y$ in $\Ga$
+Note that $\disp{A} : \Ga \cdot A \to \Ga$ is a fibration,
+since for any $(x \in \Ga, a \in A \, x)$ and $f : x \to y$ in $\Ga$
 we have a morphism $(f, \id_{A \, f \, a}) : (x, a) \to (y, A \, f \, a)$
 lifting $f$. Furthermore
 
@@ -623,12 +623,12 @@ and rebuild the required fibration by exponentiation in the slice.
 
 \medskip
 
-\subsection{Classifying type dependency}
+\section{Classifying type dependency}
 
 \begin{prop}[$\Poly{\tp}$ classifies type dependency]\label{prop:GroupoidPtpUniversalProperty}
   Specialized to $\tp : \Term \to \Type$ in $\Pshgrpd$,
   the characterizing property of polynomial endofunctors
-  \ref{prop:UVPoly.equiv} says that a map
+  \ref{prop:UvPoly.equiv} says that a map
   from a representable
   $\Ga \to \Poly{\tp}X$
   corresponds to the data of
@@ -678,7 +678,7 @@ and rebuild the required fibration by exponentiation in the slice.
 
 \medskip
 
-\subsection{Pi and Sigma structure} %% TODO fix subsection title
+\section{Pi and Sigma structure}
 
 \medskip
 
@@ -900,7 +900,7 @@ and rebuild the required fibration by exponentiation in the slice.
 \end{tikzcd}\end{center}
 \end{lemma}
 \begin{proof}
-  This is a specialization of \ref{lem:UVPolyEv}
+  This is a specialization of \ref{lem:UvPolyEvEq}
   with liberal applications of Yoneda.
 \end{proof}
 % \begin{proof}
@@ -1000,7 +1000,7 @@ and rebuild the required fibration by exponentiation in the slice.
 	{\Term \times \Term} & {\Type \times \Term} & \Term & \Type \\
 	\Term & \Type & \terminal
 	\arrow[from=1-1, to=1-2]
-	\arrow["{\tp \triangleleft \tp}"{description}, bend left, from=1-1, to=1-4]
+	\arrow["{\tp \PolyComp \tp}"{description}, bend left, from=1-1, to=1-4]
 	\arrow[from=1-1, to=2-1]
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
 	\arrow[Rightarrow, no head, from=1-2, to=1-3]
@@ -1068,10 +1068,10 @@ and rebuild the required fibration by exponentiation in the slice.
   {\color{gray}
   Type theoretically $\al = (A , a : A)$ and $\ev{\al} B = B a$ and
   $\be = (B a, b : B a)$.
-  Then composing $\ep$ with $\tp \triangleleft \tp$ returns $\ga$,
+  Then composing $\ep$ with $\tp \PolyComp \tp$ returns $\ga$,
   which consists of $(A, B)$.
   It is in this sense that $Q$ classifies pairs of dependent terms,
-  and $\tp \triangleleft \tp$ extracts the underlying types.}
+  and $\tp \PolyComp \tp$ extracts the underlying types.}
 
   Precomposition with a substitution $\si : \De \to \Ga$ acts on this
   triple by
@@ -1123,7 +1123,7 @@ and rebuild the required fibration by exponentiation in the slice.
 	Q & \Term \\
 	{\Poly{\tp}{\Type}} & \Type
 	\arrow["\pair", from=1-1, to=1-2]
-	\arrow["{\tp \triangleleft \tp}"', from=1-1, to=2-1]
+	\arrow["{\tp \PolyComp \tp}"', from=1-1, to=2-1]
 	\arrow["\lrcorner"{anchor=center, pos=0.125}, draw=none, from=1-1, to=2-2]
 	\arrow["\tp", from=1-2, to=2-2]
 	\arrow["\Si"', from=2-1, to=2-2]
@@ -1171,7 +1171,7 @@ and rebuild the required fibration by exponentiation in the slice.
 	{\Pshgrpd (\Ga, Q)} & {[\Ga,\ptgrpd]} \\
 	{\Pshgrpd(\Ga,\Poly{\tp}{\Type})} & {[\Ga,\grpd]}
 	\arrow["{\pair_\Ga}", from=1-1, to=1-2]
-	\arrow["{\tp \triangleleft \tp \circ -}"', from=1-1, to=2-1]
+	\arrow["{\tp \PolyComp \tp \circ -}"', from=1-1, to=2-1]
 	\arrow["{U \circ -}", from=1-2, to=2-2]
 	\arrow["{\Si_\Ga}"', from=2-1, to=2-2]
 \end{tikzcd}\end{center}
@@ -1188,7 +1188,7 @@ and rebuild the required fibration by exponentiation in the slice.
     \quad
     \text{and}
     \quad
-    \tp \triangleleft \tp \circ (B,\al, B) = (A, B)
+    \tp \PolyComp \tp \circ (B,\al, B) = (A, B)
   \]
   Indeed if we write
   \[ p \, x = (\Si_{A} B \, x ,
@@ -1202,7 +1202,7 @@ and rebuild the required fibration by exponentiation in the slice.
   \]
 \end{proof}
 
-\subsection{Identity types}
+\section{Identity types}
 
 \begin{defn}[Identity formation and introduction]\label{defn:GroupoidNMId}
   To define the commutative square in $\Pshgrpd$
@@ -1305,7 +1305,7 @@ and rebuild the required fibration by exponentiation in the slice.
 
   Specialized to $q : I \to \Type$ in $\Pshgrpd$,
   the characterizing property of polynomial endofunctors
-  \ref{prop:UVPoly.equiv} says that a map
+  \ref{prop:UvPoly.equiv} says that a map
   from a representable
   $\ep : \Ga \to \Poly{q}X$
   corresponds to the data of
@@ -1437,7 +1437,7 @@ and rebuild the required fibration by exponentiation in the slice.
   $(A, C) : \Ga \to \Poly{q}{\Type}$ and $(A',\ga_\refl) : \Ga \to \Poly{\tp}{\Term}$
   such that
   \[ \Star{\rho}_{\Type} \circ (A, C) = \Poly{\tp} {\tp} \circ (A', \ga_\refl) \]
-  By \ref{defn:UVPolySlice} and \ref{prop:UVPoly.equiv}
+  By \ref{defn:UvPolySlice} and \ref{prop:UvPoly.equiv}
   this says
   \[ (A, C \circ A^{*} \rho) = (A', \tp \circ \ga_\refl)\]
   so the above is equivalent to having $A = A', C, \ga_\refl$ such that
@@ -1455,7 +1455,7 @@ and rebuild the required fibration by exponentiation in the slice.
 \end{prop}
 \begin{proof}
   This follows from the computation for $T$ \ref{lem:GroupoidT},
-  the polynomial action on slice morphisms \ref{defn:UVPolySlice}, and \ref{prop:UVPoly.equiv}.
+  the polynomial action on slice morphisms \ref{defn:UvPolySlice}, and \ref{prop:UvPoly.equiv}.
 \end{proof}
 
 \begin{defn}[Identity elimination]\label{defn:GroupoidNMId.J}
@@ -1625,7 +1625,7 @@ and rebuild the required fibration by exponentiation in the slice.
   \end{align*}
 \end{proof}
 
-\subsection{Universe of Discrete Groupoids}
+\section{Universe of Discrete Groupoids}
 In this section we assume \textit{three} different universe sizes,
 which we will distinguish by all lowercase (small), capitalized first letter (large),
 and all-caps (extra large), respectively.

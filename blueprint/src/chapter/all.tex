@@ -2,18 +2,22 @@
 % It is not supposed to be built standalone:
 % see web.tex and print.tex instead.
 
-\title{Groupoid Model of HoTT in Lean 4}
+\title{Groupoid Model of H0TT in Lean 4}
 \author{Steve Awodey, Sina Hazratpour, Joseph Hua,
   Wojciech Nawrocki, Spencer Woolfson}
 
 \begin{document}
 \maketitle
 
-\section{Natural Models}
+\chapter{Syntax of H0TT}
+\input{chapter/syntax}
+\chapter{Natural Models}
 \input{chapter/natural_model}
-\section{The Groupoid Model}
+\chapter{H0TT interpreted in natural models}
+\input{chapter/interpretation}
+\chapter{The Groupoid Model}
 \input{chapter/groupoid_model}
-\section{Polynomial Endofunctors}
+\chapter{Polynomial Endofunctors}
 \input{chapter/polynomial}
 
 \bibliography{refs.bib}{}
