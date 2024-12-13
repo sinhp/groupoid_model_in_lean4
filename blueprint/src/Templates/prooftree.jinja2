@@ -1,0 +1,8 @@
+<div class="prooftree" id="{{ obj.id }}"
+     style="display: block; margin: .5rem auto; overflow: auto;">
+  {% if obj.renderer.vectorImager.enabled %}
+    <img src="{{ obj.vectorImage.url }}" class="prooftree-vector" alt="{{ obj.source|e }}" />
+  {% else %}
+    <img src="{{ obj.image.url }}" class="prooftree-bitmap" alt="{{ obj.source|e }}" />
+  {% endif %}
+</div>

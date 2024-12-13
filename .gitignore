@@ -3,6 +3,9 @@
 ## Lake
 .lake/*
 .cache/*
+## Python
+__pycache__
+venv
 ## Blueprint
 blueprint/web/
 blueprint/src/chapter/auto
@@ -37,3 +40,4 @@ docs/_includes/sorries.md
 *.synctex.gz(busy)
 *.pdfsync
 *.json
+*.auctex-auto
