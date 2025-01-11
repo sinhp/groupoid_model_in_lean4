@@ -53,11 +53,6 @@ We will need at least the following:
   - need to add a general formulation for (groupoid) quotient types
   -/
 
-/-- `P : UvPoly C` is a polynomial functors in a single variable -/
-structure UvPoly' {C : Type*} [Category C] [HasFiniteWidePullbacks C] (E B : C) :=
-  (p : E ⟶ B)
-  (exp : CartesianExponentiable p := by infer_instance)
-
 namespace UvPoly
 
 variable {𝒞} [Category 𝒞] [HasTerminal 𝒞] [HasPullbacks 𝒞]
@@ -69,15 +64,7 @@ def _root_.UvPoly.equiv' {E B : 𝒞} (P : UvPoly E B) (Γ X : 𝒞) :
   Equiv.sigmaCongrRight fun _ =>
   ((yoneda.obj X).mapIso (pullbackSymmetry ..).op).toEquiv
 
-
--- def functor : ∀ {E B : 𝒞} (P : UvPoly' E B), 𝒞 ⥤ 𝒞 := sorry
-
--- def natural {E B E' B' : 𝒞} (P : UvPoly' E B) (P' : UvPoly' E' B')
---     (e : E ⟶ E') (b : B ⟶ B') (pb : IsPullback P.p e b P'.p) : P.functor ⟶ P'.functor := sorry
-
--- def _root_.UvPoly.star {E F B : 𝒞} (P : UvPoly E B) (Q : UvPoly F B) (g : E ⟶ F) (h : P.p = g ≫ Q.p) :
---     Q.functor ⟶ P.functor := sorry --UvPoly.natural (P := ⟨_, _, Q⟩) (Q := ⟨_, _, P⟩) ⟨by dsimp, by dsimp, _⟩
-
+-- TODO: add this to Poly
 def _root_.UvPoly.comp {𝒞} [Category 𝒞] [HasFiniteWidePullbacks 𝒞] [HasTerminal 𝒞]
     {E B D C : 𝒞} (P1 : UvPoly E B) (P2 : UvPoly D C) : UvPoly (P2.functor.obj E) (P1.functor.obj C) :=
    let f : E ⟶ B := P1.p
