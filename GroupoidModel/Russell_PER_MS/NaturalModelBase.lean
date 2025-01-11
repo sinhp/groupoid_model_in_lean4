@@ -9,19 +9,35 @@ open CategoryTheory Limits Opposite
 notation:max "y(" Γ ")" => yoneda.obj Γ
 notation:max "ym(" f ")" => yoneda.map f
 
-structure NaturalModelBase (Ctx : Type u) [SmallCategory Ctx] where
+/-- A representable map with choice of representability witnesses. -/
+-- FIXME: should just be called `RepresentableMap`.
+structure NaturalModelBase (Ctx : Type u) [Category Ctx] where
   Tm : Psh Ctx
   Ty : Psh Ctx
   tp : Tm ⟶ Ty
-  ext (Γ : Ctx) (A : y(Γ) ⟶ Ty) : Ctx
-  disp (Γ : Ctx) (A : y(Γ) ⟶ Ty) : ext Γ A ⟶ Γ
-  var (Γ : Ctx) (A : y(Γ) ⟶ Ty) : y(ext Γ A) ⟶ Tm
+  ext {Γ : Ctx} (A : y(Γ) ⟶ Ty) : Ctx
+  disp {Γ : Ctx} (A : y(Γ) ⟶ Ty) : ext A ⟶ Γ
+  var {Γ : Ctx} (A : y(Γ) ⟶ Ty) : y(ext A) ⟶ Tm
   disp_pullback {Γ : Ctx} (A : y(Γ) ⟶ Ty) :
-    IsPullback (var Γ A) ym(disp Γ A) tp A
+    IsPullback (var A) ym(disp A) tp A
 
 namespace NaturalModelBase
 
 variable {Ctx : Type u} [SmallCategory Ctx] (M : NaturalModelBase Ctx)
+
+/-! ## Pullback of representable map -/
+
+/-- Pull a natural model back along a type. -/
+protected def pullback {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) : NaturalModelBase Ctx where
+  Tm := y(M.ext A)
+  Ty := y(Γ)
+  tp := ym(M.disp A)
+  ext := fun B => M.ext (B ≫ A)
+  disp := fun B => M.disp (B ≫ A)
+  var := fun B =>
+    (M.disp_pullback A).lift (M.var (B ≫ A)) (ym(M.disp (B ≫ A)) ≫ B) (M.disp_pullback (B ≫ A)).w
+  disp_pullback := fun B =>
+    IsPullback.of_right' (M.disp_pullback (B ≫ A)) (M.disp_pullback A)
 
 /-! ## Substitutions -/
 
@@ -34,21 +50,21 @@ variable {Ctx : Type u} [SmallCategory Ctx] (M : NaturalModelBase Ctx)
 -/
 def substCons {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty)
     (t : y(Δ) ⟶ M.Tm) (t_tp : t ≫ M.tp = ym(σ) ≫ A) :
-    Δ ⟶ M.ext Γ A :=
-  let i : y(M.ext Γ A) ≅ pullback M.tp A := (M.disp_pullback A).isoPullback
+    Δ ⟶ M.ext A :=
+  let i : y(M.ext A) ≅ pullback M.tp A := (M.disp_pullback A).isoPullback
   Yoneda.fullyFaithful.1 <| pullback.lift t ym(σ) t_tp ≫ i.inv
 
 @[simp]
 theorem substCons_disp {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (t : y(Δ) ⟶ M.Tm)
     (tTp : t ≫ M.tp = ym(σ) ≫ A) :
-    M.substCons σ A t tTp ≫ M.disp Γ A = σ := by
+    M.substCons σ A t tTp ≫ M.disp A = σ := by
   apply Yoneda.fullyFaithful.map_injective
   simp [substCons]
 
 @[simp]
 theorem substCons_var {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (t : y(Δ) ⟶ M.Tm)
     (aTp : t ≫ M.tp = ym(σ) ≫ A) :
-    ym(M.substCons σ A t aTp) ≫ M.var Γ A = t := by
+    ym(M.substCons σ A t aTp) ≫ M.var A = t := by
   simp [substCons]
 
 /--
@@ -58,8 +74,8 @@ theorem substCons_var {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (t : y
 Δ ⊢ ↑∘σ : Γ
 ```
 -/
-def substFst {Δ Γ : Ctx} {A : y(Γ) ⟶ M.Ty} (σ : Δ ⟶ M.ext Γ A) : Δ ⟶ Γ :=
-  σ ≫ M.disp _ _
+def substFst {Δ Γ : Ctx} {A : y(Γ) ⟶ M.Ty} (σ : Δ ⟶ M.ext A) : Δ ⟶ Γ :=
+  σ ≫ M.disp _
 
 /--
 ```
@@ -68,15 +84,15 @@ def substFst {Δ Γ : Ctx} {A : y(Γ) ⟶ M.Ty} (σ : Δ ⟶ M.ext Γ A) : Δ �
 Δ ⊢ v₀[σ] : A[↑∘σ]
 ```
 -/
-def substSnd {Δ Γ : Ctx} {A : y(Γ) ⟶ M.Ty} (σ : Δ ⟶ M.ext Γ A) : y(Δ) ⟶ M.Tm :=
-  ym(σ) ≫ M.var _ _
+def substSnd {Δ Γ : Ctx} {A : y(Γ) ⟶ M.Ty} (σ : Δ ⟶ M.ext A) : y(Δ) ⟶ M.Tm :=
+  ym(σ) ≫ M.var _
 
-theorem substSnd_tp {Δ Γ : Ctx} {A : y(Γ) ⟶ M.Ty} (σ : Δ ⟶ M.ext Γ A) :
+theorem substSnd_tp {Δ Γ : Ctx} {A : y(Γ) ⟶ M.Ty} (σ : Δ ⟶ M.ext A) :
     M.substSnd σ ≫ M.tp = ym(M.substFst σ) ≫ A := by
   simp [substSnd, substFst]; rw [(M.disp_pullback _).w]
 
-def wk {X : Psh Ctx} {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (f : y(Γ) ⟶ X) : y(M.ext Γ A) ⟶ X :=
-  ym(M.disp Γ A) ≫ f
+def wk {X : Psh Ctx} {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (f : y(Γ) ⟶ X) : y(M.ext A) ⟶ X :=
+  ym(M.disp A) ≫ f
 
 /--
 ```
@@ -86,13 +102,13 @@ def wk {X : Psh Ctx} {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (f : y(Γ) ⟶ X) : y(M.ext
 ```
 -/
 def inst {Γ : Ctx} {X : Psh Ctx}
-    (A : y(Γ) ⟶ M.Ty) (σ : y(M.ext Γ A) ⟶ X)
+    (A : y(Γ) ⟶ M.Ty) (σ : y(M.ext A) ⟶ X)
     (a : y(Γ) ⟶ M.Tm) (a_tp : a ≫ M.tp = A) : y(Γ) ⟶ X :=
   ym(M.substCons (𝟙 _) A a (by simpa using a_tp)) ≫ σ
 
 @[simp]
-def inst_tp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext Γ A) ⟶ M.Ty)
-    (t : y(M.ext Γ A) ⟶ M.Tm) (t_tp : t ≫ M.tp = B)
+def inst_tp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ M.Ty)
+    (t : y(M.ext A) ⟶ M.Tm) (t_tp : t ≫ M.tp = B)
     (a : y(Γ) ⟶ M.Tm) (a_tp : a ≫ M.tp = A) :
     M.inst A t a a_tp ≫ M.tp = M.inst A B a a_tp :=
    by simp [inst, t_tp]
@@ -119,14 +135,14 @@ associated to a natural model. -/
 @[simps!]
 def extFunctor : Ctxᵒᵖ ⥤ Psh Ctx ⥤ Type u :=
   curry.obj {
-    obj := fun (Γ, X) => (A : y(Γ.unop) ⟶ M.Ty) × (y(M.ext Γ.unop A) ⟶ X)
+    obj := fun (Γ, X) => (A : y(Γ.unop) ⟶ M.Ty) × (y(M.ext A) ⟶ X)
     map := @fun (Δ, X) (Γ, Y) (σ, f) ⟨A, e⟩ =>
       let Aσ := ym(σ.unop) ≫ A -- TODO: use subst or whatever here
       ⟨Aσ,
       -- TODO: add functionality for widget to draw selected pullback squares
       (M.disp_pullback A).lift
-        (M.var Γ.unop Aσ)
-        ym(M.disp Γ.unop Aσ ≫ σ.unop)
+        (M.var Aσ)
+        ym(M.disp Aσ ≫ σ.unop)
         (by simp [(M.disp_pullback Aσ).w]) ≫
         e ≫ f⟩
     map_id := fun (Γ, _) => by
@@ -164,14 +180,14 @@ yΓ ⟶ P_tp(X)
 ```
 -/
 def Ptp_equiv {Γ : Ctx} {X : Psh Ctx} :
-    (A : y(Γ) ⟶ M.Ty) × (y(M.ext Γ A) ⟶ X) ≃ (y(Γ) ⟶ M.Ptp.obj X) :=
+    (A : y(Γ) ⟶ M.Ty) × (y(M.ext A) ⟶ X) ≃ (y(Γ) ⟶ M.Ptp.obj X) :=
   Equiv.symm <| (M.uvPolyTp.equiv y(Γ) X).trans <|
     Equiv.sigmaCongrRight fun A =>
       Iso.toEquiv <| (yoneda.obj X).mapIso <| Iso.op <|
         (M.disp_pullback A).isoPullback.trans (pullbackSymmetry M.tp A)
 
 theorem Ptp_equiv_naturality {Γ : Ctx} {X Y : Psh Ctx}
-    (A : y(Γ) ⟶ M.Ty) (B : y(M.ext Γ A) ⟶ X) (F : X ⟶ Y) :
+    (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) (F : X ⟶ Y) :
     M.Ptp_equiv ⟨A, B⟩ ≫ M.Ptp.map F = M.Ptp_equiv ⟨A, B ≫ F⟩ := by
   simp [Ptp_equiv]
   sorry

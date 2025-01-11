@@ -15,15 +15,15 @@ namespace NaturalModelPi
 
 variable {Ctx : Type u} [SmallCategory Ctx] (M : NaturalModelPi Ctx)
 
-def mkPi {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext Γ A) ⟶ M.Ty) : y(Γ) ⟶ M.Ty :=
+def mkPi {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ M.Ty) : y(Γ) ⟶ M.Ty :=
   M.Ptp_equiv ⟨A, B⟩ ≫ M.Pi
 
-def mkLam {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (t : y(M.ext Γ A) ⟶ M.Tm) : y(Γ) ⟶ M.Tm :=
+def mkLam {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (t : y(M.ext A) ⟶ M.Tm) : y(Γ) ⟶ M.Tm :=
   M.Ptp_equiv ⟨A, t⟩ ≫ M.lam
 
 @[simp]
-theorem mkLam_tp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext Γ A) ⟶ M.Ty)
-    (t : y(M.ext Γ A) ⟶ M.Tm) (t_tp : t ≫ M.tp = B) :
+theorem mkLam_tp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ M.Ty)
+    (t : y(M.ext A) ⟶ M.Tm) (t_tp : t ≫ M.tp = B) :
     M.mkLam A t ≫ M.tp = M.mkPi A B := by
   simp [mkLam, mkPi, NaturalModelPi.Pi_pullback.w]
   rw [← Category.assoc, M.Ptp_equiv_naturality, t_tp]
@@ -35,8 +35,8 @@ theorem mkLam_tp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext Γ A) ⟶ M.Ty)
 Γ.A ⊢ f[↑] v₀ : B
 ```
 -/
-def mkPApp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext Γ A) ⟶ M.Ty)
-    (f : y(Γ) ⟶ M.Tm) (f_tp : f ≫ M.tp = M.mkPi A B) : y(M.ext Γ A) ⟶ M.Tm := by
+def mkPApp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ M.Ty)
+    (f : y(Γ) ⟶ M.Tm) (f_tp : f ≫ M.tp = M.mkPi A B) : y(M.ext A) ⟶ M.Tm := by
   let total : y(Γ) ⟶ M.Ptp.obj M.Tm :=
     NaturalModelPi.Pi_pullback.isLimit.lift <|
       PullbackCone.mk f (M.Ptp_equiv ⟨A, B⟩) f_tp
@@ -57,7 +57,7 @@ def mkPApp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext Γ A) ⟶ M.Ty)
   -- clear_value total'; cases this; rfl
 
 @[simp]
-theorem mkPApp_tp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext Γ A) ⟶ M.Ty)
+theorem mkPApp_tp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ M.Ty)
     (f : y(Γ) ⟶ M.Tm) (f_tp : f ≫ M.tp = M.mkPi A B) :
     M.mkPApp A B f f_tp ≫ M.tp = B := by
   let total : y(Γ) ⟶ M.Ptp.obj M.Tm :=
@@ -68,13 +68,13 @@ theorem mkPApp_tp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext Γ A) ⟶ M.Ty)
   -- unfold mkPApp
   sorry
 
-def mkApp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext Γ A) ⟶ M.Ty)
+def mkApp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ M.Ty)
     (f : y(Γ) ⟶ M.Tm) (f_tp : f ≫ M.tp = M.mkPi A B)
     (a : y(Γ) ⟶ M.Tm) (a_tp : a ≫ M.tp = A) : y(Γ) ⟶ M.Tm :=
   M.inst A (M.mkPApp A B f f_tp) a a_tp
 
 @[simp]
-theorem mkApp_tp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext Γ A) ⟶ M.Ty)
+theorem mkApp_tp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ M.Ty)
     (f : y(Γ) ⟶ M.Tm) (f_tp : f ≫ M.tp = M.mkPi A B)
     (a : y(Γ) ⟶ M.Tm) (a_tp : a ≫ M.tp = A) :
     M.mkApp A B f f_tp a a_tp ≫ M.tp = M.inst A B a a_tp :=
@@ -82,8 +82,8 @@ theorem mkApp_tp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext Γ A) ⟶ M.Ty)
 
 -- semantic beta reduction
 @[simp]
-theorem mkApp_mkLam {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext Γ A) ⟶ M.Ty)
-    (t : y(M.ext Γ A) ⟶ M.Tm) (t_tp : t ≫ M.tp = B)
+theorem mkApp_mkLam {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ M.Ty)
+    (t : y(M.ext A) ⟶ M.Tm) (t_tp : t ≫ M.tp = B)
     (lam_tp : M.mkLam A t ≫ M.tp = M.mkPi A B)
     (a : y(Γ) ⟶ M.Tm) (a_tp : a ≫ M.tp = A) :
     -- TODO: rethink this; idk if we really want to have `inst`
