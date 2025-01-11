@@ -1,4 +1,4 @@
-import GroupoidModel.TypeTheory.Russell_PER_MS.Substitution
+import GroupoidModel.Russell_PER_MS.Substitution
 
 /-! In this file we specify typing judgments of the type theory
 as `Prop`-valued relations. -/

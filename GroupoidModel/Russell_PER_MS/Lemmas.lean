@@ -1,4 +1,4 @@
-import GroupoidModel.TypeTheory.Russell_PER_MS.Typing
+import GroupoidModel.Russell_PER_MS.Typing
 
 /-! Basic syntactic metatheory. -/
 

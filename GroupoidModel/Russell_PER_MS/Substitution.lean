@@ -1,4 +1,4 @@
-import GroupoidModel.TypeTheory.Russell_PER_MS.Basic
+import GroupoidModel.Russell_PER_MS.Basic
 
 /-! In this section we compute the action of substitutions.
 

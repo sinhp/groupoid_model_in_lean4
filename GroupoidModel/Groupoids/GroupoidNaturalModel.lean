@@ -1,6 +1,6 @@
 import Mathlib.CategoryTheory.Limits.Preserves.FunctorCategory
 
-import GroupoidModel.NaturalModel
+import GroupoidModel.Tarski.NaturalModel
 import GroupoidModel.Groupoids.PullBackProofs
 
 /-!
