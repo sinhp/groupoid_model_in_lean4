@@ -10,7 +10,7 @@ notation:max "y(" Γ ")" => yoneda.obj Γ
 notation:max "ym(" f ")" => yoneda.map f
 
 /-- A representable map with choice of representability witnesses. -/
--- FIXME: should just be called `RepresentableMap`.
+-- FIXME: should just be called `RepresentableNatTrans`.
 structure NaturalModelBase (Ctx : Type u) [Category Ctx] where
   Tm : Psh Ctx
   Ty : Psh Ctx
@@ -23,9 +23,9 @@ structure NaturalModelBase (Ctx : Type u) [Category Ctx] where
 
 namespace NaturalModelBase
 
-variable {Ctx : Type u} [SmallCategory Ctx] (M : NaturalModelBase Ctx)
+variable {Ctx : Type u} [Category Ctx] (M : NaturalModelBase Ctx)
 
-/-! ## Pullback of representable map -/
+/-! ## Pullback of representable natural transformation -/
 
 /-- Pull a natural model back along a type. -/
 protected def pullback {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) : NaturalModelBase Ctx where
@@ -122,6 +122,8 @@ theorem inst_wk {Γ : Ctx} {X : Psh Ctx}
   simp
 
 /-! ## Polynomial functor on `tp` -/
+
+variable [SmallCategory Ctx] (M : NaturalModelBase Ctx)
 
 def uvPolyTp : UvPoly M.Tm M.Ty := ⟨M.tp, inferInstance⟩
 def uvPolyTpT : UvPoly.Total (Psh Ctx) := ⟨_, _, M.uvPolyTp⟩
