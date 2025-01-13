@@ -1,6 +1,6 @@
 import GroupoidModel.ForPoly
 
-universe u
+universe v u
 
 noncomputable section
 
@@ -23,7 +23,7 @@ structure NaturalModelBase (Ctx : Type u) [Category Ctx] where
 
 namespace NaturalModelBase
 
-variable {Ctx : Type u} [Category Ctx] (M : NaturalModelBase Ctx)
+variable {Ctx : Type u} [Category.{v, u} Ctx] (M : NaturalModelBase Ctx)
 
 /-! ## Pullback of representable natural transformation -/
 

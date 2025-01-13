@@ -6,14 +6,14 @@ noncomputable section
 
 open CategoryTheory Limits Opposite
 
-class NaturalModelPi (Ctx : Type u) [SmallCategory Ctx] extends NaturalModelBase Ctx where
+class NaturalModelPi (Ctx : Type u) [SmallCategory.{u} Ctx] extends NaturalModelBase Ctx where
   Pi : toNaturalModelBase.Ptp.obj Ty ⟶ Ty
   lam : toNaturalModelBase.Ptp.obj Tm ⟶ Tm
   Pi_pullback : IsPullback lam (toNaturalModelBase.Ptp.map tp) tp Pi
 
 namespace NaturalModelPi
 
-variable {Ctx : Type u} [SmallCategory Ctx] (M : NaturalModelPi Ctx)
+variable {Ctx : Type u} [SmallCategory.{u} Ctx] (M : NaturalModelPi Ctx)
 
 def mkPi {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ M.Ty) : y(Γ) ⟶ M.Ty :=
   M.Ptp_equiv ⟨A, B⟩ ≫ M.Pi
