@@ -96,27 +96,27 @@ def wk {X : Psh Ctx} {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (f : y(Γ) ⟶ X) : y(M.ext
 
 /--
 ```
-Γ ⊢ A type  Γ.A ⊢ σ ⟶ X  Γ ⊢ a : A
+Γ ⊢ A type  Γ.A ⊢ x ⟶ X  Γ ⊢ a : A
 -----------------------------------
-Γ ⊢ σ[id.a] ⟶ X
+Γ ⊢ x[id.a] ⟶ X
 ```
 -/
 def inst {Γ : Ctx} {X : Psh Ctx}
-    (A : y(Γ) ⟶ M.Ty) (σ : y(M.ext A) ⟶ X)
+    (A : y(Γ) ⟶ M.Ty) (x : y(M.ext A) ⟶ X)
     (a : y(Γ) ⟶ M.Tm) (a_tp : a ≫ M.tp = A) : y(Γ) ⟶ X :=
-  ym(M.substCons (𝟙 _) A a (by simpa using a_tp)) ≫ σ
+  ym(M.substCons (𝟙 _) A a (by simpa using a_tp)) ≫ x
 
 @[simp]
-def inst_tp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ M.Ty)
-    (t : y(M.ext A) ⟶ M.Tm) (t_tp : t ≫ M.tp = B)
+def inst_tp {N : NaturalModelBase Ctx} {Γ : Ctx}  (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ N.Ty)
+    (t : y(M.ext A) ⟶ N.Tm) (t_tp : t ≫ N.tp = B)
     (a : y(Γ) ⟶ M.Tm) (a_tp : a ≫ M.tp = A) :
-    M.inst A t a a_tp ≫ M.tp = M.inst A B a a_tp :=
-   by simp [inst, t_tp]
+    M.inst A t a a_tp ≫ N.tp = M.inst A B a a_tp :=
+  by simp [inst, t_tp]
 
 @[simp]
 theorem inst_wk {Γ : Ctx} {X : Psh Ctx}
-    (A : y(Γ) ⟶ M.Ty) (σ : y(Γ) ⟶ X) (a : y(Γ) ⟶ M.Tm) (a_tp : a ≫ M.tp = A) :
-    M.inst A (M.wk A σ) a a_tp = σ := by
+    (A : y(Γ) ⟶ M.Ty) (x : y(Γ) ⟶ X) (a : y(Γ) ⟶ M.Tm) (a_tp : a ≫ M.tp = A) :
+    M.inst A (M.wk A x) a a_tp = x := by
   unfold inst wk
   slice_lhs 1 2 => rw [← yoneda.map_comp]; simp
   simp
@@ -188,21 +188,22 @@ def Ptp_equiv {Γ : Ctx} {X : Psh Ctx} :
       Iso.toEquiv <| (yoneda.obj X).mapIso <| Iso.op <|
         (M.disp_pullback A).isoPullback.trans (pullbackSymmetry M.tp A)
 
+@[reassoc]
 theorem Ptp_equiv_naturality {Γ : Ctx} {X Y : Psh Ctx}
-    (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) (F : X ⟶ Y) :
-    M.Ptp_equiv ⟨A, B⟩ ≫ M.Ptp.map F = M.Ptp_equiv ⟨A, B ≫ F⟩ := by
+    (A : y(Γ) ⟶ M.Ty) (x : y(M.ext A) ⟶ X) (α : X ⟶ Y) :
+    M.Ptp_equiv ⟨A, x⟩ ≫ M.Ptp.map α = M.Ptp_equiv ⟨A, x ≫ α⟩ := by
   simp [Ptp_equiv]
   sorry
 
 theorem Ptp_equiv_symm_naturality {Γ : Ctx} {X Y : Psh Ctx}
-    (f : y(Γ) ⟶ M.Ptp.obj X) (F : X ⟶ Y) :
-    let S := M.Ptp_equiv.symm f
-    M.Ptp_equiv.symm (f ≫ M.Ptp.map F) = ⟨S.1, S.2 ≫ F⟩ := by
+    (x : y(Γ) ⟶ M.Ptp.obj X) (α : X ⟶ Y) :
+    let S := M.Ptp_equiv.symm x
+    M.Ptp_equiv.symm (x ≫ M.Ptp.map α) = ⟨S.1, S.2 ≫ α⟩ := by
   sorry
 
-theorem Ptp_ext {Γ : Ctx} {X : Psh Ctx} {f g : y(Γ) ⟶ M.Ptp.obj X} :
-    f = g ↔ (M.Ptp_equiv.symm f).fst = (M.Ptp_equiv.symm g).fst ∧
-      HEq (M.Ptp_equiv.symm f).snd (M.Ptp_equiv.symm g).snd := by
+theorem Ptp_ext {Γ : Ctx} {X : Psh Ctx} {x y : y(Γ) ⟶ M.Ptp.obj X} :
+    x = y ↔ (M.Ptp_equiv.symm x).fst = (M.Ptp_equiv.symm y).fst ∧
+      HEq (M.Ptp_equiv.symm x).snd (M.Ptp_equiv.symm y).snd := by
   sorry
 
 end NaturalModelBase
