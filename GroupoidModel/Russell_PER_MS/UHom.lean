@@ -203,16 +203,32 @@ theorem mkLam_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].
 -----------------------------
 Γ.A ⊢ⱼ f[↑] v₀ : B
 ``` -/
-def unmkLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
+def elimLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (f : y(Γ) ⟶ s[max i j].Tm) (f_tp : f ≫ s[max i j].tp = s.mkPi ij jlen A B) :
     y(s[i].ext A) ⟶ s[j].Tm := by
-  sorry
+  let total : y(Γ) ⟶ s[i].Ptp.obj s[j].Tm :=
+    (s.Pi_pullbacks i j).lift f (s[i].Ptp_equiv ⟨A, B⟩) f_tp
+  -- bug: `get_elem_tactic` fails on `i` with
+  -- convert (s[i].Ptp_equiv.symm total).snd
+  let this := s[i].Ptp_equiv.symm total
+  convert this.snd
+  have eq : total ≫ s[i].Ptp.map s[j].tp = s[i].Ptp_equiv ⟨A, B⟩ :=
+    (s.Pi_pullbacks i j).isLimit.fac _ (some .right)
+  simpa [s[i].Ptp_equiv_symm_naturality] using (s[i].Ptp_ext.mp eq).left.symm
 
 @[simp]
-theorem unmkLam_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
+theorem elimLam_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (f : y(Γ) ⟶ s[max i j].Tm) (f_tp : f ≫ s[max i j].tp = s.mkPi ij jlen A B) :
-    s.unmkLam ij jlen A B f f_tp ≫ s[j].tp = B := by
-  sorry
+    s.elimLam ij jlen A B f f_tp ≫ s[j].tp = B := by
+  -- This proof is `s[i].Ptp_equiv_symm_naturality`, `IsPullback.lift_snd`, and ITT gunk.
+  dsimp only [elimLam]
+  generalize_proofs _ _ _ pf pf'
+  have := pf.lift_snd f (s[i].Ptp_equiv ⟨A, B⟩) f_tp
+  generalize pf.lift f (s[i].Ptp_equiv ⟨A, B⟩) f_tp = x at this pf'
+  have := congrArg s[i].Ptp_equiv.symm this
+  simp only [s[i].Ptp_equiv_symm_naturality, Equiv.symm_apply_apply, Sigma.mk.inj_iff] at this
+  cases this.left
+  simp [← eq_of_heq this.right]
 
 /--
 ```
@@ -223,7 +239,7 @@ theorem unmkLam_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j
 def mkApp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (f : y(Γ) ⟶ s[max i j].Tm) (f_tp : f ≫ s[max i j].tp = s.mkPi ij jlen A B)
     (a : y(Γ) ⟶ s[i].Tm) (a_tp : a ≫ s[i].tp = A) : y(Γ) ⟶ s[j].Tm :=
-  s[i].inst A (s.unmkLam ij jlen A B f f_tp) a a_tp
+  s[i].inst A (s.elimLam ij jlen A B f f_tp) a a_tp
 
 @[simp]
 theorem mkApp_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
@@ -234,30 +250,39 @@ theorem mkApp_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].
 
 /--
 ```
-Γ ⊢ᵢ A  Γ.A ⊢ⱼ t : B  Γ ⊢ᵢ a : A
---------------------------------
-Γ.A ⊢ⱼ (λA. t) a ≡ t[a] : B[a]
-``` -/
--- Q: should `inst ..` be the simp-NF, or should the more basic `_ ≫ σ`?
-@[simp]
-theorem mkApp_mkLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
-    (t : y(s[i].ext A) ⟶ s[j].Tm) (t_tp : t ≫ s[j].tp = B)
-    (lam_tp : s.mkLam ij jlen A t ≫ s[max i j].tp = s.mkPi ij jlen A B)
-    (a : y(Γ) ⟶ s[i].Tm) (a_tp : a ≫ s[i].tp = A) :
-    s.mkApp ij jlen A B (s.mkLam ij jlen A t) lam_tp a a_tp = s[i].inst A t a a_tp := by
-  sorry
-
-/--
-```
 Γ ⊢ₘₐₓ₍ᵢ,ⱼ₎ f : ΠA. B
 --------------------------------------
 Γ ⊢ₘₐₓ₍ᵢ,ⱼ₎ (λA. f[↑] v₀) ≡ f : ΠA. B
 ``` -/
 @[simp]
-theorem eq_lam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
+theorem mkLam_elimLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (f : y(Γ) ⟶ s[max i j].Tm) (f_tp : f ≫ s[max i j].tp = s.mkPi ij jlen A B)
     (a : y(Γ) ⟶ s[i].Tm) (a_tp : a ≫ s[i].tp = A) :
-    s.mkLam ij jlen A (s.unmkLam ij jlen A B f f_tp) = f := by
+    -- TODO: is `elimLam` what `λA. f[↑] v₀` actually interprets to?
+    s.mkLam ij jlen A (s.elimLam ij jlen A B f f_tp) = f := by
   sorry
+
+@[simp]
+theorem elimLam_mkLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
+    (t : y(s[i].ext A) ⟶ s[j].Tm) (t_tp : t ≫ s[j].tp = B)
+    (lam_tp : s.mkLam ij jlen A t ≫ s[max i j].tp = s.mkPi ij jlen A B) :
+    s.elimLam ij jlen A B (s.mkLam ij jlen A t) lam_tp = t := by
+  sorry
+
+/--
+```
+Γ ⊢ᵢ A  Γ.A ⊢ⱼ t : B  Γ ⊢ᵢ a : A
+--------------------------------
+Γ.A ⊢ⱼ (λA. t) a ≡ t[a] : B[a]
+``` -/
+@[simp]
+theorem mkApp_mkLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
+    (t : y(s[i].ext A) ⟶ s[j].Tm) (t_tp : t ≫ s[j].tp = B)
+    (lam_tp : s.mkLam ij jlen A t ≫ s[max i j].tp = s.mkPi ij jlen A B)
+    (a : y(Γ) ⟶ s[i].Tm) (a_tp : a ≫ s[i].tp = A) :
+    -- Q: should `inst ..` be the simp-NF, or should the more basic `_ ≫ σ`?
+    s.mkApp ij jlen A B (s.mkLam ij jlen A t) lam_tp a a_tp = s[i].inst A t a a_tp := by
+  rw [mkApp, elimLam_mkLam]
+  assumption
 
 end UHomSeqPis
