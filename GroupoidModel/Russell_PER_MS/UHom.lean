@@ -62,6 +62,9 @@ def UHom.comp_assoc {M N O P : NaturalModelBase Ctx} (α : UHom M N) (β : UHom 
     comp (comp α β) γ = comp α (comp β γ) := by
   simp [comp, Hom.comp]
 
+def UHom.wkU {M N : NaturalModelBase Ctx} (Γ : Ctx) (α : UHom M N) : y(Γ) ⟶ N.Ty :=
+  terminal.from y(Γ) ≫ α.U
+
 /- Sanity check:
 construct a `UHom` into a natural model with a Tarski universe. -/
 def UHom.ofTarskiU [HasTerminal Ctx] (M : NaturalModelBase Ctx)
@@ -85,23 +88,23 @@ structure UHomSeq (Ctx : Type u) [Category.{v, u} Ctx] where
   or one less than the number of models in the sequence. -/
   length : Nat
   objs (i : Nat) (h : i < length + 1) : NaturalModelBase Ctx
-  homs' (i : Nat) (h : i < length) : UHom (objs i <| by omega) (objs (i + 1) <| by omega)
+  homSucc' (i : Nat) (h : i < length) : UHom (objs i <| by omega) (objs (i + 1) <| by omega)
 
 namespace UHomSeq
 
 instance : GetElem (UHomSeq Ctx) Nat (NaturalModelBase Ctx) (fun s i => i < s.length + 1) where
   getElem s i h := s.objs i h
 
-def homs (s : UHomSeq Ctx) (i : Nat) (h : i < s.length := by get_elem_tactic) : UHom s[i] s[i+1] :=
-  s.homs' i h
+def homSucc (s : UHomSeq Ctx) (i : Nat) (h : i < s.length := by get_elem_tactic) : UHom s[i] s[i+1] :=
+  s.homSucc' i h
 
 /-- Composition of embeddings between `i` and `j` in the chain. -/
 def hom (s : UHomSeq Ctx) (i j : Nat) (ij : i < j := by omega)
     (jlen : j < s.length + 1 := by get_elem_tactic) : UHom s[i] s[j] :=
   if h : i + 1 = j then
-    h ▸ s.homs i
+    h ▸ s.homSucc i
   else
-    (s.homs i).comp <| s.hom (i+1) j
+    (s.homSucc i).comp <| s.hom (i+1) j
 termination_by s.length - i
 
 theorem hom_comp_trans (s : UHomSeq Ctx) (i j k : Nat) (ij : i < j) (jk : j < k)
@@ -116,6 +119,23 @@ theorem hom_comp_trans (s : UHomSeq Ctx) (i j k : Nat) (ij : i < j) (jk : j < k)
     simp
   . rw [UHom.comp_assoc, hom_comp_trans]
 termination_by s.length - i
+
+def code (s : UHomSeq Ctx) {Γ : Ctx} {i : Nat} (ilen : i < s.length) (A : y(Γ) ⟶ s[i].Ty) :
+    y(Γ) ⟶ s[i+1].Tm :=
+  sorry
+
+@[simp]
+theorem code_tp (s : UHomSeq Ctx) {Γ : Ctx} {i : Nat} (ilen : i < s.length) (A : y(Γ) ⟶ s[i].Ty) :
+    s.code ilen A ≫ s[i+1].tp = (s.homSucc i).wkU Γ :=
+  sorry
+
+def el (s : UHomSeq Ctx) {Γ : Ctx} {i : Nat} (ilen : i < s.length)
+    (A : y(Γ) ⟶ s[i+1].Tm) (A_tp : A ≫ s[i+1].tp = (s.homSucc i).wkU Γ) :
+    y(Γ) ⟶ s[i].Ty :=
+  sorry
+
+-- code_el A = A
+-- el_code A = A
 
 end UHomSeq
 

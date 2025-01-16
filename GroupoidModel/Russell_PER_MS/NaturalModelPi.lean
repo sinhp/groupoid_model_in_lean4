@@ -1,3 +1,6 @@
+/-! DEPRECATED in favor of `UHomSeqPis` -/
+#exit
+
 import GroupoidModel.Russell_PER_MS.NaturalModelBase
 
 universe u
