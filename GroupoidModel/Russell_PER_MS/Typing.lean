@@ -44,7 +44,7 @@ inductive EqTp : List Expr → Nat → Expr → Expr → Prop
   | cong_pi {Γ A A' B B' l l'} :
     Γ ⊢[l] A ≡ A'→
     A :: Γ ⊢[l'] B ≡ B' →
-    Γ ⊢[max l l'] .pi A B ≡ .pi A' B'
+    Γ ⊢[max l l'] .pi l l' A B ≡ .pi l l' A' B'
 
   | cong_univ (Γ l) :
     l < univMax →
@@ -52,10 +52,7 @@ inductive EqTp : List Expr → Nat → Expr → Expr → Prop
 
   | cong_el {Γ A A' l} :
     Γ ⊢[l+1] A ≡ A' : .univ l →
-    -- NOTE: the `el` is silent here.
-    -- If needed, we can add it as a term former to the syntax,
-    -- and continue interpreting it as before.
-    Γ ⊢[l] A ≡ A'
+    Γ ⊢[l] .el A ≡ .el A'
 
   -- Substitution
   | inst {Γ A B B' t u l l'} :
@@ -85,19 +82,18 @@ inductive EqTm : List Expr → Nat → Expr → Expr → Expr → Prop
   | cong_lam {Γ A A' B t t' l l'} :
     Γ ⊢[l] A ≡ A' →
     A :: Γ ⊢[l'] t ≡ t' : B →
-    Γ ⊢[max l l'] .lam A t ≡ .lam A' t' : .pi A B
+    Γ ⊢[max l l'] .lam l l' A t ≡ .lam l l' A' t' : .pi l l' A B
 
   | cong_app {Γ A B B' f f' a a' l l'} :
     A :: Γ ⊢[l'] B ≡ B' →
-    Γ ⊢[max l l'] f ≡ f' : .pi A B →
+    Γ ⊢[max l l'] f ≡ f' : .pi l l' A B →
     Γ ⊢[l] a ≡ a' : A →
-    Γ ⊢[l'] .app B f a ≡ .app B' f' a' : B.inst a
+    Γ ⊢[l'] .app l l' B f a ≡ .app l l' B' f' a' : B.inst a
 
   | cong_code {Γ A A' l} :
     l < univMax →
     Γ ⊢[l] A ≡ A' →
-    -- NOTE: See note on `cong_el`.
-    Γ ⊢[l+1] A ≡ A' : .univ l
+    Γ ⊢[l+1] .code A ≡ .code A' : .univ l
 
   -- Substitution
   | inst {Γ A B t u a b l l'} :
@@ -111,12 +107,12 @@ inductive EqTm : List Expr → Nat → Expr → Expr → Expr → Prop
   | app_lam {Γ A B t u l l'} :
     A :: Γ ⊢[l'] t : B →
     Γ ⊢[l] u : A →
-    Γ ⊢[l'] .app B (.lam A t) u ≡ t.inst u : B.inst u
+    Γ ⊢[l'] .app l l' B (.lam l l' A t) u ≡ t.inst u : B.inst u
 
   -- Expansions
-  | eta {Γ A B t l} :
-    Γ ⊢[l] t : .pi A B →
-    Γ ⊢[l] t ≡ .lam A (.app B t.lift (.bvar 0)) : .pi A B
+  | eta {Γ A B t l l'} :
+    Γ ⊢[max l l'] t : .pi l l' A B →
+    Γ ⊢[max l l'] t ≡ .lam l l' A (.app l l' B t.lift (.bvar 0)) : .pi l l' A B
 
   -- Conversion
   | conv {Γ A A' t t' l} :

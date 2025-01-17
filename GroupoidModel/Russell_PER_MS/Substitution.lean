@@ -25,10 +25,12 @@ variable (n : Nat) in
 /-- Substitute `↑ⁿ⁺ᵏ:k` in an expression. -/
 def Expr.liftN : Expr → (k : Nat := 0) → Expr
   | .bvar i, k => .bvar (liftVar n i k)
-  | .pi ty body, k => .pi (ty.liftN k) (body.liftN (k+1))
-  | .lam ty body, k => .lam (ty.liftN k) (body.liftN (k+1))
-  | .app B fn arg, k => .app (B.liftN (k+1)) (fn.liftN k) (arg.liftN k)
+  | .pi l l' ty body, k => .pi l l' (ty.liftN k) (body.liftN (k+1))
+  | .lam l l' ty body, k => .lam l l' (ty.liftN k) (body.liftN (k+1))
+  | .app l l' B fn arg, k => .app l l' (B.liftN (k+1)) (fn.liftN k) (arg.liftN k)
   | .univ n, _ => .univ n
+  | .el a, k => .el (a.liftN k)
+  | .code A, k => .code (A.liftN k)
 
 /-- Substitute `↑¹` in an expression. -/
 abbrev Expr.lift := Expr.liftN 1
@@ -40,7 +42,9 @@ def instVar (i : Nat) (e : Expr) (k := 0) : Expr :=
 /-- Substitute `↑ᵏ.e[↑ᵏ]:k` in an expression. -/
 def Expr.inst : Expr → Expr → (k :_:= 0) → Expr
   | .bvar i, e, k => instVar i e k
-  | .pi ty body, e, k => .pi (ty.inst e k) (body.inst e (k+1))
-  | .lam ty body, e, k => .lam (ty.inst e k) (body.inst e (k+1))
-  | .app B fn arg, e, k => .app (B.inst e (k+1)) (fn.inst e k) (arg.inst e k)
+  | .pi l l' ty body, e, k => .pi l l' (ty.inst e k) (body.inst e (k+1))
+  | .lam l l' ty body, e, k => .lam l l' (ty.inst e k) (body.inst e (k+1))
+  | .app l l' B fn arg, e, k => .app l l' (B.inst e (k+1)) (fn.inst e k) (arg.inst e k)
   | .univ n, _, _ => .univ n
+  | .el a, e, k => .el (a.inst e k)
+  | .code A, e, k => .code (A.inst e k)

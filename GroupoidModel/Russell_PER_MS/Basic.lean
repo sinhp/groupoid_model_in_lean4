@@ -11,11 +11,15 @@ inductive Expr where
   /-- De Bruijn index. -/
   | bvar (i : Nat)
   /-- Dependent product. -/
-  | pi (A B : Expr)
+  | pi (l l' : Nat) (A B : Expr)
   /-- Lambda. -/
-  | lam (ty body : Expr)
+  | lam (l l' : Nat) (ty body : Expr)
   /-- Application at the specified output type. -/
-  | app (B fn arg : Expr)
+  | app (l l' : Nat) (B fn arg : Expr)
   /-- (Russell) type universe. -/
-  | univ (n : Nat)
+  | univ (l : Nat)
+  /-- Type from a code. -/
+  | el (a : Expr) : Expr
+  /-- Code from a type. -/
+  | code (A : Expr) : Expr
   deriving Repr
