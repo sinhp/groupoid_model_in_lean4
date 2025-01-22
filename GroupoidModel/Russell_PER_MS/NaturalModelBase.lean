@@ -94,6 +94,10 @@ theorem substSnd_tp {Δ Γ : Ctx} {A : y(Γ) ⟶ M.Ty} (σ : Δ ⟶ M.ext A) :
 def wk {X : Psh Ctx} {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (f : y(Γ) ⟶ X) : y(M.ext A) ⟶ X :=
   ym(M.disp A) ≫ f
 
+@[simp]
+theorem var_tp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) : M.var A ≫ M.tp = M.wk A A := by
+  simp [wk, (M.disp_pullback A).w]
+
 /--
 ```
 Γ ⊢ A type  Γ.A ⊢ x ⟶ X  Γ ⊢ a : A

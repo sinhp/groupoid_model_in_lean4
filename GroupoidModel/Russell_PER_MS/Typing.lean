@@ -22,10 +22,14 @@ macro_rules
 
 end Notation
 
-/-- `Lookup Γ i A` implies that `Γ ⊢ .bvar i : A`. -/
-inductive Lookup : List Expr → Nat → Expr → Prop where
-  | zero {Γ A} : Lookup (A::Γ) 0 A.lift
-  | succ {Γ i A} : Lookup Γ i A → Lookup (A::Γ) (i+1) A.lift
+/-- A typing context consisting of expressions and their universe levels. -/
+abbrev Ctx := List (Expr × Nat)
+
+/-- `Lookup Γ i A l` means that `(A, l)` is stored at index `i` in `Γ`.
+This implies `Γ ⊢[l] .bvar i : A`. -/
+inductive Lookup : Ctx → Nat → Expr → Nat → Prop where
+  | zero (Γ A l) : Lookup ((A,l) :: Γ) 0 A.lift l
+  | succ {Γ A i l} : Lookup Γ i A l → Lookup ((A,l) :: Γ) (i+1) A.lift l
 
 /-- The maximum `l` for which `Γ ⊢[l] 𝒥` makes sense.
 When set to `0`, types cannot be quantified over at all. -/
@@ -39,11 +43,11 @@ just the ones needed that make inversion easy. -/
 contexts, types, de Bruijn indices, universe levels. -/
 
 mutual
-inductive EqTp : List Expr → Nat → Expr → Expr → Prop
+inductive EqTp : Ctx → Nat → Expr → Expr → Prop
   -- Congruences / constructors
   | cong_pi {Γ A A' B B' l l'} :
     Γ ⊢[l] A ≡ A'→
-    A :: Γ ⊢[l'] B ≡ B' →
+    (A,l) :: Γ ⊢[l'] B ≡ B' →
     Γ ⊢[max l l'] .pi l l' A B ≡ .pi l l' A' B'
 
   | cong_univ (Γ l) :
@@ -55,37 +59,37 @@ inductive EqTp : List Expr → Nat → Expr → Expr → Prop
     Γ ⊢[l] .el A ≡ .el A'
 
   -- Substitution
-  | inst {Γ A B B' t u l l'} :
-    A :: Γ ⊢[l] B ≡ B' →
-    Γ ⊢[l'] t ≡ u : A →
-    Γ ⊢[l] B.inst t ≡ B.inst u
+  | inst_tp {Γ A B B' t u l l'} :
+    (A,l) :: Γ ⊢[l'] B ≡ B' →
+    Γ ⊢[l] t ≡ u : A →
+    Γ ⊢[l'] B.inst t ≡ B.inst u
 
   -- lift
 
   -- Symmetric-transitive closure
-  | symm {Γ A A' l} :
+  | symm_tp {Γ A A' l} :
     Γ ⊢[l] A ≡ A' →
     Γ ⊢[l] A' ≡ A
 
-  | trans {Γ A A' A'' l} :
+  | trans_tp {Γ A A' A'' l} :
     Γ ⊢[l] A ≡ A' →
     Γ ⊢[l] A' ≡ A'' →
     Γ ⊢[l] A ≡ A''
 
-inductive EqTm : List Expr → Nat → Expr → Expr → Expr → Prop
+inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
   -- Congruences / constructors
   | cong_bvar {Γ A i l} :
     Γ ⊢[l] A →
-    Lookup Γ i A →
+    Lookup Γ i A l →
     Γ ⊢[l] .bvar i : A
 
   | cong_lam {Γ A A' B t t' l l'} :
     Γ ⊢[l] A ≡ A' →
-    A :: Γ ⊢[l'] t ≡ t' : B →
+    (A,l) :: Γ ⊢[l'] t ≡ t' : B →
     Γ ⊢[max l l'] .lam l l' A t ≡ .lam l l' A' t' : .pi l l' A B
 
   | cong_app {Γ A B B' f f' a a' l l'} :
-    A :: Γ ⊢[l'] B ≡ B' →
+    (A,l) :: Γ ⊢[l'] B ≡ B' →
     Γ ⊢[max l l'] f ≡ f' : .pi l l' A B →
     Γ ⊢[l] a ≡ a' : A →
     Γ ⊢[l'] .app l l' B f a ≡ .app l l' B' f' a' : B.inst a
@@ -95,24 +99,16 @@ inductive EqTm : List Expr → Nat → Expr → Expr → Expr → Prop
     Γ ⊢[l] A ≡ A' →
     Γ ⊢[l+1] .code A ≡ .code A' : .univ l
 
-  -- Substitution
-  | inst {Γ A B t u a b l l'} :
-    A :: Γ ⊢[l] t ≡ u : B →
-    Γ ⊢[l'] a ≡ b : A →
-    Γ ⊢[l] t.inst a ≡ u.inst b : B.inst a
-
-  -- lift
-
   -- Reductions
   | app_lam {Γ A B t u l l'} :
-    A :: Γ ⊢[l'] t : B →
+    (A,l) :: Γ ⊢[l'] t : B →
     Γ ⊢[l] u : A →
     Γ ⊢[l'] .app l l' B (.lam l l' A t) u ≡ t.inst u : B.inst u
 
   -- Expansions
-  | eta {Γ A B t l l'} :
-    Γ ⊢[max l l'] t : .pi l l' A B →
-    Γ ⊢[max l l'] t ≡ .lam l l' A (.app l l' B t.lift (.bvar 0)) : .pi l l' A B
+  | eta {Γ A B f l l'} :
+    Γ ⊢[max l l'] f : .pi l l' A B →
+    Γ ⊢[max l l'] f ≡ .lam l l' A (.app l l' B.lift f.lift (.bvar 0)) : .pi l l' A B
 
   -- Conversion
   | conv {Γ A A' t t' l} :
@@ -120,12 +116,20 @@ inductive EqTm : List Expr → Nat → Expr → Expr → Expr → Prop
     Γ ⊢[l] t ≡ t' : A →
     Γ ⊢[l] t ≡ t' : A'
 
+  -- Substitution
+  | inst_tm {Γ A B a b t u l l'} :
+    (A,l) :: Γ ⊢[l'] a ≡ b : B →
+    Γ ⊢[l] t ≡ u : A →
+    Γ ⊢[l'] a.inst t ≡ b.inst u : B.inst t
+
+  -- lift
+
   -- Symmetric-transitive closure
-  | symm {Γ A t t' l} :
+  | symm_tm {Γ A t t' l} :
     Γ ⊢[l] t ≡ t' : A →
     Γ ⊢[l] t' ≡ t : A
 
-  | trans {Γ A t t' t'' l} :
+  | trans_tm {Γ A t t' t'' l} :
     Γ ⊢[l] t ≡ t' : A →
     Γ ⊢[l] t' ≡ t'' : A →
     Γ ⊢[l] t ≡ t'' : A
