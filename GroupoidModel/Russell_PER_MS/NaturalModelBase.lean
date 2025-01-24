@@ -94,9 +94,27 @@ theorem substSnd_tp {Δ Γ : Ctx} {A : y(Γ) ⟶ M.Ty} (σ : Δ ⟶ M.ext A) :
 def wk {X : Psh Ctx} {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (f : y(Γ) ⟶ X) : y(M.ext A) ⟶ X :=
   ym(M.disp A) ≫ f
 
+theorem wk_tp {N : NaturalModelBase Ctx} {Γ : Ctx} {B : y(Γ) ⟶ N.Ty} (A : y(Γ) ⟶ M.Ty)
+    (f : y(Γ) ⟶ N.Tm) (f_tp : f ≫ N.tp = B) :
+    M.wk A f ≫ N.tp = M.wk A B := by
+  simp [wk, f_tp]
+
 @[simp]
 theorem var_tp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) : M.var A ≫ M.tp = M.wk A A := by
   simp [wk, (M.disp_pullback A).w]
+
+/--
+Weaken a substitution.
+```
+Δ ⊢ σ : Γ  Γ ⊢ A type
+----------------------------------------
+Δ.A[σ] ⊢ ↑≫σ : Γ  Δ.A[σ] ⊢ v₀ : A[↑≫σ]
+----------------------------------------
+Δ.A[σ] ⊢ (↑≫σ).v₀ : Γ.A
+```
+-/
+def substWk {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) : M.ext (ym(σ) ≫ A) ⟶ M.ext A :=
+  M.substCons (M.disp _ ≫ σ) A (M.var _) (by simp [wk])
 
 /--
 ```

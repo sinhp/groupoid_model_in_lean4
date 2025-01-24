@@ -23,3 +23,7 @@ inductive Expr where
   /-- Code from a type. -/
   | code (A : Expr) : Expr
   deriving Repr
+
+@[simp]
+theorem Expr.sizeOf_pos (e : Expr) : 0 < sizeOf e := by
+  induction e <;> { dsimp; omega }

@@ -108,7 +108,7 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
   -- Expansions
   | eta {Γ A B f l l'} :
     Γ ⊢[max l l'] f : .pi l l' A B →
-    Γ ⊢[max l l'] f ≡ .lam l l' A (.app l l' B.lift f.lift (.bvar 0)) : .pi l l' A B
+    Γ ⊢[max l l'] f ≡ .lam l l' A (.app l l' (B.liftN 1 1) f.lift (.bvar 0)) : .pi l l' A B
 
   -- Conversion
   | conv {Γ A A' t t' l} :

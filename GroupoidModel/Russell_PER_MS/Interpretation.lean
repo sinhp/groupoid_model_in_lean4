@@ -168,8 +168,14 @@ theorem mem_ofType_lift {A B l l' llen l'len} {sΓ sA sB}
     (s[l']'l'len).wk sB sA ∈ ofType (sΓ.cons l'len sB) l (A.lift) llen :=
   sorry
 
-theorem mem_ofTerm_lift {A B t l l' llen l'len} {sΓ sA sB st}
+theorem mem_ofType_liftN {A B l l' llen l'len n k} {sΓ sA sB}
     (sA_mem : sA ∈ ofType sΓ l A llen)
+    (sB_mem : sB ∈ ofType sΓ l' B l'len) :
+    -- TODO: semantic liftN
+    (s[l']'l'len).wk sB sA ∈ ofType (sΓ.cons l'len sB) l (A.liftN n k) llen :=
+  sorry
+
+theorem mem_ofTerm_lift {B t l l' llen l'len} {sΓ sB st}
     (st_mem : st ∈ ofTerm sΓ l t llen)
     (sB_mem : sB ∈ ofType sΓ l' B l'len) :
     (s[l']'l'len).wk sB st ∈ ofTerm (sΓ.cons l'len sB) l (t.lift) llen :=
@@ -209,6 +215,24 @@ theorem mem_ofTerm_lam {A t} {i j : Nat} (ilen : i < s.length + 1) (jlen : j < s
   simp_part
   use sA, sA_mem, st, st_mem
 
+theorem mem_ofTerm_etaExpand {A B f} {i j : Nat} (ilen : i < s.length + 1) (jlen : j < s.length + 1)
+    {sΓ : s.CCtx} {sA : y(sΓ.1) ⟶ (s[i]'ilen).Ty} {sB : y((sΓ.cons ilen sA).1) ⟶ (s[j]'jlen).Ty}
+    {sf : y(sΓ.1) ⟶ s[max i j].Tm}
+    (sA_mem : sA ∈ ofType sΓ i A ilen)
+    (sB_mem : sB ∈ ofType (sΓ.cons ilen sA) j B jlen)
+    (sf_mem : sf ∈ ofTerm sΓ (max i j) f (by skip) /- wtf -/)
+    (sf_tp : sf ≫ s[max i j].tp = s.mkPi ilen jlen sA sB) :
+    s.etaExpand ilen jlen sA sB sf sf_tp ∈
+      ofTerm sΓ (max i j) (.lam i j A <| .app i j (B.liftN 1 1) f.lift (.bvar 0)) (by skip) := by
+  dsimp [etaExpand]
+  apply mem_ofTerm_lam ilen jlen sA_mem
+  apply mem_ofTerm_app ilen jlen
+  . -- TODO: mem_ofType_liftN
+    sorry
+  . exact mem_ofTerm_lift sf_mem sA_mem
+  . dsimp [ofTerm, UHomSeq.CCtx.var, UHomSeq.CtxStack.var]
+    simp
+
 -- TODO: this proof is boring, repetitive exists-elim/exists-intro: automate!
 theorem ofType_ofTerm_sound :
     (∀ {Γ l A B}, (Aeq : Γ ⊢[l] A ≡ B) → ∀ {sΓ}, sΓ ∈ ofCtx s Γ →
@@ -247,26 +271,11 @@ theorem ofType_ofTerm_sound :
     dsimp [ofType] at sABmem
     simp_part at sABmem
     have ⟨sA, sAmem, sB, sBmem, sABeq⟩ := sABmem
-    refine ⟨sAB, sABmem_, sf, sfmem, ?_, sftp⟩
-    dsimp [ofTerm]
-    simp_part
-    use sA, sAmem
-    have vtp : s[l].var sA ≫ s[l].tp = s[l].wk sA sA := by simp
-    have wkAmem := mem_ofType_lift sAmem sAmem
-    use s.mkApp llen l'len (s[l].wk sA sA) (s[l].wk _ sB) (s[l].wk sA sf) sorry (s[l].var sA) vtp
-    refine ⟨⟨llen,
-        ⟨_, mem_ofTerm_lift sABmem_ sfmem sAmem,
-        s[l].var sA, ?_,
-        _, mem_ofType_lift sBmem (vtp ▸ wkAmem),
-        ?_,
-        ?_⟩⟩,
-      ?_⟩
-    . simp [UHomSeq.CCtx.var, UHomSeq.CtxStack.var]
-      rfl
-    . sorry -- same sorry as above
-    . convert rfl
-    . dsimp [mkApp]
-      sorry -- need another lemma
+    refine ⟨sAB, sABmem_, ?_⟩
+    refine ⟨s.etaExpand llen l'len sA sB sf (sABeq ▸ sftp), ?_, ?_, ?_⟩
+    . rw [etaExpand_eq]; assumption
+    . apply mem_ofTerm_etaExpand llen l'len sAmem sBmem sfmem (sABeq ▸ sftp)
+    . rw [etaExpand_eq]; assumption
 
   all_goals intros; dsimp [ofType]; try intros
   case cong_pi Aeq Beq ihA ihB sΓ sΓmem =>
