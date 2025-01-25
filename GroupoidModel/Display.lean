@@ -6,7 +6,7 @@ import Mathlib.CategoryTheory.Limits.Shapes.FunctorCategory
 import Mathlib.CategoryTheory.Adjunction.Over
 import Poly.LCCC.Presheaf
 import Poly.Polynomial
-import GroupoidModel.NaturalModel
+import GroupoidModel.Tarski.NaturalModel
 
 -- (SH) TODO: Make the proof and construction work with `Disp` rather than `Disp'`.
 

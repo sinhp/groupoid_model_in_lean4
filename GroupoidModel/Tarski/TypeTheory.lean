@@ -1,4 +1,4 @@
-import GroupoidModel.NaturalModel
+import GroupoidModel.Tarski.NaturalModel
 import GroupoidModel.ForMathlib
 
 set_option autoImplicit true
@@ -294,6 +294,7 @@ def mkPApp'_aux {Γ : Ctx} (A : y(Γ) ⟶ Ty) (B : y(ext Γ A) ⟶ Ty)
     (f : y(Γ) ⟶ Tm) (f_tp : f ≫ tp = mkP A B ≫ NaturalModelPi.Pi) :
     (A : y(Γ) ⟶ Ty) × (y(ext Γ A) ⟶ Tm) :=
   mkP_equiv <|
+    -- NOTE: can be replaced by Pi_pullback.lift (new API)
     NaturalModelPi.Pi_pullback.isLimit.lift <|
       PullbackCone.mk f (mkP A B) f_tp
 
