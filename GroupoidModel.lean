@@ -1,7 +1,6 @@
 -- This module serves as the root of the `GroupoidModelInLean4` library.
 -- Import modules here that should be built as part of the library.
-import GroupoidModel.NaturalModel
-import GroupoidModel.TypeTheory
+import GroupoidModel.Tarski.TypeTheory
 import GroupoidModel.Groupoids.GroupoidNaturalModel
 
 /- There should be at least three separate files here for three separate developments:
