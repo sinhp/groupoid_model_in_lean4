@@ -3,6 +3,7 @@ import Mathlib.CategoryTheory.Limits.Preserves.FunctorCategory
 import GroupoidModel.Tarski.NaturalModel
 import GroupoidModel.Groupoids.PullBackProofs
 
+
 /-!
 Here we construct the natural model for groupoids.
 -/
@@ -95,7 +96,6 @@ def PolyDataGet (Γ : sGrpdᵒᵖ) (Q : ((NaturalModel.P NaturalModel.tp).obj Na
   apply yonedaEquiv.invFun
   exact Q
 
-
 def GroupoidSigma {Γ : Grpd} (A : Γ ⥤ Grpd) (B : (GroupoidalGrothendieck A) ⥤ Grpd) : Γ ⥤ Grpd where
   obj x := by
     let xA : (A.obj x) ⥤ GroupoidalGrothendieck A := by
@@ -137,6 +137,12 @@ def GroupoidSigma {Γ : Grpd} (A : Γ ⥤ Grpd) (B : (GroupoidalGrothendieck A) 
       . aesop_cat
     . aesop_cat
     . aesop_cat
+
+
+-- theorem GroupoidSigmaBeckChevalley (Δ Γ: Grpd) (σ : Δ ⥤ Γ) (A : Γ ⥤ Grpd)
+--   (B : (GroupoidalGrothendieck A) ⥤ Grpd) : σ ⋙ GroupoidSigma A B = GroupoidSigma (σ ⋙ A)
+--   (GroupoidalGrothendieck.Map Δ Γ σ A B) := by
+--     dsimp [GroupoidSigma,GroupoidalGrothendieck.Map]
 
 instance GroupoidNMSigma : NaturalModel.NaturalModelSigma sGrpd.{u} where
   Sig := by
