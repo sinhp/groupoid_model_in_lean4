@@ -15,6 +15,192 @@ universe u v u₁ v₁ u₂ v₂
 
 namespace CategoryTheory
 
+namespace Limits
+
+universe u₃ v₃
+variable {J : Type u₁} [Category.{v₁} J] {K : Type u₂} [Category.{v₂} K]
+variable {C : Type u₃} [Category.{v₃} C]
+
+open CategoryTheory
+open Functor
+
+/-- A `c : RepCone F` is:
+* an object `c.pt` and
+* a natural transformation `c.π : yoneda.obj c.pt ⟶ F`
+from the constant `yoneda.obj c.pt` functor to `F`.
+-/
+structure RepCone (F : J ⥤ Cᵒᵖ ⥤ Type v₃) where
+  /-- An object of `C` -/
+  pt : C
+  /-- A natural transformation from the constant functor at `X` to `F` -/
+  π : (const J).obj (yoneda.obj pt) ⟶ F
+
+namespace RepCone
+
+variable {F : J ⥤ Cᵒᵖ ⥤ Type v₃}
+
+@[reducible] def cone (s : RepCone F) : Limits.Cone F where
+  pt := yoneda.obj s.pt
+  π := s.π
+
+end RepCone
+
+variable {F : J ⥤ Cᵒᵖ ⥤ Type v₃}
+
+structure RepIsLimit (t : Cone F) where
+  lift : ∀ s : RepCone F, s.cone.pt ⟶ t.pt
+  fac : ∀ (s : RepCone F) (j : J),
+    lift s ≫ t.π.app j = (s.cone).π.app j := by aesop_cat
+  /-- It is the unique such map to do this -/
+  uniq : ∀ (s : RepCone F) (m : s.cone.pt ⟶ t.pt)
+    (_ : ∀ j : J, m ≫ t.π.app j = s.cone.π.app j), m = lift s := by
+    aesop_cat
+
+-- @[reducible] def repConeOfConePt 
+--   (s : Cone F) (c : Cᵒᵖ) (x : s.pt.obj c) :
+--   RepCone F := 
+--     { pt := c.unop
+--       π := {app := λ j ↦ yonedaEquiv.invFun x ≫ s.π.app j}}
+
+abbrev ConeMap (s : Cone F) (c : C) :=
+ yoneda.obj c ⟶ s.pt
+
+@[simp] def repConeOfConeMap 
+  (s : Cone F) (c : C) (x' : ConeMap s c) :
+  RepCone F := 
+    { pt := c
+      π := {app := λ j ↦ x' ≫ s.π.app j}}
+
+namespace RepIsLimit
+
+variable {t : Cone F} (P : RepIsLimit t) {s : Cone F} 
+
+def lift' (c : C) (x' : ConeMap s c) : (ConeMap t c) :=
+  P.lift $ repConeOfConeMap s c x'
+
+@[simp] lemma lift'_naturality {s : Cone F} {c d : C}
+  (f : c ⟶ d) (x' : ConeMap s d) :
+  lift' P c (yoneda.map f ≫ x') = yoneda.map f ≫ lift' P d x' := by
+  apply Eq.symm
+  apply P.uniq (repConeOfConeMap s c (yoneda.map f ≫ x')) (yoneda.map f ≫ lift' P d x')
+  intro j
+  have h := P.fac (repConeOfConeMap s d x') j
+  dsimp[repConeOfConeMap]
+  dsimp[repConeOfConeMap] at h
+  rw[Category.assoc, Category.assoc, ← h]
+  rfl
+
+@[simp] def lift''_app (s : Cone F) (c : C)  :
+  s.pt.obj (Opposite.op c) → t.pt.obj (Opposite.op c) :=
+    yonedaEquiv ∘ lift' P c ∘ yonedaEquiv.symm
+
+def lift''_app_naturality 
+  {c d : C} (f : c ⟶ d) :
+  s.pt.map (f.op) ≫ lift''_app P s c
+    = lift''_app P s d ≫ t.pt.map (Opposite.op f) := by
+  ext x
+  simp[lift''_app, lift']
+  rw[yonedaEquiv_naturality']
+  have h := lift'_naturality P f (yonedaEquiv.symm x)
+  simp[lift'] at h
+  simp
+  rw[← h, yonedaEquiv_symm_naturality_left]
+
+variable (s)
+
+def lift'' : s.pt ⟶ t.pt := {
+    app := λ c ↦ lift''_app P s c.unop
+    naturality := by
+      intros
+      apply lift''_app_naturality
+}
+
+def fac_ext (j : J) (c : C) (x) :
+  (lift'' P s ≫ t.π.app j).app (Opposite.op c) x
+  = (s.π.app j).app (Opposite.op c) x := by
+  dsimp[lift'',lift',← yonedaEquiv_comp]
+  let x' := yonedaEquiv.symm x
+  have h := P.fac (repConeOfConeMap s c x') j 
+  dsimp [repConeOfConeMap] at h
+  simp [h, lift'', lift', yonedaEquiv_comp, Equiv.apply_symm_apply yonedaEquiv x]
+
+def uniq_ext (m : s.pt ⟶ t.pt)
+  (hm : ∀ (j : J), m ≫ t.π.app j = s.π.app j) (c : C) (x) :
+  m.app (Opposite.op c) x
+  = (P.lift'' s).app (Opposite.op c) x := by
+  let x' := yonedaEquiv.symm x
+  have hj : (∀ (j : J), (x' ≫ m) ≫ t.π.app j = x' ≫ s.π.app j) := by simp[hm]
+  have h := P.uniq (repConeOfConeMap s c x') (x' ≫ m) hj
+  dsimp [repConeOfConeMap] at h
+  simp [lift'', lift', yonedaEquiv_comp, ← h, Equiv.apply_symm_apply yonedaEquiv x]
+
+def IsLimit {t : Cone F} (P : RepIsLimit t)
+  : IsLimit t where
+  lift := lift'' P
+  fac := λ s j ↦ by
+    ext c x
+    apply fac_ext
+  uniq := λ s m hm ↦ by
+    ext c x
+    apply uniq_ext P s m hm
+
+end RepIsLimit
+
+abbrev RepPullbackCone {X Y Z : Cᵒᵖ ⥤ Type v₃} (f : X ⟶ Z) (g : Y ⟶ Z) :=
+  RepCone (cospan f g)
+
+namespace RepPullbackCone
+
+variable {W X Y Z : Cᵒᵖ ⥤ Type v₃} {f : X ⟶ Z} {g : Y ⟶ Z}
+
+/-- The first projection of a pullback cone. -/
+abbrev fst (t : RepPullbackCone f g) : yoneda.obj t.pt ⟶ X :=
+  t.π.app WalkingCospan.left
+
+/-- The second projection of a pullback cone. -/
+abbrev snd (t : RepPullbackCone f g) : yoneda.obj t.pt ⟶ Y :=
+  t.π.app WalkingCospan.right
+
+open WalkingSpan.Hom WalkingCospan.Hom WidePullbackShape.Hom WidePushoutShape.Hom Limits.PullbackCone
+
+/-- This is a slightly more convenient method to verify that a pullback cone is a limit cone. It
+    only asks for a proof of facts that carry any mathematical content -/
+def repIsLimitAux (t : PullbackCone f g) (lift : ∀ s : RepPullbackCone f g, yoneda.obj s.pt ⟶ t.pt)
+    (fac_left : ∀ s : RepPullbackCone f g, lift s ≫ t.fst = s.fst)
+    (fac_right : ∀ s : RepPullbackCone f g, lift s ≫ t.snd = s.snd)
+    (uniq : ∀ (s : RepPullbackCone f g) (m : yoneda.obj s.pt ⟶ t.pt)
+      (_ : ∀ j : WalkingCospan, m ≫ t.π.app j = s.π.app j), m = lift s) : RepIsLimit t :=
+  { lift
+    fac := fun s j => Option.casesOn j (by
+        rw [← s.cone.w inl, ← t.w inl, ← Category.assoc]
+        congr
+        exact fac_left s)
+      fun j' => WalkingPair.casesOn j' (fac_left s) (fac_right s)
+    uniq := uniq }
+
+/-- This is a more convenient formulation to show that a `PullbackCone` constructed using
+`PullbackCone.mk` is a limit cone.
+-/
+def RepIsLimit.mk {fst : W ⟶ X} {snd : W ⟶ Y} (eq : fst ≫ f = snd ≫ g)
+    (lift : ∀ s : RepPullbackCone f g, yoneda.obj s.pt ⟶ W)
+    (fac_left : ∀ s : RepPullbackCone f g, lift s ≫ fst = s.fst)
+    (fac_right : ∀ s : RepPullbackCone f g, lift s ≫ snd = s.snd)
+    (uniq :
+      ∀ (s : RepPullbackCone f g) (m : yoneda.obj s.pt ⟶ W)
+      (_ : m ≫ fst = s.fst) (_ : m ≫ snd = s.snd),
+        m = lift s) :
+    IsLimit (PullbackCone.mk fst snd eq) :=
+  RepIsLimit.IsLimit $
+  repIsLimitAux _ lift fac_left fac_right fun s m w =>
+  uniq s m (w WalkingCospan.left) (w WalkingCospan.right)
+
+-- lemma Idaf {P X Y Z : C ⥤ Type v₁} (fst : P ⟶ X) (snd : P ⟶ Y) (f : X ⟶ Z) (g : Y ⟶ Z) : IsPullback fst snd f g := sorry
+
+end RepPullbackCone
+
+
+end Limits
+
 noncomputable section
 
 section Pullbacks
@@ -471,13 +657,22 @@ def CatLift_BackUp (C : Cat.{u,u}) : C ⥤ CatLift.obj C where
     obj x := {down := x}
     map f := f
 
-def PshGrpd : Cat.{u,u+1} ⥤ (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) := by
-  refine yoneda ⋙ ?_
-  refine (whiskeringLeft (Grpd.{u,u}ᵒᵖ) (Cat.{u,u+1}ᵒᵖ) (Type (u + 1))).obj ?_
-  refine Grpd.forgetToCat.op ⋙ CatLift.op
+namespace PshGrpd
 
-instance PshGrpdPreservesLim : Limits.PreservesLimits PshGrpd := by
-  dsimp [PshGrpd,Limits.PreservesLimits]
+variable (C D) [Category.{u} C] [Category.{u} D]
+
+def ι : Grpd.{u, u} ⥤ Cat.{u,u+1} := Grpd.forgetToCat ⋙ CatLift
+
+-- def κ : Grpd.{u, u} ⥤ Cat.{u,u} := Grpd.forgetToCat
+
+-- lemma κ_yoneda_whiskeringLeft_κ_eq_yoneda :
+--   κ.{u} ⋙ yoneda ⋙ (whiskeringLeft _ _ _).obj κ.op = yoneda := rfl
+
+def ofCat : Cat.{u,u+1} ⥤ (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) :=
+  yoneda ⋙ (whiskeringLeft _ _ _).obj ι.op
+
+instance ofCatPreservesLim : Limits.PreservesLimits ofCat := by
+  dsimp [ofCat,Limits.PreservesLimits]
   refine @Limits.compPreservesLimits ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_
   · exact yonedaFunctorPreservesLimits
   · refine @Adjunction.rightAdjointPreservesLimits ?_ ?_ ?_ ?_ ?_ ?_ ?_
@@ -487,34 +682,38 @@ instance PshGrpdPreservesLim : Limits.PreservesLimits PshGrpd := by
         exact Functor.instHasLeftKanExtension (Grpd.forgetToCat.op ⋙ CatLift.op) F
     · exact (Grpd.forgetToCat.op ⋙ CatLift.op).lanAdjunction (Type (u + 1))
 
+end PshGrpd
+
+open PshGrpd
+
 -- This is a Covariant Functor that takes a Groupoid Γ to Γ ⥤ Grpd
 def Ty_functor : Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1) where
   obj x := x.unop ⥤ Grpd.{u,u}
   map f A := f.unop ⋙ A
 
-def Ty_functor_iso_PshGrpd_Grpd : Ty_functor ≅ PshGrpd.obj (Cat.of Grpd.{u,u}) where
+def Ty_functor_iso_ofCat_Grpd : Ty_functor ≅ ofCat.obj (Cat.of Grpd.{u,u}) where
   hom := by
     fconstructor
     · unfold Ty_functor
-      unfold PshGrpd
+      unfold ofCat
       intro X F
       rcases X with ⟨X⟩
       refine ?_ ⋙ F ⋙ ?_
       · refine CatLift_BackDown (Grpd.forgetToCat.obj X)
       · exact 𝟭 Grpd
-    · simp [Ty_functor,PshGrpd]
+    · simp [Ty_functor,ofCat]
       intros X Y f
       exact rfl
   inv := by
     fconstructor
     · unfold Ty_functor
-      unfold PshGrpd
+      unfold ofCat
       intro X F
       rcases X with ⟨X⟩
       refine ?_ ⋙ F ⋙ ?_
       · refine CatLift_BackUp (Grpd.forgetToCat.obj X)
       · exact 𝟭 Grpd
-    · simp [Ty_functor,PshGrpd]
+    · simp [Ty_functor,ofCat]
       intros X Y f
       exact rfl
 
@@ -524,29 +723,29 @@ def Tm_functor : Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1) where
   map f A := f.unop ⋙ A
 
 -- I am not sure if this iso will be helpfull but it works as a sanity check to make sure Tm is defined correctly
-def Tm_functor_iso_PshGrpd_PGrpd : Tm_functor ≅ PshGrpd.obj (Cat.of PGrpd.{u,u}) where
+def Tm_functor_iso_ofCat_PGrpd : Tm_functor ≅ ofCat.obj (Cat.of PGrpd.{u,u}) where
   hom := by
     fconstructor
     · unfold Tm_functor
-      unfold PshGrpd
+      unfold ofCat
       intro X F
       rcases X with ⟨X⟩
       refine ?_ ⋙ F ⋙ ?_
       · refine CatLift_BackDown (Grpd.forgetToCat.obj X)
       · exact 𝟭 PGrpd
-    · simp [Ty_functor,PshGrpd]
+    · simp [Ty_functor,ofCat]
       intros X Y f
       exact rfl
   inv := by
     fconstructor
     · unfold Tm_functor
-      unfold PshGrpd
+      unfold ofCat
       intro X F
       rcases X with ⟨X⟩
       refine ?_ ⋙ F ⋙ ?_
       · refine CatLift_BackUp (Grpd.forgetToCat.obj X)
       · exact 𝟭 PGrpd
-    · simp [Ty_functor,PshGrpd]
+    · simp [Ty_functor,ofCat]
       intros X Y f
       exact rfl
 
@@ -649,16 +848,18 @@ def PBasPB {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}) : @IsPullback (Cat.{u,u+1}) 
     · constructor
       exact PBasLim A
 
-def PshGrpdPB {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}) : @IsPullback (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) _
-  (PshGrpd.obj (Cat.of (ULift.{u+1,u} (GroupoidalGrothendieck A))))
-  (PshGrpd.obj (Cat.of PGrpd.{u,u}))
-  (PshGrpd.obj (Cat.of (ULift.{u+1,u} Γ)))
-  (PshGrpd.obj (Cat.of Grpd.{u,u}))
-  (PshGrpd.map ((Down_uni (GroupoidalGrothendieck A)) ⋙ (var' Γ A)))
-  (PshGrpd.map ((Down_uni (GroupoidalGrothendieck A)) ⋙ (GroupoidalGrothendieck.forget) ⋙ (Up_uni Γ)))
-  (PshGrpd.map (PGrpd.forgetPoint))
-  (PshGrpd.map ((Down_uni Γ) ⋙ A)) := Functor.map_isPullback PshGrpd (PBasPB A)
+
+def ofCatPB {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}) : @IsPullback (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) _
+  (ofCat.obj (Cat.of (ULift.{u+1,u} (GroupoidalGrothendieck A))))
+  (ofCat.obj (Cat.of PGrpd.{u,u}))
+  (ofCat.obj (Cat.of (ULift.{u+1,u} Γ)))
+  (ofCat.obj (Cat.of Grpd.{u,u}))
+  (ofCat.map ((Down_uni (GroupoidalGrothendieck A)) ⋙ (var' Γ A)))
+  (ofCat.map ((Down_uni (GroupoidalGrothendieck A)) ⋙ (GroupoidalGrothendieck.forget) ⋙ (Up_uni Γ)))
+  (ofCat.map (PGrpd.forgetPoint))
+  (ofCat.map ((Down_uni Γ) ⋙ A)) := Functor.map_isPullback ofCat (PBasPB A)
 
 end
+
 
 end CategoryTheory

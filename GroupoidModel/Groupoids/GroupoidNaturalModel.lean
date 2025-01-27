@@ -12,58 +12,132 @@ universe u v u₁ v₁ u₂ v₂
 open CategoryTheory
 noncomputable section
 
--- Here I am using sGrpd to be a small category version of Grpd. There is likely a better way to do this.
+#print ULiftHom
+/-
+Grpd.{u, u} is
+the category of
+{small groupoids - size u objects and size u hom sets}
+which itself has size u+1 objects (small groupoids)
+and size u hom sets (functors).
+We want this to be a small category so we lift the homs.
+-/
 def sGrpd := ULiftHom.{u+1} Grpd.{u,u}
   deriving SmallCategory
 
-def sGrpd.of (C : Type u) [Groupoid.{u} C] : sGrpd.{u} := Grpd.of C
+-- def sGrpd.of (C : Type u) [Groupoid.{u} C] : sGrpd.{u} := Grpd.of C
 
-def SmallGrpd.forget : sGrpd.{u} ⥤ Grpd.{u,u} where
-  obj x := Grpd.of x.α
-  map f := f.down
+@[simp] def sGrpd.forget : sGrpd.{u} ⥤ Grpd.{u,u} := ULiftHom.down
 
-def PshsGrpd : (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) ⥤ (sGrpd.{u}ᵒᵖ ⥤ Type (u + 1)) :=
-  (whiskeringLeft _ _ _).obj SmallGrpd.forget.op
+namespace PshsGrpd
 
-instance PshsGrpdPreservesLim : Limits.PreservesLimits PshsGrpd := by
-  dsimp [PshsGrpd,Limits.PreservesLimits]
-  exact whiskeringLeftPreservesLimits SmallGrpd.forget.op
+def ofPshGrpd : (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) ⥤ (sGrpd.{u}ᵒᵖ ⥤ Type (u + 1)) :=
+  (whiskeringLeft _ _ _).obj sGrpd.forget.op
+
+
+instance ofPshGrpdPreservesLim : Limits.PreservesLimits ofPshGrpd := by
+  dsimp [ofPshGrpd,Limits.PreservesLimits]
+  exact whiskeringLeftPreservesLimits sGrpd.forget.op
+
+abbrev yonedaCat : Cat.{u, u+1} ⥤ Psh sGrpd.{u} :=
+  PshGrpd.ofCat ⋙ ofPshGrpd
+
+section
+
+variable {Γ Δ : sGrpd.{u}}
+  {C D : Type (u+1)} [Category.{u,u+1} C][Category.{u,u+1} D]
+
+/- The bijection y(Γ) → [-,C]   ≃   Γ ⥤ C -/
+@[simp] def yonedaCatEquiv :
+  (yoneda.obj Γ ⟶ yonedaCat.obj (Cat.of C))
+  ≃ (sGrpd.forget.obj Γ) ⥤ C :=
+  Equiv.trans yonedaEquiv
+    {toFun     := λ A ↦ ULift.upFunctor ⋙ A
+     invFun    := λ A ↦ ULift.downFunctor ⋙ A
+     left_inv  := λ _ ↦ rfl
+     right_inv := λ _ ↦ rfl}
+
+lemma yonedaCatEquiv_naturality
+  (A : yoneda.obj Γ ⟶ yonedaCat.obj (Cat.of C)) (σ : Δ ⟶ Γ) :
+  (sGrpd.forget.map σ) ⋙ yonedaCatEquiv A
+    = yonedaCatEquiv (yoneda.map σ ≫ A) := by
+  simp[← yonedaEquiv_naturality]
+  rfl
+
+lemma yonedaCatEquiv_covariant
+  (A : yoneda.obj Γ ⟶ yonedaCat.obj (Cat.of D)) (U : D ⥤ C) :
+  yonedaCatEquiv (A ≫ yonedaCat.map U) = yonedaCatEquiv A ⋙ U := by
+  aesop_cat
+
+end
+
+open PshsGrpd
+
+abbrev Ty : Psh sGrpd.{u} := yonedaCat.obj (Cat.of Grpd.{u,u})
+
+abbrev Tm : Psh sGrpd.{u} := yonedaCat.obj (Cat.of PGrpd.{u,u})
+
+variable {Γ : sGrpd.{u}} (A : yoneda.obj Γ ⟶ Ty)
+
+abbrev tp : Tm ⟶ Ty := yonedaCat.map (PGrpd.forgetPoint)
+
+abbrev ext := Grpd.of (GroupoidalGrothendieck (yonedaCatEquiv A))
+
+abbrev downDisp : ext A ⟶ (Γ : Grpd.{u,u}) := Grothendieck.forget _
+
+abbrev disp : @Quiver.Hom sGrpd _ (ext A) Γ := { down := downDisp A }
+
+abbrev var : (yoneda.obj (ext A) : Psh sGrpd) ⟶ Tm :=
+  yonedaCatEquiv.invFun (var' _ _)
+
+variable {A}
+
+lemma disp_pullback_toCommSq' :
+    var A ≫ tp = yoneda.map (disp A) ≫ A := by
+  apply Equiv.injective yonedaCatEquiv
+  rw[← yonedaCatEquiv_naturality, yonedaCatEquiv_covariant]
+  aesop_cat
+
+def dispPullbackLift (s : Limits.RepPullbackCone tp A) :
+    s.pt ⟶ ext A :=
+  sorry
+
+lemma disp_pullback : 
+    IsPullback (var A) (yoneda.map { down := downDisp A }) tp A where
+  toCommSq := ⟨ disp_pullback_toCommSq' ⟩
+  isLimit' := ⟨ Limits.RepPullbackCone.RepIsLimit.mk
+    disp_pullback_toCommSq'
+    (λ s ↦ yoneda.map sorry)
+    sorry
+    sorry
+    sorry ⟩
+
+    -- IsPullback (yonedaCatEquiv.invFun (var' (sGrpd.forget.obj Γ) (yonedaCatEquiv A)))
+    -- (yoneda.map ((fun Γ A ↦ { down := Grothendieck.forget (toCat (yonedaCatEquiv A)) }) Γ A))
+    -- (yonedaCat.map PGrpd.forgetPoint) A := sorry
 
 instance GroupoidNM : NaturalModel.NaturalModelBase sGrpd.{u} where
-  Ty := PshsGrpd.obj (PshGrpd.obj (Cat.of Grpd.{u,u}))
-  Tm := PshsGrpd.obj (PshGrpd.obj (Cat.of PGrpd.{u,u}))
-  tp := PshsGrpd.map (PshGrpd.map (PGrpd.forgetPoint))
-  ext Γ A := by
-    let Γ' : Grpd.{u,u} := SmallGrpd.forget.obj Γ
-    let A' : Γ' ⥤ Grpd.{u,u} := by
-      have h1 := yonedaEquiv.toFun A
-      dsimp [PshsGrpd,PshGrpd,CatLift,Quiver.Hom,Cat.of,Bundled.of,Grpd.forgetToCat] at h1
-      refine ?_ ⋙ h1
-      exact Up_uni ↑Γ'
-    exact sGrpd.of (Grpd.of (GroupoidalGrothendieck A'))
-  disp Γ A := by
-    constructor
-    simp[ULiftHom.objDown,Quiver.Hom]
-    refine Grothendieck.forget _ ⋙ ?_
-    exact 𝟭 ↑(SmallGrpd.forget.obj Γ)
-  var Γ A := by
-    refine yonedaEquiv.invFun ?_
-    simp[PshGrpd,CatLift,Cat.of,Bundled.of,Quiver.Hom,Grpd.forgetToCat,SmallGrpd.forget]
-    have v' := var' _ (Up_uni (@Bundled.α Groupoid Γ) ⋙ yonedaEquiv A)
-    refine ?_ ⋙ v'
-    exact Down_uni (GroupoidalGrothendieck (Up_uni (@Bundled.α Groupoid Γ) ⋙ yonedaEquiv A))
-  disp_pullback A := by
-    rename_i Γ
-    let Γ' : Grpd.{u,u} := SmallGrpd.forget.obj Γ
-    let A' : Γ' ⥤ Grpd.{u,u} := by
-      have h1 := yonedaEquiv.toFun A
-      dsimp [PshsGrpd,PshGrpd,CatLift,Quiver.Hom,Cat.of,Bundled.of,Grpd.forgetToCat] at h1
-      refine ?_ ⋙ h1
-      exact Up_uni ↑Γ'
-    have pb := Functor.map_isPullback PshsGrpd (PshGrpdPB A')
-    dsimp [PshGrpd]
-    dsimp [PshGrpd] at pb
-    sorry
+  Ty := Ty
+  Tm := Tm
+  tp := tp
+  ext Γ A := ext A
+  disp Γ A := disp A
+  var Γ A := var A
+  disp_pullback A := disp_pullback
+
+  -- by
+  --   rename_i Γ
+  --   let Γ' : Grpd.{u,u} := sGrpd.forget.obj Γ
+  --   let A' : Γ' ⥤ Grpd.{u,u} := by
+  --     have h1 := yonedaEquiv.toFun A
+  --     dsimp [ofPshGrpd,PshGrpd,CatLift,Quiver.Hom,Cat.of,Bundled.of,Grpd.forgetToCat] at h1
+  --     refine ?_ ⋙ h1
+  --     exact Up_uni ↑Γ'
+  --   have pb := Functor.map_isPullback ofPshGrpd (PshGrpdPB A')
+  --   dsimp [PshGrpd]
+  --   dsimp [PshGrpd] at pb
+  --   sorry
+
+#exit
 
 instance groupoidULift.{u'} {α : Type u} [Groupoid.{v} α] : Groupoid (ULift.{u'} α) where
   inv f := Groupoid.inv f
@@ -151,14 +225,14 @@ instance GroupoidNMSigma : NaturalModel.NaturalModelSigma sGrpd.{u} where
         exact CategoryTheory.IsPullback.isoPullback (CategoryTheory.IsPullback.flip dp)
       let h' := (help.hom.app Γ)
       let pb' := pb.app Γ
-      dsimp [NaturalModel.Ty,PshsGrpd,PshGrpd,Quiver.Hom]
+      dsimp [NaturalModel.Ty,ofPshGrpd,PshGrpd.ofCat,Quiver.Hom]
       fconstructor
       . fconstructor
         . intro γ
           let yA := (yonedaEquiv.toFun A)
-          dsimp [NaturalModel.Ty,PshGrpd,PshsGrpd,Quiver.Hom] at yA
+          dsimp [NaturalModel.Ty,PshGrpd.ofCat,ofPshGrpd,Quiver.Hom] at yA
           let Aγ : Grpd := (yA).obj γ
-          let ΓA : Grpd := SmallGrpd.forget.obj (NaturalModel.ext (Opposite.unop Γ) A)
+          let ΓA : Grpd := sGrpd.forget.obj (NaturalModel.ext (Opposite.unop Γ) A)
           sorry
         . sorry
       dsimp [NaturalModel.uvPoly] at pb'
