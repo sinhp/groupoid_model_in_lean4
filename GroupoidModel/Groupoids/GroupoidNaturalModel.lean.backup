@@ -88,15 +88,92 @@ abbrev disp : @Quiver.Hom sGrpd _ (ext A) Γ := { down := downDisp A }
 abbrev var : (yoneda.obj (ext A) : Psh sGrpd) ⟶ Tm :=
   yonedaCatEquiv.invFun (var' _ _)
 
-lemma disp_pullback : 
-    IsPullback (var A) (yoneda.map { down := downDisp A }) tp A := sorry
+-- variable {A}
 
--- PLAN
+-- lemma disp_pullback_toCommSq' :
+--     var A ≫ tp = yoneda.map (disp A) ≫ A := by
+--   apply Equiv.injective yonedaCatEquiv
+--   rw[← yonedaCatEquiv_naturality, yonedaCatEquiv_comp]
+--   aesop_cat
 
--- show that yonedaCat preserves IsPullback
--- show that yoneda : sGrpd ⥤ Psh sGrpd factors through yonedaCat (up to a natural iso)
--- show that desired pullback is two squares (the natural iso and the image of the grothendieck pullback in Cat under yonedaCat)
--- prove the grothendieck pullback is a pullback
+-- section RepPullbackCone
+
+-- open Limits
+
+-- variable {Δ : RepPullbackCone tp A}
+
+-- abbrev σ : Δ.pt ⟶ Γ :=
+--   Yoneda.fullyFaithful.preimage Δ.snd
+
+-- abbrev a' : sGrpd.forget.obj Δ.pt ⥤ PGrpd :=
+--   yonedaCatEquiv Δ.pullbackCone.fst
+
+-- abbrev a'Grpd (x : sGrpd.forget.obj Δ.pt) : Grpd := Grpd.of (a'.obj x)
+
+-- abbrev a'point (x : sGrpd.forget.obj Δ.pt) : a'Grpd x := (a'.obj x).str.pt
+
+
+-- abbrev a'hom {x y : sGrpd.forget.obj Δ.pt} (f : x ⟶ y) := (a'.map f).point
+
+-- -- #print a'hom
+-- -- this is equal to a'Grpd
+-- -- def A'σ (x : sGrpd.forget.obj Δ.pt) : Grpd :=
+-- --   (sGrpd.forget.map σ ⋙ yonedaCatEquiv A).obj x
+
+-- lemma eq_σ : Δ.snd = yoneda.map σ := by simp
+
+
+-- lemma condition' (Δ : RepPullbackCone tp A) :
+--     a' ⋙ PGrpd.forgetPoint
+--     = (sGrpd.forget.map (σ : Δ.pt ⟶ Γ)) ⋙ yonedaCatEquiv A := by
+--   rw[yonedaCatEquiv_naturality, ← yonedaCatEquiv_comp, Δ.pullbackCone.condition]
+--   aesop_cat
+
+-- -- def asdfj := ((eqToHom (condition' Δ)).app x).obj (a'point x)
+
+-- -- #check asdfj
+
+-- def downDispPullbackLift : Δ.pt.objDown ⟶ ext A where
+--   obj := λ x ↦ ⟨ σ.down.obj x ,
+--     ((eqToHom (condition' Δ)).app x).obj (a'point x) ⟩
+--   map := λ f ↦ ⟨ σ.down.map f , 
+--     let a := ((eqToHom (condition' Δ)).app _).map (a'hom f)
+--     let b := (eqToHom (condition' Δ)).naturality f
+--     let b' := eqToHom $ Functor.congr_obj b (a'point _)
+--     -- let fsrc := f.source
+--     -- let b' := (eqToHom b).app (a'point f.src)
+--     sorry
+--   --   b' ≫ a
+--   ⟩
+
+-- def dispPullbackLift : Δ.pt ⟶ ext A :=
+--   { down := downDispPullbackLift }
+
+--   -- let s := Δ.pullbackCone
+--   -- let asdlkfj := s.fst
+--   -- let adklj := σ Δ
+--   -- have h := s.condition
+--   -- let a' := yonedaCatEquiv s.fst
+--   -- let A' := yonedaCatEquiv A
+--   -- have h : a' ⋙ PGrpd.forgetPoint
+--   --   = (sGrpd.forget.map (σ Δ)) ⋙ A' := sorry
+
+-- end RepPullbackCone
+
+
+-- lemma disp_pullback : 
+--     IsPullback (var A) (yoneda.map { down := downDisp A }) tp A where
+--   toCommSq := ⟨ disp_pullback_toCommSq' ⟩
+--   isLimit' := ⟨ Limits.RepPullbackCone.RepIsLimit.mk
+--     disp_pullback_toCommSq'
+--     (λ s ↦ yoneda.map sorry)
+--     sorry
+--     sorry
+--     sorry ⟩
+
+--     -- IsPullback (yonedaCatEquiv.invFun (var' (sGrpd.forget.obj Γ) (yonedaCatEquiv A)))
+--     -- (yoneda.map ((fun Γ A ↦ { down := Grothendieck.forget (toCat (yonedaCatEquiv A)) }) Γ A))
+--     -- (yonedaCat.map PGrpd.forgetPoint) A := sorry
 
 instance GroupoidNM : NaturalModel.NaturalModelBase sGrpd.{u} where
   Ty := Ty
@@ -105,7 +182,7 @@ instance GroupoidNM : NaturalModel.NaturalModelBase sGrpd.{u} where
   ext Γ A := sGrpd.of (ext A)
   disp Γ A := disp A
   var Γ A := var A
-  disp_pullback A := disp_pullback A
+  disp_pullback A := sorry
 
   -- by
   --   rename_i Γ

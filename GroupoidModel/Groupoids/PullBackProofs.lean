@@ -151,15 +151,20 @@ abbrev RepPullbackCone {X Y Z : Cᵒᵖ ⥤ Type v₃} (f : X ⟶ Z) (g : Y ⟶ 
 
 namespace RepPullbackCone
 
-variable {W X Y Z : Cᵒᵖ ⥤ Type v₃} {f : X ⟶ Z} {g : Y ⟶ Z}
+variable {W X Y Z : Cᵒᵖ ⥤ Type v₃}
+  {f : X ⟶ Z} {g : Y ⟶ Z} (t : RepPullbackCone f g) 
+
+def pullbackCone : PullbackCone f g where
+  pt := yoneda.obj t.pt
+  π  := t.π
 
 /-- The first projection of a pullback cone. -/
-abbrev fst (t : RepPullbackCone f g) : yoneda.obj t.pt ⟶ X :=
-  t.π.app WalkingCospan.left
+abbrev fst : yoneda.obj t.pt ⟶ X :=
+  t.pullbackCone.fst
 
 /-- The second projection of a pullback cone. -/
-abbrev snd (t : RepPullbackCone f g) : yoneda.obj t.pt ⟶ Y :=
-  t.π.app WalkingCospan.right
+abbrev snd : yoneda.obj t.pt ⟶ Y :=
+  t.pullbackCone.snd
 
 open WalkingSpan.Hom WalkingCospan.Hom WidePullbackShape.Hom WidePushoutShape.Hom Limits.PullbackCone
 
