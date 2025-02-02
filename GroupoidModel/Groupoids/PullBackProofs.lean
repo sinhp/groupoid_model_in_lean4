@@ -227,7 +227,7 @@ theorem PointedFunctor.eqToHom_point {P1 P2 : PCat.{u,u}} (eq : P1 = P2) : (eqTo
   cases eq
   simp[PointedFunctor.id, CategoryStruct.id, PCat.forgetPoint,Cat.of,Bundled.of]
 
-/-- This is the turns the object part of eqToHom functors into a cast-/
+/-- This turns the object part of eqToHom functors into casts -/
 theorem Cat.eqToHom_obj (C1 C2 : Cat.{u,v})(x : C1)(eq : C1 = C2): (eqToHom eq).obj x = cast (congrArg Bundled.α eq) x := by
   cases eq
   simp[CategoryStruct.id]

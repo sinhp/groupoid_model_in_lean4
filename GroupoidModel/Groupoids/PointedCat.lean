@@ -105,7 +105,7 @@ instance category : LargeCategory.{max v u} PCat.{v, u} where
     simp [PointedFunctor.comp,Functor.assoc]
 
 /-- The functor that takes PCat to Cat by forgetting the points-/
-def forgetPoint : PCat ⥤ Cat where
+@[simps] def forgetPoint : PCat ⥤ Cat where
   obj x := Cat.of x
   map f := f.toFunctor
 

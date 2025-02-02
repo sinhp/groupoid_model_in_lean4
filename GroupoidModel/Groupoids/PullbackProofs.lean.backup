@@ -1,0 +1,50 @@
+
+def lift' (s : PullbackCone catPCatForgetPoint (A' A)) :
+  s.pt ⥤ Grothendieck A where
+  obj x := ⟨ (s.snd.obj x).down ,
+    (εApp x).obj (conePCatPt x) ⟩
+  map {x y} f := ⟨ s.snd.map f ,
+    let m1 := (εApp y).map (conePCatPoint f)
+    let m2 := (eqToHom (εNaturality f).symm).app (conePCatPt x)
+    m2 ≫ m1 ⟩
+  map_id x := by
+    dsimp [Grothendieck.id]
+    apply Grothendieck.ext
+    · have h0 := eqToHom_app (εNaturality (CategoryStruct.id x)).symm
+      have h1 := dcongr_arg PointedFunctor.point
+        (CategoryTheory.Functor.map_id s.fst x)
+      have h2 : (PCat.category.id (s.fst.obj x)).point = CategoryStruct.id _
+        := rfl
+      have h3 := CategoryTheory.Functor.map_id (εApp x) ((s.fst.obj x).str).pt
+      have h4 {a} (f : a ⟶ _) :
+          f ≫ CategoryStruct.id ((εApp x).obj (conePCatPt x)) = f
+        := Category.comp_id f
+      simp [eqToHom_map, h0, h1, h2, h3, h4]
+    · simp
+      rfl
+  map_comp {x y z} f g := by
+    dsimp [Grothendieck.comp]
+    apply Grothendieck.ext
+    · have h1 := dcongr_arg PointedFunctor.point
+        (CategoryTheory.Functor.map_comp s.fst f g)
+      let F := s.fst.map f
+      let G := s.fst.map g
+      have h2 : (F ≫ G).point = (G.map F.point) ≫ G.point := rfl
+      have h3 : (εApp y ⋙ A.map (s.snd.map g)).map F.point
+          = (A.map (s.snd.map g)).map ((εApp y).map F.point) := rfl
+      have h4 : (catPCatForgetPoint.map G ≫ (ε s).app z).map F.point
+          = (εApp z).map (G.map F.point) := rfl
+      have hgNatNatF := (eqToHom (εNaturality g).symm).naturality F.point
+      have h5 : ((ε s).app y ≫ (s.snd ≫ A' A).map g).map F.point =
+          ((ε s).app y ⋙ (s.snd ≫ A' A).map g).map F.point := rfl
+      have h6 := congr_arg (λ x ↦ x ≫ (εApp z).map G.point) hgNatNatF
+      rw [h5] at h6
+      dsimp at h6
+      simp only [Category.assoc] at h6
+      simp only [h1, h2, map_comp, comp_fiber, Category.assoc, eqToHom_app (εNaturality f).symm, eqToHom_map (A.map (s.snd.map g))]
+      rw [h6, h4]
+      -- simp only [← Category.assoc]
+      -- refine congrArg (λ x ↦ (x ≫ (εApp z).map (G.map F.point)) ≫ (εApp z).map G.point) ?_
+      simp[eqToHom_app (εNaturality (f ≫ g)).symm, eqToHom_app (εNaturality g).symm, eqToHom_map]
+    · simp
+      rfl
