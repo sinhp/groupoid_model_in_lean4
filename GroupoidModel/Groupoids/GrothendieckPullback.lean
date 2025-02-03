@@ -1,132 +1,14 @@
 import Mathlib.CategoryTheory.Limits.Yoneda
-import Mathlib.CategoryTheory.Functor.KanExtension.Adjunction
 import Mathlib.CategoryTheory.Limits.Preserves.Finite
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 
 import GroupoidModel.Groupoids.GroupoidalGrothendieck
 import GroupoidModel.Groupoids.PointedCat
+import GroupoidModel.ForMathlib
 
 universe v u v₁ u₁ v₂ u₂ v₃ u₃ 
 
 namespace CategoryTheory
-
-namespace ULift
-
--- FIX simp cannot use this. Why?
-theorem upFunctor_downFunctor {C : Type u} [Category.{v} C]
-    : upFunctor.{v,u,u₁} ⋙ downFunctor.{v,u,u₁} = Functor.id C := rfl
-
-theorem downFunctor_upFunctor {C : Type u} [Category.{v} C] :
-    downFunctor.{v,u,u₁} ⋙ upFunctor.{v,u,u₁}
-    = Functor.id (ULift.{u₁, u} C) := rfl
-
-variable {C : Type u₁} {D : Type u₂} [Category.{v₁} C] [Category.{v₂} D]
-
-/- Composing with downFunctor is injective.
-   This requires an explicit universe variable in its fifth universe argument `u`. -/
-theorem comp_downFunctor_inj (F G : C ⥤ ULift.{u} D) : F ⋙ downFunctor = G ⋙ downFunctor ↔ F = G := by
-  constructor
-  · intro hFG
-    apply Functor.ext
-    · intro x y 
-      exact Functor.congr_hom hFG
-    · intro x
-      have h := Functor.congr_obj hFG x
-      simp only [downFunctor, Functor.comp_obj, ULift.down_inj] at h
-      exact h
-  · intro hFG
-    subst hFG
-    rfl
-
--- TODO change this to first universe argument
-
-/- Composing with upFunctor is injective.
-   This requires an explicit universe variable in its fifth universe paargument. -/
-theorem comp_upFunctor_inj (F G : C ⥤ D) : F ⋙ upFunctor = G ⋙ upFunctor ↔ F = G := by
-  constructor
-  · intro hFG
-    apply Functor.ext
-    · intro _ _ 
-      exact Functor.congr_hom hFG
-    · intro x
-      have h := Functor.congr_obj hFG x
-      simp only [upFunctor, Functor.comp_obj, ULift.up_inj] at h
-      exact h
-  · intro hFG
-    subst hFG
-    rfl
-
-
-end ULift
-
-namespace Cat
-
-/-- This is the proof of equality used in the eqToHom in `Cat.eqToHom_hom` -/
-theorem eqToHom_hom_aux {C1 C2 : Cat.{v,u}} (x y: C1) (eq : C1 = C2) :
-    (x ⟶ y) = ((eqToHom eq).obj x ⟶ (eqToHom eq).obj y) := by
-  cases eq
-  simp[CategoryStruct.id]
-
-/-- This is the turns the hom part of eqToHom functors into a cast-/
-theorem eqToHom_hom {C1 C2 : Cat.{v,u}} {x y: C1} (f : x ⟶ y) (eq : C1 = C2) :
-    (eqToHom eq).map f = (cast (Cat.eqToHom_hom_aux x y eq) f) := by
-  cases eq
-  simp[CategoryStruct.id]
-
-end Cat
-
-namespace PCat
-
-/-- This is the proof of equality used in the eqToHom in `PCat.eqToHom_hom` -/
-theorem eqToHom_hom_aux {C1 C2 : PCat.{v,u}} (x y: C1) (eq : C1 = C2) :
-    (x ⟶ y) = ((eqToHom eq).obj x ⟶ (eqToHom eq).obj y) := by
-  cases eq
-  simp[CategoryStruct.id]
-
-/-- This is the turns the hom part of eqToHom functors into a cast-/
-theorem eqToHom_hom {C1 C2 : PCat.{v,u}} {x y: C1} (f : x ⟶ y) (eq : C1 = C2) :
-    (eqToHom eq).map f = (cast (PCat.eqToHom_hom_aux x y eq) f) := by
-  cases eq
-  simp[CategoryStruct.id]
-
-theorem map_id_point {C : Type u} [Category.{v} C] {F : C ⥤ PCat} {x : C} :
-    (F.map (CategoryStruct.id x)).point =
-    eqToHom (by simp : (F.map (CategoryStruct.id x)).obj (F.obj x).str.pt = (F.obj x).str.pt) := by
-  have : (CategoryStruct.id (F.obj x)).point = _ := PCat.id_point
-  convert this
-  · simp
-  · simp
-  · refine HEq.symm (heq_of_eqRec_eq ?_ rfl)
-    · symm; assumption
-
-end PCat
-
-/-- This turns the object part of eqToHom functors into casts -/
-theorem eqToHom_obj {C1 C2 : Cat.{v,u}} (x : C1) (eq : C1 = C2) :
-    (eqToHom eq).obj x = cast (congrArg Bundled.α eq) x := by
-  cases eq
-  simp[CategoryStruct.id]
-
-namespace PointedFunctor
-
-theorem eqToHom_toFunctor {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
-    (eqToHom eq).toFunctor = (eqToHom (congrArg PCat.forgetPoint.obj eq)) := by
-  cases eq
-  simp[ PointedFunctor.id, CategoryStruct.id, PCat.forgetPoint,Cat.of,Bundled.of]
-
-/-- This is the proof of equality used in the eqToHom in `PointedFunctor.eqToHom_point` -/
-theorem eqToHom_point_aux {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
-    (eqToHom eq).obj PointedCategory.pt = PointedCategory.pt := by
-  cases eq
-  simp [CategoryStruct.id]
-
-/-- This shows that the point of an eqToHom in PCat is an eqToHom-/
-theorem eqToHom_point {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
-    (eqToHom eq).point = (eqToHom (PointedFunctor.eqToHom_point_aux eq)) := by
-  cases eq
-  simp[PointedFunctor.id, CategoryStruct.id, PCat.forgetPoint,Cat.of,Bundled.of]
-
-end PointedFunctor
 
 namespace Grothendieck
 
@@ -162,53 +44,7 @@ theorem toPCat_comp_forgetPoint : toPCat A ⋙ PCat.forgetPoint
 theorem toPCat_obj_fiber_inj {x y : Grothendieck A}
     (h : HEq ((toPCat A).obj x).str.pt ((toPCat A).obj y).str.pt) : HEq x.fiber y.fiber := h
 
--- theorem toPCat_map_fiber_inj {x y w z: Grothendieck A} {f : x ⟶ y} {g : w ⟶ z}
---     (h : HEq ((toPCat A).map f).point ((toPCat A).map g).point) : HEq f.fiber g.fiber := h
-
--- theorem self_eq_mk {Γ : Type u} [Category.{v} Γ] (A : Γ ⥤ Cat.{v₂,u₂}) {x : Grothendieck A} :
---     x = Grothendieck.mk x.base x.fiber := rfl
-
-variable {A} {x y : Grothendieck A}
-
-theorem obj_ext_hEq
-    (hbase : x.base = y.base) (hfiber : HEq x.fiber y.fiber) : x = y := by
-  rcases x with ⟨xbase, xfiber⟩
-  subst hbase
-  subst hfiber
-  rfl
-
-/-- This proves that base of an eqToHom morphism in the category Grothendieck A is an eqToHom morphism -/
-theorem eqToHom_base (eq : x = y) :
-    (eqToHom eq).base = (eqToHom (congrArg (Grothendieck.forget A).obj eq)) := by
-  cases eq
-  simp
-
-/-- This is the proof of equality used in the eqToHom in `Grothendieck.eqToHom_fiber` -/
-theorem eqToHom_fiber_aux {Γ : Cat.{v,u}} {A : Γ ⥤ Cat.{v₁,u₁}} {g1 g2 : Grothendieck A}
-    (eq : g1 = g2) : (A.map (eqToHom eq).base).obj g1.fiber = g2.fiber := by
-  cases eq
-  simp
-
-/-- This proves that fiber of an eqToHom morphism in the category Grothendieck A is an eqToHom morphism -/
-theorem eqToHom_fiber {Γ : Cat.{v,u}} {A : Γ ⥤ Cat.{v₁,u₁}} {g1 g2 : Grothendieck A}
-    (eq : g1 = g2) : (eqToHom eq).fiber = eqToHom (Grothendieck.eqToHom_fiber_aux eq) := by
-  cases eq
-  simp
-
-theorem obj_ext_cast
-    (hbase : x.base = y.base)
-    (hfiber : cast (congrArg (λ x ↦ (A.obj x).α) hbase) x.fiber = y.fiber)
-    : x = y := obj_ext_hEq hbase (heq_of_cast_eq (by simp[hbase]) (by simp[hfiber]))
-
-theorem map_eqToHom_base_pf {G1 G2 : Grothendieck A} (eq : G1 = G2) :
-    A.obj G1.base = A.obj G2.base := by subst eq; rfl
-
-theorem map_eqToHom_base {G1 G2 : Grothendieck A} (eq : G1 = G2)
-    : A.map (eqToHom eq).base = eqToHom (map_eqToHom_base_pf eq) := by
-  simp [eqToHom_base, eqToHom_map]
-  
 end morphism_universe_v₁
-
 
 
 namespace Pullback
@@ -415,17 +251,17 @@ theorem fac_left_aux (s : PullbackCone uLiftPCatForgetPoint (uLiftA A)) :
     unfold uLiftPCatForgetPoint PCat.forgetPoint at h
     simp at h
     congr 1
-    · simp [h, PointedFunctor.eqToHom_toFunctor, ← Cat.comp_eq_comp]
+    · simp [h, PCat.eqToHom_toFunctor, ← Cat.comp_eq_comp]
     · simp only [lift_map, lift_obj, comp_obj, PCat.forgetPoint_obj, Cat.of_α, downFunctor_obj, ε,
         Functor.comp_map, downFunctor_map, Cat.comp_obj, PCat.forgetPoint_map, Cat.eqToHom_app, 
-        PointedFunctor.eqToHom_point, eqToHom_map, PCat.comp_point, heq_eqToHom_comp_iff,
+        PCat.eqToHom_point, eqToHom_map, PCat.comp_point, heq_eqToHom_comp_iff,
         heq_comp_eqToHom_iff, eqToHom_comp_heq_iff]
       generalize_proofs
       rename_i h1 h2
       simp only [Functor.congr_hom (eqToHom_app h1 y) (point' f), comp_obj, downFunctor_obj,
         PCat.forgetPoint_obj, Cat.of_α, eqToHom_comp_heq_iff, comp_eqToHom_heq_iff]
       refine heq_of_cast_eq ?_ ?_
-      · congr 1 <;> simp [PointedFunctor.eqToHom_toFunctor]
+      · congr 1 <;> simp [PCat.eqToHom_toFunctor]
       · simp [Cat.eqToHom_hom,PCat.eqToHom_hom]
   · intro x
     simp only [toPCat, lift, lift_obj, comp_obj,
@@ -441,7 +277,7 @@ theorem fac_left_aux (s : PullbackCone uLiftPCatForgetPoint (uLiftA A)) :
       · refine heq_of_cast_eq ?_ ?_
         · rw [h]
           rfl
-        · simp [eqToHom_app, eqToHom_obj]
+        · simp [eqToHom_app, Cat.eqToHom_obj]
       · rw [h]
         simp only [heq_eq_eq]
         rfl
@@ -494,7 +330,7 @@ theorem uniq (s : PullbackCone uLiftPCatForgetPoint.{v,u} (uLiftA.{v,u} A)) (m :
       simp [eqToHom_map] at h4
       have h5 := Functor.congr_hom h4 (cast pf3 (point' f))
       simp only [toPCat, comp_obj, Functor.comp_map, PCat.comp_toFunctor, PCat.comp_point] at h1
-      simp only [h1, h2, h3, h5, PointedFunctor.eqToHom_point, eqToHom_map, eqToHom_trans_assoc, eqToHom_fiber, 
+      simp only [h1, h2, h3, h5, PCat.eqToHom_point, eqToHom_map, eqToHom_trans_assoc, eqToHom_fiber, 
         PCat.forgetPoint_obj, Cat.of_α, downFunctor_obj, map_comp, Category.assoc, eqToHom_trans]
       simp only [PCat.eqToHom_hom, Functor.congr_hom (map_eqToHom_base _), Cat.eqToHom_hom, cast_cast,
         Category.assoc, eqToHom_trans, eqToHom_trans_assoc]

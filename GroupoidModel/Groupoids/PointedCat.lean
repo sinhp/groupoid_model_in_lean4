@@ -143,6 +143,46 @@ lemma comp_toFunctor {C D E : PCat} (F : C ⟶ D) (G : D ⟶ E) :
 lemma comp_point {C D E : PCat} (F : C ⟶ D) (G : D ⟶ E) :
     (F ≫ G).point = G.map (F.point) ≫ G.point := rfl
 
+
+/-- This is the proof of equality used in the eqToHom in `PCat.eqToHom_hom` -/
+theorem eqToHom_hom_aux {C1 C2 : PCat.{v,u}} (x y: C1) (eq : C1 = C2) :
+    (x ⟶ y) = ((eqToHom eq).obj x ⟶ (eqToHom eq).obj y) := by
+  cases eq
+  simp[CategoryStruct.id]
+
+/-- This is the turns the hom part of eqToHom functors into a cast-/
+theorem eqToHom_hom {C1 C2 : PCat.{v,u}} {x y: C1} (f : x ⟶ y) (eq : C1 = C2) :
+    (eqToHom eq).map f = (cast (PCat.eqToHom_hom_aux x y eq) f) := by
+  cases eq
+  simp[CategoryStruct.id]
+
+theorem map_id_point {C : Type u} [Category.{v} C] {F : C ⥤ PCat} {x : C} :
+    (F.map (CategoryStruct.id x)).point =
+    eqToHom (by simp : (F.map (CategoryStruct.id x)).obj (F.obj x).str.pt = (F.obj x).str.pt) := by
+  have : (CategoryStruct.id (F.obj x)).point = _ := PCat.id_point
+  convert this
+  · simp
+  · simp
+  · refine HEq.symm (heq_of_eqRec_eq ?_ rfl)
+    · symm; assumption
+
+theorem eqToHom_toFunctor {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
+    (eqToHom eq).toFunctor = (eqToHom (congrArg PCat.forgetPoint.obj eq)) := by
+  cases eq
+  simp[ PointedFunctor.id, CategoryStruct.id, PCat.forgetPoint,Cat.of,Bundled.of]
+
+/-- This is the proof of equality used in the eqToHom in `PointedFunctor.eqToHom_point` -/
+theorem eqToHom_point_aux {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
+    (eqToHom eq).obj PointedCategory.pt = PointedCategory.pt := by
+  cases eq
+  simp [CategoryStruct.id]
+
+/-- This shows that the point of an eqToHom in PCat is an eqToHom-/
+theorem eqToHom_point {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
+    (eqToHom eq).point = (eqToHom (PCat.eqToHom_point_aux eq)) := by
+  cases eq
+  simp[PointedFunctor.id, CategoryStruct.id, PCat.forgetPoint,Cat.of,Bundled.of]
+
 end PCat
 
 /-- The class of pointed groupoids. -/

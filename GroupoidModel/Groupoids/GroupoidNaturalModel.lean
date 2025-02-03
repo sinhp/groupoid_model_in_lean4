@@ -1,7 +1,7 @@
 import Mathlib.CategoryTheory.Limits.Preserves.FunctorCategory
 
 import GroupoidModel.Tarski.NaturalModel
-import GroupoidModel.Groupoids.PullBackProofs
+import GroupoidModel.Groupoids.GrothendieckPullback
 
 /-!
 Here we construct the natural model for groupoids.
@@ -9,7 +9,8 @@ Here we construct the natural model for groupoids.
 
 universe u v u₁ v₁ u₂ v₂
 
-open CategoryTheory
+open CategoryTheory ULift
+
 noncomputable section
 
 /-
@@ -25,17 +26,23 @@ def sGrpd := ULiftHom.{u+1} Grpd.{u,u}
 
 def sGrpd.of (C : Type u) [Groupoid.{u} C] : sGrpd.{u} := Grpd.of C
 
+def CatLift : Cat.{u,u} ⥤ Cat.{u,u+1} where
+    obj x := Cat.of (ULift.{u + 1, u} x)
+    map {x y} f := downFunctor ⋙ f ⋙ upFunctor
+
 @[simp] def sGrpd.forget : sGrpd.{u} ⥤ Grpd.{u,u} := ULiftHom.down
 
-namespace PshsGrpd
+namespace PshGrpd
+
+variable (C D) [Category.{u} C] [Category.{u} D]
+
+def ι : Grpd.{u, u} ⥤ Cat.{u,u+1} := Grpd.forgetToCat ⋙ CatLift
+
+def ofCat : Cat.{u,u+1} ⥤ (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) :=
+  yoneda ⋙ (whiskeringLeft _ _ _).obj ι.op
 
 def ofPshGrpd : (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) ⥤ (sGrpd.{u}ᵒᵖ ⥤ Type (u + 1)) :=
   (whiskeringLeft _ _ _).obj sGrpd.forget.op
-
-
-instance ofPshGrpdPreservesLim : Limits.PreservesLimits ofPshGrpd := by
-  dsimp [ofPshGrpd,Limits.PreservesLimits]
-  exact whiskeringLeftPreservesLimits sGrpd.forget.op
 
 abbrev yonedaCat : Cat.{u, u+1} ⥤ Psh sGrpd.{u} :=
   PshGrpd.ofCat ⋙ ofPshGrpd
@@ -55,21 +62,21 @@ variable {Γ Δ : sGrpd.{u}}
      left_inv  := λ _ ↦ rfl
      right_inv := λ _ ↦ rfl}
 
-lemma yonedaCatEquiv_naturality
+theorem yonedaCatEquiv_naturality
   (A : yoneda.obj Γ ⟶ yonedaCat.obj (Cat.of C)) (σ : Δ ⟶ Γ) :
   (sGrpd.forget.map σ) ⋙ yonedaCatEquiv A
     = yonedaCatEquiv (yoneda.map σ ≫ A) := by
   simp[← yonedaEquiv_naturality]
   rfl
 
-lemma yonedaCatEquiv_comp
+theorem yonedaCatEquiv_comp
   (A : yoneda.obj Γ ⟶ yonedaCat.obj (Cat.of D)) (U : D ⥤ C) :
   yonedaCatEquiv (A ≫ yonedaCat.map U) = yonedaCatEquiv A ⋙ U := by
   aesop_cat
 
 end
 
-open PshsGrpd
+open PshGrpd
 
 abbrev Ty : Psh sGrpd.{u} := yonedaCat.obj (Cat.of Grpd.{u,u})
 
@@ -86,9 +93,9 @@ abbrev downDisp : ext A ⟶ (Γ : Grpd.{u,u}) := Grothendieck.forget _
 abbrev disp : @Quiver.Hom sGrpd _ (ext A) Γ := { down := downDisp A }
 
 abbrev var : (yoneda.obj (ext A) : Psh sGrpd) ⟶ Tm :=
-  yonedaCatEquiv.invFun (var' _ _)
+  yonedaCatEquiv.invFun (sorry)
 
-lemma disp_pullback : 
+theorem disp_pullback : 
     IsPullback (var A) (yoneda.map { down := downDisp A }) tp A := sorry
 
 -- PLAN
@@ -106,21 +113,6 @@ instance GroupoidNM : NaturalModel.NaturalModelBase sGrpd.{u} where
   disp Γ A := disp A
   var Γ A := var A
   disp_pullback A := disp_pullback A
-
-  -- by
-  --   rename_i Γ
-  --   let Γ' : Grpd.{u,u} := sGrpd.forget.obj Γ
-  --   let A' : Γ' ⥤ Grpd.{u,u} := by
-  --     have h1 := yonedaEquiv.toFun A
-  --     dsimp [ofPshGrpd,PshGrpd,CatLift,Quiver.Hom,Cat.of,Bundled.of,Grpd.forgetToCat] at h1
-  --     refine ?_ ⋙ h1
-  --     exact Up_uni ↑Γ'
-  --   have pb := Functor.map_isPullback ofPshGrpd (PshGrpdPB A')
-  --   dsimp [PshGrpd]
-  --   dsimp [PshGrpd] at pb
-  --   sorry
-
-#exit
 
 instance groupoidULift.{u'} {α : Type u} [Groupoid.{v} α] : Groupoid (ULift.{u'} α) where
   inv f := Groupoid.inv f
