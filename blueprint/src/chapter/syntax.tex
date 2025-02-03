@@ -68,8 +68,8 @@ For HoTT, most of the rules are standard. Here, we will go over them.
 \end{bprooftree}
 \begin{bprooftree}
 \AxiomC{$\Gamma \vdash a : A$}
-\AxiomC{$\Gamma, x :A \vdash b(x) : B(x)$}
-\BinaryInfC{$\Gamma \vdash \langle a,b(a)\rangle : \sum_{x :A} B(x) $}
+\AxiomC{$\Gamma\vdash b : B(a)$}
+\BinaryInfC{$\Gamma \vdash \langle a,b\rangle : \sum_{x :A} B(x) $}
 \end{bprooftree}
 \]
 \[
@@ -84,12 +84,14 @@ For HoTT, most of the rules are standard. Here, we will go over them.
 \]
 \[
 \begin{bprooftree}
-\AxiomC{$\Gamma, x: A \vdash b(x) : B(x)$}
-\UnaryInfC{$\Gamma, a:A\vdash \text{fst}(\langle a,b(a)\rangle) \equiv a : A $}
+\AxiomC{$\Gamma \vdash a : A$}
+\AxiomC{$\Gamma\vdash b : B(a)$}
+\BinaryInfC{$\Gamma\vdash \text{fst}(\langle a,b\rangle) \equiv a : A $}
 \end{bprooftree}
 \begin{bprooftree}
-\AxiomC{$\Gamma, x: A \vdash b(x) : B(x)$}
-\UnaryInfC{$\Gamma, a:A\vdash \text{snd}(\langle a,b(a)\rangle) \equiv b(a) : B(a) $}
+\AxiomC{$\Gamma \vdash a : A$}
+\AxiomC{$\Gamma\vdash b : B(a)$}
+\BinaryInfC{$\Gamma\vdash \text{snd}(\langle a,b\rangle) \equiv b : B(a) $}
 \end{bprooftree}
 \]
 
