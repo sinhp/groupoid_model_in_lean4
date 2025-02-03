@@ -13,7 +13,6 @@ import Mathlib.CategoryTheory.Yoneda
 import Mathlib.CategoryTheory.Limits.Shapes.Terminal
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 import Mathlib.CategoryTheory.Limits.Presheaf
-import Mathlib.CategoryTheory.Limits.Shapes.FunctorCategory
 import Mathlib.CategoryTheory.Adjunction.Over
 
 --import Poly
@@ -86,6 +85,7 @@ instance {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : CartesianExponentiable tp where
   functor := LCC.pushforward tp
   adj := LCC.adj _
 
+@[reducible]
 def uvPoly {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly Tm Ty := ⟨tp, inferInstance⟩
 def uvPolyT {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly.Total (Psh Ctx) := ⟨_, _, uvPoly tp⟩
 
@@ -121,7 +121,7 @@ variable (Ctx) in
 class NaturalModelSigma where
   Sig : (P tp).obj Ty ⟶ M.Ty
   pair : (P tp).obj Tm ⟶ M.Tm
-  Sig_pullback : IsPullback pair ((uvPoly tp).comp (uvPoly tp)).p tp Sig
+  Sig_pullback : IsPullback pair ((uvPoly M.tp).comp (uvPoly M.tp)).p M.tp Sig
 
 def δ : M.Tm ⟶ pullback tp tp := pullback.lift (𝟙 _) (𝟙 _) rfl
 variable (Ctx) in
@@ -145,9 +145,9 @@ def q : I ⟶ M.Ty := pullback.fst .. ≫ pullback.fst .. ≫ tp
 def ρ : M.Tm ⟶ I := pullback.lift δ i Id_commute
 
 def ρs : P q ⟶ P M.tp :=
-  UvPoly.star (P := uvPoly tp) (Q := uvPoly q) ρ (by simp [ρ, uvPoly, q, δ])
+  UvPoly.star (P := uvPoly M.tp) (Q := uvPoly q) ρ (by simp [ρ, uvPoly, q, δ])
 
-def pb2 : Psh Ctx := pullback (ρs.app Ty) ((P tp).map tp)
+def pb2 : Psh Ctx := pullback (ρs.app M.Ty) ((P M.tp).map M.tp)
 def ε : (P q).obj M.Tm ⟶ pb2 :=
   pullback.lift ((P q).map tp) (ρs.app Tm) (by aesop_cat)
 

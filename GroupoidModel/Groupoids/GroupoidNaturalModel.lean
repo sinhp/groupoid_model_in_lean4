@@ -96,7 +96,7 @@ abbrev disp : @Quiver.Hom sGrpd _ (ext A) Γ := { down := downDisp A }
 abbrev var : (yoneda.obj (ext A) : Psh sGrpd) ⟶ Tm :=
   yonedaCatEquiv.invFun (sorry)
 
-theorem disp_pullback : 
+theorem disp_pullback :
     IsPullback (var A) (yoneda.map { down := downDisp A }) tp A := sorry
 
 -- PLAN
@@ -193,7 +193,7 @@ instance GroupoidNMSigma : NaturalModel.NaturalModelSigma sGrpd.{u} where
     fconstructor
     . intro Γ Q
       have φ' := PolyDataGet Γ Q
-      have pp := (NaturalModel.uvPoly NaturalModel.tp).polyPair φ'
+      have pp := (NaturalModel.uvPoly (Ctx := sGrpd.{u}) NaturalModel.tp).polyPair φ'
       rcases pp with ⟨A,pb⟩
       let dp := NaturalModel.disp_pullback A
       let help : yoneda.obj (NaturalModel.ext (Opposite.unop Γ) A) ≅
