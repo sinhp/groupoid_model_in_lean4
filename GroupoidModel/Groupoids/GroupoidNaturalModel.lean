@@ -139,11 +139,6 @@ def GroupoidSigma {Γ : Grpd} (A : Γ ⥤ Grpd) (B : (GroupoidalGrothendieck A) 
     . aesop_cat
 
 
--- theorem GroupoidSigmaBeckChevalley (Δ Γ: Grpd) (σ : Δ ⥤ Γ) (A : Γ ⥤ Grpd)
---   (B : (GroupoidalGrothendieck A) ⥤ Grpd) : σ ⋙ GroupoidSigma A B = GroupoidSigma (σ ⋙ A)
---   (GroupoidalGrothendieck.Map Δ Γ σ A B) := by
---     dsimp [GroupoidSigma,GroupoidalGrothendieck.Map]
-
 instance GroupoidNMSigma : NaturalModel.NaturalModelSigma sGrpd.{u} where
   Sig := by
     fconstructor

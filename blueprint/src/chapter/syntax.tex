@@ -8,3 +8,168 @@
 % - Identity types in every natural model,
 %   such that the smallest universe's Identity type satisfies UIP
 % - The smallest universe satisfies univalence
+
+For HoTT, most of the rules are standard. Here, we will go over them.
+
+\textbf{The Context Rules}
+\[
+\begin{bprooftree}
+\bottomAlignProof
+\AxiomC{}
+\UnaryInfC{$ \epsilon \text{ ctx}$}
+\end{bprooftree}
+\begin{bprooftree}
+\bottomAlignProof
+\AxiomC{$\Gamma \text{ ctx}$}
+\AxiomC{$\Gamma \vdash A \text{ type}$}
+\BinaryInfC{$ \Gamma, x : A \text{ ctx}$}
+\end{bprooftree}
+\begin{bprooftree}
+\bottomAlignProof
+\AxiomC{$\Gamma, x:A \text{ ctx}$}
+\UnaryInfC{$\Gamma, x:A \vdash x:A$}
+\end{bprooftree}
+\begin{bprooftree}
+\bottomAlignProof
+\AxiomC{$\Gamma, x:A \text{ ctx}$}
+\AxiomC{$\Gamma \vdash y : B$}
+\BinaryInfC{$\Gamma, x:A \vdash y:B$}
+\end{bprooftree}
+\]
+
+\textbf{The Pi Rules}
+\[
+\begin{bprooftree}
+\AxiomC{$\Gamma, x:A \vdash B(x) \text{ type}$}
+\UnaryInfC{$\Gamma \vdash \prod_{a : A} B(a) \text{ type}$}
+\end{bprooftree}
+\begin{bprooftree}
+\AxiomC{$\Gamma, x :A \vdash b(x) : B(x)$}
+\UnaryInfC{$\Gamma \vdash \lambda (a : A).b(a) : \prod_{a :A} B(a) $}
+\end{bprooftree}
+\]
+\[
+\begin{bprooftree}
+\AxiomC{$\Gamma \vdash f: \prod_{a :A} B(a)$}
+\AxiomC{$\Gamma \vdash x : A$}
+\BinaryInfC{$f(x) : B(x)$}
+\end{bprooftree}
+\begin{bprooftree}
+\AxiomC{$\Gamma, x: A \vdash b(x) : B(x)$}
+\UnaryInfC{$\Gamma, a:A\vdash \lambda(x: A).b(x)(a) \equiv b(a) : B(a)$}
+\end{bprooftree}
+\]
+
+\textbf{The Sigma Rules}
+\[
+\begin{bprooftree}
+\AxiomC{$\Gamma, x:A \vdash B(x) \text{ type}$}
+\UnaryInfC{$\Gamma \vdash \sum_{a : A} B(a) \text{ type}$}
+\end{bprooftree}
+\begin{bprooftree}
+\AxiomC{$\Gamma \vdash a : A$}
+\AxiomC{$\Gamma, x :A \vdash b(x) : B(x)$}
+\BinaryInfC{$\Gamma \vdash \langle a,b(a)\rangle : \sum_{x :A} B(x) $}
+\end{bprooftree}
+\]
+\[
+\begin{bprooftree}
+\AxiomC{$\Gamma \vdash p: \sum_{x :A} B(x)$}
+\UnaryInfC{$\Gamma \vdash \text{fst}(p) : A$}
+\end{bprooftree}
+\begin{bprooftree}
+\AxiomC{$\Gamma \vdash p: \sum_{x :A} B(x)$}
+\UnaryInfC{$\Gamma \vdash \text{snd}(p) : B(\text{fst}(p))$}
+\end{bprooftree}
+\]
+\[
+\begin{bprooftree}
+\AxiomC{$\Gamma, x: A \vdash b(x) : B(x)$}
+\UnaryInfC{$\Gamma, a:A\vdash \text{fst}(\langle a,b(a)\rangle) \equiv a : A $}
+\end{bprooftree}
+\begin{bprooftree}
+\AxiomC{$\Gamma, x: A \vdash b(x) : B(x)$}
+\UnaryInfC{$\Gamma, a:A\vdash \text{snd}(\langle a,b(a)\rangle) \equiv b(a) : B(a) $}
+\end{bprooftree}
+\]
+
+\textbf{The Id Rules}
+\[
+\begin{bprooftree}
+\AxiomC{$\Gamma \vdash a:A$}
+\AxiomC{$\Gamma \vdash b:A$}
+\BinaryInfC{$\Gamma \vdash \text{id}_{A}(a,b) \text{ type}$}
+\end{bprooftree}
+\begin{bprooftree}
+\AxiomC{$\Gamma \vdash a:A$}
+\UnaryInfC{$\Gamma \vdash \text{refl}(a) : \text{id}_{A}(a,a)$}
+\end{bprooftree}
+\]
+
+\[
+\begin{bprooftree}
+\AxiomC{$\Gamma,x:A,y:A,u: \text{id}_A(x,y) \vdash E(x,y,u) \text{ type}$}
+\AxiomC{$\Gamma, x : A \vdash e(x) : E(x,x,\text{refl}(x))$}
+\BinaryInfC{$\Gamma,x:A,y:A,u: \text{id}_A(x,y) \vdash \text{J}(x,y,u,e) : E(x,y,u)$}
+\end{bprooftree}
+\]
+
+\textbf{The Universe}
+\[
+\begin{bprooftree}
+\AxiomC{$\Gamma \text{ ctx}$}
+\UnaryInfC{$\Gamma \vdash \text{U} \text{ type}$}
+\end{bprooftree}
+\begin{bprooftree}
+\AxiomC{$\Gamma \vdash a : \text{U}$}
+\UnaryInfC{$\Gamma \vdash \text{El}(a) \text{ type}$}
+\end{bprooftree}
+\]
+\[
+\begin{bprooftree}
+\AxiomC{$\Gamma,a : \text{U}, x:\text{El}(a) \vdash b(x) : \text{U}$}
+\UnaryInfC{$\Gamma,a : \text{U} \vdash \pi(a,b(x)) : \text{U}$}
+\end{bprooftree}
+\begin{bprooftree}
+\AxiomC{$\Gamma,a : \text{U}, x:\text{El}(a) \vdash b(x) : \text{U}$}
+\UnaryInfC{$\Gamma,a : \text{U} \vdash \sigma(a,b(x)) : \text{U}$}
+\end{bprooftree}
+\begin{bprooftree}
+\AxiomC{$\Gamma,a : \text{U} \vdash \alpha : \text{El}(a)$}
+\AxiomC{$\Gamma,a : \text{U} \vdash \beta : \text{El}(a)$}
+\BinaryInfC{$\Gamma,a : \text{U} \vdash \iota(\alpha,\beta) : \text{U}$}
+\end{bprooftree}
+\]
+\[
+\begin{bprooftree}
+\AxiomC{$\Gamma,a : \text{U}, x:\text{El}(a) \vdash b(x) : \text{U}$}
+\UnaryInfC{$\Gamma,a : \text{U} \vdash \text{El}(\pi(a,b(x))) \equiv \prod_{x : \text{El}(a)} \text{El}(b(x)) \text{ type}$}
+\end{bprooftree}
+\begin{bprooftree}
+\AxiomC{$\Gamma,a : \text{U}, x:\text{El}(a) \vdash b(x) : \text{U}$}
+\UnaryInfC{$\Gamma,a : \text{U} \vdash \text{El}(\sigma(a,b(x))) \equiv \sum_{x : \text{El}(a)} \text{El}(b(x)) \text{ type}$}
+\end{bprooftree}
+\]
+
+\textbf{Definitions and Axioms}
+
+To simplify, we denote non-dependent products and functions with $\times$ and $\to$. This is not part of the type theory but improves readability.
+
+\textbf{Truncation Levels}
+\begin{align*}
+    \text{isContr}(A) &:= \sum_{x : A} \prod_{y : A} \text{id}_{A}(y,x)\\
+    \text{isProp}(A) &:= \prod_{x : A} \prod_{y : A} \text{id}_{A}(x,y)\\
+    \text{isSet}(A) &:= \prod_{x : A} \prod_{y: A} \text{isProp}(\text{Id}_{A}(x, y))
+\end{align*}
+
+\textbf{The Set Universe}
+$$\text{S} := \sum_{u : \text{U}} \text{isSet}(\text{El}(u))$$
+
+\textbf{Type Isomorphism}
+$$A \simeq B := \sum_{f :A \to B}\sum_{g :B \to A}\Big(\prod_{a : A} \text{id}_{A}(g(f(a)),a) \Big) \times \Big(\prod_{b : B} \text{id}_{B}(f(g(b)),b) \Big)$$
+
+\textbf{The Univalence Axiom}
+$$\text{UA}: \prod_{x : \text{S}} \prod_{y : \text{S}} \text{Id}_{\text{S}}(x,y) \simeq \Big(\text{El}(x) \simeq \text{El}(y)\Big)$$
+
+\textbf{Function Extensionality}
+$$\text{FunExt}: \prod_{a : \text{U}} \prod_{b : \text{U}} \prod_{f : \text{El}(a) \to \text{El}(b)} \prod_{g : \text{El}(a) \to \text{El}(b)}\Big( \prod_{\alpha : \text{El}(a)}\text{id}_{\text{El(b)}}(f\alpha,g\alpha)\Big) \simeq \text{id}_{\text{El}(a) \to \text{El}(b)}(f,g)$$
