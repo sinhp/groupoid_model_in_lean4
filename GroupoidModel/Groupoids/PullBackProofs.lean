@@ -36,7 +36,7 @@ theorem PointedFunctor.eqToHom_point {P1 P2 : PCat.{u,u}} (eq : P1 = P2) : (eqTo
   cases eq
   simp[PointedFunctor.id, CategoryStruct.id, PCat.forgetPoint,Cat.of,Bundled.of]
 
-/-- This is the turns the object part of eqToHom functors into a cast-/
+/-- This turns the object part of eqToHom functors into casts -/
 theorem Cat.eqToHom_obj (C1 C2 : Cat.{u,v})(x : C1)(eq : C1 = C2): (eqToHom eq).obj x = cast (congrArg Bundled.α eq) x := by
   cases eq
   simp[CategoryStruct.id]
@@ -56,10 +56,10 @@ theorem PCat.eqToHom_hom_help {C1 C2 : PCat.{u,v}}(x y: C1)(eq : C1 = C2): (x �
   cases eq
   simp[CategoryStruct.id]
 
-/-- This is the turns the hom part of eqToHom pointed functors into a cast-/
-theorem PCat.eqToHom_hom {C1 C2 : PCat.{u,v}}{x y: C1}(f : x ⟶ y)(eq : C1 = C2): (eqToHom eq).map f = (cast (PCat.eqToHom_hom_help x y eq) f) := by
-  cases eq
-  simp[CategoryStruct.id]
+-- /-- This is the turns the hom part of eqToHom pointed functors into a cast-/
+-- theorem PCat.eqToHom_hom {C1 C2 : PCat.{u,v}}{x y: C1}(f : x ⟶ y)(eq : C1 = C2): (eqToHom eq).map f = (cast (PCat.eqToHom_hom_help x y eq) f) := by
+--   cases eq
+--   simp[CategoryStruct.id]
 
 /-- This shows that two objects are equal in Grothendieck A if they have equal bases and fibers that are equal after being cast-/
 theorem Grothendieck.ext' {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}(g1 g2 : Grothendieck A)(eq_base : g1.base = g2.base)
@@ -471,13 +471,22 @@ def CatLift_BackUp (C : Cat.{u,u}) : C ⥤ CatLift.obj C where
     obj x := {down := x}
     map f := f
 
-def PshGrpd : Cat.{u,u+1} ⥤ (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) := by
-  refine yoneda ⋙ ?_
-  refine (whiskeringLeft (Grpd.{u,u}ᵒᵖ) (Cat.{u,u+1}ᵒᵖ) (Type (u + 1))).obj ?_
-  refine Grpd.forgetToCat.op ⋙ CatLift.op
+namespace PshGrpd
 
-instance PshGrpdPreservesLim : Limits.PreservesLimits PshGrpd := by
-  dsimp [PshGrpd,Limits.PreservesLimits]
+variable (C D) [Category.{u} C] [Category.{u} D]
+
+def ι : Grpd.{u, u} ⥤ Cat.{u,u+1} := Grpd.forgetToCat ⋙ CatLift
+
+-- def κ : Grpd.{u, u} ⥤ Cat.{u,u} := Grpd.forgetToCat
+
+-- lemma κ_yoneda_whiskeringLeft_κ_eq_yoneda :
+--   κ.{u} ⋙ yoneda ⋙ (whiskeringLeft _ _ _).obj κ.op = yoneda := rfl
+
+def ofCat : Cat.{u,u+1} ⥤ (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) :=
+  yoneda ⋙ (whiskeringLeft _ _ _).obj ι.op
+
+instance ofCatPreservesLim : Limits.PreservesLimits ofCat := by
+  dsimp [ofCat,Limits.PreservesLimits]
   refine @Limits.compPreservesLimits ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_
   · exact yonedaFunctorPreservesLimits
   · refine @Adjunction.rightAdjointPreservesLimits ?_ ?_ ?_ ?_ ?_ ?_ ?_
@@ -487,34 +496,38 @@ instance PshGrpdPreservesLim : Limits.PreservesLimits PshGrpd := by
         exact Functor.instHasLeftKanExtension (Grpd.forgetToCat.op ⋙ CatLift.op) F
     · exact (Grpd.forgetToCat.op ⋙ CatLift.op).lanAdjunction (Type (u + 1))
 
+end PshGrpd
+
+open PshGrpd
+
 -- This is a Covariant Functor that takes a Groupoid Γ to Γ ⥤ Grpd
 def Ty_functor : Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1) where
   obj x := x.unop ⥤ Grpd.{u,u}
   map f A := f.unop ⋙ A
 
-def Ty_functor_iso_PshGrpd_Grpd : Ty_functor ≅ PshGrpd.obj (Cat.of Grpd.{u,u}) where
+def Ty_functor_iso_ofCat_Grpd : Ty_functor ≅ ofCat.obj (Cat.of Grpd.{u,u}) where
   hom := by
     fconstructor
     · unfold Ty_functor
-      unfold PshGrpd
+      unfold ofCat
       intro X F
       rcases X with ⟨X⟩
       refine ?_ ⋙ F ⋙ ?_
       · refine CatLift_BackDown (Grpd.forgetToCat.obj X)
       · exact 𝟭 Grpd
-    · simp [Ty_functor,PshGrpd]
+    · simp [Ty_functor,ofCat]
       intros X Y f
       exact rfl
   inv := by
     fconstructor
     · unfold Ty_functor
-      unfold PshGrpd
+      unfold ofCat
       intro X F
       rcases X with ⟨X⟩
       refine ?_ ⋙ F ⋙ ?_
       · refine CatLift_BackUp (Grpd.forgetToCat.obj X)
       · exact 𝟭 Grpd
-    · simp [Ty_functor,PshGrpd]
+    · simp [Ty_functor,ofCat]
       intros X Y f
       exact rfl
 
@@ -524,29 +537,29 @@ def Tm_functor : Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1) where
   map f A := f.unop ⋙ A
 
 -- I am not sure if this iso will be helpfull but it works as a sanity check to make sure Tm is defined correctly
-def Tm_functor_iso_PshGrpd_PGrpd : Tm_functor ≅ PshGrpd.obj (Cat.of PGrpd.{u,u}) where
+def Tm_functor_iso_ofCat_PGrpd : Tm_functor ≅ ofCat.obj (Cat.of PGrpd.{u,u}) where
   hom := by
     fconstructor
     · unfold Tm_functor
-      unfold PshGrpd
+      unfold ofCat
       intro X F
       rcases X with ⟨X⟩
       refine ?_ ⋙ F ⋙ ?_
       · refine CatLift_BackDown (Grpd.forgetToCat.obj X)
       · exact 𝟭 PGrpd
-    · simp [Ty_functor,PshGrpd]
+    · simp [Ty_functor,ofCat]
       intros X Y f
       exact rfl
   inv := by
     fconstructor
     · unfold Tm_functor
-      unfold PshGrpd
+      unfold ofCat
       intro X F
       rcases X with ⟨X⟩
       refine ?_ ⋙ F ⋙ ?_
       · refine CatLift_BackUp (Grpd.forgetToCat.obj X)
       · exact 𝟭 PGrpd
-    · simp [Ty_functor,PshGrpd]
+    · simp [Ty_functor,ofCat]
       intros X Y f
       exact rfl
 
@@ -649,16 +662,18 @@ def PBasPB {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}) : @IsPullback (Cat.{u,u+1}) 
     · constructor
       exact PBasLim A
 
-def PshGrpdPB {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}) : @IsPullback (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) _
-  (PshGrpd.obj (Cat.of (ULift.{u+1,u} (GroupoidalGrothendieck A))))
-  (PshGrpd.obj (Cat.of PGrpd.{u,u}))
-  (PshGrpd.obj (Cat.of (ULift.{u+1,u} Γ)))
-  (PshGrpd.obj (Cat.of Grpd.{u,u}))
-  (PshGrpd.map ((Down_uni (GroupoidalGrothendieck A)) ⋙ (var' Γ A)))
-  (PshGrpd.map ((Down_uni (GroupoidalGrothendieck A)) ⋙ (GroupoidalGrothendieck.forget) ⋙ (Up_uni Γ)))
-  (PshGrpd.map (PGrpd.forgetPoint))
-  (PshGrpd.map ((Down_uni Γ) ⋙ A)) := Functor.map_isPullback PshGrpd (PBasPB A)
+
+def ofCatPB {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}) : @IsPullback (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) _
+  (ofCat.obj (Cat.of (ULift.{u+1,u} (GroupoidalGrothendieck A))))
+  (ofCat.obj (Cat.of PGrpd.{u,u}))
+  (ofCat.obj (Cat.of (ULift.{u+1,u} Γ)))
+  (ofCat.obj (Cat.of Grpd.{u,u}))
+  (ofCat.map ((Down_uni (GroupoidalGrothendieck A)) ⋙ (var' Γ A)))
+  (ofCat.map ((Down_uni (GroupoidalGrothendieck A)) ⋙ (GroupoidalGrothendieck.forget) ⋙ (Up_uni Γ)))
+  (ofCat.map (PGrpd.forgetPoint))
+  (ofCat.map ((Down_uni Γ) ⋙ A)) := Functor.map_isPullback ofCat (PBasPB A)
 
 end
+
 
 end CategoryTheory
