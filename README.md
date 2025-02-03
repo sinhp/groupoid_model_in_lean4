@@ -6,7 +6,7 @@ A web version of the mathematics, `lean4` documentation,
 and a dependency graph on the progress of formalization can be found
 [here](https://sinhp.github.io/groupoid_model_in_lean4/).
 
-This could be the basis for a HoTT mode in Lean.
+This is intended to serve as the basis for a HoTT mode in Lean.
 
 This repository relies on the [formalization of polynomial functors](https://github.com/sinhp/Poly/tree/master).
 
