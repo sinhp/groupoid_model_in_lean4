@@ -139,7 +139,6 @@ def GroupoidSigma {Γ : Grpd} (A : Γ ⥤ Grpd) (B : (GroupoidalGrothendieck A) 
     . aesop_cat
 
 
-
 instance GroupoidNMSigma : NaturalModel.NaturalModelSigma sGrpd.{u} where
   Sig := by
     fconstructor
