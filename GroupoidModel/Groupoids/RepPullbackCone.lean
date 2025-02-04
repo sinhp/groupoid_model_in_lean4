@@ -110,11 +110,9 @@ def lift'' : s.pt ⟶ t.pt := {
 theorem fac_ext (j : J) (c : C) (x) :
     (lift'' P s ≫ t.π.app j).app (Opposite.op c) x
     = (s.π.app j).app (Opposite.op c) x := by
-  dsimp[lift'',lift',← yonedaEquiv_comp]
-  let x' := yonedaEquiv.symm x
-  have h := P.fac (repConeOfConeMap s c x') j
-  dsimp [repConeOfConeMap] at h
-  simp [h, lift'', lift', yonedaEquiv_comp, Equiv.apply_symm_apply yonedaEquiv x, lift''_app]
+  dsimp [lift'',lift', lift''_app, ← yonedaEquiv_comp]
+  rw [P.fac (repConeOfConeMap s c (yonedaEquiv.symm x)) j]
+  simp [repConeOfConeMap, yonedaEquiv_comp, Equiv.apply_symm_apply yonedaEquiv x]
 
 theorem uniq_ext (m : s.pt ⟶ t.pt)
     (hm : ∀ (j : J), m ≫ t.π.app j = s.π.app j) (c : C) (x) :
@@ -123,8 +121,8 @@ theorem uniq_ext (m : s.pt ⟶ t.pt)
   let x' := yonedaEquiv.symm x
   have hj : (∀ (j : J), (x' ≫ m) ≫ t.π.app j = x' ≫ s.π.app j) := by simp[hm]
   have h := P.uniq (repConeOfConeMap s c x') (x' ≫ m) hj
-  dsimp [repConeOfConeMap] at h
-  simp [lift'', lift', yonedaEquiv_comp, ← h, Equiv.apply_symm_apply yonedaEquiv x]
+  dsimp [lift'', lift''_app, lift']
+  rw [← h, yonedaEquiv_comp, Equiv.apply_symm_apply yonedaEquiv x]
 
 def IsLimit {t : Cone F} (P : RepIsLimit t) : IsLimit t where
   lift := lift'' P
