@@ -105,7 +105,7 @@ instance category : LargeCategory.{max v u} PCat.{v, u} where
     simp [PointedFunctor.comp,Functor.assoc]
 
 /-- The functor that takes PCat to Cat by forgetting the points-/
-@[simps] def forgetPoint : PCat ⥤ Cat where
+@[simps] def forgetToCat : PCat ⥤ Cat where
   obj x := Cat.of x
   map f := f.toFunctor
 
@@ -167,9 +167,9 @@ theorem map_id_point {C : Type u} [Category.{v} C] {F : C ⥤ PCat} {x : C} :
     · symm; assumption
 
 theorem eqToHom_toFunctor {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
-    (eqToHom eq).toFunctor = (eqToHom (congrArg PCat.forgetPoint.obj eq)) := by
+    (eqToHom eq).toFunctor = (eqToHom (congrArg PCat.forgetToCat.obj eq)) := by
   cases eq
-  simp[ PointedFunctor.id, CategoryStruct.id, PCat.forgetPoint,Cat.of,Bundled.of]
+  simp[ PointedFunctor.id, CategoryStruct.id, PCat.forgetToCat,Cat.of,Bundled.of]
 
 /-- This is the proof of equality used in the eqToHom in `PointedFunctor.eqToHom_point` -/
 theorem eqToHom_point_aux {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
@@ -181,7 +181,7 @@ theorem eqToHom_point_aux {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
 theorem eqToHom_point {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
     (eqToHom eq).point = (eqToHom (PCat.eqToHom_point_aux eq)) := by
   cases eq
-  simp[PointedFunctor.id, CategoryStruct.id, PCat.forgetPoint,Cat.of,Bundled.of]
+  simp[PointedFunctor.id, CategoryStruct.id, PCat.forgetToCat,Cat.of,Bundled.of]
 
 end PCat
 
@@ -232,12 +232,12 @@ instance category : LargeCategory.{max v u} PGrpd.{v, u} where
     simp [PointedFunctor.comp,Functor.assoc]
 
 /-- The functor that takes PGrpd to Grpd by forgetting the points-/
-def forgetPoint : PGrpd ⥤ Grpd where
+def forgetToGrpd : PGrpd ⥤ Grpd where
   obj x := Grpd.of x
   map f := f.toFunctor
 
 /-- This takes PGrpd to PCat-/
-def forgetToCat : PGrpd ⥤ PCat where
+def forgetToPCat : PGrpd ⥤ PCat where
   obj x := PCat.of x
   map f := f
 

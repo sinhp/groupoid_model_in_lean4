@@ -85,7 +85,7 @@ abbrev Tm : Psh sGrpd.{u} := yonedaCat.obj (Cat.of PGrpd.{u,u})
 
 variable {Γ : sGrpd.{u}} (A : yoneda.obj Γ ⟶ Ty)
 
-abbrev tp : Tm ⟶ Ty := yonedaCat.map (PGrpd.forgetPoint)
+abbrev tp : Tm ⟶ Ty := yonedaCat.map (PGrpd.forgetToGrpd)
 
 abbrev ext : Grpd.{u,u} := Grpd.of (GroupoidalGrothendieck (yonedaCatEquiv A))
 
