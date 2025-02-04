@@ -171,10 +171,13 @@ $$\text{S} := \sum_{u : \text{U}} \text{isSet}(\text{El}(u))$$
 $$A \simeq B := \sum_{f :A \to B}\sum_{g :B \to A}\sum_{h :B \to A}\Big(\prod_{a : A} \text{id}_{A}(g(f(a)),a) \Big) \times \Big(\prod_{b : B} \text{id}_{B}(f(h(b)),b) \Big)$$
 
 \textbf{Set Isomorphism}
-$$A \cong B := \sum_{f :A \to B}\sum_{g :B \to A}\Big(\prod_{a : A} \text{id}_{A}(g(f(a)),a) \Big) \times \Big(\prod_{b : B} \text{id}_{B}(f(g(b)),b) \Big)$$
+$$A \cong B := \text{isSet}(A) \times \text{isSet}(B)\times\sum_{f :A \to B}\sum_{g :B \to A}\Big(\prod_{a : A} \text{id}_{A}(g(f(a)),a) \Big) \times \Big(\prod_{b : B} \text{id}_{B}(f(g(b)),b) \Big)$$
 
 \textbf{The Univalence Axiom}
-$$\text{UA}: \prod_{x : \text{S}} \prod_{y : \text{S}} \text{Id}_{\text{S}}(x,y) \simeq \Big(\text{El}(x) \simeq \text{El}(y)\Big)$$
+$$\text{UA}: \prod_{x : \text{U}} \prod_{y : \text{U}} \text{Id}_{\text{S}}(x,y) \simeq \Big(\text{El}(x) \simeq \text{El}(y)\Big)$$
+
+\textbf{The Univalence Axiom for Sets}
+$$\text{UAset}: \prod_{x : \text{S}} \prod_{y : \text{S}} \text{Id}_{\text{S}}(x,y) \simeq \Big(\text{El}(x) \cong \text{El}(y)\Big)$$
 
 \textbf{Function Extensionality}
 $$\text{FunExt}: \prod_{a : \text{U}} \prod_{b : \text{U}} \prod_{f : \text{El}(a) \to \text{El}(b)} \prod_{g : \text{El}(a) \to \text{El}(b)}\Big( \prod_{\alpha : \text{El}(a)}\text{id}_{\text{El(b)}}(f\alpha,g\alpha)\Big) \simeq \text{id}_{\text{El}(a) \to \text{El}(b)}(f,g)$$
