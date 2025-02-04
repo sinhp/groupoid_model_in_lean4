@@ -8,7 +8,7 @@ import GroupoidModel.Grothendieck.Groupoidal
 /-!
 Here we construct the natural model for groupoids.
 
-This file needs to eventually be ported to GroupoidRussellNaturalModel
+TODO: This file needs to eventually be ported to GroupoidRussellNaturalModel
 but currently we don't have a Russell style sigma type.
 -/
 

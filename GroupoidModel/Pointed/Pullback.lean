@@ -72,10 +72,10 @@ at the target universe level.
 -/
 theorem isPullback_forgetToGrpd_uLiftGrothendieckForget :
     IsPullback
-    ((isoGrothendieckForgetToCat.{u,u} ≪≫ Cat.ULift_iso_self.symm).hom)
-    (Cat.homOf PGrpd.forgetToGrpd.{u,u})
-    (IsPullback.uLiftGrothendieckForget.{u,u+1} Grpd.forgetToCat.{u,u})
-    Cat.ULift_iso_self.{u}.inv := by
+      ((isoGrothendieckForgetToCat.{u,u} ≪≫ Cat.ULift_iso_self.symm).hom)
+      (Cat.homOf PGrpd.forgetToGrpd.{u,u})
+      (IsPullback.uLiftGrothendieckForget.{u,u+1} Grpd.forgetToCat.{u,u})
+      Cat.ULift_iso_self.{u}.inv := by
   apply IsPullback.of_horiz_isIso
   constructor
   apply Functor.ext
@@ -103,10 +103,10 @@ at the target universe level.
 -/
 theorem isPullback_grothendieckForget_forgetToCat :
     IsPullback
-    (IsPullback.uLiftToPCat.{u,u+1} Grpd.forgetToCat.{u,u})
-    (IsPullback.uLiftGrothendieckForget.{u,u+1} Grpd.forgetToCat.{u,u})
-    (IsPullback.uLiftPCatForgetToCat.{u,u+1})
-    (IsPullback.uLiftA.{u,u+1} Grpd.forgetToCat.{u,u}) :=
+      (IsPullback.uLiftToPCat.{u,u+1} Grpd.forgetToCat.{u,u})
+      (IsPullback.uLiftGrothendieckForget.{u,u+1} Grpd.forgetToCat.{u,u})
+      (IsPullback.uLiftPCatForgetToCat.{u,u+1})
+      (IsPullback.uLiftA.{u,u+1} Grpd.forgetToCat.{u,u}) :=
   CategoryTheory.Grothendieck.isPullback
 
 /--
@@ -122,10 +122,10 @@ where `↑` denotes some kind of `ULift` operation into `Cat.{u,u+1}`
 -/
 theorem isPullback_uLiftPCatForgetToCat_forgetToCat :
     IsPullback
-    Cat.ULift_iso_self.{u}.hom
-    (IsPullback.uLiftPCatForgetToCat.{u,u})
-    (Cat.homOf PCat.forgetToCat.{u,u})
-    Cat.ULift_iso_self.{u}.hom := by
+      Cat.ULift_iso_self.{u}.hom
+      (IsPullback.uLiftPCatForgetToCat.{u,u})
+      (Cat.homOf PCat.forgetToCat.{u,u})
+      Cat.ULift_iso_self.{u}.hom := by
   apply IsPullback.of_horiz_isIso
   constructor
   apply Functor.ext
