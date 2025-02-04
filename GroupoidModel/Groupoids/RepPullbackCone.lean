@@ -60,22 +60,20 @@ structure RepIsLimit (t : Cone F) where
 abbrev ConeMap (s : Cone F) (c : C) :=
  yoneda.obj c ⟶ s.pt
 
-@[simp] def repConeOfConeMap 
-  (s : Cone F) (c : C) (x' : ConeMap s c) :
-  RepCone F := 
+def repConeOfConeMap (s : Cone F) (c : C) (x' : ConeMap s c) : RepCone F :=
     { pt := c
       π := {app := λ j ↦ x' ≫ s.π.app j}}
 
 namespace RepIsLimit
 
-variable {t : Cone F} (P : RepIsLimit t) {s : Cone F} 
+variable {t : Cone F} (P : RepIsLimit t) {s : Cone F}
 
-def lift' (c : C) (x' : ConeMap s c) : (ConeMap t c) :=
+def lift' (c : C) (x' : ConeMap s c) : ConeMap t c :=
   P.lift $ repConeOfConeMap s c x'
 
 @[simp] lemma lift'_naturality {s : Cone F} {c d : C}
-  (f : c ⟶ d) (x' : ConeMap s d) :
-  lift' P c (yoneda.map f ≫ x') = yoneda.map f ≫ lift' P d x' := by
+    (f : c ⟶ d) (x' : ConeMap s d) :
+    lift' P c (yoneda.map f ≫ x') = yoneda.map f ≫ lift' P d x' := by
   apply Eq.symm
   apply P.uniq (repConeOfConeMap s c (yoneda.map f ≫ x')) (yoneda.map f ≫ lift' P d x')
   intro j
@@ -85,14 +83,13 @@ def lift' (c : C) (x' : ConeMap s c) : (ConeMap t c) :=
   rw[Category.assoc, Category.assoc, ← h]
   rfl
 
-@[simp] def lift''_app (s : Cone F) (c : C)  :
-  s.pt.obj (Opposite.op c) → t.pt.obj (Opposite.op c) :=
-    yonedaEquiv ∘ lift' P c ∘ yonedaEquiv.symm
+def lift''_app (s : Cone F) (c : C) :
+    s.pt.obj (Opposite.op c) → t.pt.obj (Opposite.op c) :=
+  yonedaEquiv ∘ lift' P c ∘ yonedaEquiv.symm
 
-def lift''_app_naturality 
-  {c d : C} (f : c ⟶ d) :
-  s.pt.map (f.op) ≫ lift''_app P s c
-    = lift''_app P s d ≫ t.pt.map (Opposite.op f) := by
+theorem lift''_app_naturality {c d : C} (f : c ⟶ d) :
+    s.pt.map (f.op) ≫ lift''_app P s c
+      = lift''_app P s d ≫ t.pt.map (Opposite.op f) := by
   ext x
   simp[lift''_app, lift']
   rw[yonedaEquiv_naturality']
@@ -104,33 +101,30 @@ def lift''_app_naturality
 variable (s)
 
 def lift'' : s.pt ⟶ t.pt := {
-    app := λ c ↦ lift''_app P s c.unop
-    naturality := by
-      intros
-      apply lift''_app_naturality
-    }
+  app := λ c ↦ lift''_app P s c.unop
+  naturality := by
+    intros
+    apply lift''_app_naturality
+  }
 
-def fac_ext (j : J) (c : C) (x) :
-  (lift'' P s ≫ t.π.app j).app (Opposite.op c) x
-  = (s.π.app j).app (Opposite.op c) x := by
-  dsimp[lift'',lift',← yonedaEquiv_comp]
-  let x' := yonedaEquiv.symm x
-  have h := P.fac (repConeOfConeMap s c x') j 
-  dsimp [repConeOfConeMap] at h
-  simp [h, lift'', lift', yonedaEquiv_comp, Equiv.apply_symm_apply yonedaEquiv x]
+theorem fac_ext (j : J) (c : C) (x) :
+    (lift'' P s ≫ t.π.app j).app (Opposite.op c) x
+    = (s.π.app j).app (Opposite.op c) x := by
+  dsimp [lift'',lift', lift''_app, ← yonedaEquiv_comp]
+  rw [P.fac (repConeOfConeMap s c (yonedaEquiv.symm x)) j]
+  simp [repConeOfConeMap, yonedaEquiv_comp, Equiv.apply_symm_apply yonedaEquiv x]
 
-def uniq_ext (m : s.pt ⟶ t.pt)
-  (hm : ∀ (j : J), m ≫ t.π.app j = s.π.app j) (c : C) (x) :
-  m.app (Opposite.op c) x
-  = (P.lift'' s).app (Opposite.op c) x := by
+theorem uniq_ext (m : s.pt ⟶ t.pt)
+    (hm : ∀ (j : J), m ≫ t.π.app j = s.π.app j) (c : C) (x) :
+    m.app (Opposite.op c) x
+    = (P.lift'' s).app (Opposite.op c) x := by
   let x' := yonedaEquiv.symm x
   have hj : (∀ (j : J), (x' ≫ m) ≫ t.π.app j = x' ≫ s.π.app j) := by simp[hm]
   have h := P.uniq (repConeOfConeMap s c x') (x' ≫ m) hj
-  dsimp [repConeOfConeMap] at h
-  simp [lift'', lift', yonedaEquiv_comp, ← h, Equiv.apply_symm_apply yonedaEquiv x]
+  dsimp [lift'', lift''_app, lift']
+  rw [← h, yonedaEquiv_comp, Equiv.apply_symm_apply yonedaEquiv x]
 
-def IsLimit {t : Cone F} (P : RepIsLimit t)
-  : IsLimit t where
+def IsLimit {t : Cone F} (P : RepIsLimit t) : IsLimit t where
   lift := lift'' P
   fac := λ s j ↦ by
     ext c x
@@ -147,7 +141,7 @@ abbrev RepPullbackCone {X Y Z : Cᵒᵖ ⥤ Type v₃} (f : X ⟶ Z) (g : Y ⟶ 
 namespace RepPullbackCone
 
 variable {W X Y Z : Cᵒᵖ ⥤ Type v₃}
-  {f : X ⟶ Z} {g : Y ⟶ Z} (t : RepPullbackCone f g) 
+  {f : X ⟶ Z} {g : Y ⟶ Z} (t : RepPullbackCone f g)
 
 def pullbackCone : PullbackCone f g where
   pt := yoneda.obj t.pt

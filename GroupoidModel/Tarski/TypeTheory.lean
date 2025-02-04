@@ -160,6 +160,7 @@ lemma Context.typed.val_cast {Γ : Context Ctx} {A B : Γ.ty} (h : A = B) (x : �
 
 def Context.nil : Context Ctx := ⟨_, .nil⟩
 
+@[reducible]
 def Context.cons (Γ : Context Ctx) (A : Γ.ty) : Context Ctx := ⟨_, .cons A Γ.2⟩
 
 @[simp] theorem Context.cons_fst (Γ : Context Ctx) (A : Γ.ty) :
@@ -287,7 +288,8 @@ def mkLam {Γ : Context Ctx} (A : Γ.ty) (B : (Γ.cons A).ty) (e : (Γ.cons A).t
 
 theorem comp_mkLam {Γ Δ : Context Ctx} (σ : y(Δ.1) ⟶ y(Γ.1))
     (A : Γ.ty) (B : (Γ.cons A).ty) (e : (Γ.cons A).typed B) :
-    σ ≫ (mkLam A B e).1 = (mkLam (σ ≫ A) (weakSubst σ A ≫ B) (e.subst (weakSubst σ A))).1 := by
+    σ ≫ (mkLam A B e).1 =
+      (mkLam (σ ≫ A) (weakSubst σ A ≫ B) (e.subst (Δ := (Δ.cons (σ ≫ A))) (weakSubst σ A))).1 := by
   simp [mkLam, comp_mkLam']
 
 def mkPApp'_aux {Γ : Ctx} (A : y(Γ) ⟶ Ty) (B : y(ext Γ A) ⟶ Ty)
@@ -381,7 +383,7 @@ theorem comp_mkApp {Γ Δ : Context Ctx} (σ : y(Δ.1) ⟶ y(Γ.1)) (A : Γ.ty) 
 def mkSmallPi {Γ : Context Ctx} (A : Γ.typed wU) (B : (Γ.cons (mkEl A)).typed wU) : Γ.typed wU := by
   refine mkTyped (Δ := .nil) (?a ≫ NaturalModelSmallPi.SmallPi (Ctx := Ctx)) ?b
   case b => simp only [Context.nil, Psh, wU, substFst]; rw [comp_substUnit]
-  refine ((uvPoly _).equiv' _ _).2 ⟨?_, ?_⟩
+  refine ((uvPoly (Ctx := Ctx) _).equiv' _ _).2 ⟨?_, ?_⟩
   · exact substCons (yoneda.map $ terminal.from _) A.1 _ A.2
   · refine ?_ ≫ substCons (yoneda.map $ terminal.from _) B.1 _ B.2
     dsimp [uvPoly]
@@ -445,29 +447,29 @@ theorem ofTerm_app (Γ : Context Ctx) {f a e'} :
     fun ⟨_, hf, _, ha, _, hB, H, e⟩ => ⟨_, hf, _, ha, _, rfl, _, hB, H, e⟩,
     fun ⟨_, hf, _, ha, _, rfl, _, hB, H, e⟩ => ⟨_, hf, _, ha, _, hB, H, e⟩⟩
 
--- mutual
-
--- theorem ofTerm_lift (h : e' ∈ ofTerm Γ (.liftN e k)) : e' ∈ ofTerm Γ (.liftN e k) := sorry
--- end
-
 @[simp] def CtxStack.size {Γ : Ctx} : CtxStack Γ → Nat
   | .nil => 0
   | .cons _ S => S.size + 1
 
+/-- Given the context stack `1.Aₙ.….Aₖ₋₁.….A₀`, return `1.Aₙ.….Aₖ`. -/
 @[simp] def CtxStack.dropN {Γ : Ctx} : ∀ k (S : CtxStack Γ), k ≤ S.size → Context Ctx
   | 0, S, _ => ⟨Γ, S⟩
   | _+1, .cons .., h => CtxStack.dropN _ _ (Nat.le_of_succ_le_succ h)
 
+/-- Given the context stack `1.Aₙ.….Aₖ₋₁.….A₀`,
+return the display map `1.Aₙ.….Aₖ₋₁.….A₀ ⟶ 1.Aₙ.….Aₖ`. -/
 @[simp] def CtxStack.dropN_disp {Γ : Ctx} :
     ∀ (k : Nat) (S : CtxStack Γ) (h : k ≤ S.size), Γ ⟶ (S.dropN k h).1
   | 0, _, _ => 𝟙 _
   | _+1, .cons .., h => disp .. ≫ CtxStack.dropN_disp _ _ (Nat.le_of_succ_le_succ h)
 
+/-- Given the context stack `1.Aₙ.….Aₖ₋₁.….A₀` and a type `X : 1.Aₙ.….Aₖ ⟶ Ty`,
+return the map `1.Aₙ.….Aₖ.B.Aₖ₋₁[↑].….A₀[⋯] ⟶ 1.Aₙ.….Aₖ₋₁.….A₀`. -/
 @[simp] def CtxStack.extN {Γ : Ctx} : ∀ {k : Nat} {S : CtxStack Γ} {h : k ≤ S.size},
     (S.dropN k h).ty → Σ Δ : Context Ctx, y(Δ.1) ⟶ y(Γ)
   | 0, _, _, X => ⟨.cons _ X, yoneda.map (disp ..)⟩
-  | _+1, .cons A _, h, X =>
-    let ⟨Δ, wk⟩ := CtxStack.extN (h := Nat.le_of_succ_le_succ h) X
+  | k+1, .cons A _, h, X =>
+    let ⟨Δ, wk⟩ := CtxStack.extN (k := k) (h := Nat.le_of_succ_le_succ h) X
     ⟨.cons Δ (wk ≫ A), weakSubst ..⟩
 
 def Context.tyN (Γ : Context Ctx) (k : Nat) : Type u := Σ' h : k ≤ Γ.2.size, (Γ.2.dropN k h).ty

@@ -2,7 +2,6 @@ import Mathlib.CategoryTheory.Yoneda
 import Mathlib.CategoryTheory.Limits.Shapes.Terminal
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 import Mathlib.CategoryTheory.Limits.Presheaf
-import Mathlib.CategoryTheory.Limits.Shapes.FunctorCategory
 import Mathlib.CategoryTheory.Adjunction.Over
 import Poly.LCCC.Presheaf
 import Poly.Polynomial

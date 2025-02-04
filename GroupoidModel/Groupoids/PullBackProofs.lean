@@ -487,14 +487,14 @@ def ofCat : Cat.{u,u+1} ⥤ (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) :=
 
 instance ofCatPreservesLim : Limits.PreservesLimits ofCat := by
   dsimp [ofCat,Limits.PreservesLimits]
-  refine @Limits.compPreservesLimits ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_
-  · exact yonedaFunctorPreservesLimits
-  · refine @Adjunction.rightAdjointPreservesLimits ?_ ?_ ?_ ?_ ?_ ?_ ?_
+  refine @Limits.comp_preservesLimits ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_
+  · exact yonedaFunctor_preservesLimits
+  · refine @Adjunction.rightAdjoint_preservesLimits ?_ ?_ ?_ ?_ ?_ ?_ ?_
     · refine @Functor.lan ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_
       · exact (Grpd.forgetToCat.op ⋙ CatLift.op)
       · intro F
         exact Functor.instHasLeftKanExtension (Grpd.forgetToCat.op ⋙ CatLift.op) F
-    · exact (Grpd.forgetToCat.op ⋙ CatLift.op).lanAdjunction (Type (u + 1))
+    · apply (Grpd.forgetToCat.op ⋙ CatLift.op).lanAdjunction
 
 end PshGrpd
 

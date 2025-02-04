@@ -151,49 +151,6 @@ def uvPolyTp : UvPoly M.Tm M.Ty := ⟨M.tp, inferInstance⟩
 def uvPolyTpT : UvPoly.Total (Psh Ctx) := ⟨_, _, M.uvPolyTp⟩
 def Ptp : Psh Ctx ⥤ Psh Ctx := M.uvPolyTp.functor
 
-show_panel_widgets [local ProofWidgets.GoalTypePanel]
-
-/-- The bifunctor of 'types `A` with an `X`-object in context `Γ.A`'
-`(Γ, X) ↦ (A : y(Γ.unop) ⟶ Ty) × (y(ext Γ.unop A) ⟶ X)`
-associated to a natural model. -/
-@[simps!]
-def extFunctor : Ctxᵒᵖ ⥤ Psh Ctx ⥤ Type u :=
-  curry.obj {
-    obj := fun (Γ, X) => (A : y(Γ.unop) ⟶ M.Ty) × (y(M.ext A) ⟶ X)
-    map := @fun (Δ, X) (Γ, Y) (σ, f) ⟨A, e⟩ =>
-      let Aσ := ym(σ.unop) ≫ A -- TODO: use subst or whatever here
-      ⟨Aσ,
-      -- TODO: add functionality for widget to draw selected pullback squares
-      (M.disp_pullback A).lift
-        (M.var Aσ)
-        ym(M.disp Aσ ≫ σ.unop)
-        (by simp [(M.disp_pullback Aσ).w]) ≫
-        e ≫ f⟩
-    map_id := fun (Γ, _) => by
-      refine funext fun be => ?_
-      apply Sigma_hom_ext
-      . simp
-      . dsimp
-        intro h
-        generalize_proofs pb
-        generalize ym(𝟙 (unop Γ)) ≫ be.fst = x at *
-        cases h
-        slice_lhs 1 1 => rw [show IsPullback.lift .. = 𝟙 _ by apply pb.hom_ext <;> simp]
-        simp
-    map_comp := fun (σ, _) (τ, _) => by
-      refine funext fun ⟨b, e⟩ => ?_
-      apply Sigma_hom_ext
-      . simp
-      . dsimp
-        intro h
-        generalize_proofs pb
-        generalize ym(τ.unop ≫ σ.unop) ≫ b = x at *
-        cases h
-        simp only [← Category.assoc]
-        congr 3
-        apply pb.hom_ext <;> simp
-  }
-
 -- TODO: establish a profunctor iso to replace `P_equiv` here.
 
 /--

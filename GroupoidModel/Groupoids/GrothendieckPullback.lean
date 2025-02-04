@@ -6,7 +6,7 @@ import GroupoidModel.Groupoids.GroupoidalGrothendieck
 import GroupoidModel.Groupoids.PointedCat
 import GroupoidModel.ForMathlib
 
-universe v u v₁ u₁ v₂ u₂ v₃ u₃ 
+universe v u v₁ u₁ v₂ u₂ v₃ u₃
 
 namespace CategoryTheory
 
@@ -38,7 +38,7 @@ theorem toPCat_comp_forgetPoint : toPCat A ⋙ PCat.forgetPoint
   apply Functor.ext
   · intro X Y f
     rfl
-  · intro 
+  · intro
     rfl
 
 theorem toPCat_obj_fiber_inj {x y : Grothendieck A}
@@ -60,7 +60,7 @@ In this section we prove that the following square is a pullback
         Γ--------------A----------->Cat
 -/
 
--- abbrev CAT := 
+-- abbrev CAT :=
 
 -- instance : LargeCategory.{max v u + 1} CAT.{v,u} := inferInstance
 
@@ -79,13 +79,13 @@ open Functor ULift
 def uLiftΓ : Cat.{v, max v u + 1} :=
   Cat.of $ ULift.{max v u + 1} Γ
 
-variable {Γ} 
+variable {Γ}
 
 abbrev uLiftGrothendieck : Cat.{v, max v u + 1} :=
   Cat.of (ULift.{max v u + 1, max v u} (Grothendieck A))
 
 abbrev uLiftGrothendieckForget : uLiftGrothendieck.{v,u} A ⟶ uLiftΓ.{v,u} Γ :=
-  downFunctor ⋙ Grothendieck.forget A ⋙ upFunctor 
+  downFunctor ⋙ Grothendieck.forget A ⋙ upFunctor
 
 abbrev uLiftCat : Cat.{v, max v u + 1} := Cat.of (ULift.{max v u + 1, v + 1} Cat.{v,v})
 
@@ -106,17 +106,17 @@ theorem comm_sq : uLiftToPCat A ≫ uLiftPCatForgetPoint
   apply Functor.ext
   · intro X Y f
     rfl
-  · intro 
+  · intro
     rfl
 
 variable (A)
 
-open Limits PullbackCone 
+open Limits PullbackCone
 
 def cone : Limits.PullbackCone uLiftPCatForgetPoint (uLiftA A)
   := Limits.PullbackCone.mk (uLiftToPCat A) (uLiftGrothendieckForget A) comm_sq
 
-variable {A} 
+variable {A}
 
 abbrev pt' {s : PullbackCone uLiftPCatForgetPoint (uLiftA A)}
     (x : s.pt) := (downFunctor.obj (s.fst.obj x)).str.pt
@@ -148,11 +148,11 @@ abbrev point' {s : PullbackCone uLiftPCatForgetPoint (uLiftA A)}
   (s.fst.map f).point
 
 @[simp] def lift_obj {s : PullbackCone uLiftPCatForgetPoint (uLiftA A)}
-  (x : s.pt) : Grothendieck A := 
+  (x : s.pt) : Grothendieck A :=
   ⟨ (s.snd.obj x).down , (εApp x).obj (pt' x) ⟩
 
 def lift_map {s : PullbackCone uLiftPCatForgetPoint (uLiftA A)}
-  {x y : s.pt} (f : x ⟶ y) : lift_obj x ⟶ lift_obj y := 
+  {x y : s.pt} (f : x ⟶ y) : lift_obj x ⟶ lift_obj y :=
   ⟨ downFunctor.map (s.snd.map f) ,
     let m1 := (εApp y).map (point' f)
     let m2 := (eqToHom (εNaturality f).symm).app (pt' x)
@@ -176,7 +176,7 @@ theorem lift_map_fiber_pf2 : (A.map (downFunctor.map (s.snd.map f))).obj ((εApp
   simp only [eqToHom_app, Functor.comp_map,
   downFunctor_map, Cat.comp_obj, PCat.forgetPoint_map] at *
   rw [h]
-  
+
 theorem lift_map_fiber_pf0 :
     (eqToHom lift_map_fiber_pf3).obj (pt' y)
     = (εApp y).obj (pt' y) := by simp
@@ -231,7 +231,7 @@ def lift (s : PullbackCone uLiftPCatForgetPoint.{v,u} (uLiftA.{v,u} A)) :
       simp only [Category.assoc, eqToHom_app (εNaturality g).symm] at h3
       simp only [h1, h2, map_comp, comp_fiber, Category.assoc, lift_map_fiber,
         eqToHom_map (A.map (s.snd.map g)),
-        eqToHom_app (εNaturality f).symm, 
+        eqToHom_app (εNaturality f).symm,
         eqToHom_app (εNaturality (f ≫ g)).symm,
         eqToHom_app (εNaturality g).symm, eqToHom_map]
       rw [h3]
@@ -253,7 +253,7 @@ theorem fac_left_aux (s : PullbackCone uLiftPCatForgetPoint (uLiftA A)) :
     congr 1
     · simp [h, PCat.eqToHom_toFunctor, ← Cat.comp_eq_comp]
     · simp only [lift_map, lift_obj, comp_obj, PCat.forgetPoint_obj, Cat.of_α, downFunctor_obj, ε,
-        Functor.comp_map, downFunctor_map, Cat.comp_obj, PCat.forgetPoint_map, Cat.eqToHom_app, 
+        Functor.comp_map, downFunctor_map, Cat.comp_obj, PCat.forgetPoint_map, Cat.eqToHom_app,
         PCat.eqToHom_point, eqToHom_map, PCat.comp_point, heq_eqToHom_comp_iff,
         heq_comp_eqToHom_iff, eqToHom_comp_heq_iff]
       generalize_proofs
@@ -327,10 +327,10 @@ theorem uniq (s : PullbackCone uLiftPCatForgetPoint.{v,u} (uLiftA.{v,u} A)) (m :
       have h2 := @eqToHom_fiber (Cat.of Γ) A (m.obj x) _ pf1
       have h3 := @eqToHom_fiber (Cat.of Γ) A _ _ pf2
       have h4 := congr_arg A.map (eqToHom_base pf2)
-      simp [eqToHom_map] at h4
+      simp only [eqToHom_map] at h4
       have h5 := Functor.congr_hom h4 (cast pf3 (point' f))
       simp only [toPCat, comp_obj, Functor.comp_map, PCat.comp_toFunctor, PCat.comp_point] at h1
-      simp only [h1, h2, h3, h5, PCat.eqToHom_point, eqToHom_map, eqToHom_trans_assoc, eqToHom_fiber, 
+      simp only [h1, h2, h3, h5, PCat.eqToHom_point, eqToHom_map, eqToHom_trans_assoc, eqToHom_fiber,
         PCat.forgetPoint_obj, Cat.of_α, downFunctor_obj, map_comp, Category.assoc, eqToHom_trans]
       simp only [PCat.eqToHom_hom, Functor.congr_hom (map_eqToHom_base _), Cat.eqToHom_hom, cast_cast,
         Category.assoc, eqToHom_trans, eqToHom_trans_assoc]
@@ -366,7 +366,7 @@ def isLimit : IsLimit (cone A) :=
 
 theorem is_pullback :
     IsPullback (uLiftToPCat A) (uLiftGrothendieckForget A)
-    (uLiftPCatForgetPoint) (uLiftA A) := 
+    (uLiftPCatForgetPoint) (uLiftA A) :=
     IsPullback.of_isLimit (isLimit A)
 
 end Pullback

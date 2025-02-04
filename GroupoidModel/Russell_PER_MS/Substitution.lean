@@ -7,10 +7,14 @@ import GroupoidModel.Russell_PER_MS.Basic
 Write `↑ⁿ` for the `n`-fold weakening substitution `{n+i/i}`.
 Write `σ:k` for `σ.vₖ₋₁.….v₁.v₀`.
 
-The substitution `↑ⁿ⁺ᵏ:k`,
+The *thinning* substitution `↑ⁿ⁺ᵏ:k`,
 i.e., `{0/0,…,k-1/k-1, k+n/k,k+1+n/k+1,…}`,
 arises by starting with `↑ⁿ` and traversing under `k` binders:
-for example, `(ΠA. B)[↑¹] ≡ ΠA[↑¹]. B[↑².v₀] ≡ ΠA[↑¹]. B[↑¹⁺¹:1]`. -/
+for example, `(ΠA. B)[↑¹] ≡ ΠA[↑¹]. B[↑².v₀] ≡ ΠA[↑¹]. B[↑¹⁺¹:1]`.
+Applying `↑ⁿ⁺ᵏ:k` moves an expression into a context
+with `n` new binders inserted at index `k`:
+`Γ.B₁.….Bₙ.A₁[↑ⁿ].….Aₖ[⋯] ⊢ ↑ⁿ⁺ᵏ:k : Γ.A₁.….Aₖ`.
+(With `k = 0`, the codomain is just `Γ`.) -/
 
 /-- Substitute `↑ⁿ⁺ᵏ:k` in the de Bruijn index `i`. -/
 def liftVar (n i : Nat) (k := 0) : Nat := if i < k then i else n + i
@@ -35,6 +39,9 @@ The substitution `↑ᵏ.e[↑ᵏ]:k`,
 i.e., `{0/0,…,k-1/k-1, e[↑ᵏ]/k, k/k+1,k+2/k+3,…}`,
 arises by starting with `id.e` and traversing under `k` binders:
 for example `(ΠA. B)[id.e] ≡ ΠA[id.e]. B[↑.e[↑].v₀] ≡ ΠA[id.e]. B[↑¹.e[↑¹]:1]`.
+Applying `↑ᵏ.e[↑ᵏ]:k` moves an expression `t` into a context
+with the `k`th binder removed:
+`Γ.A₁[id.e].….Aₖ[⋯] ⊢ ↑ᵏ.e[↑ᵏ]:k : Γ.B.A₁.….Aₖ`.
 
 The substitution `id.e` is used in `β`-reduction:
 `(λa) b ↝ a[id.b]`. -/
