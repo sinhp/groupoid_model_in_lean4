@@ -101,6 +101,19 @@ theorem eqToHom_obj {C1 C2 : Cat.{v,u}} (x : C1) (eq : C1 = C2) :
   cases eq
   simp[CategoryStruct.id]
 
+abbrev homOf {C D : Type u} [Category.{v} C] [Category.{v} D] (F : C ⥤ D) :
+    Cat.of C ⟶ Cat.of D := F
+
+@[simps] def ULift_succ_iso_self {C : Type (u + 1)} [Category.{v} C] :
+    Cat.of (ULift.{u, u + 1} C) ≅ Cat.of C where
+  hom := ULift.downFunctor
+  inv := ULift.upFunctor
+
+@[simps] def ULift_iso_self {C : Type u} [Category.{v} C] :
+    Cat.of (ULift.{u, u} C) ≅ Cat.of C where
+  hom := ULift.downFunctor
+  inv := ULift.upFunctor
+
 end CategoryTheory.Cat
 
 /-

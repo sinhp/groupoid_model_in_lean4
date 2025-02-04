@@ -1,15 +1,12 @@
 import Mathlib.CategoryTheory.Limits.Preserves.FunctorCategory
 
-import GroupoidModel.Tarski.NaturalModel
+import GroupoidModel.Russell_PER_MS.NaturalModelBase
 import GroupoidModel.Grothendieck.Pullback
 import GroupoidModel.Grothendieck.Groupoidal
 
 
 /-!
 Here we construct the natural model for groupoids.
-
-This file needs to eventually be ported to GroupoidRussellNaturalModel
-but currently we don't have a Russell style sigma type.
 -/
 
 universe u v u₁ v₁ u₂ v₂
@@ -110,13 +107,13 @@ theorem disp_pullback :
 -- show that desired pullback is two squares (the natural iso and the image of the grothendieck pullback in Cat under yonedaCat)
 -- prove the grothendieck pullback is a pullback
 
-instance GroupoidNM : NaturalModel.NaturalModelBase sGrpd.{u} where
+def GroupoidNM : NaturalModelBase sGrpd.{u} where
   Ty := Ty
   Tm := Tm
   tp := tp
-  ext Γ A := sGrpd.of (ext A)
-  disp Γ A := disp A
-  var Γ A := var A
+  ext A := sGrpd.of (ext A)
+  disp A := disp A
+  var A := var A
   disp_pullback A := disp_pullback A
 
 instance groupoidULift.{u'} {α : Type u} [Groupoid.{v} α] : Groupoid (ULift.{u'} α) where
@@ -144,8 +141,8 @@ def Grpd2 : Type (u+2) := InducedCategory sGrpd.{u+1} Groupoid2.toLarge
 
 section NaturalModelSigma
 
-def PolyDataGet (Γ : sGrpdᵒᵖ) (Q : ((NaturalModel.P NaturalModel.tp).obj NaturalModel.Ty).obj Γ) :
-    yoneda.obj (Opposite.unop Γ) ⟶ ((NaturalModel.P NaturalModel.tp).obj NaturalModel.Ty) := by
+def PolyDataGet (Γ : sGrpdᵒᵖ) (Q : ((NaturalModelBase.Ptp GroupoidNM).obj GroupoidNM.Ty).obj Γ) :
+    yoneda.obj (Opposite.unop Γ) ⟶ ((NaturalModelBase.Ptp GroupoidNM).obj GroupoidNM.Ty) := by
   apply yonedaEquiv.invFun
   exact Q
 
@@ -191,7 +188,7 @@ def GroupoidSigma {Γ : Grpd} (A : Γ ⥤ Grpd) (B : (GroupoidalGrothendieck A) 
     . aesop_cat
     . aesop_cat
 
-
+#exit
 instance GroupoidNMSigma : NaturalModel.NaturalModelSigma sGrpd.{u} where
   Sig := by
     fconstructor
