@@ -168,7 +168,10 @@ To simplify, we denote non-dependent products and functions with $\times$ and $\
 $$\text{S} := \sum_{u : \text{U}} \text{isSet}(\text{El}(u))$$
 
 \textbf{Type Isomorphism}
-$$A \simeq B := \sum_{f :A \to B}\sum_{g :B \to A}\Big(\prod_{a : A} \text{id}_{A}(g(f(a)),a) \Big) \times \Big(\prod_{b : B} \text{id}_{B}(f(g(b)),b) \Big)$$
+$$A \simeq B := \sum_{f :A \to B}\sum_{g :B \to A}\sum_{h :B \to A}\Big(\prod_{a : A} \text{id}_{A}(g(f(a)),a) \Big) \times \Big(\prod_{b : B} \text{id}_{B}(f(h(b)),b) \Big)$$
+
+\textbf{Set Isomorphism}
+$$A \cong B := \sum_{f :A \to B}\sum_{g :B \to A}\Big(\prod_{a : A} \text{id}_{A}(g(f(a)),a) \Big) \times \Big(\prod_{b : B} \text{id}_{B}(f(g(b)),b) \Big)$$
 
 \textbf{The Univalence Axiom}
 $$\text{UA}: \prod_{x : \text{S}} \prod_{y : \text{S}} \text{Id}_{\text{S}}(x,y) \simeq \Big(\text{El}(x) \simeq \text{El}(y)\Big)$$
