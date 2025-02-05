@@ -183,6 +183,23 @@ theorem eqToHom_point {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
   cases eq
   simp[PointedFunctor.id, CategoryStruct.id, PCat.forgetToCat,Cat.of,Bundled.of]
 
+lemma hext {C D : PCat} (hα : C.α = D.α) (hstr : HEq C.str D.str) :
+    C = D := by
+  cases C
+  cases D
+  subst hα
+  subst hstr
+  rfl
+
+lemma hext_iff {C D : PCat} : C.α = D.α ∧ HEq C.str D.str
+    ↔ C = D := by
+  constructor
+  · intro ⟨ hα , hstr ⟩
+    exact hext hα hstr
+  · intro hCD
+    subst hCD
+    exact ⟨ rfl , HEq.rfl ⟩
+
 end PCat
 
 /-- The class of pointed groupoids. -/
@@ -274,6 +291,23 @@ lemma comp_toFunctor {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) :
 @[simp]
 lemma comp_point {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) :
     (F ≫ G).point = G.map (F.point) ≫ G.point := rfl
+
+lemma hext {C D : PGrpd} (hα : C.α = D.α) (hstr : HEq C.str D.str) :
+    C = D := by
+  cases C
+  cases D
+  subst hα
+  subst hstr
+  rfl
+
+lemma hext_iff {C D : PGrpd} : C.α = D.α ∧ HEq C.str D.str
+    ↔ C = D := by
+  constructor
+  · intro ⟨ hα , hstr ⟩
+    exact hext hα hstr
+  · intro hCD
+    subst hCD
+    exact ⟨ rfl , HEq.rfl ⟩
 
 end PGrpd
 
