@@ -396,10 +396,10 @@ so that `u = v + 1`.
 -/
 theorem isPullback {Γ : Type u} [Category.{v} Γ] (A : Γ ⥤ Cat.{v,v}) : 
     IsPullback
-    (uLiftToPCat A)
-    (uLiftGrothendieckForget A)
-    (uLiftPCatForgetToCat)
-    (uLiftA A) :=
+      (uLiftToPCat A)
+      (uLiftGrothendieckForget A)
+      (uLiftPCatForgetToCat)
+      (uLiftA A) :=
   IsPullback.of_isLimit (isLimit A)
 
 end Grothendieck

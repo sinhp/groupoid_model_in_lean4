@@ -210,10 +210,10 @@ where `(Γ : Type u) [Grpdegory.{v} Γ] (A : Γ ⥤ Grpd.{v,v})`.
 -/
 theorem isPullback {Γ : Type u} [Groupoid.{u} Γ] (A : Γ ⥤ Grpd.{u,u}) : 
     IsPullback
-    (Cat.homOf (ULift.downFunctor ⋙ toPGrpd A))
-    (IsPullback.uLiftGrothendieckForget (toCat.{u} A))
-    (Cat.homOf PGrpd.forgetToGrpd.{u,u})
-    (Cat.homOf (ULift.downFunctor ⋙ A)) := by
+      (Cat.homOf (ULift.downFunctor ⋙ toPGrpd A))
+      (IsPullback.uLiftGrothendieckForget (toCat.{u} A))
+      (Cat.homOf PGrpd.forgetToGrpd.{u,u})
+      (Cat.homOf (ULift.downFunctor ⋙ A)) := by
   have h := isPullback_aux.{u} A
   simp at h
   convert h
