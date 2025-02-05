@@ -13,24 +13,33 @@ namespace Grothendieck
 
 section morphism_universe_v₁
 
-variable {Γ : Type u} [Category.{v} Γ] (A : Γ ⥤ Cat.{v₁,u₁})
+variable {Γ : Type u} [Category.{v} Γ] {A : Γ ⥤ Cat.{v₁,u₁}}
+
+@[simps] def toPCat_obj (x : Grothendieck A) : PCat.{v₁,u₁} := 
+  ⟨(A.obj x.base), PointedCategory.of (A.obj x.base) x.fiber⟩
+
+def toPCat_map {x y : Grothendieck A} (f : x ⟶ y) :
+    toPCat_obj x ⟶ toPCat_obj y :=
+  ⟨ A.map f.base , f.fiber ⟩
+
+variable (A)
 
 def toPCat : Grothendieck A ⥤ PCat.{v₁,u₁} where
-  obj x := ⟨(A.obj x.base), PointedCategory.of (A.obj x.base) x.fiber⟩
-  map f := ⟨A.map f.base, f.fiber⟩
+  obj x := toPCat_obj x
+  map f := toPCat_map f
   map_id x := by
     dsimp
     let _ := (PointedCategory.of (A.obj x.base) x.fiber)
     apply PointedFunctor.ext
-    · simp [CategoryStruct.id]
-    · simp [CategoryStruct.id, PointedFunctor.id]
+    · simp [toPCat_map]
+    · simp [CategoryStruct.id, Functor.id, Grothendieck.id, PointedFunctor.id, toPCat_map]
   map_comp {x y z} f g := by
     dsimp [PointedFunctor.comp]
     let _ := (PointedCategory.of (A.obj x.base) x.fiber)
     let _ := (PointedCategory.of (A.obj z.base) z.fiber)
     apply PointedFunctor.ext
-    · simp
-    · simp [A.map_comp, Cat.comp_eq_comp]
+    · simp [toPCat_map]
+    · simp [toPCat_map, A.map_comp, Cat.comp_eq_comp]
 
 theorem toPCat_comp_forgetPoint : toPCat A ⋙ PCat.forgetToCat
     = Grothendieck.forget A ⋙ A := by
@@ -241,10 +250,12 @@ theorem fac_left_aux (s : PullbackCone uLiftPCatForgetToCat (uLiftA A)) :
     lift s ⋙ Grothendieck.toPCat A = s.fst ⋙ downFunctor := by
   apply Functor.ext
   · intro x y f
-    simp [lift, toPCat]
+    simp only [lift, lift_obj, Cat.of_α, comp_obj, downFunctor_obj, PCat.forgetToCat_obj, upFunctor_obj_down,
+      toPCat, toPCat_map, toPCat_obj_α, Functor.comp_map, lift_map_base, downFunctor_map]
     have h := Functor.congr_hom condition' f
     unfold uLiftPCatForgetToCat PCat.forgetToCat at h
-    simp at h
+    simp only [Cat.of_α, π_app_left, comp_obj, downFunctor_obj, Functor.comp_map, downFunctor_map,
+      π_app_right] at h
     congr 1
     · simp [h, PCat.eqToHom_toFunctor, ← Cat.comp_eq_comp]
     · simp only [lift_map, lift_obj, comp_obj, PCat.forgetToCat_obj, Cat.of_α, downFunctor_obj, ε,
@@ -259,7 +270,7 @@ theorem fac_left_aux (s : PullbackCone uLiftPCatForgetToCat (uLiftA A)) :
       · congr 1 <;> simp [PCat.eqToHom_toFunctor]
       · simp [Cat.eqToHom_hom,PCat.eqToHom_hom]
   · intro x
-    simp only [toPCat, lift, lift_obj, comp_obj,
+    simp only [toPCat, toPCat_obj, toPCat_map, lift, lift_obj, comp_obj,
       downFunctor_obj, Cat.eqToHom_app, upFunctor_obj_down]
     have h := (Functor.congr_obj condition' x).symm
     simp only [Cat.comp_obj, comp_obj, downFunctor_obj, PCat.forgetToCat_obj] at h
@@ -324,7 +335,8 @@ theorem uniq (s : PullbackCone uLiftPCatForgetToCat.{v,u} (uLiftA.{v,u} A)) (m :
       have h4 := congr_arg A.map (eqToHom_base pf2)
       simp only [eqToHom_map] at h4
       have h5 := Functor.congr_hom h4 (cast pf3 (point' f))
-      simp only [toPCat, comp_obj, Functor.comp_map, PCat.comp_toFunctor, PCat.comp_point] at h1
+      simp only [toPCat, toPCat_obj, toPCat_map, comp_obj, Functor.comp_map,
+        PCat.comp_toFunctor, PCat.comp_point] at h1
       simp only [h1, h2, h3, h5, PCat.eqToHom_point, eqToHom_map, eqToHom_trans_assoc, eqToHom_fiber,
         PCat.forgetToCat_obj, Cat.of_α, downFunctor_obj, map_comp, Category.assoc, eqToHom_trans]
       simp only [PCat.eqToHom_hom, Functor.congr_hom (map_eqToHom_base _), Cat.eqToHom_hom, cast_cast,
@@ -382,7 +394,7 @@ so that `A : Γ ⥤ Cat.{u,u}`,
 or `Γ = Grpd.{v,v}` and `A : Grpd.{v,v} ⥤ Cat.{v,v}` is the inclusion
 so that `u = v + 1`.
 -/
-theorem isPullback {Γ : Type u} [Category.{v} Γ] {A : Γ ⥤ Cat.{v,v}} : 
+theorem isPullback {Γ : Type u} [Category.{v} Γ] (A : Γ ⥤ Cat.{v,v}) : 
     IsPullback
     (uLiftToPCat A)
     (uLiftGrothendieckForget A)
