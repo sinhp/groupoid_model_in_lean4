@@ -8,8 +8,7 @@
 % - Identity types in every natural model,
 %   such that the smallest universe's Identity type satisfies UIP
 % - The smallest universe satisfies univalence
-
-For HoTT, most of the rules are standard. Here, we will go over them.
+In this chapter we describe the syntax of HoTT0. For HoTT, most of the rules are standard. Here, we will go over them.
 
 \textbf{The Context Rules}
 \[
@@ -181,3 +180,6 @@ $$\text{UAset}: \prod_{x : \text{S}} \prod_{y : \text{S}} \text{Id}_{\text{S}}(x
 
 \textbf{Function Extensionality}
 $$\text{FunExt}: \prod_{a : \text{U}} \prod_{b : \text{U}} \prod_{f : \text{El}(a) \to \text{El}(b)} \prod_{g : \text{El}(a) \to \text{El}(b)}\Big( \prod_{\alpha : \text{El}(a)}\text{id}_{\text{El(b)}}(f\alpha,g\alpha)\Big) \simeq \text{id}_{\text{El}(a) \to \text{El}(b)}(f,g)$$
+
+
+

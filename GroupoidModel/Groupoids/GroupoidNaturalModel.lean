@@ -1,5 +1,4 @@
 import Mathlib.CategoryTheory.Limits.Preserves.FunctorCategory
-
 import GroupoidModel.Tarski.NaturalModel
 import GroupoidModel.Grothendieck.Pullback
 import GroupoidModel.Grothendieck.Groupoidal
@@ -162,7 +161,13 @@ def GroupoidSigma {Γ : Grpd} (A : Γ ⥤ Grpd) (B : (GroupoidalGrothendieck A) 
           dsimp[CategoryStruct.id]
           exact f
       . aesop_cat
-      . sorry
+      . simp[CategoryStruct.comp,Grothendieck.comp]
+        intros X Y Z f g
+        congr
+        . exact Eq.symm (Category.id_comp (𝟙 x))
+        . refine @HEq.trans _ _ _ _ (f ≫ g) _ ?_ ?_
+          . exact cast_heq (Eq.symm (id (congrArg (fun _a ↦ _a.obj X ⟶ Z) (A.map_id x)))) (f ≫ g)
+          . sorry
     refine Grpd.of (GroupoidalGrothendieck (xA ⋙ B))
   map f := by
     dsimp[Grpd.of,Bundled.of,Quiver.Hom]
@@ -186,7 +191,36 @@ def GroupoidSigma {Γ : Grpd} (A : Γ ⥤ Grpd) (B : (GroupoidalGrothendieck A) 
     . aesop_cat
     . aesop_cat
 
+theorem GroupoidSigmaBeckChevalley (Δ Γ: Grpd) (σ : Δ ⥤ Γ) (A : Γ ⥤ Grpd)
+  (B : (GroupoidalGrothendieck A) ⥤ Grpd) : σ ⋙ GroupoidSigma A B = GroupoidSigma (σ ⋙ A)
+  (GroupoidalGrothendieck.Map Δ Γ σ A B) := by
+  fapply CategoryTheory.Functor.ext
+  . intro x
+    dsimp[GroupoidSigma,GroupoidalGrothendieck.Map,Functor.comp]
+    congr 4
+    all_goals {
+    . funext x1 x2 f
+      congr 2
+      . refine (σ.map_id x).symm
+      . refine @HEq.trans _ _ _ _ f _ ?_ ?_
+        . exact cast_heq (Eq.symm (GroupoidSigma.proof_1 A (σ.obj x))) f
+        . exact
+          HEq.symm
+            (cast_heq
+              (Eq.symm
+                (GroupoidSigma.proof_1
+                  { obj := fun X ↦ A.obj (σ.obj X), map := fun {X Y} f ↦ A.map (σ.map f),
+                    map_id := Functor.comp.proof_1 σ A,
+                    map_comp :=
+                      @Functor.comp.proof_2 (↑Δ) Groupoid.toCategory (↑Γ) Groupoid.toCategory Grpd
+                        Grpd.category σ A }
+                  x))
+              f)
+    }
+  . intros x1 x2 f
+    simp [GroupoidSigma,GroupoidalGrothendieck.Map]
 
+#exit
 instance GroupoidNMSigma : NaturalModel.NaturalModelSigma sGrpd.{u} where
   Sig := by
     fconstructor

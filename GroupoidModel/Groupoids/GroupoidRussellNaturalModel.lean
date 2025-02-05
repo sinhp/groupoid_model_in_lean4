@@ -1,5 +1,4 @@
 import Mathlib.CategoryTheory.Limits.Preserves.FunctorCategory
-
 import GroupoidModel.Russell_PER_MS.NaturalModelBase
 import GroupoidModel.Grothendieck.Pullback
 import GroupoidModel.Grothendieck.Groupoidal
@@ -164,7 +163,13 @@ def GroupoidSigma {Γ : Grpd} (A : Γ ⥤ Grpd) (B : (GroupoidalGrothendieck A) 
           dsimp[CategoryStruct.id]
           exact f
       . aesop_cat
-      . sorry
+      . intros X Y Z f g
+        simp [CategoryStruct.comp, Grothendieck.comp]
+        congr
+        . exact Eq.symm (Category.id_comp (𝟙 x))
+        . refine @HEq.trans _ _ _ _ (f ≫ g) _ ?_ ?_
+          . exact cast_heq (Eq.symm (id (congrArg (fun _a ↦ _a.obj X ⟶ Z) (A.map_id x)))) (f ≫ g)
+          . sorry
     refine Grpd.of (GroupoidalGrothendieck (xA ⋙ B))
   map f := by
     dsimp[Grpd.of,Bundled.of,Quiver.Hom]
@@ -188,7 +193,26 @@ def GroupoidSigma {Γ : Grpd} (A : Γ ⥤ Grpd) (B : (GroupoidalGrothendieck A) 
     . aesop_cat
     . aesop_cat
 
+#check congrArg
+
+theorem GroupoidSigmaBeckChevalley (Δ Γ: Grpd) (σ : Δ ⥤ Γ) (A : Γ ⥤ Grpd)
+  (B : (GroupoidalGrothendieck A) ⥤ Grpd) : σ ⋙ GroupoidSigma A B = GroupoidSigma (σ ⋙ A)
+  (GroupoidalGrothendieck.Map Δ Γ σ A B) := by
+  refine CategoryTheory.Functor.ext ?_ ?_
+  . intro x
+    simp[GroupoidSigma,Functor.comp]
+    congr
+    . ext t u f
+      simp[GroupoidalGrothendieck.Map]
+      congr 2
+      . exact Eq.symm (σ.map_id x)
+      .
+
+
+
+
 #exit
+
 instance GroupoidNMSigma : NaturalModel.NaturalModelSigma sGrpd.{u} where
   Sig := by
     fconstructor
