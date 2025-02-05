@@ -37,20 +37,18 @@ def CatLift : Cat.{u,u} ⥤ Cat.{u,u+1} where
 
 @[simp] def sGrpd.forget : sGrpd.{u} ⥤ Grpd.{u,u} := ULiftHom.down
 
-namespace PshGrpd
-
 variable (C D) [Category.{u} C] [Category.{u} D]
 
 def ι : Grpd.{u, u} ⥤ Cat.{u,u+1} := Grpd.forgetToCat ⋙ CatLift
 
-def ofCat : Cat.{u,u+1} ⥤ (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) :=
+def PshGrpdOfCat : Cat.{u,u+1} ⥤ (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) :=
   yoneda ⋙ (whiskeringLeft _ _ _).obj ι.op
 
-def ofPshGrpd : (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) ⥤ (sGrpd.{u}ᵒᵖ ⥤ Type (u + 1)) :=
+def PshsGrpdOfPshGrpd : (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) ⥤ (sGrpd.{u}ᵒᵖ ⥤ Type (u + 1)) :=
   (whiskeringLeft _ _ _).obj sGrpd.forget.op
 
 abbrev yonedaCat : Cat.{u, u+1} ⥤ Psh sGrpd.{u} :=
-  PshGrpd.ofCat ⋙ ofPshGrpd
+  PshGrpdOfCat ⋙ PshsGrpdOfPshGrpd
 
 section
 
@@ -79,9 +77,6 @@ theorem yonedaCatEquiv_comp
   yonedaCatEquiv (A ≫ yonedaCat.map U) = yonedaCatEquiv A ⋙ U := by
   aesop_cat
 
-end
-
-open PshGrpd
 
 abbrev Ty : Psh sGrpd.{u} := yonedaCat.obj (Cat.of Grpd.{u,u})
 
@@ -205,12 +200,12 @@ instance GroupoidNMSigma : NaturalModel.NaturalModelSigma sGrpd.{u} where
         exact CategoryTheory.IsPullback.isoPullback (CategoryTheory.IsPullback.flip dp)
       let h' := (help.hom.app Γ)
       let pb' := pb.app Γ
-      dsimp [NaturalModel.Ty,ofPshGrpd,PshGrpd.ofCat,Quiver.Hom]
+      dsimp [NaturalModel.Ty,PshsGrpdOfPshGrpd,PshGrpdOfCat,Quiver.Hom]
       fconstructor
       . fconstructor
         . intro γ
           let yA := (yonedaEquiv.toFun A)
-          dsimp [NaturalModel.Ty,PshGrpd.ofCat,ofPshGrpd,Quiver.Hom] at yA
+          dsimp [NaturalModel.Ty,PshGrpdOfCat,PshsGrpdOfPshGrpd,Quiver.Hom] at yA
           let Aγ : Grpd := (yA).obj γ
           let ΓA : Grpd := sGrpd.forget.obj (NaturalModel.ext (Opposite.unop Γ) A)
           sorry
