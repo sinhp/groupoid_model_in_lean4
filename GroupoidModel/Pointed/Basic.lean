@@ -292,7 +292,6 @@ lemma comp_toFunctor {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) :
 lemma comp_point {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) :
     (F ≫ G).point = G.map (F.point) ≫ G.point := rfl
 
-
 lemma hext {C D : PGrpd} (hα : C.α = D.α) (hstr : HEq C.str D.str) :
     C = D := by
   cases C

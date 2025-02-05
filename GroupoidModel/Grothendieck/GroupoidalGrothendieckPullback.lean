@@ -2,6 +2,7 @@ import GroupoidModel.Pointed.Pullback
 /-!
 # GroupoidalGrothendieck as a pullback
 
+
   ↑Grothendieck (toCat A) -- toPGrpd --> PGrpd
         |                                 |
         |                                 |
@@ -93,6 +94,7 @@ theorem var'_uLiftToPCat :
     ((IsPullback.uLiftGrothendieckForget (toCat.{u} A)) ≫ uLiftA A)
     (Grothendieck.isPullback (toCat.{u} A)).cone.condition_one
 
+
 theorem var'_forget :
     var' A ≫ (uLiftGrothendieckForget (Grpd.forgetToCat.{u,u}))
     = uLiftGrothendieckForget (toCat.{u} A) ≫ uLiftA A := 
@@ -100,6 +102,7 @@ theorem var'_forget :
     (IsPullback.uLiftToPCat (toCat.{u} A))
     ((IsPullback.uLiftGrothendieckForget (toCat.{u} A)) ≫ uLiftA A)
     (Grothendieck.isPullback (toCat.{u} A)).cone.condition_one
+
 
 /--
 The following square is a pullback
