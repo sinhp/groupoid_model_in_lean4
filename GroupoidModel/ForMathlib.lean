@@ -172,8 +172,8 @@ variable {C : Type u₁} [Category.{v₁,u₁} C] {G : C ⥤ Cat.{v₂,u₂}}
 - the morphism in the base is an isomorphism; and
 - the fiber morphism is an isomorphism. -/
 def mkIso {X Y : Grothendieck G}
-    (s : X.base ≅ Y.base) (t : (G |>.map s.hom).obj X.fiber ≅ Y.fiber)
-  : X ≅ Y where
+    (s : X.base ≅ Y.base) (t : (G |>.map s.hom).obj X.fiber ≅ Y.fiber) :
+    X ≅ Y where
   hom := { base := s.hom, fiber := t.hom }
   inv.base := s.inv
   inv.fiber := (G.map (s.inv)).map (t.inv) ≫
