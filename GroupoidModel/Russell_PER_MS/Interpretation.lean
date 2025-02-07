@@ -22,50 +22,50 @@ namespace UHomSeq
 
 variable {𝒞 : Type u} [Category.{v, u} 𝒞]
 
-/-! ## Context diffs -/
+/-! ## Extension sequences -/
 
-/-- `s.CtxDiff Γ Γ'` is a diff from the semantic context `Γ` to `Γ'`,
+/-- `s.ExtSeq Γ Γ'` is a diff from the semantic context `Γ` to `Γ'`,
 where `Γ` is a prefix of `Γ'`.
 It witnesses a sequence of context extension operations in `s`
 that built `Γ'` on top of `Γ`.
 We write `Γ ≤ Γ'`. -/
-inductive CtxDiff (s : UHomSeq 𝒞) (Γ : 𝒞) : 𝒞 → Type (max u v) where
-  | nil : s.CtxDiff Γ Γ
-  | snoc {Γ'} {l : Nat} (d : s.CtxDiff Γ Γ') (llen : l < s.length + 1) (A : y(Γ') ⟶ s[l].Ty) :
-    s.CtxDiff Γ (s[l].ext A)
+inductive ExtSeq (s : UHomSeq 𝒞) (Γ : 𝒞) : 𝒞 → Type (max u v) where
+  | nil : s.ExtSeq Γ Γ
+  | snoc {Γ'} {l : Nat} (d : s.ExtSeq Γ Γ') (llen : l < s.length + 1) (A : y(Γ') ⟶ s[l].Ty) :
+    s.ExtSeq Γ (s[l].ext A)
 
-namespace CtxDiff
+namespace ExtSeq
 
--- Q : What would a `Lookup` `Prop` family for `CtxDiff` look like?
+-- Q : What would a `Lookup` `Prop` family for `ExtSeq` look like?
 -- The purpose of adding it would be to totalize `var`, `tp`, and other functions.
 
 variable {s : UHomSeq 𝒞}
 
 @[simp]
-def length {Γ Γ' : 𝒞} : s.CtxDiff Γ Γ' → ℕ
+def length {Γ Γ' : 𝒞} : s.ExtSeq Γ Γ' → ℕ
   | nil => 0
   | snoc d _ _ => d.length + 1
 
 @[simp]
-def append {Γ₁ Γ₂ Γ₃ : 𝒞} : s.CtxDiff Γ₁ Γ₂ → s.CtxDiff Γ₂ Γ₃ → s.CtxDiff Γ₁ Γ₃
+def append {Γ₁ Γ₂ Γ₃ : 𝒞} : s.ExtSeq Γ₁ Γ₂ → s.ExtSeq Γ₂ Γ₃ → s.ExtSeq Γ₁ Γ₃
   | d, .nil           => d
   | d, .snoc e llen A => .snoc (d.append e) llen A
 
 theorem append_assoc {Γ₁ Γ₂ Γ₃ Γ₄ : 𝒞}
-    (d₁ : s.CtxDiff Γ₁ Γ₂) (d₂ : s.CtxDiff Γ₂ Γ₃) (d₃ : s.CtxDiff Γ₃ Γ₄) :
+    (d₁ : s.ExtSeq Γ₁ Γ₂) (d₂ : s.ExtSeq Γ₂ Γ₃) (d₃ : s.ExtSeq Γ₃ Γ₄) :
     d₁.append (d₂.append d₃) = (d₁.append d₂).append d₃ := by
   induction d₃ with
   | nil => rfl
   | snoc _ _ _ ih => simp [ih]
 
-/-- The composite display map associated to a diff. -/
+/-- The composite display map associated to a sequence. -/
 @[simp]
-def disp {Γ Γ' : 𝒞} : s.CtxDiff Γ Γ' → (Γ' ⟶ Γ)
+def disp {Γ Γ' : 𝒞} : s.ExtSeq Γ Γ' → (Γ' ⟶ Γ)
   | .nil => 𝟙 _
   | snoc (l := l) d _ A =>
     s[l].disp A ≫ d.disp
 
-/-- Weaken a substitution and its domain by a context diff.
+/-- Weaken a substitution and its domain by an extension sequence.
 ```
 Δ ⊢ σ : Γ  d : Γ ≤ Γ'
 -----------------------------
@@ -79,18 +79,18 @@ where
 ```
 -/
 @[simp]
-def substWk {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) : s.CtxDiff Γ Γ' → Σ (Δ' : 𝒞), s.CtxDiff Δ Δ' × (Δ' ⟶ Γ')
+def substWk {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) : s.ExtSeq Γ Γ' → Σ (Δ' : 𝒞), s.ExtSeq Δ Δ' × (Δ' ⟶ Γ')
   | .nil => ⟨Δ, .nil, σ⟩
   | snoc (l := l) d llen A =>
     let ⟨Δ, d, σ⟩ := d.substWk σ
     ⟨s[l].ext (ym(σ) ≫ A), d.snoc llen (ym(σ) ≫ A), s[l].substWk σ A⟩
 
 @[simp]
-theorem substWk_length {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : s.CtxDiff Γ Γ') :
+theorem substWk_length {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : s.ExtSeq Γ Γ') :
     (d.substWk σ).2.1.length = d.length := by
   induction d <;> simp [substWk, *]
 
-theorem substWk_disp {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : s.CtxDiff Γ Γ') :
+theorem substWk_disp {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : s.ExtSeq Γ Γ') :
     (d.substWk σ).2.2 ≫ d.disp = (d.substWk σ).2.1.disp ≫ σ := by
   induction d generalizing σ with
   | nil => simp [substWk]
@@ -99,7 +99,7 @@ theorem substWk_disp {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : s.CtxDiff Γ Γ') 
 /-- `Γ.Aₖ.….A₀ ⊢ vₙ : Aₙ[↑ⁿ⁺¹]` -/
 @[simp]
 protected def var {Γ Γ' : 𝒞} {l : Nat} (llen : l < s.length + 1) :
-    s.CtxDiff Γ Γ' → ℕ → Part (y(Γ') ⟶ s[l].Tm)
+    s.ExtSeq Γ Γ' → ℕ → Part (y(Γ') ⟶ s[l].Tm)
   | .nil, _ => .none
   | snoc (l := l') _ _ A, 0 =>
     Part.assert (l' = l) fun l'l =>
@@ -111,7 +111,7 @@ protected def var {Γ Γ' : 𝒞} {l : Nat} (llen : l < s.length + 1) :
 /-- `Γ.Aₖ.….A₀ ⊢ Aₙ[↑ⁿ⁺¹]` -/
 @[simp]
 protected def tp {Γ Γ' : 𝒞} {l : Nat} (llen : l < s.length + 1) :
-    s.CtxDiff Γ Γ' → ℕ → Part (y(Γ') ⟶ s[l].Ty)
+    s.ExtSeq Γ Γ' → ℕ → Part (y(Γ') ⟶ s[l].Ty)
   | .nil, _ => .none
   | snoc (l := l') _ _ A, 0 =>
     Part.assert (l' = l) fun l'l =>
@@ -120,21 +120,21 @@ protected def tp {Γ Γ' : 𝒞} {l : Nat} (llen : l < s.length + 1) :
     let v ← d.tp llen n
     return s[l'].wk A v
 
-theorem var_tp {Γ Γ' : 𝒞} {l : Nat} (d : s.CtxDiff Γ Γ') (llen : l < s.length + 1) (n : ℕ) :
+theorem var_tp {Γ Γ' : 𝒞} {l : Nat} (d : s.ExtSeq Γ Γ') (llen : l < s.length + 1) (n : ℕ) :
     (d.var llen n).map (· ≫ s[l].tp) = d.tp llen n := by
   induction d generalizing n
-  . simp [CtxDiff.var, CtxDiff.tp]
+  . simp [ExtSeq.var, ExtSeq.tp]
   next l' _ _ _ ih =>
     cases n
-    . dsimp [CtxDiff.var, CtxDiff.tp]
+    . dsimp [ExtSeq.var, ExtSeq.tp]
       by_cases eq : l' = l
       . cases eq
         simp [Part.assert_pos rfl]
       . simp [Part.assert_neg eq]
-    . simp [CtxDiff.var, CtxDiff.tp, ← ih, wk]
+    . simp [ExtSeq.var, ExtSeq.tp, ← ih, wk]
 
 theorem var_eq_of_lt_length {l i} {llen : l < s.length + 1} {sΓ sΓ' sΓ'' : 𝒞}
-    (d : s.CtxDiff sΓ sΓ') (e : s.CtxDiff sΓ' sΓ'') :
+    (d : s.ExtSeq sΓ sΓ') (e : s.ExtSeq sΓ' sΓ'') :
     i < e.length → (d.append e).var llen i = e.var llen i := by
   induction e generalizing i with
   | nil => simp
@@ -146,25 +146,25 @@ theorem var_eq_of_lt_length {l i} {llen : l < s.length + 1} {sΓ sΓ' sΓ'' : �
       simp [ih h]
 
 theorem var_append_add_length {l i} {llen : l < s.length + 1} {sΓ sΓ' sΓ'' : 𝒞}
-    (d : s.CtxDiff sΓ sΓ') (e : s.CtxDiff sΓ' sΓ'') :
+    (d : s.ExtSeq sΓ sΓ') (e : s.ExtSeq sΓ' sΓ'') :
     (d.append e).var llen (i + e.length) = (d.var llen i).map (ym(e.disp) ≫ ·) := by
   induction e with
   | nil => simp; rfl
   | snoc _ _ _ ih =>
-    simp [ih, CtxDiff.var, Part.bind_some_eq_map, Part.map_map, wk]
+    simp [ih, ExtSeq.var, Part.bind_some_eq_map, Part.map_map, wk]
     rfl
 
 theorem var_substWk_add_length {l i} {llen : l < s.length + 1} {sΔ sΔ' sΓ sΓ' : 𝒞}
-    (d : s.CtxDiff sΔ sΔ') (σ : sΔ' ⟶ sΓ) (e : s.CtxDiff sΓ sΓ') :
+    (d : s.ExtSeq sΔ sΔ') (σ : sΔ' ⟶ sΓ) (e : s.ExtSeq sΓ sΓ') :
     let ⟨_, d', _⟩ := e.substWk σ
     (d.append d').var llen (i + e.length) = (d.var llen i).map (ym(d'.disp) ≫ ·) := by
   induction e with
   | nil => simp [substWk]; rfl
   | snoc _ _ _ ih =>
-    simp [ih, CtxDiff.var, substWk, Part.bind_some_eq_map, Part.map_map]
+    simp [ih, ExtSeq.var, substWk, Part.bind_some_eq_map, Part.map_map]
     rfl
 
-theorem var_substWk_of_lt_length {l i} {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : s.CtxDiff Γ Γ')
+theorem var_substWk_of_lt_length {l i} {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : s.ExtSeq Γ Γ')
     (llen : l < s.length + 1) {st} (st_mem : st ∈ d.var llen i) :
     i < d.length → ym((substWk σ d).2.2) ≫ st ∈ (substWk σ d).2.1.var llen i := by
   induction d generalizing i with
@@ -173,12 +173,12 @@ theorem var_substWk_of_lt_length {l i} {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : 
     intro h
     cases i
     . clear ih
-      dsimp [CtxDiff.var] at st_mem ⊢
+      dsimp [ExtSeq.var] at st_mem ⊢
       simp_part at st_mem ⊢
       obtain ⟨rfl, rfl⟩ := st_mem
       simp
     . simp only [length, Nat.add_lt_add_iff_right] at h
-      dsimp [CtxDiff.var] at st_mem ⊢
+      dsimp [ExtSeq.var] at st_mem ⊢
       simp_part at st_mem ⊢
       obtain ⟨a, amem, rfl⟩ := st_mem
       refine ⟨_, ih amem h, ?_⟩
@@ -187,7 +187,7 @@ theorem var_substWk_of_lt_length {l i} {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : 
 
 theorem mem_var_liftVar {l} {llen : l < s.length + 1} {sΓ sΓ' sΓ'' sΘ : 𝒞}
     {st : y(sΓ'') ⟶ (s[l]'llen).Tm} (i)
-    (c : s.CtxDiff sΓ sΓ') (d : s.CtxDiff sΓ' sΘ) (e : s.CtxDiff sΓ' sΓ'')
+    (c : s.ExtSeq sΓ sΓ') (d : s.ExtSeq sΓ' sΘ) (e : s.ExtSeq sΓ' sΓ'')
     (st_mem : st ∈ (c.append e).var llen i) :
     let ⟨_, d', σ⟩ := e.substWk d.disp
     ym(σ) ≫ st ∈ (c.append d |>.append d').var llen (liftVar d.length i e.length) := by
@@ -205,19 +205,19 @@ theorem mem_var_liftVar {l} {llen : l < s.length + 1} {sΓ sΓ' sΓ'' sΘ : 𝒞
     refine ⟨ym(d.disp) ≫ st, ⟨st, stmem, rfl⟩, ?_⟩
     simp_rw [← Functor.map_comp_assoc, substWk_disp]
 
-end CtxDiff
+end ExtSeq
 
 /-! ## Contextual objects -/
 
 variable [HasTerminal 𝒞] {s : UHomSeq 𝒞}
 
--- Q: Should we get rid of `CObj` altogether, and generalize interpretation to `CtxDiff`s?
+-- Q: Should we get rid of `CObj` altogether, and generalize interpretation to `ExtSeq`s?
 /-- A "contextual" object (as in Cartmell's contextual categories),
 i.e., one of the form `1.Aₙ₋₁.….A₀`,
-together with the context diff `[Aₙ₋₁ :: … :: A₀]`.
+together with the extension sequence `[Aₙ₋₁ :: … :: A₀]`.
 
 This kind of object can be destructured. -/
-def CObj (s : UHomSeq 𝒞) : Type (max u v) := Σ Γ : 𝒞, s.CtxDiff (⊤_ 𝒞) Γ
+def CObj (s : UHomSeq 𝒞) : Type (max u v) := Σ Γ : 𝒞, s.ExtSeq (⊤_ 𝒞) Γ
 
 def nilCObj (s : UHomSeq 𝒞) : s.CObj :=
   ⟨⊤_ 𝒞, .nil⟩
@@ -229,7 +229,7 @@ def snoc {l : Nat} (Γ : s.CObj) (llen : l < s.length + 1) (A : y(Γ.1) ⟶ s[l]
   ⟨s[l].ext A, Γ.2.snoc llen A⟩
 
 @[simps]
-def append {sΓ' : 𝒞} (Γ : s.CObj) (d : s.CtxDiff Γ.1 sΓ') : s.CObj :=
+def append {sΓ' : 𝒞} (Γ : s.CObj) (d : s.ExtSeq Γ.1 sΓ') : s.CObj :=
   ⟨sΓ', Γ.2.append d⟩
 
 @[simp]
@@ -237,12 +237,12 @@ theorem append_nil (Γ : s.CObj) : Γ.append .nil = Γ := by
   rfl
 
 @[simp]
-theorem append_snoc {sΓ' : 𝒞} {l} (Γ : s.CObj) (d : s.CtxDiff Γ.1 sΓ')
+theorem append_snoc {sΓ' : 𝒞} {l} (Γ : s.CObj) (d : s.ExtSeq Γ.1 sΓ')
     (llen : l < s.length + 1) (A : y(sΓ') ⟶ s[l].Ty) :
     Γ.append (d.snoc llen A) = (Γ.append d).snoc llen A := by
   rfl
 
-def substWk {sΓ sΓ' : 𝒞} (Δ : s.CObj) (σ : Δ.1 ⟶ sΓ) (d : s.CtxDiff sΓ sΓ') :
+def substWk {sΓ sΓ' : 𝒞} (Δ : s.CObj) (σ : Δ.1 ⟶ sΓ) (d : s.ExtSeq sΓ sΓ') :
     Σ (Δ' : s.CObj), Δ'.1 ⟶ sΓ' :=
   let ⟨Δ', d', σ'⟩ := d.substWk σ
   ⟨⟨Δ', Δ.2.append d'⟩, σ'⟩
@@ -252,7 +252,7 @@ theorem substWk_nil {sΓ : 𝒞} (Δ : s.CObj) (σ : Δ.1 ⟶ sΓ) :
     Δ.substWk σ .nil = ⟨Δ, σ⟩ := by
   rfl
 
-theorem substWk_snoc {sΓ sΓ' : 𝒞} {l} (Δ : s.CObj) (σ : Δ.1 ⟶ sΓ) (d : s.CtxDiff sΓ sΓ')
+theorem substWk_snoc {sΓ sΓ' : 𝒞} {l} (Δ : s.CObj) (σ : Δ.1 ⟶ sΓ) (d : s.ExtSeq sΓ sΓ')
     (llen : l < s.length + 1) (A : y(sΓ') ⟶ s[l].Ty) :
     Δ.substWk σ (d.snoc llen A) =
       let ⟨Δ', σ'⟩ := Δ.substWk σ d
@@ -273,11 +273,11 @@ theorem var_tp {l : Nat} (Γ : s.CObj) (llen : l < s.length + 1) (i : ℕ) :
 
 theorem mem_var_liftVar {l} {llen : l < s.length + 1} {sΓ : s.CObj} {sΘ sΓ' : 𝒞}
     {st : y(sΓ') ⟶ (s[l]'llen).Tm} (i)
-    (d : s.CtxDiff sΓ.1 sΘ) (e : s.CtxDiff sΓ.1 sΓ')
+    (d : s.ExtSeq sΓ.1 sΘ) (e : s.ExtSeq sΓ.1 sΓ')
     (st_mem : st ∈ (sΓ.append e).var llen i) :
     let ⟨sΔ, σ⟩ := sΓ.append d |>.substWk d.disp e
     ym(σ) ≫ st ∈ sΔ.var llen (liftVar d.length i e.length) :=
-  CtxDiff.mem_var_liftVar _ sΓ.2 d e st_mem
+  ExtSeq.mem_var_liftVar _ sΓ.2 d e st_mem
 
 end CObj
 
@@ -400,7 +400,7 @@ theorem mem_var_of_lookup {Γ A i l llen sΓ sA} : Lookup Γ i A l →
 mutual
 
 theorem mem_ofType_liftN {A l llen} {sΓ : s.CObj} {sΘ sΓ' : 𝒞} {sA : y(sΓ') ⟶ (s[l]'llen).Ty}
-    (d : s.CtxDiff sΓ.1 sΘ) (e : s.CtxDiff sΓ.1 sΓ')
+    (d : s.ExtSeq sΓ.1 sΘ) (e : s.ExtSeq sΓ.1 sΓ')
     (sA_mem : sA ∈ ofType (sΓ.append e) l A llen) :
     let ⟨sΔ, σ⟩ := sΓ.append d |>.substWk d.disp e
     ym(σ) ≫ sA ∈ ofType sΔ l (A.liftN d.length e.length) llen := by
@@ -426,7 +426,7 @@ theorem mem_ofType_liftN {A l llen} {sΓ : s.CObj} {sΘ sΓ' : 𝒞} {sA : y(sΓ
   all_goals simp at sA_mem
 
 theorem mem_ofTerm_liftN {t l llen} {sΓ : s.CObj} {sΘ sΓ' : 𝒞} {st : y(sΓ') ⟶ (s[l]'llen).Tm}
-    (d : s.CtxDiff sΓ.1 sΘ) (e : s.CtxDiff sΓ.1 sΓ')
+    (d : s.ExtSeq sΓ.1 sΘ) (e : s.ExtSeq sΓ.1 sΓ')
     (st_mem : st ∈ ofTerm (sΓ.append e) l t llen) :
     let ⟨sΔ, σ⟩ := sΓ.append d |>.substWk d.disp e
     ym(σ) ≫ st ∈ ofTerm sΔ l (t.liftN d.length e.length) llen := by
@@ -468,22 +468,22 @@ theorem mem_ofType_lift {A l l'} {llen : l < s.length + 1} {l'len : l' < s.lengt
     {sΓ : s.CObj} {sA} (sB : y(sΓ.1) ⟶ s[l'].Ty)
     (sA_mem : sA ∈ ofType sΓ l A llen) :
     (s[l']'l'len).wk sB sA ∈ ofType (sΓ.snoc l'len sB) l (A.lift) llen := by
-  convert mem_ofType_liftN (UHomSeq.CtxDiff.nil.snoc l'len sB) .nil sA_mem using 1
-  simp [wk, UHomSeq.CtxDiff.substWk, UHomSeq.CtxDiff.disp, UHomSeq.CObj.substWk]
+  convert mem_ofType_liftN (UHomSeq.ExtSeq.nil.snoc l'len sB) .nil sA_mem using 1
+  simp [wk, UHomSeq.ExtSeq.substWk, UHomSeq.ExtSeq.disp, UHomSeq.CObj.substWk]
 
 theorem mem_ofTerm_lift {t l l'} {llen : l < s.length + 1} {l'len : l' < s.length + 1}
     {sΓ : s.CObj} {st} (sB : y(sΓ.1) ⟶ s[l'].Ty)
     (st_mem : st ∈ ofTerm sΓ l t llen) :
     (s[l']'l'len).wk sB st ∈ ofTerm (sΓ.snoc l'len sB) l (t.lift) llen := by
-  convert mem_ofTerm_liftN (UHomSeq.CtxDiff.nil.snoc l'len sB) .nil st_mem using 1
-  simp [wk, UHomSeq.CtxDiff.substWk, UHomSeq.CtxDiff.disp, UHomSeq.CObj.substWk]
+  convert mem_ofTerm_liftN (UHomSeq.ExtSeq.nil.snoc l'len sB) .nil st_mem using 1
+  simp [wk, UHomSeq.ExtSeq.substWk, UHomSeq.ExtSeq.disp, UHomSeq.CObj.substWk]
 
 mutual
 
 theorem mem_ofType_inst {B t l l'} {llen : l < s.length + 1} {l'len : l' < s.length + 1}
     {sΓ : s.CObj} {sΓ' : 𝒞} {sB : y(sΓ') ⟶ (s[l']'l'len).Ty} {st : y(sΓ.1) ⟶ (s[l]'llen).Tm}
     (sA : y(sΓ.1) ⟶ s[l].Ty)
-    (d : s.CtxDiff (sΓ.snoc llen sA).1 sΓ')
+    (d : s.ExtSeq (sΓ.snoc llen sA).1 sΓ')
     (st_mem : st ∈ ofTerm sΓ l t llen) (st_tp : st ≫ s[l].tp = sA)
     (sB_mem : sB ∈ ofType ((sΓ.snoc llen sA).append d) l' B l'len) :
     let σ := s[l].substCons (𝟙 _) sA st (by simpa using st_tp)
@@ -522,11 +522,11 @@ theorem mem_ofTerm_etaExpand {A B f} {i j : Nat} (ilen : i < s.length + 1) (jlen
   dsimp [etaExpand]
   apply mem_ofTerm_lam ilen jlen sA_mem
   apply mem_ofTerm_app ilen jlen
-  . have := mem_ofType_liftN (UHomSeq.CtxDiff.nil.snoc _ sA) (UHomSeq.CtxDiff.nil.snoc _ sA) sB_mem
+  . have := mem_ofType_liftN (UHomSeq.ExtSeq.nil.snoc _ sA) (UHomSeq.ExtSeq.nil.snoc _ sA) sB_mem
     dsimp at this
     convert this using 2 <;> congr <;> simp [UHomSeq.CObj.substWk, wk]
   . exact mem_ofTerm_lift _ sf_mem
-  . dsimp [ofTerm, UHomSeq.CObj.var, UHomSeq.CtxDiff.var]
+  . dsimp [ofTerm, UHomSeq.CObj.var, UHomSeq.ExtSeq.var]
     simp
 
 -- TODO: this proof is boring, repetitive exists-elim/exists-intro: automate!
