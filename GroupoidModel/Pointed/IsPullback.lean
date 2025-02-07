@@ -1,4 +1,4 @@
-import GroupoidModel.Grothendieck.Pullback
+import GroupoidModel.Grothendieck.IsPullback
 /-!
 # Pointed groupoids as the pullback of pointed categories
 

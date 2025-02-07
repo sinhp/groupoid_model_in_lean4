@@ -36,20 +36,20 @@ theorem PointedFunctor.eqToHom_point {P1 P2 : PCat.{u,u}} (eq : P1 = P2) : (eqTo
   cases eq
   simp[PointedFunctor.id, CategoryStruct.id, PCat.forgetToCat,Cat.of,Bundled.of]
 
-/-- This turns the object part of eqToHom functors into casts -/
-theorem Cat.eqToHom_obj (C1 C2 : Cat.{u,v})(x : C1)(eq : C1 = C2): (eqToHom eq).obj x = cast (congrArg Bundled.α eq) x := by
-  cases eq
-  simp[CategoryStruct.id]
+-- /-- This turns the object part of eqToHom functors into casts -/
+-- theorem Cat.eqToHom_obj (C1 C2 : Cat.{u,v})(x : C1)(eq : C1 = C2): (eqToHom eq).obj x = cast (congrArg Bundled.α eq) x := by
+--   cases eq
+--   simp[CategoryStruct.id]
 
-/-- This is the proof of equality used in the eqToHom in `Cat.eqToHom_hom` -/
-theorem Cat.eqToHom_hom_help {C1 C2 : Cat.{u,v}}(x y: C1)(eq : C1 = C2): (x ⟶ y) = ((eqToHom eq).obj x ⟶ (eqToHom eq).obj y) := by
-  cases eq
-  simp[CategoryStruct.id]
+-- /-- This is the proof of equality used in the eqToHom in `Cat.eqToHom_hom` -/
+-- theorem Cat.eqToHom_hom_help {C1 C2 : Cat.{u,v}}(x y: C1)(eq : C1 = C2): (x ⟶ y) = ((eqToHom eq).obj x ⟶ (eqToHom eq).obj y) := by
+--   cases eq
+--   simp[CategoryStruct.id]
 
-/-- This is the turns the hom part of eqToHom functors into a cast-/
-theorem Cat.eqToHom_hom {C1 C2 : Cat.{u,v}}{x y: C1}(f : x ⟶ y)(eq : C1 = C2): (eqToHom eq).map f = (cast (Cat.eqToHom_hom_help x y eq) f) := by
-  cases eq
-  simp[CategoryStruct.id]
+-- /-- This is the turns the hom part of eqToHom functors into a cast-/
+-- theorem Cat.eqToHom_hom {C1 C2 : Cat.{u,v}}{x y: C1}(f : x ⟶ y)(eq : C1 = C2): (eqToHom eq).map f = (cast (Cat.eqToHom_hom_help x y eq) f) := by
+--   cases eq
+--   simp[CategoryStruct.id]
 
 /-- This is the proof of equality used in the eqToHom in `PCat.eqToHom_hom` -/
 theorem PCat.eqToHom_hom_help {C1 C2 : PCat.{u,v}}(x y: C1)(eq : C1 = C2): (x ⟶ y) = ((eqToHom eq).obj x ⟶ (eqToHom eq).obj y) := by
@@ -72,23 +72,23 @@ theorem Grothendieck.ext' {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}(g1 g2 : Grothen
     rw[eq_fiber]
     simp [eqToHom_map, CategoryStruct.id]
 
-/-- This proves that base of an eqToHom morphism in the category Grothendieck A is an eqToHom morphism -/
-theorem Grothendieck.eqToHom_base {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}(g1 g2 : Grothendieck A)
-  (eq : g1 = g2) : (eqToHom eq).base = (eqToHom (congrArg (Grothendieck.forget A).obj eq)) := by
-    cases eq
-    simp
+-- /-- This proves that base of an eqToHom morphism in the category Grothendieck A is an eqToHom morphism -/
+-- theorem Grothendieck.eqToHom_base {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}(g1 g2 : Grothendieck A)
+--   (eq : g1 = g2) : (eqToHom eq).base = (eqToHom (congrArg (Grothendieck.forget A).obj eq)) := by
+--     cases eq
+--     simp
 
-/-- This is the proof of equality used in the eqToHom in `Grothendieck.eqToHom_fiber` -/
-theorem Grothendieck.eqToHom_fiber_help {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}{g1 g2 : Grothendieck A}
-  (eq : g1 = g2) : (A.map (eqToHom eq).base).obj g1.fiber = g2.fiber := by
-    cases eq
-    simp
+-- /-- This is the proof of equality used in the eqToHom in `Grothendieck.eqToHom_fiber` -/
+-- theorem Grothendieck.eqToHom_fiber_help {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}{g1 g2 : Grothendieck A}
+--   (eq : g1 = g2) : (A.map (eqToHom eq).base).obj g1.fiber = g2.fiber := by
+--     cases eq
+--     simp
 
-/-- This proves that fiber of an eqToHom morphism in the category Grothendieck A is an eqToHom morphism -/
-theorem Grothendieck.eqToHom_fiber {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}{g1 g2 : Grothendieck A}
-  (eq : g1 = g2) : (eqToHom eq).fiber = eqToHom (Grothendieck.eqToHom_fiber_help eq) := by
-    cases eq
-    simp
+-- /-- This proves that fiber of an eqToHom morphism in the category Grothendieck A is an eqToHom morphism -/
+-- theorem Grothendieck.eqToHom_fiber {Γ : Cat.{u,u}}{A : Γ ⥤ Cat.{u,u}}{g1 g2 : Grothendieck A}
+--   (eq : g1 = g2) : (eqToHom eq).fiber = eqToHom (Grothendieck.eqToHom_fiber_help eq) := by
+--     cases eq
+--     simp
 
 /-- This eliminates an eqToHom on the right side of an equality-/
 theorem RightSidedEqToHom {C : Type v} [Category C] {x y z : C} (eq : y = z) {f : x ⟶ y} {g : x ⟶ z}
@@ -570,19 +570,19 @@ def tp_NatTrans : Tm_functor ⟶ Ty_functor where
     exact a ⋙ PGrpd.forgetToGrpd
 
 -- This is the var construction of var before applying yoneda
-def var' (Γ : Grpd)(A : Γ ⥤ Grpd) : (GroupoidalGrothendieck A) ⥤ PGrpd where
+def var' (Γ : Grpd)(A : Γ ⥤ Grpd) : (Grothendieck.Groupoidal A) ⥤ PGrpd where
   obj x := ⟨(A.obj x.base), (PointedGroupoid.of (A.obj x.base) x.fiber)⟩
   map f := ⟨A.map f.base, f.fiber⟩
   map_id x := by
     dsimp
     let _ := (PointedCategory.of (A.obj x.base) x.fiber)
-    dsimp [GroupoidalGrothendieck] at x ⊢
+    dsimp [Grothendieck.Groupoidal] at x ⊢
     apply PointedFunctor.ext <;>
       simp only [PGrpd.id_toFunctor, Functor.id_obj, PGrpd.id_point,
         Category.comp_id, Functor.map_id]
     rfl
   map_comp {x y z} f g := by
-    dsimp [GroupoidalGrothendieck]
+    dsimp [Grothendieck.Groupoidal]
     let _ := (PointedCategory.of (A.obj x.base) x.fiber)
     let _ := (PointedCategory.of (A.obj z.base) z.fiber)
     apply PointedFunctor.ext
@@ -600,8 +600,8 @@ Grothendieck.forget           PGrpd.forgetToGrpd         PCat.forgetToCat
         Γ--------------A-----------> Grpd----Grpd.forgetToCat---->Cat
 -/
 
-theorem LeftSquareComutes {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}) : (Down_uni (GroupoidalGrothendieck A)) ⋙ (var' Γ A) ⋙ PGrpd.forgetToGrpd
- = ((Down_uni (GroupoidalGrothendieck A)) ⋙ (GroupoidalGrothendieck.forget) ⋙ (Up_uni Γ)) ⋙ (Down_uni Γ) ⋙ A := by sorry
+theorem LeftSquareComutes {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}) : (Down_uni (Grothendieck.Groupoidal A)) ⋙ (var' Γ A) ⋙ PGrpd.forgetToGrpd
+ = ((Down_uni (Grothendieck.Groupoidal A)) ⋙ (Grothendieck.forget _) ⋙ (Up_uni Γ)) ⋙ (Down_uni Γ) ⋙ A := by sorry
 
 -- This is the type of cones
 abbrev GroupoidCones {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}) := @CategoryTheory.Limits.PullbackCone
@@ -620,9 +620,9 @@ abbrev GroupoidLim {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}): (GroupoidCones A) :
     (Cat.of Grpd.{u,u})
     ((Down_uni Γ) ⋙ A)
     (PGrpd.forgetToGrpd.{u,u})
-    (Cat.of (ULift.{u+1,u} (GroupoidalGrothendieck A)))
-    (Down_uni (GroupoidalGrothendieck A) ⋙ GroupoidalGrothendieck.forget ⋙ Up_uni Γ)
-    ((Down_uni (GroupoidalGrothendieck A)) ⋙ var' Γ A)
+    (Cat.of (ULift.{u+1,u} (Grothendieck.Groupoidal A)))
+    (Down_uni (Grothendieck.Groupoidal A) ⋙ Grothendieck.forget _ ⋙ Up_uni Γ)
+    ((Down_uni (Grothendieck.Groupoidal A)) ⋙ var' Γ A)
     (LeftSquareComutes A)
 
 -- CategoryTheory.Limits.leftSquareIsPullback.{v, u} {C : Type u} [Category.{v, u} C] {X₃ Y₁ Y₂ Y₃ : C} {g₁ : Y₁ ⟶ Y₂}
@@ -647,12 +647,12 @@ def PBasLim {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}) : Limits.IsLimit (GroupoidL
   sorry
 
 def PBasPB {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}) : @IsPullback (Cat.{u,u+1}) _
-  (Cat.of (ULift.{u+1,u} (GroupoidalGrothendieck A)))
+  (Cat.of (ULift.{u+1,u} (Grothendieck.Groupoidal A)))
   (Cat.of PGrpd.{u,u})
   (Cat.of (ULift.{u+1,u} Γ))
   (Cat.of Grpd.{u,u})
-  ((Down_uni (GroupoidalGrothendieck A)) ⋙ (var' Γ A))
-  ((Down_uni (GroupoidalGrothendieck A)) ⋙ (GroupoidalGrothendieck.forget) ⋙ (Up_uni Γ))
+  ((Down_uni (Grothendieck.Groupoidal A)) ⋙ (var' Γ A))
+  ((Down_uni (Grothendieck.Groupoidal A)) ⋙ (Grothendieck.forget _) ⋙ (Up_uni Γ))
   (PGrpd.forgetToGrpd)
   ((Down_uni Γ) ⋙ A) := by
     refine IsPullback.flip ?_ -- This flips the pullback, There is on that is done sidways further up that should be fixed
@@ -664,12 +664,12 @@ def PBasPB {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}) : @IsPullback (Cat.{u,u+1}) 
 
 
 def ofCatPB {Γ : Grpd.{u,u}}(A : Γ ⥤ Grpd.{u,u}) : @IsPullback (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) _
-  (ofCat.obj (Cat.of (ULift.{u+1,u} (GroupoidalGrothendieck A))))
+  (ofCat.obj (Cat.of (ULift.{u+1,u} (Grothendieck.Groupoidal A))))
   (ofCat.obj (Cat.of PGrpd.{u,u}))
   (ofCat.obj (Cat.of (ULift.{u+1,u} Γ)))
   (ofCat.obj (Cat.of Grpd.{u,u}))
-  (ofCat.map ((Down_uni (GroupoidalGrothendieck A)) ⋙ (var' Γ A)))
-  (ofCat.map ((Down_uni (GroupoidalGrothendieck A)) ⋙ (GroupoidalGrothendieck.forget) ⋙ (Up_uni Γ)))
+  (ofCat.map ((Down_uni (Grothendieck.Groupoidal A)) ⋙ (var' Γ A)))
+  (ofCat.map ((Down_uni (Grothendieck.Groupoidal A)) ⋙ (Grothendieck.forget _) ⋙ (Up_uni Γ)))
   (ofCat.map (PGrpd.forgetToGrpd))
   (ofCat.map ((Down_uni Γ) ⋙ A)) := Functor.map_isPullback ofCat (PBasPB A)
 
