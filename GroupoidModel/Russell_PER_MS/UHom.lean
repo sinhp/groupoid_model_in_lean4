@@ -1,4 +1,5 @@
 import GroupoidModel.Russell_PER_MS.NaturalModelBase
+import GroupoidModel.ForMathlib
 
 /-! Morphisms of natural models, and Russell-universe embeddings. -/
 
@@ -65,6 +66,11 @@ def UHom.comp_assoc {M N O P : NaturalModelBase Ctx} (α : UHom M N) (β : UHom 
 def UHom.wkU {M N : NaturalModelBase Ctx} (Γ : Ctx) (α : UHom M N) : y(Γ) ⟶ N.Ty :=
   terminal.from y(Γ) ≫ α.U
 
+@[reassoc (attr := simp)]
+theorem UHom.comp_wkU {M N : NaturalModelBase Ctx} {Δ Γ : Ctx} (α : UHom M N) (f : y(Δ) ⟶ y(Γ)) :
+    f ≫ α.wkU Γ = α.wkU Δ := by
+  simp [wkU]
+
 /- Sanity check:
 construct a `UHom` into a natural model with a Tarski universe. -/
 def UHom.ofTarskiU [HasTerminal Ctx] (M : NaturalModelBase Ctx)
@@ -120,18 +126,28 @@ theorem hom_comp_trans (s : UHomSeq Ctx) (i j k : Nat) (ij : i < j) (jk : j < k)
   . rw [UHom.comp_assoc, hom_comp_trans]
 termination_by s.length - i
 
-def code (s : UHomSeq Ctx) {Γ : Ctx} {i : Nat} (ilen : i < s.length) (A : y(Γ) ⟶ s[i].Ty) :
+def code {Γ : Ctx} {i : Nat} (s : UHomSeq Ctx) (ilen : i < s.length) (A : y(Γ) ⟶ s[i].Ty) :
     y(Γ) ⟶ s[i+1].Tm :=
   sorry
 
 @[simp]
-theorem code_tp (s : UHomSeq Ctx) {Γ : Ctx} {i : Nat} (ilen : i < s.length) (A : y(Γ) ⟶ s[i].Ty) :
+theorem code_tp {Γ : Ctx} {i : Nat} (s : UHomSeq Ctx) (ilen : i < s.length) (A : y(Γ) ⟶ s[i].Ty) :
     s.code ilen A ≫ s[i+1].tp = (s.homSucc i).wkU Γ :=
   sorry
 
+theorem comp_code {Δ Γ : Ctx} {i : Nat} (s : UHomSeq Ctx) (ilen : i < s.length)
+    (σ : y(Δ) ⟶ y(Γ)) (A : y(Γ) ⟶ s[i].Ty) :
+    σ ≫ s.code ilen A = s.code ilen (σ ≫ A) := by
+  sorry
+
 def el (s : UHomSeq Ctx) {Γ : Ctx} {i : Nat} (ilen : i < s.length)
-    (A : y(Γ) ⟶ s[i+1].Tm) (A_tp : A ≫ s[i+1].tp = (s.homSucc i).wkU Γ) :
+    (a : y(Γ) ⟶ s[i+1].Tm) (a_tp : a ≫ s[i+1].tp = (s.homSucc i).wkU Γ) :
     y(Γ) ⟶ s[i].Ty :=
+  sorry
+
+theorem comp_el (s : UHomSeq Ctx) {Δ Γ : Ctx} {i : Nat} (ilen : i < s.length)
+    (σ : y(Δ) ⟶ y(Γ)) (a : y(Γ) ⟶ s[i+1].Tm) (a_tp : a ≫ s[i+1].tp = (s.homSucc i).wkU Γ) :
+    σ ≫ s.el ilen a a_tp = s.el ilen (σ ≫ a) (by simp [a_tp]) := by
   sorry
 
 -- code_el A = A
@@ -211,7 +227,6 @@ def mkPi {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty) : y(
 
 theorem comp_mkPi {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty) :
-    -- TODO: retype to σ : y(Δ) ⟶ y(Γ) if the lemma is annoying to apply with ym(..)
     ym(σ) ≫ s.mkPi ilen jlen A B = s.mkPi ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ B) := by
   sorry
 
@@ -229,6 +244,11 @@ theorem mkLam_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].
     (t : y(s[i].ext A) ⟶ s[j].Tm) (t_tp : t ≫ s[j].tp = B) :
     s.mkLam ilen jlen A t ≫ s[max i j].tp = s.mkPi ilen jlen A B := by
   simp [mkLam, mkPi, (s.Pi_pullbacks i j).w, s[i].Ptp_equiv_naturality_assoc, t_tp]
+
+theorem comp_mkLam {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
+    (A : y(Γ) ⟶ s[i].Ty) (t : y(s[i].ext A) ⟶ s[j].Tm) :
+    ym(σ) ≫ s.mkLam ilen jlen A t = s.mkLam ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ t) := by
+  sorry
 
 /--
 ```
@@ -280,6 +300,16 @@ theorem mkApp_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].
     (a : y(Γ) ⟶ s[i].Tm) (a_tp : a ≫ s[i].tp = A) :
     s.mkApp ilen jlen A B f f_tp a a_tp ≫ s[j].tp = s[i].inst A B a a_tp := by
   simp [mkApp]
+
+theorem comp_mkApp {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
+    (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
+    (f : y(Γ) ⟶ s[max i j].Tm) (f_tp : f ≫ s[max i j].tp = s.mkPi ilen jlen A B)
+    (a : y(Γ) ⟶ s[i].Tm) (a_tp : a ≫ s[i].tp = A) :
+    ym(σ) ≫ s.mkApp ilen jlen A B f f_tp a a_tp =
+      s.mkApp ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ B)
+        (ym(σ) ≫ f) (by simp [f_tp, comp_mkPi])
+        (ym(σ) ≫ a) (by simp [a_tp]) := by
+  sorry
 
 @[simp]
 theorem mkLam_unLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
