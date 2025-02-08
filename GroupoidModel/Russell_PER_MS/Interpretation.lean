@@ -4,10 +4,17 @@ import GroupoidModel.Russell_PER_MS.UHom
 import GroupoidModel.ForMathlib
 
 macro "simp_part" : tactic =>
-  `(tactic| simp only [Part.mem_assert_iff, Part.mem_bind_iff, Part.mem_map_iff, Part.mem_some_iff,
+  `(tactic| simp only [
+    Part.mem_assert_iff, Part.mem_bind_iff, Part.mem_map_iff,
+    Part.pure_eq_some, Part.bind_eq_bind, Part.map_bind,
+    Part.map_some, Part.mem_bind_iff, Part.mem_some_iff,
     exists_true_left, exists_const])
+
 macro "simp_part" loc:Lean.Parser.Tactic.location : tactic =>
-  `(tactic| simp only [Part.mem_assert_iff, Part.mem_bind_iff, Part.mem_map_iff, Part.mem_some_iff,
+  `(tactic| simp only [
+    Part.mem_assert_iff, Part.mem_bind_iff, Part.mem_map_iff,
+    Part.pure_eq_some, Part.bind_eq_bind, Part.map_bind,
+    Part.map_some, Part.mem_bind_iff, Part.mem_some_iff,
     exists_true_left, exists_const] $loc)
 
 universe v u
@@ -54,9 +61,7 @@ def append {Γ₁ Γ₂ Γ₃ : 𝒞} : s.ExtSeq Γ₁ Γ₂ → s.ExtSeq Γ₂ 
 theorem append_assoc {Γ₁ Γ₂ Γ₃ Γ₄ : 𝒞}
     (d₁ : s.ExtSeq Γ₁ Γ₂) (d₂ : s.ExtSeq Γ₂ Γ₃) (d₃ : s.ExtSeq Γ₃ Γ₄) :
     d₁.append (d₂.append d₃) = (d₁.append d₂).append d₃ := by
-  induction d₃ with
-  | nil => rfl
-  | snoc _ _ _ ih => simp [ih]
+  induction d₃ <;> simp [*]
 
 /-- The composite display map associated to a sequence. -/
 @[simp]
@@ -92,9 +97,7 @@ theorem substWk_length {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : s.ExtSeq Γ Γ')
 
 theorem substWk_disp {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : s.ExtSeq Γ Γ') :
     (d.substWk σ).2.2 ≫ d.disp = (d.substWk σ).2.1.disp ≫ σ := by
-  induction d generalizing σ with
-  | nil => simp [substWk]
-  | snoc _ _ _ ih => simp [substWk, ← ih]
+  induction d generalizing σ <;> simp [substWk, *]
 
 /-- `Γ.Aₖ.….A₀ ⊢ vₙ : Aₙ[↑ⁿ⁺¹]` -/
 @[simp]
@@ -148,21 +151,14 @@ theorem var_eq_of_lt_length {l i} {llen : l < s.length + 1} {sΓ sΓ' sΓ'' : �
 theorem var_append_add_length {l i} {llen : l < s.length + 1} {sΓ sΓ' sΓ'' : 𝒞}
     (d : s.ExtSeq sΓ sΓ') (e : s.ExtSeq sΓ' sΓ'') :
     (d.append e).var llen (i + e.length) = (d.var llen i).map (ym(e.disp) ≫ ·) := by
-  induction e with
-  | nil => simp; rfl
-  | snoc _ _ _ ih =>
-    simp [ih, ExtSeq.var, Part.bind_some_eq_map, Part.map_map, wk]
-    rfl
+  induction e <;> (simp [ExtSeq.var, Part.bind_some_eq_map, Part.map_map, wk, *]; rfl)
 
 theorem var_substWk_add_length {l i} {llen : l < s.length + 1} {sΔ sΔ' sΓ sΓ' : 𝒞}
     (d : s.ExtSeq sΔ sΔ') (σ : sΔ' ⟶ sΓ) (e : s.ExtSeq sΓ sΓ') :
     let ⟨_, d', _⟩ := e.substWk σ
     (d.append d').var llen (i + e.length) = (d.var llen i).map (ym(d'.disp) ≫ ·) := by
-  induction e with
-  | nil => simp [substWk]; rfl
-  | snoc _ _ _ ih =>
-    simp [ih, ExtSeq.var, substWk, Part.bind_some_eq_map, Part.map_map]
-    rfl
+  rw [← e.substWk_length σ]
+  apply var_append_add_length
 
 theorem var_substWk_of_lt_length {l i} {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : s.ExtSeq Γ Γ')
     (llen : l < s.length + 1) {st} (st_mem : st ∈ d.var llen i) :
@@ -284,6 +280,7 @@ end CObj
 variable (slen : univMax ≤ s.length)
 
 include slen in
+omit [HasTerminal 𝒞] in
 theorem lt_slen_of_eqTp {Γ A B l} : Γ ⊢[l] A ≡ B → l < s.length + 1 := by
   intro Aeq
   have := Aeq.le_univMax
@@ -364,29 +361,6 @@ theorem snoc_mem_ofCtx {Γ A l llen sΓ sA} : sΓ ∈ s.ofCtx Γ → sA ∈ ofTy
     Part.mem_some_iff]
   tauto
 
-theorem mem_ofTerm_app {B f a} {i j : Nat} (ilen : i < s.length + 1) (jlen : j < s.length + 1)
-    {sΓ : s.CObj} {sA : y(sΓ.1) ⟶ s[i].Ty} {sB : y((sΓ.snoc ilen sA).1) ⟶ (s[j]'jlen).Ty}
-    {sf : y(sΓ.1) ⟶ s[max i j].Tm} {sa : y(sΓ.1) ⟶ (s[i]'ilen).Tm}
-    (sB_mem : sB ∈ ofType (sΓ.snoc ilen sA) j B jlen)
-    (sf_mem : sf ∈ ofTerm sΓ (max i j) f (by skip) /- wtf -/)
-    (sf_tp : sf ≫ s[max i j].tp = s.mkPi ilen jlen sA sB)
-    (sa_mem : sa ∈ ofTerm sΓ i a ilen)
-    (sa_tp : sa ≫ s[i].tp = sA) :
-    s.mkApp ilen jlen sA sB sf sf_tp sa sa_tp ∈ ofTerm sΓ j (.app i j B f a) jlen := by
-  cases sa_tp
-  dsimp [ofTerm]
-  simp_part
-  use ilen, sf, sf_mem, sa, sa_mem, sB, sB_mem, sf_tp
-
-theorem mem_ofTerm_lam {A t} {i j : Nat} (ilen : i < s.length + 1) (jlen : j < s.length + 1)
-    {sΓ : s.CObj} {sA : y(sΓ.1) ⟶ (s[i]'ilen).Ty} {st : y((sΓ.snoc ilen sA).1) ⟶ (s[j]'jlen).Tm}
-    (sA_mem : sA ∈ ofType sΓ i A ilen)
-    (st_mem : st ∈ ofTerm (sΓ.snoc ilen sA) j t jlen) :
-    s.mkLam ilen jlen sA st ∈ ofTerm sΓ (max i j) (.lam i j A t) (by skip) := by
-  dsimp [ofTerm]
-  simp_part
-  use sA, sA_mem, st, st_mem
-
 theorem mem_var_of_lookup {Γ A i l llen sΓ sA} : Lookup Γ i A l →
     sΓ ∈ s.ofCtx Γ → sA ∈ ofType sΓ l A llen →
     ∃ sv, sv ∈ (sΓ.var llen i) ∧ sv ≫ s[l].tp = sA := by
@@ -395,7 +369,7 @@ theorem mem_var_of_lookup {Γ A i l llen sΓ sA} : Lookup Γ i A l →
   . sorry
   . sorry
 
-/-! ## Semantic substitution -/
+/-! ## Admissibility of thinning -/
 
 mutual
 
@@ -434,7 +408,7 @@ theorem mem_ofTerm_liftN {t l llen} {sΓ : s.CObj} {sΘ sΓ' : 𝒞} {st : y(sΓ
     dsimp [Expr.liftN, ofTerm] at st_mem ⊢
     try simp_part at st_mem ⊢)
   case bvar =>
-    exact UHomSeq.CObj.mem_var_liftVar _ _ _ st_mem
+    exact sΓ.mem_var_liftVar _ _ _ st_mem
   case app i j _ _ _ =>
     obtain ⟨rfl, ipos, sfn, sfnmem, sarg, sargmem, sB, sBmem, sfntp, rfl⟩ := st_mem
     refine ⟨rfl, ipos,
@@ -478,37 +452,173 @@ theorem mem_ofTerm_lift {t l l'} {llen : l < s.length + 1} {l'len : l' < s.lengt
   convert mem_ofTerm_liftN (UHomSeq.ExtSeq.nil.snoc l'len sB) .nil st_mem using 1
   simp [wk, UHomSeq.ExtSeq.substWk, UHomSeq.ExtSeq.disp, UHomSeq.CObj.substWk]
 
+/-! ## Admissibility of instantiation -/
+
+theorem mem_ofTerm_instVar {a l l'} {llen : l < s.length + 1} {l'len : l' < s.length + 1}
+    {sΓ : s.CObj} {sΓ' : 𝒞}
+    {st : y(sΓ') ⟶ (s[l]'llen).Tm} {sa : y(sΓ.1) ⟶ (s[l']'l'len).Tm}
+    (i)
+    (sA : y(sΓ.1) ⟶ s[l'].Ty) (d : s.ExtSeq (s[l'].ext sA) sΓ')
+    (st_mem : st ∈ (sΓ.snoc l'len sA |>.append d).var llen i)
+    (sa_mem : sa ∈ ofTerm sΓ l' a l'len) (sa_tp : sa ≫ s[l'].tp = sA) :
+    let σ := s[l'].substCons (𝟙 _) sA sa (by simpa using sa_tp)
+    let ⟨sΔ, σ'⟩ := sΓ.substWk σ d
+    ym(σ') ≫ st ∈ ofTerm sΔ l (instVar i a d.length) llen := by
+  rcases i.lt_trichotomy d.length with ilen | rfl | ilen
+  . simp only [instVar, ilen, ↓reduceIte, ofTerm,
+      UHomSeq.CObj.var, UHomSeq.CObj.substWk, UHomSeq.CObj.append] at st_mem ⊢
+    rw [UHomSeq.ExtSeq.var_eq_of_lt_length _ _ ilen] at st_mem
+    rw [UHomSeq.ExtSeq.var_eq_of_lt_length]
+    . exact UHomSeq.ExtSeq.var_substWk_of_lt_length _ d llen st_mem ilen
+    . simp [ilen]
+  . simp only [instVar, lt_self_iff_false, ↓reduceIte,
+      UHomSeq.CObj.var, UHomSeq.CObj.append] at st_mem ⊢
+    rw [show d.length = 0 + d.length by omega, UHomSeq.ExtSeq.var_append_add_length] at st_mem
+    dsimp [UHomSeq.ExtSeq.var] at st_mem
+    simp_part at st_mem
+    obtain ⟨sa, ⟨rfl, rfl⟩, rfl⟩ := st_mem
+    conv => enter [2]; dsimp [UHomSeq.CObj.substWk]
+    rw [← Functor.map_comp_assoc, UHomSeq.ExtSeq.substWk_disp, Functor.map_comp_assoc]
+    simp only [substCons_var]
+    have := mem_ofTerm_liftN
+       (d.substWk (s[l'].substCons (𝟙 sΓ.fst) sA sa (by simp [sa_tp]))).snd.1
+      .nil sa_mem
+    simp only [UHomSeq.CObj.substWk_nil, UHomSeq.CObj.append_fst, UHomSeq.ExtSeq.substWk_length,
+      UHomSeq.ExtSeq.length] at this
+    exact this
+  . simp only [show ¬(i < d.length) by omega, show i ≠ d.length by omega,
+      instVar, lt_self_iff_false, ↓reduceIte,
+      UHomSeq.CObj.var, UHomSeq.CObj.append, ofTerm, UHomSeq.CObj.substWk] at st_mem ⊢
+    obtain ⟨k, rfl⟩ : ∃ k, i = k + (d.length + 1) := Nat.exists_eq_add_of_le' (by omega)
+    simp only [show k + (d.length + 1) = (k + 1) + d.length by omega,
+      UHomSeq.ExtSeq.var_append_add_length, UHomSeq.CObj.snoc, UHomSeq.ExtSeq.var] at st_mem
+    simp_part at st_mem
+    obtain ⟨sv, svmem, rfl⟩ := st_mem
+    rw [← Functor.map_comp_assoc, UHomSeq.ExtSeq.substWk_disp, Functor.map_comp_assoc]
+    simp only [id_eq, eq_mpr_eq_cast, Nat.add_succ_sub_one, getElem_toUHomSeq, wk, ←
+      Functor.map_comp_assoc, substCons_disp, CategoryTheory.Functor.map_id, Category.id_comp]
+    have := sΓ.2.mem_var_liftVar
+      k (UHomSeq.ExtSeq.substWk (s[l'].substCons (𝟙 sΓ.fst) sA sa (by simp [sa_tp])) d).snd.1 .nil
+      svmem
+    simp at this
+    convert this using 2
+    omega
+
+-- TODO: the inductive cases here are literally the same as in `mem_ofType_liftN`.
+-- Formalize this observation as an induction principle?
 mutual
 
-theorem mem_ofType_inst {B t l l'} {llen : l < s.length + 1} {l'len : l' < s.length + 1}
-    {sΓ : s.CObj} {sΓ' : 𝒞} {sB : y(sΓ') ⟶ (s[l']'l'len).Ty} {st : y(sΓ.1) ⟶ (s[l]'llen).Tm}
+theorem mem_ofType_inst {B a l l'} {llen : l < s.length + 1} {l'len : l' < s.length + 1}
+    {sΓ : s.CObj} {sΓ' : 𝒞} {sB : y(sΓ') ⟶ (s[l']'l'len).Ty} {sa : y(sΓ.1) ⟶ (s[l]'llen).Tm}
     (sA : y(sΓ.1) ⟶ s[l].Ty)
     (d : s.ExtSeq (sΓ.snoc llen sA).1 sΓ')
-    (st_mem : st ∈ ofTerm sΓ l t llen) (st_tp : st ≫ s[l].tp = sA)
-    (sB_mem : sB ∈ ofType ((sΓ.snoc llen sA).append d) l' B l'len) :
-    let σ := s[l].substCons (𝟙 _) sA st (by simpa using st_tp)
+    (sB_mem : sB ∈ ofType ((sΓ.snoc llen sA).append d) l' B l'len)
+    (sa_mem : sa ∈ ofTerm sΓ l a llen) (sa_tp : sa ≫ s[l].tp = sA) :
+    let σ := s[l].substCons (𝟙 _) sA sa (by simpa using sa_tp)
     let ⟨sΔ, σ'⟩ := sΓ.substWk σ d
-    ym(σ') ≫ sB ∈ ofType sΔ l' (B.inst t d.length) l'len := by
-  sorry
+    ym(σ') ≫ sB ∈ ofType sΔ l' (B.inst a d.length) l'len := by
+  cases B <;> (
+    dsimp [Expr.inst, ofType] at sB_mem ⊢
+    try simp_part at sB_mem ⊢)
+  case univ =>
+    rcases sB_mem with ⟨rfl, rfl⟩
+    simp
+  case pi =>
+    rcases sB_mem with ⟨rfl, sB, sBmem, sC, sCmem, rfl⟩
+    refine ⟨rfl,
+      _, mem_ofType_inst sA d sBmem sa_mem sa_tp,
+      _, mem_ofType_inst sA (d.snoc _ sB) sCmem sa_mem sa_tp,
+      ?_⟩
+    simp [comp_mkPi, UHomSeq.CObj.substWk]
+  case el =>
+    obtain ⟨llen, sa, samem, satp, rfl⟩ := sB_mem
+    refine ⟨llen,
+      _, mem_ofTerm_inst sA d samem sa_mem sa_tp,
+      ?_⟩
+    simp [satp, UHomSeq.comp_el, UHomSeq.CObj.substWk]
+  all_goals simp at sB_mem
+
+theorem mem_ofTerm_inst {t a l l'} {llen : l < s.length + 1} {l'len : l' < s.length + 1}
+    {sΓ : s.CObj} {sΓ' : 𝒞} {st : y(sΓ') ⟶ (s[l']'l'len).Tm} {sa : y(sΓ.1) ⟶ (s[l]'llen).Tm}
+    (sA : y(sΓ.1) ⟶ s[l].Ty)
+    (d : s.ExtSeq (sΓ.snoc llen sA).1 sΓ')
+    (st_mem : st ∈ ofTerm ((sΓ.snoc llen sA).append d) l' t l'len)
+    (sa_mem : sa ∈ ofTerm sΓ l a llen) (sa_tp : sa ≫ s[l].tp = sA) :
+    let σ := s[l].substCons (𝟙 _) sA sa (by simpa using sa_tp)
+    let ⟨sΔ, σ'⟩ := sΓ.substWk σ d
+    ym(σ') ≫ st ∈ ofTerm sΔ l' (t.inst a d.length) l'len := by
+  cases t <;> (
+    dsimp [Expr.inst, ofTerm] at st_mem ⊢
+    try simp_part at st_mem ⊢)
+  case bvar =>
+    exact mem_ofTerm_instVar _ sA d st_mem sa_mem sa_tp
+  case app i j _ _ _ =>
+    obtain ⟨rfl, ipos, sfn, sfnmem, sarg, sargmem, sB, sBmem, sfntp, rfl⟩ := st_mem
+    refine ⟨rfl, ipos,
+      _, mem_ofTerm_inst sA d sfnmem sa_mem sa_tp,
+      _, mem_ofTerm_inst sA d sargmem sa_mem sa_tp,
+      _, mem_ofType_inst sA (d.snoc _ <| sarg ≫ s[i].tp) sBmem sa_mem sa_tp,
+      ?_⟩
+    simp [sfntp, comp_mkPi, comp_mkApp]
+    exact ⟨rfl, rfl⟩ -- TODO: why `simp` doesn't close! sides syntactically the same! !!!
+  case lam =>
+    obtain ⟨rfl, sB, sBmem, st, stmem, rfl⟩ := st_mem
+    refine ⟨rfl,
+      _, mem_ofType_inst sA d sBmem sa_mem sa_tp,
+      _, mem_ofTerm_inst sA (d.snoc _ sB) stmem sa_mem sa_tp,
+      ?_⟩
+    simp [comp_mkLam, UHomSeq.CObj.substWk]
+  case code =>
+    obtain ⟨lpos, sB, sBmem, rfl⟩ := st_mem
+    refine ⟨lpos, _, mem_ofType_inst sA d sBmem sa_mem sa_tp, ?_⟩
+    rw [← UHomSeq.comp_code]
+    -- `cast` removal
+    generalize_proofs at *
+    generalize h : l' - 1 = k at *
+    cases (by omega : k + 1 = l')
+    simp [UHomSeq.CObj.substWk]
+  all_goals simp at st_mem
 
 end
 
-theorem mem_ofType_inst0 {B t l l'} {llen : l < s.length + 1} {l'len : l' < s.length + 1}
-    {sΓ : s.CObj} (sA : y(sΓ.1) ⟶ s[l].Ty) {sB st}
-    (st_mem : st ∈ ofTerm sΓ l t llen) (st_tp : st ≫ s[l].tp = sA)
-    (sB_mem : sB ∈ ofType (sΓ.snoc llen sA) l' B l'len) :
-    s[l].inst sA sB st st_tp ∈ ofType sΓ l' (B.inst t) l'len :=
-  mem_ofType_inst sA .nil st_mem st_tp sB_mem
-
-theorem mem_ofTerm_inst0 {A B t a l l' llen l'len} {sΓ sA sB st sa}
-    (sA_mem : sA ∈ ofType sΓ l A llen)
-    (st_mem : st ∈ ofTerm sΓ l t llen) (st_tp : st ≫ s[l].tp = sA)
+theorem mem_ofType_inst0 {B a l l'} {llen : l < s.length + 1} {l'len : l' < s.length + 1}
+    {sΓ : s.CObj} {sA sB sa}
     (sB_mem : sB ∈ ofType (sΓ.snoc llen sA) l' B l'len)
-    (sa_mem : sa ∈ ofTerm (sΓ.snoc llen sA) l' a l'len) (sa_tp : sa ≫ s[l'].tp = sB) :
-    s[l].inst sA sa st st_tp ∈ ofTerm sΓ l' (a.inst t) l'len :=
-  sorry
+    (sa_mem : sa ∈ ofTerm sΓ l a llen) (sa_tp : sa ≫ s[l].tp = sA) :
+    s[l].inst sA sB sa sa_tp ∈ ofType sΓ l' (B.inst a) l'len :=
+  mem_ofType_inst sA .nil sB_mem sa_mem sa_tp
+
+theorem mem_ofTerm_inst0 {t a l l'} {llen : l < s.length + 1} {l'len : l' < s.length + 1}
+    {sΓ : s.CObj} {sA st sa}
+    (st_mem : st ∈ ofTerm (sΓ.snoc llen sA) l' t l'len)
+    (sa_mem : sa ∈ ofTerm sΓ l a llen) (sa_tp : sa ≫ s[l].tp = sA) :
+    s[l].inst sA st sa sa_tp ∈ ofTerm sΓ l' (t.inst a) l'len :=
+  mem_ofTerm_inst sA .nil st_mem sa_mem sa_tp
 
 /-! ## Soundness of interpretation -/
+
+theorem mem_ofTerm_app {B f a} {i j : Nat} (ilen : i < s.length + 1) (jlen : j < s.length + 1)
+    {sΓ : s.CObj} {sA : y(sΓ.1) ⟶ s[i].Ty} {sB : y((sΓ.snoc ilen sA).1) ⟶ (s[j]'jlen).Ty}
+    {sf : y(sΓ.1) ⟶ s[max i j].Tm} {sa : y(sΓ.1) ⟶ (s[i]'ilen).Tm}
+    (sB_mem : sB ∈ ofType (sΓ.snoc ilen sA) j B jlen)
+    (sf_mem : sf ∈ ofTerm sΓ (max i j) f (by skip) /- wtf -/)
+    (sf_tp : sf ≫ s[max i j].tp = s.mkPi ilen jlen sA sB)
+    (sa_mem : sa ∈ ofTerm sΓ i a ilen)
+    (sa_tp : sa ≫ s[i].tp = sA) :
+    s.mkApp ilen jlen sA sB sf sf_tp sa sa_tp ∈ ofTerm sΓ j (.app i j B f a) jlen := by
+  cases sa_tp
+  dsimp [ofTerm]
+  simp_part
+  use ilen, sf, sf_mem, sa, sa_mem, sB, sB_mem, sf_tp
+
+theorem mem_ofTerm_lam {A t} {i j : Nat} (ilen : i < s.length + 1) (jlen : j < s.length + 1)
+    {sΓ : s.CObj} {sA : y(sΓ.1) ⟶ (s[i]'ilen).Ty} {st : y((sΓ.snoc ilen sA).1) ⟶ (s[j]'jlen).Tm}
+    (sA_mem : sA ∈ ofType sΓ i A ilen)
+    (st_mem : st ∈ ofTerm (sΓ.snoc ilen sA) j t jlen) :
+    s.mkLam ilen jlen sA st ∈ ofTerm sΓ (max i j) (.lam i j A t) (by skip) := by
+  dsimp [ofTerm]
+  simp_part
+  use sA, sA_mem, st, st_mem
 
 theorem mem_ofTerm_etaExpand {A B f} {i j : Nat} (ilen : i < s.length + 1) (jlen : j < s.length + 1)
     {sΓ : s.CObj} {sA : y(sΓ.1) ⟶ (s[i]'ilen).Ty} {sB : y((sΓ.snoc ilen sA).1) ⟶ (s[j]'jlen).Ty}
@@ -597,7 +707,7 @@ theorem ofType_ofTerm_sound :
   case inst_tp teq ihB iht sΓ sΓmem =>
     have ⟨sA, sAmem, st, stmem, stmem', sttp⟩ := iht sΓmem
     have ⟨sB, sBmem, sBmem'⟩ := ihB (snoc_helper teq.wf_tp sΓmem sAmem)
-    exact ⟨_, mem_ofType_inst0 _ stmem sttp sBmem, mem_ofType_inst0 _ stmem' sttp sBmem⟩
+    exact ⟨_, mem_ofType_inst0 sBmem stmem sttp, mem_ofType_inst0 sBmem stmem' sttp⟩
   case symm_tp ih _ sΓmem =>
     have ⟨sA, sAmem, sAmem'⟩ := ih sΓmem
     exact ⟨sA, sAmem', sAmem⟩ -- `use` fails here?
@@ -636,7 +746,7 @@ theorem ofType_ofTerm_sound :
     have llen := s.lt_slen_of_eqTp slen aeq.wf_tp
     have l'len := s.lt_slen_of_eqTp slen Beq
     simp_part
-    refine ⟨_, mem_ofType_inst0 _ samem rfl sBmem,
+    refine ⟨_, mem_ofType_inst0 sBmem samem rfl,
       s.mkApp llen l'len _ sB sf sftp sa rfl,
       ⟨llen, sf, sfmem, sa, samem, sB, sBmem, sftp, rfl⟩,
       ⟨llen, sf, sfmem', sa, samem', sB, sBmem', sftp, rfl⟩,
@@ -657,12 +767,12 @@ theorem ofType_ofTerm_sound :
     have ⟨sB, sBmem, st, stmem, _, sttp⟩ := iht (snoc_helper uwf.wf_tp sΓmem sAmem)
     have llen := s.lt_slen_of_eqTp slen uwf.wf_tp
     have l'len := s.lt_slen_of_eqTp slen twf.wf_tp
-    refine ⟨_, mem_ofType_inst0 _ sumem sutp sBmem,
+    refine ⟨_, mem_ofType_inst0 sBmem sumem sutp,
       _, mem_ofTerm_app llen l'len sBmem (mem_ofTerm_lam llen l'len sAmem stmem) ?_ sumem sutp,
       ?_, ?_⟩
     . simp [sttp]
     . rw [mkApp_mkLam (t_tp := sttp)]
-      exact mem_ofTerm_inst0 sAmem sumem sutp sBmem stmem sttp
+      exact mem_ofTerm_inst0 stmem sumem sutp
     . simp
   case conv ihA iht sΓ sΓmem =>
     have ⟨sA, sAmem, sAmem'⟩ := ihA sΓmem
@@ -674,9 +784,9 @@ theorem ofType_ofTerm_sound :
     have ⟨sA, sAmem, st, stmem, stmem', sttp⟩ := iht sΓmem
     have ⟨sB, sBmem, sa, samem, samem', satp⟩ := iha (snoc_helper teq.wf_tp sΓmem sAmem)
     have llen := s.lt_slen_of_eqTp slen teq.wf_tp
-    refine ⟨_, mem_ofType_inst0 _ stmem sttp sBmem, _,
-      mem_ofTerm_inst0 sAmem stmem sttp sBmem samem satp,
-      mem_ofTerm_inst0 sAmem stmem' sttp sBmem samem' satp,
+    refine ⟨_, mem_ofType_inst0 sBmem stmem sttp, _,
+      mem_ofTerm_inst0 samem stmem sttp,
+      mem_ofTerm_inst0 samem' stmem' sttp,
       s[l].inst_tp sA sB sa satp st sttp⟩
   case symm_tm ih _ sΓmem =>
     have ⟨sA, sAmem, st, stmem, stmem', sttp⟩ := ih sΓmem
