@@ -3,7 +3,7 @@ import Mathlib.CategoryTheory.Category.Grpd
 import GroupoidModel.Pointed.IsPullback
 
 /-!
-# Grothendieck.Groupoidal
+# The Groupidal Grothendieck construction 
 
 
   ↑Grothendieck (toCat A) -- toPGrpd --> PGrpd
@@ -15,11 +15,17 @@ import GroupoidModel.Pointed.IsPullback
         ↑Γ--------------A---------------> Grpd
 
 ## Main definitions
-* `CategoryTheory.Grothendieck.Groupoidal` uses `CategoryTheory.Grothendieck`
-  on a functor from a groupoid into the category of groupoids.
+* `CategoryTheory.Grothendieck.Groupoidal` 
+  takes a functor from a groupoid into `Grpd` the category of groupoids,
+  composes it with the forgetful functor into `Cat` the category of categories,
+  then applies `CategoryTheory.Grothendieck`.
+  This is a groupoid.
 
 ## Main statements
 
+* `CategoryTheory.Grothendieck.Groupoidal.groupoid`
+  is an instance of a groupoid structure on the groupidal
+  Grothendieck construction.
 * `CategoryTheory.Grothendieck.Groupoidal.isPullback`
   shows that `Grothendieck.forget A` is classified by `PGrpd.forgetToGrpd`
   as the pullback of `A`.
