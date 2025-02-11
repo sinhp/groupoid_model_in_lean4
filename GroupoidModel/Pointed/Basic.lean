@@ -4,14 +4,14 @@ import Mathlib.CategoryTheory.Category.Grpd
 Here we define pointed categories and pointed groupoids as well as prove some basic lemmas.
 -/
 
-universe u v u₁ v₁ u₂ v₂
+universe v u v₁ u₁ v₂ u₂ 
 
 namespace CategoryTheory
 
 noncomputable section PointedCategories
 
 /-- A typeclass for pointed categories. -/
-class PointedCategory.{w,z} (C : Type z) extends Category.{w} C where
+class PointedCategory (C : Type u) extends Category.{v} C where
   pt : C
 
 /-- A constructor that makes a pointed category from a category and a point. -/
@@ -72,8 +72,8 @@ theorem ext (F G: PointedFunctor C D) (h_func : F.toFunctor = G.toFunctor)
 end PointedFunctor
 
 /-- The category of pointed categorys and pointed functors-/
-def PCat.{w,z} :=
-  Bundled PointedCategory.{w, z}
+def PCat :=
+  Bundled PointedCategory.{v, u}
 
 namespace PCat
 
@@ -105,7 +105,7 @@ instance category : LargeCategory.{max v u} PCat.{v, u} where
     simp [PointedFunctor.comp,Functor.assoc]
 
 /-- The functor that takes PCat to Cat by forgetting the points-/
-@[simps] def forgetPoint : PCat ⥤ Cat where
+@[simps] def forgetToCat : PCat.{v,u} ⥤ Cat.{v,u} where
   obj x := Cat.of x
   map f := f.toFunctor
 
@@ -167,9 +167,9 @@ theorem map_id_point {C : Type u} [Category.{v} C] {F : C ⥤ PCat} {x : C} :
     · symm; assumption
 
 theorem eqToHom_toFunctor {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
-    (eqToHom eq).toFunctor = (eqToHom (congrArg PCat.forgetPoint.obj eq)) := by
+    (eqToHom eq).toFunctor = (eqToHom (congrArg PCat.forgetToCat.obj eq)) := by
   cases eq
-  simp[ PointedFunctor.id, CategoryStruct.id, PCat.forgetPoint,Cat.of,Bundled.of]
+  simp[ PointedFunctor.id, CategoryStruct.id, PCat.forgetToCat,Cat.of,Bundled.of]
 
 /-- This is the proof of equality used in the eqToHom in `PointedFunctor.eqToHom_point` -/
 theorem eqToHom_point_aux {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
@@ -181,20 +181,37 @@ theorem eqToHom_point_aux {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
 theorem eqToHom_point {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
     (eqToHom eq).point = (eqToHom (PCat.eqToHom_point_aux eq)) := by
   cases eq
-  simp[PointedFunctor.id, CategoryStruct.id, PCat.forgetPoint,Cat.of,Bundled.of]
+  simp[PointedFunctor.id, CategoryStruct.id, PCat.forgetToCat,Cat.of,Bundled.of]
+
+lemma hext {C D : PCat} (hα : C.α = D.α) (hstr : HEq C.str D.str) :
+    C = D := by
+  cases C
+  cases D
+  subst hα
+  subst hstr
+  rfl
+
+lemma hext_iff {C D : PCat} : C.α = D.α ∧ HEq C.str D.str
+    ↔ C = D := by
+  constructor
+  · intro ⟨ hα , hstr ⟩
+    exact hext hα hstr
+  · intro hCD
+    subst hCD
+    exact ⟨ rfl , HEq.rfl ⟩
 
 end PCat
 
 /-- The class of pointed groupoids. -/
-class PointedGroupoid.{w,z} (C : Type z) extends Groupoid.{w} C, PointedCategory.{w,z} C
+class PointedGroupoid (C : Type u) extends Groupoid.{v} C, PointedCategory.{v,u} C
 
 /-- A constructor that makes a pointed groupoid from a groupoid and a point. -/
 def PointedGroupoid.of (C : Type*) (pt : C) [Groupoid C]: PointedGroupoid C where
   pt := pt
 
 /-- The category of pointed groupoids and pointed functors-/
-def PGrpd.{w,z} :=
-  Bundled PointedGroupoid.{w, z}
+def PGrpd :=
+  Bundled PointedGroupoid.{v,u}
 
 namespace PGrpd
 
@@ -232,12 +249,12 @@ instance category : LargeCategory.{max v u} PGrpd.{v, u} where
     simp [PointedFunctor.comp,Functor.assoc]
 
 /-- The functor that takes PGrpd to Grpd by forgetting the points-/
-def forgetPoint : PGrpd ⥤ Grpd where
+@[simps] def forgetToGrpd : PGrpd.{v,u} ⥤ Grpd.{v,u} where
   obj x := Grpd.of x
   map f := f.toFunctor
 
 /-- This takes PGrpd to PCat-/
-def forgetToCat : PGrpd ⥤ PCat where
+@[simps] def forgetToPCat : PGrpd.{v,u} ⥤ PCat.{v,u} where
   obj x := PCat.of x
   map f := f
 
@@ -274,6 +291,23 @@ lemma comp_toFunctor {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) :
 @[simp]
 lemma comp_point {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) :
     (F ≫ G).point = G.map (F.point) ≫ G.point := rfl
+
+lemma hext {C D : PGrpd} (hα : C.α = D.α) (hstr : HEq C.str D.str) :
+    C = D := by
+  cases C
+  cases D
+  subst hα
+  subst hstr
+  rfl
+
+lemma hext_iff {C D : PGrpd} : C.α = D.α ∧ HEq C.str D.str
+    ↔ C = D := by
+  constructor
+  · intro ⟨ hα , hstr ⟩
+    exact hext hα hstr
+  · intro hCD
+    subst hCD
+    exact ⟨ rfl , HEq.rfl ⟩
 
 end PGrpd
 

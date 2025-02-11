@@ -1,11 +1,15 @@
 import Mathlib.CategoryTheory.Limits.Preserves.FunctorCategory
 
 import GroupoidModel.Tarski.NaturalModel
-import GroupoidModel.Groupoids.GrothendieckPullback
+import GroupoidModel.Grothendieck.IsPullback
+import GroupoidModel.Grothendieck.Groupoidal
 
 
 /-!
 Here we construct the natural model for groupoids.
+
+TODO: This file needs to eventually be ported to GroupoidRussellNaturalModel
+but currently we don't have a Russell style sigma type.
 -/
 
 universe u v u₁ v₁ u₂ v₂
@@ -33,20 +37,18 @@ def CatLift : Cat.{u,u} ⥤ Cat.{u,u+1} where
 
 @[simp] def sGrpd.forget : sGrpd.{u} ⥤ Grpd.{u,u} := ULiftHom.down
 
-namespace PshGrpd
-
 variable (C D) [Category.{u} C] [Category.{u} D]
 
 def ι : Grpd.{u, u} ⥤ Cat.{u,u+1} := Grpd.forgetToCat ⋙ CatLift
 
-def ofCat : Cat.{u,u+1} ⥤ (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) :=
+def PshGrpdOfCat : Cat.{u,u+1} ⥤ (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) :=
   yoneda ⋙ (whiskeringLeft _ _ _).obj ι.op
 
-def ofPshGrpd : (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) ⥤ (sGrpd.{u}ᵒᵖ ⥤ Type (u + 1)) :=
+def PshsGrpdOfPshGrpd : (Grpd.{u,u}ᵒᵖ ⥤ Type (u + 1)) ⥤ (sGrpd.{u}ᵒᵖ ⥤ Type (u + 1)) :=
   (whiskeringLeft _ _ _).obj sGrpd.forget.op
 
 abbrev yonedaCat : Cat.{u, u+1} ⥤ Psh sGrpd.{u} :=
-  PshGrpd.ofCat ⋙ ofPshGrpd
+  PshGrpdOfCat ⋙ PshsGrpdOfPshGrpd
 
 section
 
@@ -75,9 +77,6 @@ theorem yonedaCatEquiv_comp
   yonedaCatEquiv (A ≫ yonedaCat.map U) = yonedaCatEquiv A ⋙ U := by
   aesop_cat
 
-end
-
-open PshGrpd
 
 abbrev Ty : Psh sGrpd.{u} := yonedaCat.obj (Cat.of Grpd.{u,u})
 
@@ -85,9 +84,9 @@ abbrev Tm : Psh sGrpd.{u} := yonedaCat.obj (Cat.of PGrpd.{u,u})
 
 variable {Γ : sGrpd.{u}} (A : yoneda.obj Γ ⟶ Ty)
 
-abbrev tp : Tm ⟶ Ty := yonedaCat.map (PGrpd.forgetPoint)
+abbrev tp : Tm ⟶ Ty := yonedaCat.map (PGrpd.forgetToGrpd)
 
-abbrev ext : Grpd.{u,u} := Grpd.of (GroupoidalGrothendieck (yonedaCatEquiv A))
+abbrev ext : Grpd.{u,u} := Grpd.of (Grothendieck.Groupoidal (yonedaCatEquiv A))
 
 abbrev downDisp : ext A ⟶ (Γ : Grpd.{u,u}) := Grothendieck.forget _
 
@@ -145,9 +144,9 @@ def PolyDataGet (Γ : sGrpdᵒᵖ) (Q : ((NaturalModel.P NaturalModel.tp).obj Na
   apply yonedaEquiv.invFun
   exact Q
 
-def GroupoidSigma {Γ : Grpd} (A : Γ ⥤ Grpd) (B : (GroupoidalGrothendieck A) ⥤ Grpd) : Γ ⥤ Grpd where
+def GroupoidSigma {Γ : Grpd} (A : Γ ⥤ Grpd) (B : (Grothendieck.Groupoidal A) ⥤ Grpd) : Γ ⥤ Grpd where
   obj x := by
-    let xA : (A.obj x) ⥤ GroupoidalGrothendieck A := by
+    let xA : (A.obj x) ⥤ Grothendieck.Groupoidal A := by
       fconstructor
       . fconstructor
         . intro a
@@ -164,7 +163,7 @@ def GroupoidSigma {Γ : Grpd} (A : Γ ⥤ Grpd) (B : (GroupoidalGrothendieck A) 
           exact f
       . aesop_cat
       . sorry
-    refine Grpd.of (GroupoidalGrothendieck (xA ⋙ B))
+    refine Grpd.of (Grothendieck.Groupoidal (xA ⋙ B))
   map f := by
     dsimp[Grpd.of,Bundled.of,Quiver.Hom]
     rename_i X Y
@@ -201,12 +200,12 @@ instance GroupoidNMSigma : NaturalModel.NaturalModelSigma sGrpd.{u} where
         exact CategoryTheory.IsPullback.isoPullback (CategoryTheory.IsPullback.flip dp)
       let h' := (help.hom.app Γ)
       let pb' := pb.app Γ
-      dsimp [NaturalModel.Ty,ofPshGrpd,PshGrpd.ofCat,Quiver.Hom]
+      dsimp [NaturalModel.Ty,PshsGrpdOfPshGrpd,PshGrpdOfCat,Quiver.Hom]
       fconstructor
       . fconstructor
         . intro γ
           let yA := (yonedaEquiv.toFun A)
-          dsimp [NaturalModel.Ty,PshGrpd.ofCat,ofPshGrpd,Quiver.Hom] at yA
+          dsimp [NaturalModel.Ty,PshGrpdOfCat,PshsGrpdOfPshGrpd,Quiver.Hom] at yA
           let Aγ : Grpd := (yA).obj γ
           let ΓA : Grpd := sGrpd.forget.obj (NaturalModel.ext (Opposite.unop Γ) A)
           sorry
