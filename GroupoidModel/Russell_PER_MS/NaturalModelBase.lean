@@ -54,14 +54,14 @@ def substCons {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty)
   let i : y(M.ext A) ≅ pullback M.tp A := (M.disp_pullback A).isoPullback
   Yoneda.fullyFaithful.1 <| pullback.lift t ym(σ) t_tp ≫ i.inv
 
-@[simp]
+@[reassoc (attr := simp)]
 theorem substCons_disp {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (t : y(Δ) ⟶ M.Tm)
     (tTp : t ≫ M.tp = ym(σ) ≫ A) :
     M.substCons σ A t tTp ≫ M.disp A = σ := by
   apply Yoneda.fullyFaithful.map_injective
   simp [substCons]
 
-@[simp]
+@[reassoc (attr := simp)]
 theorem substCons_var {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (t : y(Δ) ⟶ M.Tm)
     (aTp : t ≫ M.tp = ym(σ) ≫ A) :
     ym(M.substCons σ A t aTp) ≫ M.var A = t := by
@@ -115,6 +115,16 @@ Weaken a substitution.
 -/
 def substWk {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) : M.ext (ym(σ) ≫ A) ⟶ M.ext A :=
   M.substCons (M.disp _ ≫ σ) A (M.var _) (by simp [wk])
+
+@[reassoc (attr := simp)]
+theorem substWk_disp {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) :
+    M.substWk σ A ≫ M.disp A = M.disp (ym(σ) ≫ A) ≫ σ := by
+  simp [substWk]
+
+@[reassoc (attr := simp)]
+theorem substWk_var {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) :
+    ym(M.substWk σ A) ≫ M.var A = M.var (ym(σ) ≫ A) := by
+  simp [substWk]
 
 /--
 ```

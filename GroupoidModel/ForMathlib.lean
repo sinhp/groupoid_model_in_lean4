@@ -1,19 +1,17 @@
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.PullbackCone
-
 import Mathlib.CategoryTheory.Category.ULift
 import Mathlib.Logic.Function.ULift
-
 import Mathlib.CategoryTheory.Category.Cat
 import Mathlib.CategoryTheory.Category.Grpd
-
 import Mathlib.CategoryTheory.Grothendieck
-
 import Mathlib.Data.Part
 
 /-! This file contains declarations missing from mathlib,
 to be upstreamed. -/
 
 namespace CategoryTheory
+
+attribute [reassoc (attr := simp)] Limits.terminal.comp_from
 
 @[reassoc]
 theorem Limits.PullbackCone.IsLimit.comp_lift {C : Type*} [Category C]
@@ -47,7 +45,7 @@ theorem comp_downFunctor_inj (F G : C ⥤ ULift.{u} D) : F ⋙ downFunctor = G �
   constructor
   · intro hFG
     apply Functor.ext
-    · intro x y 
+    · intro x y
       exact Functor.congr_hom hFG
     · intro x
       have h := Functor.congr_obj hFG x
@@ -65,7 +63,7 @@ theorem comp_upFunctor_inj (F G : C ⥤ D) : F ⋙ upFunctor = G ⋙ upFunctor �
   constructor
   · intro hFG
     apply Functor.ext
-    · intro _ _ 
+    · intro _ _
       exact Functor.congr_hom hFG
     · intro x
       have h := Functor.congr_obj hFG x

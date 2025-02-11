@@ -1,3 +1,5 @@
+import Mathlib.Tactic.Convert
+
 import GroupoidModel.Russell_PER_MS.Substitution
 
 /-! In this file we specify typing judgments of the type theory
@@ -24,12 +26,6 @@ end Notation
 
 /-- A typing context consisting of expressions and their universe levels. -/
 abbrev Ctx := List (Expr × Nat)
-
-/-- `Lookup Γ i A l` means that `(A, l)` is stored at index `i` in `Γ`.
-This implies `Γ ⊢[l] .bvar i : A`. -/
-inductive Lookup : Ctx → Nat → Expr → Nat → Prop where
-  | zero (Γ A l) : Lookup ((A,l) :: Γ) 0 A.lift l
-  | succ {Γ A i l} : Lookup Γ i A l → Lookup ((A,l) :: Γ) (i+1) A.lift l
 
 /-- The maximum `l` for which `Γ ⊢[l] 𝒥` makes sense.
 When set to `0`, types cannot be quantified over at all. -/
@@ -64,7 +60,9 @@ inductive EqTp : Ctx → Nat → Expr → Expr → Prop
     Γ ⊢[l] t ≡ u : A →
     Γ ⊢[l'] B.inst t ≡ B.inst u
 
-  -- lift
+  | lift_tp {Γ A A' l} (B l') :
+    Γ ⊢[l] A ≡ A' →
+    (B, l') :: Γ ⊢[l] A.lift ≡ A'.lift
 
   -- Symmetric-transitive closure
   | symm_tp {Γ A A' l} :
@@ -78,10 +76,9 @@ inductive EqTp : Ctx → Nat → Expr → Expr → Prop
 
 inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
   -- Congruences / constructors
-  | cong_bvar {Γ A i l} :
+  | cong_bvar0 {Γ A l} :
     Γ ⊢[l] A →
-    Lookup Γ i A l →
-    Γ ⊢[l] .bvar i : A
+    (A,l) :: Γ ⊢[l] .bvar 0 : A.lift
 
   | cong_lam {Γ A A' B t t' l l'} :
     Γ ⊢[l] A ≡ A' →
@@ -122,7 +119,9 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     Γ ⊢[l] t ≡ u : A →
     Γ ⊢[l'] a.inst t ≡ b.inst u : B.inst t
 
-  -- lift
+  | lift_tm {Γ A t t' l} (B l') :
+    Γ ⊢[l] t ≡ t' : A →
+    (B, l') :: Γ ⊢[l] t.lift ≡ t'.lift : A.lift
 
   -- Symmetric-transitive closure
   | symm_tm {Γ A t t' l} :
@@ -134,6 +133,12 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     Γ ⊢[l] t' ≡ t'' : A →
     Γ ⊢[l] t ≡ t'' : A
 end
+
+/-- `Lookup Γ i A l` means that `(A, l)` is stored at index `i` in `Γ`.
+This implies `Γ ⊢[l] .bvar i : A` (see `Lemmas`). -/
+inductive Lookup : Ctx → Nat → Expr → Nat → Prop where
+  | zero (Γ A l) : Γ ⊢[l] A → Lookup ((A,l) :: Γ) 0 A.lift l
+  | succ {Γ A B i l l'} : Lookup Γ i A l → Lookup ((B,l') :: Γ) (i+1) A.lift l
 
 /-! Pretty-printers. -/
 
