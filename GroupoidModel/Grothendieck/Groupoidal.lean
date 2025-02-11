@@ -5,7 +5,6 @@ import GroupoidModel.Pointed.IsPullback
 /-!
 # The Groupidal Grothendieck construction
 
-
   ↑Grothendieck (toCat A) -- toPGrpd --> PGrpd
         |                                 |
         |                                 |
