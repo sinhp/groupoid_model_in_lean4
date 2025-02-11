@@ -164,5 +164,43 @@ theorem map_eqToHom_base {G1 G2 : Grothendieck A} (eq : G1 = G2)
     : A.map (eqToHom eq).base = eqToHom (map_eqToHom_base_pf eq) := by
   simp [eqToHom_base, eqToHom_map]
   
+open Iso
+
+variable {C : Type u₁} [Category.{v₁,u₁} C] {G : C ⥤ Cat.{v₂,u₂}}
+
+/-- A morphism in the Grothendieck construction is an isomorphism if
+- the morphism in the base is an isomorphism; and
+- the fiber morphism is an isomorphism. -/
+def mkIso {X Y : Grothendieck G}
+    (s : X.base ≅ Y.base) (t : (G |>.map s.hom).obj X.fiber ≅ Y.fiber) :
+    X ≅ Y where
+  hom := { base := s.hom, fiber := t.hom }
+  inv.base := s.inv
+  inv.fiber := (G.map (s.inv)).map (t.inv) ≫
+    eqToHom (by simpa only [Functor.map_comp, Functor.map_id] using
+      congr((G.map $(s.hom_inv_id)).obj X.fiber))
+  hom_inv_id := by
+    apply ext
+    erw [comp_fiber]
+    simp only [Cat.comp_obj, id_eq, map_hom_inv_id_assoc,
+      eqToHom_trans, id_fiber] at *
+    erw [comp_base, id_base]
+    dsimp
+    rw [s.hom_inv_id]
+  inv_hom_id := by
+    suffices ∀ {Z g} (_ : g ≫ s.hom = Z) (_ : Z = 𝟙 _)
+        {g'} (eq : g' ≫ (G.map g).map t.hom = 𝟙 _)
+        (W) (eqW : G.map g ≫ G.map s.hom = W)
+        (eq2 : ∃ w1 w2, W.map t.hom = eqToHom w1 ≫ t.hom ≫ eqToHom w2) h1 h2,
+        { base := Z, fiber := eqToHom h1 ≫ (G.map s.hom).map (g' ≫ eqToHom h2) ≫ t.hom } =
+        ({..} : Grothendieck.Hom ..) from
+      this rfl s.inv_hom_id (by simp)
+        (W := 𝟙 _) (eqW := by simp) (eq2 := ⟨rfl, rfl, by simp⟩) ..
+    rintro _ g - rfl g' eq _ rfl ⟨w1, w2, eq2 : (G.map s.hom).map _ = _⟩ h1 h2; congr
+    replace eq := congr((G.map s.hom).map $eq)
+    simp only [Functor.map_comp, eq2, eqToHom_map, Category.assoc] at eq ⊢
+    conv at eq => lhs; slice 1 3
+    rw [(comp_eqToHom_iff ..).1 eq]; simp
+
 end Grothendieck
 end CategoryTheory
