@@ -13,7 +13,7 @@ arises by starting with `↑ⁿ` and traversing under `k` binders:
 for example, `(ΠA. B)[↑¹] ≡ ΠA[↑¹]. B[↑².v₀] ≡ ΠA[↑¹]. B[↑¹⁺¹:1]`.
 Applying `↑ⁿ⁺ᵏ:k` moves an expression into a context
 with `n` new binders inserted at index `k`:
-`Γ.B₁.….Bₙ.A₁[↑ⁿ].….Aₖ[⋯] ⊢ ↑ⁿ⁺ᵏ:k : Γ.A₁.….Aₖ`.
+`Γ.Bₙ.….B₁.Aₖ₋₁[↑ⁿ].….A₀[⋯] ⊢ ↑ⁿ⁺ᵏ:k : Γ.Aₖ₋₁.….A₀`.
 (With `k = 0`, the codomain is just `Γ`.) -/
 
 /-- Substitute `↑ⁿ⁺ᵏ:k` in the de Bruijn index `i`. -/
@@ -41,7 +41,7 @@ arises by starting with `id.e` and traversing under `k` binders:
 for example `(ΠA. B)[id.e] ≡ ΠA[id.e]. B[↑.e[↑].v₀] ≡ ΠA[id.e]. B[↑¹.e[↑¹]:1]`.
 Applying `↑ᵏ.e[↑ᵏ]:k` moves an expression `t` into a context
 with the `k`th binder removed:
-`Γ.A₁[id.e].….Aₖ[⋯] ⊢ ↑ᵏ.e[↑ᵏ]:k : Γ.B.A₁.….Aₖ`.
+`Γ.Aₖ₋₁[id.e].….A₀[⋯] ⊢ ↑ᵏ.e[↑ᵏ]:k : Γ.B.Aₖ₋₁.….A₀`.
 
 The substitution `id.e` is used in `β`-reduction:
 `(λa) b ↝ a[id.b]`. -/
@@ -59,3 +59,18 @@ def Expr.inst : Expr → Expr → (k :_:= 0) → Expr
   | .univ l,            _, _ => .univ l
   | .el a,              e, k => .el (a.inst e k)
   | .code A,            e, k => .code (A.inst e k)
+
+/-! ## Lemmas -/
+
+@[simp]
+theorem liftVar_zero (i k) : liftVar 0 i k = i := by
+  simp [liftVar]
+
+@[simp]
+theorem liftVar_zero' (n i) : liftVar n i 0 = n + i := by
+  simp [liftVar]
+
+@[simp]
+theorem Expr.lift_zero (t : Expr) (k) : t.liftN 0 k = t := by
+  induction t generalizing k <;> simp [liftN, *]
+
