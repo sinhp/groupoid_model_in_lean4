@@ -4,6 +4,7 @@ import Mathlib.CategoryTheory.Category.ULift
 import Mathlib.Logic.Function.ULift
 
 import Mathlib.CategoryTheory.Category.Cat
+import Mathlib.CategoryTheory.Category.Grpd
 
 import Mathlib.CategoryTheory.Grothendieck
 
@@ -115,6 +116,13 @@ abbrev homOf {C D : Type u} [Category.{v} C] [Category.{v} D] (F : C ⥤ D) :
   inv := ULift.upFunctor
 
 end CategoryTheory.Cat
+
+namespace CategoryTheory.Grpd
+
+abbrev homOf {C D : Type u} [Groupoid.{v} C] [Groupoid.{v} D] (F : C ⥤ D) :
+    Grpd.of C ⟶ Grpd.of D := F
+
+end CategoryTheory.Grpd
 
 /-
   CategoryTheory.Grothedieck

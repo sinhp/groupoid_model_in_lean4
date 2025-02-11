@@ -10,7 +10,7 @@ import GroupoidModel.Grothendieck.Groupoidal
 Here we construct the natural model for groupoids.
 -/
 
-universe w v v₁ v₂ u u₁ u₂
+universe w v u v₁ u₁ v₂ u₂
 
 noncomputable section
 open CategoryTheory ULift Grothendieck
@@ -37,7 +37,7 @@ def Grpd.asSmallFunctor : Grpd.{v, u} ⥤ Grpd.{max w v u, max w v u} where
 
 namespace Core
 
-variable {C : Type u} [Category.{v} C] 
+variable {C : Type u} [Category.{v} C] {D : Type u₁} [Category.{v₁} D]
 
 @[simp]
 theorem id_inv (X : C) :
@@ -49,19 +49,21 @@ theorem comp_inv {X Y Z : Core C} (f : X ⟶ Y) (g : Y ⟶ Z) :
     (f ≫ g).inv = g.inv ≫ f.inv :=
   rfl
 
+def functor' (F : C ⥤ D) : Core C ⥤ Core D where
+  obj := F.obj
+  map f := {
+    hom := F.map f.hom
+    inv := F.map f.inv}
+  map_id x := by
+    simp only [Grpd.coe_of, id_hom, Functor.map_id, id_inv]
+    congr 1
+  map_comp f g := by
+    simp only [Grpd.coe_of, comp_hom, Functor.map_comp, comp_inv]
+    congr 1
+
 def functor : Cat.{v,u} ⥤ Grpd.{v,u} where
   obj C := Grpd.of (Core C)
-  map F := {
-    obj := F.obj
-    map f := {
-      hom := F.map f.hom
-      inv := F.map f.inv}
-    map_id x := by
-      simp only [Grpd.coe_of, id_hom, Functor.map_id, id_inv]
-      congr 1
-    map_comp f g := by
-      simp only [Grpd.coe_of, comp_hom, Functor.map_comp, comp_inv]
-      congr 1}
+  map F := Grpd.homOf (functor' F)
 
 end Core
 
@@ -137,13 +139,33 @@ abbrev ext : Ctx := Ctx.ofGroupoid.obj $ Grpd.of (Groupoidal (yonedaCatEquiv A))
 abbrev disp : ext A ⟶ Γ :=
   AsSmall.up.map (Grothendieck.forget (yonedaCatEquiv A ⋙ Grpd.forgetToCat))
 
-abbrev var : (yoneda.obj (ext A) : Psh Ctx) ⟶ Tm :=
-  yonedaCatEquiv.invFun (Groupoidal.toPGrpd (yonedaCatEquiv A))
+abbrev var : (y(ext A) : Psh Ctx) ⟶ Tm :=
+  yonedaCatEquiv.symm (Groupoidal.toPGrpd (yonedaCatEquiv A))
 
-/-- `U.{v}` serves as the universe of `v`-small types.
-  This will be the "`Ty`" for the smaller natural models for universes. -/
-abbrev U : Psh Ctx.{max u (v + 1)} :=
-  yoneda.obj $ Ctx.core.obj.{v,u} $ Cat.of Grpd.{v,v}
+/-- `grpdCore.{v}` serves as the universe of `v`-small types
+  i.e. the "`Ty`" for the small (as in yoneda(...)) natural models. -/
+abbrev grpdCore : Ctx.{max u (v + 1)} :=
+  Ctx.core.obj.{v,u} $ Cat.of Grpd.{v,v}
+
+/-- `grpdCore.toTy` is the map that classifies the universe
+  `grpdCore` of `v`-small types as a map into the type classifier `Ty`.
+  This will fit into the pullback square
+
+    E ---------------> Tm
+    |                   |
+    |                   |
+    |                   |
+    |                   |
+    v                   v
+    U--grpdCoreLiftMax-->Ty
+
+-/
+def grpdCoreLiftMax : y(grpdCore.{v,u}) ⟶ Ty.{max u (v+1)} :=
+    (yonedaEquiv.symm $ Cat.homOf $
+      ULift.downFunctor
+      ⋙ AsSmall.down
+      ⋙ Core.inclusion Grpd.{v,v}
+      ⋙ Grpd.asSmallFunctor.{max u (v+1)})
 
 /-- The image of (roughly) `Groupoidal.toPGrpd : Grothendieck A ⥤ PGrpd`
   under `yonedaCat`.
@@ -158,7 +180,7 @@ abbrev yonedaCatMapToPGrpd :
   `yonedaCat`.
   Used in the pullback diagram `isPullback_yonedaCatULiftGrothendieckForget_tp`
 -/
-abbrev yonedaCatMapGrothendieckForget := 
+abbrev yonedaCatMapGrothendieckForget :=
       (yonedaCat.map $ IsPullback.uLiftGrothendieckForget
         (Groupoidal.toCat.{u} $ yonedaCatEquiv A))
 
@@ -233,6 +255,7 @@ def base : NaturalModelBase Ctx.{u} where
   var := var
   disp_pullback := isPullback_yonedaDisp_tp
 
+
 -- TODO link to this in blueprint
 /-- The natural model that acts as the classifier of `v`-large terms and types.
   Note that unlike `GroupoidNaturalModel.base` this is representable,
@@ -240,13 +263,7 @@ def base : NaturalModelBase Ctx.{u} where
   its representable fibers can be larger than itself.
 -/
 def baseU : NaturalModelBase Ctx.{max u (v + 1)} :=
-  @NaturalModelBase.pullback _ _ base.{max u (v + 1)}
-    (Ctx.core.obj.{v,u} $ Cat.of Grpd.{v,v}) 
-    (yonedaEquiv.symm $ Cat.homOf $
-      ULift.downFunctor
-      ⋙ AsSmall.down
-      ⋙ Core.inclusion Grpd.{v,v}
-      ⋙ Grpd.asSmallFunctor.{max u (v+1)})
+  NaturalModelBase.pullback base.{max u (v + 1)} grpdCoreLiftMax.{v,u}
 
 def uHomSeqObjs (i : Nat) (h : i < 3) : NaturalModelBase Ctx.{2} :=
   match i with
@@ -255,15 +272,58 @@ def uHomSeqObjs (i : Nat) (h : i < 3) : NaturalModelBase Ctx.{2} :=
   | 2 => base
   | (n+3) => by omega
 
+-- instance : Limits.HasTerminal Ctx := sorry
+
+open NaturalModelBase
+
+def grpdCoreLiftSucc : grpdCore.{v,max u (v+2)} ⟶ grpdCore.{v+1,max u (v+2)} :=
+  Ctx.ofGroupoid.map $
+    AsSmall.down
+    ⋙ (Core.functor'.{v,v+1,v+1,v+2} Grpd.asSmallFunctor.{v+1}
+      : Core Grpd.{v,v} ⥤ Core Grpd.{v+1,v+1})
+    ⋙ AsSmall.up
+
+lemma grpdCoreLiftSucc_comp_LiftMax :
+  ym(grpdCoreLiftSucc.{v,u}) ≫ grpdCoreLiftMax.{v+1,max u (v+2)}
+    = grpdCoreLiftMax.{v, max u (v+2)} := by
+  -- ext Γ x
+  apply yonedaCatEquiv.injective
+  rw [← yonedaCatEquiv_naturality]
+  simp [grpdCoreLiftMax, grpdCoreLiftSucc, yonedaCatEquiv, Ctx.ofGroupoid,
+    Cat.homOf, Grpd.asSmallFunctor]
+  apply Functor.ext
+  · sorry
+  -- simp [grpdCoreLiftMax, grpdCoreLiftSucc]
+  -- have h := yonedaEquiv_comp
+  · intro x
+    simp
+    sorry
+
+def baseU.UHom : Hom baseU.{v,max u (v+2)} baseU.{v+1,max u (v+2)} := by
+  let f :=
+  Hom.subst base.{max u (v+2)} grpdCoreLiftMax.{v+1,u} grpdCoreLiftSucc.{v,u}
+  dsimp [baseU]
+  -- have h := dkflj.{v,u}
+
+  -- these are not defeq, but they are both pullbacks of the same map.
+  sorry
+  -- { Hom.subst base grpdCoreLiftMax grpdCoreLiftSucc with
+  --   U := sorry
+  --   U_pb := sorry
+  -- }
+
 def uHomSeqHomSucc' (i : Nat) (h : i < 2) :
     (uHomSeqObjs i (by omega)).UHom (uHomSeqObjs (i + 1) (by omega)) :=
   match i with
-  | 0 => sorry
+  | 0 => by
+    dsimp [uHomSeqObjs]
+    
+    sorry -- NaturalModelBase.UHom.ofTarskiU base.{2} _ _
   | 1 => sorry
   | (n+2) => by omega
 
 /--
-  The groupoid natural model with two nested representable universes 
+  The groupoid natural model with two nested representable universes
 -/
 def uHomSeq : NaturalModelBase.UHomSeq Ctx.{2} where
   length := 2

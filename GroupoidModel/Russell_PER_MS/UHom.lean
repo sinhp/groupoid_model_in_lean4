@@ -39,6 +39,22 @@ protected def pullbackHom (M : NaturalModelBase Ctx) {Γ : Ctx} (A : y(Γ) ⟶ M
   mapTy := A
   pb := M.disp_pullback A
 
+
+-- FIXME please change the name if you don't like this
+/-- Given a `NaturalModelBase`, a semantic type `A : y(Γ) ⟶ Ty`,
+and a substitution `σ : Δ ⟶ Γ`, construct a Hom for the substitution `Aσ`
+-/
+def Hom.subst (M : NaturalModelBase Ctx)
+    {Γ Δ : Ctx} (A : y(Γ) ⟶ M.Ty) (σ : Δ ⟶ Γ) :
+    Hom (M.pullback (ym(σ) ≫ A)) (M.pullback A) :=
+  let Aσ := ym(σ) ≫ A
+  { mapTm :=
+    (M.disp_pullback A).lift (M.var Aσ) ym(M.disp Aσ ≫ σ) (by aesop_cat)
+    mapTy := ym(σ)
+    pb := by
+      convert IsPullback.of_right' (M.disp_pullback Aσ) (M.disp_pullback A)
+      simp }
+
 /-- A Russell embedding is a hom of natural models `M ⟶ N`
 such that types in `M` correspond to terms of a universe `U` in `N`.
 
@@ -81,6 +97,7 @@ def UHom.ofTarskiU [HasTerminal Ctx] (M : NaturalModelBase Ctx)
       (by simp) (terminal.hom_ext ..)
       (by simp) (by rw [Iso.hom_inv_id_assoc]; simp)⟩
 }
+
 
 /-- A sequence of Russell embeddings. -/
 structure UHomSeq (Ctx : Type u) [Category.{v, u} Ctx] where
