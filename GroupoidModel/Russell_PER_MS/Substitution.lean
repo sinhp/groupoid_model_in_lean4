@@ -70,3 +70,7 @@ theorem liftVar_zero (i k) : liftVar 0 i k = i := by
 theorem liftVar_zero' (n i) : liftVar n i 0 = n + i := by
   simp [liftVar]
 
+@[simp]
+theorem Expr.lift_zero (t : Expr) (k) : t.liftN 0 k = t := by
+  induction t generalizing k <;> simp [liftN, *]
+

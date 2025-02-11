@@ -361,14 +361,6 @@ theorem snoc_mem_ofCtx {Γ A l llen sΓ sA} : sΓ ∈ s.ofCtx Γ → sA ∈ ofTy
     Part.mem_some_iff]
   tauto
 
-theorem mem_var_of_lookup {Γ A i l llen sΓ sA} : Lookup Γ i A l →
-    sΓ ∈ s.ofCtx Γ → sA ∈ ofType sΓ l A llen →
-    ∃ sv, sv ∈ (sΓ.var llen i) ∧ sv ≫ s[l].tp = sA := by
-  intro lk sΓmem sAmem
-  induction lk
-  . sorry
-  . sorry
-
 /-! ## Admissibility of thinning -/
 
 mutual
@@ -441,14 +433,14 @@ end
 theorem mem_ofType_lift {A l l'} {llen : l < s.length + 1} {l'len : l' < s.length + 1}
     {sΓ : s.CObj} {sA} (sB : y(sΓ.1) ⟶ s[l'].Ty)
     (sA_mem : sA ∈ ofType sΓ l A llen) :
-    (s[l']'l'len).wk sB sA ∈ ofType (sΓ.snoc l'len sB) l (A.lift) llen := by
+    (s[l']'l'len).wk sB sA ∈ ofType (sΓ.snoc l'len sB) l A.lift llen := by
   convert mem_ofType_liftN (UHomSeq.ExtSeq.nil.snoc l'len sB) .nil sA_mem using 1
   simp [wk, UHomSeq.ExtSeq.substWk, UHomSeq.ExtSeq.disp, UHomSeq.CObj.substWk]
 
 theorem mem_ofTerm_lift {t l l'} {llen : l < s.length + 1} {l'len : l' < s.length + 1}
     {sΓ : s.CObj} {st} (sB : y(sΓ.1) ⟶ s[l'].Ty)
     (st_mem : st ∈ ofTerm sΓ l t llen) :
-    (s[l']'l'len).wk sB st ∈ ofTerm (sΓ.snoc l'len sB) l (t.lift) llen := by
+    (s[l']'l'len).wk sB st ∈ ofTerm (sΓ.snoc l'len sB) l t.lift llen := by
   convert mem_ofTerm_liftN (UHomSeq.ExtSeq.nil.snoc l'len sB) .nil st_mem using 1
   simp [wk, UHomSeq.ExtSeq.substWk, UHomSeq.ExtSeq.disp, UHomSeq.CObj.substWk]
 
@@ -660,11 +652,11 @@ theorem ofType_ofTerm_sound :
 
   refine
     ⟨@EqTp.rec (fun Γ l A B _ => _) (fun Γ l t u A _ => _)
-      ?cong_pi ?cong_univ ?cong_el ?inst_tp ?symm_tp ?trans_tp ?cong_bvar ?cong_lam ?cong_app
-      ?cong_code ?app_lam ?eta ?conv ?inst_tm ?symm_tm ?trans_tm,
+      ?cong_pi ?cong_univ ?cong_el ?inst_tp ?lift_tp ?symm_tp ?trans_tp ?cong_bvar0 ?cong_lam ?cong_app
+      ?cong_code ?app_lam ?eta ?conv ?inst_tm ?lift_tm ?symm_tm ?trans_tm,
     @EqTm.rec (fun Γ l A B _ => _) (fun Γ l t u A _ => _)
-      ?cong_pi ?cong_univ ?cong_el ?inst_tp ?symm_tp ?trans_tp ?cong_bvar ?cong_lam ?cong_app
-      ?cong_code ?app_lam ?eta ?conv ?inst_tm ?symm_tm ?trans_tm⟩
+      ?cong_pi ?cong_univ ?cong_el ?inst_tp ?lift_tp ?symm_tp ?trans_tp ?cong_bvar0 ?cong_lam ?cong_app
+      ?cong_code ?app_lam ?eta ?conv ?inst_tm ?lift_tm ?symm_tm ?trans_tm⟩
 
   case eta =>
     intros; intros
@@ -708,6 +700,12 @@ theorem ofType_ofTerm_sound :
     have ⟨sA, sAmem, st, stmem, stmem', sttp⟩ := iht sΓmem
     have ⟨sB, sBmem, sBmem'⟩ := ihB (snoc_helper teq.wf_tp sΓmem sAmem)
     exact ⟨_, mem_ofType_inst0 sBmem stmem sttp, mem_ofType_inst0 sBmem stmem' sttp⟩
+  case lift_tp ih _ sΓmem =>
+    dsimp [ofCtx] at sΓmem
+    simp_part at sΓmem
+    obtain ⟨_, _, sΓmem, sB, sBmem, rfl⟩ := sΓmem
+    have ⟨sA, sAmem, sAmem'⟩ := ih sΓmem
+    exact ⟨_, mem_ofType_lift sB sAmem, mem_ofType_lift sB sAmem'⟩
   case symm_tp ih _ sΓmem =>
     have ⟨sA, sAmem, sAmem'⟩ := ih sΓmem
     exact ⟨sA, sAmem', sAmem⟩ -- `use` fails here?
@@ -717,10 +715,13 @@ theorem ofType_ofTerm_sound :
     use sA, sAmem
     convert sA'mem'
     exact Part.mem_unique sAmem' sA'mem
-  case cong_bvar lk ihA _ sΓmem =>
-    have ⟨sA, sAmem, sAmem'⟩ := ihA sΓmem
-    have ⟨sv, svmem, svtp⟩ := mem_var_of_lookup lk sΓmem sAmem
-    use sA, sAmem, sv, svmem, svmem, svtp
+  case cong_bvar0 lk ihA _ sΓmem =>
+    dsimp [ofCtx, ofTerm] at sΓmem ⊢
+    simp_part at sΓmem
+    obtain ⟨_, sΓ, sΓmem, sA, sAmem, rfl⟩ := sΓmem
+    dsimp [UHomSeq.CObj.var]
+    simp_part
+    exact ⟨_, mem_ofType_lift sA sAmem, _, rfl, rfl, by simp⟩
   case cong_lam Aeq teq ihA iht sΓ sΓmem =>
     have ⟨sA, sAmem, sAmem'⟩ := ihA sΓmem
     have ⟨sB, sBmem, st, stmem, stmem', sttp⟩ := iht (snoc_helper Aeq sΓmem sAmem)
@@ -788,6 +789,15 @@ theorem ofType_ofTerm_sound :
       mem_ofTerm_inst0 samem stmem sttp,
       mem_ofTerm_inst0 samem' stmem' sttp,
       s[l].inst_tp sA sB sa satp st sttp⟩
+  case lift_tm ih _ sΓmem =>
+    dsimp [ofCtx] at sΓmem
+    simp_part at sΓmem
+    obtain ⟨_, _, sΓmem, sB, sBmem, rfl⟩ := sΓmem
+    have ⟨sA, sAmem, st, stmem, stmem', sttp⟩ := ih sΓmem
+    refine ⟨_, mem_ofType_lift sB sAmem,
+      _, mem_ofTerm_lift sB stmem, mem_ofTerm_lift sB stmem',
+      ?_⟩
+    simp [← sttp, wk]
   case symm_tm ih _ sΓmem =>
     have ⟨sA, sAmem, st, stmem, stmem', sttp⟩ := ih sΓmem
     use sA, sAmem, st, stmem', stmem, sttp
