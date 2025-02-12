@@ -3,19 +3,12 @@ import GroupoidModel.Russell_PER_MS.UHom
 
 import GroupoidModel.ForMathlib
 
-macro "simp_part" : tactic =>
+macro "simp_part" loc:(Lean.Parser.Tactic.location)? : tactic =>
   `(tactic| simp only [
     Part.mem_assert_iff, Part.mem_bind_iff, Part.mem_map_iff,
     Part.pure_eq_some, Part.bind_eq_bind, Part.map_bind,
     Part.map_some, Part.mem_bind_iff, Part.mem_some_iff,
-    exists_true_left, exists_const])
-
-macro "simp_part" loc:Lean.Parser.Tactic.location : tactic =>
-  `(tactic| simp only [
-    Part.mem_assert_iff, Part.mem_bind_iff, Part.mem_map_iff,
-    Part.pure_eq_some, Part.bind_eq_bind, Part.map_bind,
-    Part.map_some, Part.mem_bind_iff, Part.mem_some_iff,
-    exists_true_left, exists_const] $loc)
+    exists_true_left, exists_const] $(loc)?)
 
 universe v u
 
