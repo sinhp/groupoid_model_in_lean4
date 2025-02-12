@@ -69,72 +69,24 @@ def functor : Cat.{v,u} ⥤ Grpd.{v,u} where
   obj C := Grpd.of (Core C)
   map F := Grpd.homOf (functor' F)
 
-variable {Γ : Type u} [Groupoid.{v} Γ]
-
-/-  A functor from a groupoid into a category is equivalent
-    to a functor from the groupoid into the core -/
-def functorToCoreEquiv : Γ ⥤ D ≃ Γ ⥤ Core D where
-  toFun := functorToCore
-  invFun := forgetFunctorToCore.obj
-  left_inv _ := rfl
-  right_inv _ := by
-    simp [functorToCore, forgetFunctorToCore]
-    apply Functor.ext
-    · intro x y f
-      simp only [inclusion, id_eq, Functor.comp_obj, Functor.comp_map,
-        IsIso.Iso.inv_hom, eqToHom_refl,
-        Category.comp_id, Category.id_comp]
-      congr
-    · intro 
-      rfl 
-
 end Core
 
 namespace GroupoidNaturalModel
 abbrev Ctx := AsSmall.{u} Grpd.{u,u}
 
 namespace Ctx
-def ofGrpd : Grpd.{u,u} ⥤ Ctx.{u} := AsSmall.up
-
-def ofGroupoid (Γ : Type u) [Groupoid.{u} Γ] : Ctx.{u} :=
-  ofGrpd.obj (Grpd.of Γ)
+def ofGroupoid : Grpd.{u,u} ⥤ Ctx.{u} := AsSmall.up
 
 def toGrpd : Ctx.{u} ⥤ Grpd.{u,u} := AsSmall.down
 
 -- def Ctx.coreOfCategory (C : Type u) [Category.{v} C] : Ctx.{max w v u} :=
 --   Ctx.ofGroupoid (Core (AsSmall.{w} C))
 
+
 def core : Cat.{v,v+1} ⥤ Ctx.{max u (v + 1)} :=
   Core.functor.{v,v+1}
   ⋙ Grpd.asSmallFunctor.{u,v,v+1}
-  ⋙ Ctx.ofGrpd.{max u (v + 1)}
-
-variable {Γ Δ : Ctx.{max u (v + 1)}} {C D : Type (v+1)}
-  [Category.{v,v+1} C] [Category.{v,v+1} D]
-
-def yonedaCoreEquiv' :
-    (Γ ⟶ core.obj.{v,u} (Cat.of C))
-      ≃ Ctx.toGrpd.obj Γ ⥤ Core C where
-  toFun A := toGrpd.map A ⋙ AsSmall.down 
-  invFun A := Ctx.ofGrpd.map (A ⋙ AsSmall.up)
-  left_inv _ := rfl
-  right_inv _ := rfl
-
--- /- The bijection y(Γ) → y(core C) ≃ Γ ⥤ C -/
--- def yonedaCoreEquiv :
---     (y(Γ) ⟶ y(core.obj.{v,u} (Cat.of C)))
---       ≃ Ctx.toGrpd.obj Γ ⥤ C :=
---   Yoneda.fullyFaithful.homEquiv.symm.trans
---     (yonedaCoreEquiv'.trans
---     Core.functorToCoreEquiv.symm)
-
-/- The bijection Γ → core C ≃ Γ ⥤ C -/
-def yonedaCoreEquiv :
-    (Γ ⟶ core.obj.{v,u} (Cat.of C))
-      ≃ Ctx.toGrpd.obj Γ ⥤ C :=
-  Equiv.trans
-    yonedaCoreEquiv'
-    Core.functorToCoreEquiv.symm
+  ⋙ Ctx.ofGroupoid.{max u (v + 1)}
 
 end Ctx
 
@@ -187,26 +139,55 @@ abbrev Ty : Psh Ctx.{u} := yonedaCat.obj (Cat.of Grpd.{u,u})
 
 abbrev Tm : Psh Ctx.{u} := yonedaCat.obj (Cat.of PGrpd.{u,u})
 
-abbrev tp : Tm ⟶ Ty := yonedaCat.map (PGrpd.forgetToGrpd)
-
-section Ty
 variable {Γ : Ctx.{u}} (A : yoneda.obj Γ ⟶ Ty)
 
-abbrev ext : Ctx := Ctx.ofGrpd.obj $ Grpd.of (Groupoidal (yonedaCatEquiv A))
+abbrev tp : Tm ⟶ Ty := yonedaCat.map (PGrpd.forgetToGrpd)
+
+abbrev ext : Ctx := Ctx.ofGroupoid.obj $ Grpd.of (Groupoidal (yonedaCatEquiv A))
 
 abbrev disp : ext A ⟶ Γ :=
-  AsSmall.up.map (Grothendieck.forget _)
+  AsSmall.up.map (Grothendieck.forget (yonedaCatEquiv A ⋙ Grpd.forgetToCat))
 
 abbrev var : (y(ext A) : Psh Ctx) ⟶ Tm :=
   yonedaCatEquiv.symm (Groupoidal.toPGrpd (yonedaCatEquiv A))
+
+/-- `grpdCore.{v}` serves as the universe of `v`-small types
+  i.e. the "`Ty`" for the small (as in yoneda(...)) natural models. -/
+abbrev grpdCore : Ctx.{max u (v + 1)} :=
+  Ctx.core.obj.{v,u} $ Cat.of Grpd.{v,v}
+
+/-- `grpdCoreLiftMax` is the map that classifies the universe
+  `grpdCore` of `v`-small types as a map into the type classifier `Ty`.
+  This will fit into the pullback square
+
+    E ---------------> Tm
+    |                   |
+    |                   |
+    |                   |
+    |                   |
+    v                   v
+    U--grpdCoreLiftMax-->Ty
+
+-/
+def grpdCoreLiftMax : y(grpdCore.{v,u}) ⟶ Ty.{max u (v+1)} :=
+  yonedaCatEquiv.symm $
+    AsSmall.down
+    ⋙ Core.inclusion Grpd.{v,v}
+    ⋙ Grpd.asSmallFunctor.{max u (v+1)}
+
+-- lemma yonedaEquiv_grpdCoreLiftMax :
+--     yonedaEquiv grpdCoreLiftMax.{v,u} = 
+--     ULift.downFunctor.{max u (v + 1), max u (v + 1), max (u + 1) (v + 2)}
+--       ⋙ AsSmall.down.{v, v + 1, max u (v + 1)}
+--       ⋙ Core.inclusion Grpd.{v,v}
+--       ⋙ Grpd.asSmallFunctor.{max u (v+1)} := rfl
 
 /-- The image of (roughly) `Groupoidal.toPGrpd : Grothendieck A ⥤ PGrpd`
   under `yonedaCat`.
   Used in the pullback diagram `isPullback_yonedaCatULiftGrothendieckForget_tp`
   -/
 abbrev yonedaCatMapToPGrpd :
-    yonedaCat.obj (IsPullback.uLiftGrothendieck $
-      Groupoid.compForgetToCat (yonedaCatEquiv A)) ⟶ Tm :=
+    yonedaCat.obj (IsPullback.uLiftGrothendieck $ Groupoidal.toCat (yonedaCatEquiv A)) ⟶ Tm :=
   yonedaCat.map
       (Cat.homOf (ULift.downFunctor ⋙ Groupoidal.toPGrpd (yonedaCatEquiv A)))
 
@@ -216,7 +197,7 @@ abbrev yonedaCatMapToPGrpd :
 -/
 abbrev yonedaCatMapGrothendieckForget :=
       (yonedaCat.map $ IsPullback.uLiftGrothendieckForget
-        (Groupoid.compForgetToCat.{u} $ yonedaCatEquiv A))
+        (Groupoidal.toCat.{u} $ yonedaCatEquiv A))
 
 /-- The image of `yonedaCatEquiv A` under `yonedaCat`.
   Used in the pullback diagram `isPullback_yonedaCatULiftGrothendieckForget_tp`
@@ -232,29 +213,15 @@ theorem isPullback_yonedaCatGrothendieckForget_tp :
       (yonedaCatMapGrothendieckForget A)
       tp
       (yonedaCatMapYonedaCatEquiv A) :=
-  Functor.map_isPullback yonedaCat (Groupoidal.isPullback (yonedaCatEquiv A))
+    Functor.map_isPullback _ (Groupoidal.isPullback _)
 
-/-- This is a natural isomorphism between functors in the following diagram
-  Ctx.{u}------ yoneda -----> Psh Ctx
-   |                              Λ
-   |                              |
-   |                              |
-  inclusion                 precomposition with inclusion
-   |                              |
-   |                              |
-   |                              |
-   V                              |
-Cat.{big univ}-- yoneda -----> Psh Cat
-  
--/
 def asSmallUp_comp_yoneda_iso_forgetToCat_comp_catLift_comp_yonedaCat :
     (AsSmall.up) ⋙ (yoneda : Ctx.{u} ⥤ Ctx.{u}ᵒᵖ ⥤ Type (u + 1))
     ≅ Grpd.forgetToCat ⋙ catLift ⋙ yonedaCat where
   hom := {app Γ := yonedaEquiv.symm (CategoryStruct.id _)}
   inv := {
     app Γ := {
-      app Δ := λ F ↦
-        AsSmall.up.map $ ULift.upFunctor ⋙ F ⋙ ULift.downFunctor}}
+      app Δ := λ F ↦ AsSmall.up.map $ ULift.upFunctor ⋙ F ⋙ ULift.downFunctor}}
 
 /-- `yoneda.map (disp A)` is isomorphic to `yonedaCat(uLiftGrothendieckForget _)` in
   the arrow category, hence forming a pullback square
@@ -280,7 +247,6 @@ theorem isPullback_yonedaDisp_yonedaCatULiftGrothendieckForget :
       asSmallUp_comp_yoneda_iso_forgetToCat_comp_catLift_comp_yonedaCat.hom.naturality
       (AsSmall.down.map (disp A))⟩
 
-/-- The pullback required for the natural model `GroupoidNaturalModel.base`-/
 theorem isPullback_yonedaDisp_tp :
     IsPullback (var A) (yoneda.map (disp A)) tp A := by
   convert IsPullback.paste_horiz
@@ -288,70 +254,6 @@ theorem isPullback_yonedaDisp_tp :
     (isPullback_yonedaCatGrothendieckForget_tp _)
   ext Δ F
   exact congr_fun (@A.naturality (Opposite.op Γ) Δ F.op) (CategoryStruct.id Γ)
-
-end Ty
-
-/-- `U.{v}` is the object representing the
-  universe of `v`-small types
-  i.e. `y(U) = Ty` for the small natural models `baseU`. -/
-abbrev U : Ctx.{max u (v + 1)} :=
-  Ctx.core.obj.{v,u} $ Cat.of Grpd.{v,v}
-
-/-- `E.{v}` is the object representing `v`-small terms,
-  living over `U.{v}`
-  i.e. `y(E) = Tm` for the small natural models `baseU`. -/
-abbrev E : Ctx.{max u (v + 1)} :=
-  Ctx.core.obj.{v,u} $ Cat.of PGrpd.{v,v}
-
-/-- `π.{v}` is the morphism representing `v`-small `tp`,
-  for the small natural models `baseU`. -/
-abbrev π : E.{v} ⟶ U.{v} :=
-  Ctx.core.map.{v,u} $ Cat.homOf PGrpd.forgetToGrpd
-
-namespace U
-variable {Γ : Ctx.{max u (v + 1)}} (A : Γ ⟶ U.{v})
-
-abbrev ext : Ctx.{max u (v + 1)} :=
-  Ctx.ofGroupoid $ Groupoidal (Ctx.yonedaCoreEquiv A)
-
-abbrev disp : ext A ⟶ Γ :=
-  AsSmall.up.map (Grothendieck.forget _)
-
-abbrev var : ext A ⟶ E.{v} :=
-  Ctx.yonedaCoreEquiv.symm $ Groupoidal.toPGrpd (Ctx.yonedaCoreEquiv A)
-
-end U
-
-
-def ULiftMax' : Ctx.toGrpd.obj U.{v,u} ⥤ Grpd.{max u (v+1), max u (v+1)} :=
-  AsSmall.down
-    ⋙ Core.inclusion Grpd.{v,v}
-    ⋙ Grpd.asSmallFunctor.{max u (v+1)}
-
-/-- `ULiftMax` is the map that classifies the universe
-  `U` of `v`-small types as a map into the type classifier `Ty`.
-  This will fit into the pullback square
-
-    E ---------------> Tm
-    |                   |
-    |                   |
-    |                   |
-    |                   |
-    v                   v
-    U-----ULiftMax---->Ty
-
--/
-def ULiftMax : y(U.{v,u}) ⟶ Ty.{max u (v+1)} :=
-  yonedaCatEquiv.symm ULiftMax'
-
--- lemma yonedaEquiv_ULiftMax :
---     yonedaEquiv ULiftMax.{v,u} = 
---     ULift.downFunctor.{max u (v + 1), max u (v + 1), max (u + 1) (v + 2)}
---       ⋙ AsSmall.down.{v, v + 1, max u (v + 1)}
---       ⋙ Core.inclusion Grpd.{v,v}
---       ⋙ Grpd.asSmallFunctor.{max u (v+1)} := rfl
-
-
 
 -- TODO link to this in blueprint
 /-- The natural model that acts as the ambient
@@ -368,34 +270,6 @@ def base : NaturalModelBase Ctx.{u} where
   var := var
   disp_pullback := isPullback_yonedaDisp_tp
 
-/-- This natural model is isomorphic to `baseU`,
-  given by pullback of the natural model `base`.
-  However, we want to use the explicit `Tm = y(E)` and
-  `tp = ym(π)` in `baseU`
--/
-def baseU' : NaturalModelBase Ctx.{max u (v + 1)} :=
-  NaturalModelBase.pullback base.{max u (v + 1)} ULiftMax.{v,u}
-
--- example : baseU'.{v,u}.Ty = y(U.{v}) := rfl
-
-def sdlkfj : Groupoidal ULiftMax'.{v,u} ⥤
-    Grpd.asSmallFunctor.obj.{max u (v+1)} (Core.functor.obj (Cat.of PGrpd)) := by
-  
-  sorry
-
-def extULiftMaxIsoE : base.{max u (v+1)}.ext ULiftMax.{v,u} ≅ E.{v} := by
-  dsimp [E, base, ext, ULiftMax, Core.functor]
-  apply Functor.mapIso
-  rw [Equiv.apply_symm_apply]
-  unfold Core.functor
-  dsimp
-  
-  sorry
-example : baseU'.{v,u}.Tm ≅ y(E.{v}) :=
-  Functor.mapIso yoneda extULiftMaxIsoE
-
--- (A : y(Γ) ⟶ y(U.{v,u}))
--- have k := Yoneda.fullyFaithful.preimage A
 
 -- TODO link to this in blueprint
 /-- The natural model that acts as the classifier of `v`-large terms and types.
@@ -403,14 +277,8 @@ example : baseU'.{v,u}.Tm ≅ y(E.{v}) :=
   but since representables are `max u (v + 1)`-large,
   its representable fibers can be larger than itself.
 -/
-def baseU : NaturalModelBase Ctx.{max u (v + 1)} where
-  Ty := y(U.{v})
-  Tm := y(E.{v})
-  tp := ym(π.{v})
-  ext A := U.ext (Yoneda.fullyFaithful.preimage A)
-  disp A := U.disp (Yoneda.fullyFaithful.preimage A)
-  var A := ym(U.var (Yoneda.fullyFaithful.preimage A))
-  disp_pullback A := sorry
+def baseU : NaturalModelBase Ctx.{max u (v + 1)} :=
+  NaturalModelBase.pullback base.{max u (v + 1)} grpdCoreLiftMax.{v,u}
 
 def uHomSeqObjs (i : Nat) (h : i < 3) : NaturalModelBase Ctx.{2} :=
   match i with
@@ -423,21 +291,61 @@ def uHomSeqObjs (i : Nat) (h : i < 3) : NaturalModelBase Ctx.{2} :=
 
 open NaturalModelBase
 
-def ULiftSucc : U.{v,max u (v+2)} ⟶ U.{v+1,max u (v+2)} :=
-  Ctx.ofGrpd.map $
+def grpdCoreLiftSucc : grpdCore.{v,max u (v+2)} ⟶ grpdCore.{v+1,max u (v+2)} :=
+  Ctx.ofGroupoid.map $
     AsSmall.down
     ⋙ (Core.functor'.{v,v+1,v+1,v+2} Grpd.asSmallFunctor.{v+1}
       : Core Grpd.{v,v} ⥤ Core Grpd.{v+1,v+1})
     ⋙ AsSmall.up
 
-def baseU.UHom : Hom baseU.{v,max u (v+2)} baseU.{v+1,max u (v+2)} where
-  mapTm := sorry
-  mapTy := by
-    -- unfold baseU ULiftMax
+lemma grpdCoreLiftSucc_comp_LiftMax :
+  ym(grpdCoreLiftSucc.{v,u}) ≫ grpdCoreLiftMax.{v+1,max u (v+2)}
+    = grpdCoreLiftMax.{v, max u (v+2)} := by
+  -- ext Γ x
+  apply yonedaCatEquiv.injective
+  rw [← yonedaCatEquiv_naturality]
+  -- simp [grpdCoreLiftMax, grpdCoreLiftSucc]
+  convert_to _ ⋙ yonedaCatEquiv (yonedaCatEquiv.symm _) =
+    yonedaCatEquiv (yonedaCatEquiv.symm _)
+  rw [Equiv.apply_symm_apply]
+  rw [Equiv.apply_symm_apply]
+
+  -- rw[yonedaCatEquiv_yonedaEquivSymm]
+  -- rw[yonedaCatEquiv_yonedaEquivSymm]
+  simp [grpdCoreLiftSucc, Ctx.ofGroupoid]
+  simp [Functor.assoc]
+  congr 1
+  
+  -- simp [← Functor.assoc]
+  have h : Core.functor' Grpd.asSmallFunctor.{v+1,v,v} ⋙ Core.inclusion Grpd.{v+1,v+1} ⋙ Grpd.asSmallFunctor.{u,v+1,v+1} =
+    Core.inclusion Grpd ⋙ Grpd.asSmallFunctor.{max u (v+1),v,v} := by
+    simp [← Functor.assoc]
+    rw [Core.functor'_comp_inclusion]
+    simp [Functor.assoc]
+    congr 1
+
     sorry
-    -- exact ULiftSucc.{v,u}
-  pb := 
   sorry
+  -- apply Functor.ext
+  -- · sorry
+  -- simp [grpdCoreLiftMax, grpdCoreLiftSucc]
+  -- have h := yonedaEquiv_comp
+  -- · intro x
+  --   simp
+  --   sorry
+
+def baseU.UHom : Hom baseU.{v,max u (v+2)} baseU.{v+1,max u (v+2)} := by
+  let f :=
+  Hom.subst base.{max u (v+2)} grpdCoreLiftMax.{v+1,u} grpdCoreLiftSucc.{v,u}
+  dsimp [baseU]
+  -- have h := dkflj.{v,u}
+
+  -- these are not defeq, but they are both pullbacks of the same map.
+  sorry
+  -- { Hom.subst base grpdCoreLiftMax grpdCoreLiftSucc with
+  --   U := sorry
+  --   U_pb := sorry
+  -- }
 
 def uHomSeqHomSucc' (i : Nat) (h : i < 2) :
     (uHomSeqObjs i (by omega)).UHom (uHomSeqObjs (i + 1) (by omega)) :=
