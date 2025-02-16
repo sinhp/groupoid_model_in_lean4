@@ -101,7 +101,7 @@ abbrev uLiftPCatForgetToCat : uLiftPCat.{v,u} ⟶ uLiftCat.{v,u} :=
 abbrev uLiftToPCat : uLiftGrothendieck.{v,u} A ⟶ uLiftPCat.{v,u} :=
   ULift.downFunctor ⋙ Grothendieck.toPCat A ⋙ ULift.upFunctor
 
-abbrev uLiftA : uLiftΓ.{v,u} Γ ⟶ uLiftCat.{v,u} := downFunctor ⋙ A ⋙ upFunctor
+abbrev uLiftA : uLiftΓ.{v,u} Γ ⥤ uLiftCat.{v,u} := downFunctor ⋙ A ⋙ upFunctor
 
 variable {A}
 
