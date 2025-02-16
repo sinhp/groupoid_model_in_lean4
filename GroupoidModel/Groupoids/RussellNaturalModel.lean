@@ -1,5 +1,6 @@
 import Mathlib.CategoryTheory.Limits.Preserves.FunctorCategory
 import Mathlib.CategoryTheory.Core
+import Mathlib.CategoryTheory.Functor.ReflectsIso
 
 import GroupoidModel.Russell_PER_MS.UHom
 import GroupoidModel.Grothendieck.IsPullback
@@ -116,6 +117,108 @@ def functorToCoreEquiv : Γ ⥤ D ≃ Γ ⥤ Core D where
       congr
     · intro 
       rfl 
+
+namespace IsPullback
+
+variable {C : Type u} [Category.{v} C] {D : Type u} [Category.{v} D]
+  (F : C ⥤ D)
+
+lemma w : inclusion C ⋙ F = Core.functor' F ⋙ inclusion D := rfl
+
+lemma w' : Cat.homOf (inclusion C) ≫ Cat.homOf F
+    = Cat.homOf (Core.functor' F) ⋙ Cat.homOf (inclusion D) := rfl
+
+variable {F} [F.ReflectsIsomorphisms] 
+
+def lift (s : Limits.PullbackCone (Cat.homOf F) (Cat.homOf (inclusion D))) :
+    s.pt ⥤ Core C := {
+  obj := s.fst.obj
+  map {x y} f := @asIso _ _ _ _ (s.fst.map f) $ by
+    let f' : F.obj (s.fst.obj x) ≅ F.obj (s.fst.obj y) :=
+      (eqToIso s.condition).app x ≪≫ s.snd.map f ≪≫ (eqToIso s.condition.symm).app y
+    have hnat : F.map (s.fst.map f) ≫ _
+      = _ ≫ (inclusion D).map (s.snd.map f)
+      := (eqToHom s.condition).naturality f
+    have h : F.map (s.fst.map f) = f'.hom := by
+      simp only [Cat.eqToHom_app, comp_eqToHom_iff] at hnat
+      simp only [hnat, f', Core.inclusion]
+      simp
+    have : IsIso (F.map (s.fst.map f)) := by rw [h]; exact Iso.isIso_hom f'
+    exact Functor.ReflectsIsomorphisms.reflects F (s.fst.map f)
+  map_id x := by
+    simp only [asIso, Functor.map_id, IsIso.inv_id]
+    congr 1
+  map_comp f g := by
+    simp only [asIso, Functor.map_comp, IsIso.inv_comp]
+    congr 1
+    simp
+}
+
+def fac_left (s : Limits.PullbackCone (Cat.homOf F) (Cat.homOf (inclusion D))) :
+    lift s ≫ Cat.homOf (inclusion C) = s.fst := rfl
+
+theorem Core.eqToIso_hom {a b : Core C} (h1 : a = b)
+  (h2 : (inclusion C).obj a = (inclusion C).obj b) :
+    (eqToHom h1).hom = eqToHom h2 := by
+  cases h1
+  rfl
+
+def fac_right (s : Limits.PullbackCone (Cat.homOf F) (Cat.homOf (inclusion D))) :
+    lift s ≫ Cat.homOf (functor' F) = s.snd := by
+  apply Functor.ext
+  · intro x y f
+    apply Functor.map_injective (inclusion D)
+    have h := Functor.congr_hom s.condition f
+    unfold Cat.homOf at *
+    unfold inclusion at *
+    simp only [Cat.of_α, Cat.comp_obj, lift, functor', comp_hom] at *
+    convert h
+    · apply Core.eqToIso_hom
+    · apply Core.eqToIso_hom
+  · intro x
+    exact Functor.congr_obj s.condition x
+
+def uniq (s : Limits.PullbackCone (Cat.homOf F) (Cat.homOf (inclusion D)))
+  (m : s.pt ⟶ Cat.of (Core C))
+  (fl : m ≫ Cat.homOf (inclusion C) = s.fst)
+  (fr : m ≫ Cat.homOf (functor' F) = s.snd) :
+    m = lift s := by
+  apply Functor.ext
+  · intro x y f
+    apply Functor.map_injective (inclusion C)
+    have h := Functor.congr_hom fl f
+    unfold Cat.homOf at *
+    unfold inclusion at *
+    simp only [Cat.of_α, Cat.comp_map, lift, comp_hom, asIso_hom] at *
+    rw [h, Core.eqToIso_hom, Core.eqToIso_hom]
+  · intro x
+    exact Functor.congr_obj fl x
+
+/--
+  In the category of categories,
+  if functor `F : C ⥤ D` reflects isomorphisms
+  then taking the `Core` is pullback stable along `F`
+
+  Core C ---- inclusion -----> C
+    |                          |
+    |                          |
+    |                          |
+ Core.functor' F               F
+    |                          |
+    |                          |
+    V                          V
+  Core D ---- inclusion -----> D
+-/
+theorem isPullback_functor'_self :
+    IsPullback
+      (Cat.homOf $ inclusion C)
+      (Cat.homOf $ functor' F)
+      (Cat.homOf F)
+      (Cat.homOf $ inclusion D) :=
+  IsPullback.of_isLimit $
+      Limits.PullbackCone.IsLimit.mk (w' F) lift fac_left fac_right uniq
+
+end IsPullback
 
 end Core
 
@@ -581,6 +684,8 @@ def liftSucc' : U.{v,max u (v+2)} ⟶ U.{v+1,max u (v+2)} :=
     ⋙ (Core.functor'.{v,v+1,v+1,v+2} Grpd.asSmallFunctor.{v+1}
       : Core Grpd.{v,v} ⥤ Core Grpd.{v+1,v+1})
     ⋙ AsSmall.up
+
+#check PGrpd.IsPullback.grpdAsSmallFunctor
 
 def toTy' : Ctx.toGrpd.obj U.{v,u} ⥤ Grpd.{max u (v+1), max u (v+1)} :=
   AsSmall.down
