@@ -33,7 +33,7 @@ theorem Part.assert_dom {α : Type*} (P : Prop) (x : P → Part α) :
 /-
   Mathlib.CategoryTheory.Category.ULift
 -/
-universe v u v₁ u₁ v₂ u₂ v₃ u₃
+universe w v u v₁ u₁ v₂ u₂ v₃ u₃
 
 namespace CategoryTheory.ULift
 
@@ -73,7 +73,6 @@ theorem comp_upFunctor_inj (F G : C ⥤ D) : F ⋙ upFunctor = G ⋙ upFunctor �
     subst hFG
     rfl
 
-
 end CategoryTheory.ULift
 
 /-
@@ -103,15 +102,23 @@ theorem eqToHom_obj {C1 C2 : Cat.{v,u}} (x : C1) (eq : C1 = C2) :
 abbrev homOf {C D : Type u} [Category.{v} C] [Category.{v} D] (F : C ⥤ D) :
     Cat.of C ⟶ Cat.of D := F
 
-@[simps] def ULift_succ_iso_self {C : Type (u + 1)} [Category.{v} C] :
-    Cat.of (ULift.{u, u + 1} C) ≅ Cat.of C where
+@[simps] def ULift_lte_iso_self {C : Type (max u u₁)} [Category.{v} C] :
+    Cat.of (ULift.{u} C) ≅ Cat.of C where
   hom := ULift.downFunctor
   inv := ULift.upFunctor
 
-@[simps] def ULift_iso_self {C : Type u} [Category.{v} C] :
-    Cat.of (ULift.{u, u} C) ≅ Cat.of C where
-  hom := ULift.downFunctor
-  inv := ULift.upFunctor
+@[simp] def ULift_succ_iso_self {C : Type (u + 1)} [Category.{v} C] :
+    of (ULift.{u, u + 1} C) ≅ of C := ULift_lte_iso_self.{v,u,u+1}
+
+@[simp] def ULift_iso_self {C : Type u} [Category.{v} C] :
+    of (ULift.{u, u} C) ≅ of C := ULift_lte_iso_self
+
+def ofULift (C : Type u) [Category.{v} C] : Cat.{v, max u w} :=
+  of $ ULift.{w} C
+
+def uLiftFunctor : Cat.{v,u} ⥤ Cat.{v, max u w} where
+  obj X := Cat.ofULift.{w} X
+  map F := Cat.homOf $ ULift.downFunctor ⋙ F ⋙ ULift.upFunctor
 
 end CategoryTheory.Cat
 

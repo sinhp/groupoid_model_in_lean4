@@ -157,12 +157,13 @@ open Grothendieck.IsPullback ULift
 variable {Γ : Type u} [Groupoid.{u} Γ] (A : Γ ⥤ Grpd.{u,u})
 
 abbrev uLiftGrpd : Cat.{u, max u (u+1)} :=
-  Cat.of (ULift.{max u (u+1), u + 1} Grpd.{u})
+  Cat.ofULift.{max u (u+1)} Grpd.{u}
 
-abbrev uLiftA : uLiftΓ.{u,u} Γ ⟶ uLiftGrpd.{u} := downFunctor ⋙ A ⋙ upFunctor
+abbrev uLiftA : uLiftΓ.{u,u} Γ ⟶ uLiftGrpd.{u} :=
+  downFunctor ⋙ A ⋙ upFunctor
 
 abbrev uLiftPGrpd : Cat.{u, max u (u+1)} :=
-  Cat.of (ULift.{max u (u+1), u + 1} PGrpd.{u,u})
+  Cat.ofULift.{max u (u+1)} PGrpd.{u,u}
 
 abbrev uLiftPGrpdForgetToGrpd : uLiftPGrpd.{u} ⟶ uLiftGrpd.{u} :=
   downFunctor ⋙ PGrpd.forgetToGrpd ⋙ upFunctor
@@ -252,7 +253,8 @@ theorem toPGrpd_comp_forgetToPCat_eq_var'_comp_isoGrothendieckForgetToCatInv_com
   have h : var' A ⋙ (IsPullback.uLiftToPCat (Grpd.forgetToCat.{u,u}))
     = IsPullback.uLiftToPCat (Groupoid.compForgetToCat.{u} A) := var'_uLiftToPCat A
   dsimp [IsPullback.uLiftToPCat] at h
-  simp only [← toPGrpd_comp_forgetToPCat, ← Functor.assoc, comp_upFunctor_inj] at h
+  simp only [Cat.ofULift, Cat.of_α, ← Functor.assoc,
+    ← toPGrpd_comp_forgetToPCat, comp_upFunctor_inj] at h
   simp only [Functor.assoc] at h
   rw [← h]
   rfl
