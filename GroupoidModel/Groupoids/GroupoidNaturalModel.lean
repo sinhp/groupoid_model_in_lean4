@@ -143,84 +143,85 @@ def PolyDataGet (Γ : sGrpdᵒᵖ) (Q : ((NaturalModel.P NaturalModel.tp).obj Na
   apply yonedaEquiv.invFun
   exact Q
 
-def GroupoidSigma {Γ : Grpd} (A : Γ ⥤ Grpd) (B : (GroupoidalGrothendieck A) ⥤ Grpd) : Γ ⥤ Grpd where
-  obj x := by
-    let xA : (A.obj x) ⥤ GroupoidalGrothendieck A := by
-      fconstructor
-      . fconstructor
-        . intro a
-          fconstructor
-          . exact x
-          . exact a
-        . intros a1 a2 f
-          fconstructor
-          dsimp [Quiver.Hom]
-          exact 𝟙 x
-          dsimp [Grpd.forgetToCat, Quiver.Hom]
-          rw [A.map_id]
-          dsimp[CategoryStruct.id]
-          exact f
-      . aesop_cat
-      . simp[CategoryStruct.comp,Grothendieck.comp]
-        intros X Y Z f g
-        congr
-        . exact Eq.symm (Category.id_comp (𝟙 x))
-        . refine @HEq.trans _ _ _ _ (f ≫ g) _ ?_ ?_
-          . exact cast_heq (Eq.symm (id (congrArg (fun _a ↦ _a.obj X ⟶ Z) (A.map_id x)))) (f ≫ g)
-          . sorry
-    refine Grpd.of (GroupoidalGrothendieck (xA ⋙ B))
-  map f := by
-    dsimp[Grpd.of,Bundled.of,Quiver.Hom]
-    rename_i X Y
+def GetPoint {Γ : Grpd} (x : Γ) : Unit ⥤ Γ where
+  obj _ := x
+  map _ := 𝟙 x
+
+instance GU : Groupoid Unit where
+  inv _ := 𝟙 _
+  inv_comp _ := rfl
+  comp_inv _ := rfl
+
+def PointToFiber {Γ : Grpd} (A : Γ ⥤ Grpd) (x : Γ) : (A.obj x) ⥤ GroupoidalGrothendieck A where
+  obj a := by
     fconstructor
-    . fconstructor
-      . intro a
-        rcases a with ⟨x,a⟩
-        dsimp at a
-        fconstructor
-        . exact (A.map f).obj x
-        . dsimp
-          let F : (B.obj { base := X, fiber := x }) ⟶ (B.obj { base := Y, fiber := (A.map f).obj x }) := by
-            refine B.map ?_
-            fconstructor
-            . exact f
-            . dsimp [Grpd.forgetToCat]
-              exact 𝟙 _
-          exact F.obj a
-      . aesop_cat
-    . aesop_cat
-    . aesop_cat
+    . exact x
+    . exact a
+  map f := by
+    dsimp
+    fconstructor
+    . exact 𝟙 x
+    . rename_i X Y
+      dsimp [Grpd.forgetToCat]
+      let h : X = (A.map (𝟙 x)).obj X := by
+        simp[CategoryStruct.id]
+      refine eqToHom h.symm ≫ ?_
+      exact f
+  map_comp f g := by
+    simp[CategoryStruct.comp,Grothendieck.comp]
+    fapply Grothendieck.ext
+    . simp
+    . simp [Grpd.forgetToCat,eqToHom_map]
+      rename_i X Y Z
+      let h : A.map (𝟙 x) = 𝟙 (A.obj x) := by
+        simp
+      let h' : X = (A.map (𝟙 x ≫ 𝟙 x)).obj X := by
+        simp[CategoryStruct.id]
+      simp [<- Category.assoc]
+      refine (congrFun (congrArg CategoryStruct.comp ?_) g)
+      simp [Category.assoc]
+      have ee : Epi (eqToHom h') := by
+        exact IsIso.epi_of_iso (eqToHom h')
+      apply ee.left_cancellation
+      simp
+      refine @IsHomLift.fac _ _ _ _ _ _ _ _ _ f f ?_
+      constructor; simp; constructor
+
+def GNT {Γ : Grpd} (A : Γ ⥤ Grpd) (X Y : Γ) (f : X ⟶ Y) : PointToFiber A X ⟶ ((A.map f) ⋙ (PointToFiber A Y)) where
+  app x := by
+    fconstructor
+    . simp[PointToFiber]
+      exact f
+    . simp [Grpd.forgetToCat,PointToFiber]
+      exact 𝟙 ((A.map f).obj x)
+  naturality X Y f := by
+    simp[PointToFiber,CategoryStruct.comp,Grothendieck.comp]
+    fapply Grothendieck.ext
+    . simp
+    . simp[Grpd.forgetToCat, eqToHom_map]
+
+
+def GroupoidSigma {Γ : Grpd} (A : Γ ⥤ Grpd) (B : (GroupoidalGrothendieck A) ⥤ Grpd) : Γ ⥤ Grpd where
+  obj x := Grpd.of (GroupoidalGrothendieck ((PointToFiber A x) ⋙ B))
+  map f := by
+    rename_i X Y
+    have NT' : (PointToFiber A X) ⋙ (B ⋙ Grpd.forgetToCat) ⟶ (A.map f ⋙ PointToFiber A Y) ⋙ (B ⋙ Grpd.forgetToCat) := whiskerRight (GNT A X Y f) (B ⋙ Grpd.forgetToCat)
+    exact (Grothendieck.map NT') ⋙ (GroupoidalGrothendieck.functorial (A.map f) (PointToFiber A Y ⋙ B))
+  map_id := by
+    intro X
+    simp[CategoryStruct.id,whiskerRight,Functor.id]
+    refine CategoryTheory.Functor.ext ?_ ?_
+    all_goals sorry
+  map_comp := by
+    intro X Y Z f g
+    simp[Grpd.forgetToCat]
+    sorry
+
 
 theorem GroupoidSigmaBeckChevalley (Δ Γ: Grpd) (σ : Δ ⥤ Γ) (A : Γ ⥤ Grpd)
   (B : (GroupoidalGrothendieck A) ⥤ Grpd) : σ ⋙ GroupoidSigma A B = GroupoidSigma (σ ⋙ A)
-  (GroupoidalGrothendieck.Map Δ Γ σ A B) := by
-  fapply CategoryTheory.Functor.ext
-  . intro x
-    dsimp[GroupoidSigma,GroupoidalGrothendieck.Map,Functor.comp]
-    congr 4
-    all_goals {
-    . funext x1 x2 f
-      congr 2
-      . refine (σ.map_id x).symm
-      . refine @HEq.trans _ _ _ _ f _ ?_ ?_
-        . exact cast_heq (Eq.symm (GroupoidSigma.proof_1 A (σ.obj x))) f
-        . exact
-          HEq.symm
-            (cast_heq
-              (Eq.symm
-                (GroupoidSigma.proof_1
-                  { obj := fun X ↦ A.obj (σ.obj X), map := fun {X Y} f ↦ A.map (σ.map f),
-                    map_id := Functor.comp.proof_1 σ A,
-                    map_comp :=
-                      @Functor.comp.proof_2 (↑Δ) Groupoid.toCategory (↑Γ) Groupoid.toCategory Grpd
-                        Grpd.category σ A }
-                  x))
-              f)
-    }
-  . intros x1 x2 f
-    simp [GroupoidSigma,GroupoidalGrothendieck.Map]
+  (GroupoidalGrothendieck.Map Δ Γ σ A B) := sorry
 
-#exit
 instance GroupoidNMSigma : NaturalModel.NaturalModelSigma sGrpd.{u} where
   Sig := by
     fconstructor
