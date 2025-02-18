@@ -1,5 +1,6 @@
 import GroupoidModel.Russell_PER_MS.NaturalModelBase
 import GroupoidModel.ForMathlib
+import Mathlib.CategoryTheory.Limits.Shapes.StrictInitial
 
 /-! Morphisms of natural models, and Russell-universe embeddings. -/
 
@@ -40,6 +41,16 @@ protected def pullbackHom (M : NaturalModelBase Ctx) {Γ : Ctx} (A : y(Γ) ⟶ M
   mapTy := A
   pb := M.disp_pullback A
 
+/-- Morphism into the representable natural transformation `M`
+from `ofIsPullback`-/
+def isPullbackHom (M : NaturalModelBase Ctx)
+    {U E : Psh Ctx} {π : E ⟶ U}
+    {toTy : U ⟶ M.Ty} {toTm : E ⟶ M.Tm}
+    (pb : IsPullback toTm π M.tp toTy) :
+    Hom (M.ofIsPullback pb) M where
+  mapTm := toTm
+  mapTy := toTy
+  pb := pb
 
 -- FIXME please change the name if you don't like this
 /-- Given a `NaturalModelBase`, a semantic type `A : y(Γ) ⟶ Ty`,
@@ -66,6 +77,56 @@ structure UHom (M N : NaturalModelBase Ctx) extends Hom M N where
 
   -- Or an explicit bijection:
   -- U_equiv : (y(⊤_ Ctx) ⟶ M.Ty) ≃ { A : y(⊤_ Ctx) ⟶ N.Tm // A ≫ N.tp = U }
+
+/-- An alternate formulation of `UHom`.
+This formulation requires the context category to have a terminal
+object (aka empty context) and the universe to be
+defined over the empty context.
+
+These don't form a category since `UHom.id M` is essentially `Type : Type` in `M`. -/
+structure UHomRepTerminal [HasTerminal Ctx]
+    (M N : NaturalModelBase Ctx) extends Hom M N where
+  U : y(⊤_  Ctx) ⟶ N.Ty
+  U_pb : ∃ v : M.Ty ⟶ N.Tm, IsPullback
+    v
+    ((isLimitOfHasTerminalOfPreservesLimit yoneda).from M.Ty)
+    N.tp
+    U
+
+theorem UHom.ofRepTerminalAux [HasTerminal Ctx] (c : Psh Ctx) :
+    IsPullback
+      (CategoryStruct.id c)
+      (terminal.from c)
+      ((isLimitOfHasTerminalOfPreservesLimit yoneda).from c)
+      (IsTerminal.uniqueUpToIso terminalIsTerminal (isLimitOfHasTerminalOfPreservesLimit yoneda)).hom    :=
+  IsPullback.of_horiz_isIso ⟨
+    IsTerminal.hom_ext
+      (isLimitOfHasTerminalOfPreservesLimit yoneda) _ _ ⟩
+
+/-- Any `UHomRepTerminal` gives rise to a `UHom` with the same
+underlying Hom.-/
+def UHom.ofRepTerminal [HasTerminal Ctx] {M N : NaturalModelBase Ctx}
+    (H : UHomRepTerminal M N) : UHom M N := {
+  H.toHom with
+  U := (isLimitOfHasTerminalOfPreservesLimit yoneda).from _ ≫ H.U
+  U_pb := by
+    rcases H.U_pb with ⟨ v , pb ⟩
+    use v
+    refine IsPullback.paste_horiz (UHom.ofRepTerminalAux M.Ty) pb
+}
+
+
+def UHomRepTerminal.ofIsoPullback [HasTerminal Ctx] {M N : NaturalModelBase Ctx}
+    (H : Hom M N) {U : yoneda.obj (⊤_ Ctx) ⟶ N.Ty} (i : M.Ty ≅ y(N.ext U))
+    : UHomRepTerminal M N := {
+  H with
+  U := U
+  U_pb := by
+    use i.hom ≫ N.var U
+    convert IsPullback.of_iso_isPullback (N.disp_pullback _) i
+    apply IsTerminal.hom_ext
+      (isLimitOfHasTerminalOfPreservesLimit yoneda)
+}
 
 def UHom.comp {M N O : NaturalModelBase Ctx} (α : UHom M N) (β : UHom N O) : UHom M O := {
   Hom.comp α.toHom β.toHom with

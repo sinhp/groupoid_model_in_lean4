@@ -1,4 +1,5 @@
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.PullbackCone
+import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 import Mathlib.CategoryTheory.Category.ULift
 import Mathlib.Logic.Function.ULift
 import Mathlib.CategoryTheory.Category.Cat
@@ -216,4 +217,17 @@ def mkIso {X Y : Grothendieck G}
     rw [(comp_eqToHom_iff ..).1 eq]; simp
 
 end Grothendieck
+
+namespace IsPullback
+
+variable {C : Type u₁} [Category.{v₁} C]
+
+variable {P X Y Z : C} {fst : P ⟶ X} {snd : P ⟶ Y} {f : X ⟶ Z} {g : Y ⟶ Z}
+
+def of_iso_isPullback (h : IsPullback fst snd f g) {Q} (i : Q ≅ P) :
+      IsPullback (i.hom ≫ fst) (i.hom ≫ snd) f g := by
+  have : Limits.HasPullback f g := ⟨ h.cone , h.isLimit ⟩
+  refine IsPullback.of_iso_pullback (by simp [h.w]) (i ≪≫ h.isoPullback) (by simp) (by simp)
+
+end IsPullback
 end CategoryTheory
