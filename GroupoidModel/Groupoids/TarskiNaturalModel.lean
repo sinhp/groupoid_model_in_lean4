@@ -139,86 +139,117 @@ def Grpd2 : Type (u+2) := InducedCategory sGrpd.{u+1} Groupoid2.toLarge
 
 section NaturalModelSigma
 
-def PolyDataGet (Γ : sGrpdᵒᵖ) (Q : ((NaturalModel.P NaturalModel.tp).obj NaturalModel.Ty).obj Γ) :
-    yoneda.obj (Opposite.unop Γ) ⟶ ((NaturalModel.P NaturalModel.tp).obj NaturalModel.Ty) := by
-  apply yonedaEquiv.invFun
-  exact Q
+def GetPoint {Γ : Grpd} (x : Γ) : Unit ⥤ Γ where
+  obj _ := x
+  map _ := 𝟙 x
 
-def GroupoidSigma {Γ : Grpd} (A : Γ ⥤ Grpd) (B : (Grothendieck.Groupoidal A) ⥤ Grpd) : Γ ⥤ Grpd where
-  obj x := by
-    let xA : (A.obj x) ⥤ Grothendieck.Groupoidal A := by
-      fconstructor
-      . fconstructor
-        . intro a
-          fconstructor
-          . exact x
-          . exact a
-        . intros a1 a2 f
-          fconstructor
-          dsimp [Quiver.Hom]
-          exact 𝟙 x
-          dsimp [Grpd.forgetToCat, Quiver.Hom]
-          rw [A.map_id]
-          dsimp[CategoryStruct.id]
-          exact f
-      . aesop_cat
-      . sorry
-    refine Grpd.of (Grothendieck.Groupoidal (xA ⋙ B))
+instance GU : Groupoid Unit where
+  inv _ := 𝟙 _
+  inv_comp _ := rfl
+  comp_inv _ := rfl
+
+def PointToFiber {Γ : Grpd} (A : Γ ⥤ Grpd) (x : Γ) : (A.obj x) ⥤ Grothendieck.Groupoidal A where
+  obj a := by
+    fconstructor
+    . exact x
+    . exact a
   map f := by
-    dsimp[Grpd.of,Bundled.of,Quiver.Hom]
+    dsimp
+    fconstructor
+    . exact 𝟙 x
+    . rename_i X Y
+      dsimp [Grpd.forgetToCat]
+      let h : X = (A.map (𝟙 x)).obj X := by
+        simp[CategoryStruct.id]
+      refine eqToHom h.symm ≫ ?_
+      exact f
+  map_comp f g := by
+    simp[CategoryStruct.comp,Grothendieck.comp]
+    fapply Grothendieck.ext
+    . simp
+    . simp [Grpd.forgetToCat,eqToHom_map]
+      rename_i X Y Z
+      let h : A.map (𝟙 x) = 𝟙 (A.obj x) := by
+        simp
+      let h' : X = (A.map (𝟙 x ≫ 𝟙 x)).obj X := by
+        simp[CategoryStruct.id]
+      simp [<- Category.assoc]
+      refine (congrFun (congrArg CategoryStruct.comp ?_) g)
+      simp [Category.assoc]
+      have ee : Epi (eqToHom h') := by
+        exact IsIso.epi_of_iso (eqToHom h')
+      apply ee.left_cancellation
+      simp
+      refine @IsHomLift.fac _ _ _ _ _ _ _ _ _ f f ?_
+      constructor; simp; constructor
+
+def GNT {Γ : Grpd} (A : Γ ⥤ Grpd) (X Y : Γ) (f : X ⟶ Y) : PointToFiber A X ⟶ ((A.map f) ⋙ (PointToFiber A Y)) where
+  app x := by
+    fconstructor
+    . simp[PointToFiber]
+      exact f
+    . simp [Grpd.forgetToCat,PointToFiber]
+      exact 𝟙 ((A.map f).obj x)
+  naturality X Y f := by
+    simp[PointToFiber,CategoryStruct.comp,Grothendieck.comp]
+    fapply Grothendieck.ext
+    . simp
+    . simp[Grpd.forgetToCat, eqToHom_map]
+
+#check Grothendieck.Groupoidal.functorial
+def GroupoidSigma {Γ : Grpd} (A : Γ ⥤ Grpd) (B : (Grothendieck.Groupoidal A) ⥤ Grpd) : Γ ⥤ Grpd where
+  obj x := Grpd.of (Grothendieck.Groupoidal ((PointToFiber A x) ⋙ B))
+  map f := by
     rename_i X Y
-    fconstructor
-    . fconstructor
-      . intro a
-        rcases a with ⟨x,a⟩
-        dsimp at a
-        fconstructor
-        . exact (A.map f).obj x
-        . dsimp
-          let F : (B.obj { base := X, fiber := x }) ⟶ (B.obj { base := Y, fiber := (A.map f).obj x }) := by
-            refine B.map ?_
-            fconstructor
-            . exact f
-            . dsimp [Grpd.forgetToCat]
-              exact 𝟙 _
-          exact F.obj a
-      . aesop_cat
-    . aesop_cat
-    . aesop_cat
+    have NT' : (PointToFiber A X) ⋙ (B ⋙ Grpd.forgetToCat) ⟶ (A.map f ⋙ PointToFiber A Y) ⋙ (B ⋙ Grpd.forgetToCat) := whiskerRight (GNT A X Y f) (B ⋙ Grpd.forgetToCat)
+    exact (Grothendieck.map NT') ⋙ (Grothendieck.Groupoidal.functorial (A.map f) (PointToFiber A Y ⋙ B))
+  map_id := by
+    intro X
+    simp[CategoryStruct.id,whiskerRight,Functor.id]
+    refine CategoryTheory.Functor.ext ?_ ?_
+    all_goals sorry
+  map_comp := by
+    intro X Y Z f g
+    simp[Grpd.forgetToCat]
+    sorry
 
 
-instance GroupoidNMSigma : NaturalModel.NaturalModelSigma sGrpd.{u} where
-  Sig := by
-    fconstructor
-    . intro Γ Q
-      have φ' := PolyDataGet Γ Q
-      have pp := (NaturalModel.uvPoly (Ctx := sGrpd.{u}) NaturalModel.tp).polyPair φ'
-      rcases pp with ⟨A,pb⟩
-      let dp := NaturalModel.disp_pullback A
-      let help : yoneda.obj (NaturalModel.ext (Opposite.unop Γ) A) ≅
-                 (Limits.pullback A NaturalModel.tp) := by
-        exact CategoryTheory.IsPullback.isoPullback (CategoryTheory.IsPullback.flip dp)
-      let h' := (help.hom.app Γ)
-      let pb' := pb.app Γ
-      dsimp [NaturalModel.Ty,PshsGrpdOfPshGrpd,PshGrpdOfCat,Quiver.Hom]
-      fconstructor
-      . fconstructor
-        . intro γ
-          let yA := (yonedaEquiv.toFun A)
-          dsimp [NaturalModel.Ty,PshGrpdOfCat,PshsGrpdOfPshGrpd,Quiver.Hom] at yA
-          let Aγ : Grpd := (yA).obj γ
-          let ΓA : Grpd := sGrpd.forget.obj (NaturalModel.ext (Opposite.unop Γ) A)
-          sorry
-        . sorry
-      dsimp [NaturalModel.uvPoly] at pb'
-      let diag := h' ≫ pb'
-      sorry
-      sorry
-    . sorry
-  pair := by
-    sorry
-  Sig_pullback := by
-    sorry
+theorem GroupoidSigmaBeckChevalley (Δ Γ: Grpd) (σ : Δ ⥤ Γ) (A : Γ ⥤ Grpd)
+  (B : (Grothendieck.Groupoidal A) ⥤ Grpd) : σ ⋙ GroupoidSigma A B = GroupoidSigma (σ ⋙ A)
+  (Grothendieck.Groupoidal.Map Δ Γ σ A B) := sorry
+
+-- instance GroupoidNMSigma : NaturalModel.NaturalModelSigma sGrpd.{u} where
+--   Sig := by
+--     fconstructor
+--     . intro Γ Q
+--       have φ' := PolyDataGet Γ Q
+--       have pp := (NaturalModel.uvPoly (Ctx := sGrpd.{u}) NaturalModel.tp).polyPair φ'
+--       rcases pp with ⟨A,pb⟩
+--       let dp := NaturalModel.disp_pullback A
+--       let help : yoneda.obj (NaturalModel.ext (Opposite.unop Γ) A) ≅
+--                  (Limits.pullback A NaturalModel.tp) := by
+--         exact CategoryTheory.IsPullback.isoPullback (CategoryTheory.IsPullback.flip dp)
+--       let h' := (help.hom.app Γ)
+--       let pb' := pb.app Γ
+--       dsimp [NaturalModel.Ty,PshsGrpdOfPshGrpd,PshGrpdOfCat,Quiver.Hom]
+--       fconstructor
+--       . fconstructor
+--         . intro γ
+--           let yA := (yonedaEquiv.toFun A)
+--           dsimp [NaturalModel.Ty,PshGrpdOfCat,PshsGrpdOfPshGrpd,Quiver.Hom] at yA
+--           let Aγ : Grpd := (yA).obj γ
+--           let ΓA : Grpd := sGrpd.forget.obj (NaturalModel.ext (Opposite.unop Γ) A)
+--           sorry
+--         . sorry
+--       dsimp [NaturalModel.uvPoly] at pb'
+--       let diag := h' ≫ pb'
+--       sorry
+--       sorry
+--     . sorry
+--   pair := by
+--     sorry
+--   Sig_pullback := by
+--     sorry
 
 
 end NaturalModelSigma

@@ -3,7 +3,7 @@ import Mathlib.CategoryTheory.Category.Grpd
 import GroupoidModel.Pointed.IsPullback
 
 /-!
-# The Groupidal Grothendieck construction 
+# The Groupidal Grothendieck construction
 
 
   ↑Grothendieck (toCat A) -- toPGrpd --> PGrpd
@@ -15,7 +15,7 @@ import GroupoidModel.Pointed.IsPullback
         ↑Γ--------------A---------------> Grpd
 
 ## Main definitions
-* `CategoryTheory.Grothendieck.Groupoidal` 
+* `CategoryTheory.Grothendieck.Groupoidal`
   takes a functor from a groupoid into `Grpd` the category of groupoids,
   composes it with the forgetful functor into `Cat` the category of categories,
   then applies `CategoryTheory.Grothendieck`.
@@ -29,7 +29,7 @@ import GroupoidModel.Pointed.IsPullback
 * `CategoryTheory.Grothendieck.Groupoidal.isPullback`
   shows that `Grothendieck.forget A` is classified by `PGrpd.forgetToGrpd`
   as the pullback of `A`.
-  This uses the proof of the similar fact 
+  This uses the proof of the similar fact
   `CategoryTheory.Grothendieck.isPullback`,
   as well as the proof `CategoryTheory.isPullback_forgetToGrpd_forgetToCat`
   that `PGrpd` is the pullback of `PCat`.
@@ -82,52 +82,52 @@ instance groupoid : Groupoid (Grothendieck.Groupoidal F) where
 -- def ToGrpd : Grothendieck.Groupoidal F ⥤ Grpd.{v₂,u₂} :=
 --   Grothendieck.forget _ ⋙ F
 
--- def functorial {C D : Grpd.{v₁,u₁}} (F : C ⟶ D) (G : D ⥤ Grpd.{v₂,u₂}) :
---   Grothendieck (Grpd.compForgetToCat (F ⋙ G))
---   ⥤ Grothendieck (Grpd.compForgetToCat G) where
---   obj X := ⟨F.obj X.base, X.fiber⟩
---   map {X Y} f := ⟨F.map f.base, f.fiber⟩
---   map_id X := by
---     fapply Grothendieck.ext
---     · exact F.map_id X.base
---     · simp only [Grothendieck.id_fiber, eqToHom_trans]
---   map_comp {X Y Z} f g := by
---     simp only [Grothendieck.comp]
---     fapply Grothendieck.ext
---     · exact F.map_comp f.base g.base
---     · erw [Grothendieck.comp_fiber (F:= Grpd.compForgetToCat (F ⋙ G)) f g]
---       simp [eqToHom_trans]
+def functorial {C D : Grpd.{v₁,u₁}} (F : C ⟶ D) (G : D ⥤ Grpd.{v₂,u₂}) :
+  Grothendieck (Grpd.compForgetToCat (F ⋙ G))
+  ⥤ Grothendieck (Grpd.compForgetToCat G) where
+  obj X := ⟨F.obj X.base, X.fiber⟩
+  map {X Y} f := ⟨F.map f.base, f.fiber⟩
+  map_id X := by
+    fapply Grothendieck.ext
+    · exact F.map_id X.base
+    · simp only [Grothendieck.id_fiber, eqToHom_trans]
+  map_comp {X Y Z} f g := by
+    simp only [Grothendieck.comp]
+    fapply Grothendieck.ext
+    · exact F.map_comp f.base g.base
+    · erw [Grothendieck.comp_fiber (F:= Grpd.compForgetToCat (F ⋙ G)) f g]
+      simp [eqToHom_trans]
 
--- def Map (Δ Γ: Grpd) (σ : Δ ⥤ Γ) (A : Γ ⥤ Grpd) (B : (Grothendieck.Groupoidal A) ⥤ Grpd) : Grothendieck.Groupoidal (σ ⋙ A) ⥤ Grpd where
---   obj x := by
---     rcases x with ⟨x, a⟩
---     dsimp at a
---     let X : Grothendieck.Groupoidal A := by
---       fconstructor
---       . exact σ.obj x
---       . exact a
---     exact B.obj X
---   map f := by
---     rename_i X Y
---     rcases X with ⟨x, xa⟩
---     rcases Y with ⟨y, ya⟩
---     let X : Grothendieck.Groupoidal A := by
---       fconstructor
---       . exact σ.obj x
---       . exact xa
---     let Y : Grothendieck.Groupoidal A := by
---       fconstructor
---       . exact σ.obj y
---       . exact ya
---     let F : X ⟶ Y := by
---       fconstructor
---       . exact σ.map f.base
---       . exact f.fiber
---     exact B.map F
---   map_comp := by
---     sorry
---   map_id x := by
---     sorry
+def Map (Δ Γ: Grpd) (σ : Δ ⥤ Γ) (A : Γ ⥤ Grpd) (B : (Grothendieck.Groupoidal A) ⥤ Grpd) : Grothendieck.Groupoidal (σ ⋙ A) ⥤ Grpd where
+  obj x := by
+    rcases x with ⟨x, a⟩
+    dsimp at a
+    let X : Grothendieck.Groupoidal A := by
+      fconstructor
+      . exact σ.obj x
+      . exact a
+    exact B.obj X
+  map f := by
+    rename_i X Y
+    rcases X with ⟨x, xa⟩
+    rcases Y with ⟨y, ya⟩
+    let X : Grothendieck.Groupoidal A := by
+      fconstructor
+      . exact σ.obj x
+      . exact xa
+    let Y : Grothendieck.Groupoidal A := by
+      fconstructor
+      . exact σ.obj y
+      . exact ya
+    let F : X ⟶ Y := by
+      fconstructor
+      . exact σ.map f.base
+      . exact f.fiber
+    exact B.map F
+  map_comp := by
+    sorry
+  map_id x := by
+    sorry
 
 variable {Γ : Type u} [Groupoid.{u} Γ] (A : Γ ⥤ Grpd.{u,u})
 
@@ -194,7 +194,7 @@ noncomputable def var' :
 
 theorem var'_uLiftToPCat :
     var' A ≫ (uLiftToPCat (Grpd.forgetToCat.{u,u}))
-    = uLiftToPCat (toCat.{u} A) := 
+    = uLiftToPCat (toCat.{u} A) :=
   (Grothendieck.isPullback (Grpd.forgetToCat.{u,u})).lift_fst
     (IsPullback.uLiftToPCat (toCat.{u} A))
     ((IsPullback.uLiftGrothendieckForget (toCat.{u} A)) ≫ uLiftA A)
@@ -203,7 +203,7 @@ theorem var'_uLiftToPCat :
 
 theorem var'_forget :
     var' A ≫ (uLiftGrothendieckForget (Grpd.forgetToCat.{u,u}))
-    = uLiftGrothendieckForget (toCat.{u} A) ≫ uLiftA A := 
+    = uLiftGrothendieckForget (toCat.{u} A) ≫ uLiftA A :=
   (Grothendieck.isPullback (Grpd.forgetToCat.{u,u})).lift_snd
     (IsPullback.uLiftToPCat (toCat.{u} A))
     ((IsPullback.uLiftGrothendieckForget (toCat.{u} A)) ≫ uLiftA A)
@@ -231,7 +231,7 @@ by pullback pasting
         ↑Γ----------------------> ↑Grpd.{u,u} ----------------> ↑Cat.{u,u}
 -/
 theorem
-  isPullback_uLiftGrothendieckForget_toCat_uLiftGrothendieckForget_grpdForgetToCat : 
+  isPullback_uLiftGrothendieckForget_toCat_uLiftGrothendieckForget_grpdForgetToCat :
     IsPullback
     (Cat.homOf (var' A))
     (IsPullback.uLiftGrothendieckForget (toCat.{u} A))
@@ -247,12 +247,12 @@ theorem isPullback_aux:
         ≫ (Cat.ULift_iso_self ≪≫ PGrpd.isoGrothendieckForgetToCat.{u,u}.symm).hom)
       (IsPullback.uLiftGrothendieckForget (toCat.{u} A))
       (Cat.homOf PGrpd.forgetToGrpd.{u,u})
-      (uLiftA A ≫ Cat.ULift_iso_self.hom) := 
+      (uLiftA A ≫ Cat.ULift_iso_self.hom) :=
   IsPullback.paste_horiz
     (isPullback_uLiftGrothendieckForget_toCat_uLiftGrothendieckForget_grpdForgetToCat.{u} A)
     (PGrpd.IsPullback.isPullback_uLiftGrothendieckForget_forgetToGrpd.{u})
 
-open ULift 
+open ULift
 
 variable {Γ : Type u} [Groupoid.{u} Γ] (A : Γ ⥤ Grpd.{u,u})
 
@@ -288,7 +288,7 @@ theorem toPGrpd_eq_var'_comp_isoGrothendieckForgetToCatInv' :
     Cat.homOf (downFunctor ⋙ toPGrpd A)
       = Cat.homOf (var' A ⋙ downFunctor ⋙ PGrpd.isoGrothendieckForgetToCatInv)
       :=
-  PGrpd.isPullback_forgetToGrpd_forgetToCat.{u}.hom_ext 
+  PGrpd.isPullback_forgetToGrpd_forgetToCat.{u}.hom_ext
     (toPGrpd_comp_forgetToPCat_eq_var'_comp_isoGrothendieckForgetToCatInv_comp_forgetToPCat _)
     (toPGrpd_comp_forgetToGrpd_eq_var'_comp_isoGrothendieckForgetToCatInv_comp_forgetToGrpd _)
 
@@ -315,7 +315,7 @@ The following square is a pullback
 in the appropriately sized category `Grpd.{v, max u (v+1)}`;
 where `(Γ : Type u) [Grpdegory.{v} Γ] (A : Γ ⥤ Grpd.{v,v})`.
 -/
-theorem isPullback {Γ : Type u} [Groupoid.{u} Γ] (A : Γ ⥤ Grpd.{u,u}) : 
+theorem isPullback {Γ : Type u} [Groupoid.{u} Γ] (A : Γ ⥤ Grpd.{u,u}) :
     IsPullback
       (Cat.homOf (ULift.downFunctor ⋙ toPGrpd A))
       (IsPullback.uLiftGrothendieckForget (toCat.{u} A))
