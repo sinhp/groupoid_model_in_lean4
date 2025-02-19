@@ -176,13 +176,12 @@ However, with `O(length²)` data we can use Lean's own type formers directly,
 rather than using `Π (ULift A) (ULift B)`.
 The interpretations of types are thus more direct. -/
 structure UHomSeqPis (Ctx : Type u) [SmallCategory.{u} Ctx] extends UHomSeq Ctx where
-  Pis' (i j : Nat) (ilen : i < length + 1) (jlen : j < length + 1) :
-    toUHomSeq[i].Ptp.obj toUHomSeq[j].Ty ⟶ toUHomSeq[max i j].Ty
-  lams' (i j : Nat) (ilen : i < length + 1) (jlen : j < length + 1) :
-    toUHomSeq[i].Ptp.obj toUHomSeq[j].Tm  ⟶ toUHomSeq[max i j].Tm
-  Pi_pullbacks' (i j : Nat) (ilen : i < length + 1) (jlen : j < length + 1) :
-    IsPullback (lams' i j ilen jlen) (toUHomSeq[i].Ptp.map toUHomSeq[j].tp)
-               toUHomSeq[max i j].tp (Pis' i j ilen jlen)
+  Pis' (i : Nat) (ilen : i < length + 1) :
+    toUHomSeq[i].Ptp.obj toUHomSeq[i].Ty ⟶ toUHomSeq[i].Ty
+  lams' (i : Nat) (ilen : i < length + 1) :
+    toUHomSeq[i].Ptp.obj toUHomSeq[i].Tm  ⟶ toUHomSeq[i].Tm
+  Pi_pbs' (i : Nat) (ilen : i < length + 1) :
+    IsPullback (lams' i ilen) (toUHomSeq[i].Ptp.map toUHomSeq[i].tp) toUHomSeq[i].tp (Pis' i ilen)
 
 namespace UHomSeqPis
 
@@ -197,24 +196,31 @@ variable (s : UHomSeqPis Ctx)
 theorem getElem_toUHomSeq (i : Nat) (ilen : i < s.length + 1) : s.toUHomSeq[i] = s[i] := by
   rfl
 
-def Pis (i j : Nat) (ilen : i < s.length + 1 := by get_elem_tactic)
-    (jlen : j < s.length + 1 := by get_elem_tactic) :
-    s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
-  s.Pis' i j ilen jlen
+def Pis (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) :
+    s[i].Ptp.obj s[i].Ty ⟶ s[i].Ty :=
+  s.Pis' i ilen
 
-def lams (i j : Nat) (ilen : i < s.length + 1 := by get_elem_tactic)
-    (jlen : j < s.length + 1 := by get_elem_tactic) :
-    s[i].Ptp.obj s[j].Tm ⟶ s[max i j].Tm :=
-  s.lams' i j ilen jlen
+def lams (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) :
+    s[i].Ptp.obj s[i].Tm ⟶ s[i].Tm :=
+  s.lams' i ilen
 
-def Pi_pullbacks (i j : Nat) (ilen : i < s.length + 1 := by get_elem_tactic)
-    (jlen : j < s.length + 1 := by get_elem_tactic) :
-    IsPullback (s.lams i j) (s[i].Ptp.map s[j].tp) s[max i j].tp (s.Pis i j) :=
-  s.Pi_pullbacks' i j ilen jlen
+def Pi_pbs (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) :
+    IsPullback (s.lams i) (s[i].Ptp.map s[i].tp) s[i].tp (s.Pis i) :=
+  s.Pi_pbs' i ilen
 
 -- Sadly, we have to spell out `ilen` and `jlen` due to
 -- https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/Optional.20implicit.20argument
 variable {i j : Nat} (ilen : i < s.length + 1) (jlen : j < s.length + 1)
+
+def PisPoly : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
+  sorry ≫ s.Pis (max i j)
+
+def lamsPoly : s[i].Ptp.obj s[j].Tm ⟶ s[max i j].Tm :=
+  sorry
+
+def PisPoly_pbs :
+    IsPullback (s.lamsPoly ilen jlen) (s[i].Ptp.map s[j].tp) s[max i j].tp (s.PisPoly ilen jlen) :=
+  sorry
 
 /--
 ```
@@ -223,7 +229,7 @@ variable {i j : Nat} (ilen : i < s.length + 1) (jlen : j < s.length + 1)
 Γ ⊢ₘₐₓ₍ᵢ,ⱼ₎ ΠA. B
 ``` -/
 def mkPi {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty) : y(Γ) ⟶ s[max i j].Ty :=
-  s[i].Ptp_equiv ⟨A, B⟩ ≫ s.Pis i j
+  s[i].Ptp_equiv ⟨A, B⟩ ≫ s.PisPoly ilen jlen
 
 theorem comp_mkPi {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty) :
@@ -237,13 +243,13 @@ theorem comp_mkPi {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
 Γ ⊢ₘₐₓ₍ᵢ,ⱼ₎ λA. t : ΠA. B
 ``` -/
 def mkLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (t : y(s[i].ext A) ⟶ s[j].Tm) : y(Γ) ⟶ s[max i j].Tm :=
-  s[i].Ptp_equiv ⟨A, t⟩ ≫ s.lams i j
+  s[i].Ptp_equiv ⟨A, t⟩ ≫ s.lamsPoly ilen jlen
 
 @[simp]
 theorem mkLam_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (t : y(s[i].ext A) ⟶ s[j].Tm) (t_tp : t ≫ s[j].tp = B) :
     s.mkLam ilen jlen A t ≫ s[max i j].tp = s.mkPi ilen jlen A B := by
-  simp [mkLam, mkPi, (s.Pi_pullbacks i j).w, s[i].Ptp_equiv_naturality_assoc, t_tp]
+  simp [mkLam, mkPi, (s.PisPoly_pbs ilen jlen).w, s[i].Ptp_equiv_naturality_assoc, t_tp]
 
 theorem comp_mkLam {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (t : y(s[i].ext A) ⟶ s[j].Tm) :
@@ -260,13 +266,13 @@ def unLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (f : y(Γ) ⟶ s[max i j].Tm) (f_tp : f ≫ s[max i j].tp = s.mkPi ilen jlen A B) :
     y(s[i].ext A) ⟶ s[j].Tm := by
   let total : y(Γ) ⟶ s[i].Ptp.obj s[j].Tm :=
-    (s.Pi_pullbacks i j).lift f (s[i].Ptp_equiv ⟨A, B⟩) f_tp
+    (s.PisPoly_pbs ilen jlen).lift f (s[i].Ptp_equiv ⟨A, B⟩) f_tp
   -- bug: `get_elem_tactic` fails on `i` with
   -- convert (s[i].Ptp_equiv.symm total).snd
   let this := s[i].Ptp_equiv.symm total
   convert this.snd
   have eq : total ≫ s[i].Ptp.map s[j].tp = s[i].Ptp_equiv ⟨A, B⟩ :=
-    (s.Pi_pullbacks i j).isLimit.fac _ (some .right)
+    (s.PisPoly_pbs ilen jlen).isLimit.fac _ (some .right)
   simpa [s[i].Ptp_equiv_symm_naturality] using (s[i].Ptp_ext.mp eq).left.symm
 
 @[simp]
@@ -275,13 +281,14 @@ theorem unLam_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].
     s.unLam ilen jlen A B f f_tp ≫ s[j].tp = B := by
   -- This proof is `s[i].Ptp_equiv_symm_naturality`, `IsPullback.lift_snd`, and ITT gunk.
   dsimp only [unLam]
-  generalize_proofs _ pf pf'
-  have := pf.lift_snd f (s[i].Ptp_equiv ⟨A, B⟩) f_tp
-  generalize pf.lift f (s[i].Ptp_equiv ⟨A, B⟩) f_tp = x at this pf'
-  have := congrArg s[i].Ptp_equiv.symm this
-  simp only [s[i].Ptp_equiv_symm_naturality, Equiv.symm_apply_apply, Sigma.mk.inj_iff] at this
-  cases this.left
-  simp [← eq_of_heq this.right]
+  sorry
+  -- generalize_proofs _ pf pf'
+  -- have := pf.lift_snd f (s[i].Ptp_equiv ⟨A, B⟩) f_tp
+  -- generalize pf.lift f (s[i].Ptp_equiv ⟨A, B⟩) f_tp = x at this pf'
+  -- have := congrArg s[i].Ptp_equiv.symm this
+  -- simp only [s[i].Ptp_equiv_symm_naturality, Equiv.symm_apply_apply, Sigma.mk.inj_iff] at this
+  -- cases this.left
+  -- simp [← eq_of_heq this.right]
 
 /--
 ```
