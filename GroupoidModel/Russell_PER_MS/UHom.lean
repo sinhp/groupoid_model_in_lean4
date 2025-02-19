@@ -84,48 +84,48 @@ object (aka empty context) and the universe to be
 defined over the empty context.
 
 These don't form a category since `UHom.id M` is essentially `Type : Type` in `M`. -/
-structure UHomRepTerminal [HasTerminal Ctx]
+structure UHomRepTerminal {t : Ctx} (ht : IsTerminal t)
     (M N : NaturalModelBase Ctx) extends Hom M N where
-  U : y(⊤_  Ctx) ⟶ N.Ty
+  U : y(t) ⟶ N.Ty
   U_pb : ∃ v : M.Ty ⟶ N.Tm, IsPullback
     v
-    ((isLimitOfHasTerminalOfPreservesLimit yoneda).from M.Ty)
+    ((ht.isTerminalObj yoneda t).from M.Ty)
     N.tp
     U
 
-theorem UHom.ofRepTerminalAux [HasTerminal Ctx] (c : Psh Ctx) :
+theorem UHom.ofRepTerminalAux {t : Ctx} (ht : IsTerminal t) (c : Psh Ctx) :
     IsPullback
       (CategoryStruct.id c)
       (terminal.from c)
-      ((isLimitOfHasTerminalOfPreservesLimit yoneda).from c)
-      (IsTerminal.uniqueUpToIso terminalIsTerminal (isLimitOfHasTerminalOfPreservesLimit yoneda)).hom    :=
+      ((ht.isTerminalObj yoneda t).from c)
+      (terminalIsTerminal.uniqueUpToIso
+        (ht.isTerminalObj yoneda t)).hom    :=
   IsPullback.of_horiz_isIso ⟨
-    IsTerminal.hom_ext
-      (isLimitOfHasTerminalOfPreservesLimit yoneda) _ _ ⟩
+      (ht.isTerminalObj yoneda t).hom_ext _ _ ⟩
 
 /-- Any `UHomRepTerminal` gives rise to a `UHom` with the same
 underlying Hom.-/
-def UHom.ofRepTerminal [HasTerminal Ctx] {M N : NaturalModelBase Ctx}
-    (H : UHomRepTerminal M N) : UHom M N := {
+def UHom.ofRepChosenTerminal {t : Ctx} (ht : IsTerminal t)
+    {M N : NaturalModelBase Ctx}
+    (H : UHomRepTerminal ht M N) : UHom M N := {
   H.toHom with
-  U := (isLimitOfHasTerminalOfPreservesLimit yoneda).from _ ≫ H.U
+  U := (ht.isTerminalObj yoneda t).from _ ≫ H.U
   U_pb := by
     rcases H.U_pb with ⟨ v , pb ⟩
     use v
-    refine IsPullback.paste_horiz (UHom.ofRepTerminalAux M.Ty) pb
+    exact IsPullback.paste_horiz (UHom.ofRepTerminalAux ht M.Ty) pb
 }
 
-
-def UHomRepTerminal.ofIsoPullback [HasTerminal Ctx] {M N : NaturalModelBase Ctx}
-    (H : Hom M N) {U : yoneda.obj (⊤_ Ctx) ⟶ N.Ty} (i : M.Ty ≅ y(N.ext U))
-    : UHomRepTerminal M N := {
+def UHomRepTerminal.ofTyIsoExt {t : Ctx} (ht : IsTerminal t)
+    {M N : NaturalModelBase Ctx}
+    (H : Hom M N) {U : y(t) ⟶ N.Ty} (i : M.Ty ≅ y(N.ext U))
+    : UHomRepTerminal ht M N := {
   H with
   U := U
   U_pb := by
     use i.hom ≫ N.var U
     convert IsPullback.of_iso_isPullback (N.disp_pullback _) i
-    apply IsTerminal.hom_ext
-      (isLimitOfHasTerminalOfPreservesLimit yoneda)
+    apply (ht.isTerminalObj yoneda t).hom_ext
 }
 
 def UHom.comp {M N O : NaturalModelBase Ctx} (α : UHom M N) (β : UHom N O) : UHom M O := {

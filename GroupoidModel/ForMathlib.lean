@@ -1,4 +1,5 @@
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.PullbackCone
+import Mathlib.CategoryTheory.Groupoid.Discrete
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 import Mathlib.CategoryTheory.Category.ULift
 import Mathlib.Logic.Function.ULift
@@ -6,6 +7,7 @@ import Mathlib.CategoryTheory.Category.Cat
 import Mathlib.CategoryTheory.Category.Grpd
 import Mathlib.CategoryTheory.Grothendieck
 import Mathlib.Data.Part
+import Mathlib.CategoryTheory.ChosenFiniteProducts
 
 /-! This file contains declarations missing from mathlib,
 to be upstreamed. -/
@@ -231,3 +233,40 @@ def of_iso_isPullback (h : IsPullback fst snd f g) {Q} (i : Q ≅ P) :
 
 end IsPullback
 end CategoryTheory
+
+namespace CategoryTheory
+
+namespace Grpd
+
+open Limits
+
+/-- The chosen terminal object in `Grpd`. -/
+abbrev chosenTerminal : Grpd.{u,u} := Grpd.of (Discrete.{u} PUnit)
+
+/-- The chosen terminal object in `Grpd` is terminal. -/
+def chosenTerminalIsTerminal : IsTerminal chosenTerminal :=
+  IsTerminal.ofUniqueHom (fun _ ↦ (Functor.const _).obj ⟨⟨⟩⟩) fun _ _ ↦ rfl
+
+/-- The chosen product of categories `C × D` yields a product cone in `Grpd`. -/
+def prodCone (C D : Grpd.{u,u}) : BinaryFan C D :=
+  .mk (P := .of (C × D)) (Prod.fst _ _) (Prod.snd _ _)
+
+/-- The product cone in `Grpd` is indeed a product. -/
+def isLimitProdCone (X Y : Grpd) : IsLimit (prodCone X Y) := BinaryFan.isLimitMk
+  (fun S => S.fst.prod' S.snd) (fun _ => rfl) (fun _ => rfl) (fun A B h1 h2 =>
+    Functor.hext
+      (fun x ↦ Prod.ext (by dsimp; rw [← h1]; rfl)
+      (by dsimp; rw [← h2]; rfl))
+      (fun _ _ _ ↦ by dsimp; rw [← h1, ← h2]; rfl))
+
+instance : ChosenFiniteProducts Grpd where
+  product (X Y : Grpd) := { isLimit := isLimitProdCone X Y }
+  terminal  := { isLimit := chosenTerminalIsTerminal }
+
+/-- The identity in the category of groupoids equals the identity functor.-/
+theorem id_eq_id (X : Grpd) : 𝟙 X = 𝟭 X := rfl
+
+/-- Composition in the category of groupoids equals functor composition.-/
+theorem comp_eq_comp {X Y Z : Grpd} (F : X ⟶ Y) (G : Y ⟶ Z) : F ≫ G = F ⋙ G := rfl
+
+end Grpd
