@@ -189,17 +189,17 @@ The following square is a pullback
       PGrpd ------ toPCat ------> PCat
         |                           |
         |                           |
-    PGrpd.forgetToGrpd        PCat.forgetToCat
+ PGrpd.forgetToGrpd          PCat.forgetToCat
         |                           |
         v                           v
       Grpd------forgetToCat------->Cat
 -/
 theorem isPullback_forgetToGrpd_forgetToCat :
-    IsPullback 
+    IsPullback
       (Cat.homOf PGrpd.forgetToPCat.{u,u})
       (Cat.homOf PGrpd.forgetToGrpd.{u,u})
       (Cat.homOf PCat.forgetToCat.{u,u})
-      (Cat.homOf Grpd.forgetToCat.{u,u}) := 
+      (Cat.homOf Grpd.forgetToCat.{u,u}) :=
   IsPullback.paste_horiz
     isPullback_forgetToGrpd_uLiftGrothendieckForget
     (IsPullback.paste_horiz

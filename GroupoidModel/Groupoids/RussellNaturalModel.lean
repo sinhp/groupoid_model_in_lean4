@@ -225,9 +225,10 @@ def isoCoreULift :
 
 end Core
 end ULift
-namespace PGrpd
+namespace LargeUniverse
 
-namespace IsPullback
+open PGrpd PGrpd.IsPullback
+
 def CAT : Cat.{max (v+1) u, max (v+1) u + 1} :=
   Cat.of (Cat.{max (v+1) u, max (v+1) u})
 def PCAT : Cat.{max (v+1) u, max (v+1) u + 1} :=
@@ -272,16 +273,6 @@ def pgrpdassmallfunctor : pgrpd.{v,u} ⟶ PGRPD.{v,u} :=
 def corepgrpdforgettogrpd : corepgrpd.{v,u} ⟶ coregrpd.{v,u} :=
   Cat.homOf $ Core.functor' $
     downFunctor ⋙ AsSmall.down ⋙ PGrpd.forgetToGrpd ⋙ AsSmall.up ⋙ upFunctor
-
-def grpdassmallfunctor' : grpd.{v,max u (v+2)} ⟶ grpd.{v+1,u} :=
-  Cat.homOf (downFunctor ⋙ AsSmall.down
-    ⋙ Grpd.asSmallFunctor.{v+1}
-    ⋙ AsSmall.up ⋙ upFunctor)
-def pgrpdassmallfunctor' : pgrpd.{v,max u (v+2)} ⟶ pgrpd.{v+1,u} :=
-  Cat.homOf (downFunctor ⋙ AsSmall.down ⋙ PGrpd.asSmallFunctor.{v+1}
-    ⋙ AsSmall.up ⋙ upFunctor)
-
-def funjhctor' : Cat.{v,u} ⥤ Cat.{v,u} := Core.functor ⋙ Grpd.forgetToCat
 
 def coreFunctorPGrpdForgetToGrpd : corepgrpd.{v,u} ⟶ coregrpd.{v,u} :=
   Cat.homOf (Core.functor.map pgrpdforgettogrpd)
@@ -524,31 +515,7 @@ theorem isPullback_corepgrpdforgettogrpd_PGRPDFORGETTOGRPD :
     (Core.isPullback_functor'_self pgrpdforgettogrpd.{v,u})
     (isPullback_pgrpdforgettogrpd_PGRPDFORGETTOGRPD.{v,u})
 
-/--
-The following square is a pullback
-
-   PGrpd.{v,v} -- PGrpd.asSmallFunctor --> PGrpd.{max v u, max v u}
-        |                                     |
-        |                                     |
-    PGrpd.forgetToGrpd                    PGrpd.forgetToGrpd
-        |                                     |
-        v                                     v
-   Grpd.{v,v}  -- Grpd.asSmallFunctor --> Grpd.{max v u, max v u}
--/
-theorem isPullback_pgrpdforgettogrpd_pgrpdforgettogrpd :
-    IsPullback
-      pgrpdassmallfunctor'.{v,u}
-      pgrpdforgettogrpd.{v,max u (v+2)}
-      pgrpdforgettogrpd.{v+1,u}
-      grpdassmallfunctor'.{v,u} := sorry
-  -- IsPullback.of_right
-  --   isPullback_pgrpdforgettogrpd_PCATFORGETTOCAT.{v,u}
-    -- rfl
-    -- isPullback_forgetToGrpd_forgetToCat
-end IsPullback
-
-end PGrpd
-
+end LargeUniverse
 
 namespace GroupoidNaturalModel
 
@@ -804,15 +771,18 @@ def E' : Grpd.{max (v+1) u,max (v+1) u} :=
 def E : Ctx.{max (v + 1) u} :=
   Ctx.ofGrpd.obj E'.{v,u}
 
+def π'' : AsSmall.{u} PGrpd.{v,v} ⥤ AsSmall.{u} Grpd.{v,v} :=
+  AsSmall.down ⋙ PGrpd.forgetToGrpd ⋙ AsSmall.up
+
 abbrev π' : E'.{v,u} ⥤ U'.{v,u} :=
-  Grpd.homOf (Core.functor' (AsSmall.down ⋙ PGrpd.forgetToGrpd ⋙ AsSmall.up))
+  Grpd.homOf (Core.functor' π'')
 
 /-- `π.{v}` is the morphism representing `v`-small `tp`,
   for the small natural models `baseU`. -/
 abbrev π : E.{v,u} ⟶ U.{v,u} :=
   Ctx.ofGrpd.map π'
 
-open PGrpd.IsPullback
+open PGrpd LargeUniverse
 
 -- FIXME this has an error without the `dsimp` saying it has
 -- two non-defeq category instances
@@ -945,7 +915,12 @@ theorem isPullback_yoneda_disp_yoneda_π :
     (base.disp_pullback (A ≫ toTy))
     isPullback_yπ_tp.{v,u}
 
-variable {Γ : Ctx.{max (v+2) u}} (A : y(Γ) ⟶ y(U.{v,max (v+2) u}))
+def toU'' : AsSmall.{max (v+2) u} Grpd.{v,v}
+    ⥤ AsSmall.{u} Grpd.{v+1,v+1} :=
+  AsSmall.down ⋙ Grpd.asSmallFunctor.{v+1} ⋙ AsSmall.up
+
+def toU' : U'.{v, max (v+2) u} ⟶ U'.{v+1,u} :=
+  Core.functor.map (Cat.homOf toU'')
 
 /-- `toU` is the base map between two `v`-small universes
     E.{v} --------------> E.{v+1}
@@ -956,13 +931,89 @@ variable {Γ : Ctx.{max (v+2) u}} (A : y(Γ) ⟶ y(U.{v,max (v+2) u}))
     v                      v
     U.{v}-------toU-----> U.{v+1}
  -/
-def toU : U.{v, max (v+2) u} ⟶ U.{v+1} := sorry
-  -- Ctx.ofGrpd.map $
-  --   AsSmall.down
-  --   ⋙ (Core.functor'.{v,v+1,v+1,v+2} Grpd.asSmallFunctor.{v+1}
-  --     : Core Grpd.{v,v} ⥤ Core Grpd.{v+1,v+1})
-  --   ⋙ AsSmall.up
-def toE : E.{v, max (v+2) u} ⟶ E.{v+1} := sorry
+def toU : U.{v, max (v+2) u} ⟶ U.{v+1} :=
+  Ctx.ofGrpd.map toU'
+
+def toE'' : AsSmall.{max (v+2) u} PGrpd.{v,v}
+    ⥤ AsSmall.{u} PGrpd.{v+1,v+1} :=
+  AsSmall.down ⋙ PGrpd.asSmallFunctor.{v+1} ⋙ AsSmall.up
+
+def toE' : E'.{v, max (v+2) u} ⟶ E'.{v+1,u} :=
+  Core.functor.map $ Cat.homOf toE''
+
+def toE : E.{v, max (v+2) u} ⟶ E.{v+1} :=
+  Ctx.ofGrpd.map toE'
+
+namespace SmallUniverse
+
+theorem comm_sq : Cat.homOf toE''.{v,u} ≫ Cat.homOf π'' =
+  Cat.homOf π'' ≫ Cat.homOf toU''.{v,u} := rfl
+
+-- theorem fac_left (s : PullbackCone (Cat.homOf (π'' : AsSmall.{u} PGrpd.{v+1,v+1} ⥤ AsSmall.{u} Grpd.{v+1,v+1}))
+--   (Cat.homOf toU''.{v,max u (v+1)})) :
+--     s.pt ⟶ Cat.of (AsSmall PGrpd) := sorry
+
+-- NOTE unfortunately, because of universe variable difficulties
+-- (namely `Ulift.{v} (ULift.{u} α) ≢ ULift.{max v u} α`)
+-- I don't see a way to prove this using what we have already
+/--
+The following square is a pullback
+ 
+ AsSmall PGrpd.{v} ------- toE'' ------> AsSmall PGrpd.{v+1}
+        |                                     |
+        |                                     |
+        π'                                    π'
+        |                                     |
+        v                                     v
+ AsSmall Grpd.{v}  ------- toU'' -----> AsSmall Grpd.{v+1}
+
+in the category `Cat.{max (v+2) u, max (v+2) u}`
+-/
+theorem isPullback_pgrpdforgettogrpd_pgrpdforgettogrpd :
+    IsPullback
+      (Cat.homOf toE''.{v,u})
+      (Cat.homOf π'')
+      (Cat.homOf π''.{v+1,u})
+      (Cat.homOf toU''.{v,u}) := by
+  refine IsPullback.of_isLimit (PullbackCone.IsLimit.mk comm_sq ?_ ?_ ?_ ?_)
+  · intro s
+    let djka := s.pt.α
+    let ljsdlakf := s.fst
+    let ljsdlakf := s.snd
+    let ljsdlakf := s.condition
+    -- exact {
+    --   obj x := AsSmall.up.obj (PGrpd.of (AsSmall.down.obj (s.snd.obj x)) _)
+    --   map := sorry}
+    sorry
+    -- -- convert_to s.pt.α ⥤ AsSmall.PGrpd
+    
+  · sorry
+  · sorry
+  · sorry
+
+/--
+The following square is a pullback
+
+ E'.{v,max (v+2) u} ------- toE' ------> E'.{v+1,u}
+        |                                     |
+        |                                     |
+        π'                                    π'
+        |                                     |
+        v                                     v
+ U'.{v,max (v+2) u}  ------- toU' -----> U'.{v+1,u}
+
+in the category `Grpd.{max (v+2) u, max (v+2) u}`
+-/
+theorem isPullback_π'_π' :
+    IsPullback
+      toE'.{v,u}
+      π'.{v}
+      π'.{v+1}
+      toU'.{v,u} := sorry
+
+end SmallUniverse
+
+variable {Γ : Ctx.{max (v+2) u}} (A : y(Γ) ⟶ y(U.{v,max (v+2) u}))
 
 /--
 The small universes form pullbacks
