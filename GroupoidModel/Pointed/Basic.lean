@@ -225,6 +225,10 @@ instance str (C : PGrpd.{v, u}) : PointedGroupoid.{v, u} C :=
 def of (C : Type u) [PointedGroupoid C] : PGrpd.{v, u} :=
   Bundled.of C
 
+/-- Construct a bundled `PGrpd` from the underlying type and the typeclass. -/
+def ofGrpd (G : Grpd.{v,u}) (pt : G) : PGrpd.{v, u} :=
+  ⟨ _ , .of G pt ⟩
+
 /-- Construct a bundled `PGrpd` from a `Grpd` and a point -/
 def fromGrpd (G : Grpd.{v,u}) (g : G) : PGrpd.{v,u} := by
   have pg : PointedGroupoid (Bundled.α G) := by

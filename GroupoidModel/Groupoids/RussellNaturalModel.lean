@@ -949,7 +949,7 @@ namespace SmallUniverse
 theorem comm_sq : Cat.homOf toE''.{v,u} ≫ Cat.homOf π'' =
   Cat.homOf π'' ≫ Cat.homOf toU''.{v,u} := rfl
 
-section
+section IsPullbackInCat
 
 variable (c : Cat.{max u (v+2), max u (v+2)})
   (fst : c ⥤ PGrpd.{v+1,v+1})
@@ -957,9 +957,19 @@ variable (c : Cat.{max u (v+2), max u (v+2)})
   (condition : fst ⋙ PGrpd.forgetToGrpd.{v+1,v+1}
     = snd ⋙ Grpd.asSmallFunctor.{v+1, v, v})
 
-end
+def fac_left' :
+    c ⥤ PGrpd.{v,v} := by
+  let k := Functor.congr_obj condition 
+  exact {
+    obj x := PGrpd.ofGrpd (snd.obj x) sorry
+    map f := sorry
+}
 
-theorem comp_asSmallUp_inj {F G : C ⥤ D}
+end IsPullbackInCat
+
+theorem comp_asSmallUp_inj {C : Type u} [Category.{v} C]
+  {D : Type u₁} [Category.{v₁} D]
+    {F G : C ⥤ D}
     (h : F ⋙ (AsSmall.up : D ⥤ AsSmall.{w} D) =
       G ⋙ AsSmall.up)
     : F = G := by
@@ -977,13 +987,9 @@ def fac_left (s : PullbackCone
   let fst : c ⥤ PGrpd.{v+1,v+1} := s.fst ⋙ AsSmall.down
   let snd : c ⥤ Grpd.{v,v} := s.snd ⋙ AsSmall.down
   let condition : fst ⋙ PGrpd.forgetToGrpd.{v+1,v+1}
-    = snd ⋙ Grpd.asSmallFunctor.{v+1, v, v} := by
-    have h := s.condition
-    simp [π'', toU'', Cat.comp_eq_comp, Cat.homOf] at h
-    simp [fst, snd]
-    
-    sorry
-
+      = snd ⋙ Grpd.asSmallFunctor.{v+1, v, v} :=
+    comp_asSmallUp_inj s.condition
+  
 
   sorry
 
