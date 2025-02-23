@@ -40,7 +40,7 @@ universe v u v₁ u₁ v₂ u₂
 namespace CategoryTheory
 
 
-variable {Γ : Type u} [Groupoid.{v} Γ]
+variable {Γ : Type u} [Category.{v} Γ]
   (A : Γ ⥤ Grpd.{v₁,u₁})
 
 abbrev Groupoid.compForgetToCat : Γ ⥤ Cat.{v₁,u₁} := A ⋙ Grpd.forgetToCat
@@ -52,18 +52,21 @@ namespace Grothendieck
   the Grothendieck construction of the composite `F ⋙ Grpd.forgetToCat`, where
   `forgetToCat : Grpd ⥤ Cat` is the embedding of groupoids into categories, is a groupoid.
 -/
-abbrev Groupoidal {C : Type u₁} [Groupoid.{v₁,u₁} C] (F : C ⥤ Grpd.{v₂,u₂}) :=
+abbrev Groupoidal {C : Type u₁} [Category.{v₁,u₁} C] (F : C ⥤ Grpd.{v₂,u₂}) :=
   Grothendieck (Groupoid.compForgetToCat F)
 
 namespace Groupoidal
 
 section
-variable {C : Type u₁} [Groupoid.{v₁,u₁} C] {F : C ⥤ Grpd.{v₂,u₂}}
 
-instance : Category (Groupoidal F) :=
+instance {C : Type u₁} [Category.{v₁,u₁} C] {F : C ⥤ Grpd.{v₂,u₂}} :
+    Category (Groupoidal F) :=
   inferInstanceAs (Category (Grothendieck _))
 
-instance (X : C) : Groupoid (Groupoid.compForgetToCat F |>.obj X) where
+variable {C : Type u₁} [Groupoid.{v₁,u₁} C] {F : C ⥤ Grpd.{v₂,u₂}}
+
+instance
+    (X : C) : Groupoid (Groupoid.compForgetToCat F |>.obj X) where
   inv f := ((F.obj X).str').inv f
 
 def isoMk {X Y : Grothendieck.Groupoidal F} (f : X ⟶ Y) : X ≅ Y := by
@@ -79,6 +82,7 @@ instance groupoid : Groupoid (Grothendieck.Groupoidal F) where
   inv_comp f := (isoMk f).inv_hom_id
   comp_inv f := (isoMk f).hom_inv_id
 
+end
 -- def ToGrpd : Grothendieck.Groupoidal F ⥤ Grpd.{v₂,u₂} :=
 --   Grothendieck.forget _ ⋙ F
 
@@ -129,7 +133,8 @@ instance groupoid : Groupoid (Grothendieck.Groupoidal F) where
 --   map_id x := by
 --     sorry
 
-instance toPCatObjGroupoid (x : Grothendieck (Groupoid.compForgetToCat.{v,u,v₁,u₁} A)) :
+instance toPCatObjGroupoid
+    (x : Grothendieck (Groupoid.compForgetToCat.{v,u,v₁,u₁} A)) :
     Groupoid x.toPCatObj := by
   dsimp [Grpd.forgetToCat]
   infer_instance
@@ -148,13 +153,11 @@ theorem toPGrpd_comp_forgetToPCat :
     toPGrpd A ⋙ PGrpd.forgetToPCat = toPCat (Groupoid.compForgetToCat A) :=
   rfl
 
-end
-
 namespace IsPullback
 
 open Grothendieck.IsPullback ULift
 
-variable {Γ : Type u} [Groupoid.{u} Γ] (A : Γ ⥤ Grpd.{u,u})
+variable {Γ : Type u} [Category.{u} Γ] (A : Γ ⥤ Grpd.{u,u})
 
 abbrev uLiftGrpd : Cat.{u, max u (u+1)} :=
   Cat.ofULift.{max u (u+1)} Grpd.{u}
@@ -183,7 +186,14 @@ given by pullback pasting in the following pasting diagram.
 -/
 noncomputable def var' :
     IsPullback.uLiftGrothendieck (Groupoid.compForgetToCat.{u} A)
-    ⟶ IsPullback.uLiftGrothendieck Grpd.forgetToCat.{u,u} := (Grothendieck.isPullback (Grpd.forgetToCat.{u,u})).lift (IsPullback.uLiftToPCat (Groupoid.compForgetToCat.{u} A)) ((IsPullback.uLiftGrothendieckForget (Groupoid.compForgetToCat.{u} A)) ≫ uLiftA A) (Grothendieck.isPullback (Groupoid.compForgetToCat.{u} A)).cone.condition_one
+    ⟶ IsPullback.uLiftGrothendieck Grpd.forgetToCat.{u,u} :=
+  (Grothendieck.isPullback (Grpd.forgetToCat.{u,u})).lift
+    (IsPullback.uLiftToPCat (Groupoid.compForgetToCat.{u} A))
+    ((IsPullback.uLiftGrothendieckForget
+      (Groupoid.compForgetToCat.{u} A)) ≫ uLiftA A)
+      (Grothendieck.isPullback
+        (Groupoid.compForgetToCat.{u} A)).cone.condition_one
+
 theorem var'_uLiftToPCat :
     var' A ≫ (uLiftToPCat (Grpd.forgetToCat.{u,u}))
     = uLiftToPCat (Groupoid.compForgetToCat.{u} A) := 
@@ -191,7 +201,6 @@ theorem var'_uLiftToPCat :
     (IsPullback.uLiftToPCat (Groupoid.compForgetToCat.{u} A))
     ((IsPullback.uLiftGrothendieckForget (Groupoid.compForgetToCat.{u} A)) ≫ uLiftA A)
     (Grothendieck.isPullback (Groupoid.compForgetToCat.{u} A)).cone.condition_one
-
 
 theorem var'_forget :
     var' A ≫ (uLiftGrothendieckForget (Grpd.forgetToCat.{u,u}))
@@ -245,7 +254,7 @@ theorem isPullback_aux:
 
 open ULift 
 
-variable {Γ : Type u} [Groupoid.{u} Γ] (A : Γ ⥤ Grpd.{u,u})
+variable {Γ : Type u} [Category.{u} Γ] (A : Γ ⥤ Grpd.{u,u})
 
 theorem toPGrpd_comp_forgetToPCat_eq_var'_comp_isoGrothendieckForgetToCatInv_comp_forgetToPCat :
     downFunctor ⋙ toPGrpd A ⋙ PGrpd.forgetToPCat
@@ -308,7 +317,7 @@ The following square is a pullback
 in the appropriately sized category `Grpd.{v, max u (v+1)}`;
 where `(Γ : Type u) [Grpdegory.{v} Γ] (A : Γ ⥤ Grpd.{v,v})`.
 -/
-theorem isPullback {Γ : Type u} [Groupoid.{u} Γ] (A : Γ ⥤ Grpd.{u,u}) : 
+theorem isPullback {Γ : Type u} [Category.{u} Γ] (A : Γ ⥤ Grpd.{u,u}) : 
     IsPullback
       (Cat.homOf (ULift.downFunctor ⋙ toPGrpd A))
       (IsPullback.uLiftGrothendieckForget (Groupoid.compForgetToCat.{u} A))
@@ -322,4 +331,3 @@ theorem isPullback {Γ : Type u} [Groupoid.{u} Γ] (A : Γ ⥤ Grpd.{u,u}) :
 end Groupoidal
 end Grothendieck
 end CategoryTheory
- 

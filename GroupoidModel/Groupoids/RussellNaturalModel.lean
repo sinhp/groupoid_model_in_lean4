@@ -949,6 +949,33 @@ namespace SmallUniverse
 theorem comm_sq : Cat.homOf toE''.{v,u} ≫ Cat.homOf π'' =
   Cat.homOf π'' ≫ Cat.homOf toU''.{v,u} := rfl
 
+def toE''' : AsSmall.{v+1} PGrpd.{v,v}
+    ⥤ PGrpd.{v+1,v+1} :=
+  AsSmall.down ⋙ PGrpd.asSmallFunctor.{v+1}
+
+def toU''' : AsSmall.{v+1} Grpd.{v,v}
+    ⥤ Grpd.{v+1,v+1} :=
+  AsSmall.down ⋙ Grpd.asSmallFunctor.{v+1}
+
+-- CategoryTheory.Grothendieck.Groupoidal.isPullback toU'''
+open Grothendieck.Groupoidal
+
+theorem isPullback_uLiftGrothendieckForget_forgetToGrpd :
+    IsPullback
+      (Cat.homOf (ULift.downFunctor ⋙ toPGrpd toU'''.{v}))
+      (IsPullback.uLiftGrothendieckForget (Groupoid.compForgetToCat toU'''))
+      (Cat.homOf PGrpd.forgetToGrpd.{v+1,v+1})
+      (Cat.homOf (ULift.downFunctor.{v+1,v+1} ⋙ toU'''.{v})) :=
+  Grothendieck.Groupoidal.isPullback _
+
+-- theorem isPullback_asSmallForgetToGrpd_forgetToGrpd :
+--     IsPullback
+--       (Cat.homOf (toE'''.{v}))
+--       (Cat.homOf (AsSmall.down ⋙ PGrpd.forgetToGrpd ⋙ AsSmall.up))
+--       (Cat.homOf PGrpd.forgetToGrpd.{v+1,v+1})
+--       (Cat.homOf (AsSmall.down ⋙ toU'''.{v})) :=
+--   sorry
+
 section IsPullbackInCat
 
 variable (c : Cat.{max u (v+2), max u (v+2)})
@@ -957,12 +984,27 @@ variable (c : Cat.{max u (v+2), max u (v+2)})
   (condition : fst ⋙ PGrpd.forgetToGrpd.{v+1,v+1}
     = snd ⋙ Grpd.asSmallFunctor.{v+1, v, v})
 
-def fac_left' :
-    c ⥤ PGrpd.{v,v} := by
-  let k := Functor.congr_obj condition 
-  exact {
-    obj x := PGrpd.ofGrpd (snd.obj x) sorry
-    map f := sorry
+-- #check asSmallFunctorIsEquiv?
+def Grpd.coe {G H : Grpd.{v,u}} (p : G = H) (x : G) : H :=
+  (eqToHom p).obj x
+
+def lift' :
+    c ⥤ PGrpd.{v,v} := {
+    obj x := PGrpd.ofGrpd (snd.obj x)
+      (AsSmall.down.obj.{v,v,v+1}
+        ((eqToHom (Functor.congr_obj condition x)).obj
+        (fst.obj x).str.pt))
+    map {x y} f := PGrpd.homOf {
+      toFunctor := snd.map f
+      point := by
+        have h := ((eqToHom (Functor.congr_obj condition y)).map (fst.map f).point)
+        simp at h
+        have h' := (Functor.congr_hom condition f)
+        refine AsSmall.down.map.{v,v,v+1} ?_
+        sorry
+}
+    map_id := sorry
+    map_comp := sorry
 }
 
 end IsPullbackInCat
@@ -996,6 +1038,8 @@ def fac_left (s : PullbackCone
 -- NOTE unfortunately, because of universe variable difficulties
 -- (namely `Ulift.{v} (ULift.{u} α) ≢ ULift.{max v u} α`)
 -- I don't see a way to prove this using what we have already
+
+-- NOTE document how this is proven
 /--
 The following square is a pullback
  

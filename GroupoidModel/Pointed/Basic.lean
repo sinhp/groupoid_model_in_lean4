@@ -252,6 +252,10 @@ instance category : LargeCategory.{max v u} PGrpd.{v, u} where
     simp
     simp [PointedFunctor.comp,Functor.assoc]
 
+/-- Construct a morphism in `PGrpd` from the underlying functor -/
+@[simp] def homOf {C D : PGrpd.{v,u}} (F : PointedFunctor C D) :
+    C ⟶ D := F
+
 /-- The functor that takes PGrpd to Grpd by forgetting the points-/
 @[simps] def forgetToGrpd : PGrpd.{v,u} ⥤ Grpd.{v,u} where
   obj x := Grpd.of x
