@@ -87,14 +87,14 @@ def lift :
     c ⥤ PGrpd.{v,v} := {
     obj := lift_obj condition
     map := lift_map condition
-    map_id x := by sorry
-      -- apply PointedFunctor.ext
-      -- · simp only [εApp, ε, lift_map, PGrpd.homOf, PGrpd.map_id_point]
-      --   generalize_proofs _ pf2
-      --   simp [Functor.congr_hom (eqToHom_app condition x) (eqToHom pf2),
-      --     eqToHom_map]
-      -- · simp only [lift_map, PGrpd.homOf, CategoryTheory.Functor.map_id]
-      --   rfl
+    map_id x := by
+      apply PointedFunctor.ext
+      · simp only [εApp, ε, lift_map, PGrpd.homOf, PGrpd.map_id_point]
+        generalize_proofs _ pf2
+        simp [Functor.congr_hom (eqToHom_app condition x) (eqToHom pf2),
+          eqToHom_map]
+      · simp only [lift_map, PGrpd.homOf, CategoryTheory.Functor.map_id]
+        rfl
     map_comp {x y z} f g := by
       apply PointedFunctor.ext
       · 
@@ -107,7 +107,6 @@ def lift :
           Grpd.coe_of, εApp, ε, lift_map, PGrpd.homOf,
           PGrpd.forgetToGrpd_map, eqToHom_app,
           PGrpd.comp_toFunctor, PGrpd.comp_point, point']
-        -- generalize_proofs pf1 pf2 pf3 pf4 pf5
         rw [Functor.congr_hom (eqToHom_app condition y) (point' f),
           Functor.congr_hom
             (eqToHom_app condition z) (point' g),
