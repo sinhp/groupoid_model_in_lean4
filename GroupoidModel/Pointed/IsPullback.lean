@@ -11,7 +11,12 @@ along `Grpd.forgetToCat` of `PCat.forgetToCat`.
   the functor `PGrpd.forgetToGrpd` is the pullback
   along `Grpd.forgetToCat` of `PCat.forgetToCat`.
 
+- TODO Probably the latter half of this file can be shortened
+  significantly by providing a direct proof of pullback
+  using the `IsMegaPullback` definitions
 -/
+
+
 universe v u v₁ u₁ v₂ u₂
 
 /-
@@ -34,10 +39,42 @@ def isoGrothendieckForgetToCatInv :
   obj x := ⟨ x.base , PointedGroupoid.of x.base x.fiber ⟩
   map f := ⟨ f.base , f.fiber ⟩
 
-@[simps] def isoGrothendieckForgetToCat : Cat.of PGrpd.{v,u} ≅ 
+@[simps] def isoGrothendieckForgetToCat : Cat.of PGrpd.{v,u} ≅
     Cat.of (Grothendieck Grpd.forgetToCat.{v,u}) where
   hom := isoGrothendieckForgetToCatHom.{v,u}
   inv := isoGrothendieckForgetToCatInv.{v,u}
+
+namespace IsMegaPullback
+
+def comm_sq : PGrpd.forgetToPCat.{v,u} ⋙ PCat.forgetToCat.{v,u} =
+    PGrpd.forgetToGrpd.{v,u} ⋙ Grpd.forgetToCat.{v,u} := rfl
+
+variable {C : Type u₂} [Category.{v₂} C]
+  (fst : C ⥤ PCat.{v₁,u₁})
+  (snd : C ⥤ Grpd.{v₁,u₁})
+  (w : fst ⋙ PCat.forgetToCat = snd ⋙ Grpd.forgetToCat)
+
+def lift : C ⥤ PGrpd.{v₁,u₁} :=
+  Grothendieck.IsMegaPullback.lift fst snd w
+  ⋙ isoGrothendieckForgetToCatInv
+
+theorem fac_left : lift fst snd w ⋙ PGrpd.forgetToPCat = fst :=
+  Grothendieck.IsMegaPullback.fac_left fst snd w
+
+theorem fac_right : lift fst snd w ⋙ PGrpd.forgetToGrpd = snd :=
+  Grothendieck.IsMegaPullback.fac_right fst snd w
+
+theorem uniq (m : C ⥤ PGrpd.{v₁,u₁})
+    (hl : m ⋙ PGrpd.forgetToPCat = fst)
+    (hr : m ⋙ PGrpd.forgetToGrpd = snd) :
+    m = lift _ _ w := by
+  convert_to (m ⋙ isoGrothendieckForgetToCatHom)
+    ⋙ isoGrothendieckForgetToCatInv = lift fst snd w
+  rw [Grothendieck.IsMegaPullback.uniq
+    fst snd w (m ⋙ isoGrothendieckForgetToCatHom) hl hr]
+  rfl
+
+end IsMegaPullback
 
 namespace IsPullback
 
@@ -107,7 +144,7 @@ The following square is a pullback
     ↑Grpd--------------------≅---------------> Grpd
 -/
 
-theorem isPullback_uLiftGrothendieckForget_forgetToGrpd : 
+theorem isPullback_uLiftGrothendieckForget_forgetToGrpd :
     IsPullback
     ((Cat.ULift_iso_self ≪≫ PGrpd.isoGrothendieckForgetToCat.{u,u}.symm).hom)
     (IsPullback.uLiftGrothendieckForget.{u,u+1} Grpd.forgetToCat.{u,u})
@@ -207,5 +244,5 @@ theorem isPullback_forgetToGrpd_forgetToCat :
       isPullback_uLiftPCatForgetToCat_forgetToCat)
 
 
-end PGrpd 
+end PGrpd
 end CategoryTheory

@@ -3,7 +3,7 @@ import Mathlib.CategoryTheory.Category.Grpd
 import GroupoidModel.Pointed.IsPullback
 
 /-!
-# The Groupidal Grothendieck construction
+# The Groupidal Grothendieck construction 
 
   ↑Grothendieck (toCat A) -- toPGrpd --> PGrpd
         |                                 |
@@ -28,19 +28,17 @@ import GroupoidModel.Pointed.IsPullback
 * `CategoryTheory.Grothendieck.Groupoidal.isPullback`
   shows that `Grothendieck.forget A` is classified by `PGrpd.forgetToGrpd`
   as the pullback of `A`.
-  This uses the proof of the similar fact
+  This uses the proof of the similar fact 
   `CategoryTheory.Grothendieck.isPullback`,
   as well as the proof `CategoryTheory.isPullback_forgetToGrpd_forgetToCat`
   that `PGrpd` is the pullback of `PCat`.
 
-- TODO Probably the proof of `Groupoidal.IsPullback` can be shortened
-  significantly by providing a direct proof of pullback
-  using the `IsMegaPullback` defintions
 -/
 
 universe v u v₁ u₁ v₂ u₂
 
 namespace CategoryTheory
+
 
 variable {Γ : Type u} [Category.{v} Γ]
   (A : Γ ⥤ Grpd.{v₁,u₁})
@@ -48,7 +46,6 @@ variable {Γ : Type u} [Category.{v} Γ]
 abbrev Groupoid.compForgetToCat : Γ ⥤ Cat.{v₁,u₁} := A ⋙ Grpd.forgetToCat
 
 namespace Grothendieck
-
 /--
   In Mathlib.CategoryTheory.Grothendieck we find the Grothendieck construction
   for the functors `F : C ⥤ Cat`. Given a functor `F : G ⥤ Grpd`, we show that
@@ -156,72 +153,6 @@ theorem toPGrpd_comp_forgetToPCat :
     toPGrpd A ⋙ PGrpd.forgetToPCat = toPCat (Groupoid.compForgetToCat A) :=
   rfl
 
-namespace IsMegaPullback
-
-variable {A} {C : Type u₂} [Category.{v₂} C]
-  (fst : C ⥤ PGrpd.{v₁, u₁})
-  (snd : C ⥤ Γ)
-  (w : fst ⋙ PGrpd.forgetToGrpd = snd ⋙ A)
-
-def comm_sq : Groupoidal.toPGrpd A ⋙ PGrpd.forgetToGrpd
-    = Grothendieck.forget _ ⋙ A := rfl
-
-theorem toPGrpd_eq_lift :
-    toPGrpd A =
-    PGrpd.IsMegaPullback.lift
-      (toPCat (Groupoid.compForgetToCat A))
-      (Grothendieck.forget _ ⋙ A) rfl :=
-  PGrpd.IsMegaPullback.uniq
-    (toPCat (Groupoid.compForgetToCat A))
-    (Grothendieck.forget _ ⋙ A)
-    rfl _ rfl rfl
-
-def lift : C ⥤ Groupoidal A :=
-  Grothendieck.IsMegaPullback.lift
-    (fst ⋙ PGrpd.forgetToPCat) snd (by
-      simp only [Groupoid.compForgetToCat, ← Functor.assoc, ← w]
-      rfl)
-
-theorem fac_left' : (lift fst snd w ⋙ toPGrpd A) ⋙ PGrpd.forgetToPCat
-    = fst ⋙ PGrpd.forgetToPCat := by
-  rw [toPGrpd_eq_lift, Functor.assoc,
-    PGrpd.IsMegaPullback.fac_left,
-    ← PGrpd.IsMegaPullback.fac_left
-      (fst ⋙ PGrpd.forgetToPCat) (snd ⋙ A) (by rw [← w]; rfl)]
-  rfl
-
-theorem fac_left : lift fst snd w ⋙ Groupoidal.toPGrpd _ = fst :=
-   calc lift fst snd w ⋙ Groupoidal.toPGrpd _
-    _ = PGrpd.IsMegaPullback.lift
-      (fst ⋙ PGrpd.forgetToPCat)
-      (snd ⋙ A)
-      (by rw [Functor.assoc, PGrpd.IsMegaPullback.comm_sq, ← w]; rfl) :=
-    PGrpd.IsMegaPullback.uniq
-      (fst ⋙ PGrpd.forgetToPCat)
-      (snd ⋙ A) _ _
-      (fac_left' _ _ _)
-      (by rw [Functor.assoc, comm_sq]; rfl)
-    _ = fst :=
-    symm $ PGrpd.IsMegaPullback.uniq _ _ _ _ rfl w
-
-theorem fac_right :
-    lift fst snd w ⋙ Grothendieck.forget _
-    = snd :=
-  Grothendieck.IsMegaPullback.fac_right
-    (fst ⋙ PGrpd.forgetToPCat) snd (by
-    rw [Functor.assoc, PGrpd.IsMegaPullback.comm_sq,
-      ← Functor.assoc, w, Functor.assoc])
-
-theorem uniq (m : C ⥤ Groupoidal A)
-    (hl : m ⋙ toPGrpd _ = fst)
-    (hr : m ⋙ Grothendieck.forget _ = snd) :
-    m = lift _ _ w := by
-  apply Grothendieck.IsMegaPullback.uniq
-  · rw [← toPGrpd_comp_forgetToPCat, ← hl, Functor.assoc]
-  · exact hr
-
-end IsMegaPullback
-
 namespace IsPullback
 
 open Grothendieck.IsPullback ULift
@@ -265,7 +196,7 @@ noncomputable def var' :
 
 theorem var'_uLiftToPCat :
     var' A ≫ (uLiftToPCat (Grpd.forgetToCat.{u,u}))
-    = uLiftToPCat (Groupoid.compForgetToCat.{u} A) :=
+    = uLiftToPCat (Groupoid.compForgetToCat.{u} A) := 
   (Grothendieck.isPullback (Grpd.forgetToCat.{u,u})).lift_fst
     (IsPullback.uLiftToPCat (Groupoid.compForgetToCat.{u} A))
     ((IsPullback.uLiftGrothendieckForget (Groupoid.compForgetToCat.{u} A)) ≫ uLiftA A)
@@ -316,12 +247,12 @@ theorem isPullback_aux:
         ≫ (Cat.ULift_iso_self ≪≫ PGrpd.isoGrothendieckForgetToCat.{u,u}.symm).hom)
       (IsPullback.uLiftGrothendieckForget (Groupoid.compForgetToCat.{u} A))
       (Cat.homOf PGrpd.forgetToGrpd.{u,u})
-      (uLiftA A ≫ Cat.ULift_iso_self.hom) :=
+      (uLiftA A ≫ Cat.ULift_iso_self.hom) := 
   IsPullback.paste_horiz
     (isPullback_uLiftGrothendieckForget_Groupoid.compForgetToCat_uLiftGrothendieckForget_grpdForgetToCat.{u} A)
     (PGrpd.IsPullback.isPullback_uLiftGrothendieckForget_forgetToGrpd.{u})
 
-open ULift
+open ULift 
 
 variable {Γ : Type u} [Category.{u} Γ] (A : Γ ⥤ Grpd.{u,u})
 
@@ -358,7 +289,7 @@ theorem toPGrpd_eq_var'_comp_isoGrothendieckForgetToCatInv' :
     Cat.homOf (downFunctor ⋙ toPGrpd A)
       = Cat.homOf (var' A ⋙ downFunctor ⋙ PGrpd.isoGrothendieckForgetToCatInv)
       :=
-  PGrpd.isPullback_forgetToGrpd_forgetToCat.{u}.hom_ext
+  PGrpd.isPullback_forgetToGrpd_forgetToCat.{u}.hom_ext 
     (toPGrpd_comp_forgetToPCat_eq_var'_comp_isoGrothendieckForgetToCatInv_comp_forgetToPCat _)
     (toPGrpd_comp_forgetToGrpd_eq_var'_comp_isoGrothendieckForgetToCatInv_comp_forgetToGrpd _)
 
@@ -386,7 +317,7 @@ The following square is a pullback
 in the appropriately sized category `Grpd.{v, max u (v+1)}`;
 where `(Γ : Type u) [Grpdegory.{v} Γ] (A : Γ ⥤ Grpd.{v,v})`.
 -/
-theorem isPullback {Γ : Type u} [Category.{u} Γ] (A : Γ ⥤ Grpd.{u,u}) :
+theorem isPullback {Γ : Type u} [Category.{u} Γ] (A : Γ ⥤ Grpd.{u,u}) : 
     IsPullback
       (Cat.homOf (ULift.downFunctor ⋙ toPGrpd A))
       (IsPullback.uLiftGrothendieckForget (Groupoid.compForgetToCat.{u} A))
