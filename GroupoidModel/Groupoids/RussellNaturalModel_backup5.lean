@@ -1280,38 +1280,21 @@ def uHomSeqObjs (i : Nat) (h : i < 3) : NaturalModelBase Ctx.{2} :=
   | 2 => base.{2}
   | (n+3) => by omega
 
-def U.asSmallClosedType : y(Ctx.chosenTerminal.{max u (v+2)})
-    ⟶ U1.{v+1, max u (v+2)}.Ty :=
-  ym({ down := (Functor.const _).obj (
-    { down := Grpd.of (Core (AsSmall.{v+1} Grpd.{v,v})) }) })
-
-def dslkfj : Core (AsSmall Grpd)
-  ⥤ Groupoidal (yonedaCatEquiv (
-    U.asSmallClosedType ≫ U.toTy)) where
-  obj X := ⟨ ⟨⟨⟩⟩ , by
-    -- simp only [Functor.comp_obj, whiskeringLeft_obj_obj, yonedaCatEquiv, op_obj, catLift_obj,
-    --   yoneda_obj_obj, yonedaEquiv, Opposite.op_unop, Functor.comp_map, op_map, Quiver.Hom.unop_op, 
-    --   catLift_map, Cat.of_α, upFunctor, yoneda_obj_map, U.asSmallClosedType, U.toTy, inclusionGrpdCompAsSmallFunctor,
-    --   whiskeringLeft_obj_map, Equiv.trans_apply, Equiv.coe_fn_mk, FunctorToTypes.comp, yoneda_map_app, Category.id_comp,
-    --   whiskerLeft_app, Cat.comp_obj, downFunctor_obj, U.isoYonedaCatGrpd]
-    -- -- rw [yonedaEquiv_yoneda_map]
-    
-    sorry ⟩
-  map {X Y} F := ⟨ sorry , sorry ⟩
-  map_id := sorry
-  map_comp := sorry
+def U.asSmallClosedType :
+    y(Ctx.chosenTerminal.{max u (v+2)}) ⟶ U1.{v+1, max u (v+2)}.Ty :=
+  sorry
 
 def U.isoExtAsSmallClosedType :
-    U.{v,max u (v+2)} ≅ U1.{v+1,max u (v+2)}.ext U.asSmallClosedType.{v,u} where
-  hom := Ctx.ofGrpd.map (Grpd.homOf sorry)
+    U.{v+1,max u (v+2)} ≅ U1.{v+1,max u (v+2)}.ext U.asSmallClosedType.{v,u} where
+  hom := Ctx.ofGrpd.map sorry
   inv := Ctx.ofGrpd.map sorry
 
 def uHom01 : UHom U0.{v, max u (v+2)} U1.{v+1, max u (v+2)} :=
   UHom.ofRepChosenTerminal Ctx.chosenTerminalIsTerminal $
     @UHomRepTerminal.ofTyIsoExt _ _ _ _ _ _
     (isPullbackHom U1.{v+1, max u (v+2)} U.isPullback_yπ_yπ.{v, max u (v+2)})
-    U.asSmallClosedType
-    (Functor.mapIso yoneda U.isoExtAsSmallClosedType.{v,u})
+    sorry
+    sorry -- (Functor.mapIso yoneda U.isoExtAsSmallClosedType.{v,u})
 
 /- -- might not need this anymore
 def coreAsSmallEquivAsSmallCoreFunctor (C : Type u) [Category.{v} C] :

@@ -171,12 +171,16 @@ theorem eqToHom_toFunctor {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
   cases eq
   simp[ PointedFunctor.id, CategoryStruct.id, PCat.forgetToCat,Cat.of,Bundled.of]
 
+-- TODO this should be renamed to PCat.eqToHom_point_aux
+-- because PCat and PGrpd both use pointed functors
 /-- This is the proof of equality used in the eqToHom in `PointedFunctor.eqToHom_point` -/
 theorem eqToHom_point_aux {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
     (eqToHom eq).obj PointedCategory.pt = PointedCategory.pt := by
   cases eq
   simp [CategoryStruct.id]
 
+-- TODO this should be renamed to PCat.eqToHom_point
+-- because PCat and PGrpd both use pointed functors
 /-- This shows that the point of an eqToHom in PCat is an eqToHom-/
 theorem eqToHom_point {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
     (eqToHom eq).point = (eqToHom (PCat.eqToHom_point_aux eq)) := by
@@ -299,6 +303,29 @@ lemma comp_toFunctor {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) :
 @[simp]
 lemma comp_point {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) :
     (F ≫ G).point = G.map (F.point) ≫ G.point := rfl
+
+theorem map_id_point {C : Type u} [Category.{v} C] {F : C ⥤ PGrpd} {x : C} :
+    (F.map (CategoryStruct.id x)).point =
+    eqToHom (by simp : (F.map (CategoryStruct.id x)).obj (F.obj x).str.pt = (F.obj x).str.pt) := by
+  have : (CategoryStruct.id (F.obj x)).point = _ := PGrpd.id_point
+  convert this
+  · simp
+  · simp
+  · refine HEq.symm (heq_of_eqRec_eq ?_ rfl)
+    · symm; assumption
+
+/-- This is the proof of equality used in the eqToHom in `PGrpd.eqToHom_point` -/
+theorem eqToHom_point_aux {P1 P2 : PGrpd.{v,u}} (eq : P1 = P2) :
+    (eqToHom eq).obj PointedCategory.pt = PointedCategory.pt := by
+  cases eq
+  simp [CategoryStruct.id]
+
+/-- This shows that the point of an eqToHom in PGrpd is an eqToHom-/
+theorem eqToHom_point {P1 P2 : PGrpd.{v,u}} (eq : P1 = P2) :
+    (eqToHom eq).point = (eqToHom (eqToHom_point_aux eq)) := by
+  cases eq
+  simp[PointedFunctor.id, CategoryStruct.id, PCat.forgetToCat,Cat.of,Bundled.of]
+
 
 lemma hext {C D : PGrpd} (hα : C.α = D.α) (hstr : HEq C.str D.str) :
     C = D := by

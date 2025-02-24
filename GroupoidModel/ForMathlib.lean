@@ -270,3 +270,13 @@ theorem id_eq_id (X : Grpd) : 𝟙 X = 𝟭 X := rfl
 theorem comp_eq_comp {X Y Z : Grpd} (F : X ⟶ Y) (G : Y ⟶ Z) : F ≫ G = F ⋙ G := rfl
 
 end Grpd
+
+namespace AsSmall
+
+def up_map_comp_down_map
+    {C : Type u₁} [Category.{v₁, u₁} C] {X Y : C} (f : X ⟶ Y) :
+  AsSmall.down.map (AsSmall.up.map f) = f := rfl
+
+end AsSmall
+
+end CategoryTheory
