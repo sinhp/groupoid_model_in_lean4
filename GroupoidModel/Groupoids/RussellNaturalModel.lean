@@ -1461,16 +1461,6 @@ def smallU : NaturalModelBase Ctx.{max u (v+1)} where
     convert U.isPullback_yonedaDisp_yonedaπ (yoneda.preimage A)
     rw [Functor.map_preimage]
 
--- def U0 : NaturalModelBase Ctx.{max u (v+2)} :=
---   U1.ofIsPullback U.isPullback_yπ_yπ.{v,u}
-
-def uHomSeqObjs (i : Nat) (h : i < 3) : NaturalModelBase Ctx.{2} :=
-  match i with
-  | 0 => smallU.{0,2}
-  | 1 => smallU.{1,2}
-  | 2 => base.{2}
-  | (n+3) => by omega
-
 def U.asSmallClosedType' : Ctx.chosenTerminal.{max u (v+2)}
     ⟶ U.{v+1, max u (v+2)} :=
   toCoreAsSmallEquiv.symm ((Functor.const _).obj
@@ -1561,18 +1551,27 @@ def largeUHom : UHom smallU.{v,u} base :=
       pb := U.isPullback_yπ_tp }
     (Functor.mapIso yoneda U.isoExtAsClosedType)
 
-def uHomSeqHomSucc' (i : Nat) (h : i < 2) :
+def uHomSeqObjs (i : Nat) (h : i < 4) : NaturalModelBase Ctx.{3} :=
+  match i with
+  | 0 => smallU.{0,3}
+  | 1 => smallU.{1,3}
+  | 2 => smallU.{2,3}
+  | 3 => base.{3}
+  | (n+4) => by omega
+
+def uHomSeqHomSucc' (i : Nat) (h : i < 3) :
     (uHomSeqObjs i (by omega)).UHom (uHomSeqObjs (i + 1) (by omega)) :=
   match i with
-  | 0 => smallUHom.{0,2}
-  | 1 => largeUHom.{1,2}
-  | (n+2) => by omega
+  | 0 => smallUHom.{0,3}
+  | 1 => smallUHom.{1,3}
+  | 2 => largeUHom.{2,3}
+  | (n+3) => by omega
 
 /--
   The groupoid natural model with two nested representable universes
 -/
-def uHomSeq : NaturalModelBase.UHomSeq Ctx.{2} where
-  length := 2
+def uHomSeq : NaturalModelBase.UHomSeq Ctx.{3} where
+  length := 3
   objs := uHomSeqObjs
   homSucc' := uHomSeqHomSucc'
 
