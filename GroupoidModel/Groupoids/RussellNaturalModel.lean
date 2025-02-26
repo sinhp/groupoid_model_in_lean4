@@ -1102,21 +1102,41 @@ variable {c : Cat.{max u (v+2), max u (v+2)}}
 
 variable (fst) (snd)
 
-def lift :
-    c ⥤ PGrpd.{v,v} :=
-  let w := condition
-  sorry
+def groupoidalAsSmallFunctorToPGrpd :
+    Groupoidal (Grpd.asSmallFunctor.{v+1,v,v}) ⥤ PGrpd.{v,v} where
+  obj x := PGrpd.ofGrpd x.base (AsSmall.down.obj.{_,_,v+1} x.fiber)
+  map f := PGrpd.homOf {
+    toFunctor := f.base
+    point := AsSmall.down.map f.fiber }
+
+def pGrpdToGroupoidalAsSmallFunctor :
+    PGrpd.{v,v} ⥤ Groupoidal (Grpd.asSmallFunctor.{v+1,v,v}) where
+  obj G := ⟨ Grpd.of G , AsSmall.up.obj.{_,_,v+1} G.str.pt ⟩
+  map F := ⟨ F.toFunctor , AsSmall.up.map F.point ⟩
+  map_comp F G := by
+    dsimp only [CategoryStruct.comp, Grothendieck.comp, eqToHom_refl]
+    congr 1
+    simp only [Category.id_comp]
+    rfl
+
+def lift : c ⥤ PGrpd.{v,v} :=
+  Groupoidal.IsMegaPullback.lift fst snd condition
+  ⋙ groupoidalAsSmallFunctorToPGrpd
 
 def fac_left : lift fst snd condition
-    ⋙ PGrpd.asSmallFunctor.{v+1} = fst := sorry
+    ⋙ PGrpd.asSmallFunctor.{v+1} = fst :=
+  Groupoidal.IsMegaPullback.fac_left fst snd condition
 
 def fac_right : lift fst snd condition
-    ⋙ PGrpd.forgetToGrpd.{v} = snd := sorry
+    ⋙ PGrpd.forgetToGrpd.{v} = snd :=
+  Groupoidal.IsMegaPullback.fac_right fst snd condition
 
 def uniq (m : c ⥤ PGrpd.{v,v})
     (hl : m ⋙ PGrpd.asSmallFunctor.{v+1} = fst)
     (hr : m ⋙ PGrpd.forgetToGrpd.{v} = snd) :
-    m = lift fst snd condition := sorry
+    m = lift fst snd condition := by
+  have h := Groupoidal.IsMegaPullback.uniq fst snd condition (m ⋙ sorry)
+  sorry
 
 end IsMegaPullback
 
