@@ -20,7 +20,7 @@
 
 title: Groupoid Model of HoTT in Lean 4
 #email: your-email@example.com
-description: by Authors
+description: by Steve Awodey, Mario Carneiro, Sina Hazratpour, Joseph Hua, Wojciech Nawrocki, Spencer Woolfson
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://sinhp.github.io/groupoid_model_in_lean4" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username:
@@ -28,6 +28,6 @@ github_username: sinhp
 repository: sinhp/groupoid_model_in_lean4
 
 # Build settings
-remote_theme: pages-themes/cayman@v0.2.0 
+remote_theme: pages-themes/cayman@v0.2.0
 plugins:
   - jekyll-remote-theme
