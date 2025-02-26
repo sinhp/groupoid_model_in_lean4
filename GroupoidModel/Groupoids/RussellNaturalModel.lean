@@ -387,11 +387,8 @@ def asSmallFunctorCompForgetToCat' :
     ⋙ Grpd.asSmallFunctor.{max u (v+1), v, v}
     ⋙ Grpd.forgetToCat.{max u (v+1)}
 
--- def asSmallFunctorCompForgetToCat : grpd.{v,u} ⟶ CAT.{v,u} :=
---   Cat.homOf $ ULift.downFunctor ⋙ asSmallFunctorCompForgetToCat'
-
 def grothendieckAsSmallFunctorToPGrpd :
-    grothendieckAsSmallFunctor.{v, u} ⥤ PGrpd.{v,v} where
+    grothendieckAsSmallFunctor.{v,u} ⥤ PGrpd.{v,v} where
   obj x := PGrpd.fromGrpd x.base
     (AsSmall.down.obj.{v, v, max (v + 1) u} x.fiber)
   map f := {
@@ -1023,23 +1020,6 @@ abbrev var : ext A ⟶ E.{v} :=
   Ctx.ofGrpd.map (Grpd.homOf (Core.functorToCore
     (Groupoidal.toPGrpd (classifier A) ⋙ AsSmall.up)))
 
--- /--
---   `U.var` is the universal lift from the following diagram
-
---   y(Γ.A) -.-.- var -.-,-> y(E) ------ toTm ------> Tm
---    |                       |                       |
---    |                       |                       |
--- ym(disp)                  y(π)                     tp
---    |                       |                       |
---    V                       V                       V
---   y(Γ) ------- A ---> y(U) ------ toTy ------> Ty
-
---   where the top map is `base.var` from the ambient natural model
--- -/
--- abbrev var : y(ext A) ⟶ y(E.{v}) :=
---   isPullback_yπ_tp.{v,u}.lift (base.var (A ≫ toTy)) (ym(disp A) ≫ A)
---     (base.disp_pullback (A ≫ toTy)).w
-
 def toU'' : AsSmall.{max u (v+2)} Grpd.{v,v}
     ⥤ AsSmall.{max u (v+2)} Grpd.{v+1,v+1} :=
   AsSmall.down ⋙ Grpd.asSmallFunctor.{v+1} ⋙ AsSmall.up
@@ -1102,26 +1082,30 @@ variable {c : Cat.{max u (v+2), max u (v+2)}}
 
 variable (fst) (snd)
 
-def groupoidalAsSmallFunctorToPGrpd :
-    Groupoidal (Grpd.asSmallFunctor.{v+1,v,v}) ⥤ PGrpd.{v,v} where
-  obj x := PGrpd.ofGrpd x.base (AsSmall.down.obj.{_,_,v+1} x.fiber)
-  map f := PGrpd.homOf {
-    toFunctor := f.base
-    point := AsSmall.down.map f.fiber }
 
-def pGrpdToGroupoidalAsSmallFunctor :
-    PGrpd.{v,v} ⥤ Groupoidal (Grpd.asSmallFunctor.{v+1,v,v}) where
-  obj G := ⟨ Grpd.of G , AsSmall.up.obj.{_,_,v+1} G.str.pt ⟩
-  map F := ⟨ F.toFunctor , AsSmall.up.map F.point ⟩
-  map_comp F G := by
-    dsimp only [CategoryStruct.comp, Grothendieck.comp, eqToHom_refl]
-    congr 1
-    simp only [Category.id_comp]
-    rfl
+-- def asSmallFunctorCompForgetToCat : grpd.{v,u} ⟶ CAT.{v,u} :=
+--   Cat.homOf $ ULift.downFunctor ⋙ asSmallFunctorCompForgetToCat'
+
+-- def groupoidalAsSmallFunctorToPGrpd :
+--     Groupoidal (Grpd.asSmallFunctor.{v+1,v,v}) ⥤ PGrpd.{v,v} where
+--   obj x := PGrpd.ofGrpd x.base (AsSmall.down.obj.{_,_,v+1} x.fiber)
+--   map f := PGrpd.homOf {
+--     toFunctor := f.base
+--     point := AsSmall.down.map f.fiber }
+
+-- def pGrpdToGroupoidalAsSmallFunctor :
+--     PGrpd.{v,v} ⥤ Groupoidal (Grpd.asSmallFunctor.{v+1,v,v}) where
+--   obj G := ⟨ Grpd.of G , AsSmall.up.obj.{_,_,v+1} G.str.pt ⟩
+--   map F := ⟨ F.toFunctor , AsSmall.up.map F.point ⟩
+--   map_comp F G := by
+--     dsimp only [CategoryStruct.comp, Grothendieck.comp, eqToHom_refl]
+--     congr 1
+--     simp only [Category.id_comp]
+--     rfl
 
 def lift : c ⥤ PGrpd.{v,v} :=
   Groupoidal.IsMegaPullback.lift fst snd condition
-  ⋙ groupoidalAsSmallFunctorToPGrpd
+  ⋙ grothendieckAsSmallFunctorToPGrpd.{v,v+1}
 
 def fac_left : lift fst snd condition
     ⋙ PGrpd.asSmallFunctor.{v+1} = fst :=
@@ -1135,8 +1119,11 @@ def uniq (m : c ⥤ PGrpd.{v,v})
     (hl : m ⋙ PGrpd.asSmallFunctor.{v+1} = fst)
     (hr : m ⋙ PGrpd.forgetToGrpd.{v} = snd) :
     m = lift fst snd condition := by
-  have h := Groupoidal.IsMegaPullback.uniq fst snd condition (m ⋙ sorry)
-  sorry
+  unfold lift
+  convert_to (m ⋙ pGrpdToGrothendieckAsSmallFunctor.{v,v+1})
+    ⋙ grothendieckAsSmallFunctorToPGrpd = _
+  rw [Groupoidal.IsMegaPullback.uniq fst snd condition
+    (m ⋙ pGrpdToGrothendieckAsSmallFunctor.{v,v+1}) hl hr]
 
 end IsMegaPullback
 
@@ -1589,26 +1576,28 @@ def U.isoExtAsClosedType :
   hom := Ctx.ofGrpd.map isoExtAsClosedTypeFun
   inv := Ctx.ofGrpd.map isoExtAsClosedTypeInv
 
--- def uHom12 : UHom U1.{v,u} base :=
---   UHom.ofRepChosenTerminal Ctx.chosenTerminalIsTerminal $
---     UHomRepTerminal.ofTyIsoExt _
---     (isPullbackHom base U.isPullback_yπ_tp)
---     (Functor.mapIso yoneda U.isoExtAsClosedType)
+def uHom12 : UHom U1.{v,u} base :=
+  UHom.ofRepChosenTerminal Ctx.chosenTerminalIsTerminal $
+    UHomRepTerminal.ofTyIsoExt _
+    { mapTy := U.toTy
+      mapTm := E.toTm
+      pb := U.isPullback_yπ_tp }
+    (Functor.mapIso yoneda U.isoExtAsClosedType)
 
--- def uHomSeqHomSucc' (i : Nat) (h : i < 2) :
---     (uHomSeqObjs i (by omega)).UHom (uHomSeqObjs (i + 1) (by omega)) :=
---   match i with
---   | 0 => uHom01.{0,2}
---   | 1 => uHom12.{1,2}
---   | (n+2) => by omega
+def uHomSeqHomSucc' (i : Nat) (h : i < 2) :
+    (uHomSeqObjs i (by omega)).UHom (uHomSeqObjs (i + 1) (by omega)) :=
+  match i with
+  | 0 => uHom01.{0,2}
+  | 1 => uHom12.{1,2}
+  | (n+2) => by omega
 
--- /--
---   The groupoid natural model with two nested representable universes
--- -/
--- def uHomSeq : NaturalModelBase.UHomSeq Ctx.{2} where
---   length := 2
---   objs := uHomSeqObjs
---   homSucc' := uHomSeqHomSucc'
+/--
+  The groupoid natural model with two nested representable universes
+-/
+def uHomSeq : NaturalModelBase.UHomSeq Ctx.{2} where
+  length := 2
+  objs := uHomSeqObjs
+  homSucc' := uHomSeqHomSucc'
 
 end GroupoidNaturalModel
 
