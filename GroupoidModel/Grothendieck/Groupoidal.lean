@@ -86,24 +86,22 @@ instance groupoid : Groupoid (Grothendieck.Groupoidal F) where
   comp_inv f := (isoMk f).hom_inv_id
 
 end
--- def ToGrpd : Grothendieck.Groupoidal F ⥤ Grpd.{v₂,u₂} :=
---   Grothendieck.forget _ ⋙ F
 
--- def functorial {C D : Grpd.{v₁,u₁}} (F : C ⟶ D) (G : D ⥤ Grpd.{v₂,u₂}) :
---   Grothendieck (Groupoid.compForgetToCat (F ⋙ G))
---   ⥤ Grothendieck (Groupoid.compForgetToCat G) where
---   obj X := ⟨F.obj X.base, X.fiber⟩
---   map {X Y} f := ⟨F.map f.base, f.fiber⟩
---   map_id X := by
---     fapply Grothendieck.ext
---     · exact F.map_id X.base
---     · simp only [Grothendieck.id_fiber, eqToHom_trans]
---   map_comp {X Y Z} f g := by
---     simp only [Grothendieck.comp]
---     fapply Grothendieck.ext
---     · exact F.map_comp f.base g.base
---     · erw [Grothendieck.comp_fiber (F:= Groupoid.compForgetToCat (F ⋙ G)) f g]
---       simp [eqToHom_trans]
+def functorial {C D : Grpd.{v₁,u₁}} (F : C ⟶ D) (G : D ⥤ Grpd.{v₂,u₂}) :
+  Grothendieck (Groupoid.compForgetToCat (F ⋙ G))
+  ⥤ Grothendieck (Groupoid.compForgetToCat G) where
+  obj X := ⟨F.obj X.base, X.fiber⟩
+  map {X Y} f := ⟨F.map f.base, f.fiber⟩
+  map_id X := by
+    fapply Grothendieck.ext
+    · exact F.map_id X.base
+    · simp only [Grothendieck.id_fiber, eqToHom_trans]
+  map_comp {X Y Z} f g := by
+    simp only [Grothendieck.comp]
+    fapply Grothendieck.ext
+    · exact F.map_comp f.base g.base
+    · erw [Grothendieck.comp_fiber (F:= Groupoid.compForgetToCat (F ⋙ G)) f g]
+      simp [eqToHom_trans]
 
 -- def Map (Δ Γ: Grpd) (σ : Δ ⥤ Γ) (A : Γ ⥤ Grpd) (B : (Grothendieck.Groupoidal A) ⥤ Grpd) : Grothendieck.Groupoidal (σ ⋙ A) ⥤ Grpd where
 --   obj x := by

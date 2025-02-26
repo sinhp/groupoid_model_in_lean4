@@ -1104,8 +1104,6 @@ variable (fst) (snd)
 
 def lift :
     c ⥤ PGrpd.{v,v} :=
-  let f := fst
-  let g := snd
   let w := condition
   sorry
 
@@ -1157,13 +1155,12 @@ theorem uniq' (m : s.pt ⟶ Cat.of (AsSmall PGrpd))
     = s.fst ⋙ AsSmall.down := by rw [← hl]; rfl
   have hr' : (m ⋙ AsSmall.down) ⋙ forgetToGrpd.{v}
     = snd' s := by dsimp [snd']; rw [← hr]; rfl
-  have h := uniq _ _ (condition' s) _ hl' hr'
-  exact AsSmall.comp_down_inj h
+  apply AsSmall.comp_down_inj 
+  exact uniq _ _ (condition' s) _ hl' hr'
 
 
 end IsPullbackInCat
 
--- TODO overview of how this is proven
 /--
 The following square is a pullback
 
@@ -1172,10 +1169,15 @@ The following square is a pullback
         |                                     |
         π'                                    π'
         |                                     |
+        |                                     |
         v                                     v
  AsSmall Grpd.{v}  ------- toU'' -----> AsSmall Grpd.{v+1}
 
-in the category `Cat.{max u (v+2), max u (v+2)}`
+in the category `Cat.{max u (v+2), max u (v+2)}`.
+Note that these `AsSmall`s are bringing two different sizes
+categories into the same category.
+We prove this is pullback by using the fact that this `IsMegaPullback`,
+i.e. it is universal among categories of all sizes.
 -/
 theorem isPullback_pgrpdforgettogrpd_pgrpdforgettogrpd :
     IsPullback
@@ -1500,43 +1502,45 @@ def U.isoGrpd :
     Core (AsSmall.{max u (v+2)} Grpd.{v,v})
       ⥤ Grpd.{v,v} := Core.inclusion _ ⋙ AsSmall.down
 
--- set_option pp.universes true
-def U.grpdToExtAsSmallClosedTypeHom :
-    Grpd.{v,v} ⥤ Groupoidal (classifier
-      (asSmallClosedType'.{v, max u (v + 2)})) where
-  obj X := ⟨ ⟨⟨⟩⟩ , AsSmall.up.obj.{_,_,v+1} X
-   ⟩
-  map F := ⟨ CategoryStruct.id _ , by
-    have h := AsSmall.up.map.{_,_,v+1} F
-    refine Iso.mk (AsSmall.up.map.{_,_,v+1} F) ?_ ?_ ?_
-    sorry
-    sorry
-    sorry
-    ⟩
-
-def U.isoExtAsSmallClosedTypeHom' :
+def U.isoExtAsSmallClosedTypeHom :
     Core (AsSmall.{max u (v+2)} Grpd.{v,v})
-      ⥤ Groupoidal (classifier (asSmallClosedType'.{v, max u (v + 2)})) where
+      ⥤ Groupoidal
+        (classifier (asSmallClosedType'.{v, max u (v + 2)})) where
   obj X := ⟨ ⟨⟨⟩⟩ , AsSmall.up.obj.{_,_,v+1} (AsSmall.down.obj X) ⟩
   map {X Y} F := ⟨ (CategoryStruct.id _) , {
     hom := AsSmall.up.map.{_,_,v+1} (AsSmall.down.map F.hom)
     inv := AsSmall.up.map.{_,_,v+1} (AsSmall.down.map (F.inv))
-    hom_inv_id := by simp only [← Functor.map_comp, Iso.hom_inv_id, Functor.map_id] ; rfl
-    inv_hom_id := by simp only [← Functor.map_comp, Iso.inv_hom_id, Functor.map_id] } ⟩
+    hom_inv_id := by
+      simp only [← Functor.map_comp, Iso.hom_inv_id, Functor.map_id]
+      rfl
+    inv_hom_id := by
+      simp only [← Functor.map_comp, Iso.inv_hom_id, Functor.map_id] } ⟩
 
-def U.isoExtAsSmallClosedTypeHomAux :
-    Groupoidal (classifier (asSmallClosedType'.{v, max u (v + 2)}))
-    ⥤ Groupoidal (classifier (yoneda.preimage asSmallClosedType.{v, max u (v + 2)})) := sorry
-
-def U.isoExtAsSmallClosedTypeHom :
-    Core (AsSmall.{max u (v+2)} Grpd.{v,v})
-      ⥤ Groupoidal (classifier (yoneda.preimage asSmallClosedType.{v, max u (v + 2)})) :=
-  isoExtAsSmallClosedTypeHom' ⋙ isoExtAsSmallClosedTypeHomAux
+def U.isoExtAsSmallClosedTypeInv :
+    Groupoidal
+      (classifier (asSmallClosedType'.{v, max u (v + 2)})) ⥤
+    Core (AsSmall.{max u (v+2)} Grpd.{v,v}) where
+  obj X := AsSmall.up.obj (AsSmall.down.obj.{_,_,v+1} X.fiber)
+  map {X Y} F := {
+    hom := AsSmall.up.map.{_,_,max u (v+2)} (AsSmall.down.map F.fiber.hom)
+    inv := AsSmall.up.map.{_,_,max u (v+2)} (AsSmall.down.map F.fiber.inv)
+    hom_inv_id := by simp only [← Functor.map_comp, Iso.hom_inv_id, Functor.map_id]
+    inv_hom_id := by simp only [← Functor.map_comp, Iso.inv_hom_id, Functor.map_id] }
 
 def U.isoExtAsSmallClosedType :
-    U.{v,max u (v+2)} ≅ U1.{v+1,max u (v+2)}.ext U.asSmallClosedType.{v, max u (v+2)} where
+    U.{v,max u (v+2)}
+    ≅ U1.{v+1,max u (v+2)}.ext U.asSmallClosedType.{v, max u (v+2)} where
   hom := Ctx.ofGrpd.map (Grpd.homOf isoExtAsSmallClosedTypeHom.{v,u})
-  inv := Ctx.ofGrpd.map sorry
+    ≫ eqToHom (by simp only [U1, asSmallClosedType, preimage_map])
+  inv := eqToHom (by simp only [U1, asSmallClosedType, preimage_map])
+    ≫ Ctx.ofGrpd.map (Grpd.homOf isoExtAsSmallClosedTypeInv.{v,u})
+  hom_inv_id := by
+    simp only [Category.assoc, eqToHom_trans_assoc, eqToHom_refl]
+    rfl
+  inv_hom_id := by
+    simp only [Category.assoc, eqToHom_comp_iff, Category.comp_id]
+    simp only [← Category.assoc, comp_eqToHom_iff, eqToHom_trans]
+    rfl
 
 def uHom01 : UHom U0.{v, max u (v+2)} U1.{v+1, max u (v+2)} :=
   UHom.ofRepChosenTerminal Ctx.chosenTerminalIsTerminal $
@@ -1544,22 +1548,6 @@ def uHom01 : UHom U0.{v, max u (v+2)} U1.{v+1, max u (v+2)} :=
     (isPullbackHom U1.{v+1, max u (v+2)} U.isPullback_yπ_yπ.{v, max u (v+2)})
     U.asSmallClosedType
     (Functor.mapIso yoneda U.isoExtAsSmallClosedType.{v,u})
-
-/- -- might not need this anymore
-def coreAsSmallEquivAsSmallCoreFunctor (C : Type u) [Category.{v} C] :
-    Core (AsSmall.{w} C) ⥤ AsSmall.{w} (Core C) where
-  obj x := { down := (AsSmall.down.obj x : C) }
-  map {x y} f :=
-    let x' := (AsSmall.down.obj x : C)
-    let y' := (AsSmall.down.obj y : C)
-    let f' : x' ⟶ y' := AsSmall.down.map f.hom
-    let inv := AsSmall.down.map f.inv
-    { down :=
-      { hom := AsSmall.down.map f.hom
-        inv := AsSmall.down.map f.inv
-        inv_hom_id := by rw [← Functor.map_comp]; aesop_cat
-        hom_inv_id := by rw [← Functor.map_comp]; aesop_cat}}
--/
 
 def U.asClosedType :
     yoneda.obj Ctx.chosenTerminal ⟶ base.Ty :=
