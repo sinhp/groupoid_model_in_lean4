@@ -150,6 +150,7 @@ def Grpd2 : Type (u+2) := InducedCategory sGrpd.{u+1} Groupoid2.toLarge
 
 section NaturalModelSigma
 
+
 def PointToFiber {Γ : Grpd} (A : Γ ⥤ Grpd) (x : Γ) : (A.obj x) ⥤ Grothendieck.Groupoidal A where
   obj a := { base := x, fiber := a }
   map f := by
@@ -230,7 +231,6 @@ def GroupoidNMSigma : (P.obj.{u} Ty.{u}) ⟶ Ty.{u} := by
       sorry
     . intros b₁ b₂ g
       sorry
-
 
 theorem GroupoidSigmaBeckChevalley (Δ Γ: Grpd.{v,u}) (σ : Δ ⥤ Γ) (A : Γ ⥤ Grpd.{v,u})
   (B : (Grothendieck.Groupoidal A) ⥤ Grpd.{v,u}) : σ ⋙ GroupoidSigma Γ A B = GroupoidSigma _ (σ ⋙ A)
