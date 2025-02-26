@@ -920,7 +920,7 @@ def U.isoYonedaCatGrpd : y(U.{v,u}) ≅ yonedaCat.obj (coregrpd.{v,max u (v+1)})
 
 -- FIXME this has an error without the `dsimp` saying it has
 -- two non-defeq category instances
-def E.isoYonedaCatPGrpd : y(E.{v,u}) ≅ yonedaCat.obj (corepgrpd.{v,max u (v+1)}) :=
+def U.isoYonedaCatPGrpd : y(E.{v,u}) ≅ yonedaCat.obj (corepgrpd.{v,max u (v+1)}) :=
   asSmallUp_comp_yoneda_iso_forgetToCat_comp_catLift_comp_yonedaCat.app E'.{v,u}
     ≪≫ Functor.mapIso yonedaCat (by
       dsimp [Grpd.forgetToCat, E, E']
@@ -943,13 +943,11 @@ def U.toTy : y(U.{v,u}) ⟶ Ty.{max u (v+1)} :=
   isoYonedaCatGrpd.hom.{v,u}
   ≫ yonedaCat.map inclusionGrpdCompAsSmallFunctor.{v,max u (v+1)}
 
-def E.toTm : y(E.{v,u}) ⟶ Tm.{max u (v+1)} :=
+def U.toTm : y(E.{v,u}) ⟶ Tm.{max u (v+1)} :=
   isoYonedaCatPGrpd.hom.{v,u}
   ≫ yonedaCat.map inclusionPGrpdCompAsSmallFunctor.{v,max u (v+1)}
 
 namespace U
-
-open E
 
 /--
 The image of `isPullback_corepgrpdforgettogrpd_PGRPDFORGETTOGRPD`
@@ -973,7 +971,7 @@ theorem isPullback_yonedaCatCorePGrpdForgetToGrpd_tp :
 
 theorem isPullback_yπ_yonedaCatCorepgrpdforgettogrpd :
     IsPullback
-      E.isoYonedaCatPGrpd.{v,u}.hom
+      U.isoYonedaCatPGrpd.{v,u}.hom
       ym(π.{v,u})
       (yonedaCat.map (corepgrpdforgettogrpd.{v,max u (v+1)}))
       U.isoYonedaCatGrpd.{v,u}.hom :=
@@ -1081,27 +1079,6 @@ variable {c : Cat.{max u (v+2), max u (v+2)}}
     = snd ⋙ Grpd.asSmallFunctor.{v+1, v, v})
 
 variable (fst) (snd)
-
-
--- def asSmallFunctorCompForgetToCat : grpd.{v,u} ⟶ CAT.{v,u} :=
---   Cat.homOf $ ULift.downFunctor ⋙ asSmallFunctorCompForgetToCat'
-
--- def groupoidalAsSmallFunctorToPGrpd :
---     Groupoidal (Grpd.asSmallFunctor.{v+1,v,v}) ⥤ PGrpd.{v,v} where
---   obj x := PGrpd.ofGrpd x.base (AsSmall.down.obj.{_,_,v+1} x.fiber)
---   map f := PGrpd.homOf {
---     toFunctor := f.base
---     point := AsSmall.down.map f.fiber }
-
--- def pGrpdToGroupoidalAsSmallFunctor :
---     PGrpd.{v,v} ⥤ Groupoidal (Grpd.asSmallFunctor.{v+1,v,v}) where
---   obj G := ⟨ Grpd.of G , AsSmall.up.obj.{_,_,v+1} G.str.pt ⟩
---   map F := ⟨ F.toFunctor , AsSmall.up.map F.point ⟩
---   map_comp F G := by
---     dsimp only [CategoryStruct.comp, Grothendieck.comp, eqToHom_refl]
---     congr 1
---     simp only [Category.id_comp]
---     rfl
 
 def lift : c ⥤ PGrpd.{v,v} :=
   Groupoidal.IsMegaPullback.lift fst snd condition
@@ -1473,7 +1450,7 @@ end U
   TODO However, we likely want to use the explicit `Tm = y(E)` and
   `tp = ym(π)` instead of the grothendieck construction provided.
 -/
-def U1 : NaturalModelBase Ctx.{max u (v+1)} where
+def smallU : NaturalModelBase Ctx.{max u (v+1)} where
   Ty := y(U.{v})
   Tm := y(E)
   tp := ym(π)
@@ -1484,17 +1461,15 @@ def U1 : NaturalModelBase Ctx.{max u (v+1)} where
     convert U.isPullback_yonedaDisp_yonedaπ (yoneda.preimage A)
     rw [Functor.map_preimage]
 
-def U0 : NaturalModelBase Ctx.{max u (v+2)} :=
-  U1.ofIsPullback U.isPullback_yπ_yπ.{v,u}
+-- def U0 : NaturalModelBase Ctx.{max u (v+2)} :=
+--   U1.ofIsPullback U.isPullback_yπ_yπ.{v,u}
 
 def uHomSeqObjs (i : Nat) (h : i < 3) : NaturalModelBase Ctx.{2} :=
   match i with
-  | 0 => U0.{0,2}
-  | 1 => U1.{1,2}
+  | 0 => smallU.{0,2}
+  | 1 => smallU.{1,2}
   | 2 => base.{2}
   | (n+3) => by omega
-
-
 
 def U.asSmallClosedType' : Ctx.chosenTerminal.{max u (v+2)}
     ⟶ U.{v+1, max u (v+2)} :=
@@ -1502,7 +1477,7 @@ def U.asSmallClosedType' : Ctx.chosenTerminal.{max u (v+2)}
     (Grpd.of (Core (AsSmall.{v+1} Grpd.{v,v}))))
 
 def U.asSmallClosedType : y(Ctx.chosenTerminal.{max u (v+2)})
-    ⟶ U1.{v+1, max u (v+2)}.Ty :=
+    ⟶ smallU.{v+1, max u (v+2)}.Ty :=
   ym(U.asSmallClosedType')
 
 def U.isoGrpd :
@@ -1536,10 +1511,10 @@ def U.isoExtAsSmallClosedTypeInv :
 
 def U.isoExtAsSmallClosedType :
     U.{v,max u (v+2)}
-    ≅ U1.{v+1,max u (v+2)}.ext U.asSmallClosedType.{v, max u (v+2)} where
+    ≅ smallU.{v+1,max u (v+2)}.ext U.asSmallClosedType.{v, max u (v+2)} where
   hom := Ctx.ofGrpd.map (Grpd.homOf isoExtAsSmallClosedTypeHom.{v,u})
-    ≫ eqToHom (by simp only [U1, asSmallClosedType, preimage_map])
-  inv := eqToHom (by simp only [U1, asSmallClosedType, preimage_map])
+    ≫ eqToHom (by simp only [smallU, asSmallClosedType, preimage_map])
+  inv := eqToHom (by simp only [smallU, asSmallClosedType, preimage_map])
     ≫ Ctx.ofGrpd.map (Grpd.homOf isoExtAsSmallClosedTypeInv.{v,u})
   hom_inv_id := by
     simp only [Category.assoc, eqToHom_trans_assoc, eqToHom_refl]
@@ -1549,10 +1524,12 @@ def U.isoExtAsSmallClosedType :
     simp only [← Category.assoc, comp_eqToHom_iff, eqToHom_trans]
     rfl
 
-def uHom01 : UHom U0.{v, max u (v+2)} U1.{v+1, max u (v+2)} :=
+def smallUHom : UHom smallU.{v, max u (v+2)} smallU.{v+1, max u (v+2)} :=
   UHom.ofRepChosenTerminal Ctx.chosenTerminalIsTerminal $
     @UHomRepTerminal.ofTyIsoExt _ _ _ _ _ _
-    (isPullbackHom U1.{v+1, max u (v+2)} U.isPullback_yπ_yπ.{v, max u (v+2)})
+    { mapTy := ym(U.toU.{v,max u (v+2)})
+      mapTm := ym(U.toE)
+      pb := U.isPullback_yπ_yπ }
     U.asSmallClosedType
     (Functor.mapIso yoneda U.isoExtAsSmallClosedType.{v,u})
 
@@ -1576,19 +1553,19 @@ def U.isoExtAsClosedType :
   hom := Ctx.ofGrpd.map isoExtAsClosedTypeFun
   inv := Ctx.ofGrpd.map isoExtAsClosedTypeInv
 
-def uHom12 : UHom U1.{v,u} base :=
+def largeUHom : UHom smallU.{v,u} base :=
   UHom.ofRepChosenTerminal Ctx.chosenTerminalIsTerminal $
     UHomRepTerminal.ofTyIsoExt _
     { mapTy := U.toTy
-      mapTm := E.toTm
+      mapTm := U.toTm
       pb := U.isPullback_yπ_tp }
     (Functor.mapIso yoneda U.isoExtAsClosedType)
 
 def uHomSeqHomSucc' (i : Nat) (h : i < 2) :
     (uHomSeqObjs i (by omega)).UHom (uHomSeqObjs (i + 1) (by omega)) :=
   match i with
-  | 0 => uHom01.{0,2}
-  | 1 => uHom12.{1,2}
+  | 0 => smallUHom.{0,2}
+  | 1 => largeUHom.{1,2}
   | (n+2) => by omega
 
 /--
