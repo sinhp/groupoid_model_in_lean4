@@ -150,7 +150,7 @@ theorem functorToCore_naturality_right
   · intro
     rfl
 
-def adjunction : Grpd.forgetToCat ⊣ Core.functor where
+def adj : Grpd.forgetToCat ⊣ Core.functor where
   unit := {
     app G := Grpd.homOf (Core.functorToCore (Functor.id _))
     naturality _ _ F := by
@@ -160,35 +160,13 @@ def adjunction : Grpd.forgetToCat ⊣ Core.functor where
         Functor.id_comp, Functor.comp_id, Grpd.forgetToCat]}
   counit := {app C := Cat.homOf (Core.inclusion C)}
 
-instance {G : Type u} [Groupoid.{v} G]: IsIso (Grpd.homOf (Core.inclusion G)) where
-  out := ⟨ Grpd.homOf (Core.functorToCore (Functor.id G)) , (by
-    apply Functor.ext
-    · intro x y f
-      simp only [Core.inclusion, Grpd.homOf, Core.functorToCore, Functor.id_map,
-        Grpd.comp_eq_comp, Functor.comp_map, Groupoid.inv_eq_inv, IsIso.Iso.inv_hom,
-        Grpd.id_eq_id, eqToHom_refl, Category.comp_id, Category.id_comp]
-      rfl
-    · intro; rfl), rfl ⟩
-
-instance {G : Type u} [Groupoid.{v} G] :
-  IsIso (Grpd.homOf (Core.functorToCore (Functor.id G))) where
-  out := ⟨ Grpd.homOf (Core.inclusion G) , rfl , (by
-    apply Functor.ext
-    · intro x y f
-      simp only [Core.inclusion, Grpd.homOf, Core.functorToCore, Functor.id_map,
-        Grpd.comp_eq_comp, Functor.comp_map, Groupoid.inv_eq_inv, IsIso.Iso.inv_hom,
-        Grpd.id_eq_id, eqToHom_refl, Category.comp_id, Category.id_comp]
-      rfl
-    · intro; rfl) ⟩
-
-
 end Adjunction
 
 instance : IsLeftAdjoint Grpd.forgetToCat :=
-  IsLeftAdjoint.mk ⟨ Core.functor , ⟨ adjunction ⟩ ⟩
+  IsLeftAdjoint.mk ⟨ Core.functor , ⟨ adj ⟩ ⟩
 
 instance : IsRightAdjoint Core.functor :=
-  IsRightAdjoint.mk ⟨ Grpd.forgetToCat , ⟨ adjunction ⟩ ⟩
+  IsRightAdjoint.mk ⟨ Grpd.forgetToCat , ⟨ adj ⟩ ⟩
 
 namespace IsPullback
 
@@ -315,7 +293,6 @@ def isoCoreULift :
 
 end Core
 end ULift
-
 namespace LargeUniverse
 
 open PGrpd PGrpd.IsPullback
@@ -642,10 +619,47 @@ def chosenTerminalIsTerminal : IsTerminal Ctx.chosenTerminal.{u} :=
     Grpd.chosenTerminalIsTerminal
 def terminalPoint : Ctx.toGrpd.obj Ctx.chosenTerminal := ⟨⟨⟩⟩
 
+-- def Ctx.coreOfCategory (C : Type u) [Category.{v} C] : Ctx.{max w v u} :=
+--   Ctx.ofGroupoid (Core (AsSmall.{w} C))
+
+def core : Cat.{v,v+1} ⥤ Ctx.{max u (v+1)} :=
+  Core.functor.{v,v+1}
+  ⋙ Grpd.asSmallFunctor.{u,v,v+1}
+  ⋙ Ctx.ofGrpd.{max u (v+1)}
 
 variable {Γ Δ : Ctx.{max u (v+1)}} {C D : Type (v+1)}
   [Category.{v,v+1} C] [Category.{v,v+1} D]
 
+def yonedaCoreEquiv' :
+    (Γ ⟶ core.obj.{v,u} (Cat.of C))
+      ≃ Ctx.toGrpd.obj Γ ⥤ Core C where
+  toFun A := toGrpd.map A ⋙ AsSmall.down
+  invFun A := Ctx.ofGrpd.map (A ⋙ AsSmall.up)
+  left_inv _ := rfl
+  right_inv _ := rfl
+
+-- /- The bijection y(Γ) → y(core C) ≃ Γ ⥤ C -/
+-- def yonedaCoreEquiv :
+--     (y(Γ) ⟶ y(core.obj.{v,u} (Cat.of C)))
+--       ≃ Ctx.toGrpd.obj Γ ⥤ C :=
+--   Yoneda.fullyFaithful.homEquiv.symm.trans
+--     (yonedaCoreEquiv'.trans
+--     Core.functorToCoreEquiv.symm)
+
+/- The bijection Γ → core C ≃ Γ ⥤ C -/
+def yonedaCoreEquiv :
+    (Γ ⟶ core.obj.{v,u} (Cat.of C))
+      ≃ Ctx.toGrpd.obj Γ ⥤ C :=
+  Equiv.trans
+    yonedaCoreEquiv'
+    Core.functorToCoreEquiv.symm
+
+theorem yonedaCoreEquiv_symm_naturality_right (A : Ctx.toGrpd.obj Γ ⥤ C) (π : C ⥤ D):
+  Ctx.yonedaCoreEquiv.symm (A) ≫ core.map (Cat.homOf π)
+  = Ctx.yonedaCoreEquiv.symm (A ⋙ π) := by
+  simp [yonedaCoreEquiv, yonedaCoreEquiv', core, ← Cat.comp_eq_comp, ← Functor.comp_map, ← Functor.map_comp]
+  
+  sorry
 
 end Ctx
 
@@ -653,7 +667,6 @@ end Ctx
   obj x := Cat.of (ULift.{u + 1, u} x)
   map {x y} f := downFunctor ⋙ f ⋙ upFunctor
 
-section yonedaCat
 variable (C D) [Category.{u} C] [Category.{u} D]
 
 abbrev yonedaCat : Cat.{u,u+1} ⥤ Ctx.{u}ᵒᵖ ⥤ Type (u + 1) :=
@@ -695,52 +708,6 @@ theorem yonedaCatEquiv_comp
     yonedaCatEquiv (A ≫ yonedaCat.map U) = yonedaCatEquiv A ⋙ U := by
   aesop_cat
 
-def AsSmall.up_comp_down
-    {C : Type u₁} [Category.{v₁, u₁} C] :
-  AsSmall.up ⋙ AsSmall.down = Functor.id C := rfl
-
-def AsSmall.down_comp_up
-    {C : Type u₁} [Category.{v₁, u₁} C] :
-  AsSmall.down ⋙ AsSmall.up = Functor.id (AsSmall C) := rfl
-
-end yonedaCat
-
-def Ctx.homGrpdEquivFunctor {Γ : Ctx} {G : Type v} [Groupoid.{v} G]
-    : (Γ ⟶ Ctx.ofGrpd.obj (Grpd.of G))
-    ≃ Ctx.toGrpd.obj Γ ⥤ G where
-  toFun A := Ctx.toGrpd.map A
-  invFun A := Ctx.ofGrpd.map A
-  left_inv _ := rfl
-  right_inv _ := rfl
-
-def Core.functorToCoreEquiv
-    {D : Type u₁} [Groupoid.{v₁} D] {C : Type u} [Category.{v} C]
-    : D ⥤ Core C ≃ D ⥤ C where
-  toFun A := A ⋙ Core.inclusion _
-  invFun A := Core.functorToCore A
-  left_inv _ := by
-    apply Functor.ext
-    · intro x y f
-      simp only [eqToHom_refl, Category.comp_id, Category.id_comp]
-      apply CategoryTheory.Iso.ext
-      rfl
-    · intro
-      rfl
-  right_inv _ := rfl
-
-def functorToAsSmallEquiv {D : Type u₁} [Category.{v₁} D] {C : Type u} [Category.{v} C]
-    : D ⥤ AsSmall.{w} C ≃ D ⥤ C where
-  toFun A := A ⋙ AsSmall.down
-  invFun A := A ⋙ AsSmall.up
-  left_inv _ := rfl
-  right_inv _ := rfl
-
-def toCoreAsSmallEquiv {Γ : Ctx} {C : Type (v+1)} [Category.{v} C]
-    : (Γ ⟶ Ctx.ofGrpd.obj (Grpd.of (Core (AsSmall C))))
-    ≃ (Ctx.toGrpd.obj Γ ⥤ C) :=
-  Ctx.homGrpdEquivFunctor.trans (
-    Core.functorToCoreEquiv.trans functorToAsSmallEquiv)
-
 abbrev Ty : Psh Ctx.{u} := yonedaCat.obj (Cat.of Grpd.{u,u})
 
 abbrev Tm : Psh Ctx.{u} := yonedaCat.obj (Cat.of PGrpd.{u,u})
@@ -750,7 +717,8 @@ abbrev tp : Tm ⟶ Ty := yonedaCat.map (PGrpd.forgetToGrpd)
 section Ty
 variable {Γ : Ctx.{u}} (A : yoneda.obj Γ ⟶ Ty)
 
-abbrev ext : Ctx := Ctx.ofGrpd.obj $ Grpd.of (Groupoidal (yonedaCatEquiv A))
+abbrev ext : Ctx :=
+  Ctx.ofGrpd.obj $ Grpd.of (Groupoidal (yonedaCatEquiv A))
 
 abbrev disp : ext A ⟶ Γ :=
   AsSmall.up.map (Grothendieck.forget _)
@@ -866,68 +834,45 @@ def base : NaturalModelBase Ctx.{u} where
   var := var
   disp_pullback := isPullback_yonedaDisp_tp
 
-
-def U' : Grpd.{max u (v+1),max u (v+1)} :=
-  Grpd.of (Core (AsSmall.{max u (v+1)} Grpd.{v,v}))
-
-lemma U'_eq : U'.{v,u} =
-    Core.functor.obj (Cat.asSmallFunctor.obj.{max u (v+1),v,v+1}
-      (Cat.of Grpd.{v,v})) :=
-  rfl
-
 /-- `U.{v}` is the object representing the
   universe of `v`-small types
   i.e. `y(U) = Ty` for the small natural models `baseU`. -/
-def U : Ctx.{max u (v+1)} :=
-  Ctx.ofGrpd.obj U'.{v,u}
-
-def E' : Grpd.{max u (v+1),max u (v+1)} :=
-  Grpd.of (Core (AsSmall.{max u (v+1)} PGrpd.{v,v}))
-
-lemma E'_eq : E'.{v,u} =
-    Core.functor.obj.{max u (v+1), max u (v+1)}
-      (Cat.asSmallFunctor.obj.{max u (v+1),v,v+1} (Cat.of PGrpd.{v,v})) :=
-  rfl
+abbrev U : Ctx.{max u (v + 1)} :=
+  Ctx.core.obj.{v,u} $ Cat.of Grpd.{v,v}
 
 /-- `E.{v}` is the object representing `v`-small terms,
   living over `U.{v}`
   i.e. `y(E) = Tm` for the small natural models `baseU`. -/
-def E : Ctx.{max u (v + 1)} :=
-  Ctx.ofGrpd.obj E'.{v,u}
-
-def π'' : AsSmall.{max u (v+1)} PGrpd.{v,v}
-    ⥤ AsSmall.{max u (v+1)} Grpd.{v,v} :=
-  AsSmall.down ⋙ PGrpd.forgetToGrpd ⋙ AsSmall.up
-
-abbrev π' : E'.{v,u} ⟶ U'.{v,u} :=
-  Grpd.homOf (Core.functor' π'')
-
-lemma π'_eq : Grpd.homOf (Core.functor' π'') =
-    Core.functor.map (Cat.asSmallFunctor.map (Cat.homOf PGrpd.forgetToGrpd)) :=
-  rfl
+abbrev E : Ctx.{max u (v + 1)} :=
+  Ctx.core.obj.{v,u} $ Cat.of PGrpd.{v,v}
 
 /-- `π.{v}` is the morphism representing `v`-small `tp`,
   for the small natural models `baseU`. -/
-abbrev π : E.{v,u} ⟶ U.{v,u} :=
-  Ctx.ofGrpd.map π'
+abbrev π : E.{v} ⟶ U.{v} :=
+  Ctx.core.map.{v,u} $ Cat.homOf PGrpd.forgetToGrpd
 
-open PGrpd LargeUniverse
+namespace U
+variable {Γ : Ctx.{max u (v + 1)}} (A : Γ ⟶ U.{v})
 
--- FIXME this has an error without the `dsimp` saying it has
--- two non-defeq category instances
-def U.isoYonedaCatGrpd : y(U.{v,u}) ≅ yonedaCat.obj (coregrpd.{v,max u (v+1)}) :=
-  asSmallUp_comp_yoneda_iso_forgetToCat_comp_catLift_comp_yonedaCat.app U'.{v,u}
-    ≪≫ Functor.mapIso yonedaCat (by
-      dsimp [Grpd.forgetToCat, U, U']
-      exact ULift.Core.isoCoreULift)
+abbrev ext : Ctx.{max u (v + 1)} :=
+  Ctx.ofGroupoid $ Groupoidal (Ctx.yonedaCoreEquiv A)
 
--- FIXME this has an error without the `dsimp` saying it has
--- two non-defeq category instances
-def E.isoYonedaCatPGrpd : y(E.{v,u}) ≅ yonedaCat.obj (corepgrpd.{v,max u (v+1)}) :=
-  asSmallUp_comp_yoneda_iso_forgetToCat_comp_catLift_comp_yonedaCat.app E'.{v,u}
-    ≪≫ Functor.mapIso yonedaCat (by
-      dsimp [Grpd.forgetToCat, E, E']
-      exact ULift.Core.isoCoreULift)
+abbrev disp : ext A ⟶ Γ :=
+  AsSmall.up.map (Grothendieck.forget _)
+
+abbrev var : ext A ⟶ E.{v} :=
+  Ctx.yonedaCoreEquiv.symm $ Groupoidal.toPGrpd (Ctx.yonedaCoreEquiv A)
+
+def toTy' : Ctx.toGrpd.obj U.{v,u} ⥤ Grpd.{max u (v+1), max u (v+1)} :=
+  AsSmall.down
+    ⋙ Core.inclusion Grpd.{v,v}
+    ⋙ Grpd.asSmallFunctor.{max u (v+1)}
+
+def toTm' : Ctx.toGrpd.obj E.{v,u} ⥤ PGrpd.{max u (v+1), max u (v+1)} :=
+  AsSmall.down
+    ⋙ Core.inclusion PGrpd.{v,v}
+    ⋙ PGrpd.asSmallFunctor.{max u (v+1)}
+
 
 /-- `toTy` is the map that classifies the universe
   `U` of `v`-small types as a map into the type classifier `Ty`.
@@ -942,508 +887,130 @@ def E.isoYonedaCatPGrpd : y(E.{v,u}) ≅ yonedaCat.obj (corepgrpd.{v,max u (v+1)
     U---------toTy----->Ty
 
 -/
-def U.toTy : y(U.{v,u}) ⟶ Ty.{max u (v+1)} :=
-  isoYonedaCatGrpd.hom.{v,u}
-  ≫ yonedaCat.map inclusionGrpdCompAsSmallFunctor.{v,max u (v+1)}
+def toTy : y(U.{v,u}) ⟶ Ty.{max u (v+1)} :=
+  yonedaCatEquiv.symm toTy'
 
 def E.toTm : y(E.{v,u}) ⟶ Tm.{max u (v+1)} :=
-  isoYonedaCatPGrpd.hom.{v,u}
-  ≫ yonedaCat.map inclusionPGrpdCompAsSmallFunctor.{v,max u (v+1)}
+  yonedaCatEquiv.symm toTm'
+end U
+open PGrpd LargeUniverse
 
-namespace U
+section IsMegaPullback
 
-open E
-
-/--
-The image of `isPullback_corepgrpdforgettogrpd_PGRPDFORGETTOGRPD`
-under `yonedaCat` is a pullback
-
-yonedaCat (Core PGrpd.{v,v}) ----> yonedaCat (PGrpd.{max v u, max v u}) = Tm
-        |                                     |
-        |                                     |
-        |                                     tp
-        |                                     |
-        v                                     v
-yonedaCat (Core Grpd.{v,v})  ----> yonedaCat (Grpd.{max v u, max v u}) = Ty
--/
-theorem isPullback_yonedaCatCorePGrpdForgetToGrpd_tp :
-    IsPullback
-      (yonedaCat.map (inclusionPGrpdCompAsSmallFunctor.{v,u}))
-      (yonedaCat.map (coreFunctorPGrpdForgetToGrpd.{v,u}))
-      tp
-      (yonedaCat.map (inclusionGrpdCompAsSmallFunctor.{v,u})) :=
-  Functor.map_isPullback yonedaCat (isPullback_corepgrpdforgettogrpd_PGRPDFORGETTOGRPD)
-
-theorem isPullback_yπ_yonedaCatCorepgrpdforgettogrpd :
-    IsPullback
-      E.isoYonedaCatPGrpd.{v,u}.hom
-      ym(π.{v,u})
-      (yonedaCat.map (corepgrpdforgettogrpd.{v,max u (v+1)}))
-      U.isoYonedaCatGrpd.{v,u}.hom :=
-  IsPullback.of_horiz_isIso ⟨rfl⟩
-
-/--
-The small universe and the ambient natural model form a pullback
-      y(E) ------------ toTm --------------> Tm
-        |                                     |
-        |                                     |
-      y(π)                                    tp
-        |                                     |
-        v                                     v
-      y(U) ------------ toTy --------------> Ty
--/
-theorem isPullback_yπ_tp :
-    IsPullback toTm.{v,u} ym(π.{v,u}) tp toTy.{v,u} :=
-  IsPullback.paste_horiz
-    isPullback_yπ_yonedaCatCorepgrpdforgettogrpd
-    isPullback_yonedaCatCorePGrpdForgetToGrpd_tp.{v,max u (v+1)}
-
-variable {Γ : Ctx.{max u (v + 1)}} (A : Γ ⟶ U.{v})
-
-def classifier : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v} :=
-  Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd) ⋙ AsSmall.down
-
-abbrev ext' : Grpd.{max u (v+1), max u (v+1)}:=
-  Grpd.of (Groupoidal (classifier A))
-
-abbrev ext : Ctx.{max u (v + 1)} :=
-  Ctx.ofGrpd.obj (ext' A)
-
-abbrev disp' : ext' A ⟶ Ctx.toGrpd.obj Γ :=
-  Grothendieck.forget _
-
-abbrev disp : ext A ⟶ Γ :=
-  AsSmall.up.map (Grothendieck.forget _)
-
-abbrev var' : ext' A ⟶ E'.{v} :=
-  Grpd.homOf (Core.functorToCore
-    (Groupoidal.toPGrpd (classifier A) ⋙ AsSmall.up))
-
-abbrev var : ext A ⟶ E.{v} :=
-  Ctx.ofGrpd.map (Grpd.homOf (Core.functorToCore
-    (Groupoidal.toPGrpd (classifier A) ⋙ AsSmall.up)))
-
--- /--
---   `U.var` is the universal lift from the following diagram
-
---   y(Γ.A) -.-.- var -.-,-> y(E) ------ toTm ------> Tm
---    |                       |                       |
---    |                       |                       |
--- ym(disp)                  y(π)                     tp
---    |                       |                       |
---    V                       V                       V
---   y(Γ) ------- A ---> y(U) ------ toTy ------> Ty
-
---   where the top map is `base.var` from the ambient natural model
--- -/
--- abbrev var : y(ext A) ⟶ y(E.{v}) :=
---   isPullback_yπ_tp.{v,u}.lift (base.var (A ≫ toTy)) (ym(disp A) ≫ A)
---     (base.disp_pullback (A ≫ toTy)).w
-
-def toU'' : AsSmall.{max u (v+2)} Grpd.{v,v}
-    ⥤ AsSmall.{max u (v+2)} Grpd.{v+1,v+1} :=
-  AsSmall.down ⋙ Grpd.asSmallFunctor.{v+1} ⋙ AsSmall.up
-
-def toU' : U'.{v, max u (v+2)} ⟶ U'.{v+1,max u (v+2)} :=
-  Core.functor.map (Cat.homOf toU'')
-
-/-- `toU` is the base map between two `v`-small universes
-    E.{v} --------------> E.{v+1}
-    |                      |
-    |                      |
-    |                      |
-    |                      |
-    v                      v
-    U.{v}-------toU-----> U.{v+1}
- -/
-def toU : U.{v, max u (v+2)} ⟶ U.{v+1, max u (v+2)} :=
-  Ctx.ofGrpd.map toU'
-
-def toE'' : AsSmall.{max u (v+2)} PGrpd.{v,v}
-    ⥤ AsSmall.{max u (v+2)} PGrpd.{v+1,v+1} :=
-  AsSmall.down ⋙ PGrpd.asSmallFunctor.{v+1} ⋙ AsSmall.up
-
-def toE' : E'.{v, max u (v+2)} ⟶ E'.{v+1,max u (v+2)} :=
-  Core.functor.map $ Cat.homOf toE''
-
-def toE : E.{v, max u (v+2)} ⟶ E.{v+1,max u (v+2)} :=
-  Ctx.ofGrpd.map toE'
-
-namespace SmallUniverse
-
-theorem comm_sq : Cat.homOf toE''.{v,u} ≫ Cat.homOf π''.{v+1, max u (v+2)} =
-  Cat.homOf π''.{v, max u (v+2)} ≫ Cat.homOf toU''.{v,u} := rfl
-
-def toE''' : AsSmall.{v+1} PGrpd.{v,v}
-    ⥤ PGrpd.{v+1,v+1} :=
-  AsSmall.down ⋙ PGrpd.asSmallFunctor.{v+1}
-
-def toU''' : AsSmall.{v+1} Grpd.{v,v}
-    ⥤ Grpd.{v+1,v+1} :=
-  AsSmall.down ⋙ Grpd.asSmallFunctor.{v+1}
-
-open Grothendieck.Groupoidal
-
-theorem isPullback_uLiftGrothendieckForget_forgetToGrpd :
-    IsPullback
-      (Cat.homOf (ULift.downFunctor ⋙ toPGrpd toU'''.{v}))
-      (IsPullback.uLiftGrothendieckForget (Groupoid.compForgetToCat toU'''))
-      (Cat.homOf PGrpd.forgetToGrpd.{v+1,v+1})
-      (Cat.homOf (ULift.downFunctor.{v+1,v+1} ⋙ toU'''.{v})) :=
-  Grothendieck.Groupoidal.isPullback _
-
-namespace IsMegaPullback
-
-variable {c : Cat.{max u (v+2), max u (v+2)}}
-  {fst : c ⥤ PGrpd.{v+1,v+1}}
-  {snd : c ⥤ Grpd.{v,v}}
+variable {C : Type u₂} [Category.{v₁} C]
+  (fst : C ⥤ PGrpd.{v+1,v+1})
+  (snd : C ⥤ Grpd.{v,v})
   (condition : fst ⋙ PGrpd.forgetToGrpd.{v+1,v+1}
     = snd ⋙ Grpd.asSmallFunctor.{v+1, v, v})
 
-variable (fst) (snd)
+def PGrpd.isoGrothendieckInv :
+    Groupoidal Grpd.asSmallFunctor.{v+1,v,v}
+      ⥤ PGrpd.{v,v} where
+  obj x := PGrpd.ofGrpd x.base (AsSmall.down.obj.{v,v,v+1} x.fiber)
+  map f := PGrpd.homOf {
+    toFunctor := f.base
+    point := AsSmall.down.map f.fiber}
 
-def lift :
-    c ⥤ PGrpd.{v,v} :=
-  let f := fst
-  let g := snd
-  let w := condition
-  sorry
+def PGrpd.isoGrothendieckHom :
+    PGrpd.{v,v} ⥤ Groupoidal Grpd.asSmallFunctor.{v+1,v,v}
+      where
+  obj x := {
+    base := PGrpd.forgetToGrpd.obj x
+    fiber := AsSmall.up.obj.{v,v,v+1} x.str.pt}
+  map f := {
+    base := PGrpd.forgetToGrpd.map f
+    fiber := AsSmall.up.map.{v,v,v+1} f.point}
+  map_comp f g := by
+    simp
+    congr 1
+    simp
+    congr 1
 
-def fac_left : lift fst snd condition
-    ⋙ PGrpd.asSmallFunctor.{v+1} = fst := sorry
+theorem PGrpd.isoGrothendieckInv_comp_asSmallFunctor :
+    PGrpd.isoGrothendieckInv.{v} ⋙ PGrpd.asSmallFunctor.{v+1}
+    = Groupoidal.toPGrpd _ := rfl
+
+theorem PGrpd.isoGrothendieckHom_comp_toPGrpd :
+    PGrpd.isoGrothendieckHom.{v} ⋙ Groupoidal.toPGrpd Grpd.asSmallFunctor
+    = PGrpd.asSmallFunctor.{v+1} := rfl
+
+def lift : C ⥤ PGrpd.{v,v} :=
+  Groupoidal.IsMegaPullback.lift fst snd condition
+  ⋙ PGrpd.isoGrothendieckInv.{v}
+
+theorem fac_left : lift fst snd condition
+    ⋙ PGrpd.asSmallFunctor.{v+1} = fst := by
+  simp only [lift, Functor.assoc,
+    PGrpd.isoGrothendieckInv_comp_asSmallFunctor]
+  apply Groupoidal.IsMegaPullback.fac_left
 
 def fac_right : lift fst snd condition
-    ⋙ PGrpd.forgetToGrpd.{v} = snd := sorry
+    ⋙ PGrpd.forgetToGrpd.{v} = snd := by
+  simp only [lift, Functor.assoc,
+    PGrpd.isoGrothendieckInv_comp_asSmallFunctor]
+  apply Groupoidal.IsMegaPullback.fac_right
 
-def uniq (m : c ⥤ PGrpd.{v,v})
+def uniq (m : C ⥤ PGrpd.{v,v})
     (hl : m ⋙ PGrpd.asSmallFunctor.{v+1} = fst)
     (hr : m ⋙ PGrpd.forgetToGrpd.{v} = snd) :
-    m = lift fst snd condition := sorry
+    m = lift fst snd condition := by
+  have h := Groupoidal.IsMegaPullback.uniq fst snd condition (m ⋙ PGrpd.isoGrothendieckHom) hl hr
+  convert_to (m ⋙ PGrpd.isoGrothendieckHom) ⋙ PGrpd.isoGrothendieckInv = _
+  rw [h]
+  rfl
 
 end IsMegaPullback
 
 section IsPullbackInCat
 
-variable (s : PullbackCone
-    (Cat.homOf (π''.{v+1,max u (v+2)}))
-    (Cat.homOf (toU''.{v,max u (v+2)})))
+-- variable (s : PullbackCone
+--     (Cat.homOf (π''.{v+1,max u (v+2)}))
+--     (Cat.homOf (toU''.{v,max u (v+2)})))
 
-def fst' : s.pt ⥤ PGrpd.{v+1,v+1} := s.fst ⋙ AsSmall.down
+-- def fst' : s.pt ⥤ PGrpd.{v+1,v+1} := s.fst ⋙ AsSmall.down
 
-def snd' : s.pt ⥤ Grpd.{v,v} := s.snd ⋙ AsSmall.down
+-- def snd' : s.pt ⥤ Grpd.{v,v} := s.snd ⋙ AsSmall.down
 
-theorem condition' : fst' s ⋙ PGrpd.forgetToGrpd.{v+1,v+1}
-    = snd' s ⋙ Grpd.asSmallFunctor.{v+1, v, v} :=
-  AsSmall.comp_up_inj s.condition
+-- theorem condition' : fst' s ⋙ PGrpd.forgetToGrpd.{v+1,v+1}
+--     = snd' s ⋙ Grpd.asSmallFunctor.{v+1, v, v} :=
+--   AsSmall.comp_up_inj s.condition
 
-open SmallUniverse.IsMegaPullback
+-- def lift' : s.pt ⟶
+--     Cat.of (AsSmall.{max u (v+2)} PGrpd.{v,v}) :=
+--   Cat.homOf
+--     (lift (fst' s) (snd' s) (condition' s) ⋙ AsSmall.up)
 
-def lift' : s.pt ⟶
-    Cat.of (AsSmall.{max u (v+2)} PGrpd.{v,v}) :=
-  Cat.homOf
-    (lift (fst' s) (snd' s) (condition' s) ⋙ AsSmall.up)
+-- theorem fac_left' : lift' s ≫ Cat.homOf toE'' = s.fst :=
+--   AsSmall.comp_down_inj (fac_left _ _ (condition' s))
 
-theorem fac_left' : lift' s ≫ Cat.homOf toE'' = s.fst :=
-  AsSmall.comp_down_inj (fac_left _ _ (condition' s))
+-- theorem fac_right' : lift' s ≫ Cat.homOf π'' = s.snd :=
+--   AsSmall.comp_down_inj (fac_right _ _ (condition' s))
 
-theorem fac_right' : lift' s ≫ Cat.homOf π''.{_,max u (v+2)} = s.snd :=
-  AsSmall.comp_down_inj (fac_right _ _ (condition' s))
+-- theorem uniq' (m : s.pt ⟶ Cat.of (AsSmall PGrpd))
+--     (hl : m ≫ Cat.homOf toE'' = s.fst)
+--     (hr : m ≫ Cat.homOf π'' = s.snd) :
+--     m = lift' s := by
+--   have hl' : (m ⋙ AsSmall.down) ⋙ asSmallFunctor.{v+1}
+--     = s.fst ⋙ AsSmall.down := by rw [← hl]; rfl
+--   have hr' : (m ⋙ AsSmall.down) ⋙ forgetToGrpd.{v}
+--     = snd' s := by dsimp [snd']; rw [← hr]; rfl
+--   have h := uniq _ _ (condition' s) _ hl' hr'
+--   exact AsSmall.comp_down_inj h
 
-theorem uniq' (m : s.pt ⟶ Cat.of (AsSmall PGrpd))
-    (hl : m ≫ Cat.homOf toE'' = s.fst)
-    (hr : m ≫ Cat.homOf π''.{_,max u (v+2)} = s.snd) :
-    m = lift' s := by
-  have hl' : (m ⋙ AsSmall.down) ⋙ asSmallFunctor.{v+1}
-    = s.fst ⋙ AsSmall.down := by rw [← hl]; rfl
-  have hr' : (m ⋙ AsSmall.down) ⋙ forgetToGrpd.{v}
-    = snd' s := by dsimp [snd']; rw [← hr]; rfl
-  have h := uniq _ _ (condition' s) _ hl' hr'
-  exact AsSmall.comp_down_inj h
-
-
-end IsPullbackInCat
-
--- TODO overview of how this is proven
-/--
-The following square is a pullback
-
- AsSmall PGrpd.{v} ------- toE'' ------> AsSmall PGrpd.{v+1}
-        |                                     |
-        |                                     |
-        π'                                    π'
-        |                                     |
-        v                                     v
- AsSmall Grpd.{v}  ------- toU'' -----> AsSmall Grpd.{v+1}
-
-in the category `Cat.{max u (v+2), max u (v+2)}`
--/
-theorem isPullback_pgrpdforgettogrpd_pgrpdforgettogrpd :
-    IsPullback
-      (Cat.homOf toE''.{v,max u (v+2)})
-      (Cat.homOf π''.{_,max u (v+2)})
-      (Cat.homOf π''.{v+1,max u (v+2)})
-      (Cat.homOf toU''.{v,max u (v+2)}) :=
-  IsPullback.of_isLimit
-    (PullbackCone.IsLimit.mk
-      comm_sq lift' fac_left' fac_right' uniq')
-
-/--
-The following square is a pullback
-
- E'.{v,max u (v+2)} ------- toE' ------> E'.{v+1,u}
-        |                                     |
-        |                                     |
-        π'                                    π'
-        |                                     |
-        v                                     v
- U'.{v,max u (v+2)}  ------- toU' -----> U'.{v+1,u}
-
-in the category `Grpd.{max u (v+2), max u (v+2)}`.
-This is because `Core.functor` is a right adjoint,
-hence preserves limits.
--/
-theorem isPullback_π'_π' :
-    IsPullback
-      toE'.{v,max u (v+2)}
-      π'.{v}
-      π'.{v+1}
-      toU'.{v,max u (v+2)} :=
-  Functor.map_isPullback Core.functor
-    isPullback_pgrpdforgettogrpd_pgrpdforgettogrpd
-
-end SmallUniverse
-
-variable {Γ : Ctx.{max u (v+2)}} (A : y(Γ) ⟶ y(U.{v,max u (v+2)}))
-
-/--
-The small universes form pullbacks
-      y(E.{v}) ------------ toE ---------> y(E.{v+1})
-        |                                     |
-        |                                     |
-      y(π.{v})                              y(π.{v+1})
-        |                                     |
-        v                                     v
-      y(U.{v}) ------------ toU ---------> y(U.{v+1})
--/
-theorem isPullback_yπ_yπ :
-    IsPullback
-      ym(toE.{v,max u (v+2)})
-      ym(π.{v, max u (v+2)})
-      ym(π.{v+1,max u (v+2)})
-      ym(toU.{v,max u (v+2)}) :=
-  Functor.map_isPullback yoneda
-    (Functor.map_isPullback Ctx.ofGrpd
-      SmallUniverse.isPullback_π'_π')
-
-section disp_pullback
-
-variable (Γ : Ctx.{max u (v+1)})
-
-abbrev coreΓ : Grpd.{max u (v+1), max u (v+1)} :=
-  Core.functor.obj (Cat.of (Ctx.toGrpd.obj Γ))
-
-variable {Γ} (A : Γ ⟶ U.{v})
-
-abbrev coreExt' : Grpd.{max u (v+1), max u (v+1)}:=
-  Core.functor.obj (Cat.of (Groupoidal (classifier A)))
-
-abbrev coreDisp' : coreExt' A ⟶ coreΓ.{v,u} Γ :=
-  Core.functor.map $ Cat.homOf $ Grothendieck.forget _
-
-abbrev coreVar' : coreExt' A ⟶
-    Core.functor.obj.{max u (v+1), max u (v+1)}
-      (Cat.asSmallFunctor.obj.{max u (v+1),v,v+1} (Cat.of PGrpd.{v,v})) :=
-  Core.functor.map $ Cat.homOf (Groupoidal.toPGrpd (classifier A) ⋙ AsSmall.up)
-
-abbrev coreA : coreΓ.{v,u} Γ ⟶
-    Core.functor.obj.{max u (v+1), max u (v+1)}
-      (Cat.asSmallFunctor.obj.{max u (v+1),v,v+1} (Cat.of Grpd.{v,v})) :=
-  Core.functor.map (Cat.homOf (Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd)))
-
-def isPullback_disp'_asSmallForgetToGrpd_comm_sq :
-    Cat.homOf (Groupoidal.toPGrpd (classifier A) ⋙ AsSmall.up)
-    ≫ Cat.homOf (Cat.asSmallFunctor.map (Cat.homOf forgetToGrpd))
-    = Cat.homOf (Grothendieck.forget (Groupoid.compForgetToCat (classifier A)))
-    ≫ Cat.homOf (Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd)) := rfl
-
-variable {A}
-def comm_sq (s : PullbackCone
-      (Cat.homOf (Cat.asSmallFunctor.map (Cat.homOf forgetToGrpd)))
-    (Cat.homOf (Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd)))) :
-    s.fst ⋙ AsSmall.down ⋙ PGrpd.forgetToGrpd = s.snd ⋙ classifier A := by
-  convert_to s.fst ⋙ AsSmall.down ⋙ forgetToGrpd
-    ⋙ AsSmall.up ⋙ AsSmall.down.{v, v + 1, max u (v + 1)} = _
-  have := s.condition
-  simp only [Cat.asSmallFunctor_obj, Cat.of_α, Cat.homOf, Cat.asSmallFunctor_map, ← Functor.assoc,
-    PullbackCone.π_app_left, Cat.comp_eq_comp, PullbackCone.π_app_right, classifier] at *
-  rw [this]
-
-def lift (s : PullbackCone
-      (Cat.homOf (Cat.asSmallFunctor.map (Cat.homOf forgetToGrpd)))
-    (Cat.homOf (Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd)))) :
-    s.pt ⟶ Cat.of (Groupoidal (classifier A)) :=
-  Groupoidal.IsMegaPullback.lift (s.fst ⋙ AsSmall.down) s.snd (comm_sq s)
-
-theorem fac_left (s : PullbackCone (Cat.homOf (Cat.asSmallFunctor.map (Cat.homOf forgetToGrpd)))
-        (Cat.homOf (Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd)))) :
-    lift s ≫ Cat.homOf (Groupoidal.toPGrpd (classifier A) ⋙ AsSmall.up) = s.fst := by
-  convert_to _ = s.fst ⋙ AsSmall.down.{_, _, max u (v+1)} ⋙ AsSmall.up
-  simp only [← Functor.assoc]
-  rw [← Groupoidal.IsMegaPullback.fac_left (s.fst ⋙ AsSmall.down) s.snd (comm_sq s)]
-  rfl
-
-theorem fac_right (s : PullbackCone
-      (Cat.homOf (Cat.asSmallFunctor.map (Cat.homOf forgetToGrpd)))
-    (Cat.homOf (Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd)))) :
-    lift s ≫ Cat.homOf (Grothendieck.forget (Groupoid.compForgetToCat (classifier A))) = s.snd :=
-  Groupoidal.IsMegaPullback.fac_right (s.fst ⋙ AsSmall.down) s.snd (comm_sq s)
-
-theorem uniq (s : PullbackCone
-      (Cat.homOf (Cat.asSmallFunctor.map (Cat.homOf forgetToGrpd)))
-    (Cat.homOf (Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd))))
-    (m : s.pt ⟶ Cat.of (Grothendieck (Groupoid.compForgetToCat (classifier A))))
-    (hl : m ≫ Cat.homOf (Groupoidal.toPGrpd (classifier A) ⋙ AsSmall.up) = s.fst)
-    (hr : m ≫ Cat.homOf (Grothendieck.forget (Groupoid.compForgetToCat (classifier A)))
-      = s.snd) : m = lift s := by
-  apply Groupoidal.IsMegaPullback.uniq
-  · rw [← hl] ; rfl
-  · rw [← hr] ; rfl
-
-theorem isPullback_disp'_asSmallForgetToGrpd :
-    IsPullback
-      (Cat.homOf (Groupoidal.toPGrpd (classifier A) ⋙ AsSmall.up))
-      (Cat.homOf (Grothendieck.forget (Groupoid.compForgetToCat (classifier A))))
-      (Cat.asSmallFunctor.map (Cat.homOf forgetToGrpd))
-      (Cat.homOf (Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd))) :=
-  IsPullback.of_isLimit
-    (PullbackCone.IsLimit.mk
-      (isPullback_disp'_asSmallForgetToGrpd_comm_sq A)
-      lift fac_left fac_right uniq)
-
-variable (A)
-
-/--
-  The following square is a pullback in `Grpd`
-Core(U.ext' A) -- U.coreVar' A ---> U'
-     |                              |
-     |                              |
-     |                              |
-     |                              |
-Core(U.disp' A)                     π'
-     |                              |
-     |                              |
-     V                              V
-Core(Ctx.toGrpd.obj Γ) - coreA A -> E'
--/
-theorem isPullback_coreDisp'_π' :
-  IsPullback
-    (U.coreVar' A)
-    (U.coreDisp' A)
-    π'
-    (coreA A) :=
-  Functor.map_isPullback Core.functor isPullback_disp'_asSmallForgetToGrpd
-
--- /--
---   The following square is a pullback in `Grpd`
--- Core(U.ext' A) ------- inclusion ---> U.ext' A
---      |                                     |
---      |                                     |
---      |                                     |
--- Core(U.disp' A)                            π'
---      |                                     |
---      |                                     |
---      V                                     V
--- Core(Ctx.toGrpd.obj Γ) - inclusion -> Ctx.toGrpd.obj Γ
--- -/
--- theorem isPullback_coreDisp'_disp' :
---   IsPullback
---     (Grpd.homOf (Core.inclusion _))
---     (U.coreDisp' A)
---     (U.disp' A)
---     (Grpd.homOf (Core.inclusion _)) :=
---   IsPullback.of_horiz_isIso ⟨ rfl ⟩
-
-/--
-  The following square is a pullback in `Grpd`
- U.ext' A ------- functorToCore ---> Core(U.ext' A)
-     |                                     |
-     |                                     |
-     |                                     |
-     π'                              Core(U.disp' A)
-     |                                     |
-     |                                     |
-     V                                     V
- Ctx.toGrpd.obj Γ - functorToCore -> Core(Ctx.toGrpd.obj Γ)
--/
-theorem isPullback_disp'_coreDisp' :
-  IsPullback
-    (Grpd.homOf (Core.functorToCore (Functor.id _)))
-    (U.disp' A)
-    (U.coreDisp' A)
-    (Grpd.homOf (Core.functorToCore (Functor.id _))) :=
-  IsPullback.of_horiz_isIso ⟨ rfl ⟩
-/--
-  The following square is a pullback in `Grpd`
-  U.ext' A -- U.var' A ---> U'
-     |                      |
-     |                      |
-     |                      |
-  U.disp' A                 π'
-     |                      |
-     |                      |
-     V                      V
-Ctx.toGrpd.obj Γ ---------> E'
-           Ctx.toGrpd.map A
--/
-theorem isPullback_disp'_π' :
-  IsPullback
-    (U.var' A)
-    (U.disp' A)
-    π'
-    (Ctx.toGrpd.map A) := by
-  convert IsPullback.paste_horiz (isPullback_disp'_coreDisp' A) (isPullback_coreDisp'_π' A)
-  convert_to Ctx.toGrpd.map A =
-    Grpd.homOf (Core.functorToCore (𝟭 ↑Γ.1)) ≫
-      Core.functor.map (Cat.homOf (Ctx.toGrpd.map A)) ≫ Core.functor.map (Cat.homOf (Core.inclusion (AsSmall Grpd)))
-  have h := Core.adjunction.unit.naturality (Ctx.toGrpd.map A)
-  simp only [Ctx.toGrpd, AsSmall.down_obj, Grpd.forgetToCat,
-    Core.adjunction, Functor.comp_map, id_eq, ← Category.assoc] at *
-  rw [← h]
-  rfl
-
-/--
-  The following square is a pullback in `Ctx`
-  U.ext A --- U.var A ---> E
-     |                     |
-     |                     |
-     |                     |
-  U.disp A                 π
-     |                     |
-     |                     |
-     V                     V
-     Γ --------- A ------> U
--/
-theorem isPullback_disp_π :
+theorem U.isPullback_disp_π
+    {Γ : Ctx.{max u (v+1)}} (A : Γ ⟶ U.{v}) :
   IsPullback
     (U.var A)
     (U.disp A)
     π
     A :=
-  Functor.map_isPullback Ctx.ofGrpd (U.isPullback_disp'_π' A)
+  IsPullback.of_isLimit $
+    PullbackCone.IsLimit.mk
+      sorry sorry sorry sorry
+      sorry
 
-/--
-  The following square is a pullback in `Psh Ctx`
-  y(U.ext A) --- ym(U.var A) ---> y(E)
-     |                              |
-     |                              |
-     |                              |
-  ym(U.disp A)                   ym(π)
-     |                              |
-     |                              |
-     V                              V
-   y(Γ) ------------- ym(A) ----> y(U)
--/
-theorem isPullback_yonedaDisp_yonedaπ :
+theorem U.isPullback_yonedaDisp_yonedaπ
+    {Γ : Ctx.{max u (v+1)}} (A : Γ ⟶ U.{v}) :
   IsPullback
     ym(U.var A)
     ym(U.disp A)
@@ -1451,8 +1018,9 @@ theorem isPullback_yonedaDisp_yonedaπ :
     ym(A) :=
   Functor.map_isPullback yoneda (U.isPullback_disp_π A)
 
-end disp_pullback
-end U
+end IsPullbackInCat
+
+
 
 -- TODO link to this in blueprint
 /-- The natural model that acts as the classifier of `v`-large terms and types.
@@ -1475,6 +1043,7 @@ def U1 : NaturalModelBase Ctx.{max u (v+1)} where
     convert U.isPullback_yonedaDisp_yonedaπ (yoneda.preimage A)
     rw [Functor.map_preimage]
 
+#exit
 def U0 : NaturalModelBase Ctx.{max u (v+2)} :=
   U1.ofIsPullback U.isPullback_yπ_yπ.{v,u}
 
@@ -1485,57 +1054,30 @@ def uHomSeqObjs (i : Nat) (h : i < 3) : NaturalModelBase Ctx.{2} :=
   | 2 => base.{2}
   | (n+3) => by omega
 
-
-
-def U.asSmallClosedType' : Ctx.chosenTerminal.{max u (v+2)}
-    ⟶ U.{v+1, max u (v+2)} :=
-  toCoreAsSmallEquiv.symm ((Functor.const _).obj
-    (Grpd.of (Core (AsSmall.{v+1} Grpd.{v,v}))))
-
 def U.asSmallClosedType : y(Ctx.chosenTerminal.{max u (v+2)})
     ⟶ U1.{v+1, max u (v+2)}.Ty :=
-  ym(U.asSmallClosedType')
+  ym({ down := (Functor.const _).obj (
+    { down := Grpd.of (Core (AsSmall.{v+1} Grpd.{v,v})) }) })
 
-def U.isoGrpd :
-    Core (AsSmall.{max u (v+2)} Grpd.{v,v})
-      ⥤ Grpd.{v,v} := Core.inclusion _ ⋙ AsSmall.down
-
--- set_option pp.universes true
-def U.grpdToExtAsSmallClosedTypeHom :
-    Grpd.{v,v} ⥤ Groupoidal (classifier
-      (asSmallClosedType'.{v, max u (v + 2)})) where
-  obj X := ⟨ ⟨⟨⟩⟩ , AsSmall.up.obj.{_,_,v+1} X
-   ⟩
-  map F := ⟨ CategoryStruct.id _ , by
-    have h := AsSmall.up.map.{_,_,v+1} F
-    refine Iso.mk (AsSmall.up.map.{_,_,v+1} F) ?_ ?_ ?_
-    sorry
-    sorry
-    sorry
-    ⟩
-
-def U.isoExtAsSmallClosedTypeHom' :
-    Core (AsSmall.{max u (v+2)} Grpd.{v,v})
-      ⥤ Groupoidal (classifier (asSmallClosedType'.{v, max u (v + 2)})) where
-  obj X := ⟨ ⟨⟨⟩⟩ , AsSmall.up.obj.{_,_,v+1} (AsSmall.down.obj X) ⟩
-  map {X Y} F := ⟨ (CategoryStruct.id _) , {
-    hom := AsSmall.up.map.{_,_,v+1} (AsSmall.down.map F.hom)
-    inv := AsSmall.up.map.{_,_,v+1} (AsSmall.down.map (F.inv))
-    hom_inv_id := by simp only [← Functor.map_comp, Iso.hom_inv_id, Functor.map_id] ; rfl
-    inv_hom_id := by simp only [← Functor.map_comp, Iso.inv_hom_id, Functor.map_id] } ⟩
-
-def U.isoExtAsSmallClosedTypeHomAux :
-    Groupoidal (classifier (asSmallClosedType'.{v, max u (v + 2)}))
-    ⥤ Groupoidal (classifier (yoneda.preimage asSmallClosedType.{v, max u (v + 2)})) := sorry
-
-def U.isoExtAsSmallClosedTypeHom :
-    Core (AsSmall.{max u (v+2)} Grpd.{v,v})
-      ⥤ Groupoidal (classifier (yoneda.preimage asSmallClosedType.{v, max u (v + 2)})) :=
-  isoExtAsSmallClosedTypeHom' ⋙ isoExtAsSmallClosedTypeHomAux
+def dslkfj : Core (AsSmall Grpd)
+  ⥤ Groupoidal (yonedaCatEquiv (
+    U.asSmallClosedType ≫ U.toTy)) where
+  obj X := ⟨ ⟨⟨⟩⟩ , by
+    -- simp only [Functor.comp_obj, whiskeringLeft_obj_obj, yonedaCatEquiv, op_obj, catLift_obj,
+    --   yoneda_obj_obj, yonedaEquiv, Opposite.op_unop, Functor.comp_map, op_map, Quiver.Hom.unop_op, 
+    --   catLift_map, Cat.of_α, upFunctor, yoneda_obj_map, U.asSmallClosedType, U.toTy, inclusionGrpdCompAsSmallFunctor,
+    --   whiskeringLeft_obj_map, Equiv.trans_apply, Equiv.coe_fn_mk, FunctorToTypes.comp, yoneda_map_app, Category.id_comp,
+    --   whiskerLeft_app, Cat.comp_obj, downFunctor_obj, U.isoYonedaCatGrpd]
+    -- -- rw [yonedaEquiv_yoneda_map]
+    
+    sorry ⟩
+  map {X Y} F := ⟨ sorry , sorry ⟩
+  map_id := sorry
+  map_comp := sorry
 
 def U.isoExtAsSmallClosedType :
-    U.{v,max u (v+2)} ≅ U1.{v+1,max u (v+2)}.ext U.asSmallClosedType.{v, max u (v+2)} where
-  hom := Ctx.ofGrpd.map (Grpd.homOf isoExtAsSmallClosedTypeHom.{v,u})
+    U.{v,max u (v+2)} ≅ U1.{v+1,max u (v+2)}.ext U.asSmallClosedType.{v,u} where
+  hom := Ctx.ofGrpd.map (Grpd.homOf sorry)
   inv := Ctx.ofGrpd.map sorry
 
 def uHom01 : UHom U0.{v, max u (v+2)} U1.{v+1, max u (v+2)} :=
@@ -1581,26 +1123,26 @@ def U.isoExtAsClosedType :
   hom := Ctx.ofGrpd.map isoExtAsClosedTypeFun
   inv := Ctx.ofGrpd.map isoExtAsClosedTypeInv
 
--- def uHom12 : UHom U1.{v,u} base :=
---   UHom.ofRepChosenTerminal Ctx.chosenTerminalIsTerminal $
---     UHomRepTerminal.ofTyIsoExt _
---     (isPullbackHom base U.isPullback_yπ_tp)
---     (Functor.mapIso yoneda U.isoExtAsClosedType)
+def uHom12 : UHom U1.{v,u} base :=
+  UHom.ofRepChosenTerminal Ctx.chosenTerminalIsTerminal $
+    UHomRepTerminal.ofTyIsoExt _
+    (isPullbackHom base U.isPullback_yπ_tp)
+    (Functor.mapIso yoneda U.isoExtAsClosedType)
 
--- def uHomSeqHomSucc' (i : Nat) (h : i < 2) :
---     (uHomSeqObjs i (by omega)).UHom (uHomSeqObjs (i + 1) (by omega)) :=
---   match i with
---   | 0 => uHom01.{0,2}
---   | 1 => uHom12.{1,2}
---   | (n+2) => by omega
+def uHomSeqHomSucc' (i : Nat) (h : i < 2) :
+    (uHomSeqObjs i (by omega)).UHom (uHomSeqObjs (i + 1) (by omega)) :=
+  match i with
+  | 0 => uHom01.{0,2}
+  | 1 => uHom12.{1,2}
+  | (n+2) => by omega
 
--- /--
---   The groupoid natural model with two nested representable universes
--- -/
--- def uHomSeq : NaturalModelBase.UHomSeq Ctx.{2} where
---   length := 2
---   objs := uHomSeqObjs
---   homSucc' := uHomSeqHomSucc'
+/--
+  The groupoid natural model with two nested representable universes
+-/
+def uHomSeq : NaturalModelBase.UHomSeq Ctx.{2} where
+  length := 2
+  objs := uHomSeqObjs
+  homSucc' := uHomSeqHomSucc'
 
 end GroupoidNaturalModel
 

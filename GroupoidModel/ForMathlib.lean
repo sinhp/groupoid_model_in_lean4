@@ -12,6 +12,17 @@ import Mathlib.CategoryTheory.ChosenFiniteProducts
 /-! This file contains declarations missing from mathlib,
 to be upstreamed. -/
 
+
+/-
+
+This comment space is for notes about mathlib definitions/theorems that should be fixed, refactored,
+or redesigned.
+
+- AsSmall.down and AsSmall.up should have their universe level order changed so that the third value comes first.
+- currently I often write AsSmall.{_,_,w} because the first two can be inferred but not the max universe.
+
+-/
+
 namespace CategoryTheory
 
 attribute [reassoc (attr := simp)] Limits.terminal.comp_from
@@ -276,6 +287,11 @@ namespace AsSmall
 def up_map_comp_down_map
     {C : Type u₁} [Category.{v₁, u₁} C] {X Y : C} (f : X ⟶ Y) :
   AsSmall.down.map (AsSmall.up.map f) = f := rfl
+
+def down_map_comp_up_map
+    {C : Type u₁} [Category.{v₁, u₁} C]
+    {X Y : AsSmall C} (f : X ⟶ Y) :
+  AsSmall.up.map (AsSmall.down.map f) = f := rfl
 
 end AsSmall
 

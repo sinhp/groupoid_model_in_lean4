@@ -14,7 +14,7 @@ import GroupoidModel.Pointed.IsPullback
         ↑Γ--------------A---------------> Grpd
 
 ## Main definitions
-* `CategoryTheory.Grothendieck.Groupoidal` 
+* `CategoryTheory.Grothendieck.Groupoidal`
   takes a functor from a groupoid into `Grpd` the category of groupoids,
   composes it with the forgetful functor into `Cat` the category of categories,
   then applies `CategoryTheory.Grothendieck`.
@@ -158,13 +158,13 @@ theorem toPGrpd_comp_forgetToPCat :
 
 namespace IsMegaPullback
 
+def comm_sq : Groupoidal.toPGrpd A ⋙ PGrpd.forgetToGrpd
+    = Grothendieck.forget _ ⋙ A := rfl
+
 variable {A} {C : Type u₂} [Category.{v₂} C]
   (fst : C ⥤ PGrpd.{v₁, u₁})
   (snd : C ⥤ Γ)
   (w : fst ⋙ PGrpd.forgetToGrpd = snd ⋙ A)
-
-def comm_sq : Groupoidal.toPGrpd A ⋙ PGrpd.forgetToGrpd
-    = Grothendieck.forget _ ⋙ A := rfl
 
 theorem toPGrpd_eq_lift :
     toPGrpd A =
