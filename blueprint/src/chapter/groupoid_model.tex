@@ -66,8 +66,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
     }
   \]
   Since any small groupoid is also a large category $i : \grpd \hookrightarrow \Cat$,
-  we can restrict $\Cat$ indexed presheaves to be $\grpd$ indexed presheaves
-  (this the nerve in $i_{!} \dashv \mathsf{res}$).
+  we can restrict $\Cat$ indexed presheaves to be $\grpd$ indexed presheaves.
   We define $\tp : \Term \to \Type$ as the image of $U \circ$ under this restriction.
   % https://q.uiver.app/#q=WzAsNixbMCwwLCJcXENhdCJdLFsxLDAsIlxcUHNoQ2F0Il0sWzIsMCwiXFxQc2hncnBkIl0sWzAsMSwiXFxncnBkIl0sWzEsMSwiWy0sXFxncnBkXSJdLFsyLDEsIlxcVHlwZSJdLFswLDEsInkiXSxbMSwyLCJcXHRleHRzZntyZXN9Il0sWzMsNCwiIiwwLHsic3R5bGUiOnsidGFpbCI6eyJuYW1lIjoibWFwcyB0byJ9fX1dLFs0LDUsIiIsMCx7InN0eWxlIjp7InRhaWwiOnsibmFtZSI6Im1hcHMgdG8ifX19XV0=
   \begin{center}\begin{tikzcd}[row sep = tiny]
@@ -250,8 +249,10 @@ lifting $f$. Furthermore
     \arrow["{\fiber}", shift left=2, from=1-3, to=1-1]
   \end{tikzcd}\end{center}
   where for each fibration $\de : \De \to \Ga$ and each
-  object $x \in \Ga$
-  \[\fiber_{\de} \, x = \textit{full subcategory} \, \{a \in \De \st \de \, a = x\}\]
+  object $x \in \Ga$ the fiber $\fiber_{\de} \, x$
+  has objects
+  \[\{a \in \De \st \de \, a = x\}\]
+  and morphisms $f : a \to b$ from $\De$ such that $\de \, f = \id_x$.
   It follows that all fibrations are pullbacks of the classifier
   $U : \ptgrpd \to \grpd$, when viewed as morphisms in $\Cat$.
 \end{prop}
