@@ -350,8 +350,8 @@ variable {C : Type u} [Category.{v} C] {D : Type u₁} [Category.{v₁} D]
 theorem id_inv (X : C) :
     Iso.inv (coreCategory.id X) = @CategoryStruct.id C _ X := by
   rfl
-  @[simp]
-theorem comp_inv {X Y Z : Core C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+
+@[simp] theorem comp_inv {X Y Z : Core C} (f : X ⟶ Y) (g : Y ⟶ Z) :
     (f ≫ g).inv = g.inv ≫ f.inv :=
   rfl
 
