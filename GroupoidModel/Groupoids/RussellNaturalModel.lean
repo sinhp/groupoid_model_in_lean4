@@ -926,7 +926,7 @@ theorem fac_left : lift s
     (s.fst ⋙ AsSmall.down) s.snd (comm_sq s)]
   rfl
 
-theorem fac_right : lift s
+@[simp] theorem fac_right : lift s
     ≫ Cat.homOf (Grothendieck.forget
       (Groupoid.compForgetToCat (classifier A)))
     = s.snd :=
