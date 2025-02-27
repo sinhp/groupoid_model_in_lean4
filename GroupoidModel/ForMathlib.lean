@@ -502,7 +502,7 @@ def lift (s : PullbackCone (Cat.homOf F) (Cat.homOf (inclusion D))) :
     simp
 }
 
-def fac_left (s : PullbackCone (Cat.homOf F) (Cat.homOf (inclusion D))) :
+@[simp] theorem fac_left (s : PullbackCone (Cat.homOf F) (Cat.homOf (inclusion D))) :
     lift s ≫ Cat.homOf (inclusion C) = s.fst := rfl
 
 theorem Core.eqToIso_hom {a b : Core C} (h1 : a = b)
