@@ -511,7 +511,7 @@ theorem Core.eqToIso_hom {a b : Core C} (h1 : a = b)
   cases h1
   rfl
 
-def fac_right (s : PullbackCone (Cat.homOf F) (Cat.homOf (inclusion D))) :
+@[simp] theorem fac_right (s : PullbackCone (Cat.homOf F) (Cat.homOf (inclusion D))) :
     lift s ≫ Cat.homOf (functor' F) = s.snd := by
   apply Functor.ext
   · intro x y f
