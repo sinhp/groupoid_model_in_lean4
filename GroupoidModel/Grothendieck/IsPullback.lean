@@ -181,7 +181,7 @@ def lift : C ⥤ Grothendieck A where
       simp
     · simp
 
-theorem fac_right : lift fst snd w ⋙ Grothendieck.forget A = snd := by
+@[simp] theorem fac_right : lift fst snd w ⋙ Grothendieck.forget A = snd := by
   apply Functor.ext
   · simp [lift]
   · simp [lift]
