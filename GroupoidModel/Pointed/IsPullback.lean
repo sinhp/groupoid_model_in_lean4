@@ -58,7 +58,7 @@ def lift : C ⥤ PGrpd.{v₁,u₁} :=
   Grothendieck.IsMegaPullback.lift fst snd w
   ⋙ isoGrothendieckForgetToCatInv
 
-theorem fac_left : lift fst snd w ⋙ PGrpd.forgetToPCat = fst :=
+@[simp] theorem fac_left : lift fst snd w ⋙ PGrpd.forgetToPCat = fst :=
   Grothendieck.IsMegaPullback.fac_left fst snd w
 
 theorem fac_right : lift fst snd w ⋙ PGrpd.forgetToGrpd = snd :=
