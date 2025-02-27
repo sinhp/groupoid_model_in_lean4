@@ -282,7 +282,7 @@ namespace AsSmall
     {C : Type u₁} [Category.{v₁, u₁} C] {X Y : C} (f : X ⟶ Y) :
   AsSmall.down.map (AsSmall.up.map f) = f := rfl
 
-def down_map_up_map
+@[simp] theorem down_map_up_map
     {C : Type u₁} [Category.{v₁, u₁} C]
     {X Y : AsSmall C} (f : X ⟶ Y) :
   AsSmall.up.map (AsSmall.down.map f) = f := rfl
