@@ -52,9 +52,8 @@ def isPullbackHom (M : NaturalModelBase Ctx)
   mapTy := toTy
   pb := pb
 
--- FIXME please change the name if you don't like this
-/-- Given a `NaturalModelBase`, a semantic type `A : y(Γ) ⟶ Ty`,
-and a substitution `σ : Δ ⟶ Γ`, construct a Hom for the substitution `Aσ`
+/-- Given `M : NaturalModelBase`, a semantic type `A : y(Γ) ⟶ M.Ty`,
+and a substitution `σ : Δ ⟶ Γ`, construct a Hom for the substitution `A[σ]`.
 -/
 def Hom.subst (M : NaturalModelBase Ctx)
     {Γ Δ : Ctx} (A : y(Γ) ⟶ M.Ty) (σ : Δ ⟶ Γ) :
