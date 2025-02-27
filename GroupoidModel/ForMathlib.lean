@@ -278,7 +278,7 @@ end Grpd
 
 namespace AsSmall
 
-def up_map_down_map
+@[simp] theorem up_map_down_map
     {C : Type u₁} [Category.{v₁, u₁} C] {X Y : C} (f : X ⟶ Y) :
   AsSmall.down.map (AsSmall.up.map f) = f := rfl
 
