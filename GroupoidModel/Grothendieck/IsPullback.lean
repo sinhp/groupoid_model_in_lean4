@@ -186,7 +186,7 @@ theorem fac_right : lift fst snd w ⋙ Grothendieck.forget A = snd := by
   · simp [lift]
   · simp [lift]
 
-theorem fac_left : lift fst snd w ⋙ Grothendieck.toPCat A = fst := by
+@[simp] theorem fac_left : lift fst snd w ⋙ Grothendieck.toPCat A = fst := by
   apply Functor.ext
   · intro x y f
     apply PointedFunctor.ext
