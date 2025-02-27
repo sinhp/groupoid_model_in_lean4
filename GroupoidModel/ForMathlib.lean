@@ -313,7 +313,7 @@ theorem comp_down_inj {C : Type u} [Category.{v} C]
     {C : Type u₁} [Category.{v₁, u₁} C] :
   AsSmall.up ⋙ AsSmall.down = Functor.id C := rfl
 
-def down_comp_up
+@[simp] theorem down_comp_up
     {C : Type u₁} [Category.{v₁, u₁} C] :
   AsSmall.down ⋙ AsSmall.up = Functor.id (AsSmall C) := rfl
 
