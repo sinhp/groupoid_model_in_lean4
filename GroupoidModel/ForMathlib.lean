@@ -8,6 +8,7 @@ import Mathlib.CategoryTheory.Category.Grpd
 import Mathlib.CategoryTheory.Grothendieck
 import Mathlib.Data.Part
 import Mathlib.CategoryTheory.ChosenFiniteProducts
+import Mathlib.CategoryTheory.Core
 
 /-! This file contains declarations missing from mathlib,
 to be upstreamed. -/
@@ -135,13 +136,6 @@ def uLiftFunctor : Cat.{v,u} ⥤ Cat.{v, max u w} where
   map F := Cat.homOf $ ULift.downFunctor ⋙ F ⋙ ULift.upFunctor
 
 end CategoryTheory.Cat
-
-namespace CategoryTheory.Grpd
-
-abbrev homOf {C D : Type u} [Groupoid.{v} C] [Groupoid.{v} D] (F : C ⥤ D) :
-    Grpd.of C ⟶ Grpd.of D := F
-
-end CategoryTheory.Grpd
 
 /-
   CategoryTheory.Grothedieck
@@ -284,15 +278,302 @@ end Grpd
 
 namespace AsSmall
 
-def up_map_comp_down_map
+def up_map_down_map
     {C : Type u₁} [Category.{v₁, u₁} C] {X Y : C} (f : X ⟶ Y) :
   AsSmall.down.map (AsSmall.up.map f) = f := rfl
 
-def down_map_comp_up_map
+def down_map_up_map
     {C : Type u₁} [Category.{v₁, u₁} C]
     {X Y : AsSmall C} (f : X ⟶ Y) :
   AsSmall.up.map (AsSmall.down.map f) = f := rfl
 
+theorem comp_up_inj {C : Type u} [Category.{v} C]
+  {D : Type u₁} [Category.{v₁} D]
+    {F G : C ⥤ D}
+    (h : F ⋙ (AsSmall.up : D ⥤ AsSmall.{w} D) =
+      G ⋙ AsSmall.up)
+    : F = G := by
+  convert_to F ⋙ (AsSmall.up : D ⥤ AsSmall.{w} D)
+    ⋙ AsSmall.down
+    = G ⋙ (AsSmall.up : D ⥤ AsSmall.{w} D)
+    ⋙ AsSmall.down
+  simp [← Functor.assoc, h]
+
+theorem comp_down_inj {C : Type u} [Category.{v} C]
+  {D : Type u₁} [Category.{v₁} D]
+    {F G : C ⥤ AsSmall.{w} D}
+    (h : F ⋙ AsSmall.down = G ⋙ AsSmall.down)
+    : F = G := by
+  convert_to F ⋙ AsSmall.down
+    ⋙ AsSmall.up
+    = G ⋙ AsSmall.down ⋙ AsSmall.up
+  simp [← Functor.assoc, h]
+
+def up_comp_down
+    {C : Type u₁} [Category.{v₁, u₁} C] :
+  AsSmall.up ⋙ AsSmall.down = Functor.id C := rfl
+
+def down_comp_up
+    {C : Type u₁} [Category.{v₁, u₁} C] :
+  AsSmall.down ⋙ AsSmall.up = Functor.id (AsSmall C) := rfl
+
+instance {C : Type u} [Category.{v} C] :
+    Functor.IsEquivalence (AsSmall.up : C ⥤ AsSmall C) :=
+  AsSmall.equiv.isEquivalence_functor
+
 end AsSmall
+
+namespace Groupoid
+
+instance asSmallGroupoid (Γ : Type w) [Groupoid.{v} Γ] :
+    Groupoid (AsSmall.{max w u v} Γ) where
+  inv f := AsSmall.up.map (inv (AsSmall.down.map f))
+
+end Groupoid
+
+namespace Grpd
+
+abbrev homOf {C D : Type u} [Groupoid.{v} C] [Groupoid.{v} D] (F : C ⥤ D) :
+    Grpd.of C ⟶ Grpd.of D := F
+
+def asSmallFunctor : Grpd.{v, u} ⥤ Grpd.{max w v u, max w v u} where
+  obj Γ := Grpd.of $ AsSmall.{max w v u} Γ
+  map F := AsSmall.down ⋙ F ⋙ AsSmall.up
+
+end Grpd
+
+namespace Core
+
+variable {C : Type u} [Category.{v} C] {D : Type u₁} [Category.{v₁} D]
+
+@[simp]
+theorem id_inv (X : C) :
+    Iso.inv (coreCategory.id X) = @CategoryStruct.id C _ X := by
+  rfl
+  @[simp]
+theorem comp_inv {X Y Z : Core C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+    (f ≫ g).inv = g.inv ≫ f.inv :=
+  rfl
+
+def functor' (F : C ⥤ D) : Core C ⥤ Core D where
+  obj := F.obj
+  map f := {
+    hom := F.map f.hom
+    inv := F.map f.inv}
+  map_id x := by
+    simp only [Grpd.coe_of, id_hom, Functor.map_id, id_inv]
+    congr 1
+  map_comp f g := by
+    simp only [Grpd.coe_of, comp_hom, Functor.map_comp, comp_inv]
+    congr 1
+
+lemma functor'_comp_inclusion (F : C ⥤ D) :
+    functor' F ⋙ inclusion D = inclusion C ⋙ F :=
+  rfl
+
+def functor : Cat.{v,u} ⥤ Grpd.{v,u} where
+  obj C := Grpd.of (Core C)
+  map F := Grpd.homOf (functor' F)
+
+variable {Γ : Type u} [Groupoid.{v} Γ]
+
+/-  A functor from a groupoid into a category is equivalent
+    to a functor from the groupoid into the core -/
+def functorToCoreEquiv : Γ ⥤ D ≃ Γ ⥤ Core D where
+  toFun := functorToCore
+  invFun := forgetFunctorToCore.obj
+  left_inv _ := rfl
+  right_inv _ := by
+    simp [functorToCore, forgetFunctorToCore]
+    apply Functor.ext
+    · intro x y f
+      simp only [inclusion, id_eq, Functor.comp_obj, Functor.comp_map,
+        IsIso.Iso.inv_hom, eqToHom_refl,
+        Category.comp_id, Category.id_comp]
+      congr
+    · intro
+      rfl
+
+section Adjunction
+
+variable {C : Type u₁} [Category.{v₁} C]
+variable {G : Type u₂} [Groupoid.{v₂} G]
+variable {G' : Type u₃} [Groupoid.{v₃} G']
+variable {C' : Type u₃} [Category.{v₃} C']
+
+theorem functorToCore_naturality_left
+    (H : G ⥤ C) (F : G' ⥤ G) :
+    functorToCore (F ⋙ H) = F ⋙ functorToCore H := by
+  apply Functor.ext
+  · simp [functorToCore]
+  · intro
+    rfl
+
+theorem functorToCore_naturality_right
+    (H : G ⥤ C) (F : C ⥤ C') :
+    functorToCore (H ⋙ F)
+    = functorToCore H ⋙ (Core.functor' F) := by
+  apply Functor.ext
+  · intro x y f
+    simp [functorToCore]
+    congr 1
+    simp
+  · intro
+    rfl
+
+def adjunction : Grpd.forgetToCat ⊣ Core.functor where
+  unit := {
+    app G := Grpd.homOf (Core.functorToCore (Functor.id _))
+    naturality _ _ F := by
+      simp [Core.functor, Grpd.comp_eq_comp,
+        ← functorToCore_naturality_left,
+        ← functorToCore_naturality_right,
+        Functor.id_comp, Functor.comp_id, Grpd.forgetToCat]}
+  counit := {app C := Cat.homOf (Core.inclusion C)}
+
+/-- Mildly evil. -/
+theorem inclusion_comp_functorToCore : inclusion G ⋙ functorToCore (𝟭 G) = Functor.id (Core G) := by
+    apply Functor.ext
+    · intro x y f
+      simp only [Core.inclusion, Grpd.homOf, Core.functorToCore, Functor.id_map,
+        Grpd.comp_eq_comp, Functor.comp_map, Groupoid.inv_eq_inv, IsIso.Iso.inv_hom,
+        Grpd.id_eq_id, eqToHom_refl, Category.comp_id, Category.id_comp]
+      rfl
+    · intro
+      rfl
+
+/-- Mildly evil. -/
+instance : IsIso (Grpd.homOf (Core.inclusion G)) where
+  out := ⟨ Grpd.homOf (Core.functorToCore (Functor.id G)),
+    inclusion_comp_functorToCore, rfl ⟩
+
+/-- Mildly evil. -/
+instance {G : Type u} [Groupoid.{v} G] :
+  IsIso (Grpd.homOf (Core.functorToCore (Functor.id G))) where
+  out := ⟨ Grpd.homOf (Core.inclusion G), rfl,
+    inclusion_comp_functorToCore ⟩
+
+end Adjunction
+
+open Functor
+
+instance : IsLeftAdjoint Grpd.forgetToCat :=
+  IsLeftAdjoint.mk ⟨ Core.functor , ⟨ adjunction ⟩ ⟩
+
+instance : IsRightAdjoint Core.functor :=
+  IsRightAdjoint.mk ⟨ Grpd.forgetToCat , ⟨ adjunction ⟩ ⟩
+
+/- This whole section is evil. -/
+namespace IsPullback
+
+noncomputable section
+
+variable {C : Type u} [Category.{v} C] {D : Type u} [Category.{v} D]
+  (F : C ⥤ D)
+
+lemma w' : Cat.homOf (inclusion C) ≫ Cat.homOf F
+    = Cat.homOf (Core.functor' F) ⋙ Cat.homOf (inclusion D) := rfl
+
+variable {F} [F.ReflectsIsomorphisms]
+
+open Limits
+
+def lift (s : PullbackCone (Cat.homOf F) (Cat.homOf (inclusion D))) :
+    s.pt ⥤ Core C := {
+  obj := s.fst.obj
+  map {x y} f := @asIso _ _ _ _ (s.fst.map f) $ by
+    let f' : F.obj (s.fst.obj x) ≅ F.obj (s.fst.obj y) :=
+      (eqToIso s.condition).app x ≪≫ s.snd.map f ≪≫ (eqToIso s.condition.symm).app y
+    have hnat : F.map (s.fst.map f) ≫ _
+      = _ ≫ (inclusion D).map (s.snd.map f)
+      := (eqToHom s.condition).naturality f
+    have h : F.map (s.fst.map f) = f'.hom := by
+      simp only [Cat.eqToHom_app, comp_eqToHom_iff] at hnat
+      simp only [hnat, f', Core.inclusion]
+      simp
+    have : IsIso (F.map (s.fst.map f)) := by rw [h]; exact Iso.isIso_hom f'
+    exact Functor.ReflectsIsomorphisms.reflects F (s.fst.map f)
+  map_id x := by
+    simp only [asIso, Functor.map_id, IsIso.inv_id]
+    congr 1
+  map_comp f g := by
+    simp only [asIso, Functor.map_comp, IsIso.inv_comp]
+    congr 1
+    simp
+}
+
+def fac_left (s : PullbackCone (Cat.homOf F) (Cat.homOf (inclusion D))) :
+    lift s ≫ Cat.homOf (inclusion C) = s.fst := rfl
+
+theorem Core.eqToIso_hom {a b : Core C} (h1 : a = b)
+  (h2 : (inclusion C).obj a = (inclusion C).obj b) :
+    (eqToHom h1).hom = eqToHom h2 := by
+  cases h1
+  rfl
+
+def fac_right (s : PullbackCone (Cat.homOf F) (Cat.homOf (inclusion D))) :
+    lift s ≫ Cat.homOf (functor' F) = s.snd := by
+  apply Functor.ext
+  · intro x y f
+    apply Functor.map_injective (inclusion D)
+    have h := Functor.congr_hom s.condition f
+    unfold Cat.homOf at *
+    unfold inclusion at *
+    simp only [Cat.of_α, Cat.comp_obj, lift, functor', comp_hom] at *
+    convert h
+    · apply Core.eqToIso_hom
+    · apply Core.eqToIso_hom
+  · intro x
+    exact Functor.congr_obj s.condition x
+
+def uniq (s : PullbackCone (Cat.homOf F) (Cat.homOf (inclusion D)))
+  (m : s.pt ⟶ Cat.of (Core C))
+  (fl : m ≫ Cat.homOf (inclusion C) = s.fst) :
+    m = lift s := by
+  apply Functor.ext
+  · intro x y f
+    apply Functor.map_injective (inclusion C)
+    have h := Functor.congr_hom fl f
+    unfold Cat.homOf at *
+    unfold inclusion at *
+    simp only [Cat.of_α, Cat.comp_map, lift, comp_hom, asIso_hom] at *
+    rw [h, Core.eqToIso_hom, Core.eqToIso_hom]
+  · intro x
+    exact Functor.congr_obj fl x
+
+end
+end IsPullback
+
+variable {C : Type u} [Category.{v} C] {D : Type u} [Category.{v} D]
+  (F : C ⥤ D) [F.ReflectsIsomorphisms]
+
+open IsPullback
+
+/--
+  In the category of categories,
+  if functor `F : C ⥤ D` reflects isomorphisms
+  then taking the `Core` is pullback stable along `F`
+
+  Core C ---- inclusion -----> C
+    |                          |
+    |                          |
+    |                          |
+ Core.functor' F               F
+    |                          |
+    |                          |
+    V                          V
+  Core D ---- inclusion -----> D
+-/
+theorem isPullback_functor'_self :
+    IsPullback
+      (Cat.homOf $ inclusion C)
+      (Cat.homOf $ functor' F)
+      (Cat.homOf F)
+      (Cat.homOf $ inclusion D) :=
+  IsPullback.of_isLimit $
+    Limits.PullbackCone.IsLimit.mk
+      (w' F) lift fac_left fac_right
+      (λ s m fl _ ↦ uniq s m fl)
+end Core
 
 end CategoryTheory

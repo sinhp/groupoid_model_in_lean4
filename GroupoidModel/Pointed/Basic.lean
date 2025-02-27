@@ -1,10 +1,11 @@
 import Mathlib.CategoryTheory.Category.Grpd
+import GroupoidModel.ForMathlib
 
 /-!
 Here we define pointed categories and pointed groupoids as well as prove some basic lemmas.
 -/
 
-universe v u v₁ u₁ v₂ u₂ 
+universe w v u v₁ u₁ v₂ u₂
 
 namespace CategoryTheory
 
@@ -343,6 +344,17 @@ lemma hext_iff {C D : PGrpd} : C.α = D.α ∧ HEq C.str D.str
   · intro hCD
     subst hCD
     exact ⟨ rfl , HEq.rfl ⟩
+
+instance asSmall (Γ : Type w) [PointedGroupoid.{v} Γ] :
+    PointedGroupoid.{max w v u, max w v u} (AsSmall.{max w v u} Γ) := {
+  CategoryTheory.Groupoid.asSmallGroupoid.{w,v,u} Γ with
+  pt := AsSmall.up.obj PointedGroupoid.pt}
+
+def asSmallFunctor : PGrpd.{v, u} ⥤ PGrpd.{max w v u, max w v u} where
+  obj Γ := PGrpd.of $ AsSmall.{max w v u} Γ
+  map F := {
+    toFunctor := AsSmall.down ⋙ F.toFunctor ⋙ AsSmall.up
+    point := AsSmall.up.map F.point}
 
 end PGrpd
 
