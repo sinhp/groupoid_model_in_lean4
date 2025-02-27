@@ -916,7 +916,7 @@ def lift : s.pt ⟶ Cat.of (Groupoidal (classifier A)) :=
   Groupoidal.IsMegaPullback.lift
     (s.fst ⋙ AsSmall.down) s.snd (comm_sq s)
 
-theorem fac_left : lift s
+@[simp] theorem fac_left : lift s
     ≫ Cat.homOf (Groupoidal.toPGrpd (classifier A) ⋙ AsSmall.up)
     = s.fst := by
   convert_to _ = s.fst ⋙ AsSmall.down.{_, _, max u (v+1)}
