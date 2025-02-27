@@ -188,7 +188,7 @@ theorem fac_left' : (lift fst snd w ⋙ toPGrpd A) ⋙ PGrpd.forgetToPCat
       (fst ⋙ PGrpd.forgetToPCat) (snd ⋙ A) (by rw [← w]; rfl)]
   rfl
 
-theorem fac_left : lift fst snd w ⋙ Groupoidal.toPGrpd _ = fst :=
+@[simp] theorem fac_left : lift fst snd w ⋙ Groupoidal.toPGrpd _ = fst :=
    calc lift fst snd w ⋙ Groupoidal.toPGrpd _
     _ = PGrpd.IsMegaPullback.lift
       (fst ⋙ PGrpd.forgetToPCat)
