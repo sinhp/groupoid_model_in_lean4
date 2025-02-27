@@ -202,7 +202,7 @@ theorem fac_left' : (lift fst snd w ⋙ toPGrpd A) ⋙ PGrpd.forgetToPCat
     _ = fst :=
     symm $ PGrpd.IsMegaPullback.uniq _ _ _ _ rfl w
 
-theorem fac_right :
+@[simp] theorem fac_right :
     lift fst snd w ⋙ Grothendieck.forget _
     = snd :=
   Grothendieck.IsMegaPullback.fac_right
