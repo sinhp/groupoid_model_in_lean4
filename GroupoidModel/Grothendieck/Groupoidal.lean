@@ -156,7 +156,7 @@ theorem toPGrpd_comp_forgetToPCat :
 
 namespace IsMegaPullback
 
-def comm_sq : Groupoidal.toPGrpd A ⋙ PGrpd.forgetToGrpd
+theorem comm_sq : Groupoidal.toPGrpd A ⋙ PGrpd.forgetToGrpd
     = Grothendieck.forget _ ⋙ A := rfl
 
 variable {A} {C : Type u₂} [Category.{v₂} C]
