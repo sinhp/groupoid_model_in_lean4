@@ -41,17 +41,6 @@ protected def pullbackHom (M : NaturalModelBase Ctx) {Γ : Ctx} (A : y(Γ) ⟶ M
   mapTy := A
   pb := M.disp_pullback A
 
-/-- Morphism into the representable natural transformation `M`
-from `ofIsPullback`-/
-def isPullbackHom (M : NaturalModelBase Ctx)
-    {U E : Psh Ctx} {π : E ⟶ U}
-    {toTy : U ⟶ M.Ty} {toTm : E ⟶ M.Tm}
-    (pb : IsPullback toTm π M.tp toTy) :
-    Hom (M.ofIsPullback pb) M where
-  mapTm := toTm
-  mapTy := toTy
-  pb := pb
-
 /-- Given `M : NaturalModelBase`, a semantic type `A : y(Γ) ⟶ M.Ty`,
 and a substitution `σ : Δ ⟶ Γ`, construct a Hom for the substitution `A[σ]`.
 -/

@@ -28,8 +28,8 @@ variable {C : Type u} [Category.{v} C]
 def isoCoreULift :
     Cat.of (ULift.{w} (Core C)) ≅
       Cat.of (Core (ULift.{w} C)) where
-  hom := Cat.homOf (downFunctor ⋙ Core.functor' upFunctor)
-  inv := Cat.homOf (Core.functor' downFunctor ⋙ upFunctor)
+  hom := Cat.homOf (downFunctor ⋙ Core.map' upFunctor)
+  inv := Cat.homOf (Core.map' downFunctor ⋙ upFunctor)
 
 end Core
 end ULift
@@ -133,11 +133,11 @@ def grpdassmallfunctor : grpd.{v,u} ⟶ GRPD.{v,u} :=
 def pgrpdassmallfunctor : pgrpd.{v,u} ⟶ PGRPD.{v,u} :=
   Cat.homOf (downFunctor ⋙ AsSmall.down ⋙ PGrpd.asSmallFunctor.{max u (v+1)})
 def corepgrpdforgettogrpd : corepgrpd.{v,u} ⟶ coregrpd.{v,u} :=
-  Cat.homOf $ Core.functor' $
+  Cat.homOf $ Core.map' $
     downFunctor ⋙ AsSmall.down ⋙ PGrpd.forgetToGrpd ⋙ AsSmall.up ⋙ upFunctor
 
 def coreFunctorPGrpdForgetToGrpd : corepgrpd.{v,u} ⟶ coregrpd.{v,u} :=
-  Cat.homOf (Core.functor.map pgrpdforgettogrpd)
+  Cat.homOf (Core.map.map pgrpdforgettogrpd)
 
 def inclusionGrpdCompAsSmallFunctor : coregrpd.{v,u} ⟶ GRPD.{v,u} :=
   Cat.homOf (
@@ -285,7 +285,7 @@ theorem isPullback_corepgrpdforgettogrpd_PGRPDFORGETTOGRPD :
       PGRPDFORGETTOGRPD.{v,u}
       inclusionGrpdCompAsSmallFunctor.{v,u} :=
   IsPullback.paste_horiz
-    (Core.isPullback_functor'_self pgrpdforgettogrpd.{v,u})
+    (Core.isPullback_map'_self pgrpdforgettogrpd.{v,u})
     (isPullback_pgrpdforgettogrpd_PGRPDFORGETTOGRPD.{v,u})
 
 end LargeUniverse
@@ -573,10 +573,10 @@ def π'' : AsSmall.{max u (v+1)} PGrpd.{v,v}
   AsSmall.down ⋙ PGrpd.forgetToGrpd ⋙ AsSmall.up
 
 abbrev π' : E'.{v,u} ⟶ U'.{v,u} :=
-  Grpd.homOf (Core.functor' π'')
+  Grpd.homOf (Core.map' π'')
 
-lemma π'_eq : Grpd.homOf (Core.functor' π'') =
-    Core.functor.map (Cat.asSmallFunctor.map (Cat.homOf PGrpd.forgetToGrpd)) :=
+lemma π'_eq : Grpd.homOf (Core.map' π'') =
+    Core.map.map (Cat.asSmallFunctor.map (Cat.homOf PGrpd.forgetToGrpd)) :=
   rfl
 
 /-- `π.{v}` is the morphism representing `v`-small `tp`,
@@ -588,23 +588,17 @@ open PGrpd LargeUniverse
 
 namespace U
 
--- FIXME this has an error without the `dsimp` saying it has
--- two non-defeq category instances
 def isoYonedaCatGrpd : y(U.{v,u})
     ≅ yonedaCat.obj (coregrpd.{v,max u (v+1)}) :=
   asSmallUp_comp_yoneda_iso_forgetToCat_comp_catLift_comp_yonedaCat.app
-    U'.{v,u} ≪≫ Functor.mapIso yonedaCat (by
-      dsimp [Grpd.forgetToCat, U, U']
-      exact ULift.Core.isoCoreULift)
+    U'.{v,u} ≪≫ Functor.mapIso yonedaCat (eqToIso (by rfl)
+      ≪≫ ULift.Core.isoCoreULift)
 
--- FIXME this has an error without the `dsimp` saying it has
--- two non-defeq category instances
 def isoYonedaCatPGrpd : y(E.{v,u})
     ≅ yonedaCat.obj (corepgrpd.{v,max u (v+1)}) :=
   asSmallUp_comp_yoneda_iso_forgetToCat_comp_catLift_comp_yonedaCat.app
-    E'.{v,u} ≪≫ Functor.mapIso yonedaCat (by
-      dsimp [Grpd.forgetToCat, E, E']
-      exact ULift.Core.isoCoreULift)
+    E'.{v,u} ≪≫ Functor.mapIso yonedaCat (eqToIso (by rfl)
+      ≪≫ ULift.Core.isoCoreULift)
 
 /-- `toTy` is the map that classifies the universe
   `U` of `v`-small types as a map into the type classifier `Ty`.
@@ -701,7 +695,7 @@ def toU'' : AsSmall.{max u (v+2)} Grpd.{v,v}
   AsSmall.down ⋙ Grpd.asSmallFunctor.{v+1} ⋙ AsSmall.up
 
 def toU' : U'.{v, max u (v+2)} ⟶ U'.{v+1,max u (v+2)} :=
-  Core.functor.map (Cat.homOf toU'')
+  Core.map.map (Cat.homOf toU'')
 
 /-- `toU` is the base map between two `v`-small universes
     E.{v} --------------> E.{v+1}
@@ -720,7 +714,7 @@ def toE'' : AsSmall.{max u (v+2)} PGrpd.{v,v}
   AsSmall.down ⋙ PGrpd.asSmallFunctor.{v+1} ⋙ AsSmall.up
 
 def toE' : E'.{v, max u (v+2)} ⟶ E'.{v+1,max u (v+2)} :=
-  Core.functor.map $ Cat.homOf toE''
+  Core.map.map $ Cat.homOf toE''
 
 def toE : E.{v, max u (v+2)} ⟶ E.{v+1,max u (v+2)} :=
   Ctx.ofGrpd.map toE'
@@ -829,7 +823,7 @@ The following square is a pullback
  U'.{v,max u (v+2)}  ------- toU' -----> U'.{v+1,u}
 
 in the category `Grpd.{max u (v+2), max u (v+2)}`.
-This is because `Core.functor` is a right adjoint,
+This is because `Core.map` is a right adjoint,
 hence preserves limits.
 -/
 theorem isPullback_π'_π' :
@@ -838,7 +832,7 @@ theorem isPullback_π'_π' :
       π'.{v}
       π'.{v+1}
       toU'.{v,max u (v+2)} :=
-  Functor.map_isPullback Core.functor
+  Functor.map_isPullback Core.map
     isPullback_π''_π''
 
 end SmallUniverse
@@ -870,25 +864,25 @@ section disp_pullback
 variable (Γ : Ctx.{max u (v+1)})
 
 abbrev coreΓ : Grpd.{max u (v+1), max u (v+1)} :=
-  Core.functor.obj (Cat.of (Ctx.toGrpd.obj Γ))
+  Core.map.obj (Cat.of (Ctx.toGrpd.obj Γ))
 
 variable {Γ} (A : Γ ⟶ U.{v})
 
 abbrev coreExt' : Grpd.{max u (v+1), max u (v+1)}:=
-  Core.functor.obj (Cat.of (Groupoidal (classifier A)))
+  Core.map.obj (Cat.of (Groupoidal (classifier A)))
 
 abbrev coreDisp' : coreExt' A ⟶ coreΓ.{v,u} Γ :=
-  Core.functor.map $ Cat.homOf $ Grothendieck.forget _
+  Core.map.map $ Cat.homOf $ Grothendieck.forget _
 
 abbrev coreVar' : coreExt' A ⟶
-    Core.functor.obj.{max u (v+1), max u (v+1)}
+    Core.map.obj.{max u (v+1), max u (v+1)}
       (Cat.asSmallFunctor.obj.{max u (v+1),v,v+1} (Cat.of PGrpd.{v,v})) :=
-  Core.functor.map $ Cat.homOf (Groupoidal.toPGrpd (classifier A) ⋙ AsSmall.up)
+  Core.map.map $ Cat.homOf (Groupoidal.toPGrpd (classifier A) ⋙ AsSmall.up)
 
 abbrev coreA : coreΓ.{v,u} Γ ⟶
-    Core.functor.obj.{max u (v+1), max u (v+1)}
+    Core.map.obj.{max u (v+1), max u (v+1)}
       (Cat.asSmallFunctor.obj.{max u (v+1),v,v+1} (Cat.of Grpd.{v,v})) :=
-  Core.functor.map (Cat.homOf (Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd)))
+  Core.map.map (Cat.homOf (Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd)))
 
 def isPullback_disp'_asSmallForgetToGrpd_comm_sq :
     Cat.homOf (Groupoidal.toPGrpd (classifier A) ⋙ AsSmall.up)
@@ -981,7 +975,7 @@ theorem isPullback_coreDisp'_π' :
     π'
     (coreA A) :=
   Functor.map_isPullback
-    Core.functor isPullback_disp'_asSmallForgetToGrpd
+    Core.map isPullback_disp'_asSmallForgetToGrpd
 
 /--
   The following square is a pullback in `Grpd`
@@ -1025,8 +1019,8 @@ theorem isPullback_disp'_π' :
     (isPullback_disp'_coreDisp' A) (isPullback_coreDisp'_π' A)
   convert_to Ctx.toGrpd.map A =
     Grpd.homOf (Core.functorToCore (𝟭 ↑Γ.1)) ≫
-      Core.functor.map (Cat.homOf (Ctx.toGrpd.map A))
-      ≫ Core.functor.map (Cat.homOf (Core.inclusion (AsSmall Grpd)))
+      Core.map.map (Cat.homOf (Ctx.toGrpd.map A))
+      ≫ Core.map.map (Cat.homOf (Core.inclusion (AsSmall Grpd)))
   have h := Core.adjunction.unit.naturality (Ctx.toGrpd.map A)
   simp only [Ctx.toGrpd, AsSmall.down_obj, Grpd.forgetToCat,
     Core.adjunction, Functor.comp_map, id_eq, ← Category.assoc] at *

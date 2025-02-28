@@ -345,8 +345,8 @@ lemma hext_iff {C D : PGrpd} : C.α = D.α ∧ HEq C.str D.str
     subst hCD
     exact ⟨ rfl , HEq.rfl ⟩
 
-instance asSmall (Γ : Type w) [PointedGroupoid.{v} Γ] :
-    PointedGroupoid.{max w v u, max w v u} (AsSmall.{max w v u} Γ) := {
+instance asSmall (Γ : Type u) [PointedGroupoid.{v} Γ] :
+    PointedGroupoid.{max w v u, max w v u} (AsSmall.{w} Γ) := {
   CategoryTheory.Groupoid.asSmallGroupoid.{w,v,u} Γ with
   pt := AsSmall.up.obj PointedGroupoid.pt}
 

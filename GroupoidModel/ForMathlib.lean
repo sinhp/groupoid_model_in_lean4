@@ -325,8 +325,8 @@ end AsSmall
 
 namespace Groupoid
 
-instance asSmallGroupoid (Γ : Type w) [Groupoid.{v} Γ] :
-    Groupoid (AsSmall.{max w u v} Γ) where
+instance asSmallGroupoid (Γ : Type u) [Groupoid.{v} Γ] :
+    Groupoid (AsSmall.{w} Γ) where
   inv f := AsSmall.up.map (inv (AsSmall.down.map f))
 
 end Groupoid
@@ -355,7 +355,7 @@ theorem id_inv (X : C) :
     (f ≫ g).inv = g.inv ≫ f.inv :=
   rfl
 
-def functor' (F : C ⥤ D) : Core C ⥤ Core D where
+def map' (F : C ⥤ D) : Core C ⥤ Core D where
   obj := F.obj
   map f := {
     hom := F.map f.hom
@@ -367,13 +367,13 @@ def functor' (F : C ⥤ D) : Core C ⥤ Core D where
     simp only [Grpd.coe_of, comp_hom, Functor.map_comp, comp_inv]
     congr 1
 
-lemma functor'_comp_inclusion (F : C ⥤ D) :
-    functor' F ⋙ inclusion D = inclusion C ⋙ F :=
+lemma map'_comp_inclusion (F : C ⥤ D) :
+    map' F ⋙ inclusion D = inclusion C ⋙ F :=
   rfl
 
-def functor : Cat.{v,u} ⥤ Grpd.{v,u} where
+def map : Cat.{v,u} ⥤ Grpd.{v,u} where
   obj C := Grpd.of (Core C)
-  map F := Grpd.homOf (functor' F)
+  map F := Grpd.homOf (map' F)
 
 variable {Γ : Type u} [Groupoid.{v} Γ]
 
@@ -394,6 +394,12 @@ def functorToCoreEquiv : Γ ⥤ D ≃ Γ ⥤ Core D where
     · intro
       rfl
 
+theorem eqToIso_hom {a b : Core C} (h1 : a = b)
+  (h2 : (inclusion C).obj a = (inclusion C).obj b) :
+    (eqToHom h1).hom = eqToHom h2 := by
+  cases h1
+  rfl
+
 section Adjunction
 
 variable {C : Type u₁} [Category.{v₁} C]
@@ -412,7 +418,7 @@ theorem functorToCore_naturality_left
 theorem functorToCore_naturality_right
     (H : G ⥤ C) (F : C ⥤ C') :
     functorToCore (H ⋙ F)
-    = functorToCore H ⋙ (Core.functor' F) := by
+    = functorToCore H ⋙ (Core.map' F) := by
   apply Functor.ext
   · intro x y f
     simp [functorToCore]
@@ -421,11 +427,11 @@ theorem functorToCore_naturality_right
   · intro
     rfl
 
-def adjunction : Grpd.forgetToCat ⊣ Core.functor where
+def adjunction : Grpd.forgetToCat ⊣ Core.map where
   unit := {
     app G := Grpd.homOf (Core.functorToCore (Functor.id _))
     naturality _ _ F := by
-      simp [Core.functor, Grpd.comp_eq_comp,
+      simp [Core.map, Grpd.comp_eq_comp,
         ← functorToCore_naturality_left,
         ← functorToCore_naturality_right,
         Functor.id_comp, Functor.comp_id, Grpd.forgetToCat]}
@@ -458,9 +464,9 @@ end Adjunction
 open Functor
 
 instance : IsLeftAdjoint Grpd.forgetToCat :=
-  IsLeftAdjoint.mk ⟨ Core.functor , ⟨ adjunction ⟩ ⟩
+  IsLeftAdjoint.mk ⟨ Core.map , ⟨ adjunction ⟩ ⟩
 
-instance : IsRightAdjoint Core.functor :=
+instance : IsRightAdjoint Core.map :=
   IsRightAdjoint.mk ⟨ Grpd.forgetToCat , ⟨ adjunction ⟩ ⟩
 
 /- This whole section is evil. -/
@@ -472,13 +478,14 @@ variable {C : Type u} [Category.{v} C] {D : Type u} [Category.{v} D]
   (F : C ⥤ D)
 
 lemma w' : Cat.homOf (inclusion C) ≫ Cat.homOf F
-    = Cat.homOf (Core.functor' F) ⋙ Cat.homOf (inclusion D) := rfl
-
-variable {F} [F.ReflectsIsomorphisms]
+    = Cat.homOf (Core.map' F) ⋙ Cat.homOf (inclusion D) := rfl
 
 open Limits
 
-def lift (s : PullbackCone (Cat.homOf F) (Cat.homOf (inclusion D))) :
+variable {F} [F.ReflectsIsomorphisms]
+  (s : PullbackCone (Cat.homOf F) (Cat.homOf (inclusion D)))
+
+def lift :
     s.pt ⥤ Core C := {
   obj := s.fst.obj
   map {x y} f := @asIso _ _ _ _ (s.fst.map f) $ by
@@ -502,32 +509,25 @@ def lift (s : PullbackCone (Cat.homOf F) (Cat.homOf (inclusion D))) :
     simp
 }
 
-@[simp] theorem fac_left (s : PullbackCone (Cat.homOf F) (Cat.homOf (inclusion D))) :
+@[simp] theorem fac_left :
     lift s ≫ Cat.homOf (inclusion C) = s.fst := rfl
 
-theorem Core.eqToIso_hom {a b : Core C} (h1 : a = b)
-  (h2 : (inclusion C).obj a = (inclusion C).obj b) :
-    (eqToHom h1).hom = eqToHom h2 := by
-  cases h1
-  rfl
-
-@[simp] theorem fac_right (s : PullbackCone (Cat.homOf F) (Cat.homOf (inclusion D))) :
-    lift s ≫ Cat.homOf (functor' F) = s.snd := by
+@[simp] theorem fac_right :
+    lift s ≫ Cat.homOf (map' F) = s.snd := by
   apply Functor.ext
   · intro x y f
     apply Functor.map_injective (inclusion D)
     have h := Functor.congr_hom s.condition f
     unfold Cat.homOf at *
     unfold inclusion at *
-    simp only [Cat.of_α, Cat.comp_obj, lift, functor', comp_hom] at *
+    simp only [Cat.of_α, Cat.comp_obj, lift, map', comp_hom] at *
     convert h
     · apply Core.eqToIso_hom
     · apply Core.eqToIso_hom
   · intro x
     exact Functor.congr_obj s.condition x
 
-def uniq (s : PullbackCone (Cat.homOf F) (Cat.homOf (inclusion D)))
-  (m : s.pt ⟶ Cat.of (Core C))
+def lift_uniq (m : s.pt ⟶ Cat.of (Core C))
   (fl : m ≫ Cat.homOf (inclusion C) = s.fst) :
     m = lift s := by
   apply Functor.ext
@@ -558,22 +558,23 @@ open IsPullback
     |                          |
     |                          |
     |                          |
- Core.functor' F               F
+ Core.map' F               F
     |                          |
     |                          |
     V                          V
   Core D ---- inclusion -----> D
 -/
-theorem isPullback_functor'_self :
+theorem isPullback_map'_self :
     IsPullback
       (Cat.homOf $ inclusion C)
-      (Cat.homOf $ functor' F)
+      (Cat.homOf $ map' F)
       (Cat.homOf F)
       (Cat.homOf $ inclusion D) :=
   IsPullback.of_isLimit $
     Limits.PullbackCone.IsLimit.mk
       (w' F) lift fac_left fac_right
-      (λ s m fl _ ↦ uniq s m fl)
+      (λ s m fl _ ↦ lift_uniq s m fl)
+
 end Core
 
 end CategoryTheory
