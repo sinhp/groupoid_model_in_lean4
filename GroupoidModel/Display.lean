@@ -4,7 +4,7 @@ import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 import Mathlib.CategoryTheory.Limits.Presheaf
 import Mathlib.CategoryTheory.Adjunction.Over
 import Poly.LCCC.Presheaf
-import Poly.Polynomial
+import Poly.UvPoly
 import GroupoidModel.Tarski.NaturalModel
 
 -- (SH) TODO: Make the proof and construction work with `Disp` rather than `Disp'`.

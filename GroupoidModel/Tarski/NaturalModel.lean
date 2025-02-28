@@ -19,7 +19,7 @@ import Mathlib.CategoryTheory.Adjunction.Over
 import Poly.LCCC.Basic
 import Poly.LCCC.Presheaf
 import Poly.Exponentiable
-import Poly.Polynomial
+import Poly.UvPoly
 
 import GroupoidModel.ForPoly
 
@@ -120,7 +120,7 @@ class NaturalModelPi where
 variable (Ctx) in
 class NaturalModelSigma where
   Sig : (P tp).obj Ty ⟶ M.Ty
-  pair : (P tp).obj Tm ⟶ M.Tm
+  pair : (UvPoly.compDom (uvPoly M.tp) (uvPoly M.tp)) ⟶ M.Tm
   Sig_pullback : IsPullback pair ((uvPoly M.tp).comp (uvPoly M.tp)).p M.tp Sig
 
 def δ : M.Tm ⟶ pullback tp tp := pullback.lift (𝟙 _) (𝟙 _) rfl
