@@ -1,6 +1,5 @@
 
-# HoTTLean 
-## *Formalizing the Meta-Theory of HoTT in Lean4*
+# HoTTLean : *Formalizing the Meta-Theory of HoTT in Lean4*
 
 This repository formalizes in Lean4 the groupoid model of HoTT.
 A web version of the mathematics, `lean4` documentation, and a dependency graph on the progress of formalization can be found
