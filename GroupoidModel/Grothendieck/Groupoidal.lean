@@ -169,7 +169,7 @@ theorem toPGrpd_eq_lift :
     PGrpd.IsMegaPullback.lift
       (toPCat (Groupoid.compForgetToCat A))
       (Grothendieck.forget _ ⋙ A) rfl :=
-  PGrpd.IsMegaPullback.uniq
+  PGrpd.IsMegaPullback.lift_uniq
     (toPCat (Groupoid.compForgetToCat A))
     (Grothendieck.forget _ ⋙ A)
     rfl _ rfl rfl
@@ -194,13 +194,13 @@ theorem fac_left' : (lift fst snd w ⋙ toPGrpd A) ⋙ PGrpd.forgetToPCat
       (fst ⋙ PGrpd.forgetToPCat)
       (snd ⋙ A)
       (by rw [Functor.assoc, PGrpd.IsMegaPullback.comm_sq, ← w]; rfl) :=
-    PGrpd.IsMegaPullback.uniq
+    PGrpd.IsMegaPullback.lift_uniq
       (fst ⋙ PGrpd.forgetToPCat)
       (snd ⋙ A) _ _
       (fac_left' _ _ _)
       (by rw [Functor.assoc, comm_sq]; rfl)
     _ = fst :=
-    symm $ PGrpd.IsMegaPullback.uniq _ _ _ _ rfl w
+    symm $ PGrpd.IsMegaPullback.lift_uniq _ _ _ _ rfl w
 
 @[simp] theorem fac_right :
     lift fst snd w ⋙ Grothendieck.forget _
@@ -210,11 +210,11 @@ theorem fac_left' : (lift fst snd w ⋙ toPGrpd A) ⋙ PGrpd.forgetToPCat
     rw [Functor.assoc, PGrpd.IsMegaPullback.comm_sq,
       ← Functor.assoc, w, Functor.assoc])
 
-theorem uniq (m : C ⥤ Groupoidal A)
+theorem lift_uniq (m : C ⥤ Groupoidal A)
     (hl : m ⋙ toPGrpd _ = fst)
     (hr : m ⋙ Grothendieck.forget _ = snd) :
     m = lift _ _ w := by
-  apply Grothendieck.IsMegaPullback.uniq
+  apply Grothendieck.IsMegaPullback.lift_uniq
   · rw [← toPGrpd_comp_forgetToPCat, ← hl, Functor.assoc]
   · exact hr
 

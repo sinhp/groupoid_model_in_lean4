@@ -228,7 +228,7 @@ def lift : C ⥤ Grothendieck A where
         simp only [heq_eq_eq]
         rfl
 
-theorem uniq (m : C ⥤ Grothendieck A)
+theorem lift_uniq (m : C ⥤ Grothendieck A)
     (hl : m ⋙ Grothendieck.toPCat A = fst)
     (hr : m ⋙ Grothendieck.forget A = snd) :
     m = lift _ _ w := by
@@ -377,18 +377,18 @@ theorem fac_right (s : PullbackCone uLiftPCatForgetToCat (uLiftA A)) :
     (s.snd ⋙ downFunctor)
     condition'
 
-theorem uniq (s : PullbackCone uLiftPCatForgetToCat.{v,u} (uLiftA.{v,u} A)) (m : s.pt ⥤ Grothendieck A)
+theorem lift_uniq (s : PullbackCone uLiftPCatForgetToCat.{v,u} (uLiftA.{v,u} A)) (m : s.pt ⥤ Grothendieck A)
     (hl : m ⋙ Grothendieck.toPCat A = s.fst ⋙ downFunctor)
     (hr : m ⋙ Grothendieck.forget A = s.snd ⋙ downFunctor) :
     m = lift s :=
-  IsMegaPullback.uniq
+  IsMegaPullback.lift_uniq
     (s.fst ⋙ downFunctor) (s.snd ⋙ downFunctor) condition' m hl hr
 
-theorem uniq' (s : PullbackCone uLiftPCatForgetToCat.{v,u} (uLiftA.{v,u} A)) (m : s.pt ⟶ uLiftGrothendieck A)
+theorem lift_uniq' (s : PullbackCone uLiftPCatForgetToCat.{v,u} (uLiftA.{v,u} A)) (m : s.pt ⟶ uLiftGrothendieck A)
     (hl : m ≫ uLiftToPCat A = s.fst) (hr : m ≫ uLiftGrothendieckForget A = s.snd) :
     m = lift' s := by
   unfold lift'
-  rw [← uniq s (m ⋙ downFunctor) (congr_arg (λ F ↦ F ⋙ downFunctor) hl)
+  rw [← lift_uniq s (m ⋙ downFunctor) (congr_arg (λ F ↦ F ⋙ downFunctor) hl)
     (by
       simp only [Cat.of_α, Functor.assoc, ← hr, uLiftGrothendieckForget, Cat.comp_eq_comp]
       rfl)]
@@ -397,7 +397,7 @@ theorem uniq' (s : PullbackCone uLiftPCatForgetToCat.{v,u} (uLiftA.{v,u} A)) (m 
 variable (A)
 
 def isLimit : IsLimit (cone A) :=
-  IsLimit.mk comm_sq lift' fac_left fac_right uniq'
+  IsLimit.mk comm_sq lift' fac_left fac_right lift_uniq'
 
 end IsPullback
 

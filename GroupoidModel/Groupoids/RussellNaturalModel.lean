@@ -83,14 +83,14 @@ def fac_right : lift fst snd condition
     ⋙ PGrpd.forgetToGrpd.{v} = snd :=
   Groupoidal.IsMegaPullback.fac_right fst snd condition
 
-def uniq (m : C ⥤ PGrpd.{v,v})
+def lift_uniq (m : C ⥤ PGrpd.{v,v})
     (hl : m ⋙ PGrpd.asSmallFunctor.{max w (v+1)} = fst)
     (hr : m ⋙ PGrpd.forgetToGrpd.{v} = snd) :
     m = lift fst snd condition := by
   unfold lift
   convert_to (m ⋙ pGrpdToGroupoidalAsSmallFunctor.{max w (v+1)})
     ⋙ groupoidalAsSmallFunctorToPGrpd = _
-  rw [Groupoidal.IsMegaPullback.uniq fst snd condition
+  rw [Groupoidal.IsMegaPullback.lift_uniq fst snd condition
     (m ⋙ pGrpdToGroupoidalAsSmallFunctor.{max w (v+1)}) hl hr]
   rfl
 
@@ -211,7 +211,7 @@ theorem isPullback_pgrpdforgettogrpd_PGRPDFORGETTOGRPD :
     (by
       intro s m hl hr
       convert_to (m ⋙ downFunctor ⋙ AsSmall.down) ⋙ AsSmall.up ⋙ upFunctor = _
-      rw [IsMegaPullback'.uniq s.fst (snd s) (condition s)
+      rw [IsMegaPullback'.lift_uniq s.fst (snd s) (condition s)
         (m ⋙ ULift.downFunctor ⋙ AsSmall.down)
         hl (by simp only [snd, ← hr]; rfl)]
       rfl)
@@ -770,7 +770,7 @@ theorem fac_left' : lift' s ≫ Cat.homOf toE'' = s.fst :=
 theorem fac_right' : lift' s ≫ Cat.homOf π''.{_,max u (v+2)} = s.snd :=
   AsSmall.comp_down_inj (fac_right.{v+1} _ _ (condition' s))
 
-theorem uniq' (m : s.pt ⟶ Cat.of (AsSmall PGrpd))
+theorem lift_uniq' (m : s.pt ⟶ Cat.of (AsSmall PGrpd))
     (hl : m ≫ Cat.homOf toE'' = s.fst)
     (hr : m ≫ Cat.homOf π''.{_,max u (v+2)} = s.snd) :
     m = lift' s := by
@@ -779,7 +779,7 @@ theorem uniq' (m : s.pt ⟶ Cat.of (AsSmall PGrpd))
   have hr' : (m ⋙ AsSmall.down) ⋙ forgetToGrpd.{v}
     = snd' s := by dsimp [snd']; rw [← hr]; rfl
   apply AsSmall.comp_down_inj 
-  exact uniq.{v+1} _ _ (condition' s) _ hl' hr'
+  exact lift_uniq.{v+1} _ _ (condition' s) _ hl' hr'
 
 end IsPullbackInCat
 
@@ -809,7 +809,7 @@ theorem isPullback_π''_π'' :
       (Cat.homOf toU''.{v,max u (v+2)}) :=
   IsPullback.of_isLimit
     (PullbackCone.IsLimit.mk
-      comm_sq lift' fac_left' fac_right' uniq')
+      comm_sq lift' fac_left' fac_right' lift_uniq')
 
 /--
 The following square is a pullback
@@ -927,7 +927,7 @@ def lift : s.pt ⟶ Cat.of (Groupoidal (classifier A)) :=
   Groupoidal.IsMegaPullback.fac_right
     (s.fst ⋙ AsSmall.down) s.snd (comm_sq s)
 
-theorem uniq
+theorem lift_uniq
     (m : s.pt ⟶ Cat.of (Grothendieck
       (Groupoid.compForgetToCat (classifier A))))
     (hl : m ≫ Cat.homOf (Groupoidal.toPGrpd
@@ -936,7 +936,7 @@ theorem uniq
     (hr : m ≫ Cat.homOf (Grothendieck.forget
       (Groupoid.compForgetToCat (classifier A)))
       = s.snd) : m = lift s := by
-  apply Groupoidal.IsMegaPullback.uniq
+  apply Groupoidal.IsMegaPullback.lift_uniq
   · rw [← hl] ; rfl
   · rw [← hr] ; rfl
 
@@ -951,7 +951,7 @@ theorem isPullback_disp'_asSmallForgetToGrpd :
   IsPullback.of_isLimit
     (PullbackCone.IsLimit.mk
       (isPullback_disp'_asSmallForgetToGrpd_comm_sq A)
-      lift fac_left fac_right uniq)
+      lift fac_left fac_right lift_uniq)
 
 end IsPullback
 

@@ -64,13 +64,13 @@ def lift : C ⥤ PGrpd.{v₁,u₁} :=
 @[simp] theorem fac_right : lift fst snd w ⋙ PGrpd.forgetToGrpd = snd :=
   Grothendieck.IsMegaPullback.fac_right fst snd w
 
-theorem uniq (m : C ⥤ PGrpd.{v₁,u₁})
+theorem lift_uniq (m : C ⥤ PGrpd.{v₁,u₁})
     (hl : m ⋙ PGrpd.forgetToPCat = fst)
     (hr : m ⋙ PGrpd.forgetToGrpd = snd) :
     m = lift _ _ w := by
   convert_to (m ⋙ isoGrothendieckForgetToCatHom)
     ⋙ isoGrothendieckForgetToCatInv = lift fst snd w
-  rw [Grothendieck.IsMegaPullback.uniq
+  rw [Grothendieck.IsMegaPullback.lift_uniq
     fst snd w (m ⋙ isoGrothendieckForgetToCatHom) hl hr]
   rfl
 
