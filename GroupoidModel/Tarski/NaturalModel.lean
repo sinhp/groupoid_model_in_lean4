@@ -121,7 +121,7 @@ variable (Ctx) in
 class NaturalModelSigma where
   Sig : (P tp).obj Ty ⟶ M.Ty
   pair : (P tp).obj Tm ⟶ M.Tm
-  Sig_pullback : IsPullback pair ((uvPoly M.tp).comp (uvPoly M.tp)).p M.tp Sig
+  Sig_pullback : sorry --IsPullback pair ((uvPoly M.tp).comp (uvPoly M.tp)).p M.tp Sig
 
 def δ : M.Tm ⟶ pullback tp tp := pullback.lift (𝟙 _) (𝟙 _) rfl
 variable (Ctx) in
