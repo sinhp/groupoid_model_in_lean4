@@ -5,7 +5,7 @@ import GroupoidModel.Grothendieck.Groupoidal
 import Poly.LCCC.Basic
 import Poly.LCCC.Presheaf
 import Poly.Exponentiable
-import Poly.Polynomial
+import Poly.UvPoly
 
 /-!
 Here we construct the natural model for groupoids.
