@@ -19,7 +19,7 @@ import Mathlib.CategoryTheory.Adjunction.Over
 import Poly.LCCC.Basic
 import Poly.LCCC.Presheaf
 import Poly.Exponentiable
-import Poly.UvPolynomial
+import Poly.UvPoly
 
 import GroupoidModel.ForPoly
 

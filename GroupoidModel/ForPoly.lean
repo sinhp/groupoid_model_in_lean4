@@ -1,4 +1,4 @@
-import Poly.UvPolynomial
+import Poly.UvPoly
 import Poly.LCCC.Presheaf
 import Poly.LCCC.Basic
 
