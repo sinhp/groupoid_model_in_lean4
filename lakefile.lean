@@ -10,7 +10,7 @@ package groupoid_model where
   ]
   -- add any additional package configuration options here
 
-require Poly from git "https://github.com/Vtec234/Poly" @ "bump/v4.15.0-rc1"
+require Poly from git "https://github.com/sinhp/Poly.git"
 
 @[default_target]
 lean_lib GroupoidModel where

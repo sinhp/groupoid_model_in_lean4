@@ -18,9 +18,9 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 
-title: Groupoid Model of HoTT in Lean 4
+title: "HoTTLean : Formalizing the Meta-Theory of HoTT in Lean4"
 #email: your-email@example.com
-description: by Authors
+description: by S. Awodey, M. Carneiro, S. Hazratpour, J. Hua, W. Nawrocki, S. Woolfson
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://sinhp.github.io/groupoid_model_in_lean4" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username:
@@ -28,6 +28,6 @@ github_username: sinhp
 repository: sinhp/groupoid_model_in_lean4
 
 # Build settings
-remote_theme: pages-themes/cayman@v0.2.0 
+remote_theme: pages-themes/cayman@v0.2.0
 plugins:
   - jekyll-remote-theme
