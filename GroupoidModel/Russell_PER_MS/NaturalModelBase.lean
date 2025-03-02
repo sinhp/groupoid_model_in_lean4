@@ -39,6 +39,40 @@ protected def pullback {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) : NaturalModelBase Ctx wh
   disp_pullback := fun B =>
     IsPullback.of_right' (M.disp_pullback (B ≫ A)) (M.disp_pullback A)
 
+/--
+  Given the pullback square on the right,
+  with a natural model structure on `tp : Tm ⟶ Ty`
+  giving the outer pullback square.
+
+  Γ.A -.-.- var -.-,-> E ------ toTm ------> Tm
+   |                   |                      |
+   |                   |                      |
+ M.disp                π                     tp
+   |                   |                      |
+   V                   V                      V
+  Γ ------- A -------> U ------ toTy ------> Ty
+
+  construct a natural model structure on `π : E ⟶ U`,
+  by pullback pasting.
+-/
+def ofIsPullback {U E : Psh Ctx} {π : E ⟶ U}
+    {toTy : U ⟶ M.Ty} {toTm : E ⟶ M.Tm}
+    (pb : IsPullback toTm π M.tp toTy) :
+    NaturalModelBase Ctx where
+  Ty := U
+  Tm := E
+  tp := π
+  ext A := M.ext (A ≫ toTy)
+  disp A := M.disp (A ≫ toTy)
+  var A := pb.lift
+    (M.var (A ≫ toTy))
+    (ym(M.disp (A ≫ toTy)) ≫ A)
+    (M.disp_pullback (A ≫ toTy)).w
+  disp_pullback A :=
+    IsPullback.of_right'
+      (M.disp_pullback (A ≫ toTy))
+      pb
+
 /-! ## Substitutions -/
 
 /--

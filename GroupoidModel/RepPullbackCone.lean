@@ -3,10 +3,6 @@ import Mathlib.CategoryTheory.Functor.KanExtension.Adjunction
 import Mathlib.CategoryTheory.Limits.Preserves.Finite
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 
-import GroupoidModel.Groupoids.GroupoidalGrothendieck
-import GroupoidModel.Groupoids.PointedCat
--- import GroupoidModel.NaturalModel
-
 /-!
   This file builds API for showing that a presheaf diagram is a pullback
   by its universal property among representable cones.

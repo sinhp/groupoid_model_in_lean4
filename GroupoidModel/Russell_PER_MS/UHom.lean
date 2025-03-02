@@ -1,5 +1,6 @@
 import GroupoidModel.Russell_PER_MS.NaturalModelBase
 import GroupoidModel.ForMathlib
+import Mathlib.CategoryTheory.Limits.Shapes.StrictInitial
 
 /-! Morphisms of natural models, and Russell-universe embeddings. -/
 
@@ -40,6 +41,20 @@ protected def pullbackHom (M : NaturalModelBase Ctx) {Γ : Ctx} (A : y(Γ) ⟶ M
   mapTy := A
   pb := M.disp_pullback A
 
+/-- Given `M : NaturalModelBase`, a semantic type `A : y(Γ) ⟶ M.Ty`,
+and a substitution `σ : Δ ⟶ Γ`, construct a Hom for the substitution `A[σ]`.
+-/
+def Hom.subst (M : NaturalModelBase Ctx)
+    {Γ Δ : Ctx} (A : y(Γ) ⟶ M.Ty) (σ : Δ ⟶ Γ) :
+    Hom (M.pullback (ym(σ) ≫ A)) (M.pullback A) :=
+  let Aσ := ym(σ) ≫ A
+  { mapTm :=
+    (M.disp_pullback A).lift (M.var Aσ) ym(M.disp Aσ ≫ σ) (by aesop_cat)
+    mapTy := ym(σ)
+    pb := by
+      convert IsPullback.of_right' (M.disp_pullback Aσ) (M.disp_pullback A)
+      simp }
+
 /-- A Russell embedding is a hom of natural models `M ⟶ N`
 such that types in `M` correspond to terms of a universe `U` in `N`.
 
@@ -50,6 +65,56 @@ structure UHom (M N : NaturalModelBase Ctx) extends Hom M N where
 
   -- Or an explicit bijection:
   -- U_equiv : (y(⊤_ Ctx) ⟶ M.Ty) ≃ { A : y(⊤_ Ctx) ⟶ N.Tm // A ≫ N.tp = U }
+
+/-- An alternate formulation of `UHom`.
+This formulation requires the context category to have a terminal
+object (aka empty context) and the universe to be
+defined over the empty context.
+
+These don't form a category since `UHom.id M` is essentially `Type : Type` in `M`. -/
+structure UHomRepTerminal {t : Ctx} (ht : IsTerminal t)
+    (M N : NaturalModelBase Ctx) extends Hom M N where
+  U : y(t) ⟶ N.Ty
+  U_pb : ∃ v : M.Ty ⟶ N.Tm, IsPullback
+    v
+    ((ht.isTerminalObj yoneda t).from M.Ty)
+    N.tp
+    U
+
+theorem UHom.ofRepTerminalAux {t : Ctx} (ht : IsTerminal t) (c : Psh Ctx) :
+    IsPullback
+      (CategoryStruct.id c)
+      (terminal.from c)
+      ((ht.isTerminalObj yoneda t).from c)
+      (terminalIsTerminal.uniqueUpToIso
+        (ht.isTerminalObj yoneda t)).hom    :=
+  IsPullback.of_horiz_isIso ⟨
+      (ht.isTerminalObj yoneda t).hom_ext _ _ ⟩
+
+/-- Any `UHomRepTerminal` gives rise to a `UHom` with the same
+underlying Hom.-/
+def UHom.ofRepChosenTerminal {t : Ctx} (ht : IsTerminal t)
+    {M N : NaturalModelBase Ctx}
+    (H : UHomRepTerminal ht M N) : UHom M N := {
+  H.toHom with
+  U := (ht.isTerminalObj yoneda t).from _ ≫ H.U
+  U_pb := by
+    rcases H.U_pb with ⟨ v , pb ⟩
+    use v
+    exact IsPullback.paste_horiz (UHom.ofRepTerminalAux ht M.Ty) pb
+}
+
+def UHomRepTerminal.ofTyIsoExt {t : Ctx} (ht : IsTerminal t)
+    {M N : NaturalModelBase Ctx}
+    (H : Hom M N) {U : y(t) ⟶ N.Ty} (i : M.Ty ≅ y(N.ext U))
+    : UHomRepTerminal ht M N := {
+  H with
+  U := U
+  U_pb := by
+    use i.hom ≫ N.var U
+    convert IsPullback.of_iso_isPullback (N.disp_pullback _) i
+    apply (ht.isTerminalObj yoneda t).hom_ext
+}
 
 def UHom.comp {M N O : NaturalModelBase Ctx} (α : UHom M N) (β : UHom N O) : UHom M O := {
   Hom.comp α.toHom β.toHom with
@@ -87,6 +152,7 @@ def UHom.ofTarskiU [HasTerminal Ctx] (M : NaturalModelBase Ctx)
       (by simp) (terminal.hom_ext ..)
       (by simp) (by rw [Iso.hom_inv_id_assoc]; simp)⟩
 }
+
 
 /-- A sequence of Russell embeddings. -/
 structure UHomSeq (Ctx : Type u) [Category.{v, u} Ctx] where
