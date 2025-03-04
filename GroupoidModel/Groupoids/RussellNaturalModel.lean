@@ -96,6 +96,8 @@ def lift_uniq (m : C ⥤ PGrpd.{v,v})
 
 end PGrpd.IsMegaPullback'
 
+-- TODO make it clear these this stuff is just needed for the proof
+-- different file?
 namespace LargeUniverse
 
 open PGrpd PGrpd.IsPullback
@@ -335,6 +337,7 @@ end Ctx
 section yonedaCat
 variable (C D) [Category.{u} C] [Category.{u} D]
 
+-- TODO docstring
 abbrev yonedaCat : Cat.{u,u+1} ⥤ Ctx.{u}ᵒᵖ ⥤ Type (u + 1) :=
   yoneda ⋙ (whiskeringLeft _ _ _).obj
     (AsSmall.down ⋙ Grpd.forgetToCat ⋙ catLift).op

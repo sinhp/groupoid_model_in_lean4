@@ -55,13 +55,20 @@ def Hom.subst (M : NaturalModelBase Ctx)
       convert IsPullback.of_right' (M.disp_pullback Aσ) (M.disp_pullback A)
       simp }
 
-/-- A Russell embedding is a hom of natural models `M ⟶ N`
-such that types in `M` correspond to terms of a universe `U` in `N`.
+-- this could be just chosen terminal object,
+-- mathlib doesn't have just chosen terminal
+variable [ChosenFiniteProducts Ctx]
 
-These don't form a category since `UHom.id M` is essentially `Type : Type` in `M`. -/
-structure UHom (M N : NaturalModelBase Ctx) extends Hom M N where
-  U : ⊤_ (Psh Ctx) ⟶ N.Ty
-  U_pb : ∃ v, IsPullback v (terminal.from M.Ty) N.tp U
+def isTerminal_y1 : IsTerminal y(@MonoidalCategory.tensorUnit Ctx _) :=
+  (IsTerminal.ofUnique _).isTerminalObj yoneda _
+
+-- /-- A Russell embedding is a hom of natural models `M ⟶ N`
+-- such that types in `M` correspond to terms of a universe `U` in `N`.
+
+-- These don't form a category since `UHom.id M` is essentially `Type : Type` in `M`. -/
+-- structure UHom (M N : NaturalModelBase Ctx) extends Hom M N where
+--   U : ⊤_ (Psh Ctx) ⟶ N.Ty
+--   U_pb : ∃ v, IsPullback v (terminal.from M.Ty) N.tp U
 
   -- Or an explicit bijection:
   -- U_equiv : (y(⊤_ Ctx) ⟶ M.Ty) ≃ { A : y(⊤_ Ctx) ⟶ N.Tm // A ≫ N.tp = U }
@@ -72,48 +79,48 @@ object (aka empty context) and the universe to be
 defined over the empty context.
 
 These don't form a category since `UHom.id M` is essentially `Type : Type` in `M`. -/
-structure UHomRepTerminal {t : Ctx} (ht : IsTerminal t)
+structure UHom
     (M N : NaturalModelBase Ctx) extends Hom M N where
-  U : y(t) ⟶ N.Ty
+  U : y(MonoidalCategory.tensorUnit) ⟶ N.Ty
   U_pb : ∃ v : M.Ty ⟶ N.Tm, IsPullback
     v
-    ((ht.isTerminalObj yoneda t).from M.Ty)
+    ((isTerminal_y1).from M.Ty)
     N.tp
     U
 
-theorem UHom.ofRepTerminalAux {t : Ctx} (ht : IsTerminal t) (c : Psh Ctx) :
-    IsPullback
-      (CategoryStruct.id c)
-      (terminal.from c)
-      ((ht.isTerminalObj yoneda t).from c)
-      (terminalIsTerminal.uniqueUpToIso
-        (ht.isTerminalObj yoneda t)).hom    :=
-  IsPullback.of_horiz_isIso ⟨
-      (ht.isTerminalObj yoneda t).hom_ext _ _ ⟩
+-- theorem UHom.ofRepTerminalAux {t : Ctx} (ht : IsTerminal t) (c : Psh Ctx) :
+--     IsPullback
+--       (CategoryStruct.id c)
+--       (terminal.from c)
+--       ((ht.isTerminalObj yoneda t).from c)
+--       (terminalIsTerminal.uniqueUpToIso
+--         (ht.isTerminalObj yoneda t)).hom    :=
+--   IsPullback.of_horiz_isIso ⟨
+--       (ht.isTerminalObj yoneda t).hom_ext _ _ ⟩
 
 /-- Any `UHomRepTerminal` gives rise to a `UHom` with the same
 underlying Hom.-/
-def UHom.ofRepChosenTerminal {t : Ctx} (ht : IsTerminal t)
-    {M N : NaturalModelBase Ctx}
-    (H : UHomRepTerminal ht M N) : UHom M N := {
-  H.toHom with
-  U := (ht.isTerminalObj yoneda t).from _ ≫ H.U
-  U_pb := by
-    rcases H.U_pb with ⟨ v , pb ⟩
-    use v
-    exact IsPullback.paste_horiz (UHom.ofRepTerminalAux ht M.Ty) pb
-}
+-- def UHom.ofRepChosenTerminal {t : Ctx} (ht : IsTerminal t)
+--     {M N : NaturalModelBase Ctx}
+--     (H : UHomRepTerminal ht M N) : UHom M N := {
+--   H.toHom with
+--   U := (ht.isTerminalObj yoneda t).from _ ≫ H.U
+--   U_pb := by
+--     rcases H.U_pb with ⟨ v , pb ⟩
+--     use v
+--     exact IsPullback.paste_horiz (UHom.ofRepTerminalAux ht M.Ty) pb
+-- }
 
-def UHomRepTerminal.ofTyIsoExt {t : Ctx} (ht : IsTerminal t)
+def UHomRepTerminal.ofTyIsoExt
     {M N : NaturalModelBase Ctx}
-    (H : Hom M N) {U : y(t) ⟶ N.Ty} (i : M.Ty ≅ y(N.ext U))
-    : UHomRepTerminal ht M N := {
+    (H : Hom M N) {U : y(MonoidalCategory.tensorUnit) ⟶ N.Ty} (i : M.Ty ≅ y(N.ext U))
+    : UHom M N := {
   H with
   U := U
   U_pb := by
     use i.hom ≫ N.var U
     convert IsPullback.of_iso_isPullback (N.disp_pullback _) i
-    apply (ht.isTerminalObj yoneda t).hom_ext
+    apply ((IsTerminal.ofUnique _).isTerminalObj yoneda _).hom_ext
 }
 
 def UHom.comp {M N O : NaturalModelBase Ctx} (α : UHom M N) (β : UHom N O) : UHom M O := {
