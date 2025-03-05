@@ -9,6 +9,7 @@ import Mathlib.CategoryTheory.Grothendieck
 import Mathlib.Data.Part
 import Mathlib.CategoryTheory.ChosenFiniteProducts
 import Mathlib.CategoryTheory.Core
+import Mathlib.CategoryTheory.Adjunction.Limits
 
 /-! This file contains declarations missing from mathlib,
 to be upstreamed. -/
@@ -577,4 +578,101 @@ theorem isPullback_map'_self :
 
 end Core
 
+namespace Equivalence
+noncomputable section
+open Limits ChosenFiniteProducts
+
+variable {C : Type u₁} {D : Type u₂}
+  [Category.{v₁} C] [Category.{v₂} D]
+  [ChosenFiniteProducts C]
+  (e : Equivalence C D)
+
+/-- The chosen terminal object in `D`. -/
+abbrev chosenTerminal : D :=
+  e.functor.obj MonoidalCategory.tensorUnit
+
+/-- The chosen terminal object in `D` is terminal. -/
+def chosenTerminalIsTerminal :
+    IsTerminal (e.chosenTerminal : D) :=
+  (IsTerminal.ofUnique _).isTerminalObj e.functor
+
+/-- Product cones in `D` are defined using chosen products in `C` -/
+def prodCone (X Y : D) : BinaryFan X Y :=
+  .mk
+  (P := e.functor.obj (MonoidalCategory.tensorObj
+    (e.inverse.obj X) (e.inverse.obj Y)))
+  (e.functor.map (fst _ _) ≫ (e.counit.app _))
+  (e.functor.map (snd _ _) ≫ (e.counit.app _))
+
+/-- The chosen product cone in `D` is a limit. -/
+def isLimitProdCone (X Y : D) : IsLimit (e.prodCone X Y) :=
+  IsLimit.ofIsoLimit (
+  BinaryFan.isLimitCompRightIso _ (e.counit.app _) (
+  BinaryFan.isLimitCompLeftIso _ (e.counit.app _) (
+  isLimitChosenFiniteProductsOfPreservesLimits e.functor
+    (e.inverse.obj X) (e.inverse.obj Y))))
+  (BinaryFan.ext (eqToIso rfl) (by aesop_cat) (by aesop_cat))
+
+def chosenFiniteProducts [ChosenFiniteProducts C] :
+  ChosenFiniteProducts D where
+  product X Y := { isLimit := e.isLimitProdCone X Y }
+  terminal := { isLimit := e.chosenTerminalIsTerminal }
+
+end
+end Equivalence
+
 end CategoryTheory
+
+#exit
+-- /-- The product cone in `D` is indeed a product. -/
+-- def isLimitProdCone (X Y : D) : IsLimit (e.prodCone X Y) :=
+--   BinaryFan.isLimitMk
+--   (fun S => e.counitInv.app _ ≫ e.functor.map
+--     (ChosenFiniteProducts.lift (e.inverse.map S.fst) (e.inverse.map S.snd)))
+--   (fun S => by
+--     convert_to _ = (e.counitInv.app _) ≫ (e.counit.app _) ≫ S.fst
+--     · aesop_cat
+--     have := e.counit.naturality S.fst
+--     simp only [Functor.id_map, Functor.comp_map, Functor.const] at this
+--     rw [← this]
+--     simp only [Category.assoc]
+--     congr 1
+--     simp only [← Category.assoc]
+--     congr 1
+--     rw [← Functor.map_comp, ChosenFiniteProducts.lift_fst])
+--   (fun S => by
+--     convert_to _ = (e.counitInv.app _) ≫ (e.counit.app _) ≫ S.snd
+--     · aesop_cat
+--     have := e.counit.naturality S.snd
+--     simp only [Functor.id_map, Functor.comp_map, Functor.const] at this
+--     rw [← this]
+--     simp only [Category.assoc]
+--     congr 1
+--     simp only [← Category.assoc]
+--     congr 1
+--     rw [← Functor.map_comp, ChosenFiniteProducts.lift_snd])
+--   (fun A f h1 h2 => by
+--     simp
+--     convert_to f = inv (e.counitIso.app A.1).hom ≫
+--       e.functor.map (ChosenFiniteProducts.lift (e.inverse.map A.fst) (e.inverse.map A.snd))
+--     · simp
+--     rw [CategoryTheory.IsIso.eq_inv_comp (e.counitIso.app A.1).hom]
+--     -- have h := e.counitIso.hom.naturality f
+--     -- simp only [Functor.comp_obj, Functor.id_obj, Iso.app_hom, pair_obj_left, pair_obj_right, Functor.id_map, Functor.comp_map] at *
+--     -- rw [← h]
+--     -- simp
+--     convert_to e.functor.map ((e.symm.toAdjunction.homEquiv A.pt _).symm f) = _
+--     · simp [CategoryTheory.Adjunction.homEquiv_symm_apply, ← Category.assoc]
+--       have h := e.counitInv.naturality
+--       simp only [Functor.id_map] at h
+--       rw [h]
+--       simp
+--       sorry
+--     sorry)
+
+--   #exit
+
+-- def chosenFiniteProducts [ChosenFiniteProducts C] :
+--   ChosenFiniteProducts D where
+--   product X Y := { isLimit := sorry }
+--   terminal  := { isLimit := sorry }

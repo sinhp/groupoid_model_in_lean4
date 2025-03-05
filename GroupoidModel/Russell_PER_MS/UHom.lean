@@ -59,7 +59,7 @@ def Hom.subst (M : NaturalModelBase Ctx)
 -- mathlib doesn't have just chosen terminal
 variable [ChosenFiniteProducts Ctx]
 
-def isTerminal_y1 : IsTerminal y(@MonoidalCategory.tensorUnit Ctx _) :=
+def isTerminal_y1 : IsTerminal y(@MonoidalCategory.tensorUnit Ctx _ _) :=
   (IsTerminal.ofUnique _).isTerminalObj yoneda _
 
 -- /-- A Russell embedding is a hom of natural models `M ⟶ N`
@@ -84,32 +84,9 @@ structure UHom
   U : y(MonoidalCategory.tensorUnit) ⟶ N.Ty
   U_pb : ∃ v : M.Ty ⟶ N.Tm, IsPullback
     v
-    ((isTerminal_y1).from M.Ty)
+    (isTerminal_y1.from M.Ty)
     N.tp
     U
-
--- theorem UHom.ofRepTerminalAux {t : Ctx} (ht : IsTerminal t) (c : Psh Ctx) :
---     IsPullback
---       (CategoryStruct.id c)
---       (terminal.from c)
---       ((ht.isTerminalObj yoneda t).from c)
---       (terminalIsTerminal.uniqueUpToIso
---         (ht.isTerminalObj yoneda t)).hom    :=
---   IsPullback.of_horiz_isIso ⟨
---       (ht.isTerminalObj yoneda t).hom_ext _ _ ⟩
-
-/-- Any `UHomRepTerminal` gives rise to a `UHom` with the same
-underlying Hom.-/
--- def UHom.ofRepChosenTerminal {t : Ctx} (ht : IsTerminal t)
---     {M N : NaturalModelBase Ctx}
---     (H : UHomRepTerminal ht M N) : UHom M N := {
---   H.toHom with
---   U := (ht.isTerminalObj yoneda t).from _ ≫ H.U
---   U_pb := by
---     rcases H.U_pb with ⟨ v , pb ⟩
---     use v
---     exact IsPullback.paste_horiz (UHom.ofRepTerminalAux ht M.Ty) pb
--- }
 
 def UHomRepTerminal.ofTyIsoExt
     {M N : NaturalModelBase Ctx}
@@ -135,6 +112,7 @@ def UHom.comp_assoc {M N O P : NaturalModelBase Ctx} (α : UHom M N) (β : UHom 
     comp (comp α β) γ = comp α (comp β γ) := by
   simp [comp, Hom.comp]
 
+#exit
 def UHom.wkU {M N : NaturalModelBase Ctx} (Γ : Ctx) (α : UHom M N) : y(Γ) ⟶ N.Ty :=
   terminal.from y(Γ) ≫ α.U
 

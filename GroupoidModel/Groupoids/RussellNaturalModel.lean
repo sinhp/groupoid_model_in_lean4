@@ -305,16 +305,21 @@ We want our context category to be a small category so we will use
 abbrev Ctx := AsSmall.{u} Grpd.{u,u}
 
 namespace Ctx
-def ofGrpd : Grpd.{u,u} ⥤ Ctx.{u} := AsSmall.up
+
+def equivalence : CategoryTheory.Equivalence Ctx.{u} Grpd.{u,u} where
+  functor := AsSmall.down
+  inverse := AsSmall.up
+  unitIso := eqToIso rfl
+  counitIso := eqToIso rfl
+
+def toGrpd : Ctx.{u} ⥤ Grpd.{u,u} := equivalence.functor
+
+def ofGrpd : Grpd.{u,u} ⥤ Ctx.{u} := equivalence.inverse
 
 def ofGroupoid (Γ : Type u) [Groupoid.{u} Γ] : Ctx.{u} :=
   ofGrpd.obj (Grpd.of Γ)
 
-def toGrpd : Ctx.{u} ⥤ Grpd.{u,u} := AsSmall.down
-
-instance : IsEquivalence Ctx.ofGrpd :=
-    IsEquivalence.mk' Ctx.toGrpd (eqToIso rfl) (eqToIso rfl)
-
+#exit
 /-- This is the terminal or empty context. As a groupoid it has a single point
   given by ⟨⟨⟩⟩ -/
 def chosenTerminal : Ctx.{u} := AsSmall.up.obj Grpd.chosenTerminal.{u}
@@ -325,8 +330,21 @@ def chosenTerminalIsTerminal : IsTerminal Ctx.chosenTerminal.{u} :=
 
 def terminalPoint : Ctx.toGrpd.obj Ctx.chosenTerminal := ⟨⟨⟩⟩
 
-variable {Γ Δ : Ctx.{max u (v+1)}} {C D : Type (v+1)}
-  [Category.{v,v+1} C] [Category.{v,v+1} D]
+-- /-- The chosen product of categories `C × D` yields a product cone in `Grpd`. -/
+-- def prodCone (C D : Ctx) : BinaryFan C D :=
+--   .mk (P := Ctx.ofGrpd.obj (C.toGrpd × D)) (Prod.fst _ _) (Prod.snd _ _)
+
+-- /-- The product cone in `Grpd` is indeed a product. -/
+-- def isLimitProdCone (X Y : Grpd) : IsLimit (prodCone X Y) := BinaryFan.isLimitMk
+--   (fun S => S.fst.prod' S.snd) (fun _ => rfl) (fun _ => rfl) (fun A B h1 h2 =>
+--     Functor.hext
+--       (fun x ↦ Prod.ext (by dsimp; rw [← h1]; rfl)
+--       (by dsimp; rw [← h2]; rfl))
+--       (fun _ _ _ ↦ by dsimp; rw [← h1, ← h2]; rfl))
+
+-- instance : ChosenFiniteProducts Grpd where
+--   product (X Y : Grpd) := { isLimit := isLimitProdCone X Y }
+--   terminal  := { isLimit := chosenTerminalIsTerminal }
 
 end Ctx
 
