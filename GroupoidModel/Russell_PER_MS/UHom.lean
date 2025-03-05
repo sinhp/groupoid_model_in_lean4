@@ -107,7 +107,7 @@ def UHom.comp {M N O : NaturalModelBase Ctx} (α : UHom M N) (β : UHom N O) : U
     have ⟨v, pb⟩ := α.U_pb
     ⟨v ≫ β.mapTm, pb.paste_horiz β.pb⟩
 }
-
+#exit
 def UHom.comp_assoc {M N O P : NaturalModelBase Ctx} (α : UHom M N) (β : UHom N O) (γ : UHom O P) :
     comp (comp α β) γ = comp α (comp β γ) := by
   simp [comp, Hom.comp]

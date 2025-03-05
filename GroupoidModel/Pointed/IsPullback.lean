@@ -91,9 +91,6 @@ In this section we prove that the following square is a pullback
 -/
 open Grothendieck
 
-def Cat.homOf {C D : Type u} [Category.{v} C] [Category.{v} D] (F : C ⥤ D) :
-    Cat.of C ⟶ Cat.of D := F
-
 theorem isPullback_forgetToGrpd_uLiftGrothendieckForget_commSq :
     CommSq
       (isoGrothendieckForgetToCat ≪≫ Cat.ULift_iso_self.symm).hom

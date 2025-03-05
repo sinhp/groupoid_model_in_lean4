@@ -356,6 +356,23 @@ def asSmallFunctor : PGrpd.{v, u} ⥤ PGrpd.{max w v u, max w v u} where
     toFunctor := AsSmall.down ⋙ F.toFunctor ⋙ AsSmall.up
     point := AsSmall.up.map F.point}
 
+instance : forgetToGrpd.ReflectsIsomorphisms := by
+  constructor
+  intro A B F hiso
+  rcases hiso with ⟨ G , hFG , hGF ⟩
+  use ⟨ G , G.map (Groupoid.inv F.point)
+    ≫ eqToHom (Functor.congr_obj hFG A.str.pt) ⟩
+  constructor
+  · apply PointedFunctor.ext
+    · simp
+    · exact hFG
+  · apply PointedFunctor.ext
+    · simp
+      have h := Functor.congr_hom hGF F.point
+      simp [Grpd.id_eq_id, Grpd.comp_eq_comp, Functor.comp_map] at h
+      simp [h, eqToHom_map]
+    · exact hGF
+
 end PGrpd
 
 end PointedCategories

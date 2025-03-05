@@ -294,16 +294,13 @@ variable (Γ : Type u) [Category.{v} Γ] (A : Γ ⥤ Cat.{v,v})
 
 open Functor ULift
 
-def uLiftΓ : Cat.{v, max u (v+1)} :=
-  Cat.ofULift.{(v+1)} Γ
-
 variable {Γ}
 
 abbrev uLiftGrothendieck : Cat.{v, max u (v+1)} :=
   Cat.ofULift.{max u (v+1)} (Grothendieck A)
 
 abbrev uLiftGrothendieckForget :
-    uLiftGrothendieck.{v,u} A ⟶ uLiftΓ.{v,u} Γ :=
+    uLiftGrothendieck.{v,u} A ⟶ Cat.ofULift.{v+1} Γ :=
   downFunctor ⋙ Grothendieck.forget A ⋙ upFunctor
 
 abbrev uLiftCat : Cat.{v, max u (v+1)} :=
@@ -318,7 +315,7 @@ abbrev uLiftPCatForgetToCat : uLiftPCat.{v,u} ⟶ uLiftCat.{v,u} :=
 abbrev uLiftToPCat : uLiftGrothendieck.{v,u} A ⟶ uLiftPCat.{v,u} :=
   ULift.downFunctor ⋙ Grothendieck.toPCat A ⋙ ULift.upFunctor
 
-abbrev uLiftA : uLiftΓ.{v,u} Γ ⥤ uLiftCat.{v,u} :=
+abbrev uLiftA : Cat.ofULift.{v+1} Γ ⥤ uLiftCat.{v,u} :=
   downFunctor ⋙ A ⋙ upFunctor
 
 variable {A}

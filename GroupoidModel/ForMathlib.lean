@@ -621,4 +621,47 @@ def chosenFiniteProducts [ChosenFiniteProducts C] :
 end
 end Equivalence
 
+namespace ULift
+namespace Core
+
+variable {C : Type u} [Category.{v} C]
+
+-- FIXME could be generalized?
+def isoCoreULift :
+    Cat.of (ULift.{w} (Core C)) ≅
+      Cat.of (Core (ULift.{w} C)) where
+  hom := Cat.homOf (downFunctor ⋙ Core.map' upFunctor)
+  inv := Cat.homOf (Core.map' downFunctor ⋙ upFunctor)
+
+end Core
+end ULift
+
+section equivalence
+
+def functorToAsSmallEquiv {D : Type u₁} [Category.{v₁} D] {C : Type u} [Category.{v} C]
+    : D ⥤ AsSmall.{w} C ≃ D ⥤ C where
+  toFun A := A ⋙ AsSmall.down
+  invFun A := A ⋙ AsSmall.up
+  left_inv _ := rfl
+  right_inv _ := rfl
+
+open ULift
+
+instance (C : Type u) [Category.{v} C] :
+    (downFunctor : ULift.{w} C ⥤ C).ReflectsIsomorphisms :=
+  ULift.equivalence.fullyFaithfulInverse.reflectsIsomorphisms
+
+instance (C : Type u) [Category.{v} C] :
+    (upFunctor : C ⥤ ULift.{w} C).ReflectsIsomorphisms :=
+  ULift.equivalence.fullyFaithfulFunctor.reflectsIsomorphisms
+
+instance (C : Type u) [Category.{v} C] :
+    (AsSmall.down : AsSmall.{w} C ⥤ C).ReflectsIsomorphisms :=
+  AsSmall.equiv.fullyFaithfulInverse.reflectsIsomorphisms
+
+instance (C : Type u) [Category.{v} C] :
+    (AsSmall.up : C ⥤ AsSmall.{w} C).ReflectsIsomorphisms :=
+  AsSmall.equiv.fullyFaithfulFunctor.reflectsIsomorphisms
+
+end equivalence
 end CategoryTheory

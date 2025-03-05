@@ -229,7 +229,7 @@ variable {Γ : Type u} [Category.{u} Γ] (A : Γ ⥤ Grpd.{u,u})
 abbrev uLiftGrpd : Cat.{u, max u (u+1)} :=
   Cat.ofULift.{max u (u+1)} Grpd.{u}
 
-abbrev uLiftA : uLiftΓ.{u,u} Γ ⟶ uLiftGrpd.{u} :=
+abbrev uLiftA : Cat.ofULift.{u+1} Γ ⟶ uLiftGrpd.{u} :=
   downFunctor ⋙ A ⋙ upFunctor
 
 abbrev uLiftPGrpd : Cat.{u, max u (u+1)} :=
