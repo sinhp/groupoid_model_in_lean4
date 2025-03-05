@@ -88,7 +88,7 @@ structure UHom
     N.tp
     U
 
-def UHomRepTerminal.ofTyIsoExt
+def UHom.ofTyIsoExt
     {M N : NaturalModelBase Ctx}
     (H : Hom M N) {U : y(MonoidalCategory.tensorUnit) ⟶ N.Ty} (i : M.Ty ≅ y(N.ext U))
     : UHom M N := {
@@ -112,7 +112,6 @@ def UHom.comp_assoc {M N O P : NaturalModelBase Ctx} (α : UHom M N) (β : UHom 
     comp (comp α β) γ = comp α (comp β γ) := by
   simp [comp, Hom.comp]
 
-#exit
 def UHom.wkU {M N : NaturalModelBase Ctx} (Γ : Ctx) (α : UHom M N) : y(Γ) ⟶ N.Ty :=
   terminal.from y(Γ) ≫ α.U
 

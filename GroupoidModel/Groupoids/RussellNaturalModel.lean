@@ -306,29 +306,31 @@ abbrev Ctx := AsSmall.{u} Grpd.{u,u}
 
 namespace Ctx
 
-def equivalence : CategoryTheory.Equivalence Ctx.{u} Grpd.{u,u} where
-  functor := AsSmall.down
-  inverse := AsSmall.up
+@[simps] def equivalence : CategoryTheory.Equivalence Grpd.{u,u} Ctx.{u} where
+  functor := AsSmall.up
+  inverse := AsSmall.down
   unitIso := eqToIso rfl
   counitIso := eqToIso rfl
 
-def toGrpd : Ctx.{u} ⥤ Grpd.{u,u} := equivalence.functor
+abbrev ofGrpd : Grpd.{u,u} ⥤ Ctx.{u} := equivalence.functor
 
-def ofGrpd : Grpd.{u,u} ⥤ Ctx.{u} := equivalence.inverse
+abbrev toGrpd : Ctx.{u} ⥤ Grpd.{u,u} := equivalence.inverse
 
 def ofGroupoid (Γ : Type u) [Groupoid.{u} Γ] : Ctx.{u} :=
   ofGrpd.obj (Grpd.of Γ)
 
-#exit
-/-- This is the terminal or empty context. As a groupoid it has a single point
-  given by ⟨⟨⟩⟩ -/
-def chosenTerminal : Ctx.{u} := AsSmall.up.obj Grpd.chosenTerminal.{u}
+instance : ChosenFiniteProducts Ctx := equivalence.chosenFiniteProducts
 
-def chosenTerminalIsTerminal : IsTerminal Ctx.chosenTerminal.{u} :=
-  IsTerminal.isTerminalObj AsSmall.up.{u} Grpd.chosenTerminal
-    Grpd.chosenTerminalIsTerminal
+-- #exit TODO cleanup
+-- /-- This is the terminal or empty context. As a groupoid it has a single point
+--   given by ⟨⟨⟩⟩ -/
+-- def chosenTerminal : Ctx.{u} := AsSmall.up.obj Grpd.chosenTerminal.{u}
 
-def terminalPoint : Ctx.toGrpd.obj Ctx.chosenTerminal := ⟨⟨⟩⟩
+-- def chosenTerminalIsTerminal : IsTerminal Ctx.chosenTerminal.{u} :=
+--   IsTerminal.isTerminalObj AsSmall.up.{u} Grpd.chosenTerminal
+--     Grpd.chosenTerminalIsTerminal
+
+-- def terminalPoint : Ctx.toGrpd.obj Ctx.chosenTerminal := ⟨⟨⟩⟩
 
 -- /-- The chosen product of categories `C × D` yields a product cone in `Grpd`. -/
 -- def prodCone (C D : Ctx) : BinaryFan C D :=
@@ -341,10 +343,6 @@ def terminalPoint : Ctx.toGrpd.obj Ctx.chosenTerminal := ⟨⟨⟩⟩
 --       (fun x ↦ Prod.ext (by dsimp; rw [← h1]; rfl)
 --       (by dsimp; rw [← h2]; rfl))
 --       (fun _ _ _ ↦ by dsimp; rw [← h1, ← h2]; rfl))
-
--- instance : ChosenFiniteProducts Grpd where
---   product (X Y : Grpd) := { isLimit := isLimitProdCone X Y }
---   terminal  := { isLimit := chosenTerminalIsTerminal }
 
 end Ctx
 
@@ -1043,7 +1041,7 @@ theorem isPullback_disp'_π' :
       Core.map.map (Cat.homOf (Ctx.toGrpd.map A))
       ≫ Core.map.map (Cat.homOf (Core.inclusion (AsSmall Grpd)))
   have h := Core.adjunction.unit.naturality (Ctx.toGrpd.map A)
-  simp only [Ctx.toGrpd, AsSmall.down_obj, Grpd.forgetToCat,
+  simp only [AsSmall.down_obj, Grpd.forgetToCat, Ctx.equivalence_inverse,
     Core.adjunction, Functor.comp_map, id_eq, ← Category.assoc] at *
   rw [← h]
   rfl
@@ -1109,23 +1107,24 @@ def smallU : NaturalModelBase Ctx.{max u (v+1)} where
     rw [Functor.map_preimage]
 
 namespace U
-def asSmallClosedType' : Ctx.chosenTerminal.{max u (v+2)}
+
+open MonoidalCategory
+
+def asSmallClosedType' : tensorUnit
     ⟶ U.{v+1, max u (v+2)} :=
   toCoreAsSmallEquiv.symm ((Functor.const _).obj
     (Grpd.of (Core (AsSmall.{v+1} Grpd.{v,v}))))
 
-def asSmallClosedType : y(Ctx.chosenTerminal.{max u (v+2)})
+def asSmallClosedType : y(tensorUnit)
     ⟶ smallU.{v+1, max u (v+2)}.Ty :=
   ym(U.asSmallClosedType')
 
-def isoGrpd :
-    Core (AsSmall.{max u (v+2)} Grpd.{v,v})
-      ⥤ Grpd.{v,v} := Core.inclusion _ ⋙ AsSmall.down
+def isoGrpd : Core (AsSmall.{max u (v+2)} Grpd.{v,v})
+    ⥤ Grpd.{v,v} := Core.inclusion _ ⋙ AsSmall.down
 
 def isoExtAsSmallClosedTypeHom :
     Core (AsSmall.{max u (v+2)} Grpd.{v,v})
-      ⥤ Groupoidal
-        (classifier (asSmallClosedType'.{v, max u (v + 2)})) where
+    ⥤ Groupoidal (classifier (asSmallClosedType'.{v, max u (v + 2)})) where
   obj X := ⟨ ⟨⟨⟩⟩ , AsSmall.up.obj.{_,_,v+1} (AsSmall.down.obj X) ⟩
   map {X Y} F := ⟨ (CategoryStruct.id _) , {
     hom := AsSmall.up.map.{_,_,v+1} (AsSmall.down.map F.hom)
@@ -1167,7 +1166,7 @@ def isoExtAsSmallClosedType :
     rfl
 
 def asClosedType :
-    yoneda.obj Ctx.chosenTerminal ⟶ base.Ty :=
+    y(tensorUnit) ⟶ base.Ty :=
   yonedaCatEquiv.invFun ((CategoryTheory.Functor.const _).obj
     (Grpd.of U'.{v,u}))
 
@@ -1189,8 +1188,7 @@ def isoExtAsClosedType :
 end U
 
 def largeUHom : UHom smallU.{v,u} base :=
-  UHom.ofRepChosenTerminal Ctx.chosenTerminalIsTerminal $
-    UHomRepTerminal.ofTyIsoExt _
+  UHom.ofTyIsoExt
     { mapTy := U.toTy
       mapTm := U.toTm
       pb := U.isPullback_yπ_tp }
@@ -1205,8 +1203,7 @@ def uHomSeqObjs (i : Nat) (h : i < 4) : NaturalModelBase Ctx.{3} :=
   | (n+4) => by omega
 
 def smallUHom : UHom smallU.{v, max u (v+2)} smallU.{v+1, max u (v+2)} :=
-  UHom.ofRepChosenTerminal Ctx.chosenTerminalIsTerminal $
-    @UHomRepTerminal.ofTyIsoExt _ _ _ _ _ _
+    @UHom.ofTyIsoExt _ _ _ _ _
     { mapTy := ym(U.toU.{v,max u (v+2)})
       mapTm := ym(U.toE)
       pb := U.isPullback_yπ_yπ }
