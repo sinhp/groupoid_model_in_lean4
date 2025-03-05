@@ -6,7 +6,7 @@ import Mathlib.CategoryTheory.ChosenFiniteProducts.Cat
 import GroupoidModel.Russell_PER_MS.UHom
 import GroupoidModel.Grothendieck.IsPullback
 import GroupoidModel.Grothendieck.Groupoidal
-import GroupoidModel.Groupoids.UniversePullbackProofs
+import GroupoidModel.Groupoids.IsPullback
 
 /-!
 Here we construct universes for the groupoid natural model.
@@ -15,8 +15,12 @@ Here we construct universes for the groupoid natural model.
 universe w v u v₁ u₁ v₂ u₂ v₃ u₃
 
 noncomputable section
-open CategoryTheory ULift Grothendieck
+open CategoryTheory Grothendieck
   Limits NaturalModelBase CategoryTheory.Functor
+  GroupoidModel.IsPullback.Base
+  GroupoidModel.IsPullback.LargeUHom
+  GroupoidModel.IsPullback.SmallBase
+  GroupoidModel.IsPullback.SmallUHom
 
 
 namespace GroupoidModel
@@ -35,8 +39,6 @@ def base : NaturalModelBase Ctx.{u} where
   disp := disp
   var := var
   disp_pullback := isPullback_yonedaDisp_tp
-
-open PGrpd LargeUniverse
 
 -- TODO link to this in blueprint
 /-- The natural model that acts as the classifier of `v`-large terms and types.
@@ -141,9 +143,9 @@ end U
 
 def largeUHom : UHom smallU.{v,u} base :=
   UHom.ofTyIsoExt
-    { mapTy := U.toTy
-      mapTm := U.toTm
-      pb := U.isPullback_yπ_tp }
+    { mapTy := toTy
+      mapTm := toTm
+      pb := isPullback_yπ_tp }
     (Functor.mapIso yoneda U.isoExtAsClosedType)
 
 def uHomSeqObjs (i : Nat) (h : i < 4) : NaturalModelBase Ctx.{3} :=
@@ -156,9 +158,9 @@ def uHomSeqObjs (i : Nat) (h : i < 4) : NaturalModelBase Ctx.{3} :=
 
 def smallUHom : UHom smallU.{v, max u (v+2)} smallU.{v+1, max u (v+2)} :=
     @UHom.ofTyIsoExt _ _ _ _ _
-    { mapTy := ym(U.toU.{v,max u (v+2)})
-      mapTm := ym(U.toE)
-      pb := SmallUniverse.isPullback_yπ_yπ }
+    { mapTy := ym(toU.{v,max u (v+2)})
+      mapTm := ym(toE)
+      pb := isPullback_yπ_yπ }
     U.asSmallClosedType
     (Functor.mapIso yoneda U.isoExtAsSmallClosedType.{v,u})
 

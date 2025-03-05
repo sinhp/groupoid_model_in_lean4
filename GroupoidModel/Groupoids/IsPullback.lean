@@ -19,6 +19,7 @@ open CategoryTheory ULift Grothendieck
   Limits NaturalModelBase CategoryTheory.Functor
 
 namespace GroupoidModel
+namespace IsPullback
 
 def groupoidalAsSmallFunctorToPGrpd :
     Groupoidal (Grpd.asSmallFunctor.{max w (v+1), v, v})
@@ -780,4 +781,5 @@ theorem isPullback_yonedaDisp_yonedaπ :
 
 end SmallBase
 
+end IsPullback
 end GroupoidModel

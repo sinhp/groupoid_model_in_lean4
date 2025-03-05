@@ -3,7 +3,7 @@
 import GroupoidModel.Tarski.NaturalModel
 import GroupoidModel.Russell_PER_MS.UHom
 import GroupoidModel.Groupoids.TarskiNaturalModel
-import GroupoidModel.Groupoids.RussellNaturalModel
+import GroupoidModel.Groupoids.NaturalModelBase
 
 /- There should be at least three separate files here for three separate developments:
   1. the basic development of the category Grpd of groupoids
