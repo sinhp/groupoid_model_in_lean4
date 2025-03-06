@@ -172,7 +172,6 @@ def uHomSeqHomSucc' (i : Nat) (h : i < 3) :
   | 2 => largeUHom.{2,3}
   | (n+3) => by omega
 
-#exit
 /--
   The groupoid natural model with three nested representable universes
   within the ambient natural model.

@@ -28,6 +28,9 @@ or redesigned.
 namespace CategoryTheory
 
 attribute [reassoc (attr := simp)] Limits.terminal.comp_from
+attribute [reassoc (attr := simp)] Limits.initial.to_comp
+attribute [reassoc (attr := simp)] Limits.IsTerminal.comp_from
+attribute [reassoc (attr := simp)] Limits.IsInitial.to_comp
 
 @[reassoc]
 theorem Limits.PullbackCone.IsLimit.comp_lift {C : Type*} [Category C]
@@ -44,7 +47,6 @@ end CategoryTheory
 theorem Part.assert_dom {α : Type*} (P : Prop) (x : P → Part α) :
     (Part.assert P x).Dom ↔ ∃ h : P, (x h).Dom :=
   Iff.rfl
-
 
 /-
   Mathlib.CategoryTheory.Category.ULift
@@ -185,7 +187,7 @@ theorem map_eqToHom_base_pf {G1 G2 : Grothendieck A} (eq : G1 = G2) :
 theorem map_eqToHom_base {G1 G2 : Grothendieck A} (eq : G1 = G2)
     : A.map (eqToHom eq).base = eqToHom (map_eqToHom_base_pf eq) := by
   simp [eqToHom_base, eqToHom_map]
-  
+
 open Iso
 
 variable {C : Type u₁} [Category.{v₁,u₁} C] {G : C ⥤ Cat.{v₂,u₂}}

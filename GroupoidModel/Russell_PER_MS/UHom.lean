@@ -8,11 +8,22 @@ universe v u
 
 noncomputable section
 
-open CategoryTheory Limits Opposite
+open CategoryTheory Limits Opposite MonoidalCategory
 
 namespace NaturalModelBase
 
 variable {Ctx : Type u} [Category.{v, u} Ctx]
+
+-- We have a 'nice', specific terminal object in `Ctx`,
+-- and this instance allows use to use it directly
+-- rather than through an isomorphism with `Limits.terminal`.
+-- `ChosenTerminal` would suffice but is not defined in mathlib,
+-- so we use `ChosenFiniteProducts`.
+variable [ChosenFiniteProducts Ctx]
+
+-- Should be in mathlib?
+def isTerminal_yUnit : IsTerminal y(𝟙_ Ctx) :=
+  (IsTerminal.ofUnique (𝟙_ Ctx)).isTerminalObj yoneda (𝟙_ Ctx)
 
 structure Hom (M N : NaturalModelBase Ctx) where
   mapTm : M.Tm ⟶ N.Tm
@@ -55,49 +66,26 @@ def Hom.subst (M : NaturalModelBase Ctx)
       convert IsPullback.of_right' (M.disp_pullback Aσ) (M.disp_pullback A)
       simp }
 
--- this could be just chosen terminal object,
--- mathlib doesn't have just chosen terminal
-variable [ChosenFiniteProducts Ctx]
-
-def isTerminal_y1 : IsTerminal y(@MonoidalCategory.tensorUnit Ctx _ _) :=
-  (IsTerminal.ofUnique _).isTerminalObj yoneda _
-
--- /-- A Russell embedding is a hom of natural models `M ⟶ N`
--- such that types in `M` correspond to terms of a universe `U` in `N`.
-
--- These don't form a category since `UHom.id M` is essentially `Type : Type` in `M`. -/
--- structure UHom (M N : NaturalModelBase Ctx) extends Hom M N where
---   U : ⊤_ (Psh Ctx) ⟶ N.Ty
---   U_pb : ∃ v, IsPullback v (terminal.from M.Ty) N.tp U
-
-  -- Or an explicit bijection:
-  -- U_equiv : (y(⊤_ Ctx) ⟶ M.Ty) ≃ { A : y(⊤_ Ctx) ⟶ N.Tm // A ≫ N.tp = U }
-
-/-- An alternate formulation of `UHom`.
-This formulation requires the context category to have a terminal
-object (aka empty context) and the universe to be
-defined over the empty context.
+/-- A Russell embedding is a hom of natural models `M ⟶ N`
+such that types in `M` correspond to terms of a universe `U` in `N`.
 
 These don't form a category since `UHom.id M` is essentially `Type : Type` in `M`. -/
-structure UHom
-    (M N : NaturalModelBase Ctx) extends Hom M N where
-  U : y(MonoidalCategory.tensorUnit) ⟶ N.Ty
+structure UHom (M N : NaturalModelBase Ctx) extends Hom M N where
+  U : y(𝟙_ Ctx) ⟶ N.Ty
   U_pb : ∃ v : M.Ty ⟶ N.Tm, IsPullback
-    v
-    (isTerminal_y1.from M.Ty)
-    N.tp
-    U
+                                 v
+    (isTerminal_yUnit.from M.Ty)   N.tp
+                                 U
 
 def UHom.ofTyIsoExt
     {M N : NaturalModelBase Ctx}
-    (H : Hom M N) {U : y(MonoidalCategory.tensorUnit) ⟶ N.Ty} (i : M.Ty ≅ y(N.ext U))
-    : UHom M N := {
-  H with
+    (H : Hom M N) {U : y(𝟙_ Ctx) ⟶ N.Ty} (i : M.Ty ≅ y(N.ext U)) :
+    UHom M N := { H with
   U := U
   U_pb := by
     use i.hom ≫ N.var U
     convert IsPullback.of_iso_isPullback (N.disp_pullback _) i
-    apply ((IsTerminal.ofUnique _).isTerminalObj yoneda _).hom_ext
+    apply isTerminal_yUnit.hom_ext
 }
 
 def UHom.comp {M N O : NaturalModelBase Ctx} (α : UHom M N) (β : UHom N O) : UHom M O := {
@@ -107,13 +95,13 @@ def UHom.comp {M N O : NaturalModelBase Ctx} (α : UHom M N) (β : UHom N O) : U
     have ⟨v, pb⟩ := α.U_pb
     ⟨v ≫ β.mapTm, pb.paste_horiz β.pb⟩
 }
-#exit
+
 def UHom.comp_assoc {M N O P : NaturalModelBase Ctx} (α : UHom M N) (β : UHom N O) (γ : UHom O P) :
     comp (comp α β) γ = comp α (comp β γ) := by
   simp [comp, Hom.comp]
 
 def UHom.wkU {M N : NaturalModelBase Ctx} (Γ : Ctx) (α : UHom M N) : y(Γ) ⟶ N.Ty :=
-  terminal.from y(Γ) ≫ α.U
+  isTerminal_yUnit.from y(Γ) ≫ α.U
 
 @[reassoc (attr := simp)]
 theorem UHom.comp_wkU {M N : NaturalModelBase Ctx} {Δ Γ : Ctx} (α : UHom M N) (f : y(Δ) ⟶ y(Γ)) :
@@ -122,24 +110,22 @@ theorem UHom.comp_wkU {M N : NaturalModelBase Ctx} {Δ Γ : Ctx} (α : UHom M N)
 
 /- Sanity check:
 construct a `UHom` into a natural model with a Tarski universe. -/
-def UHom.ofTarskiU [HasTerminal Ctx] (M : NaturalModelBase Ctx)
-    (U : y(⊤_ Ctx) ⟶ M.Ty) (El : y(M.ext U) ⟶ M.Ty) :
+def UHom.ofTarskiU (M : NaturalModelBase Ctx) (U : y(𝟙_ Ctx) ⟶ M.Ty) (El : y(M.ext U) ⟶ M.Ty) :
     UHom (M.pullback El) M := {
   M.pullbackHom El with
-  U := (PreservesTerminal.iso (yoneda (C := Ctx))).inv ≫ U
+  U
   U_pb := ⟨M.var U,
     (M.disp_pullback U).of_iso
       (Iso.refl _)
       (Iso.refl _)
-      (PreservesTerminal.iso (yoneda (C := Ctx)))
       (Iso.refl _)
-      (by simp) (terminal.hom_ext ..)
-      (by simp) (by rw [Iso.hom_inv_id_assoc]; simp)⟩
+      (Iso.refl _)
+      (by simp) (isTerminal_yUnit.hom_ext ..)
+      (by simp) (by simp)⟩
 }
 
-
 /-- A sequence of Russell embeddings. -/
-structure UHomSeq (Ctx : Type u) [Category.{v, u} Ctx] where
+structure UHomSeq (Ctx : Type u) [Category.{v, u} Ctx] [ChosenFiniteProducts Ctx] where
   /-- Number of embeddings in the sequence,
   or one less than the number of models in the sequence. -/
   length : Nat
@@ -225,7 +211,8 @@ etc etc
 However, with `O(length²)` data we can use Lean's own type formers directly,
 rather than using `Π (ULift A) (ULift B)`.
 The interpretations of types are thus more direct. -/
-structure UHomSeqPis (Ctx : Type u) [SmallCategory.{u} Ctx] extends UHomSeq Ctx where
+structure UHomSeqPis (Ctx : Type u) [SmallCategory.{u} Ctx] [ChosenFiniteProducts Ctx]
+    extends UHomSeq Ctx where
   Pis' (i : Nat) (ilen : i < length + 1) :
     toUHomSeq[i].Ptp.obj toUHomSeq[i].Ty ⟶ toUHomSeq[i].Ty
   lams' (i : Nat) (ilen : i < length + 1) :
@@ -235,7 +222,7 @@ structure UHomSeqPis (Ctx : Type u) [SmallCategory.{u} Ctx] extends UHomSeq Ctx 
 
 namespace UHomSeqPis
 
-variable {Ctx : Type u} [SmallCategory.{u} Ctx]
+variable {Ctx : Type u} [SmallCategory.{u} Ctx] [ChosenFiniteProducts Ctx]
 
 instance : GetElem (UHomSeqPis Ctx) Nat (NaturalModelBase Ctx) (fun s i => i < s.length + 1) where
   getElem s i h := s.objs i h
