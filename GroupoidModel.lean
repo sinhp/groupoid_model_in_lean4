@@ -2,6 +2,7 @@
 -- Import modules here that should be built as part of the library.
 import GroupoidModel.Tarski.NaturalModel
 import GroupoidModel.Russell_PER_MS.UHom
+import GroupoidModel.Russell_PER_MS.Interpretation
 import GroupoidModel.Groupoids.TarskiNaturalModel
 import GroupoidModel.Groupoids.NaturalModelBase
 
