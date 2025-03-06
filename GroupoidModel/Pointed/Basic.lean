@@ -1,10 +1,11 @@
 import Mathlib.CategoryTheory.Category.Grpd
+import GroupoidModel.ForMathlib
 
 /-!
 Here we define pointed categories and pointed groupoids as well as prove some basic lemmas.
 -/
 
-universe v u v₁ u₁ v₂ u₂ 
+universe w v u v₁ u₁ v₂ u₂
 
 namespace CategoryTheory
 
@@ -171,12 +172,16 @@ theorem eqToHom_toFunctor {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
   cases eq
   simp[ PointedFunctor.id, CategoryStruct.id, PCat.forgetToCat,Cat.of,Bundled.of]
 
+-- TODO this should be renamed to PCat.eqToHom_point_aux
+-- because PCat and PGrpd both use pointed functors
 /-- This is the proof of equality used in the eqToHom in `PointedFunctor.eqToHom_point` -/
 theorem eqToHom_point_aux {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
     (eqToHom eq).obj PointedCategory.pt = PointedCategory.pt := by
   cases eq
   simp [CategoryStruct.id]
 
+-- TODO this should be renamed to PCat.eqToHom_point
+-- because PCat and PGrpd both use pointed functors
 /-- This shows that the point of an eqToHom in PCat is an eqToHom-/
 theorem eqToHom_point {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
     (eqToHom eq).point = (eqToHom (PCat.eqToHom_point_aux eq)) := by
@@ -225,6 +230,10 @@ instance str (C : PGrpd.{v, u}) : PointedGroupoid.{v, u} C :=
 def of (C : Type u) [PointedGroupoid C] : PGrpd.{v, u} :=
   Bundled.of C
 
+/-- Construct a bundled `PGrpd` from the underlying type and the typeclass. -/
+def ofGrpd (G : Grpd.{v,u}) (pt : G) : PGrpd.{v, u} :=
+  ⟨ _ , .of G pt ⟩
+
 /-- Construct a bundled `PGrpd` from a `Grpd` and a point -/
 def fromGrpd (G : Grpd.{v,u}) (g : G) : PGrpd.{v,u} := by
   have pg : PointedGroupoid (Bundled.α G) := by
@@ -247,6 +256,10 @@ instance category : LargeCategory.{max v u} PGrpd.{v, u} where
     apply PointedFunctor.ext
     simp
     simp [PointedFunctor.comp,Functor.assoc]
+
+/-- Construct a morphism in `PGrpd` from the underlying functor -/
+@[simp] def homOf {C D : PGrpd.{v,u}} (F : PointedFunctor C D) :
+    C ⟶ D := F
 
 /-- The functor that takes PGrpd to Grpd by forgetting the points-/
 @[simps] def forgetToGrpd : PGrpd.{v,u} ⥤ Grpd.{v,u} where
@@ -292,6 +305,29 @@ lemma comp_toFunctor {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) :
 lemma comp_point {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) :
     (F ≫ G).point = G.map (F.point) ≫ G.point := rfl
 
+theorem map_id_point {C : Type u} [Category.{v} C] {F : C ⥤ PGrpd} {x : C} :
+    (F.map (CategoryStruct.id x)).point =
+    eqToHom (by simp : (F.map (CategoryStruct.id x)).obj (F.obj x).str.pt = (F.obj x).str.pt) := by
+  have : (CategoryStruct.id (F.obj x)).point = _ := PGrpd.id_point
+  convert this
+  · simp
+  · simp
+  · refine HEq.symm (heq_of_eqRec_eq ?_ rfl)
+    · symm; assumption
+
+/-- This is the proof of equality used in the eqToHom in `PGrpd.eqToHom_point` -/
+theorem eqToHom_point_aux {P1 P2 : PGrpd.{v,u}} (eq : P1 = P2) :
+    (eqToHom eq).obj PointedCategory.pt = PointedCategory.pt := by
+  cases eq
+  simp [CategoryStruct.id]
+
+/-- This shows that the point of an eqToHom in PGrpd is an eqToHom-/
+theorem eqToHom_point {P1 P2 : PGrpd.{v,u}} (eq : P1 = P2) :
+    (eqToHom eq).point = (eqToHom (eqToHom_point_aux eq)) := by
+  cases eq
+  simp[PointedFunctor.id, CategoryStruct.id, PCat.forgetToCat,Cat.of,Bundled.of]
+
+
 lemma hext {C D : PGrpd} (hα : C.α = D.α) (hstr : HEq C.str D.str) :
     C = D := by
   cases C
@@ -308,6 +344,34 @@ lemma hext_iff {C D : PGrpd} : C.α = D.α ∧ HEq C.str D.str
   · intro hCD
     subst hCD
     exact ⟨ rfl , HEq.rfl ⟩
+
+instance asSmall (Γ : Type u) [PointedGroupoid.{v} Γ] :
+    PointedGroupoid.{max w v u, max w v u} (AsSmall.{w} Γ) := {
+  CategoryTheory.Groupoid.asSmallGroupoid.{w,v,u} Γ with
+  pt := AsSmall.up.obj PointedGroupoid.pt}
+
+def asSmallFunctor : PGrpd.{v, u} ⥤ PGrpd.{max w v u, max w v u} where
+  obj Γ := PGrpd.of $ AsSmall.{max w v u} Γ
+  map F := {
+    toFunctor := AsSmall.down ⋙ F.toFunctor ⋙ AsSmall.up
+    point := AsSmall.up.map F.point}
+
+instance : forgetToGrpd.ReflectsIsomorphisms := by
+  constructor
+  intro A B F hiso
+  rcases hiso with ⟨ G , hFG , hGF ⟩
+  use ⟨ G , G.map (Groupoid.inv F.point)
+    ≫ eqToHom (Functor.congr_obj hFG A.str.pt) ⟩
+  constructor
+  · apply PointedFunctor.ext
+    · simp
+    · exact hFG
+  · apply PointedFunctor.ext
+    · simp
+      have h := Functor.congr_hom hGF F.point
+      simp [Grpd.id_eq_id, Grpd.comp_eq_comp, Functor.comp_map] at h
+      simp [h, eqToHom_map]
+    · exact hGF
 
 end PGrpd
 
