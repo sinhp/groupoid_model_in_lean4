@@ -1,6 +1,7 @@
 import GroupoidModel.Russell_PER_MS.NaturalModelBase
 import GroupoidModel.ForMathlib
 import Mathlib.CategoryTheory.Limits.Shapes.StrictInitial
+import Poly.UvPoly
 
 /-! Morphisms of natural models, and Russell-universe embeddings. -/
 
@@ -191,6 +192,34 @@ theorem comp_el (s : UHomSeq Ctx) {Δ Γ : Ctx} {i : Nat} (ilen : i < s.length)
 
 end UHomSeq
 
+section
+variable {Ctx : Type u} [SmallCategory.{u} Ctx] (M : NaturalModelBase Ctx)
+instance : HasFiniteWidePullbacks (Psh Ctx) := hasFiniteWidePullbacks_of_hasFiniteLimits _
+
+instance : LCC (Psh Ctx) := @LCCC.mkOfOverCC _ _ _ ⟨CategoryOfElements.presheafOverCCC⟩
+
+instance {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : CartesianExponentiable tp where
+  functor := LCC.pushforward tp
+  adj := LCC.adj _
+
+@[reducible]
+def uvPoly {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly Tm Ty := ⟨tp, inferInstance⟩
+def uvPolyT {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly.Total (Psh Ctx) := ⟨_, _, uvPoly tp⟩
+
+structure NaturalModelPi
+  (M : NaturalModelBase Ctx) where
+  Pi : M.Ptp.obj M.Ty ⟶ M.Ty
+  lam : M.Ptp.obj M.Tm ⟶ M.Tm
+  Pi_pullback : IsPullback lam (M.Ptp.map M.tp) M.tp Pi
+
+class NaturalModelSigma
+  (M : NaturalModelBase Ctx) where
+  Sig : M.Ptp.obj M.Ty ⟶ M.Ty
+  pair : (UvPoly.compDom (uvPoly M.tp) (uvPoly M.tp)) ⟶ M.Tm
+  Sig_pullback : IsPullback pair ((uvPoly M.tp).comp (uvPoly M.tp)).p M.tp Sig
+
+end
+
 /-- The data of Π and λ term formers for every `i, j ≤ length + 1`, interpreting
 ```
 Γ ⊢ᵢ A type  Γ.A ⊢ⱼ B type
@@ -213,12 +242,11 @@ rather than using `Π (ULift A) (ULift B)`.
 The interpretations of types are thus more direct. -/
 structure UHomSeqPis (Ctx : Type u) [SmallCategory.{u} Ctx] [ChosenFiniteProducts Ctx]
     extends UHomSeq Ctx where
-  Pis' (i : Nat) (ilen : i < length + 1) :
-    toUHomSeq[i].Ptp.obj toUHomSeq[i].Ty ⟶ toUHomSeq[i].Ty
-  lams' (i : Nat) (ilen : i < length + 1) :
-    toUHomSeq[i].Ptp.obj toUHomSeq[i].Tm  ⟶ toUHomSeq[i].Tm
-  Pi_pbs' (i : Nat) (ilen : i < length + 1) :
-    IsPullback (lams' i ilen) (toUHomSeq[i].Ptp.map toUHomSeq[i].tp) toUHomSeq[i].tp (Pis' i ilen)
+  Pis' (i : Nat) (ilen : i < length + 1) : NaturalModelPi toUHomSeq[i]
+
+structure UHomSeqSigmas (Ctx : Type u) [SmallCategory.{u} Ctx] [ChosenFiniteProducts Ctx]
+    extends UHomSeq Ctx where
+  Sigmas' (i : Nat) (ilen : i < length + 1) : NaturalModelSigma toUHomSeq[i]
 
 namespace UHomSeqPis
 
@@ -235,15 +263,15 @@ theorem getElem_toUHomSeq (i : Nat) (ilen : i < s.length + 1) : s.toUHomSeq[i] =
 
 def Pis (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) :
     s[i].Ptp.obj s[i].Ty ⟶ s[i].Ty :=
-  s.Pis' i ilen
+  (s.Pis' i ilen).Pi
 
 def lams (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) :
     s[i].Ptp.obj s[i].Tm ⟶ s[i].Tm :=
-  s.lams' i ilen
+  (s.Pis' i ilen).lam
 
 def Pi_pbs (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) :
     IsPullback (s.lams i) (s[i].Ptp.map s[i].tp) s[i].tp (s.Pis i) :=
-  s.Pi_pbs' i ilen
+  (s.Pis' i ilen).Pi_pullback
 
 -- Sadly, we have to spell out `ilen` and `jlen` due to
 -- https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/Optional.20implicit.20argument
