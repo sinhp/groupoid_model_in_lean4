@@ -9,8 +9,7 @@ open CategoryTheory Limits Opposite
 notation:max "y(" Γ ")" => yoneda.obj Γ
 notation:max "ym(" f ")" => yoneda.map f
 
-/-- A representable map with choice of representability witnesses. -/
--- FIXME: should just be called `RepresentableNatTrans`.
+/-- A representable map with choice of representability witnesses. -/ -- FIXME: should just be called `RepresentableNatTrans`.
 structure NaturalModelBase (Ctx : Type u) [Category Ctx] where
   Tm : Psh Ctx
   Ty : Psh Ctx
@@ -190,6 +189,14 @@ theorem inst_wk {Γ : Ctx} {X : Psh Ctx}
 /-! ## Polynomial functor on `tp` -/
 
 variable [SmallCategory Ctx] (M : NaturalModelBase Ctx)
+
+instance : HasFiniteWidePullbacks (Psh Ctx) := hasFiniteWidePullbacks_of_hasFiniteLimits _
+
+instance : LCC (Psh Ctx) := @LCCC.mkOfOverCC _ _ _ ⟨CategoryOfElements.presheafOverCCC⟩
+
+instance {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : CartesianExponentiable tp where
+  functor := LCC.pushforward tp
+  adj := LCC.adj _
 
 def uvPolyTp : UvPoly M.Tm M.Ty := ⟨M.tp, inferInstance⟩
 def uvPolyTpT : UvPoly.Total (Psh Ctx) := ⟨_, _, M.uvPolyTp⟩
