@@ -6,40 +6,55 @@ universe v u v₁ u₁ v₂ u₂
 noncomputable section
 -- NOTE temporary section for stuff to be moved elsewhere
 section ForOther
-namespace CategoryTheory.Yoneda
 
-variable {C : Type u₁} [Category.{v₁} C]
+namespace GroupoidModel
 
-open Opposite
+open CategoryTheory NaturalModelBase Opposite Grothendieck
 
-/-- Construct a natural transformation between
-  two presheaves via yoneda
+/-- The polynomial functor on `tp` taken at `yonedaCat.obj C`
+  `P_tp(yonedaCat C)` takes a groupoid `Γ`
+  to a pair of functors `A` and `B`
+
+      B
+   C ⇇ Groupoidal A   ⥤   PGrpd
+            ⇊               ⇊
+            Γ          ⥤   Grpd
+                       A
+As a special case, if `C` is taken to be `Grpd`,
+then this is how `P_tp(Ty)` classifies dependent pairs.
 -/
-def natTrans (X Y : Cᵒᵖ ⥤ Type v₁)
-    (p : ∀ {Z : C}, (yoneda.obj Z ⟶ X) → (yoneda.obj Z ⟶ Y))
-    (n : ∀ {Z Z' : C} (f : Z' ⟶ Z) (g : yoneda.obj Z ⟶ X),
-      p (yoneda.map f ≫ g) = yoneda.map f ≫ p g)
-    : X ⟶ Y where
-  app Z := yonedaEquiv ∘ p ∘ yonedaEquiv.symm
-  naturality := sorry
+def baseUvPolyTpEquiv {Γ : Ctx.{u}} {C : Cat.{u,u+1}} :
+    (base.Ptp.obj (yonedaCat.obj C)).obj (op Γ)
+    ≃ (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{u,u}) × (Groupoidal A ⥤ C) :=
+  yonedaEquiv.symm.trans (
+  (uvPolyTpEquiv _ _ _).trans (
+  Equiv.sigmaCongr
+    yonedaCatEquiv
+    (fun _ => yonedaCatEquiv)))
 
-end CategoryTheory.Yoneda
+end GroupoidModel
+
 end ForOther
 
 
 -- NOTE content for this doc starts here
 namespace GroupoidModel
 
-open NaturalModelBase Opposite
+open CategoryTheory NaturalModelBase Opposite Grothendieck
 
-def baseSig : base.Ptp.obj base.Ty ⟶ base.Ty := sorry
-  -- by apply?
--- where
-  -- app Γ := have h := (uvPolyTpEquiv base (unop Γ) base.Ty)
-  --   fun pair => sorry
+def sigma {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{v₁,u₁})
+    (B : Groupoidal A ⥤ Grpd.{v₁,u₁})
+    : Γ ⥤ Grpd.{v₁,u₁} :=
+  sorry
+
+def baseSigmaSig : base.Ptp.obj base.{u}.Ty ⟶ base.Ty where
+  app Γ := fun pair =>
+    let ⟨A,B⟩ := baseUvPolyTpEquiv pair
+    yonedaEquiv (yonedaCatEquiv.symm (sigma A B))
+  naturality := sorry
 
 def baseSigma : NaturalModelSigma base where
-  Sig := sorry
+  Sig := baseSigmaSig
   pair := sorry
   Sig_pullback := sorry
 

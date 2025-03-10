@@ -31,7 +31,7 @@ namespace GroupoidModel
   Note that unlike the other universes this is *not* representable,
   but enjoys having representable fibers that land in itself.
 -/
-def base : NaturalModelBase Ctx.{u} where
+@[simps] def base : NaturalModelBase Ctx.{u} where
   Ty := Ty
   Tm := Tm
   tp := tp
