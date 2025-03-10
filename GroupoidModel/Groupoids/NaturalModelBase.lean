@@ -181,6 +181,29 @@ def uHomSeq : NaturalModelBase.UHomSeq Ctx.{3} where
   objs := uHomSeqObjs
   homSucc' := uHomSeqHomSucc'
 
+open CategoryTheory NaturalModelBase Opposite Grothendieck
+
+/-- The polynomial functor on `tp` taken at `yonedaCat.obj C`
+  `P_tp(yonedaCat C)` takes a groupoid `Γ`
+  to a pair of functors `A` and `B`
+
+      B
+   C ⇇ Groupoidal A   ⥤   PGrpd
+            ⇊               ⇊
+            Γ          ⥤   Grpd
+                       A
+As a special case, if `C` is taken to be `Grpd`,
+then this is how `P_tp(Ty)` classifies dependent pairs.
+-/
+def baseUvPolyTpEquiv {Γ : Ctx.{u}} {C : Cat.{u,u+1}} :
+    (base.Ptp.obj (yonedaCat.obj C)).obj (op Γ)
+    ≃ (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{u,u}) × (Groupoidal A ⥤ C) :=
+  yonedaEquiv.symm.trans (
+  (uvPolyTpEquiv _ _ _).trans (
+  Equiv.sigmaCongr
+    yonedaCatEquiv
+    (fun _ => yonedaCatEquiv)))
+
 end GroupoidModel
 
 end

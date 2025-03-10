@@ -1,4 +1,4 @@
-import GroupoidModel.Groupoids.NaturalModelBase
+import GroupoidModel.Groupoids.Sigma
 import GroupoidModel.Russell_PER_MS.NaturalModelSigma
 
 universe v u v₁ u₁ v₂ u₂
@@ -9,7 +9,6 @@ section ForOther
 
 end ForOther
 
-
 -- NOTE content for this doc starts here
 namespace GroupoidModel
 
@@ -17,37 +16,37 @@ open CategoryTheory NaturalModelBase Opposite Grothendieck
 
 /-- The formation rule for Σ-types for the ambient natural model `base`
   unfolded into operations between functors -/
-def sigma {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{v₁,u₁})
+def pi {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{v₁,u₁})
     (B : Groupoidal A ⥤ Grpd.{v₁,u₁})
     : Γ ⥤ Grpd.{v₁,u₁} :=
   sorry
 
 /-- The formation rule for Σ-types for the ambient natural model `base` -/
-def baseSigmaSig : base.Ptp.obj base.{u}.Ty ⟶ base.Ty where
+def basePiPi : base.Ptp.obj base.{u}.Ty ⟶ base.Ty where
   app Γ := fun pair =>
     let ⟨A,B⟩ := baseUvPolyTpEquiv pair
-    yonedaEquiv (yonedaCatEquiv.symm (sigma A B))
+    yonedaEquiv (yonedaCatEquiv.symm (pi A B))
   naturality := sorry
 
-def baseSigma : NaturalModelSigma base where
-  Sig := baseSigmaSig
-  pair := sorry
-  Sig_pullback := sorry
+def basePi : NaturalModelPi base where
+  Pi := basePiPi
+  lam := sorry
+  Pi_pullback := sorry
 
-def smallUSigma : NaturalModelSigma smallU := sorry
+def smallUPi : NaturalModelPi smallU := sorry
 
-def uHomSeqSigmas' (i : ℕ) (ilen : i < 4) :
-  NaturalModelSigma (uHomSeqObjs i ilen) :=
+def uHomSeqPis' (i : ℕ) (ilen : i < 4) :
+  NaturalModelPi (uHomSeqObjs i ilen) :=
   match i with
-  | 0 => smallUSigma
-  | 1 => smallUSigma
-  | 2 => smallUSigma
-  | 3 => baseSigma
+  | 0 => smallUPi
+  | 1 => smallUPi
+  | 2 => smallUPi
+  | 3 => basePi
   | (n+4) => by omega
 
-def uHomSeqSigmas : UHomSeqSigmas Ctx := {
+def uHomSeqPis : UHomSeqPis Ctx := {
   uHomSeq with
-  Sigmas' := uHomSeqSigmas' }
+  Pis' := uHomSeqPis' }
 
 end GroupoidModel
 
