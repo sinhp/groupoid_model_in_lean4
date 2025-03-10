@@ -1,4 +1,4 @@
-import GroupoidModel.Russell_PER_MS.NaturalModelBase
+import GroupoidModel.Russell_PER_MS.NaturalModelSigma
 import GroupoidModel.ForMathlib
 import Mathlib.CategoryTheory.Limits.Shapes.StrictInitial
 import Poly.UvPoly
@@ -192,33 +192,6 @@ theorem comp_el (s : UHomSeq Ctx) {Δ Γ : Ctx} {i : Nat} (ilen : i < s.length)
 
 end UHomSeq
 
-section
-variable {Ctx : Type u} [SmallCategory.{u} Ctx] (M : NaturalModelBase Ctx)
-instance : HasFiniteWidePullbacks (Psh Ctx) := hasFiniteWidePullbacks_of_hasFiniteLimits _
-
-instance : LCC (Psh Ctx) := @LCCC.mkOfOverCC _ _ _ ⟨CategoryOfElements.presheafOverCCC⟩
-
-instance {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : CartesianExponentiable tp where
-  functor := LCC.pushforward tp
-  adj := LCC.adj _
-
-@[reducible]
-def uvPoly {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly Tm Ty := ⟨tp, inferInstance⟩
-def uvPolyT {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly.Total (Psh Ctx) := ⟨_, _, uvPoly tp⟩
-
-structure NaturalModelPi
-  (M : NaturalModelBase Ctx) where
-  Pi : M.Ptp.obj M.Ty ⟶ M.Ty
-  lam : M.Ptp.obj M.Tm ⟶ M.Tm
-  Pi_pullback : IsPullback lam (M.Ptp.map M.tp) M.tp Pi
-
-class NaturalModelSigma
-  (M : NaturalModelBase Ctx) where
-  Sig : M.Ptp.obj M.Ty ⟶ M.Ty
-  pair : (UvPoly.compDom (uvPoly M.tp) (uvPoly M.tp)) ⟶ M.Tm
-  Sig_pullback : IsPullback pair ((uvPoly M.tp).comp (uvPoly M.tp)).p M.tp Sig
-
-end
 
 /-- The data of Π and λ term formers for every `i, j ≤ length + 1`, interpreting
 ```
