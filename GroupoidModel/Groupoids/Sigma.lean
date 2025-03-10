@@ -42,11 +42,14 @@ namespace GroupoidModel
 
 open CategoryTheory NaturalModelBase Opposite Grothendieck
 
+/-- The formation rule for Σ-types for the ambient natural model `base`
+  unfolded into operations between functors -/
 def sigma {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{v₁,u₁})
     (B : Groupoidal A ⥤ Grpd.{v₁,u₁})
     : Γ ⥤ Grpd.{v₁,u₁} :=
   sorry
 
+/-- The formation rule for Σ-types for the ambient natural model `base` -/
 def baseSigmaSig : base.Ptp.obj base.{u}.Ty ⟶ base.Ty where
   app Γ := fun pair =>
     let ⟨A,B⟩ := baseUvPolyTpEquiv pair
