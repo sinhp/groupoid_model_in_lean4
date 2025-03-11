@@ -150,7 +150,6 @@ def Grpd2 : Type (u+2) := InducedCategory sGrpd.{u+1} Groupoid2.toLarge
 
 section NaturalModelSigma
 
-
 def PointToFiber {Γ : Grpd} (A : Γ ⥤ Grpd) (x : Γ) : (A.obj x) ⥤ Grothendieck.Groupoidal A where
   obj a := { base := x, fiber := a }
   map f := by
@@ -192,6 +191,12 @@ def  PointToFiberNT {Γ : Grpd} (A : Γ ⥤ Grpd) (X Y : Γ) (f : X ⟶ Y) : Poi
     . simp
     . simp[Grpd.forgetToCat, eqToHom_map]
 
+
+def uv_tp : UvPoly Tm.{u} Ty.{u} where
+  p := tp
+
+def P : Psh sGrpd ⥤ Psh sGrpd := uv_tp.functor.{u}
+
 def GroupoidSigma (Γ : Grpd) (A : Γ ⥤ Grpd) (B : (Grothendieck.Groupoidal A) ⥤ Grpd) : Γ ⥤ Grpd where
   obj x := Grpd.of (Grothendieck.Groupoidal ((PointToFiber A x) ⋙ B))
   map f := by
@@ -211,26 +216,21 @@ def GroupoidSigma (Γ : Grpd) (A : Γ ⥤ Grpd) (B : (Grothendieck.Groupoidal A)
     simp[Grpd.forgetToCat]
     sorry
 
-def uv_tp : UvPoly Tm.{u} Ty.{u} where
-  p := tp
-
-def P : Psh sGrpd ⥤ Psh sGrpd := uv_tp.functor.{u}
-
-def GroupoidNMSigma : (P.obj.{u} Ty.{u}) ⟶ Ty.{u} := by
+def GroupoidSigmaMake {Γ : Grpd} {A : Γ ⥤ Grpd} {B : (Grothendieck.Groupoidal A) ⥤ Grpd} {x : Γ} (Ax : A.obj x) (Bx : B.obj {base := x, fiber := Ax}): (GroupoidSigma Γ A B).obj x := by
   fconstructor
-  . dsimp [Quiver.Hom]
-    intros sObj poly
-    let poly' := yonedaEquiv.invFun poly
-    let poly_as_pair := (UvPoly.equiv uv_tp (yoneda.obj (Opposite.unop sObj)) Ty).toFun poly'
-    rcases poly_as_pair with ⟨A, B⟩
-    exact downFunctor ⋙ (GroupoidSigma (sGrpd.forget.obj (Opposite.unop sObj)) (upFunctor ⋙ (yonedaEquiv.toFun A)) (sorry))
+  . exact Ax
+  . exact Bx
+
+def GroupoidSigmaBase (Γ : Grpd) (A : Γ ⥤ Grpd) (B : (Grothendieck.Groupoidal A) ⥤ Grpd) : (GroupoidSigma Γ A B) ⟶ A := by
+  fconstructor
+  . dsimp [GroupoidSigma]
+    intro x
+    dsimp[Quiver.Hom]
+    sorry
+    --exact Grothendieck.forget (Grpd.ForgetToCat (PointToFiber A x ⋙ B))
   . intros X Y f
-    funext a
-    refine CategoryTheory.Functor.ext ?_ ?_
-    . intro b
-      sorry
-    . intros b₁ b₂ g
-      sorry
+    sorry
+    --exact rfl
 
 theorem GroupoidSigmaBeckChevalley (Δ Γ: Grpd.{v,u}) (σ : Δ ⥤ Γ) (A : Γ ⥤ Grpd.{v,u})
   (B : (Grothendieck.Groupoidal A) ⥤ Grpd.{v,u}) : σ ⋙ GroupoidSigma Γ A B = GroupoidSigma _ (σ ⋙ A)
@@ -241,6 +241,144 @@ theorem GroupoidSigmaBeckChevalley (Δ Γ: Grpd.{v,u}) (σ : Δ ⥤ Γ) (A : Γ 
   . intros X Y f
     sorry
 
+instance : Limits.HasLimits (Psh sGrpd) := by
+  infer_instance
+
+instance {Γ : sGrpd} (A : yoneda.obj Γ ⟶ Ty): Limits.HasLimit (Limits.cospan A uv_tp.p) := by
+  infer_instance
+
+def Limits_Sub {Γ : sGrpd} (A : yoneda.obj Γ ⟶ Ty): Limits.pullback A uv_tp.p ≅ yoneda.obj (GroupoidNM.ext _ A) := by
+  refine ((IsPullback.isoPullback (snd := (NaturalModel.var Γ A)) (fst := yoneda.map (NaturalModel.disp Γ A))) ?_).symm
+  have isPB := GroupoidNM.disp_pullback A
+  exact IsPullback.flip isPB
+
+def GroupoidNMSigma : (P.obj.{u} Ty.{u}) ⟶ Ty.{u} := by
+  fconstructor
+  . dsimp [Quiver.Hom]
+    intros sObj poly
+    let poly' := yonedaEquiv.invFun poly
+    let poly_as_pair := (UvPoly.equiv uv_tp (yoneda.obj (Opposite.unop sObj)) Ty).toFun poly'
+    rcases poly_as_pair with ⟨A, B⟩
+    have B := yonedaEquiv.toFun ((Limits_Sub A).inv ≫ B)
+    exact downFunctor ⋙ (GroupoidSigma (sGrpd.forget.obj (Opposite.unop sObj)) (upFunctor ⋙ (yonedaEquiv.toFun A)) (upFunctor ⋙ B))
+  . intros X Y f
+    funext a
+    refine CategoryTheory.Functor.ext ?_ ?_
+    . intro b
+      sorry
+    . intros b₁ b₂ g
+      sorry
+
+abbrev R := UvPoly.genPb uv_tp Ty
+
+#check Limits.pullback.condition
+
+def GroupoidPair {Γ : sGrpd.{u}} (baB : (yoneda.obj Γ) ⟶ UvPoly.compDom uv_tp uv_tp) : (yoneda.obj Γ) ⟶ Tm := by
+  refine yonedaCatEquiv.invFun ?_
+  unfold UvPoly.compDom at baB
+  let b := baB ≫ (Limits.pullback.fst (uv_tp.p) (UvPoly.genPb.u₂ uv_tp Ty))
+  let aB := baB ≫ (Limits.pullback.snd (uv_tp.p) (UvPoly.genPb.u₂ uv_tp Ty))
+  unfold UvPoly.genPb at aB
+  let a := aB ≫ (Limits.pullback.snd (uv_tp.proj Ty) uv_tp.p)
+  let AB := (aB ≫ (Limits.pullback.fst (uv_tp.proj Ty) uv_tp.p))
+  let A := yonedaCatEquiv.toFun (UvPoly.polyPair uv_tp AB).fst
+  let B := yonedaCatEquiv.toFun ((Limits_Sub _).inv ≫ (UvPoly.polyPair uv_tp AB).snd)
+  haveI : Limits.HasLimits (sGrpdᵒᵖ ⥤ Type (u + 1)) := by
+        infer_instance
+  fconstructor
+  fconstructor
+  . intro x
+    refine PGrpd.fromGrpd ((GroupoidSigma _ A B).obj x) (GroupoidSigmaMake ?_ ?_)
+    . let ax := ((yonedaCatEquiv.toFun a).obj x).str.pt
+      dsimp [a] at ax
+      dsimp [A,AB,UvPoly.polyPair]
+      let inst1 : Limits.HasLimit (Limits.cospan (uv_tp.proj (PshsGrpdOfPshGrpd.obj (PshGrpdOfCat.obj (Cat.of Grpd.{u})))) uv_tp.p) := by
+        exact
+          Limits.hasLimit_cospan_of_hasLimit_pair_of_hasLimit_parallelPair
+            (uv_tp.proj (PshsGrpdOfPshGrpd.obj (PshGrpdOfCat.obj (Cat.of Grpd)))) uv_tp.p
+      let PB_com : (Limits.pullback.fst (uv_tp.proj (PshsGrpdOfPshGrpd.obj (PshGrpdOfCat.obj (Cat.of Grpd)))) uv_tp.p) ≫ uv_tp.proj (PshsGrpdOfPshGrpd.obj (PshGrpdOfCat.obj (Cat.of Grpd))) = (Limits.pullback.snd (uv_tp.proj (PshsGrpdOfPshGrpd.obj (PshGrpdOfCat.obj (Cat.of Grpd)))) uv_tp.p) ≫ uv_tp.p := by
+        exact Limits.pullback.condition
+      simp[PB_com]
+      exact ax
+    . let bx := ((yonedaCatEquiv.toFun b).obj x).str.pt
+      dsimp [B,AB,aB,UvPoly.polyPair,UvPoly]
+      dsimp [b] at bx
+      have inst2 : Limits.HasLimit (Limits.cospan (uv_tp.proj (PshsGrpdOfPshGrpd.obj (PshGrpdOfCat.obj (Cat.of Grpd.{u})))) uv_tp.p) := by
+        exact
+          Limits.hasPullback_symmetry uv_tp.p
+            (uv_tp.proj (PshsGrpdOfPshGrpd.obj (PshGrpdOfCat.obj (Cat.of Grpd.{u}))))
+      -- let eq1 : (UvPoly.genPb.u₂ uv_tp (PshsGrpdOfPshGrpd.obj (PshGrpdOfCat.obj (Cat.of Grpd.{u})))) = Limits.pullback.fst (uv_tp.proj (PshsGrpdOfPshGrpd.obj (PshGrpdOfCat.obj (Cat.of Grpd.{u})))) uv_tp.p := by
+      --   exact Limits.pullback.condition
+      sorry
+  sorry
+  sorry
+  sorry
+
+
+def GroupoidNMPair : (UvPoly.compDom uv_tp uv_tp) ⟶ Tm := by
+  fconstructor
+  . intro Γ U
+    exact yonedaEquiv.toFun (GroupoidPair (yonedaEquiv.invFun U))
+  . intros X Y f
+    sorry
+
+def SigmaPullBack : IsPullback GroupoidNMPair (uv_tp.comp uv_tp).p tp GroupoidNMSigma := by sorry
+
 end NaturalModelSigma
+section NaturalModelPi
+
+instance (C : Type) [Category C] (P : C → Prop) : Category {x : C // P x} where
+  Hom x y := x.1 ⟶ y.1
+  id x := 𝟙 x.1
+  comp f g := f ≫ g
+
+instance g (C : Type) [Groupoid C] (P : C → Prop) : Groupoid {x : C // P x} where
+  inv f := Groupoid.inv f
+  inv_comp _ := Groupoid.inv_comp ..
+  comp_inv _ := Groupoid.comp_inv ..
+
+instance (G1 G2 : Type) [Groupoid G1] [Groupoid G2] : Groupoid (G1 ⥤ G2) where
+  inv f := by
+    rename_i X Y
+    fconstructor
+    . intro x
+      have t := f.app x
+      exact Groupoid.inv t
+    . simp
+
+def GroupoidPiMap (Γ : Grpd) (A : Γ ⥤ Grpd) (B : (Grothendieck.Groupoidal A) ⥤ Grpd) : Γ ⥤ Grpd where
+  obj x := Grpd.of (A.obj x ⥤ (GroupoidSigma Γ A B).obj x)
+  map f := by
+    dsimp[Quiver.Hom]
+    rename_i X Y
+    fconstructor
+    fconstructor
+    . intro F
+      exact A.map (Groupoid.inv f) ⋙ F ⋙ ((GroupoidSigma Γ A B).map f)
+    . intros X' Y' f'
+      fconstructor
+      . intro x
+        refine ((GroupoidSigma Γ A B).map f).map (f'.app _)
+      . intros X' Y' f'
+        dsimp
+        sorry
+    . sorry
+    . sorry
+
+def GroupoidPi (Γ : Grpd) (A : Γ ⥤ Grpd) (B : (Grothendieck.Groupoidal A) ⥤ Grpd) : Γ ⥤ Grpd where
+  obj x := by
+    have t := g (A.obj x ⥤ (GroupoidSigma Γ A B).obj x) (fun(f) => f ⋙ ((GroupoidSigmaBase Γ A B).app x) = 𝟙 (A.obj x))
+    exact Grpd.of {f : A.obj x ⥤ (GroupoidSigma Γ A B).obj x // f ⋙ ((GroupoidSigmaBase Γ A B).app x) = 𝟙 (A.obj x)}
+  map f := by
+    dsimp[Quiver.Hom]
+    rename_i X Y
+    sorry
+
+
+end NaturalModelPi
+
+section NaturalModelEq
+
+end NaturalModelEq
 
 end
