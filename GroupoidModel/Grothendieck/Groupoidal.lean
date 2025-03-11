@@ -87,6 +87,42 @@ instance groupoid : Groupoid (Grothendieck.Groupoidal F) where
 
 end
 
+section FunctorFrom
+
+variable {C : Type u} [Groupoid.{v} C]
+    (F : C ⥤ Grpd.{v₁,u₁})
+
+/-- The inclusion of a fiber `F.obj c` of a functor `F : C ⥤ Cat` into its
+groupoidal Grothendieck construction.-/
+def ι (c : C) : F.obj c ⥤ Groupoidal F :=
+  Grothendieck.ι (F ⋙ Grpd.forgetToCat) c
+
+end FunctorFrom
+
+section
+variable {C : Type u} [Groupoid.{v} C]
+    {F G : C ⥤ Grpd.{v₂,u₂}}
+/-- The groupoidal Grothendieck construction is functorial:
+a natural transformation `α : F ⟶ G` induces
+a functor `Groupoidal.map : Groupoidal F ⥤ Groupoidal G`.
+-/
+def map (α : F ⟶ G) : Groupoidal F ⥤ Groupoidal G :=
+  Grothendieck.map (whiskerRight α _)
+
+theorem map_obj {α : F ⟶ G} (X : Groupoidal F) :
+    (Groupoidal.map α).obj X = ⟨X.base, (α.app X.base).obj X.fiber⟩ := rfl
+
+end
+
+/-- Applying a functor `G : D ⥤ C` to the base of the groupoidal Grothendieck
+  construction induces a functor
+  `Groupoidal (G ⋙ F) ⥤ Groupoidal F`. -/
+def pre {C : Type u} [Groupoid.{v} C] {D : Type u₁} [Groupoid.{v₁} D]
+    (F : D ⥤ Grpd.{v₂,u₂}) (G : C ⥤ D) :
+    Groupoidal (G ⋙ F) ⥤ Groupoidal F :=
+  Grothendieck.pre (F ⋙ Grpd.forgetToCat) G
+
+-- TODO this should be replaced with Groupoidal.pre
 def functorial {C D : Grpd.{v₁,u₁}} (F : C ⟶ D) (G : D ⥤ Grpd.{v₂,u₂}) :
   Grothendieck (Groupoid.compForgetToCat (F ⋙ G))
   ⥤ Grothendieck (Groupoid.compForgetToCat G) where
@@ -103,6 +139,7 @@ def functorial {C D : Grpd.{v₁,u₁}} (F : C ⟶ D) (G : D ⥤ Grpd.{v₂,u₂
     · erw [Grothendieck.comp_fiber (F:= Groupoid.compForgetToCat (F ⋙ G)) f g]
       simp [eqToHom_trans]
 
+-- TODO docstring
 def Map (Δ Γ: Grpd) (σ : Δ ⥤ Γ) (A : Γ ⥤ Grpd) (B : (Grothendieck.Groupoidal A) ⥤ Grpd) : Grothendieck.Groupoidal (σ ⋙ A) ⥤ Grpd where
   obj x := by
     rcases x with ⟨x, a⟩
