@@ -226,9 +226,11 @@ def GroupoidSigmaBase (Γ : Grpd) (A : Γ ⥤ Grpd) (B : (Grothendieck.Groupoida
   . dsimp [GroupoidSigma]
     intro x
     dsimp[Quiver.Hom]
-    exact Grothendieck.forget (Grpd.compForgetToCat (PointToFiber A x ⋙ B))
+    sorry
+    --exact Grothendieck.forget (Grpd.ForgetToCat (PointToFiber A x ⋙ B))
   . intros X Y f
-    exact rfl
+    sorry
+    --exact rfl
 
 theorem GroupoidSigmaBeckChevalley (Δ Γ: Grpd.{v,u}) (σ : Δ ⥤ Γ) (A : Γ ⥤ Grpd.{v,u})
   (B : (Grothendieck.Groupoidal A) ⥤ Grpd.{v,u}) : σ ⋙ GroupoidSigma Γ A B = GroupoidSigma _ (σ ⋙ A)
