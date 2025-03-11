@@ -106,7 +106,7 @@ variable {C : Type u} [Groupoid.{v} C]
 a natural transformation `α : F ⟶ G` induces
 a functor `Groupoidal.map : Groupoidal F ⥤ Groupoidal G`.
 -/
-def map (α : F ⟶ G) : Groupoidal F ⥤ Groupoidal G :=
+@[simp] def map (α : F ⟶ G) : Groupoidal F ⥤ Groupoidal G :=
   Grothendieck.map (whiskerRight α _)
 
 theorem map_obj {α : F ⟶ G} (X : Groupoidal F) :
