@@ -34,4 +34,12 @@ def uvPolyTpEquiv (Γ : Ctx) (X : Psh Ctx) :
   (Equiv.sigmaCongrRight (fun _ =>
     Iso.homCongr (pullbackIsoExt _ _) (Iso.refl _)))
 
+-- def uvPolyTpCompDomEquiv (Γ : Ctx) (X : Psh Ctx) :
+--     (y(Γ) ⟶ M.uvPolyTp.compDom M.uvPolyTp)
+--     ≃ (α : y(Γ) ⟶ M.Tm) × (β : y(M.ext (α ≫ M.tp)) ⟶ X) ×  :=
+--   (UvPoly.equiv _ _ _).trans
+--   (Equiv.sigmaCongrRight (fun _ =>
+--     Iso.homCongr (pullbackIsoExt _ _) (Iso.refl _)))
+
+
 end
