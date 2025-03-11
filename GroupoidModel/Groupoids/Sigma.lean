@@ -31,12 +31,13 @@ theorem Grpd.map_comp_obj {Γ : Grpd.{v,u}} {A : Γ ⥤ Grpd.{v₁,u₁}}
   simp only [Functor.comp_obj] at h
   exact h
 
--- theorem Grpd.map_comp_map {Γ : Grpd.{v,u}} {A : Γ ⥤ Grpd.{v₁,u₁}}
---     {x : Γ} {a b : A.obj x} {f : a ⟶ b} :
---     (A.map (𝟙 x)).map f = eqToHom Grpd.map_id_obj
---       ≫ f ≫ eqToHom Grpd.map_id_obj.symm := by
---   have : A.map (𝟙 x) = 𝟙 (A.obj x) := by simp
---   exact Functor.congr_hom this f
+theorem Grpd.map_comp_map {Γ : Grpd.{v,u}} {A : Γ ⥤ Grpd.{v₁,u₁}}
+    {x y z : Γ} {f : x ⟶ y} {g : y ⟶ z} {a b : A.obj x} {φ : a ⟶ b} :
+    (A.map (f ≫ g)).map φ
+    = eqToHom Grpd.map_comp_obj ≫ (A.map g).map ((A.map f).map φ)
+    ≫ eqToHom Grpd.map_comp_obj.symm := by
+  have : A.map (f ≫ g) = A.map f ≫ A.map g := by simp
+  exact Functor.congr_hom this φ
 
 /-- This is the proof of equality used in the eqToHom in `Cat.eqToHom_hom` -/
 theorem Grpd.eqToHom_hom_aux {C1 C2 : Grpd.{v,u}} (x y: C1) (eq : C1 = C2) :
@@ -54,14 +55,6 @@ variable {C : Type u} [Category.{v} C]
 variable {F : C ⥤ Cat.{v₂, u₂}}
 
 namespace CategoryTheory.Grothendieck
-
--- theorem CategoryTheory.Grothendieck.eqToHom_eq_right {x : C} {a b : F.obj x} (h : a = b) :
---   eqToHom (by simp[h] : mk x a = ⟨x,b⟩) =
---   (⟨𝟙 x,eqToHom (by simp[h])⟩ : mk x a ⟶ ⟨x,b⟩)
---     := by
---   apply ext
---   · simp
---   · simp [eqToHom_base]
 
 theorem ιNatTrans_id_app {X : C} {a : F.obj X} :
     (@ιNatTrans _ _ F _ _ (CategoryStruct.id X)).app a =
