@@ -18,7 +18,7 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 
-title: "HoTTLean : Formalizing the Meta-Theory of HoTT in Lean4"
+title: "HoTTLean : Formalizing the Meta-Theory of HoTT in Lean"
 #email: your-email@example.com
 description: by S. Awodey, M. Carneiro, S. Hazratpour, J. Hua, W. Nawrocki, S. Woolfson
 baseurl: "" # the subpath of your site, e.g. /blog
