@@ -768,3 +768,9 @@ variable {Γ : Type u₂} [Category.{v₂} Γ] {Δ : Type u₃} [Category.{v₃}
 
 end Grothendieck
 end CategoryTheory
+
+@[simp]
+theorem PSigma.heq_mk_iff {α : Sort u} {β : α → Sort v} {β' : α → Sort v}
+    (a b : α) (x : β a) (y : β' b) :
+    HEq (PSigma.mk a x) (PSigma.mk b y) ↔ (a = b ∧ HEq x y) :=
+  sorry
