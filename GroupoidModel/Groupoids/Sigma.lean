@@ -1,95 +1,13 @@
 import GroupoidModel.Groupoids.NaturalModelBase
 import GroupoidModel.Russell_PER_MS.NaturalModelSigma
 
-universe v u v₁ u₁ v₂ u₂
+universe v u v₁ u₁ v₂ u₂ v₃ u₃
 
 noncomputable section
 -- NOTE temporary section for stuff to be moved elsewhere
 section ForOther
 
-open CategoryTheory
 
-theorem Grpd.map_id_obj {Γ : Grpd.{v,u}} {A : Γ ⥤ Grpd.{v₁,u₁}}
-    {x : Γ} {a : A.obj x} :
-    (A.map (𝟙 x)).obj a = a := by
-  have : A.map (𝟙 x) = 𝟙 (A.obj x) := by simp
-  exact Functor.congr_obj this a
-
-theorem Grpd.map_id_map {Γ : Grpd.{v,u}} {A : Γ ⥤ Grpd.{v₁,u₁}}
-    {x : Γ} {a b : A.obj x} {f : a ⟶ b} :
-    (A.map (𝟙 x)).map f = eqToHom Grpd.map_id_obj
-      ≫ f ≫ eqToHom Grpd.map_id_obj.symm := by
-  have : A.map (𝟙 x) = 𝟙 (A.obj x) := by simp
-  exact Functor.congr_hom this f
-
-theorem Grpd.map_comp_obj {Γ : Grpd.{v,u}} {A : Γ ⥤ Grpd.{v₁,u₁}}
-    {x y z : Γ} {f : x ⟶ y} {g : y ⟶ z} {a : A.obj x} :
-    (A.map (f ≫ g)).obj a = (A.map g).obj ((A.map f).obj a) := by
-  have : A.map (f ≫ g) = A.map f ⋙ A.map g := by
-    simp [Grpd.comp_eq_comp]
-  have h := Functor.congr_obj this a
-  simp only [Functor.comp_obj] at h
-  exact h
-
-theorem Grpd.map_comp_map {Γ : Grpd.{v,u}} {A : Γ ⥤ Grpd.{v₁,u₁}}
-    {x y z : Γ} {f : x ⟶ y} {g : y ⟶ z} {a b : A.obj x} {φ : a ⟶ b} :
-    (A.map (f ≫ g)).map φ
-    = eqToHom Grpd.map_comp_obj ≫ (A.map g).map ((A.map f).map φ)
-    ≫ eqToHom Grpd.map_comp_obj.symm := by
-  have : A.map (f ≫ g) = A.map f ≫ A.map g := by simp
-  exact Functor.congr_hom this φ
-
-/-- This is the proof of equality used in the eqToHom in `Cat.eqToHom_hom` -/
-theorem Grpd.eqToHom_hom_aux {C1 C2 : Grpd.{v,u}} (x y: C1) (eq : C1 = C2) :
-    (x ⟶ y) = ((eqToHom eq).obj x ⟶ (eqToHom eq).obj y) := by
-  cases eq
-  simp[CategoryStruct.id]
-
-/-- This is the turns the hom part of eqToHom functors into a cast-/
-theorem Grpd.eqToHom_hom {C1 C2 : Grpd.{v,u}} {x y: C1} (f : x ⟶ y) (eq : C1 = C2) :
-    (eqToHom eq).map f = (cast (Grpd.eqToHom_hom_aux x y eq) f) := by
-  cases eq
-  simp[CategoryStruct.id]
-
-variable {C : Type u} [Category.{v} C]
-variable {F : C ⥤ Cat.{v₂, u₂}}
-
-namespace CategoryTheory.Grothendieck
-
-theorem ιNatTrans_id_app {X : C} {a : F.obj X} :
-    (@ιNatTrans _ _ F _ _ (CategoryStruct.id X)).app a =
-    eqToHom (by simp) := by
-  apply ext
-  · simp
-  · simp [eqToHom_base]
-
-theorem ιNatTrans_comp_app {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {a} :
-    (@ιNatTrans _ _ F _ _ (f ≫ g)).app a =
-    (@ιNatTrans _ _ F _ _ f).app a ≫
-    (@ιNatTrans _ _ F _ _ g).app ((F.map f).obj a) ≫ eqToHom (by simp) := by
-  apply Grothendieck.ext
-  · simp
-  · simp
-
-end CategoryTheory.Grothendieck
--- theorem CategoryTheory.Grothendieck.fiber_id_comp {x y z : C} {a : F.obj x}
---     {b : F.obj z}
---     {f : x ⟶ y} {g : y ⟶ z} (h : (F.map g).obj ((F.map f).obj a) = b) :
---   (⟨f, CategoryStruct.id _⟩ : (⟨x,a⟩ : Grothendieck F) ⟶ ⟨y,(F.map f).obj a⟩)
---     ≫ (⟨ g , eqToHom h ⟩ : (⟨y,(F.map f).obj a⟩ : Grothendieck F) ⟶ ⟨z, b⟩) =
---   (⟨f ≫ g, CategoryStruct.id  ⟩ : (⟨x,a⟩ : Grothendieck F) ⟶ ⟨z,b⟩)
---     := by
---   apply Grothendieck.ext
---   · simp
---   · simp [Grothendieck.eqToHom_base]
-
--- theorem {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} (d)
-
-theorem CategoryTheory.Grpd.eqToHom_obj
-  {C1 C2 : Grpd.{v,u}} (x : C1) (eq : C1 = C2) :
-    (eqToHom eq).obj x = cast (congrArg Bundled.α eq) x := by
-  cases eq
-  simp[CategoryStruct.id]
 
 end ForOther
 
@@ -99,6 +17,8 @@ namespace GroupoidModel
 
 open CategoryTheory NaturalModelBase Opposite Grothendieck.Groupoidal
 
+namespace FunctorOperation
+
 set_option maxHeartbeats 0
 /-- The formation rule for Σ-types for the ambient natural model `base`
   unfolded into operations between functors.
@@ -106,7 +26,7 @@ set_option maxHeartbeats 0
   For a point `x : Γ`, `(sigma A B).obj x` is the groupoidal Grothendieck
   construction on the composition
   `ι _ x ⋙ B : A.obj x ⥤ Groupoidal A ⥤ Grpd` -/
-def sigma {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{v₁,u₁})
+@[simps] def sigma {Γ : Grpd.{v₂,u₂}} (A : Γ ⥤ Grpd.{v₁,u₁})
     (B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁})
     : Γ ⥤ Grpd.{v₁,u₁} where
   obj x := Grpd.of (Grothendieck.Groupoidal ((ι _ x) ⋙ B))
@@ -173,19 +93,52 @@ def sigma {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{v₁,u₁})
       congr 1
       · rw [Grpd.map_comp_obj]
         rfl
-      · simp [Grpd.forgetToCat, Functor.congr_obj (h p.base) p.fiber,
+      · simp [map, Grpd.forgetToCat, Functor.congr_obj (h p.base) p.fiber,
         eqToHom_refl, eqToHom_map, Grpd.eqToHom_obj, Grpd.id_eq_id, Functor.id_obj]
 
+section
+
+variable {Δ Γ: Grpd.{v₂,u₂}} (σ : Δ ⥤ Γ) (A : Γ ⥤ Grpd.{v₁,u₁})
+
+
+theorem sigmaBeckChevalley (B : (Grothendieck.Groupoidal A) ⥤ Grpd.{v₁,u₁})
+    : σ ⋙ sigma A B = sigma (σ ⋙ A) (pre A σ ⋙ B) := by
+  refine CategoryTheory.Functor.ext ?_ ?_
+  . intros x
+    dsimp only [Functor.comp_obj, sigma_obj]
+    rw [← ιCompPre σ A x]
+    rfl
+  . intros x y f
+    sorry -- this goal might be improved by adding API for Groupoidal.ι and Groupoidal.pre
+
+end
+
+def pair {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
+    (B : Grothendieck.Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁})
+    (h : β ⋙ PGrpd.forgetToGrpd = PGrpd.sec α ⋙ B)
+    : Γ ⥤ PGrpd.{v₁,u₁} :=
+  sorry
+
+end FunctorOperation
+
+open FunctorOperation
+
 /-- The formation rule for Σ-types for the ambient natural model `base` -/
-def baseSigmaSig : base.Ptp.obj base.{u}.Ty ⟶ base.Ty where
-  app Γ := fun pair =>
-    let ⟨A,B⟩ := baseUvPolyTpEquiv pair
+def baseSig : base.Ptp.obj base.{u}.Ty ⟶ base.Ty where
+  app Γ := fun p =>
+    let ⟨A,B⟩ := baseUvPolyTpEquiv p
     yonedaEquiv (yonedaCatEquiv.symm (sigma A B))
   naturality := sorry
 
+def basePair : base.uvPolyTp.compDom base.uvPolyTp ⟶ base.Tm where
+  app Γ := fun ε =>
+    let ⟨α,β,B,h⟩ := baseUvPolyTpCompDomEquiv ε
+    yonedaEquiv (yonedaCatEquiv.symm (pair α β B h))
+  naturality := sorry
+
 def baseSigma : NaturalModelSigma base where
-  Sig := baseSigmaSig
-  pair := sorry
+  Sig := baseSig
+  pair := basePair
   Sig_pullback := sorry
 
 def smallUSigma : NaturalModelSigma smallU := sorry

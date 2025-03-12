@@ -5,6 +5,7 @@ universe v u
 noncomputable section
 open CategoryTheory Limits NaturalModelBase
 
+namespace NaturalModelBase
 variable {Ctx : Type u} [Category.{v, u} Ctx] (M : NaturalModelBase Ctx)
   [SmallCategory Ctx] (M : NaturalModelBase Ctx)
 
@@ -28,18 +29,28 @@ def pullbackIsoExt {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) :
   instead of `pullback` from the `HasPullback` instance
 -/
 def uvPolyTpEquiv (Γ : Ctx) (X : Psh Ctx) :
-    (y(Γ) ⟶ (uvPolyTp M).functor.obj X)
+    (y(Γ) ⟶ M.uvPolyTp.functor.obj X)
     ≃ (A : y(Γ) ⟶ M.Ty) × (y(M.ext A) ⟶ X) :=
   (UvPoly.equiv _ _ _).trans
   (Equiv.sigmaCongrRight (fun _ =>
     Iso.homCongr (pullbackIsoExt _ _) (Iso.refl _)))
 
--- def uvPolyTpCompDomEquiv (Γ : Ctx) (X : Psh Ctx) :
---     (y(Γ) ⟶ M.uvPolyTp.compDom M.uvPolyTp)
---     ≃ (α : y(Γ) ⟶ M.Tm) × (β : y(M.ext (α ≫ M.tp)) ⟶ X) ×  :=
---   (UvPoly.equiv _ _ _).trans
---   (Equiv.sigmaCongrRight (fun _ =>
---     Iso.homCongr (pullbackIsoExt _ _) (Iso.refl _)))
+def genPbEquiv (Γ : Ctx) (X : Psh Ctx) :
+    (y(Γ) ⟶ M.uvPolyTp.genPb X)
+    ≃ (α : y(Γ) ⟶ M.Tm)
+    × (y(M.ext (α ≫ M.tp)) ⟶ M.Ty) :=
+  sorry
 
+def sec {Γ : Ctx} (α : y(Γ) ⟶ M.Tm) :
+    Γ ⟶ M.ext (α ≫ M.tp) := sorry
 
+def uvPolyTpCompDomEquiv (Γ : Ctx) :
+    (y(Γ) ⟶ M.uvPolyTp.compDom M.uvPolyTp)
+    ≃ (α : y(Γ) ⟶ M.Tm)
+    × (β : y(Γ) ⟶ M.Tm)
+    × (B : y(M.ext (α ≫ M.tp)) ⟶ M.Ty)
+    ×' β ≫ M.tp = ym(M.sec α) ≫ B :=
+  sorry
+
+end NaturalModelBase
 end

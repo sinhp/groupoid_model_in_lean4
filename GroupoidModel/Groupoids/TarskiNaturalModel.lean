@@ -191,12 +191,14 @@ def  PointToFiberNT {Γ : Grpd} (A : Γ ⥤ Grpd) (X Y : Γ) (f : X ⟶ Y) : Poi
     . simp
     . simp[Grpd.forgetToCat, eqToHom_map]
 
-
+-- now base.uvPolyTp
 def uv_tp : UvPoly Tm.{u} Ty.{u} where
   p := tp
 
+-- now base.Ptp
 def P : Psh sGrpd ⥤ Psh sGrpd := uv_tp.functor.{u}
 
+-- now GroupoidModel.sigma
 def GroupoidSigma (Γ : Grpd) (A : Γ ⥤ Grpd) (B : (Grothendieck.Groupoidal A) ⥤ Grpd) : Γ ⥤ Grpd where
   obj x := Grpd.of (Grothendieck.Groupoidal ((PointToFiber A x) ⋙ B))
   map f := by
@@ -232,6 +234,7 @@ def GroupoidSigmaBase (Γ : Grpd) (A : Γ ⥤ Grpd) (B : (Grothendieck.Groupoida
     sorry
     --exact rfl
 
+-- this is now called `sigmaBeckChevalley`
 theorem GroupoidSigmaBeckChevalley (Δ Γ: Grpd.{v,u}) (σ : Δ ⥤ Γ) (A : Γ ⥤ Grpd.{v,u})
   (B : (Grothendieck.Groupoidal A) ⥤ Grpd.{v,u}) : σ ⋙ GroupoidSigma Γ A B = GroupoidSigma _ (σ ⋙ A)
   (Grothendieck.Groupoidal.Map Δ Γ σ A B) := by
@@ -252,6 +255,7 @@ def Limits_Sub {Γ : sGrpd} (A : yoneda.obj Γ ⟶ Ty): Limits.pullback A uv_tp.
   have isPB := GroupoidNM.disp_pullback A
   exact IsPullback.flip isPB
 
+-- this is now called `baseSig`
 def GroupoidNMSigma : (P.obj.{u} Ty.{u}) ⟶ Ty.{u} := by
   fconstructor
   . dsimp [Quiver.Hom]
@@ -273,6 +277,7 @@ abbrev R := UvPoly.genPb uv_tp Ty
 
 #check Limits.pullback.condition
 
+-- this is now called `basePair`
 def GroupoidPair {Γ : sGrpd.{u}} (baB : (yoneda.obj Γ) ⟶ UvPoly.compDom uv_tp uv_tp) : (yoneda.obj Γ) ⟶ Tm := by
   refine yonedaCatEquiv.invFun ?_
   unfold UvPoly.compDom at baB

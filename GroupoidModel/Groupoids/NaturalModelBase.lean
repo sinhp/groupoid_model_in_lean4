@@ -204,6 +204,23 @@ def baseUvPolyTpEquiv {Γ : Ctx.{u}} {C : Cat.{u,u+1}} :
     yonedaCatEquiv
     (fun _ => yonedaCatEquiv)))
 
+def baseGenPbEquiv {Γ : Ctx.{u}} {C : Cat.{u,u+1}} :
+    (UvPoly.genPb base.uvPolyTp (yonedaCat.obj C)).obj (op Γ)
+    ≃ (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
+    × (Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{u,u}) :=
+  sorry
+
+def PGrpd.sec {Γ : Grpd.{v₂,u₂}} (α : Γ ⥤ PGrpd.{v₁,u₁}) :
+    Γ ⥤ Groupoidal (α ⋙ PGrpd.forgetToGrpd) := sorry
+
+def baseUvPolyTpCompDomEquiv {Γ : Ctx.{u}} :
+    (base.uvPolyTp.compDom base.uvPolyTp).obj (op Γ)
+    ≃ (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
+    × (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
+    × (B : Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{u,u})
+    ×' β ⋙ PGrpd.forgetToGrpd = PGrpd.sec α ⋙ B :=
+  sorry
+
 end GroupoidModel
 
 end
