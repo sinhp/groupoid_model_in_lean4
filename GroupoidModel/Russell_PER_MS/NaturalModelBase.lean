@@ -191,6 +191,15 @@ theorem inst_wk {Γ : Ctx} {X : Psh Ctx}
 
 variable [SmallCategory Ctx] (M : NaturalModelBase Ctx)
 
+-- TODO(WN): move to ForMathlib or somewhere
+instance : HasFiniteWidePullbacks (Psh Ctx) := hasFiniteWidePullbacks_of_hasFiniteLimits _
+
+instance : LCC (Psh Ctx) := @LCCC.mkOfOverCC _ _ _ ⟨CategoryOfElements.presheafOverCCC⟩
+
+instance {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : CartesianExponentiable tp where
+  functor := LCC.pushforward tp
+  adj := LCC.adj _
+
 def uvPolyTp : UvPoly M.Tm M.Ty := ⟨M.tp, inferInstance⟩
 def uvPolyTpT : UvPoly.Total (Psh Ctx) := ⟨_, _, M.uvPolyTp⟩
 def Ptp : Psh Ctx ⥤ Psh Ctx := M.uvPolyTp.functor

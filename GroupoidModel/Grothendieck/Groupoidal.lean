@@ -36,9 +36,12 @@ import GroupoidModel.Pointed.IsPullback
 - TODO Probably the proof of `Groupoidal.IsPullback` can be shortened
   significantly by providing a direct proof of pullback
   using the `IsMegaPullback` defintions
+- NOTE Design: `Groupoidal.ι`, `Groupoidal.pre` and so on should *not* be
+  reduced by `simp`. Instead we should add `simp` lemmas by hand.
+  This avoids `Grpd.forgetToCat` cluttering the user's context
 -/
 
-universe v u v₁ u₁ v₂ u₂
+universe v u v₁ u₁ v₂ u₂ v₃ u₃
 
 namespace CategoryTheory
 
@@ -87,6 +90,42 @@ instance groupoid : Groupoid (Grothendieck.Groupoidal F) where
 
 end
 
+section FunctorFrom
+
+variable {C : Type u} [Category.{v} C]
+    (F : C ⥤ Grpd.{v₁,u₁})
+
+/-- The inclusion of a fiber `F.obj c` of a functor `F : C ⥤ Cat` into its
+groupoidal Grothendieck construction.-/
+def ι (c : C) : F.obj c ⥤ Groupoidal F :=
+  Grothendieck.ι (F ⋙ Grpd.forgetToCat) c
+
+end FunctorFrom
+
+section
+variable {C : Type u} [Groupoid.{v} C]
+    {F G : C ⥤ Grpd.{v₂,u₂}}
+/-- The groupoidal Grothendieck construction is functorial:
+a natural transformation `α : F ⟶ G` induces
+a functor `Groupoidal.map : Groupoidal F ⥤ Groupoidal G`.
+-/
+def map (α : F ⟶ G) : Groupoidal F ⥤ Groupoidal G :=
+  Grothendieck.map (whiskerRight α _)
+
+theorem map_obj {α : F ⟶ G} (X : Groupoidal F) :
+    (Groupoidal.map α).obj X = ⟨X.base, (α.app X.base).obj X.fiber⟩ := rfl
+
+end
+
+/-- Applying a functor `G : D ⥤ C` to the base of the groupoidal Grothendieck
+  construction induces a functor
+  `Groupoidal (G ⋙ F) ⥤ Groupoidal F`. -/
+def pre {C : Type u} [Category.{v} C] {D : Type u₁} [Category.{v₁} D]
+    (F : D ⥤ Grpd.{v₂,u₂}) (G : C ⥤ D) :
+    Groupoidal (G ⋙ F) ⥤ Groupoidal F :=
+  Grothendieck.pre (F ⋙ Grpd.forgetToCat) G
+
+-- TODO this should be replaced with Groupoidal.pre
 def functorial {C D : Grpd.{v₁,u₁}} (F : C ⟶ D) (G : D ⥤ Grpd.{v₂,u₂}) :
   Grothendieck (Groupoid.compForgetToCat (F ⋙ G))
   ⥤ Grothendieck (Groupoid.compForgetToCat G) where
@@ -103,6 +142,7 @@ def functorial {C D : Grpd.{v₁,u₁}} (F : C ⟶ D) (G : D ⥤ Grpd.{v₂,u₂
     · erw [Grothendieck.comp_fiber (F:= Groupoid.compForgetToCat (F ⋙ G)) f g]
       simp [eqToHom_trans]
 
+-- TODO this should be replaced with precomposition with a Groupoidal.pre
 def Map (Δ Γ: Grpd) (σ : Δ ⥤ Γ) (A : Γ ⥤ Grpd) (B : (Grothendieck.Groupoidal A) ⥤ Grpd) : Grothendieck.Groupoidal (σ ⋙ A) ⥤ Grpd where
   obj x := by
     rcases x with ⟨x, a⟩
@@ -394,6 +434,17 @@ theorem isPullback {Γ : Type u} [Category.{u} Γ] (A : Γ ⥤ Grpd.{u,u}) :
   simp at h
   convert h
   apply toPGrpd_eq_var'_comp_isoGrothendieckForgetToCatInv
+
+section
+
+variable {Γ : Type u₂} [Category.{v₂} Γ] {Δ : Type u₃} [Category.{v₃} Δ]
+    (σ : Δ ⥤ Γ)
+
+@[simp] theorem ιCompPre (A : Γ ⥤ Grpd.{v₁,u₁}) (x : Δ)
+    : ι (σ ⋙ A) x ⋙ Groupoidal.pre A σ = ι A (σ.obj x) :=
+  Grothendieck.ιCompPre _ (A ⋙ Grpd.forgetToCat) _
+
+end
 
 end Groupoidal
 end Grothendieck

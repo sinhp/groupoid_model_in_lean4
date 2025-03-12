@@ -31,7 +31,7 @@ namespace GroupoidModel
   Note that unlike the other universes this is *not* representable,
   but enjoys having representable fibers that land in itself.
 -/
-def base : NaturalModelBase Ctx.{u} where
+@[simps] def base : NaturalModelBase Ctx.{u} where
   Ty := Ty
   Tm := Tm
   tp := tp
@@ -180,6 +180,72 @@ def uHomSeq : NaturalModelBase.UHomSeq Ctx.{3} where
   length := 3
   objs := uHomSeqObjs
   homSucc' := uHomSeqHomSucc'
+
+open CategoryTheory NaturalModelBase Opposite Grothendieck
+
+/-- A specialization of the polynomial universal property to the natural model `base`
+  The polynomial functor on `tp` taken at `yonedaCat.obj C`
+  `P_tp(yonedaCat C)` takes a groupoid `Γ`
+  to a pair of functors `A` and `B`
+
+      B
+   C ⇇ Groupoidal A   ⥤   PGrpd
+            ⇊               ⇊
+            Γ          ⥤   Grpd
+                       A
+As a special case, if `C` is taken to be `Grpd`,
+then this is how `P_tp(Ty)` classifies dependent pairs.
+-/
+def baseUvPolyTpEquiv {Γ : Ctx.{u}} {C : Cat.{u,u+1}} :
+    (base.Ptp.obj (yonedaCat.obj C)).obj (op Γ)
+    ≃ (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{u,u}) × (Groupoidal A ⥤ C) :=
+  yonedaEquiv.symm.trans (
+  (uvPolyTpEquiv _ _ _).trans (
+  Equiv.sigmaCongr
+    yonedaCatEquiv
+    (fun _ => yonedaCatEquiv)))
+
+-- TODO use `genPbEquiv` to define this
+/-- A specialization of the universal property of `genPb` to the natural model `base` -/
+def baseGenPbEquiv {Γ : Ctx.{u}} {C : Cat.{u,u+1}} :
+    (UvPoly.genPb base.uvPolyTp (yonedaCat.obj C)).obj (op Γ)
+    ≃ (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
+    × (Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{u,u}) :=
+  sorry
+
+-- TODO move this to Grothendieck file
+-- NOTE this should be defined using `IsMegaPullback`
+/-- `sec` is the universal lift in the following diagram,
+  which is a section of `Groupoidal.forget`
+             α
+  ===== Γ -------α--------------¬
+ ‖      ↓ sec                   V
+ ‖   M.ext A ⋯ -------------> PGrpd
+ ‖      |                        |
+ ‖      |                        |
+ ‖   forget                  forgetToGrpd
+ ‖      |                        |
+ ‖      V                        V
+  ===== Γ --α ≫ forgetToGrpd--> Grpd
+-/
+def _root_.CategoryTheory.Grothendieck.Groupoidal.sec {Γ : Grpd.{v₂,u₂}} (α : Γ ⥤ PGrpd.{v₁,u₁}) :
+    Γ ⥤ Groupoidal (α ⋙ PGrpd.forgetToGrpd) := sorry
+
+-- TODO define using `uvPolyTpCompDomEquiv`
+/-- A specialization of the universal property of `UvPoly.compDom`
+  to the natural model `base`.
+  This consists of a pair of dependent types
+  `A = α ⋙ forgetToGrpd` and `B`,
+  `a : A` captured by `α`,
+  and `b : B[a / x] = β ⋙ forgetToGrpd` caputred by `β`.
+  -/
+def baseUvPolyTpCompDomEquiv {Γ : Ctx.{u}} :
+    (base.uvPolyTp.compDom base.uvPolyTp).obj (op Γ)
+    ≃ (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
+    × (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
+    × (B : Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{u,u})
+    ×' β ⋙ PGrpd.forgetToGrpd = Groupoidal.sec α ⋙ B :=
+  sorry
 
 end GroupoidModel
 
