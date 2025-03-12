@@ -669,7 +669,7 @@ end equivalence
 end CategoryTheory
 
 @[simp]
-theorem Sigma'_injEq.{u,v} {α : Sort u} {β : α → Sort v} {β' : α → Sort v}
+theorem Sigma'_injEq {α : Sort u} {β : α → Sort v} {β' : α → Sort v}
     (a b : α) (x : β a) (y : β' b) :
     HEq (PSigma.mk a x) (PSigma.mk b y) ↔ (a = b ∧ HEq x y) := by
   sorry
