@@ -1,6 +1,7 @@
 import Poly.UvPoly
 import Poly.LCCC.Presheaf
 import Poly.LCCC.Basic
+import GroupoidModel.ForMathlib
 
 open CategoryTheory Limits
 
@@ -24,7 +25,6 @@ def genPb.snd {E B: 𝒞} (P : UvPoly E B) (X : 𝒞) : P.genPb X ⟶ E :=
 theorem genPb.condition {E B A: 𝒞} (P : UvPoly E B) : genPb.snd P A ≫ P.p = genPb.fst P A ≫ P.proj A := by
   simp [genPb.fst,genPb.snd,pullback.condition]
 
-
 def compDomUP {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} : (Γ ⟶ compDom P Q) ≃ (β : Γ ⟶ D) × (αB : Γ ⟶ genPb P A) ×' (β ≫ Q.p = αB ≫ genPb.u₂ P A) where
   toFun f := ⟨f ≫ (pullback.fst Q.p (genPb.u₂ P A)), f ≫ (pullback.snd Q.p (genPb.u₂ P A)), by simp [pullback.condition (f := Q.p) (g := genPb.u₂ P A)]⟩
   invFun := by
@@ -38,8 +38,8 @@ def compDomUP {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} : (Γ ⟶ co
     rintro ⟨β,αB,h⟩
     simp
 
-def genPbUP {E B: 𝒞} (P : UvPoly E B) (X Γ : 𝒞) : (Γ ⟶ genPb P X) ≃ (fst : Γ ⟶ P.functor.obj X) × (snd : Γ ⟶ E) ×' (fst ≫ P.proj X = snd ≫ P.p) where
-  toFun f := ⟨f ≫ genPb.fst P X, f ≫ genPb.snd P X, by simp[genPb.condition]⟩
+def pullbackUP {A B C: 𝒞} (Γ : 𝒞) {f : A ⟶ C} {g : B ⟶ C} : (Γ ⟶ pullback f g) ≃ (fst : Γ ⟶ A) × (snd : Γ ⟶ B) ×' (fst ≫ f = snd ≫ g) where
+  toFun h := ⟨h ≫ pullback.fst f g, h ≫ pullback.snd f g, by simp[pullback.condition]⟩
   invFun := by
     rintro ⟨fst,snd,h⟩
     exact pullback.lift fst snd h
