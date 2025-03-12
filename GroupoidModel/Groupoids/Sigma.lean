@@ -106,7 +106,7 @@ theorem sigmaBeckChevalley (B : (Grothendieck.Groupoidal A) ⥤ Grpd.{v₁,u₁}
   refine CategoryTheory.Functor.ext ?_ ?_
   . intros x
     dsimp only [Functor.comp_obj, sigma_obj]
-    rw [← ιCompPre σ A x]
+    rw [← Grothendieck.Groupoidal.ιCompPre σ A x]
     rfl
   . intros x y f
     sorry -- this goal might be improved by adding API for Groupoidal.ι and Groupoidal.pre
@@ -128,18 +128,18 @@ def baseSig : base.Ptp.obj base.{u}.Ty ⟶ base.Ty where
   app Γ := fun p =>
     let ⟨A,B⟩ := baseUvPolyTpEquiv p
     yonedaEquiv (yonedaCatEquiv.symm (sigma A B))
-  naturality := sorry
+  naturality := sorry -- do not attempt
 
 def basePair : base.uvPolyTp.compDom base.uvPolyTp ⟶ base.Tm where
   app Γ := fun ε =>
     let ⟨α,β,B,h⟩ := baseUvPolyTpCompDomEquiv ε
     yonedaEquiv (yonedaCatEquiv.symm (pair α β B h))
-  naturality := sorry
+  naturality := sorry -- do not attempt
 
 def baseSigma : NaturalModelSigma base where
   Sig := baseSig
   pair := basePair
-  Sig_pullback := sorry
+  Sig_pullback := sorry -- should prove using the `IsMegaPullback` strategy
 
 def smallUSigma : NaturalModelSigma smallU := sorry
 
