@@ -1,5 +1,6 @@
 import GroupoidModel.Russell_PER_MS.NaturalModelBase
 
+-- TODO(WN): reorg this module
 universe v u
 
 noncomputable section
@@ -56,6 +57,7 @@ def genPbEquiv (Γ : Ctx) (X : Psh Ctx) :
  ‖      V                        V
   ===== Γ ---- α ≫ M.tp -----> M.Ty
 -/
+-- TODO(WN): move to `NaturalModel`
 def sec {Γ : Ctx} (α : y(Γ) ⟶ M.Tm) :
     Γ ⟶ M.ext (α ≫ M.tp) := sorry
 

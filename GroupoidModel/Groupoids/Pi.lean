@@ -21,15 +21,15 @@ def pi {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{v₁,u₁})
     : Γ ⥤ Grpd.{v₁,u₁} :=
   sorry
 
-/-- The formation rule for Σ-types for the ambient natural model `base` -/
-def basePiPi : base.Ptp.obj base.{u}.Ty ⟶ base.Ty where
+/-- The formation rule for Π-types for the ambient natural model `base` -/
+def basePi.Pi : base.Ptp.obj base.{u}.Ty ⟶ base.Ty where
   app Γ := fun pair =>
     let ⟨A,B⟩ := baseUvPolyTpEquiv pair
     yonedaEquiv (yonedaCatEquiv.symm (pi A B))
   naturality := sorry
 
 def basePi : NaturalModelPi base where
-  Pi := basePiPi
+  Pi := basePi.Pi
   lam := sorry
   Pi_pullback := sorry
 

@@ -677,7 +677,7 @@ end equivalence
 section
 variable {Γ : Type u₂} [Category.{v₂} Γ] {A : Γ ⥤ Grpd.{v₁,u₁}}
 
-theorem Grpd.map_id_obj {x : Γ} {a : A.obj x} :
+@[simp] theorem Grpd.map_id_obj {x : Γ} {a : A.obj x} :
     (A.map (𝟙 x)).obj a = a := by
   have : A.map (𝟙 x) = 𝟙 (A.obj x) := by simp
   exact Functor.congr_obj this a
@@ -706,7 +706,7 @@ theorem Grpd.map_comp_map
   have : A.map (f ≫ g) = A.map f ≫ A.map g := by simp
   exact Functor.congr_hom this φ
 
-theorem Cat.map_id_obj {A : Γ ⥤ Cat.{v₁,u₁}}
+@[simp] theorem Cat.map_id_obj {A : Γ ⥤ Cat.{v₁,u₁}}
     {x : Γ} {a : A.obj x} :
     (A.map (𝟙 x)).obj a = a := by
   have : A.map (𝟙 x) = 𝟙 (A.obj x) := by simp

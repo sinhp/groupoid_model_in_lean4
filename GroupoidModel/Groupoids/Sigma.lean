@@ -19,7 +19,8 @@ open CategoryTheory NaturalModelBase Opposite Grothendieck.Groupoidal
 
 namespace FunctorOperation
 
-set_option maxHeartbeats 0
+-- TODO: Fix performance issue.
+set_option maxHeartbeats 0 in
 /-- The formation rule for Σ-types for the ambient natural model `base`
   unfolded into operations between functors.
 

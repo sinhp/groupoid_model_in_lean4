@@ -217,6 +217,7 @@ structure UHomSeqPis (Ctx : Type u) [SmallCategory.{u} Ctx] [ChosenFiniteProduct
     extends UHomSeq Ctx where
   Pis' (i : Nat) (ilen : i < length + 1) : NaturalModelPi toUHomSeq[i]
 
+-- TODO(WN): deduplicate
 structure UHomSeqSigmas (Ctx : Type u) [SmallCategory.{u} Ctx] [ChosenFiniteProducts Ctx]
     extends UHomSeq Ctx where
   Sigmas' (i : Nat) (ilen : i < length + 1) : NaturalModelSigma toUHomSeq[i]
