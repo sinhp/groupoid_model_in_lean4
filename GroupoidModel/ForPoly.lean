@@ -38,7 +38,7 @@ def compDomUP {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} : (Γ ⟶ co
     rintro ⟨β,αB,h⟩
     simp
 
-def pullbackUP {A B C: 𝒞} (Γ : 𝒞) {f : A ⟶ C} {g : B ⟶ C} : (Γ ⟶ pullback f g) ≃ (fst : Γ ⟶ A) × (snd : Γ ⟶ B) ×' (fst ≫ f = snd ≫ g) where
+def pullbackUP {A B C: 𝒞} (Γ : 𝒞) (f : A ⟶ C) (g : B ⟶ C) : (Γ ⟶ pullback f g) ≃ (fst : Γ ⟶ A) × (snd : Γ ⟶ B) ×' (fst ≫ f = snd ≫ g) where
   toFun h := ⟨h ≫ pullback.fst f g, h ≫ pullback.snd f g, by simp[pullback.condition]⟩
   invFun := by
     rintro ⟨fst,snd,h⟩
