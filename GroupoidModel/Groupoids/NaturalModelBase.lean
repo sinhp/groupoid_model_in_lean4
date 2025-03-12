@@ -183,7 +183,8 @@ def uHomSeq : NaturalModelBase.UHomSeq Ctx.{3} where
 
 open CategoryTheory NaturalModelBase Opposite Grothendieck
 
-/-- The polynomial functor on `tp` taken at `yonedaCat.obj C`
+/-- A specialization of the polynomial universal property to the natural model `base`
+  The polynomial functor on `tp` taken at `yonedaCat.obj C`
   `P_tp(yonedaCat C)` takes a groupoid `Γ`
   to a pair of functors `A` and `B`
 
@@ -204,21 +205,46 @@ def baseUvPolyTpEquiv {Γ : Ctx.{u}} {C : Cat.{u,u+1}} :
     yonedaCatEquiv
     (fun _ => yonedaCatEquiv)))
 
+-- TODO use `genPbEquiv` to define this
+/-- A specialization of the universal property of `genPb` to the natural model `base` -/
 def baseGenPbEquiv {Γ : Ctx.{u}} {C : Cat.{u,u+1}} :
     (UvPoly.genPb base.uvPolyTp (yonedaCat.obj C)).obj (op Γ)
     ≃ (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
     × (Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{u,u}) :=
   sorry
 
-def PGrpd.sec {Γ : Grpd.{v₂,u₂}} (α : Γ ⥤ PGrpd.{v₁,u₁}) :
+-- TODO move this to Grothendieck file
+-- NOTE this should be defined using `IsMegaPullback`
+/-- `sec` is the universal lift in the following diagram,
+  which is a section of `Groupoidal.forget`
+             α
+  ===== Γ -------α--------------¬
+ ‖      ↓ sec                   V
+ ‖   M.ext A ⋯ -------------> PGrpd
+ ‖      |                        |
+ ‖      |                        |
+ ‖   forget                  forgetToGrpd
+ ‖      |                        |
+ ‖      V                        V
+  ===== Γ --α ≫ forgetToGrpd--> Grpd
+-/
+def _root_.CategoryTheory.Grothendieck.Groupoidal.sec {Γ : Grpd.{v₂,u₂}} (α : Γ ⥤ PGrpd.{v₁,u₁}) :
     Γ ⥤ Groupoidal (α ⋙ PGrpd.forgetToGrpd) := sorry
 
+-- TODO define using `uvPolyTpCompDomEquiv`
+/-- A specialization of the universal property of `UvPoly.compDom`
+  to the natural model `base`.
+  This consists of a pair of dependent types
+  `A = α ⋙ forgetToGrpd` and `B`,
+  `a : A` captured by `α`,
+  and `b : B[a / x] = β ⋙ forgetToGrpd` caputred by `β`.
+  -/
 def baseUvPolyTpCompDomEquiv {Γ : Ctx.{u}} :
     (base.uvPolyTp.compDom base.uvPolyTp).obj (op Γ)
     ≃ (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
     × (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
     × (B : Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{u,u})
-    ×' β ⋙ PGrpd.forgetToGrpd = PGrpd.sec α ⋙ B :=
+    ×' β ⋙ PGrpd.forgetToGrpd = Groupoidal.sec α ⋙ B :=
   sorry
 
 end GroupoidModel
