@@ -205,33 +205,29 @@ def baseUvPolyTpEquiv {Γ : Ctx.{u}} {C : Cat.{u,u+1}} :
     yonedaCatEquiv
     (fun _ => yonedaCatEquiv)))
 
--- TODO use `genPbEquiv` to define this
-/-- A specialization of the universal property of `genPb` to the natural model `base` -/
-def baseGenPbEquiv {Γ : Ctx.{u}} {C : Cat.{u,u+1}} :
-    (UvPoly.genPb base.uvPolyTp (yonedaCat.obj C)).obj (op Γ)
-    ≃ (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
-    × (Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{u,u}) :=
-  sorry
+-- -- NOTE: maybe no need for this
+-- /-- A specialization of the universal property of `genPb` to the natural model `base` -/
+-- def baseGenPbEquiv {Γ : Ctx.{u}} {C : Cat.{u,u+1}} :
+--     (UvPoly.genPb base.uvPolyTp (yonedaCat.obj C)).obj (op Γ)
+--     ≃ (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
+--     × (Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{u,u}) :=
+--   yonedaEquiv.symm.trans (
+--   (base.genPbEquiv Γ (yonedaCat.obj C)).trans
+--   (Equiv.sigmaCongr yonedaCatEquiv $ fun _ =>
+--     yonedaCatEquiv))
 
--- TODO move this to Grothendieck file
--- NOTE this should be defined using `IsMegaPullback`
-/-- `sec` is the universal lift in the following diagram,
-  which is a section of `Groupoidal.forget`
-             α
-  ===== Γ -------α--------------¬
- ‖      ↓ sec                   V
- ‖   M.ext A ⋯ -------------> PGrpd
- ‖      |                        |
- ‖      |                        |
- ‖   forget                  forgetToGrpd
- ‖      |                        |
- ‖      V                        V
-  ===== Γ --α ≫ forgetToGrpd--> Grpd
--/
-def _root_.CategoryTheory.Grothendieck.Groupoidal.sec {Γ : Grpd.{v₂,u₂}} (α : Γ ⥤ PGrpd.{v₁,u₁}) :
-    Γ ⥤ Groupoidal (α ⋙ PGrpd.forgetToGrpd) := sorry
+@[simp] theorem base_sec {Γ : Ctx.{u}} (α : y(Γ) ⟶ base.Tm) :
+    base.sec α = ym(Ctx.ofGrpd.map (Groupoidal.sec (yonedaCatEquiv α))) :=
+  (base.disp_pullback (α ≫ base.tp)).hom_ext
+  (by
+    rw [NaturalModelBase.sec_var]
+    dsimp only [base_var, var]
+    convert_to α =
+    yonedaCatEquiv.symm
+      (Groupoidal.sec (yonedaCatEquiv α) ⋙ Groupoidal.toPGrpd (yonedaCatEquiv α ⋙ Cat.homOf PGrpd.forgetToGrpd))
+    rw [Groupoidal.sec_toPGrpd _, yonedaCatEquiv.eq_symm_apply])
+  (by rw [NaturalModelBase.sec_disp]; rfl)
 
--- TODO define using `uvPolyTpCompDomEquiv`
 /-- A specialization of the universal property of `UvPoly.compDom`
   to the natural model `base`.
   This consists of a pair of dependent types
@@ -245,7 +241,23 @@ def baseUvPolyTpCompDomEquiv {Γ : Ctx.{u}} :
     × (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
     × (B : Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{u,u})
     ×' β ⋙ PGrpd.forgetToGrpd = Groupoidal.sec α ⋙ B :=
-  sorry
+  yonedaEquiv.symm.trans (
+  (base.uvPolyTpCompDomEquiv Γ).trans
+  (Equiv.sigmaCongr
+    yonedaCatEquiv $
+    fun α => Equiv.sigmaCongr
+      yonedaCatEquiv $
+      fun β => Equiv.psigmaCongrProp
+        yonedaCatEquiv $
+        fun B => by
+  convert_to _ ↔ yonedaCatEquiv (β ≫ yonedaCat.map PGrpd.forgetToGrpd)
+    = Ctx.toGrpd.map (Ctx.ofGrpd.map
+      (Groupoidal.sec (yonedaCatEquiv α))) ⋙ yonedaCatEquiv B
+  convert_to _ ↔ β ≫ yonedaCat.map PGrpd.forgetToGrpd =
+    yoneda.map (Ctx.ofGrpd.map (Groupoidal.sec (yonedaCatEquiv α))) ≫ B
+  · simp only [yonedaCatEquiv_naturality_left, ← yonedaCatEquiv.apply_eq_iff_eq]
+  simp [yonedaCatEquiv.apply_eq_iff_eq]))
+
 
 end GroupoidModel
 

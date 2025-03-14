@@ -7,7 +7,7 @@ noncomputable section
 open CategoryTheory Limits NaturalModelBase
 
 namespace NaturalModelBase
-variable {Ctx : Type u} [Category.{v, u} Ctx] (M : NaturalModelBase Ctx)
+variable {Ctx : Type u}
   [SmallCategory Ctx] (M : NaturalModelBase Ctx)
 
 structure NaturalModelPi where
@@ -36,6 +36,7 @@ def uvPolyTpEquiv (Γ : Ctx) (X : Psh Ctx) :
   (Equiv.sigmaCongrRight (fun _ =>
     Iso.homCongr (pullbackIsoExt _ _) (Iso.refl _)))
 
+-- NOTE maybe no need for this? Try to prove `uvPolyTpCompDomEquiv` without
 /-- A specialization of the universal property of `genPb` to `M.uvPolyTp`,
   using the chosen pullback `M.ext` instead of `pullback`. -/
 def genPbEquiv (Γ : Ctx) (X : Psh Ctx) :
@@ -59,7 +60,16 @@ def genPbEquiv (Γ : Ctx) (X : Psh Ctx) :
 -/
 -- TODO(WN): move to `NaturalModel`
 def sec {Γ : Ctx} (α : y(Γ) ⟶ M.Tm) :
-    Γ ⟶ M.ext (α ≫ M.tp) := sorry
+    y(Γ) ⟶ y(M.ext (α ≫ M.tp)) :=
+  (M.disp_pullback (α ≫ M.tp)).lift α (𝟙 y(Γ)) rfl
+
+@[simp] theorem sec_var {Γ : Ctx} (α : y(Γ) ⟶ M.Tm) :
+    M.sec α ≫ M.var (α ≫ M.tp) = α :=
+  (M.disp_pullback (α ≫ M.tp)).lift_fst _ _ _
+
+@[simp] theorem sec_disp {Γ : Ctx} (α : y(Γ) ⟶ M.Tm) :
+    M.sec α ≫ ym(M.disp (α ≫ M.tp)) = 𝟙 _ :=
+  (M.disp_pullback (α ≫ M.tp)).lift_snd _ _ _
 
 /-- A specialization of the universal property of `UvPoly.compDom` to `M.uvPolyTp`,
   using the chosen pullback `M.ext` instead of `pullback`. -/
@@ -68,7 +78,7 @@ def uvPolyTpCompDomEquiv (Γ : Ctx) :
     ≃ (α : y(Γ) ⟶ M.Tm)
     × (β : y(Γ) ⟶ M.Tm)
     × (B : y(M.ext (α ≫ M.tp)) ⟶ M.Ty)
-    ×' β ≫ M.tp = ym(M.sec α) ≫ B :=
+    ×' β ≫ M.tp = M.sec α ≫ B :=
   sorry
 
 end NaturalModelBase
