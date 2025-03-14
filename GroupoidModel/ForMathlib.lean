@@ -769,12 +769,8 @@ variable {Γ : Type u₂} [Category.{v₂} Γ] {Δ : Type u₃} [Category.{v₃}
 end Grothendieck
 end CategoryTheory
 
-/-- Transporting a sigma type through an equivalence of the base and a family of equivalences
-of matching fibers -/
-def Equiv.psigmaCongrProp {α₁ α₂} {β₁ : α₁ → Prop} {β₂ : α₂ → Prop} (f : α₁ ≃ α₂)
-    (F : ∀ a, β₁ a ↔ β₂ (f a)) : PSigma β₁ ≃ PSigma β₂ where
-  toFun x := .mk (f x.1) (by rw [← F]; exact x.2)
-  invFun x := .mk (f.symm x.1) (by
-    simp only [F, apply_symm_apply]; exact x.2)
-  left_inv _ := by simp
-  right_inv _ := by simp
+@[simp]
+theorem PSigma.heq_mk_iff {α : Sort u} {β : α → Sort v} {β' : α → Sort v}
+    (a b : α) (x : β a) (y : β' b) :
+    HEq (PSigma.mk a x) (PSigma.mk b y) ↔ (a = b ∧ HEq x y) :=
+  sorry
