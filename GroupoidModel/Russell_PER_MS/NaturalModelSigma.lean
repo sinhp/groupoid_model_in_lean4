@@ -29,21 +29,37 @@ def pullbackIsoExt {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) :
   the universal property of `UvPoly` to `M.uvPolyTp`.
   We use the chosen pullback `M.ext A`
   instead of `pullback` from the `HasPullback` instance -/
-def uvPolyTpEquiv (Γ : Ctx) (X : Psh Ctx) :
+def uvPolyTpEquiv {Γ : Ctx} {X : Psh Ctx} :
     (y(Γ) ⟶ M.uvPolyTp.functor.obj X)
     ≃ (A : y(Γ) ⟶ M.Ty) × (y(M.ext A) ⟶ X) :=
   (UvPoly.equiv _ _ _).trans
   (Equiv.sigmaCongrRight (fun _ =>
     Iso.homCongr (pullbackIsoExt _ _) (Iso.refl _)))
 
--- NOTE maybe no need for this? Try to prove `uvPolyTpCompDomEquiv` without
-/-- A specialization of the universal property of `genPb` to `M.uvPolyTp`,
-  using the chosen pullback `M.ext` instead of `pullback`. -/
-def genPbEquiv (Γ : Ctx) (X : Psh Ctx) :
-    (y(Γ) ⟶ M.uvPolyTp.genPb X)
-    ≃ (α : y(Γ) ⟶ M.Tm)
-    × (y(M.ext (α ≫ M.tp)) ⟶ M.Ty) :=
-  sorry
+@[simp] theorem uvPolyTpEquiv_fst {Γ : Ctx} {X : Psh Ctx}
+    (AB : y(Γ) ⟶ M.uvPolyTp.functor.obj X) :
+    (M.uvPolyTpEquiv AB).1 = AB ≫ M.uvPolyTp.proj _ :=
+  rfl
+
+@[simp] theorem uvPolyTpEquiv_symm_snd {Γ : Ctx} {X : Psh Ctx}
+    (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
+    eqToHom (by simp) ≫ (M.uvPolyTpEquiv (M.uvPolyTpEquiv.symm ⟨A, B⟩)).snd = B := by
+  apply eq_of_heq
+  rw [eqToHom_comp_heq_iff]
+  have h1 : M.uvPolyTpEquiv (M.uvPolyTpEquiv.symm ⟨A, B⟩) = ⟨A, B⟩ := by simp
+  exact (Sigma.mk.inj_iff.mp ((Sigma.eta _).trans h1)).2
+
+theorem uvPolyTpEquiv_symm {Γ : Ctx} {X : Psh Ctx}
+    (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
+    M.uvPolyTpEquiv.symm ⟨ A, B ⟩ =
+    M.uvPolyTp.pairPoly A ((pullbackIsoExt _ _).hom ≫ B) :=
+  rfl
+
+@[simp] theorem uvPolyTpEquiv_symm_proj
+    {Γ : Ctx} {X : Psh Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X):
+    M.uvPolyTpEquiv.symm ⟨A, B⟩ ≫ M.uvPolyTp.proj _ = A := by
+  simp only [uvPolyTpEquiv_symm]
+  apply M.uvPolyTp.pair_proj
 
 /-- `sec` is the universal lift in the following diagram,
   which is a section of `Groupoidal.forget`
@@ -71,15 +87,49 @@ def sec {Γ : Ctx} (α : y(Γ) ⟶ M.Tm) :
     M.sec α ≫ ym(M.disp (α ≫ M.tp)) = 𝟙 _ :=
   (M.disp_pullback (α ≫ M.tp)).lift_snd _ _ _
 
+theorem lift_ev {Γ : Ctx} {AB : y(Γ) ⟶ M.uvPolyTp.functor.obj M.Ty}
+    {α : y(Γ) ⟶ M.Tm} (hA : AB ≫ M.uvPolyTp.proj M.Ty = α ≫ M.tp)
+    : pullback.lift AB α hA ≫ UvPoly.genPb.u₂ M.uvPolyTp M.Ty
+    = M.sec α ≫ eqToHom (by rw [← hA]; rfl) ≫ (M.uvPolyTpEquiv AB).2 :=
+  sorry
+
 /-- A specialization of the universal property of `UvPoly.compDom` to `M.uvPolyTp`,
   using the chosen pullback `M.ext` instead of `pullback`. -/
 def uvPolyTpCompDomEquiv (Γ : Ctx) :
     (y(Γ) ⟶ M.uvPolyTp.compDom M.uvPolyTp)
     ≃ (α : y(Γ) ⟶ M.Tm)
-    × (β : y(Γ) ⟶ M.Tm)
     × (B : y(M.ext (α ≫ M.tp)) ⟶ M.Ty)
+    × (β : y(Γ) ⟶ M.Tm)
     ×' β ≫ M.tp = M.sec α ≫ B :=
-  sorry
+  calc
+    _ ≃ _ := UvPoly.compDomEquiv
+    _ ≃ _ := {
+      toFun x := match x with
+      | ⟨ AB, α, β, hA, hB ⟩ => ⟨ α,
+        ⟨ eqToHom (by dsimp only [uvPolyTp] at hA; rw [← hA]; rfl)
+        ≫ (M.uvPolyTpEquiv AB).2 , β , hB.trans (M.lift_ev hA) ⟩⟩
+      invFun x := match x with
+      | ⟨ α, B, β, h ⟩ => ⟨ M.uvPolyTpEquiv.symm ⟨ α ≫ M.tp, B ⟩, α, β, by
+        fconstructor
+        · simp [uvPolyTp_p, uvPolyTpEquiv_symm_proj]
+        · refine h.trans ?_
+          rw [M.lift_ev]
+          congr 1
+          rw [uvPolyTpEquiv_symm_snd] ⟩
+      left_inv x := match x with
+      | ⟨ AB, α, β, hA, hB ⟩ => by
+        congr!
+        dsimp only [uvPolyTpEquiv_fst]
+        rw [Equiv.symm_apply_eq]
+        refine Eq.trans ?_ (Sigma.eta _)
+        ext
+        · rw [M.uvPolyTpEquiv_fst, NatTrans.congr_app hA]
+          simp
+        · simp
+      right_inv x := match x with
+      | ⟨ α, B, β, h ⟩ => by
+        congr!
+        rw [uvPolyTpEquiv_symm_snd] }
 
 end NaturalModelBase
 end
