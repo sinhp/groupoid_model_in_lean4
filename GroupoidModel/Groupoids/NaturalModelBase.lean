@@ -200,21 +200,10 @@ def baseUvPolyTpEquiv {Γ : Ctx.{u}} {C : Cat.{u,u+1}} :
     (base.Ptp.obj (yonedaCat.obj C)).obj (op Γ)
     ≃ (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{u,u}) × (Groupoidal A ⥤ C) :=
   yonedaEquiv.symm.trans (
-  (uvPolyTpEquiv _ _ _).trans (
+  base.uvPolyTpEquiv.trans (
   Equiv.sigmaCongr
     yonedaCatEquiv
     (fun _ => yonedaCatEquiv)))
-
--- -- NOTE: maybe no need for this
--- /-- A specialization of the universal property of `genPb` to the natural model `base` -/
--- def baseGenPbEquiv {Γ : Ctx.{u}} {C : Cat.{u,u+1}} :
---     (UvPoly.genPb base.uvPolyTp (yonedaCat.obj C)).obj (op Γ)
---     ≃ (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
---     × (Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{u,u}) :=
---   yonedaEquiv.symm.trans (
---   (base.genPbEquiv Γ (yonedaCat.obj C)).trans
---   (Equiv.sigmaCongr yonedaCatEquiv $ fun _ =>
---     yonedaCatEquiv))
 
 @[simp] theorem base_sec {Γ : Ctx.{u}} (α : y(Γ) ⟶ base.Tm) :
     base.sec α = ym(Ctx.ofGrpd.map (Groupoidal.sec (yonedaCatEquiv α))) :=
@@ -238,8 +227,8 @@ def baseUvPolyTpEquiv {Γ : Ctx.{u}} {C : Cat.{u,u+1}} :
 def baseUvPolyTpCompDomEquiv {Γ : Ctx.{u}} :
     (base.uvPolyTp.compDom base.uvPolyTp).obj (op Γ)
     ≃ (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
-    × (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
     × (B : Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{u,u})
+    × (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
     ×' β ⋙ PGrpd.forgetToGrpd = Groupoidal.sec α ⋙ B :=
   yonedaEquiv.symm.trans (
   (base.uvPolyTpCompDomEquiv Γ).trans
@@ -247,9 +236,9 @@ def baseUvPolyTpCompDomEquiv {Γ : Ctx.{u}} :
     yonedaCatEquiv $
     fun α => Equiv.sigmaCongr
       yonedaCatEquiv $
-      fun β => Equiv.psigmaCongrProp
+      fun B => Equiv.psigmaCongrProp
         yonedaCatEquiv $
-        fun B => by
+        fun β => by
   convert_to _ ↔ yonedaCatEquiv (β ≫ yonedaCat.map PGrpd.forgetToGrpd)
     = Ctx.toGrpd.map (Ctx.ofGrpd.map
       (Groupoidal.sec (yonedaCatEquiv α))) ⋙ yonedaCatEquiv B
@@ -257,7 +246,6 @@ def baseUvPolyTpCompDomEquiv {Γ : Ctx.{u}} :
     yoneda.map (Ctx.ofGrpd.map (Groupoidal.sec (yonedaCatEquiv α))) ≫ B
   · simp only [yonedaCatEquiv_naturality_left, ← yonedaCatEquiv.apply_eq_iff_eq]
   simp [yonedaCatEquiv.apply_eq_iff_eq]))
-
 
 end GroupoidModel
 
