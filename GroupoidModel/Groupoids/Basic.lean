@@ -72,12 +72,11 @@ abbrev yonedaCat : Cat.{u,u+1} ⥤ Ctx.{u}ᵒᵖ ⥤ Type (u + 1) :=
 instance yonedaCatPreservesLimits : PreservesLimits yonedaCat :=
   comp_preservesLimits _ _
 
-variable {Γ Δ : Ctx.{u}} {C D : Type (u+1)}
-  [Category.{u,u+1} C] [Category.{u,u+1} D]
+variable {Γ Δ : Ctx.{u}} {C D : Cat.{u,u+1}}
 
 /- The bijection y(Γ) → [-,C]   ≃   Γ ⥤ C -/
 def yonedaCatEquiv :
-    (yoneda.obj Γ ⟶ yonedaCat.obj (Cat.of C))
+    (yoneda.obj Γ ⟶ yonedaCat.obj C)
       ≃ Ctx.toGrpd.obj Γ ⥤ C :=
   Equiv.trans yonedaEquiv
     {toFun     := λ A ↦ ULift.upFunctor ⋙ A
@@ -86,23 +85,32 @@ def yonedaCatEquiv :
      right_inv := λ _ ↦ rfl}
 
 lemma yonedaCatEquiv_yonedaEquivSymm {Γ : Ctx}
-    (A : (yonedaCat.obj (Cat.of C)).obj (Opposite.op Γ)) :
+    (A : (yonedaCat.obj C).obj (Opposite.op Γ)) :
     yonedaCatEquiv (yonedaEquiv.symm A) = upFunctor ⋙ A := by
   congr
 
-theorem yonedaCatEquiv_naturality
-    (A : yoneda.obj Γ ⟶ yonedaCat.obj (Cat.of C)) (σ : Δ ⟶ Γ) :
-    (AsSmall.down.map σ) ⋙ yonedaCatEquiv A
-      = yonedaCatEquiv (yoneda.map σ ≫ A) := by
+theorem yonedaCatEquiv_naturality_left
+    (A : yoneda.obj Γ ⟶ yonedaCat.obj C) (σ : Δ ⟶ Γ) :
+    yonedaCatEquiv (yoneda.map σ ≫ A) =
+    (Ctx.toGrpd.map σ) ⋙ yonedaCatEquiv A:= by
   simp only [AsSmall.down_obj, AsSmall.down_map, yonedaCatEquiv,
     Functor.op_obj, Functor.comp_obj, Cat.of_α,
     Equiv.trans_apply, Equiv.coe_fn_mk, ← yonedaEquiv_naturality]
   rfl
 
-theorem yonedaCatEquiv_comp
-    (A : yoneda.obj Γ ⟶ yonedaCat.obj (Cat.of D)) (U : D ⥤ C) :
-    yonedaCatEquiv (A ≫ yonedaCat.map U) = yonedaCatEquiv A ⋙ U := by
-  aesop_cat
+theorem yonedaCatEquiv_naturality_right
+    (A : yoneda.obj Γ ⟶ yonedaCat.obj D) (U : D ⥤ C) :
+    yonedaCatEquiv (A ≫ yonedaCat.map U) = yonedaCatEquiv A ⋙ U := rfl
+
+theorem yonedaCatEquiv_symm_naturality_left
+    (A : Ctx.toGrpd.obj Γ ⥤ C) (σ : Δ ⟶ Γ) :
+    yoneda.map σ ≫ yonedaCatEquiv.symm A =
+    yonedaCatEquiv.symm (Ctx.toGrpd.map σ ⋙ A) := rfl
+
+theorem yonedaCatEquiv_symm_naturality_right
+    (A : Ctx.toGrpd.obj Γ ⥤ D) (U : D ⥤ C) :
+    yonedaCatEquiv.symm (A ⋙ U) =
+    yonedaCatEquiv.symm A ≫ yonedaCat.map U := rfl
 
 end yonedaCat
 
@@ -154,7 +162,7 @@ variable {Γ : Ctx.{u}} (A : yoneda.obj Γ ⟶ Ty)
 abbrev ext : Ctx := Ctx.ofGrpd.obj $ Grpd.of (Groupoidal (yonedaCatEquiv A))
 
 abbrev disp : ext A ⟶ Γ :=
-  AsSmall.up.map (Grothendieck.forget _)
+  Ctx.ofGrpd.map (Grothendieck.forget _)
 
 abbrev var : (y(ext A) : Psh Ctx) ⟶ Tm :=
   yonedaCatEquiv.symm (Groupoidal.toPGrpd (yonedaCatEquiv A))

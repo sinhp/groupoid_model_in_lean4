@@ -20,7 +20,7 @@ noncomputable section
 namespace NaturalModelBase
 namespace UHomSeq
 
-variable {𝒞 : Type u} [Category.{v, u} 𝒞] [ChosenFiniteProducts 𝒞]
+variable {𝒞 : Type u} [SmallCategory 𝒞] [ChosenFiniteProducts 𝒞]
 
 /-! ## Extension sequences -/
 
@@ -29,7 +29,7 @@ where `Γ` is a prefix of `Γ'`.
 It witnesses a sequence of context extension operations in `s`
 that built `Γ'` on top of `Γ`.
 We write `Γ ≤ Γ'`. -/
-inductive ExtSeq (s : UHomSeq 𝒞) (Γ : 𝒞) : 𝒞 → Type (max u v) where
+inductive ExtSeq (s : UHomSeq 𝒞) (Γ : 𝒞) : 𝒞 → Type u where
   | nil : s.ExtSeq Γ Γ
   | snoc {Γ'} {l : Nat} (d : s.ExtSeq Γ Γ') (llen : l < s.length + 1) (A : y(Γ') ⟶ s[l].Ty) :
     s.ExtSeq Γ (s[l].ext A)
@@ -206,7 +206,7 @@ i.e., one of the form `1.Aₙ₋₁.….A₀`,
 together with the extension sequence `[Aₙ₋₁ :: … :: A₀]`.
 
 This kind of object can be destructured. -/
-def CObj (s : UHomSeq 𝒞) : Type (max u v) := Σ Γ : 𝒞, s.ExtSeq (⊤_ 𝒞) Γ
+def CObj (s : UHomSeq 𝒞) : Type u := Σ Γ : 𝒞, s.ExtSeq (⊤_ 𝒞) Γ
 
 def nilCObj (s : UHomSeq 𝒞) : s.CObj :=
   ⟨⊤_ 𝒞, .nil⟩
