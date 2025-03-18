@@ -1,6 +1,8 @@
 import GroupoidModel.Groupoids.NaturalModelBase
 import GroupoidModel.Russell_PER_MS.NaturalModelSigma
 
+set_option maxHeartbeats 300000
+
 universe v u v₁ u₁ v₂ u₂ v₃ u₃
 
 noncomputable section
@@ -113,20 +115,10 @@ theorem sigmaBeckChevalley (B : (Grothendieck.Groupoidal A) ⥤ Grpd.{v₁,u₁}
     sorry -- this goal might be improved by adding API for Groupoidal.ι and Groupoidal.pre
 end
 
-def GHE {Γ : Cat} {A : Γ ⥤ Cat} {a b : Grothendieck A} {f g : a ⟶ b} (eqb : f.base = g.base) (eqf : f.fiber = (eqToHom (by simp[eqb])) ≫  g.fiber) : f = g := by
-  cases f; cases g
-  cases eqb
-  simp at eqf
-  cases eqf
-  exact rfl
-
-
-#check PointedFunctor.congr_point
-
-
-def eqToHomBase {C : Type} [Category C]{F : C ⥤ Cat} {X Y : Grothendieck F} (h : X = Y) : (eqToHom h).base = eqToHom (congrArg (fun(x) => x.base) h) := by
+def eqToHomGrdik {C : Type u} [Category.{v} C] {F : C ⥤ Cat.{v₁,v₂}} {X Y : Grothendieck F} {h : X = Y} :
+  eqToHom h = {base := eqToHom (congrArg (fun(x) => x.base) h), fiber := (eqToHom (by cases h; simp) )} := by
   rcases h
-  simp
+  simp[CategoryStruct.id,Grothendieck.id]
 
 def pairSection {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
     (B : Grothendieck.Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁})
@@ -144,39 +136,28 @@ def pairSection {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
     map {x y} f := by
       refine {base := f, fiber := {base := (α.map f).point, fiber := ?_}}
       dsimp[Grpd.forgetToCat,Grothendieck.Groupoidal.pre,Grothendieck.pre,ι,map,Grothendieck.ιNatTrans]
-      simp[<- Grpd.map_comp_obj,CategoryStruct.comp,Grothendieck.comp,Grpd.forgetToCat]
+      simp [<- Grpd.map_comp_obj,CategoryStruct.comp,Grothendieck.comp,Grpd.forgetToCat]
       have rwn := Eq.trans (Prefunctor.congr_map (Grothendieck.Groupoidal.sec α ⋙ B).toPrefunctor (Category.comp_id f)) (Functor.congr_hom h.symm f)
       simp only [Functor.comp_map,Grothendieck.Groupoidal.sec] at rwn
       rw [<-(PointedFunctor.congr_point (congrArg α.map (id (Category.comp_id f)))),rwn,<- Functor.comp_obj]
       simp only [CategoryStruct.comp,<- Functor.assoc]
-      have rwl {a1 a2 a3 : Grpd} {o1 : a1 = a2} {o2 : a2 = a3} : (eqToHom o1) ⋙ (eqToHom o2) = eqToHom (Eq.trans o1 o2) := by
-        cases o1; cases o2; simp[Functor.comp,CategoryStruct.id,Functor.id]
-      rw [rwl]
-      exact (eqToHom (Functor.congr_obj h y)).map (β.map f).point
+      let rwl {a1 a2 a3 a4 a5: Grpd} {o1 : a1 = a2} {o2 : a2 = a3} {F : a3 ⥤ a4} {G : a4 ⥤ a5} {x : a1} : (((eqToHom o1) ⋙ (eqToHom o2)) ⋙ F ⋙ G).obj x ⟶ (eqToHom (Eq.trans o1 o2) ⋙ F ⋙ G).obj x := by
+        refine eqToHom ?_
+        cases o1
+        cases o2
+        simp[Functor.comp,CategoryStruct.id,Functor.id]
+      exact rwl ≫ (eqToHom (Functor.congr_obj h y)).map (β.map f).point
     map_id x := by
       simp[CategoryStruct.id,Grothendieck.id]
       fapply Grothendieck.ext
       . exact rfl
-      . fapply Grothendieck.ext
-        . simp
-          refine Eq.trans (PointedFunctor.congr_point (α.map_id x)) ?_
+      . simp
+        rw [eqToHomGrdik]
+        fapply Grothendieck.ext
+        . refine Eq.trans (PointedFunctor.congr_point (α.map_id x)) ?_
           simp [CategoryStruct.id]
-          sorry --I dont know why the eqToHomBase Lemma is not working here
         . sorry
-    map_comp := by
-      intros x y z f g
-      simp[CategoryStruct.comp,Grothendieck.comp, Functor.map]
-
-
-def TypeToShowNatrality {Γ : Grpd.{v₂,u₂}} := (α : Γ ⥤ PGrpd.{v₁,u₁}) × (β : Γ ⥤ PGrpd.{v₁,u₁}) × (B : Grothendieck.Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁}) ×' (β ⋙ PGrpd.forgetToGrpd = Grothendieck.Groupoidal.sec α ⋙ B)
-
-def TypeToShowNatrality.Hom {Γ : Grpd.{v₂,u₂}} (⟨α,β,B,h⟩ ⟨α',β',B',h'⟩  : TypeToShowNatrality) : Type := (f : α ⟶ α') × (g : β ⟶ β') × (k : B ⟶ B')
-
-def  pairSection_natral_in_α {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁}) (B : Grothendieck.Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁}) (h : β ⋙ PGrpd.forgetToGrpd = Grothendieck.Groupoidal.sec α ⋙ B) :
-
-    apply GHE
-    . simp[pairSection,sigma]
-    . simp[pairSection,sigma]
+    map_comp := sorry
 
 theorem pairSection_isSection {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
     (B : Grothendieck.Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁})
