@@ -111,14 +111,82 @@ theorem sigmaBeckChevalley (B : (Grothendieck.Groupoidal A) ⥤ Grpd.{v₁,u₁}
     rfl
   . intros x y f
     sorry -- this goal might be improved by adding API for Groupoidal.ι and Groupoidal.pre
-
 end
+
+def GHE {Γ : Cat} {A : Γ ⥤ Cat} {a b : Grothendieck A} {f g : a ⟶ b} (eqb : f.base = g.base) (eqf : f.fiber = (eqToHom (by simp[eqb])) ≫  g.fiber) : f = g := by
+  cases f; cases g
+  cases eqb
+  simp at eqf
+  cases eqf
+  exact rfl
+
+
+#check PointedFunctor.congr_point
+
+
+def eqToHomBase {C : Type} [Category C]{F : C ⥤ Cat} {X Y : Grothendieck F} (h : X = Y) : (eqToHom h).base = eqToHom (congrArg (fun(x) => x.base) h) := by
+  rcases h
+  simp
+
+def pairSection {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
+    (B : Grothendieck.Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁})
+    (h : β ⋙ PGrpd.forgetToGrpd = Grothendieck.Groupoidal.sec α ⋙ B)
+    : Γ ⥤ (Grothendieck.Groupoidal (sigma (α ⋙ PGrpd.forgetToGrpd) B)) where
+    obj x := by
+      fconstructor
+      . exact x
+      . fconstructor
+        . exact (α.obj x).str.pt
+        . dsimp[Grpd.forgetToCat,ι]
+          let h' := Functor.congr_obj h x
+          dsimp[Grothendieck.Groupoidal.sec] at h'
+          exact (eqToHom h').obj ((β.obj x).str.pt)
+    map {x y} f := by
+      refine {base := f, fiber := {base := (α.map f).point, fiber := ?_}}
+      dsimp[Grpd.forgetToCat,Grothendieck.Groupoidal.pre,Grothendieck.pre,ι,map,Grothendieck.ιNatTrans]
+      simp[<- Grpd.map_comp_obj,CategoryStruct.comp,Grothendieck.comp,Grpd.forgetToCat]
+      have rwn := Eq.trans (Prefunctor.congr_map (Grothendieck.Groupoidal.sec α ⋙ B).toPrefunctor (Category.comp_id f)) (Functor.congr_hom h.symm f)
+      simp only [Functor.comp_map,Grothendieck.Groupoidal.sec] at rwn
+      rw [<-(PointedFunctor.congr_point (congrArg α.map (id (Category.comp_id f)))),rwn,<- Functor.comp_obj]
+      simp only [CategoryStruct.comp,<- Functor.assoc]
+      have rwl {a1 a2 a3 : Grpd} {o1 : a1 = a2} {o2 : a2 = a3} : (eqToHom o1) ⋙ (eqToHom o2) = eqToHom (Eq.trans o1 o2) := by
+        cases o1; cases o2; simp[Functor.comp,CategoryStruct.id,Functor.id]
+      rw [rwl]
+      exact (eqToHom (Functor.congr_obj h y)).map (β.map f).point
+    map_id x := by
+      simp[CategoryStruct.id,Grothendieck.id]
+      fapply Grothendieck.ext
+      . exact rfl
+      . fapply Grothendieck.ext
+        . simp
+          refine Eq.trans (PointedFunctor.congr_point (α.map_id x)) ?_
+          simp [CategoryStruct.id]
+          sorry --I dont know why the eqToHomBase Lemma is not working here
+        . sorry
+    map_comp := by
+      intros x y z f g
+      simp[CategoryStruct.comp,Grothendieck.comp, Functor.map]
+
+
+def TypeToShowNatrality {Γ : Grpd.{v₂,u₂}} := (α : Γ ⥤ PGrpd.{v₁,u₁}) × (β : Γ ⥤ PGrpd.{v₁,u₁}) × (B : Grothendieck.Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁}) ×' (β ⋙ PGrpd.forgetToGrpd = Grothendieck.Groupoidal.sec α ⋙ B)
+
+def TypeToShowNatrality.Hom {Γ : Grpd.{v₂,u₂}} (⟨α,β,B,h⟩ ⟨α',β',B',h'⟩  : TypeToShowNatrality) : Type := (f : α ⟶ α') × (g : β ⟶ β') × (k : B ⟶ B')
+
+def  pairSection_natral_in_α {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁}) (B : Grothendieck.Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁}) (h : β ⋙ PGrpd.forgetToGrpd = Grothendieck.Groupoidal.sec α ⋙ B) :
+
+    apply GHE
+    . simp[pairSection,sigma]
+    . simp[pairSection,sigma]
+
+theorem pairSection_isSection {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
+    (B : Grothendieck.Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁})
+    (h : β ⋙ PGrpd.forgetToGrpd = Grothendieck.Groupoidal.sec α ⋙ B) : (pairSection α β B h) ⋙ Grothendieck.forget _ = Functor.id Γ := by
+    simp[pairSection,Functor.comp,Functor.id]
 
 def pair {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
     (B : Grothendieck.Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁})
-    (h : β ⋙ PGrpd.forgetToGrpd = PGrpd.sec α ⋙ B)
-    : Γ ⥤ PGrpd.{v₁,u₁} :=
-  sorry
+    (h : β ⋙ PGrpd.forgetToGrpd = Grothendieck.Groupoidal.sec α ⋙ B)
+    : Γ ⥤ PGrpd.{v₁,u₁} := pairSection α β B h ⋙ Grothendieck.Groupoidal.toPGrpd _
 
 end FunctorOperation
 
@@ -135,7 +203,17 @@ def basePair : base.uvPolyTp.compDom base.uvPolyTp ⟶ base.Tm where
   app Γ := fun ε =>
     let ⟨α,β,B,h⟩ := baseUvPolyTpCompDomEquiv ε
     yonedaEquiv (yonedaCatEquiv.symm (pair α β B h))
-  naturality := sorry -- do not attempt
+  naturality := by sorry
+
+
+
+
+
+
+
+
+
+
 
 def baseSigma : NaturalModelSigma base where
   Sig := baseSig
