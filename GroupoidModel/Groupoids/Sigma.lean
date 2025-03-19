@@ -129,24 +129,39 @@ def pairSection {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
       . exact x
       . fconstructor
         . exact (α.obj x).str.pt
-        . dsimp[Grpd.forgetToCat,ι]
-          let h' := Functor.congr_obj h x
-          dsimp[Grothendieck.Groupoidal.sec] at h'
-          exact (eqToHom h').obj ((β.obj x).str.pt)
+        . exact (eqToHom (Functor.congr_obj h x)).obj ((β.obj x).str.pt)
     map {x y} f := by
       refine {base := f, fiber := {base := (α.map f).point, fiber := ?_}}
-      dsimp[Grpd.forgetToCat,Grothendieck.Groupoidal.pre,Grothendieck.pre,ι,map,Grothendieck.ιNatTrans]
-      simp [<- Grpd.map_comp_obj,CategoryStruct.comp,Grothendieck.comp,Grpd.forgetToCat]
-      have rwn := Eq.trans (Prefunctor.congr_map (Grothendieck.Groupoidal.sec α ⋙ B).toPrefunctor (Category.comp_id f)) (Functor.congr_hom h.symm f)
-      simp only [Functor.comp_map,Grothendieck.Groupoidal.sec] at rwn
-      rw [<-(PointedFunctor.congr_point (congrArg α.map (id (Category.comp_id f)))),rwn,<- Functor.comp_obj]
-      simp only [CategoryStruct.comp,<- Functor.assoc]
-      let rwl {a1 a2 a3 a4 a5: Grpd} {o1 : a1 = a2} {o2 : a2 = a3} {F : a3 ⥤ a4} {G : a4 ⥤ a5} {x : a1} : (((eqToHom o1) ⋙ (eqToHom o2)) ⋙ F ⋙ G).obj x ⟶ (eqToHom (Eq.trans o1 o2) ⋙ F ⋙ G).obj x := by
+      dsimp[Grpd.forgetToCat,Grothendieck.Groupoidal.pre,ι,map,Grothendieck.ιNatTrans,Grpd.forgetToCat]
+
+      have eq1 : (eqToHom (Functor.congr_obj h y)).obj (@PointedGroupoid.pt ((β.obj y)) (β.obj y).str) = (Functor.id _).obj ((eqToHom (Functor.congr_obj h y)).obj (@PointedGroupoid.pt ((β.obj y)) (β.obj y).str)) := by simp
+      have eq2 : ((Groupoid.compForgetToCat (α ⋙ PGrpd.forgetToGrpd)).map (f ≫ 𝟙 y)).obj ((Grothendieck.Groupoidal.sec α).obj x).fiber = (α.map f).obj PointedCategory.pt := by
+        simp[Grothendieck.Groupoidal.sec,Grpd.forgetToCat]
+        apply congrArg
+        exact rfl
+
+      set outer : B.obj { base := y, fiber := (α.map f).obj (@PointedGroupoid.pt (↑(α.obj x)) (α.obj x).str)} ⟶ B.obj {base := y, fiber := (@PointedGroupoid.pt (↑(α.obj y)) (α.obj y).str)}
+       := (B.map { base := 𝟙 y, fiber := eqToHom (Grothendieck.ι.proof_1 ((α ⋙ PGrpd.forgetToGrpd) ⋙ Grpd.forgetToCat) y) ≫ (α.map f).point })
+      set inner :(B.obj { base := x, fiber := (@PointedGroupoid.pt (↑(α.obj x)) (α.obj x).str ) }) ⟶ (B.obj { base := y, fiber := (α.map f).obj (@PointedGroupoid.pt (↑(α.obj x)) (α.obj x).str)})
+        := (B.map { base := f, fiber := 𝟙 ((α.map f).obj _)})
+      set pg : (β.obj x) := @PointedGroupoid.pt (↑(β.obj x)) (β.obj x).str
+
+      have eq5 : outer.obj (inner.obj ((eqToHom (Functor.congr_obj h x)).obj pg)) = (((eqToHom (Functor.congr_obj h x )⋙ eqToHom (Functor.congr_obj (Eq.symm h) x)) ⋙ PGrpd.forgetToGrpd.map (β.map f)) ⋙ eqToHom (Eq.symm (Functor.congr_obj (Eq.symm h) y))).obj (@PointedGroupoid.pt (↑(β.obj x)) (β.obj x).str) := by
+        simp [outer,inner,pg,<- Grpd.map_comp_obj, CategoryStruct.comp,Grothendieck.comp,Grpd.forgetToCat]
+        have rwn := Eq.trans (Prefunctor.congr_map (Grothendieck.Groupoidal.sec α ⋙ B).toPrefunctor (Category.comp_id f)) (Functor.congr_hom h.symm f)
+        simp only [Functor.comp_map,Grothendieck.Groupoidal.sec] at rwn
+        rw [<-(PointedFunctor.congr_point (congrArg α.map (id (Category.comp_id f)))),rwn]
+        simp [CategoryStruct.comp,<- Functor.assoc]
+
+      refine eqToHom eq5 ≫ ?_
+
+      let m1 {a1 a2 a3 a4 a5: Grpd} {o1 : a1 = a2} {o2 : a2 = a3} {F : a3 ⥤ a4} {G : a4 ⥤ a5} {x : a1} : (((eqToHom o1) ⋙ (eqToHom o2)) ⋙ F ⋙ G).obj x ⟶ (eqToHom (Eq.trans o1 o2) ⋙ F ⋙ G).obj x := by
         refine eqToHom ?_
         cases o1
         cases o2
         simp[Functor.comp,CategoryStruct.id,Functor.id]
-      exact rwl ≫ (eqToHom (Functor.congr_obj h y)).map (β.map f).point
+
+      exact m1 ≫ (eqToHom (Functor.congr_obj h y)).map (β.map f).point
     map_id x := by
       simp[CategoryStruct.id,Grothendieck.id]
       fapply Grothendieck.ext
@@ -156,18 +171,28 @@ def pairSection {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
         fapply Grothendieck.ext
         . refine Eq.trans (PointedFunctor.congr_point (α.map_id x)) ?_
           simp [CategoryStruct.id]
-        . sorry
-    map_comp := sorry
+        . simp [PointedFunctor.congr_point (β.map_id x),eqToHom_map]
+    map_comp := by
+      intros x y z f g
+      sorry
 
 theorem pairSection_isSection {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
     (B : Grothendieck.Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁})
-    (h : β ⋙ PGrpd.forgetToGrpd = Grothendieck.Groupoidal.sec α ⋙ B) : (pairSection α β B h) ⋙ Grothendieck.forget _ = Functor.id Γ := by
-    simp[pairSection,Functor.comp,Functor.id]
+    (h : β ⋙ PGrpd.forgetToGrpd = Grothendieck.Groupoidal.sec α ⋙ B) :
+     (pairSection α β B h) ⋙ Grothendieck.forget _ = Functor.id Γ := rfl
 
 def pair {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
     (B : Grothendieck.Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁})
     (h : β ⋙ PGrpd.forgetToGrpd = Grothendieck.Groupoidal.sec α ⋙ B)
     : Γ ⥤ PGrpd.{v₁,u₁} := pairSection α β B h ⋙ Grothendieck.Groupoidal.toPGrpd _
+
+def sigma_is_forgetToGrpd_after_pair {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
+    (B : Grothendieck.Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁})
+    (h : β ⋙ PGrpd.forgetToGrpd = Grothendieck.Groupoidal.sec α ⋙ B) :
+    pair α β B h ⋙ PGrpd.forgetToGrpd = sigma (α ⋙ PGrpd.forgetToGrpd) B := by
+  unfold pair
+  rw [Functor.assoc]
+  exact rfl
 
 end FunctorOperation
 
@@ -185,16 +210,6 @@ def basePair : base.uvPolyTp.compDom base.uvPolyTp ⟶ base.Tm where
     let ⟨α,β,B,h⟩ := baseUvPolyTpCompDomEquiv ε
     yonedaEquiv (yonedaCatEquiv.symm (pair α β B h))
   naturality := by sorry
-
-
-
-
-
-
-
-
-
-
 
 def baseSigma : NaturalModelSigma base where
   Sig := baseSig
