@@ -23,7 +23,7 @@ structure NaturalModelBase (Ctx : Type u) [Category Ctx] where
 
 namespace NaturalModelBase
 
-variable {Ctx : Type u} [Category.{v, u} Ctx] (M : NaturalModelBase Ctx)
+variable {Ctx : Type u} [SmallCategory Ctx]  (M : NaturalModelBase Ctx)
 
 /-! ## Pullback of representable natural transformation -/
 
@@ -189,7 +189,7 @@ theorem inst_wk {Γ : Ctx} {X : Psh Ctx}
 
 /-! ## Polynomial functor on `tp` -/
 
-variable [SmallCategory Ctx] (M : NaturalModelBase Ctx)
+variable (M : NaturalModelBase Ctx)
 
 -- TODO(WN): move to ForMathlib or somewhere
 instance : HasFiniteWidePullbacks (Psh Ctx) := hasFiniteWidePullbacks_of_hasFiniteLimits _
@@ -200,7 +200,7 @@ instance {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : CartesianExponentiable tp where
   functor := LCC.pushforward tp
   adj := LCC.adj _
 
-def uvPolyTp : UvPoly M.Tm M.Ty := ⟨M.tp, inferInstance⟩
+@[simps] def uvPolyTp : UvPoly M.Tm M.Ty := ⟨M.tp, inferInstance⟩
 def uvPolyTpT : UvPoly.Total (Psh Ctx) := ⟨_, _, M.uvPolyTp⟩
 def Ptp : Psh Ctx ⥤ Psh Ctx := M.uvPolyTp.functor
 

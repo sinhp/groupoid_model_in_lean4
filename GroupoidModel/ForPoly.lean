@@ -11,60 +11,50 @@ namespace UvPoly
 
 variable {𝒞} [Category 𝒞] [HasTerminal 𝒞] [HasPullbacks 𝒞]
 
--- TODO: rm this and just use `equiv` directly
-/-- Universal property of the polynomial functor. -/
-def _root_.UvPoly.equiv' {E B : 𝒞} (P : UvPoly E B) (Γ X : 𝒞) :
-    (Γ ⟶ P.functor.obj X) ≃ Σ b : Γ ⟶ B, pullback P.p b ⟶ X :=
-  (UvPoly.equiv P Γ X).trans <|
-  Equiv.sigmaCongrRight fun _ =>
-  ((yoneda.obj X).mapIso (pullbackSymmetry ..).op).toEquiv
+variable {E B : 𝒞} (P : UvPoly E B) (A : 𝒞)
 
-def genPb.snd {E B: 𝒞} (P : UvPoly E B) (X : 𝒞) : P.genPb X ⟶ E :=
-  pullback.snd (f := P.proj X) (g := P.p)
+-- TODO (JH) make issue
+theorem pair_proj {Γ} (b : Γ ⟶ B) (e : pullback b P.p ⟶ A) :
+    P.pairPoly b e ≫ P.proj _ = b := by
+  sorry
 
-theorem genPb.condition {E B A: 𝒞} (P : UvPoly E B) : genPb.snd P A ≫ P.p = genPb.fst P A ≫ P.proj A := by
+def genPb.snd : P.genPb A ⟶ E :=
+  pullback.snd (f := P.proj A) (g := P.p)
+
+variable {A}
+theorem genPb.condition :
+    genPb.snd P A ≫ P.p = genPb.fst P A ≫ P.proj A := by
   simp [genPb.fst,genPb.snd,pullback.condition]
 
-def compDomUP {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} : (Γ ⟶ compDom P Q) ≃ (β : Γ ⟶ D) × (αB : Γ ⟶ genPb P A) ×' (β ≫ Q.p = αB ≫ genPb.u₂ P A) where
-  toFun f := ⟨f ≫ (pullback.fst Q.p (genPb.u₂ P A)), f ≫ (pullback.snd Q.p (genPb.u₂ P A)), by simp [pullback.condition (f := Q.p) (g := genPb.u₂ P A)]⟩
-  invFun := by
-    rintro ⟨β,αB,h⟩
-    exact pullback.lift β αB h
-  left_inv f := by
-    refine pullback.hom_ext ?_ ?_
-    . simp
-    . simp
-  right_inv := by
-    rintro ⟨β,αB,h⟩
-    simp
-
-def pullbackUP {A B C: 𝒞} (Γ : 𝒞) (f : A ⟶ C) (g : B ⟶ C) : (Γ ⟶ pullback f g) ≃ (fst : Γ ⟶ A) × (snd : Γ ⟶ B) ×' (fst ≫ f = snd ≫ g) where
-  toFun h := ⟨h ≫ pullback.fst f g, h ≫ pullback.snd f g, by simp[pullback.condition]⟩
-  invFun := by
-    rintro ⟨fst,snd,h⟩
-    exact pullback.lift fst snd h
-  left_inv f := by
-    refine pullback.hom_ext ?_ ?_
-    . simp[genPb.fst]
-    . simp[genPb.snd]
-  right_inv := by
-    rintro ⟨fst,snd,h⟩
-    simp[genPb.fst,genPb.snd]
-
-def compDomUP' {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} : (Γ ⟶ compDom P Q) ≃ (β : Γ ⟶ D) × (fst : Γ ⟶ P.functor.obj A) × (snd : Γ ⟶ E) ×' (h : fst ≫ P.proj A = snd ≫ P.p) ×' (β ≫ Q.p = pullback.lift fst snd h ≫ genPb.u₂ P A) where
-  toFun f := ⟨f ≫ (pullback.fst Q.p (genPb.u₂ P A)), f ≫ (pullback.snd Q.p (genPb.u₂ P A)) ≫ genPb.fst P A, f ≫ (pullback.snd Q.p (genPb.u₂ P A)) ≫ genPb.snd P A, sorry⟩
-  invFun := by
-    rintro ⟨β,fst,snd,h,h'⟩
-    exact pullback.lift β (pullback.lift fst snd h) h'
-  left_inv f := by
-    refine pullback.hom_ext ?_ ?_
-    . simp
-    . refine pullback.hom_ext ?_ ?_
-      . simp[genPb.fst]
-      . simp[genPb.snd]
-  right_inv := by
-    rintro ⟨β,fst,snd,h,h'⟩
-    sorry
+def compDomEquiv {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} :
+    (Γ ⟶ compDom P Q)
+    ≃ (AB : Γ ⟶ P.functor.obj A) × (α : Γ ⟶ E) × (β : Γ ⟶ D)
+    ×' (h : AB ≫ P.proj A = α ≫ P.p)
+    ×' (β ≫ Q.p = pullback.lift AB α h ≫ genPb.u₂ P A) :=
+  calc
+  _ ≃ (β : Γ ⟶ D) × (αB : Γ ⟶ genPb P A)
+  ×' (β ≫ Q.p = αB ≫ genPb.u₂ P A) := pullbackHomEquiv
+  _ ≃ (β : Γ ⟶ D) × (αB : (AB : Γ ⟶ P.functor.obj A) × (α : Γ ⟶ E) ×' AB ≫ P.proj A = α ≫ P.p) ×'
+      β ≫ Q.p = pullback.lift αB.1 αB.2.1 αB.2.2 ≫ genPb.u₂ P A :=
+    Equiv.sigmaCongrRight (fun β =>
+    calc
+    _ ≃
+    (αB : (AB : Γ ⟶ P.functor.obj A)
+    × (α : Γ ⟶ E)
+    ×' (AB ≫ P.proj A = α ≫ P.p))
+    ×' (β ≫ Q.p = pullback.lift αB.1 αB.2.1 αB.2.2 ≫ genPb.u₂ P A) :=
+      Equiv.psigmaCongrProp pullbackHomEquiv (fun αB => by
+        apply Eq.congr_right
+        congr 1
+        apply pullback.hom_ext
+        · simp [pullbackHomEquiv]
+        · simp [pullbackHomEquiv]))
+  _ ≃ _ := {
+      -- TODO should be general tactic for this?
+      toFun x := ⟨ x.2.1.1, x.2.1.2.1 , x.1 , x.2.1.2.2, x.2.2 ⟩
+      invFun x := ⟨ x.2.2.1 , ⟨ x.1, x.2.1 , x.2.2.2.1 ⟩ , x.2.2.2.2 ⟩
+      left_inv _ := rfl
+      right_inv _ := rfl }
 
 end UvPoly
 

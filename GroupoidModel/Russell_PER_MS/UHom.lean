@@ -13,7 +13,7 @@ open CategoryTheory Limits Opposite MonoidalCategory
 
 namespace NaturalModelBase
 
-variable {Ctx : Type u} [Category.{v, u} Ctx]
+variable {Ctx : Type u} [SmallCategory Ctx]
 
 -- We have a 'nice', specific terminal object in `Ctx`,
 -- and this instance allows use to use it directly
@@ -125,8 +125,9 @@ def UHom.ofTarskiU (M : NaturalModelBase Ctx) (U : y(𝟙_ Ctx) ⟶ M.Ty) (El : 
       (by simp) (by simp)⟩
 }
 
+variable (Ctx) in
 /-- A sequence of Russell embeddings. -/
-structure UHomSeq (Ctx : Type u) [Category.{v, u} Ctx] [ChosenFiniteProducts Ctx] where
+structure UHomSeq [ChosenFiniteProducts Ctx] where
   /-- Number of embeddings in the sequence,
   or one less than the number of models in the sequence. -/
   length : Nat

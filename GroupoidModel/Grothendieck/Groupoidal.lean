@@ -446,6 +446,34 @@ variable {Γ : Type u₂} [Category.{v₂} Γ] {Δ : Type u₃} [Category.{v₃}
 
 end
 
+/-- `sec` is the universal lift in the following diagram,
+  which is a section of `Groupoidal.forget`
+             α
+  ===== Γ -------α--------------¬
+ ‖      ↓ sec                   V
+ ‖   M.ext A ⋯ -------------> PGrpd
+ ‖      |                        |
+ ‖      |                        |
+ ‖   forget                  forgetToGrpd
+ ‖      |                        |
+ ‖      V                        V
+  ===== Γ --α ≫ forgetToGrpd--> Grpd
+-/
+def sec
+    {Γ : Grpd.{v₂,u₂}} (α : Γ ⥤ PGrpd.{v₁,u₁}) :
+    Γ ⥤ Groupoidal (α ⋙ PGrpd.forgetToGrpd) :=
+  Groupoidal.IsMegaPullback.lift α (Functor.id _) rfl
+
+@[simp] def sec_toPGrpd
+    {Γ : Grpd.{v₂,u₂}} (α : Γ ⥤ PGrpd.{v₁,u₁}) :
+    Groupoidal.sec α ⋙ Groupoidal.toPGrpd _ = α := by
+  simp [Groupoidal.sec]
+
+@[simp] def sec_forget
+    {Γ : Grpd.{v₂,u₂}} (α : Γ ⥤ PGrpd.{v₁,u₁}) :
+    Groupoidal.sec α ⋙ Grothendieck.forget _ = Functor.id _ :=
+  rfl
+
 end Groupoidal
 end Grothendieck
 end CategoryTheory
