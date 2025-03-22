@@ -156,8 +156,10 @@ def pairSection {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
         . refine Functor.congr_obj ?_ ((eqToHom (Functor.congr_obj h x)).obj (@PointedGroupoid.pt (↑(β.obj x)) (β.obj x).str ))
           simp only [Functor.comp]
           apply congrArg
-          unfold Grothendieck.Groupoidal.sec
-          sorry -- This worked before switching MegaPullbacks. It should folow from there UP.
+          unfold Grothendieck.Groupoidal.sec IsMegaPullback.lift Grothendieck.IsMegaPullback.lift
+          simp [Grothendieck.IsMegaPullback.lift_map,Grothendieck.IsMegaPullback.point]
+          refine (PointedFunctor.congr_point ?_).symm
+          simp
         . rw[rwn]
           simp[CategoryStruct.comp]
 
