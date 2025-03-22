@@ -148,10 +148,28 @@ def pairSection {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
 
       have eq5 : outer.obj (inner.obj ((eqToHom (Functor.congr_obj h x)).obj pg)) = (((eqToHom (Functor.congr_obj h x )⋙ eqToHom (Functor.congr_obj (Eq.symm h) x)) ⋙ PGrpd.forgetToGrpd.map (β.map f)) ⋙ eqToHom (Eq.symm (Functor.congr_obj (Eq.symm h) y))).obj (@PointedGroupoid.pt (↑(β.obj x)) (β.obj x).str) := by
         simp [outer,inner,pg,<- Grpd.map_comp_obj, CategoryStruct.comp,Grothendieck.comp,Grpd.forgetToCat]
+
         have rwn := Eq.trans (Prefunctor.congr_map (Grothendieck.Groupoidal.sec α ⋙ B).toPrefunctor (Category.comp_id f)) (Functor.congr_hom h.symm f)
-        simp only [Functor.comp_map,Grothendieck.Groupoidal.sec] at rwn
+
+        simp only [Functor.comp_map] at rwn
+
+        unfold Grothendieck.Groupoidal.sec at rwn
+
+        unfold IsMegaPullback.lift at rwn
+
+        unfold Grothendieck.IsMegaPullback.lift at rwn
+
+        unfold Grothendieck.IsMegaPullback.lift_obj at rwn
+
+        unfold Grothendieck.IsMegaPullback.lift_obj at rwn
+
+
+
+
+        simp only [Functor.comp_map, Grothendieck.Groupoidal.sec] at rwn
         rw [<-(PointedFunctor.congr_point (congrArg α.map (id (Category.comp_id f)))),rwn]
         simp [CategoryStruct.comp,<- Functor.assoc]
+        sorry
 
       refine eqToHom eq5 ≫ ?_
 
@@ -162,6 +180,7 @@ def pairSection {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
         simp[Functor.comp,CategoryStruct.id,Functor.id]
 
       exact m1 ≫ (eqToHom (Functor.congr_obj h y)).map (β.map f).point
+
     map_id x := by
       simp[CategoryStruct.id,Grothendieck.id]
       fapply Grothendieck.ext
@@ -207,9 +226,92 @@ def baseSig : base.Ptp.obj base.{u}.Ty ⟶ base.Ty where
 
 def basePair : base.uvPolyTp.compDom base.uvPolyTp ⟶ base.Tm where
   app Γ := fun ε =>
-    let ⟨α,β,B,h⟩ := baseUvPolyTpCompDomEquiv ε
+    let ⟨α,B,β,h⟩ := baseUvPolyTpCompDomEquiv ε
     yonedaEquiv (yonedaCatEquiv.symm (pair α β B h))
   naturality := by sorry
+
+def ExtFunctorial {Γ : Ctx} {F G : (yoneda.obj Γ) ⟶  base.Ty} (n : (yonedaCatEquiv.toFun F) ⟶ (yonedaCatEquiv.toFun G)) : base.ext F ⟶ base.ext G := by
+  dsimp [NaturalModelBase.ext, ext,Grpd.of,Grothendieck.Groupoidal]
+  refine AsSmall.up.map ?_
+  exact map n
+
+def Sigma_UP_Elim (Γ : Ctx) (F : yoneda.obj Γ ⟶ base.Ptp.obj base.{u}.Ty) : (α : yoneda.obj Γ ⟶ base.Ty) × (yoneda.obj (base.ext α) ⟶ base.Ty) := by
+  unfold Ptp at F
+  have r := base.uvPolyTp.polyPair F
+  rcases r with ⟨α, B⟩
+  refine ⟨α,?_⟩
+  let B' : y(base.ext α) ⟶ base.Ty := by
+    refine ?_ ≫ B
+    have iso :y(base.ext α) ≅ (Limits.pullback α base.uvPolyTp.p) := by
+      exact (base.pullbackIsoExt α).symm
+    exact (id iso.symm).inv
+  exact B'
+
+def Sigma_UP_Intro (Γ : Ctx) (α : yoneda.obj Γ ⟶ base.Ty) (B : yoneda.obj (base.ext α) ⟶ base.Ty) :  yoneda.obj Γ ⟶ base.Ptp.obj base.{u}.Ty
+ := base.uvPolyTp.pairPoly α ( (Iso.hom (base.pullbackIsoExt α)) ≫ B)
+
+
+-- def pair_UP_Elim (Γ : Ctx.{u}) (F : yoneda.obj Γ ⟶ base.{u}.uvPolyTp.compDom base.{u}.uvPolyTp) : (α : yoneda.obj Γ ⟶ base.{u}.Tm) × (β : yoneda.obj Γ ⟶ base.{u}.Tm) × (B : yoneda.obj (base.{u}.ext (α ≫ base.{u}.tp)) ⟶ base.{u}.Ty) ×' (β ≫ base.{u}.tp = (yoneda.map (base.{u}.sec α)) ≫ B ) := by
+--   unfold UvPoly.compDom at F
+--   let F.fst := F ≫ Limits.pullback.fst _ _
+--   let F.snd := F ≫ Limits.pullback.snd _ _
+--   have F.h := Limits.pullback.condition (f := base.uvPolyTp.p) (g := (UvPoly.genPb.u₂ base.uvPolyTp base.Ty))
+--   have sigma : (α : yoneda.obj Γ ⟶ base.Ty) × (yoneda.obj (base.ext α) ⟶ base.Ty) := by
+--     refine Sigma_UP_Elim Γ ?_
+--     refine F.snd ≫ ?_
+--     exact
+--       UvPoly.genPb.fst base.uvPolyTp
+--         ((AsSmall.down ⋙ Grpd.forgetToCat ⋙ catLift).op ⋙ yoneda.obj (Cat.of Grpd))
+--   refine ⟨?_ , F.fst , ?_, ?_⟩
+
+
+
+
+--   refine ⟨?_ , F.fst , ?_ , ?_ ⟩
+--   . refine F.snd ≫ ?_
+--     unfold UvPoly.genPb
+--     refine Limits.pullback.snd _ _
+--   . refine (base.var _) ≫ base.tp
+--   . unfold F.fst
+--     have help : base.tp = base.uvPolyTp.p := by rfl
+--     have help2 : Limits.pullback.fst base.uvPolyTp.p (UvPoly.genPb.u₂ base.uvPolyTp base.Ty) = Limits.pullback.fst base.tp (UvPoly.genPb.u₂ base.uvPolyTp base.Ty) := by
+--       simp [help]
+--       exact rfl
+--     rewrite [<- help] at F.h
+--     rw [Category.assoc,help2, F.h]
+--     simp [base.var]
+--     have help3 : base.var ((F.snd ≫ id (Limits.pullback.snd (base.uvPolyTp.proj base.Ty) base.uvPolyTp.p)) ≫ base.tp) ≫ base.tp =
+
+
+
+
+-- def pair_UP_Intro (Γ : Ctx) (α β : yoneda.obj Γ ⟶ base.Tm) (B : yoneda.obj (base.ext (α ≫ base.tp)) ⟶ base.Ty) (h : β ≫ base.tp = (yoneda.map (base.sec α)) ≫ B ) :  yoneda.obj Γ ⟶ base.uvPolyTp.compDom base.uvPolyTp := by
+
+
+#check baseUvPolyTpCompDomEquiv
+#check yonedaEquiv
+def PairSigmaUP {Γ : Ctx} (β : yoneda.obj Γ ⟶ base.Tm) (AB : yoneda.obj Γ ⟶  base.Ptp.obj base.{u}.Ty) (h : Top ≫ base.tp = Left ≫ baseSig) : yoneda.obj Γ ⟶ base.uvPolyTp.compDom base.uvPolyTp := by
+  refine yonedaEquiv.invFun ?_
+  refine baseUvPolyTpCompDomEquiv.invFun ?_
+  -- let sig := baseUvPolyTpEquiv.toFun (yonedaEquiv.toFun Left)
+  -- rcases sig with ⟨A,B⟩
+  refine ⟨?α,?B,(yonedaCatEquiv.toFun β),?h⟩
+  . sorry
+  .
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def baseSigma : NaturalModelSigma base where
   Sig := baseSig
