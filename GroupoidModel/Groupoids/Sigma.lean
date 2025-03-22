@@ -1,7 +1,7 @@
 import GroupoidModel.Groupoids.NaturalModelBase
 import GroupoidModel.Russell_PER_MS.NaturalModelSigma
 
-set_option maxHeartbeats 300000
+set_option maxHeartbeats 0
 
 universe v u v₁ u₁ v₂ u₂ v₃ u₃
 
@@ -151,25 +151,15 @@ def pairSection {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
 
         have rwn := Eq.trans (Prefunctor.congr_map (Grothendieck.Groupoidal.sec α ⋙ B).toPrefunctor (Category.comp_id f)) (Functor.congr_hom h.symm f)
 
-        simp only [Functor.comp_map] at rwn
 
-        unfold Grothendieck.Groupoidal.sec at rwn
-
-        unfold IsMegaPullback.lift at rwn
-
-        unfold Grothendieck.IsMegaPullback.lift at rwn
-
-        unfold Grothendieck.IsMegaPullback.lift_obj at rwn
-
-        unfold Grothendieck.IsMegaPullback.lift_obj at rwn
-
-
-
-
-        simp only [Functor.comp_map, Grothendieck.Groupoidal.sec] at rwn
-        rw [<-(PointedFunctor.congr_point (congrArg α.map (id (Category.comp_id f)))),rwn]
-        simp [CategoryStruct.comp,<- Functor.assoc]
-        sorry
+        refine Eq.trans ?_ ?_ (b := ((Grothendieck.Groupoidal.sec α ⋙ B).map (f ≫ 𝟙 y)).obj (((eqToHom (Functor.congr_obj h x)).obj (@PointedGroupoid.pt (↑(β.obj x)) (β.obj x).str ))))
+        . refine Functor.congr_obj ?_ ((eqToHom (Functor.congr_obj h x)).obj (@PointedGroupoid.pt (↑(β.obj x)) (β.obj x).str ))
+          simp only [Functor.comp]
+          apply congrArg
+          unfold Grothendieck.Groupoidal.sec
+          sorry -- This worked before switching MegaPullbacks. It should folow from there UP.
+        . rw[rwn]
+          simp[CategoryStruct.comp]
 
       refine eqToHom eq5 ≫ ?_
 
@@ -180,7 +170,6 @@ def pairSection {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
         simp[Functor.comp,CategoryStruct.id,Functor.id]
 
       exact m1 ≫ (eqToHom (Functor.congr_obj h y)).map (β.map f).point
-
     map_id x := by
       simp[CategoryStruct.id,Grothendieck.id]
       fapply Grothendieck.ext
@@ -297,21 +286,8 @@ def PairSigmaUP {Γ : Ctx} (β : yoneda.obj Γ ⟶ base.Tm) (AB : yoneda.obj Γ 
   -- rcases sig with ⟨A,B⟩
   refine ⟨?α,?B,(yonedaCatEquiv.toFun β),?h⟩
   . sorry
-  .
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  . sorry
+  . sorry
 
 def baseSigma : NaturalModelSigma base where
   Sig := baseSig
