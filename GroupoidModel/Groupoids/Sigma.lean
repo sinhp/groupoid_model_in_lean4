@@ -184,7 +184,14 @@ def pairSection {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
         . simp [PointedFunctor.congr_point (β.map_id x),eqToHom_map]
     map_comp := by
       intros x y z f g
-      sorry
+      simp
+      fapply Grothendieck.ext
+      . simp
+      . fapply Grothendieck.ext
+        . simp[Grpd.forgetToCat,map,Grpd.forgetToCat]
+          sorry
+        . simp[CategoryStruct.id]
+          sorry
 
 theorem pairSection_isSection {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
     (B : Grothendieck.Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁})
@@ -203,6 +210,34 @@ def sigma_is_forgetToGrpd_after_pair {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGr
   unfold pair
   rw [Functor.assoc]
   exact rfl
+
+
+
+def GrotSigmaToA {Γ : Grpd} (A : Γ ⥤ Cat.of Grpd.{v₁,u₁}) (B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁}) : Grothendieck.Groupoidal (sigma A B) ⥤  Grothendieck.Groupoidal A where
+  obj x := ⟨x.base,x.fiber.base⟩
+  map {x y} f := {base := f.base, fiber := f.fiber.base}
+  map_id x := by
+    simp[CategoryStruct.id,Grothendieck.id]
+    fapply Grothendieck.ext
+    . simp
+    . simp
+      rw [eqToHomGrdik]
+  map_comp := sorry
+
+def SectionGrotSigmaToA {Γ : Grpd}(A : Γ ⥤ Cat.of Grpd.{v₁,u₁})(B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁})(sec : Γ ⥤ Grothendieck.Groupoidal (sigma A B)) : Γ ⥤ Grothendieck.Groupoidal A := (sec ⋙ (GrotSigmaToA A B))
+
+def SectionGrotSigmaToB {Γ : Grpd}(A : Γ ⥤ Cat.of Grpd.{v₁,u₁})(B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁})(sec : Γ ⥤ Grothendieck.Groupoidal (sigma A B)) : Γ ⥤ (Grothendieck.Groupoidal ((SectionGrotSigmaToA A B sec)⋙ B)) where
+  obj x := by
+    let ab := sec.obj x
+    let x'' := ab.fiber.fiber
+    simp [ι] at x''
+    refine ⟨x,?_⟩
+    dsimp[SectionGrotSigmaToA]
+    have alpha := B.obj ((SectionGrotSigmaToA A B sec).obj x)
+    simp[GrotSigmaToA]
+    exact ab.fiber.fiber
+  map {x y} f := by sorry
+
 
 end FunctorOperation
 
@@ -238,8 +273,9 @@ def Sigma_UP_Elim (Γ : Ctx) (F : yoneda.obj Γ ⟶ base.Ptp.obj base.{u}.Ty) : 
     exact (id iso.symm).inv
   exact B'
 
-def Sigma_UP_Intro (Γ : Ctx) (α : yoneda.obj Γ ⟶ base.Ty) (B : yoneda.obj (base.ext α) ⟶ base.Ty) :  yoneda.obj Γ ⟶ base.Ptp.obj base.{u}.Ty
- := base.uvPolyTp.pairPoly α ( (Iso.hom (base.pullbackIsoExt α)) ≫ B)
+def Sigma_UP_Intro (Γ : Ctx) (α : yoneda.obj Γ ⟶ base.Ty) (B : yoneda.obj (base.ext α) ⟶ base.Ty) :  yoneda.obj Γ ⟶ base.Ptp.obj base.{u}.Ty := base.uvPolyTp.pairPoly α ( (Iso.hom (base.pullbackIsoExt α)) ≫ B)
+
+
 
 
 -- def pair_UP_Elim (Γ : Ctx.{u}) (F : yoneda.obj Γ ⟶ base.{u}.uvPolyTp.compDom base.{u}.uvPolyTp) : (α : yoneda.obj Γ ⟶ base.{u}.Tm) × (β : yoneda.obj Γ ⟶ base.{u}.Tm) × (B : yoneda.obj (base.{u}.ext (α ≫ base.{u}.tp)) ⟶ base.{u}.Ty) ×' (β ≫ base.{u}.tp = (yoneda.map (base.{u}.sec α)) ≫ B ) := by
@@ -254,9 +290,6 @@ def Sigma_UP_Intro (Γ : Ctx) (α : yoneda.obj Γ ⟶ base.Ty) (B : yoneda.obj (
 --       UvPoly.genPb.fst base.uvPolyTp
 --         ((AsSmall.down ⋙ Grpd.forgetToCat ⋙ catLift).op ⋙ yoneda.obj (Cat.of Grpd))
 --   refine ⟨?_ , F.fst , ?_, ?_⟩
-
-
-
 
 --   refine ⟨?_ , F.fst , ?_ , ?_ ⟩
 --   . refine F.snd ≫ ?_
@@ -273,23 +306,7 @@ def Sigma_UP_Intro (Γ : Ctx) (α : yoneda.obj Γ ⟶ base.Ty) (B : yoneda.obj (
 --     simp [base.var]
 --     have help3 : base.var ((F.snd ≫ id (Limits.pullback.snd (base.uvPolyTp.proj base.Ty) base.uvPolyTp.p)) ≫ base.tp) ≫ base.tp =
 
-
-
-
 -- def pair_UP_Intro (Γ : Ctx) (α β : yoneda.obj Γ ⟶ base.Tm) (B : yoneda.obj (base.ext (α ≫ base.tp)) ⟶ base.Ty) (h : β ≫ base.tp = (yoneda.map (base.sec α)) ≫ B ) :  yoneda.obj Γ ⟶ base.uvPolyTp.compDom base.uvPolyTp := by
-
-
-#check baseUvPolyTpCompDomEquiv
-#check yonedaEquiv
-def PairSigmaUP {Γ : Ctx} (β : yoneda.obj Γ ⟶ base.Tm) (AB : yoneda.obj Γ ⟶  base.Ptp.obj base.{u}.Ty) (h : Top ≫ base.tp = Left ≫ baseSig) : yoneda.obj Γ ⟶ base.uvPolyTp.compDom base.uvPolyTp := by
-  refine yonedaEquiv.invFun ?_
-  refine baseUvPolyTpCompDomEquiv.invFun ?_
-  -- let sig := baseUvPolyTpEquiv.toFun (yonedaEquiv.toFun Left)
-  -- rcases sig with ⟨A,B⟩
-  refine ⟨?α,?B,(yonedaCatEquiv.toFun β),?h⟩
-  . sorry
-  . sorry
-  . sorry
 
 def baseSigma : NaturalModelSigma base where
   Sig := baseSig
