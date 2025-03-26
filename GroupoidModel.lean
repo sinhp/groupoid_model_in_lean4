@@ -3,6 +3,7 @@
 import GroupoidModel.Russell_PER_MS.UHom
 import GroupoidModel.Russell_PER_MS.Interpretation
 import GroupoidModel.Groupoids.NaturalModelBase
+import GroupoidModel.Groupoids.Sigma
 
 /- There should be at least three separate files here for three separate developments:
   1. the basic development of the category Grpd of groupoids
