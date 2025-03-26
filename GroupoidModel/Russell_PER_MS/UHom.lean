@@ -1,7 +1,6 @@
 import GroupoidModel.Russell_PER_MS.NaturalModelSigma
 import GroupoidModel.ForMathlib
 import Mathlib.CategoryTheory.Limits.Shapes.StrictInitial
-import Poly.UvPoly
 
 /-! Morphisms of natural models, and Russell-universe embeddings. -/
 

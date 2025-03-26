@@ -13,13 +13,8 @@ import Mathlib.CategoryTheory.Yoneda
 import Mathlib.CategoryTheory.Limits.Shapes.Terminal
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 import Mathlib.CategoryTheory.Limits.Presheaf
-import Mathlib.CategoryTheory.Adjunction.Over
 
---import Poly
-import Poly.LCCC.Basic
-import Poly.LCCC.Presheaf
-import Poly.Exponentiable
-import Poly.UvPoly
+import Poly.ForMathlib.CategoryTheory.LocallyCartesianClosed.Presheaf
 
 import GroupoidModel.ForPoly
 
@@ -79,15 +74,9 @@ variable [M : NaturalModelBase Ctx]
 
 instance : HasFiniteWidePullbacks (Psh Ctx) := hasFiniteWidePullbacks_of_hasFiniteLimits _
 
-instance : LCC (Psh Ctx) := @LCCC.mkOfOverCC _ _ _ ⟨CategoryOfElements.presheafOverCCC⟩
-
-instance {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : CartesianExponentiable tp where
-  functor := LCC.pushforward tp
-  adj := LCC.adj _
-
 @[reducible]
 def uvPoly {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly Tm Ty := ⟨tp, inferInstance⟩
-def uvPolyT {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly.Total (Psh Ctx) := ⟨_, _, uvPoly tp⟩
+def uvPolyT {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : UvPoly.Total (Psh Ctx) := ⟨uvPoly tp⟩
 
 def P {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : Psh Ctx ⥤ Psh Ctx := (uvPoly tp).functor
 
@@ -95,7 +84,7 @@ def P_naturality {E B E' B' : Psh Ctx}
     {f : E ⟶ B} {f' : E' ⟶ B'} (α : uvPolyT f ⟶ uvPolyT f') : P f ⟶ P f' :=
   UvPoly.naturality (P := uvPolyT f) (Q := uvPolyT f') α
 
-def proj {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : (P tp).obj Ty ⟶ Ty := (uvPoly tp).proj _
+def proj {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) : (P tp).obj Ty ⟶ Ty := (uvPoly tp).fstProj _
 
 -- def PolyTwoCellBack {Tm Ty : Psh Ctx} (tp : Tm ⟶ Ty) := sorry
 

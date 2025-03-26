@@ -38,7 +38,7 @@ def uvPolyTpEquiv {Γ : Ctx} {X : Psh Ctx} :
 
 @[simp] theorem uvPolyTpEquiv_fst {Γ : Ctx} {X : Psh Ctx}
     (AB : y(Γ) ⟶ M.uvPolyTp.functor.obj X) :
-    (M.uvPolyTpEquiv AB).1 = AB ≫ M.uvPolyTp.proj _ :=
+    (M.uvPolyTpEquiv AB).1 = AB ≫ M.uvPolyTp.fstProj _ :=
   rfl
 
 @[simp] theorem uvPolyTpEquiv_symm_snd {Γ : Ctx} {X : Psh Ctx}
@@ -52,14 +52,13 @@ def uvPolyTpEquiv {Γ : Ctx} {X : Psh Ctx} :
 theorem uvPolyTpEquiv_symm {Γ : Ctx} {X : Psh Ctx}
     (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
     M.uvPolyTpEquiv.symm ⟨ A, B ⟩ =
-    M.uvPolyTp.pairPoly A ((pullbackIsoExt _ _).hom ≫ B) :=
+    M.uvPolyTp.lift A ((pullbackIsoExt _ _).hom ≫ B) :=
   rfl
 
 @[simp] theorem uvPolyTpEquiv_symm_proj
     {Γ : Ctx} {X : Psh Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X):
-    M.uvPolyTpEquiv.symm ⟨A, B⟩ ≫ M.uvPolyTp.proj _ = A := by
-  simp only [uvPolyTpEquiv_symm]
-  apply M.uvPolyTp.pair_proj
+    M.uvPolyTpEquiv.symm ⟨A, B⟩ ≫ M.uvPolyTp.fstProj _ = A := by
+  simp [uvPolyTpEquiv_symm]
 
 /-- `sec` is the universal lift in the following diagram,
   which is a section of `Groupoidal.forget`
@@ -88,8 +87,8 @@ def sec {Γ : Ctx} (α : y(Γ) ⟶ M.Tm) :
   (M.disp_pullback (α ≫ M.tp)).lift_snd _ _ _
 
 theorem lift_ev {Γ : Ctx} {AB : y(Γ) ⟶ M.uvPolyTp.functor.obj M.Ty}
-    {α : y(Γ) ⟶ M.Tm} (hA : AB ≫ M.uvPolyTp.proj M.Ty = α ≫ M.tp)
-    : pullback.lift AB α hA ≫ UvPoly.genPb.u₂ M.uvPolyTp M.Ty
+    {α : y(Γ) ⟶ M.Tm} (hA : AB ≫ M.uvPolyTp.fstProj M.Ty = α ≫ M.tp)
+    : pullback.lift AB α hA ≫ (UvPoly.PartialProduct.fan M.uvPolyTp M.Ty).snd
     = M.sec α ≫ eqToHom (by rw [← hA]; rfl) ≫ (M.uvPolyTpEquiv AB).2 :=
   sorry
 

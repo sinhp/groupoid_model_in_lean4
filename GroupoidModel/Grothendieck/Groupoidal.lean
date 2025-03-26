@@ -311,7 +311,7 @@ theorem var'_uLiftToPCat :
 
 theorem var'_forget :
     var' A ≫ (uLiftGrothendieckForget (Grpd.forgetToCat.{u,u}))
-    = uLiftGrothendieckForget (Groupoid.compForgetToCat.{u} A) ≫ uLiftA A := 
+    = uLiftGrothendieckForget (Groupoid.compForgetToCat.{u} A) ≫ uLiftA A :=
   (Grothendieck.isPullback (Grpd.forgetToCat.{u,u})).lift_snd
     (IsPullback.uLiftToPCat (Groupoid.compForgetToCat.{u} A)) ((IsPullback.uLiftGrothendieckForget (Groupoid.compForgetToCat.{u} A)) ≫ uLiftA A)
     (Grothendieck.isPullback (Groupoid.compForgetToCat.{u} A)).cone.condition_one
@@ -338,7 +338,7 @@ by pullback pasting
         ↑Γ----------------------> ↑Grpd.{u,u} ----------------> ↑Cat.{u,u}
 -/
 theorem
-  isPullback_uLiftGrothendieckForget_Groupoid.compForgetToCat_uLiftGrothendieckForget_grpdForgetToCat : 
+  isPullback_uLiftGrothendieckForget_Groupoid.compForgetToCat_uLiftGrothendieckForget_grpdForgetToCat :
     IsPullback
     (Cat.homOf (var' A))
     (IsPullback.uLiftGrothendieckForget (Groupoid.compForgetToCat.{u} A))
