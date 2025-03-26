@@ -58,7 +58,7 @@ theorem uvPolyTpEquiv_symm {Γ : Ctx} {X : Psh Ctx}
 @[simp] theorem uvPolyTpEquiv_symm_proj
     {Γ : Ctx} {X : Psh Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X):
     M.uvPolyTpEquiv.symm ⟨A, B⟩ ≫ M.uvPolyTp.fstProj _ = A := by
-  simp only [uvPolyTpEquiv_symm, UvPoly.lift_fst]
+  simp [uvPolyTpEquiv_symm]
 
 /-- `sec` is the universal lift in the following diagram,
   which is a section of `Groupoidal.forget`
@@ -110,7 +110,7 @@ def uvPolyTpCompDomEquiv (Γ : Ctx) :
       invFun x := match x with
       | ⟨ α, B, β, h ⟩ => ⟨ M.uvPolyTpEquiv.symm ⟨ α ≫ M.tp, B ⟩, α, β, by
         fconstructor
-        · simp [uvPolyTp_p, uvPolyTpEquiv_symm_proj, -UvPoly.fstProj]
+        · simp [uvPolyTp_p, uvPolyTpEquiv_symm_proj]
         · refine h.trans ?_
           rw [M.lift_ev]
           congr 1
