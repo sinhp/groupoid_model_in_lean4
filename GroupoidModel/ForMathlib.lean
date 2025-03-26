@@ -28,8 +28,6 @@ or redesigned.
 
 namespace CategoryTheory
 
-attribute [reassoc (attr := simp)] Limits.terminal.comp_from
-attribute [reassoc (attr := simp)] Limits.initial.to_comp
 attribute [reassoc (attr := simp)] Limits.IsTerminal.comp_from
 attribute [reassoc (attr := simp)] Limits.IsInitial.to_comp
 
@@ -781,9 +779,9 @@ def Equiv.psigmaCongrProp {α₁ α₂} {β₁ : α₁ → Prop} {β₂ : α₂ 
 
 namespace CategoryTheory.Limits
 
-variable {𝒞 : Type u} [Category.{v} 𝒞] [HasPullbacks 𝒞]
+variable {𝒞 : Type u} [Category.{v} 𝒞]
 
-noncomputable def pullbackHomEquiv {A B C: 𝒞} {Γ : 𝒞} {f : A ⟶ C} {g : B ⟶ C} :
+noncomputable def pullbackHomEquiv {A B C: 𝒞} {Γ : 𝒞} {f : A ⟶ C} {g : B ⟶ C} [HasPullback f g] :
     (Γ ⟶ pullback f g) ≃
     (fst : Γ ⟶ A) × (snd : Γ ⟶ B) ×' (fst ≫ f = snd ≫ g) where
   toFun h := ⟨h ≫ pullback.fst f g, h ≫ pullback.snd f g, by simp[pullback.condition]⟩

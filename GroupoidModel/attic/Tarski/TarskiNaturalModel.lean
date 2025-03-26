@@ -2,10 +2,6 @@ import Mathlib.CategoryTheory.Limits.Preserves.FunctorCategory
 import GroupoidModel.Tarski.NaturalModel
 import GroupoidModel.Grothendieck.IsPullback
 import GroupoidModel.Grothendieck.Groupoidal
-import Poly.LCCC.Basic
-import Poly.LCCC.Presheaf
-import Poly.Exponentiable
-import Poly.UvPoly
 
 /-!
 Here we construct the natural model for groupoids.

@@ -10,7 +10,7 @@ package groupoid_model where
   ]
   -- add any additional package configuration options here
 
-require Poly from git "https://github.com/sinhp/Poly.git"
+require Poly from git "https://github.com/Vtec234/Poly.git" @ "profunctor-naturality"
 
 @[default_target]
 lean_lib GroupoidModel where
