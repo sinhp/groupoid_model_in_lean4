@@ -44,9 +44,9 @@ def uHomSeqPis' (i : ℕ) (ilen : i < 4) :
   | 3 => basePi
   | (n+4) => by omega
 
-def uHomSeqPis : UHomSeqPis Ctx := {
-  uHomSeq with
-  Pis' := uHomSeqPis' }
+def uHomSeqPis : UHomSeqPiSigma Ctx := { uHomSeq with
+  nmPi := uHomSeqPis'
+  nmSigma := uHomSeqSigmas' }
 
 end GroupoidModel
 
