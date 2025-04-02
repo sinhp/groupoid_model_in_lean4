@@ -283,9 +283,9 @@ end UHomSeq
 
 /-! ## Interpretation -/
 
-namespace UHomSeqPis
+namespace UHomSeqPiSigma
 
-variable {𝒞 : Type u} [SmallCategory 𝒞] [ChosenFiniteProducts 𝒞] {s : UHomSeqPis 𝒞}
+variable {𝒞 : Type u} [SmallCategory 𝒞] [ChosenFiniteProducts 𝒞] {s : UHomSeqPiSigma 𝒞}
 
 mutual
 
@@ -338,7 +338,7 @@ def ofTerm (Γ : s.CObj) (l : Nat) :
 
 end
 
-def ofCtx (s : UHomSeqPis 𝒞) : Ctx → Part s.CObj
+def ofCtx (s : UHomSeqPiSigma 𝒞) : Ctx → Part s.CObj
   | [] => return s.nilCObj
   | (A,l) :: Γ => do
     Part.assert (l < s.length + 1) fun llen => do
@@ -646,12 +646,12 @@ theorem ofType_ofTerm_sound :
   refine
     ⟨@EqTp.rec (fun Γ l A B _ => _) (fun Γ l t u A _ => _)
       ?cong_pi ?cong_univ ?cong_el ?inst_tp ?lift_tp ?symm_tp ?trans_tp ?cong_bvar0 ?cong_lam ?cong_app
-      ?cong_code ?app_lam ?eta ?conv ?inst_tm ?lift_tm ?symm_tm ?trans_tm,
+      ?cong_code ?app_lam ?lam_eta ?conv ?inst_tm ?lift_tm ?symm_tm ?trans_tm,
     @EqTm.rec (fun Γ l A B _ => _) (fun Γ l t u A _ => _)
       ?cong_pi ?cong_univ ?cong_el ?inst_tp ?lift_tp ?symm_tp ?trans_tp ?cong_bvar0 ?cong_lam ?cong_app
-      ?cong_code ?app_lam ?eta ?conv ?inst_tm ?lift_tm ?symm_tm ?trans_tm⟩
+      ?cong_code ?app_lam ?lam_eta ?conv ?inst_tm ?lift_tm ?symm_tm ?trans_tm⟩
 
-  case eta =>
+  case lam_eta =>
     intros; intros
     rename_i l l' twf ihf _ sΓmem _
     have ⟨sAB, sABmem, sf, sfmem, sfmem', sftp⟩ := ihf sΓmem
@@ -801,5 +801,13 @@ theorem ofType_ofTerm_sound :
     convert st'mem'
     exact Part.mem_unique stmem' st'mem
 
-end UHomSeqPis
+/-- Given `Γ, l, A` s.t. `Γ ⊢[l] A` and `sΓ = ⟦Γ⟧`, return `⟦A⟧_{sΓ}`. -/
+def interpType
+    {Γ : Ctx} {l : Nat} {A : Expr} (ΓA : Γ ⊢[l] A) (lt : l < s.length + 1)
+    (sΓ : s.CObj) (sΓ_mem : sΓ ∈ ofCtx s Γ) :
+    y(sΓ.1) ⟶ s[l].Ty :=
+  have h := (ofType_ofTerm_sound slen).1 ΓA sΓ_mem
+  Part.get (ofType sΓ l A) (Part.dom_iff_mem.mpr ⟨h.choose, (Classical.choose_spec h).left⟩)
+
+end UHomSeqPiSigma
 end NaturalModelBase
