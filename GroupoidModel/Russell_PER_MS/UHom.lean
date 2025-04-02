@@ -14,11 +14,11 @@ namespace NaturalModelBase
 
 variable {Ctx : Type u} [SmallCategory Ctx]
 
--- We have a 'nice', specific terminal object in `Ctx`,
--- and this instance allows use to use it directly
--- rather than through an isomorphism with `Limits.terminal`.
--- `ChosenTerminal` would suffice but is not defined in mathlib,
--- so we use `ChosenFiniteProducts`.
+/- We have a 'nice', specific terminal object in `Ctx`,
+and this instance allows use to use it directly
+rather than through an isomorphism with `Limits.terminal`.
+`ChosenTerminal` would suffice but is not defined in mathlib,
+so we use `ChosenFiniteProducts`. -/
 variable [ChosenFiniteProducts Ctx]
 
 -- Should be in mathlib?
@@ -66,7 +66,7 @@ def Hom.subst (M : NaturalModelBase Ctx)
       convert IsPullback.of_right' (M.disp_pullback Aσ) (M.disp_pullback A)
       simp }
 
-/-- A Russell embedding is a hom of natural models `M ⟶ N`
+/-- A Russell universe embedding is a hom of natural models `M ⟶ N`
 such that types in `M` correspond to terms of a universe `U` in `N`.
 
 These don't form a category since `UHom.id M` is essentially `Type : Type` in `M`. -/
@@ -124,8 +124,10 @@ def UHom.ofTarskiU (M : NaturalModelBase Ctx) (U : y(𝟙_ Ctx) ⟶ M.Ty) (El : 
       (by simp) (by simp)⟩
 }
 
+/-! ## Universe embeddings -/
+
 variable (Ctx) in
-/-- A sequence of Russell embeddings. -/
+/-- A sequence of Russell universe embeddings. -/
 structure UHomSeq [ChosenFiniteProducts Ctx] where
   /-- Number of embeddings in the sequence,
   or one less than the number of models in the sequence. -/
@@ -192,73 +194,56 @@ theorem comp_el (s : UHomSeq Ctx) {Δ Γ : Ctx} {i : Nat} (ilen : i < s.length)
 
 end UHomSeq
 
+/-- The data of type and term formers at each universe `s[i].tp`.
 
-/-- The data of Π and λ term formers for every `i, j ≤ length + 1`, interpreting
+This data is universe-monomorphic,
+but we can use it to construct universe-polymorphic formation
+in a model-independent manner.
+For example, universe-monomorphic `Pi`
+```
+Γ ⊢ᵢ A type  Γ.A ⊢ᵢ B type
+--------------------------
+Γ ⊢ᵢ ΠA. B type
+```
+can be extended to
 ```
 Γ ⊢ᵢ A type  Γ.A ⊢ⱼ B type
 --------------------------
 Γ ⊢ₘₐₓ₍ᵢ,ⱼ₎ ΠA. B type
-```
-and
-```
-Γ ⊢ᵢ A type  Γ.A ⊢ⱼ t : B
--------------------------
-Γ ⊢ₘₐₓ₍ᵢ,ⱼ₎ λA. t : ΠA. B
-```
-
-This amounts to `O(length²)` data.
-One might object that the same formation rules could be modeled with `O(length)` data:
-etc etc
-
-However, with `O(length²)` data we can use Lean's own type formers directly,
-rather than using `Π (ULift A) (ULift B)`.
-The interpretations of types are thus more direct. -/
-structure UHomSeqPis (Ctx : Type u) [SmallCategory.{u} Ctx] [ChosenFiniteProducts Ctx]
+``` -/
+structure UHomSeqPiSigma (Ctx : Type u) [SmallCategory.{u} Ctx] [ChosenFiniteProducts Ctx]
     extends UHomSeq Ctx where
-  Pis' (i : Nat) (ilen : i < length + 1) : NaturalModelPi toUHomSeq[i]
+  nmPi (i : Nat) (ilen : i < length + 1 := by get_elem_tactic) : NaturalModelPi toUHomSeq[i]
+  nmSigma (i : Nat) (ilen : i < length + 1 := by get_elem_tactic) : NaturalModelSigma toUHomSeq[i]
 
--- TODO(WN): deduplicate
-structure UHomSeqSigmas (Ctx : Type u) [SmallCategory.{u} Ctx] [ChosenFiniteProducts Ctx]
-    extends UHomSeq Ctx where
-  Sigmas' (i : Nat) (ilen : i < length + 1) : NaturalModelSigma toUHomSeq[i]
-
-namespace UHomSeqPis
+namespace UHomSeqPiSigma
 
 variable {Ctx : Type u} [SmallCategory.{u} Ctx] [ChosenFiniteProducts Ctx]
 
-instance : GetElem (UHomSeqPis Ctx) Nat (NaturalModelBase Ctx) (fun s i => i < s.length + 1) where
-  getElem s i h := s.objs i h
+instance : GetElem (UHomSeqPiSigma Ctx) Nat (NaturalModelBase Ctx)
+    (fun s i => i < s.length + 1) where
+  getElem s i h := s.toUHomSeq[i]
 
-variable (s : UHomSeqPis Ctx)
+variable (s : UHomSeqPiSigma Ctx)
 
 @[simp]
 theorem getElem_toUHomSeq (i : Nat) (ilen : i < s.length + 1) : s.toUHomSeq[i] = s[i] := by
   rfl
 
-def Pis (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) :
-    s[i].Ptp.obj s[i].Ty ⟶ s[i].Ty :=
-  (s.Pis' i ilen).Pi
-
-def lams (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) :
-    s[i].Ptp.obj s[i].Tm ⟶ s[i].Tm :=
-  (s.Pis' i ilen).lam
-
-def Pi_pbs (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) :
-    IsPullback (s.lams i) (s[i].Ptp.map s[i].tp) s[i].tp (s.Pis i) :=
-  (s.Pis' i ilen).Pi_pullback
-
 -- Sadly, we have to spell out `ilen` and `jlen` due to
 -- https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/Optional.20implicit.20argument
 variable {i j : Nat} (ilen : i < s.length + 1) (jlen : j < s.length + 1)
 
-def PisPoly : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
-  sorry ≫ s.Pis (max i j)
+/-! ## Pi -/
 
-def lamsPoly : s[i].Ptp.obj s[j].Tm ⟶ s[max i j].Tm :=
+def Pi : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
+  sorry ≫ (s.nmPi (max i j)).Pi
+
+def lam : s[i].Ptp.obj s[j].Tm ⟶ s[max i j].Tm :=
   sorry
 
-def PisPoly_pbs :
-    IsPullback (s.lamsPoly ilen jlen) (s[i].Ptp.map s[j].tp) s[max i j].tp (s.PisPoly ilen jlen) :=
+def Pi_pb :
+    IsPullback (s.lam ilen jlen) (s[i].Ptp.map s[j].tp) s[max i j].tp (s.Pi ilen jlen) :=
   sorry
 
 /--
@@ -268,7 +253,7 @@ def PisPoly_pbs :
 Γ ⊢ₘₐₓ₍ᵢ,ⱼ₎ ΠA. B
 ``` -/
 def mkPi {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty) : y(Γ) ⟶ s[max i j].Ty :=
-  s[i].Ptp_equiv ⟨A, B⟩ ≫ s.PisPoly ilen jlen
+  s[i].Ptp_equiv ⟨A, B⟩ ≫ s.Pi ilen jlen
 
 theorem comp_mkPi {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty) :
@@ -282,13 +267,13 @@ theorem comp_mkPi {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
 Γ ⊢ₘₐₓ₍ᵢ,ⱼ₎ λA. t : ΠA. B
 ``` -/
 def mkLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (t : y(s[i].ext A) ⟶ s[j].Tm) : y(Γ) ⟶ s[max i j].Tm :=
-  s[i].Ptp_equiv ⟨A, t⟩ ≫ s.lamsPoly ilen jlen
+  s[i].Ptp_equiv ⟨A, t⟩ ≫ s.lam ilen jlen
 
 @[simp]
 theorem mkLam_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (t : y(s[i].ext A) ⟶ s[j].Tm) (t_tp : t ≫ s[j].tp = B) :
     s.mkLam ilen jlen A t ≫ s[max i j].tp = s.mkPi ilen jlen A B := by
-  simp [mkLam, mkPi, (s.PisPoly_pbs ilen jlen).w, s[i].Ptp_equiv_naturality_assoc, t_tp]
+  simp [mkLam, mkPi, (s.Pi_pb ilen jlen).w, s[i].Ptp_equiv_naturality_assoc, t_tp]
 
 theorem comp_mkLam {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (t : y(s[i].ext A) ⟶ s[j].Tm) :
@@ -305,13 +290,10 @@ def unLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (f : y(Γ) ⟶ s[max i j].Tm) (f_tp : f ≫ s[max i j].tp = s.mkPi ilen jlen A B) :
     y(s[i].ext A) ⟶ s[j].Tm := by
   let total : y(Γ) ⟶ s[i].Ptp.obj s[j].Tm :=
-    (s.PisPoly_pbs ilen jlen).lift f (s[i].Ptp_equiv ⟨A, B⟩) f_tp
-  -- bug: `get_elem_tactic` fails on `i` with
-  -- convert (s[i].Ptp_equiv.symm total).snd
-  let this := s[i].Ptp_equiv.symm total
-  convert this.snd
+    (s.Pi_pb ilen jlen).lift f (s[i].Ptp_equiv ⟨A, B⟩) f_tp
+  convert (s[i].Ptp_equiv.symm total).snd
   have eq : total ≫ s[i].Ptp.map s[j].tp = s[i].Ptp_equiv ⟨A, B⟩ :=
-    (s.PisPoly_pbs ilen jlen).isLimit.fac _ (some .right)
+    (s.Pi_pb ilen jlen).isLimit.fac _ (some .right)
   simpa [s[i].Ptp_equiv_symm_naturality] using (s[i].Ptp_ext.mp eq).left.symm
 
 @[simp]
@@ -408,4 +390,18 @@ theorem mkApp_mkLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[
   rw [mkApp, unLam_mkLam]
   assumption
 
-end UHomSeqPis
+/-! ## Sigma -/
+
+def Sig : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
+  sorry ≫ (s.nmSigma (max i j)).Sig
+
+def pair : UvPoly.compDom s[i].uvPolyTp s[j].uvPolyTp ⟶ s[max i j].Tm :=
+  sorry
+
+def Sig_pb : IsPullback
+    (s.pair ilen jlen)
+  (s[i].uvPolyTp.comp s[j].uvPolyTp).p s[max i j].tp
+    (s.Sig ilen jlen) :=
+  sorry
+
+end UHomSeqPiSigma

@@ -15,7 +15,7 @@ structure NaturalModelPi where
   lam : M.Ptp.obj M.Tm ⟶ M.Tm
   Pi_pullback : IsPullback lam (M.Ptp.map M.tp) M.tp Pi
 
-class NaturalModelSigma where
+structure NaturalModelSigma where
   Sig : M.Ptp.obj M.Ty ⟶ M.Ty
   pair : UvPoly.compDom (uvPolyTp M) (uvPolyTp M) ⟶ M.Tm
   Sig_pullback : IsPullback pair ((uvPolyTp M).comp (uvPolyTp M)).p M.tp Sig

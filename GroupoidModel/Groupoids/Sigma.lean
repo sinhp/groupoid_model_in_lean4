@@ -428,9 +428,5 @@ def uHomSeqSigmas' (i : ℕ) (ilen : i < 4) :
   | 3 => baseSigma
   | (n+4) => by omega
 
-def uHomSeqSigmas : UHomSeqSigmas Ctx := {
-  uHomSeq with
-  Sigmas' := uHomSeqSigmas' }
-
 end GroupoidModel
 end
