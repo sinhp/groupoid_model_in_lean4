@@ -9,8 +9,6 @@ noncomputable section
 -- NOTE temporary section for stuff to be moved elsewhere
 section ForOther
 
-
-
 end ForOther
 
 
@@ -202,21 +200,38 @@ def GrotSigmaToA {Γ : Grpd} (A : Γ ⥤ Cat.of Grpd.{v₁,u₁}) (B : Grothendi
       rw [Grothendieck.eqToHom_eq]
   map_comp := sorry
 
-def SectionGrotSigmaToA {Γ : Grpd}(A : Γ ⥤ Cat.of Grpd.{v₁,u₁})(B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁})(sec : Γ ⥤ Grothendieck.Groupoidal (sigma A B)) : Γ ⥤ Grothendieck.Groupoidal A := (sec ⋙ (GrotSigmaToA A B))
+-- def SectionGrotSigmaToA {Γ : Grpd}(A : Γ ⥤ Cat.of Grpd.{v₁,u₁})(B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁})(sec : Γ ⥤ Grothendieck.Groupoidal (sigma A B)) : Γ ⥤ Grothendieck.Groupoidal A := (sec ⋙ (GrotSigmaToA A B))
 
-def SectionGrotSigmaToB {Γ : Grpd}(A : Γ ⥤ Cat.of Grpd.{v₁,u₁})(B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁})(sec : Γ ⥤ Grothendieck.Groupoidal (sigma A B)) : Γ ⥤ (Grothendieck.Groupoidal ((SectionGrotSigmaToA A B sec)⋙ B)) where
+#check Grothendieck.Groupoidal.ι
+
+def GrotSigmaToGrotB {Γ : Grpd} (A : Γ ⥤ Cat.of Grpd.{v₁,u₁}) (B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁}) : Grothendieck.Groupoidal (sigma A B) ⥤  Grothendieck.Groupoidal B where
   obj x := by
-    let ab := sec.obj x
-    let x'' := ab.fiber.fiber
-    simp [ι] at x''
-    refine ⟨x,?_⟩
-    dsimp[SectionGrotSigmaToA]
-    have alpha := B.obj ((SectionGrotSigmaToA A B sec).obj x)
-    simp[GrotSigmaToA]
-    exact ab.fiber.fiber
-  map {x y} f := by sorry
-
-def GetBetaFromSection {Γ : Grpd}(A : Γ ⥤ Cat.of Grpd.{v₁,u₁})(B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁})(sec : Γ ⥤ Grothendieck.Groupoidal (sigma A B)) : Γ ⥤ PGrpd := SectionGrotSigmaToB A B sec ⋙ Grothendieck.Groupoidal.toPGrpd _
+    rcases x with ⟨base,fiber,fiberfiber⟩
+    fconstructor
+    fconstructor
+    . exact base
+    . exact fiber
+    . exact fiberfiber
+  map {x y} f := by
+    rcases f with ⟨base,fiber,fiberfiber⟩
+    fconstructor
+    fconstructor
+    . exact base
+    . exact fiber
+    . refine eqToHom ?_ ≫ fiberfiber
+      . simp[Grpd.forgetToCat,Grothendieck.Groupoidal.pre,whiskerRight,map]
+        set I := ((ι A y.base).map fiber)
+        set J := (@Grothendieck.ιNatTrans (↑Γ) Groupoid.toCategory (Groupoid.compForgetToCat A) x.base y.base base).app x.fiber.base
+        have eq1 : (B.map I).obj ((B.map J).obj x.fiber.fiber) = (B.map J ≫ B.map I).obj x.fiber.fiber := rfl
+        rw [eq1,<- B.map_comp J I]
+        simp[J,I,CategoryStruct.comp,Grothendieck.comp,ι]
+        refine Functor.congr_obj ?_ x.fiber.fiber
+        refine congrArg B.map ?_
+        apply Grothendieck.ext
+        . simp
+        . simp
+  map_id := sorry
+  map_comp := sorry
 
 
 end FunctorOperation
@@ -236,15 +251,65 @@ def basePair : base.uvPolyTp.compDom base.uvPolyTp ⟶ base.Tm where
     yonedaEquiv (yonedaCatEquiv.symm (pair α β B h))
   naturality := by sorry
 
-def ExtFunctorial {Γ : Ctx} {F G : (yoneda.obj Γ) ⟶  base.Ty} (n : (yonedaCatEquiv.toFun F) ⟶ (yonedaCatEquiv.toFun G)) : base.ext F ⟶ base.ext G := by
-  dsimp [NaturalModelBase.ext, ext,Grpd.of,Grothendieck.Groupoidal]
-  refine AsSmall.up.map ?_
-  exact map n
+def Sigma_Comm : basePair ≫ base.tp = (base.uvPolyTp.comp base.uvPolyTp).p ≫ baseSig := by sorry
+
+def PairUP' {Γ : Ctx.{u}} (AB : yoneda.obj Γ ⟶ base.Ptp.obj base.{u}.Ty) : yoneda.obj (base.ext (AB ≫ baseSig)) ⟶ base.uvPolyTp.compDom base.uvPolyTp := by
+  refine yonedaEquiv.invFun ?_
+  refine baseUvPolyTpCompDomEquiv.invFun ?_
+  let AB' := baseUvPolyTpEquiv (yonedaEquiv.toFun AB)
+  refine ⟨?α,?B,?β,?h⟩
+  . let α : Grothendieck.Groupoidal (sigma AB'.fst AB'.snd) ⥤ PGrpd := by
+      refine ?_ ⋙ (Grothendieck.Groupoidal.toPGrpd AB'.fst)
+      exact GrotSigmaToA AB'.fst AB'.snd
+    refine ?_ ⋙ α
+    refine Grothendieck.Groupoidal.map ?_
+    refine eqToHom ?_
+    simp[yonedaCatEquiv,yonedaEquiv,AB',baseSig]
+    aesop_cat
+  . dsimp
+    refine ?_ ⋙ (GrotSigmaToA AB'.fst AB'.snd) ⋙ AB'.snd
+    exact
+      Grothendieck.forget
+        (Groupoid.compForgetToCat
+          ((map (𝟙 (yonedaCatEquiv (AB ≫ baseSig))) ⋙
+              GrotSigmaToA AB'.fst AB'.snd ⋙ toPGrpd AB'.fst) ⋙
+            PGrpd.forgetToGrpd))
+  . have F : (Ctx.toGrpd.obj (base.ext (AB ≫ baseSig))) ⥤ Grothendieck.Groupoidal (sigma AB'.fst AB'.snd) := by
+      exact 𝟭 ↑(Ctx.toGrpd.obj (base.ext (AB ≫ baseSig)))
+    refine F ⋙ ?_
+    refine ?_ ⋙ (Grothendieck.Groupoidal.toPGrpd AB'.snd)
+    exact GrotSigmaToGrotB AB'.fst AB'.snd
+  . exact rfl
+
+def GammaToSigma {Γ : Ctx} (top : (yoneda.obj Γ) ⟶ base.Tm) (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty) (h : top ≫ base.tp = left ≫ baseSig) : (yoneda.obj Γ) ⟶ yoneda.obj (base.ext (left ≫ baseSig)) := by
+  have di := base.disp_pullback (left ≫ baseSig)
+  exact di.lift top (𝟙 _) (by rw[Category.id_comp,h])
+
+def GammaToSigmaInv_disp {Γ : Ctx} (top : (yoneda.obj Γ) ⟶ base.Tm) (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty) (h : top ≫ base.tp = left ≫ baseSig) : (GammaToSigma top left h) ≫ (yoneda.map (base.disp (left ≫ baseSig))) = 𝟙 (yoneda.obj Γ) := by
+  sorry
+
+def PairUP {Γ : Ctx} (top : (yoneda.obj Γ) ⟶ base.Tm) (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty) (h : top ≫ base.tp = left ≫ baseSig) : (yoneda.obj Γ) ⟶ base.uvPolyTp.compDom base.uvPolyTp := by
+  exact GammaToSigma top left h ≫ (PairUP' left)
+
+theorem PairUP_Comm1 {Γ : Ctx} (top : (yoneda.obj Γ) ⟶ base.Tm) (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty) (h : top ≫ base.tp = left ≫ baseSig) : (PairUP top left h) ≫ basePair = top := by
+sorry
+
+theorem PairUP_Comm2 {Γ : Ctx} (top : (yoneda.obj Γ) ⟶ base.Tm) (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty) (h : top ≫ base.tp = left ≫ baseSig) : (PairUP top left h) ≫ (base.uvPolyTp.comp base.uvPolyTp).p = left := by
+sorry
+
+theorem PairUP_Uniqueness {Γ : Ctx} (f : (yoneda.obj Γ) ⟶ base.uvPolyTp.compDom base.uvPolyTp): f = (PairUP (f ≫  basePair) (f ≫ (base.uvPolyTp.comp base.uvPolyTp).p) (by rw[Category.assoc,Category.assoc]; congr 1; exact Sigma_Comm)) := by
+  refine (base.uvPolyTpCompDomEquiv Γ).injective ?_
+  refine Sigma.ext ?_ ?_
+  . sorry
+  . sorry
+
+def is_pb : IsPullback basePair (base.uvPolyTp.comp base.uvPolyTp).p base.tp baseSig := by
+  sorry
 
 def baseSigma : NaturalModelSigma base where
   Sig := baseSig
   pair := basePair
-  Sig_pullback := sorry -- should prove using the `IsMegaPullback` strategy
+  Sig_pullback := is_pb
 
 def smallUSigma : NaturalModelSigma smallU := sorry
 
