@@ -115,6 +115,12 @@ def map (α : F ⟶ G) : Groupoidal F ⥤ Groupoidal G :=
 theorem map_obj {α : F ⟶ G} (X : Groupoidal F) :
     (Groupoidal.map α).obj X = ⟨X.base, (α.app X.base).obj X.fiber⟩ := rfl
 
+theorem Grothendieck.map_eqToHom_obj_base {F G : C ⥤ Cat.{v,u}} (h : F = G)
+  (x) : ((Grothendieck.map (eqToHom h)).obj x).base = x.base := rfl
+
+theorem map_id_eq : map (𝟙 F) = Functor.id (Grpd.of <| Groupoidal <| F) :=
+  Grothendieck.map_id_eq
+
 end
 
 /-- Applying a functor `G : D ⥤ C` to the base of the groupoidal Grothendieck
@@ -193,6 +199,37 @@ def toPGrpd : Grothendieck (Groupoid.compForgetToCat A) ⥤ PGrpd.{v₁,u₁} wh
 theorem toPGrpd_comp_forgetToPCat :
     toPGrpd A ⋙ PGrpd.forgetToPCat = toPCat (Groupoid.compForgetToCat A) :=
   rfl
+
+-- theorem Grpd.ext {G1 G2 : Type u} [Groupoid.{v} G1] [Groupoid.{v} G2]
+--     (f1 f2 : G1 ⥤ G2) : f1 = f2 ↔ Grpd.homOf f1 = Grpd.homOf f2 := Iff.rfl
+
+-- theorem Cat.ext {G1 G2 : Type u} [Category.{v} G1] [Category.{v} G2]
+--     (f1 f2 : G1 ⥤ G2) : f1 = f2 ↔ Cat.homOf f1 = Cat.homOf f2 := Iff.rfl
+
+@[simp] theorem map_toPGrpd {Γ : Cat.{v₂,u₂}} {A B : Γ ⥤ Cat} {θ : A ⟶ B} :
+    Grothendieck.map θ ⋙ toPCat B = toPCat A := by
+  apply Functor.ext
+  · sorry
+  · intro x
+    simp [Grothendieck.map, toPCat, toPCatObj]
+    sorry
+
+@[simp] theorem map_eqToHom_toPGrpd {Γ : Grpd.{v₂,u₂}} {A : Γ ⥤ Grpd} {α : Γ ⥤ PGrpd}
+    {h : α ⋙ PGrpd.forgetToGrpd = A} :
+    map (eqToHom h) ⋙ toPGrpd A = toPGrpd (α ⋙ PGrpd.forgetToGrpd) := by
+  -- convert_to eqToHom ((by rw [h]) : Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⟶ Groupoidal A) ⋙ toPGrpd A = _
+  apply Functor.ext
+  · sorry
+  · intro x
+    simp only [toPGrpd, Groupoid.compForgetToCat, toPCatObj_α, Functor.comp_obj]
+    convert_to PGrpd.of (Grpd.forgetToCat.obj (A.obj x.base)) = _
+    -- have h := congr_arg PGrpd.of $ congr_arg (Grpd.forgetToCat.obj) $ Functor.congr_obj h x.base
+    congr 1
+    · rw [← Functor.congr_obj h x.base]
+      rfl
+    · simp[toPCatObjPointed]-- rw [← Functor.congr_hom h x.base]
+      -- rw [← Functor.congr_obj h x.base]
+      sorry
 
 namespace IsMegaPullback
 
@@ -446,6 +483,26 @@ variable {Γ : Type u₂} [Category.{v₂} Γ] {Δ : Type u₃} [Category.{v₃}
 
 end
 
+section
+
+variable {Γ : Grpd.{v₂,u₂}} {A : Γ ⥤ Grpd.{v₁,u₁}}
+    {α : Γ ⥤ PGrpd.{v₁,u₁}} (h : α ⋙ PGrpd.forgetToGrpd = A)
+
+def sec' :
+    Γ ⥤ Groupoidal A :=
+  Groupoidal.IsMegaPullback.lift α (Functor.id _)
+    (by simp [h, Functor.id_comp])
+
+@[simp] def sec'_toPGrpd : Groupoidal.sec' h ⋙ Groupoidal.toPGrpd _ = α := by
+  simp [Groupoidal.sec']
+
+@[simp] def sec'_forget : Groupoidal.sec' h ⋙ Grothendieck.forget _
+    = Functor.id _ :=
+  rfl
+
+end
+
+variable {Γ : Grpd.{v₂,u₂}}
 /-- `sec` is the universal lift in the following diagram,
   which is a section of `Groupoidal.forget`
              α
@@ -459,20 +516,23 @@ end
  ‖      V                        V
   ===== Γ --α ≫ forgetToGrpd--> Grpd
 -/
-def sec
-    {Γ : Grpd.{v₂,u₂}} (α : Γ ⥤ PGrpd.{v₁,u₁}) :
+def sec (α : Γ ⥤ PGrpd.{v₁,u₁}) :
     Γ ⥤ Groupoidal (α ⋙ PGrpd.forgetToGrpd) :=
-  Groupoidal.IsMegaPullback.lift α (Functor.id _) rfl
+  sec' rfl
 
-@[simp] def sec_toPGrpd
-    {Γ : Grpd.{v₂,u₂}} (α : Γ ⥤ PGrpd.{v₁,u₁}) :
-    Groupoidal.sec α ⋙ Groupoidal.toPGrpd _ = α := by
-  simp [Groupoidal.sec]
+@[simp] def sec_toPGrpd (α : Γ ⥤ PGrpd.{v₁,u₁}) :
+    Groupoidal.sec α ⋙ Groupoidal.toPGrpd _ = α := sec'_toPGrpd _
 
-@[simp] def sec_forget
-    {Γ : Grpd.{v₂,u₂}} (α : Γ ⥤ PGrpd.{v₁,u₁}) :
-    Groupoidal.sec α ⋙ Grothendieck.forget _ = Functor.id _ :=
-  rfl
+@[simp] def sec_forget (α : Γ ⥤ PGrpd.{v₁,u₁}) :
+    Groupoidal.sec α ⋙ Grothendieck.forget _ = Functor.id _ := rfl
+
+theorem sec_map_eqToHom {A : Γ ⥤ Grpd.{v₁,u₁}} {α : Γ ⥤ PGrpd.{v₁,u₁}}
+    (h : α ⋙ PGrpd.forgetToGrpd = A) :
+    Groupoidal.sec α ⋙ Groupoidal.map (eqToHom h) = Groupoidal.sec' h := by
+  apply IsMegaPullback.lift_uniq α (Functor.id _) ?_ (sec α ⋙ map (eqToHom h))
+  · simp only [Functor.assoc, map_eqToHom_toPGrpd, sec_toPGrpd]
+  · rfl
+  · simp [h, Functor.id_comp]
 
 end Groupoidal
 end Grothendieck

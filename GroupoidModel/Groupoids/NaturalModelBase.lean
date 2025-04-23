@@ -247,6 +247,42 @@ def baseUvPolyTpCompDomEquiv {Γ : Ctx.{u}} :
   · simp only [yonedaCatEquiv_naturality_left, ← yonedaCatEquiv.apply_eq_iff_eq]
   simp [yonedaCatEquiv.apply_eq_iff_eq]))
 
+def baseUvPolyTpCompDomEquiv' {Γ : Ctx.{u}} :
+    (base.uvPolyTp.compDom base.uvPolyTp).obj (op Γ)
+    ≃ (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{u,u})
+    × (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
+    × (B : Groupoidal A ⥤ Grpd.{u,u})
+    × (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
+    ×' (h : α ⋙ PGrpd.forgetToGrpd = A)
+    ×' β ⋙ PGrpd.forgetToGrpd = Groupoidal.sec α ⋙ Groupoidal.map (eqToHom h) ⋙ B :=
+  baseUvPolyTpCompDomEquiv.trans $ {
+    toFun := fun ⟨α,B,β,h⟩ => ⟨α ⋙ PGrpd.forgetToGrpd, α, B, β, rfl, by
+      rw [h, eqToHom_refl, Groupoidal.map_id_eq]
+      rfl⟩
+    invFun := fun ⟨A,α,B,β,hA,hB⟩ => ⟨α, Groupoidal.map (eqToHom hA) ⋙ B, β, by rw [hB] ⟩
+    left_inv := by
+      intro ⟨α,B,β,h⟩
+      dsimp
+      congr!
+      simp [Groupoidal.map_id_eq, Functor.id_comp]
+    right_inv := by
+      intro ⟨A,α,B,β,h1,h2⟩
+      subst h1
+      congr!
+      · simp [eqToHom_refl, Groupoidal.map_id_eq, Functor.id_comp]
+    }
+
+def baseTmEquiv {Γ : Ctx} :
+    (A : y(Γ) ⟶ base.Ty) × (α : y(Γ) ⟶ base.Tm) ×' (α ≫ base.tp = A) ≃
+    (A : Ctx.toGrpd.obj Γ ⥤ Grpd) × (α : Ctx.toGrpd.obj Γ ⥤ PGrpd)
+      ×' (α ⋙ PGrpd.forgetToGrpd = A) :=
+  Equiv.sigmaCongr yonedaCatEquiv $ fun A =>
+    Equiv.psigmaCongrProp yonedaCatEquiv $ fun α => (by
+      simp only [base_tp, tp]
+      convert_to _ ↔ yonedaCatEquiv
+        (α ≫ yonedaCat.map (Cat.homOf PGrpd.forgetToGrpd)) = _
+      simp)
+
 end GroupoidModel
 
 end

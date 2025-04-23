@@ -190,51 +190,66 @@ theorem pair_comp_forget {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u�
 
 def fst {Γ : Grpd} {A : Γ ⥤ Cat.of Grpd.{v₁,u₁}}
     (B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁}) :
-  Grothendieck.Groupoidal (sigma A B) ⥤  Grothendieck.Groupoidal A where
-  obj x := ⟨x.base,x.fiber.base⟩
-  map {x y} f := {base := f.base, fiber := f.fiber.base}
-  map_id x := by
-    simp[CategoryStruct.id,Grothendieck.id]
-    fapply Grothendieck.ext
-    . simp
-    . simp
-      rw [Grothendieck.eqToHom_eq]
-  map_comp := sorry
+    Grothendieck.Groupoidal (sigma A B) ⥤ Grothendieck.Groupoidal A :=
+  Grothendieck.Groupoidal.map
+    {app x := Grpd.homOf (Grothendieck.forget _)}
+-- def fst {Γ : Grpd} {A : Γ ⥤ Cat.of Grpd.{v₁,u₁}}
+--     (B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁}) :
+--   Grothendieck.Groupoidal (sigma A B) ⥤  Grothendieck.Groupoidal A where
+--   obj x := ⟨x.base,x.fiber.base⟩
+--   map {x y} f := ⟨f.base, f.fiber.base⟩
+--   map_id x := by
+--     fapply Grothendieck.ext
+--     . simp
+--     . simp only [Grothendieck.id_fiber, eqToHom_refl, Category.id_comp]
+--       rw [Grothendieck.eqToHom_eq]
+--   map_comp f g := by
+--     fapply Grothendieck.ext
+--     · simp
+--     · simp only [Functor.comp_obj, sigma_obj, Functor.comp_map, sigma_map, Grpd.coe_of, Grothendieck.comp_base,
+--   Grothendieck.comp_fiber, Cat.comp_obj, eqToHom_refl, Category.id_comp]
+--       sorry
 
-set_option maxHeartbeats 0 in
-def snd {Γ : Grpd} (A : Γ ⥤ Cat.of Grpd.{v₁,u₁})
+-- JH: changed name from `snd` to `assoc`
+def assoc {Γ : Grpd} (A : Γ ⥤ Cat.of Grpd.{v₁,u₁})
     (B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁}) :
-  Grothendieck.Groupoidal (sigma A B) ⥤  Grothendieck.Groupoidal B where
-  obj x := by
-    rcases x with ⟨base,fiber,fiberfiber⟩
-    fconstructor
-    fconstructor
-    . exact base
-    . exact fiber
-    . exact fiberfiber
-  map {x y} f := by
-    rcases f with ⟨base,fiber,fiberfiber⟩
-    fconstructor
-    fconstructor
-    . exact base
-    . exact fiber
-    . refine eqToHom ?_ ≫ fiberfiber
-      . simp[Grpd.forgetToCat,Grothendieck.Groupoidal.pre,whiskerRight,map]
-        set I := ((ι A y.base).map fiber)
-        set J := (@Grothendieck.ιNatTrans (↑Γ) Groupoid.toCategory (Groupoid.compForgetToCat A) x.base y.base base).app x.fiber.base
-        have eq1 : (B.map I).obj ((B.map J).obj x.fiber.fiber) = (B.map J ≫ B.map I).obj x.fiber.fiber := rfl
-        rw [eq1,<- B.map_comp J I]
-        simp[J,I,CategoryStruct.comp,Grothendieck.comp,ι]
-        refine Functor.congr_obj ?_ x.fiber.fiber
-        refine congrArg B.map ?_
-        apply Grothendieck.ext
-        . simp
-        . simp
-  map_id := by
-    intro x
-    simp[Grothendieck.Hom.rec,Grothendieck.Hom.rec]
-    sorry
-  map_comp := sorry
+    Grothendieck.Groupoidal (sigma A B) ⥤ Grothendieck.Groupoidal B :=
+  sorry
+
+-- set_option maxHeartbeats 0 in
+-- def snd {Γ : Grpd} (A : Γ ⥤ Cat.of Grpd.{v₁,u₁})
+--     (B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁}) :
+--   Grothendieck.Groupoidal (sigma A B) ⥤  Grothendieck.Groupoidal B where
+--   obj x := by
+--     rcases x with ⟨base,fiber,fiberfiber⟩
+--     fconstructor
+--     fconstructor
+--     . exact base
+--     . exact fiber
+--     . exact fiberfiber
+--   map {x y} f := by
+--     rcases f with ⟨base,fiber,fiberfiber⟩
+--     fconstructor
+--     fconstructor
+--     . exact base
+--     . exact fiber
+--     . refine eqToHom ?_ ≫ fiberfiber
+--       . simp[Grpd.forgetToCat,Grothendieck.Groupoidal.pre,whiskerRight,map]
+--         set I := ((ι A y.base).map fiber)
+--         set J := (@Grothendieck.ιNatTrans (↑Γ) Groupoid.toCategory (Groupoid.compForgetToCat A) x.base y.base base).app x.fiber.base
+--         have eq1 : (B.map I).obj ((B.map J).obj x.fiber.fiber) = (B.map J ≫ B.map I).obj x.fiber.fiber := rfl
+--         rw [eq1,<- B.map_comp J I]
+--         simp[J,I,CategoryStruct.comp,Grothendieck.comp,ι]
+--         refine Functor.congr_obj ?_ x.fiber.fiber
+--         refine congrArg B.map ?_
+--         apply Grothendieck.ext
+--         . simp
+--         . simp
+--   map_id := by
+--     intro x
+--     simp[Grothendieck.Hom.rec,Grothendieck.Hom.rec]
+--     sorry
+--   map_comp := sorry
 
 def ABToAlpha {Γ : Grpd} {A : Γ ⥤ Cat.of Grpd.{v₁,u₁}}
     (B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁}) :
@@ -250,7 +265,7 @@ def ABToB {Γ : Grpd} {A : Γ ⥤ Cat.of Grpd.{v₁,u₁}}
 def ABToBeta {Γ : Grpd} {A : Γ ⥤ Cat.of Grpd.{v₁,u₁}}
     (B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁}) :
     (Grothendieck.Groupoidal (sigma A B)) ⥤ PGrpd := by
-  exact (snd A B) ⋙ (Grothendieck.Groupoidal.toPGrpd B)
+  exact (assoc A B) ⋙ (Grothendieck.Groupoidal.toPGrpd B)
 
 end FunctorOperation
 
@@ -273,38 +288,84 @@ def Sigma_Comm : basePair ≫ base.tp = (base.uvPolyTp.comp base.uvPolyTp).p ≫
 
 def PairUP' {Γ : Ctx.{u}} (AB : yoneda.obj Γ ⟶ base.Ptp.obj base.{u}.Ty) :
     yoneda.obj (base.ext (AB ≫ baseSig)) ⟶ base.uvPolyTp.compDom base.uvPolyTp := by
+  -- sorry
   refine yonedaEquiv.invFun ?_
   refine baseUvPolyTpCompDomEquiv.invFun ?_
   let AB' := baseUvPolyTpEquiv (yonedaEquiv.toFun AB)
-  exact ⟨ABToAlpha AB'.snd, ABToB AB'.snd, ABToBeta AB'.snd, rfl⟩
+  exact ⟨ABToAlpha AB'.snd, ABToB AB'.snd, ABToBeta AB'.snd, by
+    -- simp
+    sorry
+  ⟩
 
-def GammaToSigma {Γ : Ctx} (top : (yoneda.obj Γ) ⟶ base.Tm) (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty) (h : top ≫ base.tp = left ≫ baseSig) : (yoneda.obj Γ) ⟶ yoneda.obj (base.ext (left ≫ baseSig)) := by
-  exact (base.disp_pullback (left ≫ baseSig)).lift top (𝟙 _) (by rw[Category.id_comp,h])
+-- NOTE this has been refactored through sec'
+-- def GammaToSigma {Γ : Ctx} (top : (yoneda.obj Γ) ⟶ base.Tm)
+--     (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty)
+--     (h : top ≫ base.tp = left ≫ baseSig) :
+--     (yoneda.obj Γ) ⟶ yoneda.obj (base.ext (left ≫ baseSig)) :=
+--   (base.disp_pullback (left ≫ baseSig)).lift top (𝟙 _) (by rw[Category.id_comp,h])
 
-def GammaToSigmaInv_disp {Γ : Ctx} (top : (yoneda.obj Γ) ⟶ base.Tm) (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty) (h : top ≫ base.tp = left ≫ baseSig) : (GammaToSigma top left h) ≫ (yoneda.map (base.disp (left ≫ baseSig))) = 𝟙 (yoneda.obj Γ) := by
-  simp [GammaToSigma]
+-- def GammaToSigmaInv_disp {Γ : Ctx} (top : (yoneda.obj Γ) ⟶ base.Tm) (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty) (h : top ≫ base.tp = left ≫ baseSig) : (base.sec' top _ h) ≫ (yoneda.map (base.disp (left ≫ baseSig))) = 𝟙 (yoneda.obj Γ) := by
+--   simp [sec']
 
 def PairUP {Γ : Ctx} (top : (yoneda.obj Γ) ⟶ base.Tm)
     (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty)
     (h : top ≫ base.tp = left ≫ baseSig) :
-    (yoneda.obj Γ) ⟶ base.uvPolyTp.compDom base.uvPolyTp := by
-  exact GammaToSigma top left h ≫ (PairUP' left)
+    (yoneda.obj Γ) ⟶ base.uvPolyTp.compDom base.uvPolyTp :=
+  base.sec' h ≫ (PairUP' left)
+
+namespace SigmaPullback
+
+def somethingEquiv {Γ : Ctx} {ab : y(Γ) ⟶ base.Tm}
+    {AB : y(Γ) ⟶ base.Ptp.obj base.{u}.Ty}
+    (h : ab ≫ base.tp = AB ≫ baseSig) :
+    (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
+    × (B : Grothendieck.Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{u,u})
+    × (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
+    ×' β ⋙ PGrpd.forgetToGrpd = sec α ⋙ B :=
+  let ⟨A,B⟩ := baseUvPolyTpEquiv (yonedaEquiv.toFun AB)
+  let ⟨sigAB,ab,h⟩ := baseTmEquiv ⟨_,ab,h⟩
+  sorry
+
+-- strategy: want to first show that cones of the diagram
+-- correspond to some functor data,
+-- then do the functor constructions
+def lift {Γ : Ctx} {ab : y(Γ) ⟶ base.Tm}
+    {AB : y(Γ) ⟶ base.Ptp.obj base.{u}.Ty}
+    (h : ab ≫ base.tp = AB ≫ baseSig) :
+    (yoneda.obj Γ) ⟶ base.uvPolyTp.compDom base.uvPolyTp :=
+  let ⟨A,B⟩ := baseUvPolyTpEquiv (yonedaEquiv.toFun AB)
+  let ⟨sigAB,ab,h⟩ := baseTmEquiv ⟨_,ab,h⟩
+  yonedaEquiv.invFun $
+  baseUvPolyTpCompDomEquiv.invFun
+  ⟨ sorry, sorry, sorry, sorry ⟩
+
+end SigmaPullback
 
 theorem PairUP_Comm1' {Γ : Ctx} (top : (yoneda.obj Γ) ⟶ base.Tm) (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty) (h : top ≫ base.tp = left ≫ baseSig) : PairUP' left ≫ basePair = (yoneda.map (base.disp (left ≫ baseSig))) ≫ top := by
   sorry
 
 theorem PairUP_Comm1 {Γ : Ctx} (top : (yoneda.obj Γ) ⟶ base.Tm) (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty) (h : top ≫ base.tp = left ≫ baseSig) : (PairUP top left h) ≫ basePair = top := by
   unfold PairUP
-  rw[Category.assoc,PairUP_Comm1' top left h,<- Category.assoc,GammaToSigmaInv_disp,Category.id_comp]
+  rw[Category.assoc,PairUP_Comm1' top left h,<- Category.assoc,
+    sec'_disp,Category.id_comp]
 
 theorem PairUP_Comm2' {Γ : Ctx} (top : (yoneda.obj Γ) ⟶ base.Tm) (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty) (h : top ≫ base.tp = left ≫ baseSig) : PairUP' left ≫ (base.uvPolyTp.comp base.uvPolyTp).p = (yoneda.map (base.disp (left ≫ baseSig))) ≫ left := by
   sorry
 
-theorem PairUP_Comm2 {Γ : Ctx} (top : (yoneda.obj Γ) ⟶ base.Tm) (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty) (h : top ≫ base.tp = left ≫ baseSig) : (PairUP top left h) ≫ (base.uvPolyTp.comp base.uvPolyTp).p = left := by
+theorem PairUP_Comm2 {Γ : Ctx} (top : (yoneda.obj Γ) ⟶ base.Tm)
+    (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty)
+    (h : top ≫ base.tp = left ≫ baseSig) :
+    (PairUP top left h) ≫ (base.uvPolyTp.comp base.uvPolyTp).p = left
+    := by
   unfold PairUP
-  rw[Category.assoc,PairUP_Comm2' top left h,<- Category.assoc,GammaToSigmaInv_disp,Category.id_comp]
+  rw[Category.assoc,PairUP_Comm2' top left h,<- Category.assoc,
+    sec'_disp,Category.id_comp]
 
-theorem PairUP_Uniqueness {Γ : Ctx} (f : (yoneda.obj Γ) ⟶ base.uvPolyTp.compDom base.uvPolyTp): f = (PairUP (f ≫  basePair) (f ≫ (base.uvPolyTp.comp base.uvPolyTp).p) (by rw[Category.assoc,Category.assoc]; congr 1; exact Sigma_Comm)) := by
+theorem PairUP_Uniqueness {Γ : Ctx}
+    (f : (yoneda.obj Γ) ⟶ base.uvPolyTp.compDom base.uvPolyTp) :
+    f = (PairUP (f ≫  basePair)
+      (f ≫ (base.uvPolyTp.comp base.uvPolyTp).p)
+      (by rw[Category.assoc,Category.assoc]; congr 1; exact Sigma_Comm))     := by
   unfold PairUP
   refine (base.uvPolyTpCompDomEquiv Γ).injective ?_
   refine Sigma.ext ?_ ?_
