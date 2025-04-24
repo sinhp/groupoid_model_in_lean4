@@ -373,6 +373,34 @@ instance : forgetToGrpd.ReflectsIsomorphisms := by
       simp [h, eqToHom_map]
     · exact hGF
 
+section
+variable {Γ : Type u₂} [Category.{v₂} Γ]
+
+section
+variable {A : Γ ⥤ Grpd.{v₁,u₁}} {α : Γ ⥤ PGrpd.{v₁,u₁}} (h : α ⋙ PGrpd.forgetToGrpd = A)
+
+def compForgetToGrpdObjPt (x : Γ) : A.obj x :=
+  (eqToHom (Functor.congr_obj h x)).obj (α.obj x).str.pt
+
+def compForgetToGrpdMapPoint {x y : Γ} (f : x ⟶ y) :
+    (A.map f).obj (compForgetToGrpdObjPt h x) ⟶ compForgetToGrpdObjPt h y :=
+  eqToHom (by
+    simp only [Functor.congr_hom h.symm f, Functor.comp_obj,
+      Grpd.comp_eq_comp, compForgetToGrpdObjPt, Grpd.eqToHom_obj, cast_cast]
+    rfl)
+    ≫ (eqToHom (Functor.congr_obj h y)).map (α.map f).point
+
+end
+
+theorem map_comp_point {A : Γ ⥤ PGrpd.{v₁,u₁}}
+    {x y z : Γ} {f : x ⟶ y} {g : y ⟶ z} :
+    (A.map (f ≫ g)).point = eqToHom (by simp) ≫ (A.map g).map (A.map f).point ≫ (A.map g).point := by
+  have : A.map (f ≫ g) = A.map f ≫ A.map g := by
+    simp [Grpd.comp_eq_comp]
+  rw [PointedFunctor.congr_point this, PGrpd.comp_point]
+
+end
+
 end PGrpd
 
 end PointedCategories
