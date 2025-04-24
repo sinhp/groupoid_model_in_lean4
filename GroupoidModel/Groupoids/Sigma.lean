@@ -15,6 +15,9 @@ namespace GroupoidModel
 
 open CategoryTheory NaturalModelBase Opposite Grothendieck.Groupoidal
 
+example {A B : Type} (h : A = B) : A = B := by
+  rw! [h]
+#exit
 namespace FunctorOperation
 
 -- TODO: Fix performance issue.
