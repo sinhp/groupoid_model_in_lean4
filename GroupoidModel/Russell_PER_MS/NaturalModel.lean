@@ -1,8 +1,7 @@
+import SEq.Tactic.DepRewrite
 import Poly.ForMathlib.CategoryTheory.LocallyCartesianClosed.Presheaf
 import Poly.UvPoly.UPFan
 import GroupoidModel.ForPoly
-import SEq.Tactic.DepRewrite
-import Poly.Widget.CommDiag
 
 universe v u
 
