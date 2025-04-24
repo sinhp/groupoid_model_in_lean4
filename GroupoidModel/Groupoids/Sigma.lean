@@ -1,5 +1,5 @@
 import GroupoidModel.Groupoids.NaturalModelBase
-import GroupoidModel.Russell_PER_MS.NaturalModelSigma
+import GroupoidModel.Russell_PER_MS.NaturalModel
 
 universe v u v₁ u₁ v₂ u₂ v₃ u₃
 

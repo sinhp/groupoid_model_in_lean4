@@ -200,22 +200,22 @@ def baseUvPolyTpEquiv {Γ : Ctx.{u}} {C : Cat.{u,u+1}} :
     (base.Ptp.obj (yonedaCat.obj C)).obj (op Γ)
     ≃ (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{u,u}) × (Groupoidal A ⥤ C) :=
   yonedaEquiv.symm.trans (
-  base.uvPolyTpEquiv.trans (
+  base.Ptp_equiv.trans (
   Equiv.sigmaCongr
     yonedaCatEquiv
     (fun _ => yonedaCatEquiv)))
 
 @[simp] theorem base_sec {Γ : Ctx.{u}} (α : y(Γ) ⟶ base.Tm) :
-    base.sec α = ym(Ctx.ofGrpd.map (Groupoidal.sec (yonedaCatEquiv α))) :=
-  (base.disp_pullback (α ≫ base.tp)).hom_ext
-  (by
-    rw [NaturalModelBase.sec_var]
+    base.sec α = Ctx.ofGrpd.map (Groupoidal.sec (yonedaCatEquiv α)) := by
+  apply Yoneda.fullyFaithful.map_injective
+  apply (base.disp_pullback _).hom_ext
+  . rw [NaturalModelBase.sec_var]
     dsimp only [base_var, var]
     convert_to α =
     yonedaCatEquiv.symm
       (Groupoidal.sec (yonedaCatEquiv α) ⋙ Groupoidal.toPGrpd (yonedaCatEquiv α ⋙ Cat.homOf PGrpd.forgetToGrpd))
-    rw [Groupoidal.sec_toPGrpd _, yonedaCatEquiv.eq_symm_apply])
-  (by rw [NaturalModelBase.sec_disp]; rfl)
+    rw [Groupoidal.sec_toPGrpd _, yonedaCatEquiv.eq_symm_apply]
+  . rw [NaturalModelBase.ym_sec_ym_disp]; rfl
 
 /-- A specialization of the universal property of `UvPoly.compDom`
   to the natural model `base`.
