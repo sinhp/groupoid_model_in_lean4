@@ -61,6 +61,8 @@ namespace Grothendieck
 abbrev Groupoidal {C : Type u₁} [Category.{v₁,u₁} C] (F : C ⥤ Grpd.{v₂,u₂}) :=
   Grothendieck (Groupoid.compForgetToCat F)
 
+notation:max "∫(" A ")" => Grothendieck.Groupoidal A
+
 namespace Groupoidal
 
 section
@@ -75,15 +77,15 @@ instance
     (X : C) : Groupoid (Groupoid.compForgetToCat F |>.obj X) where
   inv f := ((F.obj X).str').inv f
 
-def isoMk {X Y : Grothendieck.Groupoidal F} (f : X ⟶ Y) : X ≅ Y := by
+def isoMk {X Y : ∫(F)} (f : X ⟶ Y) : X ≅ Y := by
   fapply Grothendieck.mkIso
   · exact (Groupoid.isoEquivHom _ _).2 f.base
   · apply (Groupoid.isoEquivHom _ _).2 f.fiber
 
-def inv {X Y : Grothendieck.Groupoidal F} (f : X ⟶ Y) : Y ⟶ X  :=
+def inv {X Y : ∫(F)} (f : X ⟶ Y) : Y ⟶ X  :=
   isoMk f |>.inv
 
-instance groupoid : Groupoid (Grothendieck.Groupoidal F) where
+instance groupoid : Groupoid ∫(F) where
   inv f :=  inv f
   inv_comp f := (isoMk f).inv_hom_id
   comp_inv f := (isoMk f).hom_inv_id
@@ -99,6 +101,13 @@ variable {C : Type u} [Category.{v} C]
 groupoidal Grothendieck construction.-/
 def ι (c : C) : F.obj c ⥤ Groupoidal F :=
   Grothendieck.ι (F ⋙ Grpd.forgetToCat) c
+
+variable {F}
+
+/-- Every morphism `f : X ⟶ Y` in the base category induces a natural transformation from the fiber
+inclusion `ι F X` to the composition `F.map f ⋙ ι F Y`. -/
+def ιNatTrans {X Y : C} (f : X ⟶ Y) : ι F X ⟶ F.map f ⋙ ι F Y :=
+  Grothendieck.ιNatTrans _
 
 end FunctorFrom
 

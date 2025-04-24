@@ -4,38 +4,45 @@ import GroupoidModel.Russell_PER_MS.NaturalModelSigma
 universe v u v₁ u₁ v₂ u₂ v₃ u₃
 
 noncomputable section
--- NOTE temporary section for stuff to be moved elsewhere
-section ForOther
-
-end ForOther
-
 
 -- NOTE content for this doc starts here
 namespace GroupoidModel
 
 open CategoryTheory NaturalModelBase Opposite Grothendieck.Groupoidal
 
-example {A B : Type} (h : A = B) : A = B := by
-  rw! [h]
+notation:max "@(" Γ ")" => Ctx.toGrpd.obj Γ
 
-#exit
 namespace FunctorOperation
 
--- TODO: Fix performance issue.
-set_option maxHeartbeats 0 in
-/-- The formation rule for Σ-types for the ambient natural model `base`
-  unfolded into operations between functors.
-
-  For a point `x : Γ`, `(sigma A B).obj x` is the groupoidal Grothendieck
+/--
+For a point `x : Γ`, `(sigma A B).obj x` is the groupoidal Grothendieck
   construction on the composition
-  `ι _ x ⋙ B : A.obj x ⥤ Groupoidal A ⥤ Grpd` -/
-@[simps] def sigma {Γ : Grpd.{v₂,u₂}} (A : Γ ⥤ Grpd.{v₁,u₁})
-    (B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁})
-    : Γ ⥤ Grpd.{v₁,u₁} where
-  obj x := Grpd.of (Grothendieck.Groupoidal ((ι _ x) ⋙ B))
-  map {x y} f := map (whiskerRight (Grothendieck.ιNatTrans f) B)
-    ⋙ pre (ι A y ⋙ B) (A.map f)
-  map_id x := by
+  `ι _ x ⋙ B : A.obj x ⥤ Groupoidal A ⥤ Grpd`
+-/
+abbrev sigmaObj {Γ : Grpd.{v₂,u₂}} {A : Γ ⥤ Grpd.{v₁,u₁}}
+    (B : ∫(A) ⥤ Grpd.{v₁,u₁}) (x : Γ) := ∫(ι A x ⋙ B)
+
+/--
+For a morphism `f : x ⟶ y` in `Γ`, `(sigma A B).map y` is a
+composition of functors.
+The first functor `map (whiskerRight (ιNatTrans f) B)`
+is an equivalence which replaces `ι A x` with the naturally
+isomorphic `A.map f ⋙ ι A y`.
+The second functor is the action of precomposing
+`A.map f` with `ι A y ⋙ B` on the Grothendieck constructions.
+
+            map ⋯                  pre ⋯
+  ∫ ι A x ⋙ B ⥤ ∫ A.map f ⋙ ι A y ⋙ B ⥤ ∫ ι A y ⋙ B
+-/
+def sigmaMap {Γ : Grpd.{v₂,u₂}} {A : Γ ⥤ Grpd.{v₁,u₁}}
+    (B : ∫(A) ⥤ Grpd.{v₁,u₁}) {x y : Γ} (f : x ⟶ y) :
+    sigmaObj B x ⥤ sigmaObj B y :=
+  map (whiskerRight (ιNatTrans f) B) ⋙ pre (ι A y ⋙ B) (A.map f)
+
+set_option maxHeartbeats 0 in
+def sigmaMapId {Γ : Grpd.{v₂,u₂}} {A : Γ ⥤ Grpd.{v₁,u₁}}
+    {B : ∫(A) ⥤ Grpd.{v₁,u₁}} {x : Γ} :
+    (sigmaMap B) (CategoryStruct.id x) = Functor.id _ := by
     let t := @Grothendieck.ιNatTrans _ _
         (A ⋙ Grpd.forgetToCat) _ _ (CategoryStruct.id x)
     have h (a : A.obj x) : B.map (t.app a) =
@@ -46,7 +53,8 @@ set_option maxHeartbeats 0 in
           rw [Grothendieck.ιNatTrans_id_app]
         _ = eqToHom (by simp [Functor.map_id]) := by
           simp [eqToHom_map]
-    simp only [map, Grothendieck.Groupoidal.pre, Grpd.id_eq_id, Grothendieck.pre]
+    -- NOTE should not unfold ιNatTrans (instead develop Groupoidal API)
+    simp only [sigmaObj, sigmaMap, ιNatTrans, map, Grothendieck.Groupoidal.pre, Grpd.id_eq_id, Grothendieck.pre]
     apply CategoryTheory.Functor.ext
     · intro p1 p2 f
       simp only [Grpd.coe_of, Functor.comp_obj, Functor.comp_map, whiskerRight_twice,
@@ -76,6 +84,23 @@ set_option maxHeartbeats 0 in
           Functor.comp_map]
         rw [Functor.congr_obj (h p.base) p.fiber]
         simp [Grpd.eqToHom_obj]
+
+
+#exit
+-- TODO: Fix performance issue.
+set_option maxHeartbeats 0 in
+/-- The formation rule for Σ-types for the ambient natural model `base`
+  unfolded into operations between functors.
+
+  For a point `x : Γ`, `(sigma A B).obj x` is the groupoidal Grothendieck
+  construction on the composition
+  `ι _ x ⋙ B : A.obj x ⥤ Groupoidal A ⥤ Grpd` -/
+@[simps] def sigma {Γ : Grpd.{v₂,u₂}} (A : Γ ⥤ Grpd.{v₁,u₁})
+    (B : ∫(A) ⥤ Grpd.{v₁,u₁}) : Γ ⥤ Grpd.{v₁,u₁} where
+  obj := sigmaObj B
+  map := sigmaMap B
+  map_id x := by
+    sorry
   map_comp := by
     intro x y z f g
     have h (a : A.obj x) : B.map ((Grothendieck.ιNatTrans (f ≫ g)).app a)
@@ -104,7 +129,7 @@ section
 variable {Δ Γ: Grpd.{v₂,u₂}} (σ : Δ ⥤ Γ) (A : Γ ⥤ Grpd.{v₁,u₁})
 
 
-theorem sigmaBeckChevalley (B : (Grothendieck.Groupoidal A) ⥤ Grpd.{v₁,u₁})
+theorem sigmaBeckChevalley (B : ∫(A) ⥤ Grpd.{v₁,u₁})
     : σ ⋙ sigma A B = sigma (σ ⋙ A) (pre A σ ⋙ B) := by
   refine CategoryTheory.Functor.ext ?_ ?_
   . intros x
@@ -123,9 +148,9 @@ end
 
 set_option maxHeartbeats 0 in
 def pairSection {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
-    (B : Grothendieck.Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁})
+    (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁})
     (h : β ⋙ PGrpd.forgetToGrpd = sec α ⋙ B)
-    : Γ ⥤ (Grothendieck.Groupoidal (sigma (α ⋙ PGrpd.forgetToGrpd) B)) where
+    : Γ ⥤ ∫(sigma (α ⋙ PGrpd.forgetToGrpd) B) where
     obj x := ⟨ x, (α.obj x).str.pt, PGrpd.compForgetToGrpdObjPt h x ⟩
     map {x y} f :=
       have := by
@@ -175,27 +200,30 @@ def pairSection {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
           . simp [Grpd.forgetToCat, Grothendieck.Groupoidal.pre, map, PGrpd.map_comp_point]
 
 theorem pairSection_comp_forget {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
-    (B : Grothendieck.Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁})
-    (h : β ⋙ PGrpd.forgetToGrpd = Grothendieck.Groupoidal.sec α ⋙ B) :
+    (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁})
+    (h : β ⋙ PGrpd.forgetToGrpd = sec α ⋙ B) :
      (pairSection α β B h) ⋙ Grothendieck.forget _ = Functor.id Γ := rfl
 
 def pair {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
-    (B : Grothendieck.Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁})
-    (h : β ⋙ PGrpd.forgetToGrpd = Grothendieck.Groupoidal.sec α ⋙ B)
-    : Γ ⥤ PGrpd.{v₁,u₁} := pairSection α β B h ⋙ Grothendieck.Groupoidal.toPGrpd _
+    (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁})
+    (h : β ⋙ PGrpd.forgetToGrpd = sec α ⋙ B)
+    : Γ ⥤ PGrpd.{v₁,u₁} := pairSection α β B h ⋙ toPGrpd _
 
 theorem pair_comp_forget {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u₁})
-    (B : Grothendieck.Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁})
-    (h : β ⋙ PGrpd.forgetToGrpd = Grothendieck.Groupoidal.sec α ⋙ B) :
+    (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v₁,u₁})
+    (h : β ⋙ PGrpd.forgetToGrpd = sec α ⋙ B) :
     pair α β B h ⋙ PGrpd.forgetToGrpd = sigma (α ⋙ PGrpd.forgetToGrpd) B := by
   unfold pair
   rw [Functor.assoc]
   exact rfl
 
+def fstAux {Γ : Grpd} {A : Γ ⥤ Cat.of Grpd.{v₁,u₁}}
+    (B : ∫(A) ⥤ Grpd.{v₁,u₁}) : sigma A B ⟶ A where
+  app x := Grpd.homOf (Grothendieck.forget _)
+
 def fst {Γ : Grpd} {A : Γ ⥤ Cat.of Grpd.{v₁,u₁}}
-    (B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁}) :
-    Grothendieck.Groupoidal (sigma A B) ⥤ Grothendieck.Groupoidal A :=
-  map {app x := Grpd.homOf (Grothendieck.forget _)}
+    (B : ∫(A) ⥤ Grpd.{v₁,u₁}) : ∫(sigma A B) ⥤ ∫(A) :=
+  map (fstAux B)
 
 -- def fst {Γ : Grpd} {A : Γ ⥤ Cat.of Grpd.{v₁,u₁}}
 --     (B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁}) :
@@ -214,11 +242,24 @@ def fst {Γ : Grpd} {A : Γ ⥤ Cat.of Grpd.{v₁,u₁}}
 --   Grothendieck.comp_fiber, Cat.comp_obj, eqToHom_refl, Category.id_comp]
 --       sorry
 
--- JH: changed name from `snd` to `assoc`
-def assoc {Γ : Grpd} (A : Γ ⥤ Cat.of Grpd.{v₁,u₁})
-    (B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁}) :
-    Grothendieck.Groupoidal (sigma A B) ⥤ Grothendieck.Groupoidal B :=
+def snd {Γ : Grpd} {A : Γ ⥤ Cat.of Grpd.{v₁,u₁}}
+    (B : ∫(A) ⥤ Grpd.{v₁,u₁}) : ∫(sigma A B) ⥤ PGrpd := sorry
+
+-- NOTE this is false using (toPGrpd (sigma A B)) instead of `snd`
+lemma snd_forgetToGrpd {Γ : Grpd}
+    {A : Γ ⥤ Cat.of Grpd.{v₁,u₁}} {B : ∫(A) ⥤ Grpd.{v₁,u₁}} :
+    snd B ⋙ PGrpd.forgetToGrpd = fst B ⋙ B := by
+  unfold fst
+
   sorry
+
+-- JH: changed name from `snd` to `assoc`
+-- maybe we should use `Grothendieck.functorFrom`
+def assoc {Γ : Grpd} {A : Γ ⥤ Cat.of Grpd.{v₁,u₁}}
+    (B : ∫(A) ⥤ Grpd.{v₁,u₁}) :
+    ∫(sigma A B) ⥤ ∫(B) :=
+  IsMegaPullback.lift (snd B) (fst B)
+    snd_forgetToGrpd
 
 -- set_option maxHeartbeats 0 in
 -- def snd {Γ : Grpd} (A : Γ ⥤ Cat.of Grpd.{v₁,u₁})
@@ -256,20 +297,19 @@ def assoc {Γ : Grpd} (A : Γ ⥤ Cat.of Grpd.{v₁,u₁})
 --   map_comp := sorry
 
 def ABToAlpha {Γ : Grpd} {A : Γ ⥤ Cat.of Grpd.{v₁,u₁}}
-    (B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁}) :
-  (Grothendieck.Groupoidal (sigma A B)) ⥤ PGrpd :=
+    (B : ∫(A) ⥤ Grpd.{v₁,u₁}) :
+  ∫(sigma A B) ⥤ PGrpd :=
   fst B ⋙ toPGrpd A
 
 def ABToB {Γ : Grpd} {A : Γ ⥤ Cat.of Grpd.{v₁,u₁}}
-    (B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁}) :
-    Grothendieck.Groupoidal (ABToAlpha B ⋙ PGrpd.forgetToGrpd) ⥤ Grpd := by
+    (B : ∫(A) ⥤ Grpd.{v₁,u₁}) :
+    ∫(ABToAlpha B ⋙ PGrpd.forgetToGrpd) ⥤ Grpd := by
   refine ?_ ⋙ fst B ⋙ B
   exact Grothendieck.forget (Groupoid.compForgetToCat (ABToAlpha B ⋙ PGrpd.forgetToGrpd))
 
 def ABToBeta {Γ : Grpd} {A : Γ ⥤ Cat.of Grpd.{v₁,u₁}}
-    (B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁}) :
-    (Grothendieck.Groupoidal (sigma A B)) ⥤ PGrpd := by
-  exact (assoc A B) ⋙ (Grothendieck.Groupoidal.toPGrpd B)
+    (B : ∫(A) ⥤ Grpd.{v₁,u₁}) : ∫(sigma A B) ⥤ PGrpd :=
+  assoc B ⋙ (Grothendieck.Groupoidal.toPGrpd B)
 
 end FunctorOperation
 
@@ -321,7 +361,7 @@ namespace SigmaPullback
 
 def somethingEquiv' {Γ : Ctx} {ab : y(Γ) ⟶ base.Tm}
   (A : (Ctx.toGrpd.obj Γ) ⥤ Grpd.{u,u})
-  (B : Grothendieck.Groupoidal A ⥤ Grpd.{u,u})
+  (B : ∫(A) ⥤ Grpd.{u,u})
   (sigAB : ↑(Ctx.toGrpd.obj Γ) ⥤ Grpd.{u,u})
   (ab : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
   (h : ab ⋙ PGrpd.forgetToGrpd = sigAB) :
@@ -329,26 +369,21 @@ def somethingEquiv' {Γ : Ctx} {ab : y(Γ) ⟶ base.Tm}
   (α ⋙ PGrpd.forgetToGrpd = A) := sorry
 
 theorem yonedaCatEquiv_baseSig {Γ : Ctx} {A : Ctx.toGrpd.obj Γ ⥤ Grpd.{u,u}}
-    {B : Grothendieck.Groupoidal A ⥤ Grpd.{u,u}} :
+    {B : ∫(A) ⥤ Grpd.{u,u}} :
     yonedaCatEquiv ((baseUvPolyTpEquiv'.symm ⟨A,B⟩) ≫ baseSig) = sigma A B
     := by
   simp only [yonedaCatEquiv, Equiv.trans_apply, yonedaEquiv_comp, baseSig, Equiv.symm_trans_apply, Equiv.toFun_as_coe, baseUvPolyTpEquiv]
-  rw [yonedaCatEquivAux.apply_eq_iff_eq_symm_apply]
-  rw [yonedaEquiv.apply_eq_iff_eq_symm_apply]
-  congr 3
-  · simp only [Equiv.symm_apply_apply, Equiv.apply_symm_apply]
-  -- rw [Equiv.apply_symm_apply]
-  -- simp?
-
-  · rw![Equiv.symm_apply_apply, Equiv.apply_symm_apply]
-    sorry
+  rw [yonedaCatEquivAux.apply_eq_iff_eq_symm_apply,
+    yonedaEquiv.apply_eq_iff_eq_symm_apply,
+    Equiv.symm_apply_apply, Equiv.apply_symm_apply]
+  congr
 
 def somethingEquiv {Γ : Ctx} {ab : y(Γ) ⟶ base.Tm}
     {AB : y(Γ) ⟶ base.Ptp.obj base.{u}.Ty}
     (h : ab ≫ base.tp = AB ≫ baseSig)
     : (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{u,u})
     × (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
-    × (B : Grothendieck.Groupoidal A ⥤ Grpd.{u,u})
+    × (B : ∫(A) ⥤ Grpd.{u,u})
     × (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
     ×' (h : α ⋙ PGrpd.forgetToGrpd = A)
     ×' β ⋙ PGrpd.forgetToGrpd = Grothendieck.Groupoidal.sec α ⋙ Grothendieck.Groupoidal.map (eqToHom h) ⋙ B :=
@@ -362,8 +397,9 @@ def somethingEquiv {Γ : Ctx} {ab : y(Γ) ⟶ base.Tm}
   have h2 : ab' ⋙ PGrpd.forgetToGrpd = sigma AB'.fst B := by
       rw [hab, baseTmEquiv_fst, ← yonedaCatEquiv_baseSig, Sigma.eta]
       simp [AB', baseUvPolyTpEquiv]
+  let α := sec ab' ⋙ map (eqToHom h2) ⋙ fst B ⋙ toPGrpd A
   ⟨ A,
-    sec ab' ⋙ map (eqToHom h2) ⋙ fst B ⋙ toPGrpd A,
+    α,
     B,
     sorry,
     sorry,
