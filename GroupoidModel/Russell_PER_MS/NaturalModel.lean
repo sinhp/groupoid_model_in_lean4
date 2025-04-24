@@ -292,9 +292,10 @@ theorem Ptp_equiv_symm_apply_comp_fstProj
 /-! ## Polynomial composition `M.tp ▸ N.tp` -/
 
 -- `private` lemma for the equivalence below.
-private lemma lift_ev {Γ : Ctx} {AB : y(Γ) ⟶ M.Ptp.obj M.Ty} {α : y(Γ) ⟶ M.Tm}
-    (hA : AB ≫ M.uvPolyTp.fstProj M.Ty = α ≫ M.tp) :
-    pullback.lift AB α hA ≫ (UvPoly.PartialProduct.fan M.uvPolyTp M.Ty).snd =
+private lemma lift_ev {Γ : Ctx} {N : NaturalModelBase Ctx}
+    {AB : y(Γ) ⟶ M.Ptp.obj N.Ty} {α : y(Γ) ⟶ M.Tm}
+    (hA : AB ≫ M.uvPolyTp.fstProj N.Ty = α ≫ M.tp) :
+    pullback.lift AB α hA ≫ (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).snd =
       ym(M.sec α) ≫
         (M.disp_pullback _).lift (M.var _) ym(M.disp _)
           (by dsimp; rw [hA, (M.disp_pullback _).w]) ≫
@@ -303,12 +304,12 @@ private lemma lift_ev {Γ : Ctx} {AB : y(Γ) ⟶ M.Ptp.obj M.Ty} {α : y(Γ) ⟶
 
 /-- A specialization of the universal property of `UvPoly.compDom` to `M.uvPolyTp`,
   using the chosen pullback `M.ext` instead of `pullback`. -/
-def uvPolyTpCompDomEquiv (Γ : Ctx) :
-    (y(Γ) ⟶ M.uvPolyTp.compDom M.uvPolyTp)
+def uvPolyTpCompDomEquiv (N : NaturalModelBase Ctx) (Γ : Ctx) :
+    (y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp)
     ≃ (α : y(Γ) ⟶ M.Tm)
-    × (B : y(M.ext (α ≫ M.tp)) ⟶ M.Ty)
-    × (β : y(Γ) ⟶ M.Tm)
-    ×' β ≫ M.tp = ym(M.sec α) ≫ B :=
+    × (B : y(M.ext (α ≫ M.tp)) ⟶ N.Ty)
+    × (β : y(Γ) ⟶ N.Tm)
+    ×' β ≫ N.tp = ym(M.sec α) ≫ B :=
   calc
     _ ≃ _ := UvPoly.compDomEquiv
     _ ≃ _ := {

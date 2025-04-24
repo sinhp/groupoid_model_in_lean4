@@ -231,7 +231,7 @@ def baseUvPolyTpCompDomEquiv {Γ : Ctx.{u}} :
     × (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
     ×' β ⋙ PGrpd.forgetToGrpd = Groupoidal.sec α ⋙ B :=
   yonedaEquiv.symm.trans (
-  (base.uvPolyTpCompDomEquiv Γ).trans
+  (base.uvPolyTpCompDomEquiv base Γ).trans
   (Equiv.sigmaCongr
     yonedaCatEquiv $
     fun α => Equiv.sigmaCongr
