@@ -148,38 +148,6 @@ def functorial {C D : Grpd.{v₁,u₁}} (F : C ⟶ D) (G : D ⥤ Grpd.{v₂,u₂
     · erw [Grothendieck.comp_fiber (F:= Groupoid.compForgetToCat (F ⋙ G)) f g]
       simp [eqToHom_trans]
 
--- TODO this should be replaced with precomposition with a Groupoidal.pre
--- def Map (Δ Γ: Grpd) (σ : Δ ⥤ Γ) (A : Γ ⥤ Grpd) (B : (Grothendieck.Groupoidal A) ⥤ Grpd) : Grothendieck.Groupoidal (σ ⋙ A) ⥤ Grpd where
---   obj x := by
---     rcases x with ⟨x, a⟩
---     dsimp at a
---     let X : Grothendieck.Groupoidal A := by
---       fconstructor
---       . exact σ.obj x
---       . exact a
---     exact B.obj X
---   map f := by
---     rename_i X Y
---     rcases X with ⟨x, xa⟩
---     rcases Y with ⟨y, ya⟩
---     let X : Grothendieck.Groupoidal A := by
---       fconstructor
---       . exact σ.obj x
---       . exact xa
---     let Y : Grothendieck.Groupoidal A := by
---       fconstructor
---       . exact σ.obj y
---       . exact ya
---     let F : X ⟶ Y := by
---       fconstructor
---       . exact σ.map f.base
---       . exact f.fiber
---     exact B.map F
---   map_comp := by
---     sorry
---   map_id x := by
---     sorry
-
 instance toPCatObjGroupoid
     (x : Grothendieck (Groupoid.compForgetToCat.{v,u,v₁,u₁} A)) :
     Groupoid x.toPCatObj := by
@@ -199,37 +167,6 @@ def toPGrpd : Grothendieck (Groupoid.compForgetToCat A) ⥤ PGrpd.{v₁,u₁} wh
 theorem toPGrpd_comp_forgetToPCat :
     toPGrpd A ⋙ PGrpd.forgetToPCat = toPCat (Groupoid.compForgetToCat A) :=
   rfl
-
--- theorem Grpd.ext {G1 G2 : Type u} [Groupoid.{v} G1] [Groupoid.{v} G2]
---     (f1 f2 : G1 ⥤ G2) : f1 = f2 ↔ Grpd.homOf f1 = Grpd.homOf f2 := Iff.rfl
-
--- theorem Cat.ext {G1 G2 : Type u} [Category.{v} G1] [Category.{v} G2]
---     (f1 f2 : G1 ⥤ G2) : f1 = f2 ↔ Cat.homOf f1 = Cat.homOf f2 := Iff.rfl
-
-@[simp] theorem map_toPGrpd {Γ : Cat.{v₂,u₂}} {A B : Γ ⥤ Cat} {θ : A ⟶ B} :
-    Grothendieck.map θ ⋙ toPCat B = toPCat A := by
-  apply Functor.ext
-  · sorry
-  · intro x
-    simp [Grothendieck.map, toPCat, toPCatObj]
-    sorry
-
-@[simp] theorem map_eqToHom_toPGrpd {Γ : Grpd.{v₂,u₂}} {A : Γ ⥤ Grpd} {α : Γ ⥤ PGrpd}
-    {h : α ⋙ PGrpd.forgetToGrpd = A} :
-    map (eqToHom h) ⋙ toPGrpd A = toPGrpd (α ⋙ PGrpd.forgetToGrpd) := by
-  -- convert_to eqToHom ((by rw [h]) : Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⟶ Groupoidal A) ⋙ toPGrpd A = _
-  apply Functor.ext
-  · sorry
-  · intro x
-    simp only [toPGrpd, Groupoid.compForgetToCat, toPCatObj_α, Functor.comp_obj]
-    convert_to PGrpd.of (Grpd.forgetToCat.obj (A.obj x.base)) = _
-    -- have h := congr_arg PGrpd.of $ congr_arg (Grpd.forgetToCat.obj) $ Functor.congr_obj h x.base
-    congr 1
-    · rw [← Functor.congr_obj h x.base]
-      rfl
-    · simp[toPCatObjPointed]-- rw [← Functor.congr_hom h x.base]
-      -- rw [← Functor.congr_obj h x.base]
-      sorry
 
 namespace IsMegaPullback
 
@@ -525,14 +462,6 @@ def sec (α : Γ ⥤ PGrpd.{v₁,u₁}) :
 
 @[simp] def sec_forget (α : Γ ⥤ PGrpd.{v₁,u₁}) :
     Groupoidal.sec α ⋙ Grothendieck.forget _ = Functor.id _ := rfl
-
-theorem sec_map_eqToHom {A : Γ ⥤ Grpd.{v₁,u₁}} {α : Γ ⥤ PGrpd.{v₁,u₁}}
-    (h : α ⋙ PGrpd.forgetToGrpd = A) :
-    Groupoidal.sec α ⋙ Groupoidal.map (eqToHom h) = Groupoidal.sec' h := by
-  apply IsMegaPullback.lift_uniq α (Functor.id _) ?_ (sec α ⋙ map (eqToHom h))
-  · simp only [Functor.assoc, map_eqToHom_toPGrpd, sec_toPGrpd]
-  · rfl
-  · simp [h, Functor.id_comp]
 
 end Groupoidal
 end Grothendieck

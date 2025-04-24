@@ -183,6 +183,14 @@ def uHomSeq : NaturalModelBase.UHomSeq Ctx.{3} where
 
 open CategoryTheory NaturalModelBase Opposite Grothendieck
 
+def baseUvPolyTpEquiv' {Γ : Ctx.{u}} {C : Cat.{u,u+1}} :
+    (y(Γ) ⟶ base.Ptp.obj (yonedaCat.obj C))
+    ≃ (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{u,u}) × (Groupoidal A ⥤ C) :=
+  base.uvPolyTpEquiv.trans (
+  Equiv.sigmaCongr
+    yonedaCatEquiv
+    (fun _ => yonedaCatEquiv))
+
 /-- A specialization of the polynomial universal property to the natural model `base`
   The polynomial functor on `tp` taken at `yonedaCat.obj C`
   `P_tp(yonedaCat C)` takes a groupoid `Γ`
@@ -199,11 +207,7 @@ then this is how `P_tp(Ty)` classifies dependent pairs.
 def baseUvPolyTpEquiv {Γ : Ctx.{u}} {C : Cat.{u,u+1}} :
     (base.Ptp.obj (yonedaCat.obj C)).obj (op Γ)
     ≃ (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{u,u}) × (Groupoidal A ⥤ C) :=
-  yonedaEquiv.symm.trans (
-  base.uvPolyTpEquiv.trans (
-  Equiv.sigmaCongr
-    yonedaCatEquiv
-    (fun _ => yonedaCatEquiv)))
+  yonedaEquiv.symm.trans baseUvPolyTpEquiv'
 
 @[simp] theorem base_sec {Γ : Ctx.{u}} (α : y(Γ) ⟶ base.Tm) :
     base.sec α = ym(Ctx.ofGrpd.map (Groupoidal.sec (yonedaCatEquiv α))) :=
@@ -273,15 +277,24 @@ def baseUvPolyTpCompDomEquiv' {Γ : Ctx.{u}} :
     }
 
 def baseTmEquiv {Γ : Ctx} :
-    (A : y(Γ) ⟶ base.Ty) × (α : y(Γ) ⟶ base.Tm) ×' (α ≫ base.tp = A) ≃
+    (A : y(Γ) ⟶ base.Ty) × (α : y(Γ) ⟶ base.Tm)
+    ×' (α ≫ base.tp = A) ≃
     (A : Ctx.toGrpd.obj Γ ⥤ Grpd) × (α : Ctx.toGrpd.obj Γ ⥤ PGrpd)
-      ×' (α ⋙ PGrpd.forgetToGrpd = A) :=
+    ×' (α ⋙ PGrpd.forgetToGrpd = A) :=
   Equiv.sigmaCongr yonedaCatEquiv $ fun A =>
     Equiv.psigmaCongrProp yonedaCatEquiv $ fun α => (by
       simp only [base_tp, tp]
       convert_to _ ↔ yonedaCatEquiv
         (α ≫ yonedaCat.map (Cat.homOf PGrpd.forgetToGrpd)) = _
       simp)
+
+theorem baseTmEquiv_fst {Γ : Ctx} {A : y(Γ) ⟶ base.Ty} {α : y(Γ) ⟶ base.Tm}
+    (h : α ≫ base.tp = A) : (baseTmEquiv ⟨A,α,h⟩).1 = yonedaCatEquiv A := by
+  simp [baseTmEquiv, Equiv.sigmaCongr]
+
+theorem baseTmEquiv_snd {Γ : Ctx} {A : y(Γ) ⟶ base.Ty} {α : y(Γ) ⟶ base.Tm}
+    (h : α ≫ base.tp = A) : (baseTmEquiv ⟨A,α,h⟩).2.1 = yonedaCatEquiv α := by
+  simp [baseTmEquiv, Equiv.sigmaCongr, Equiv.psigmaCongrProp]
 
 end GroupoidModel
 

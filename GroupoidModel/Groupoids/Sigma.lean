@@ -191,8 +191,8 @@ theorem pair_comp_forget {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u�
 def fst {Γ : Grpd} {A : Γ ⥤ Cat.of Grpd.{v₁,u₁}}
     (B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁}) :
     Grothendieck.Groupoidal (sigma A B) ⥤ Grothendieck.Groupoidal A :=
-  Grothendieck.Groupoidal.map
-    {app x := Grpd.homOf (Grothendieck.forget _)}
+  map {app x := Grpd.homOf (Grothendieck.forget _)}
+
 -- def fst {Γ : Grpd} {A : Γ ⥤ Cat.of Grpd.{v₁,u₁}}
 --     (B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁}) :
 --   Grothendieck.Groupoidal (sigma A B) ⥤  Grothendieck.Groupoidal A where
@@ -315,16 +315,55 @@ def PairUP {Γ : Ctx} (top : (yoneda.obj Γ) ⟶ base.Tm)
 
 namespace SigmaPullback
 
+def somethingEquiv' {Γ : Ctx} {ab : y(Γ) ⟶ base.Tm}
+  (A : (Ctx.toGrpd.obj Γ) ⥤ Grpd.{u,u})
+  (B : Grothendieck.Groupoidal A ⥤ Grpd.{u,u})
+  (sigAB : ↑(Ctx.toGrpd.obj Γ) ⥤ Grpd.{u,u})
+  (ab : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
+  (h : ab ⋙ PGrpd.forgetToGrpd = sigAB) :
+  (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u}) ×'
+  (α ⋙ PGrpd.forgetToGrpd = A) := sorry
+
+theorem yonedaCatEquiv_baseSig {Γ : Ctx} {A : Ctx.toGrpd.obj Γ ⥤ Grpd.{u,u}}
+    {B : Grothendieck.Groupoidal A ⥤ Grpd.{u,u}} :
+    yonedaCatEquiv ((baseUvPolyTpEquiv'.symm ⟨A,B⟩) ≫ baseSig) = sigma A B
+    := by
+  simp only [yonedaCatEquiv, Equiv.trans_apply, yonedaEquiv_comp, baseSig, Equiv.symm_trans_apply, Equiv.toFun_as_coe, baseUvPolyTpEquiv]
+  rw [yonedaCatEquivAux.apply_eq_iff_eq_symm_apply]
+  rw [yonedaEquiv.apply_eq_iff_eq_symm_apply]
+  congr 3
+  · simp only [Equiv.symm_apply_apply, Equiv.apply_symm_apply]
+  -- rw [Equiv.apply_symm_apply]
+  -- simp?
+
+  · rw![Equiv.symm_apply_apply, Equiv.apply_symm_apply]
+    sorry
+
 def somethingEquiv {Γ : Ctx} {ab : y(Γ) ⟶ base.Tm}
     {AB : y(Γ) ⟶ base.Ptp.obj base.{u}.Ty}
-    (h : ab ≫ base.tp = AB ≫ baseSig) :
-    (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
-    × (B : Grothendieck.Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{u,u})
+    (h : ab ≫ base.tp = AB ≫ baseSig)
+    : (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{u,u})
+    × (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
+    × (B : Grothendieck.Groupoidal A ⥤ Grpd.{u,u})
     × (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
-    ×' β ⋙ PGrpd.forgetToGrpd = sec α ⋙ B :=
-  let ⟨A,B⟩ := baseUvPolyTpEquiv (yonedaEquiv.toFun AB)
-  let ⟨sigAB,ab,h⟩ := baseTmEquiv ⟨_,ab,h⟩
-  sorry
+    ×' (h : α ⋙ PGrpd.forgetToGrpd = A)
+    ×' β ⋙ PGrpd.forgetToGrpd = Grothendieck.Groupoidal.sec α ⋙ Grothendieck.Groupoidal.map (eqToHom h) ⋙ B :=
+  let AB' := baseUvPolyTpEquiv (yonedaEquiv AB)
+  let A := AB'.1
+  let B := AB'.2
+  let h1 := baseTmEquiv ⟨AB ≫ baseSig,ab,h⟩
+  let sigAB := h1.1
+  let ab' := h1.2.1
+  let hab := h1.2.2
+  have h2 : ab' ⋙ PGrpd.forgetToGrpd = sigma AB'.fst B := by
+      rw [hab, baseTmEquiv_fst, ← yonedaCatEquiv_baseSig, Sigma.eta]
+      simp [AB', baseUvPolyTpEquiv]
+  ⟨ A,
+    sec ab' ⋙ map (eqToHom h2) ⋙ fst B ⋙ toPGrpd A,
+    B,
+    sorry,
+    sorry,
+    sorry ⟩
 
 -- strategy: want to first show that cones of the diagram
 -- correspond to some functor data,
@@ -333,11 +372,9 @@ def lift {Γ : Ctx} {ab : y(Γ) ⟶ base.Tm}
     {AB : y(Γ) ⟶ base.Ptp.obj base.{u}.Ty}
     (h : ab ≫ base.tp = AB ≫ baseSig) :
     (yoneda.obj Γ) ⟶ base.uvPolyTp.compDom base.uvPolyTp :=
-  let ⟨A,B⟩ := baseUvPolyTpEquiv (yonedaEquiv.toFun AB)
-  let ⟨sigAB,ab,h⟩ := baseTmEquiv ⟨_,ab,h⟩
   yonedaEquiv.invFun $
-  baseUvPolyTpCompDomEquiv.invFun
-  ⟨ sorry, sorry, sorry, sorry ⟩
+  baseUvPolyTpCompDomEquiv'.invFun
+  (somethingEquiv h)
 
 end SigmaPullback
 

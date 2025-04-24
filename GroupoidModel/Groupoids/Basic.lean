@@ -74,15 +74,17 @@ instance yonedaCatPreservesLimits : PreservesLimits yonedaCat :=
 
 variable {Γ Δ : Ctx.{u}} {C D : Cat.{u,u+1}}
 
+def yonedaCatEquivAux : (yonedaCat.obj C).obj (Opposite.op Γ)
+    ≃ (Ctx.toGrpd.obj Γ) ⥤ C where
+  toFun     := λ A ↦ ULift.upFunctor ⋙ A
+  invFun    := λ A ↦ ULift.downFunctor ⋙ A
+  left_inv  := λ _ ↦ rfl
+  right_inv := λ _ ↦ rfl
+
 /- The bijection y(Γ) → [-,C]   ≃   Γ ⥤ C -/
-def yonedaCatEquiv :
-    (yoneda.obj Γ ⟶ yonedaCat.obj C)
-      ≃ Ctx.toGrpd.obj Γ ⥤ C :=
-  Equiv.trans yonedaEquiv
-    {toFun     := λ A ↦ ULift.upFunctor ⋙ A
-     invFun    := λ A ↦ ULift.downFunctor ⋙ A
-     left_inv  := λ _ ↦ rfl
-     right_inv := λ _ ↦ rfl}
+def yonedaCatEquiv : (yoneda.obj Γ ⟶ yonedaCat.obj C)
+    ≃ Ctx.toGrpd.obj Γ ⥤ C :=
+  yonedaEquiv.trans yonedaCatEquivAux
 
 lemma yonedaCatEquiv_yonedaEquivSymm {Γ : Ctx}
     (A : (yonedaCat.obj C).obj (Opposite.op Γ)) :
