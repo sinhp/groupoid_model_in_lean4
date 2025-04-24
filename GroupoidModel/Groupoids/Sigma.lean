@@ -306,7 +306,7 @@ theorem PairUP_Comm2 {Γ : Ctx} (top : (yoneda.obj Γ) ⟶ base.Tm) (left : (yon
 
 theorem PairUP_Uniqueness {Γ : Ctx} (f : (yoneda.obj Γ) ⟶ base.uvPolyTp.compDom base.uvPolyTp): f = (PairUP (f ≫  basePair) (f ≫ (base.uvPolyTp.comp base.uvPolyTp).p) (by rw[Category.assoc,Category.assoc]; congr 1; exact Sigma_Comm)) := by
   unfold PairUP
-  refine (base.uvPolyTpCompDomEquiv Γ).injective ?_
+  refine (base.uvPolyTpCompDomEquiv base Γ).injective ?_
   refine Sigma.ext ?_ ?_
   . sorry
   . sorry
