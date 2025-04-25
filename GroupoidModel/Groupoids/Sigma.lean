@@ -29,7 +29,13 @@ set_option maxHeartbeats 0 in
     (B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁})
     : Γ ⥤ Grpd.{v₁,u₁} where
   obj x := Grpd.of (Grothendieck.Groupoidal ((ι _ x) ⋙ B))
-  map {x y} f := map (whiskerRight (Grothendieck.ιNatTrans f) B)
+  map {x y} f :=
+  --  by
+  --   have a1 := (ι A y ⋙ B)
+  --   have a2:= pre (ι A y ⋙ B) (A.map f)
+  --   have a3:= (whiskerRight (Grothendieck.ιNatTrans f) B)
+  --   have a4 := map (whiskerRight (Grothendieck.ιNatTrans f) B)
+    map (whiskerRight (Grothendieck.ιNatTrans f) B)
     ⋙ pre (ι A y ⋙ B) (A.map f)
   map_id x := by
     let t := @Grothendieck.ιNatTrans _ _
@@ -188,7 +194,7 @@ theorem pair_comp_forget {Γ : Grpd.{v₂,u₂}} (α β : Γ ⥤ PGrpd.{v₁,u�
   rw [Functor.assoc]
   exact rfl
 
-def fst {Γ : Grpd} {A : Γ ⥤ Cat.of Grpd.{v₁,u₁}}
+def fst {Γ : Grpd} {A : Γ ⥤  Grpd.{v₁,u₁}}
     (B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁}) :
   Grothendieck.Groupoidal (sigma A B) ⥤  Grothendieck.Groupoidal A where
   obj x := ⟨x.base,x.fiber.base⟩
@@ -202,7 +208,7 @@ def fst {Γ : Grpd} {A : Γ ⥤ Cat.of Grpd.{v₁,u₁}}
   map_comp := sorry
 
 set_option maxHeartbeats 0 in
-def snd {Γ : Grpd} (A : Γ ⥤ Cat.of Grpd.{v₁,u₁})
+def snd {Γ : Grpd} (A : Γ ⥤  Grpd.{v₁,u₁})
     (B : Grothendieck.Groupoidal A ⥤ Grpd.{v₁,u₁}) :
   Grothendieck.Groupoidal (sigma A B) ⥤  Grothendieck.Groupoidal B where
   obj x := by
