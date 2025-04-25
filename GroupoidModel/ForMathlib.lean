@@ -159,18 +159,18 @@ theorem obj_ext_hEq
 
 /-- This proves that base of an eqToHom morphism in the category Grothendieck A is an eqToHom morphism -/
 theorem eqToHom_base (eq : x = y) :
-    (eqToHom eq).base = (eqToHom (congrArg (Grothendieck.forget A).obj eq)) := by
+    (eqToHom eq).base = eqToHom (by simp [eq]) := by
   cases eq
   simp
 
 /-- This is the proof of equality used in the eqToHom in `Grothendieck.eqToHom_fiber` -/
-theorem eqToHom_fiber_aux {Γ : Cat.{v,u}} {A : Γ ⥤ Cat.{v₁,u₁}} {g1 g2 : Grothendieck A}
+theorem eqToHom_fiber_aux {Γ : Type u} [Category.{v} Γ] {A : Γ ⥤ Cat.{v₁,u₁}} {g1 g2 : Grothendieck A}
     (eq : g1 = g2) : (A.map (eqToHom eq).base).obj g1.fiber = g2.fiber := by
   cases eq
   simp
 
 /-- This proves that fiber of an eqToHom morphism in the category Grothendieck A is an eqToHom morphism -/
-theorem eqToHom_fiber {Γ : Cat.{v,u}} {A : Γ ⥤ Cat.{v₁,u₁}} {g1 g2 : Grothendieck A}
+theorem eqToHom_fiber {Γ : Type u} [Category.{v} Γ] {A : Γ ⥤ Cat.{v₁,u₁}} {g1 g2 : Grothendieck A}
     (eq : g1 = g2) : (eqToHom eq).fiber = eqToHom (Grothendieck.eqToHom_fiber_aux eq) := by
   cases eq
   simp
@@ -271,10 +271,10 @@ instance : ChosenFiniteProducts Grpd where
   terminal  := { isLimit := chosenTerminalIsTerminal }
 
 /-- The identity in the category of groupoids equals the identity functor.-/
-theorem id_eq_id (X : Grpd) : 𝟙 X = 𝟭 X := rfl
+@[simp] theorem id_eq_id (X : Grpd) : 𝟙 X = 𝟭 X := rfl
 
 /-- Composition in the category of groupoids equals functor composition.-/
-theorem comp_eq_comp {X Y Z : Grpd} (F : X ⟶ Y) (G : Y ⟶ Z) : F ≫ G = F ⋙ G := rfl
+@[simp] theorem comp_eq_comp {X Y Z : Grpd} (F : X ⟶ Y) (G : Y ⟶ Z) : F ≫ G = F ⋙ G := rfl
 
 theorem eqToHom_obj
   {C1 C2 : Grpd.{v,u}} (x : C1) (eq : C1 = C2) :

@@ -1,9 +1,47 @@
 import GroupoidModel.Groupoids.NaturalModelBase
 import GroupoidModel.Russell_PER_MS.NaturalModelSigma
+import SEq.Tactic.DepRewrite
 
 universe v u v₁ u₁ v₂ u₂ v₃ u₃
 
 noncomputable section
+-- NOTE temporary section for stuff to be moved elsewhere
+section ForOther
+open CategoryTheory NaturalModelBase Opposite Grothendieck.Groupoidal
+
+namespace CategoryTheory
+
+namespace Grpd
+
+@[simp] theorem id_obj {C : Grpd} (X : C) :
+    (𝟙 C : C ⥤ C).obj X = X :=
+  rfl
+
+@[simp] theorem comp_obj {C D E : Grpd} (F : C ⟶ D) (G : D ⟶ E)
+    (X : C) : (F ≫ G).obj X = G.obj (F.obj X) :=
+  rfl
+
+variable {Γ : Type u} [Category.{v} Γ] (F : Γ ⥤ Grpd.{v₁,u₁})
+
+@[simp] theorem map_eqToHom_obj {x y : Γ} (h : x = y) (t) :
+    (F.map (eqToHom h)).obj t = cast (by rw [h]) t := by
+  subst h
+  simp
+
+-- set_option pp.proofs true
+@[simp] theorem map_eqToHom_map {x y : Γ} (h : x = y) {t s} (f : t ⟶ s) :
+    (F.map (eqToHom h)).map f =
+    eqToHom (Functor.congr_obj (eqToHom_map _ _) t)
+    ≫ cast (Grpd.eqToHom_hom_aux t s (by rw [h])) f
+    ≫ eqToHom (Eq.symm (Functor.congr_obj (eqToHom_map _ _) s)) := by
+  have h1 : F.map (eqToHom h) = eqToHom (by rw [h]) := eqToHom_map _ _
+  rw [Functor.congr_hom h1, Grpd.eqToHom_hom]
+
+end Grpd
+
+end CategoryTheory
+
+end ForOther
 
 -- NOTE content for this doc starts here
 namespace GroupoidModel
@@ -39,54 +77,36 @@ def sigmaMap {Γ : Grpd.{v₂,u₂}} {A : Γ ⥤ Grpd.{v₁,u₁}}
     sigmaObj B x ⥤ sigmaObj B y :=
   map (whiskerRight (ιNatTrans f) B) ⋙ pre (ι A y ⋙ B) (A.map f)
 
-set_option maxHeartbeats 0 in
-def sigmaMapId {Γ : Grpd.{v₂,u₂}} {A : Γ ⥤ Grpd.{v₁,u₁}}
-    {B : ∫(A) ⥤ Grpd.{v₁,u₁}} {x : Γ} :
+def sigma_map_id {Γ : Grpd.{v₂,u₂}} {A : Γ ⥤ Grpd.{v₁,u₁}}
+    {B : ∫(A) ⥤ Grpd.{v₁,u₁}} (x : Γ) :
     (sigmaMap B) (CategoryStruct.id x) = Functor.id _ := by
-    let t := @Grothendieck.ιNatTrans _ _
-        (A ⋙ Grpd.forgetToCat) _ _ (CategoryStruct.id x)
+    let t := @ιNatTrans _ _ A _ _ (CategoryStruct.id x)
     have h (a : A.obj x) : B.map (t.app a) =
         eqToHom (by simp [Functor.map_id]) :=
       calc
         B.map (t.app a)
         _ = B.map (eqToHom (by simp [Functor.map_id])) := by
-          rw [Grothendieck.ιNatTrans_id_app]
+          rw [ιNatTrans_id_app]
         _ = eqToHom (by simp [Functor.map_id]) := by
           simp [eqToHom_map]
-    -- NOTE should not unfold ιNatTrans (instead develop Groupoidal API)
-    simp only [sigmaObj, sigmaMap, ιNatTrans, map, Grothendieck.Groupoidal.pre, Grpd.id_eq_id, Grothendieck.pre]
+    dsimp only [sigmaMap]
     apply CategoryTheory.Functor.ext
     · intro p1 p2 f
-      simp only [Grpd.coe_of, Functor.comp_obj, Functor.comp_map, whiskerRight_twice,
-        Grothendieck.map_obj_base, Grothendieck.map_obj_fiber, whiskerRight_app,
-        Grothendieck.ι_obj, Grothendieck.map_map_base,
-        Grothendieck.map_map_fiber, Functor.id_obj, Functor.id_map]
-      congr 1
-      · simp only [Grpd.map_id_map, Grothendieck.base_eqToHom,
-          Grothendieck.comp_base]
-      · simp only [Grpd.forgetToCat, id_eq, Functor.comp_map, whiskerRight_twice,
-          Grothendieck.map_obj_base, Grothendieck.map_obj_fiber, whiskerRight_app,
-          Grothendieck.ι_obj, Grothendieck.fiber_eqToHom, Grothendieck.comp_fiber]
-        rw [Functor.congr_hom (h p2.base) f.fiber]
-        simp only [Grpd.eqToHom_hom, eqToHom_map, heq_eqToHom_comp_iff,
-          eqToHom_comp_heq_iff, comp_eqToHom_heq_iff, heq_comp_eqToHom_iff]
-        generalize_proofs _ _ h1
-        have h2 : B.map ((ι A x).map (eqToHom h1).base) =
-            eqToHom (by simp only [CategoryTheory.Functor.map_id]; rfl) := by
-          rw [Grothendieck.eqToHom_base, eqToHom_map, eqToHom_map]
-        rw [Functor.congr_hom h2, heq_eqToHom_comp_iff, heq_comp_eqToHom_iff]
-        simp only [heq_eq_eq, Grpd.eqToHom_hom]
+      simp only [Functor.comp_map, Functor.id_map]
+      apply Grothendieck.Groupoidal.ext
+      · simp only [pre_map_fiber, map_map_fiber, whiskerRight_app, eqToHom_trans_assoc, comp_fiber, eqToHom_fiber, eqToHom_map]
+        -- NOTE rw! much faster here for map_eqToHom_map and Functor.congr_hom
+        rw! [Functor.congr_hom (h p2.base) f.fiber, eqToHom_base,
+          Grpd.map_eqToHom_map, Grpd.eqToHom_hom]
+        -- NOTE ι_obj, ι_map really unhelpful when there is an eqToHom
+        simp only [Category.assoc, eqToHom_trans, eqToHom_trans_assoc]
+      · simp [Grpd.map_id_map]
     · intro p
-      simp only [Functor.comp_obj, Grothendieck.map_obj]
-      congr 1
-      · exact Grpd.map_id_obj
-      · simp only [Grpd.forgetToCat, id_eq, whiskerRight_app,
-          Functor.comp_map]
-        rw [Functor.congr_obj (h p.base) p.fiber]
-        simp [Grpd.eqToHom_obj]
+      simp only [Functor.comp_obj, map_obj, Functor.id_obj]
+      apply obj_ext_hEq
+      · rw [pre_obj_base, Grpd.map_id_obj]
+      · simp
 
-
-#exit
 -- TODO: Fix performance issue.
 set_option maxHeartbeats 0 in
 /-- The formation rule for Σ-types for the ambient natural model `base`
@@ -97,33 +117,34 @@ set_option maxHeartbeats 0 in
   `ι _ x ⋙ B : A.obj x ⥤ Groupoidal A ⥤ Grpd` -/
 @[simps] def sigma {Γ : Grpd.{v₂,u₂}} (A : Γ ⥤ Grpd.{v₁,u₁})
     (B : ∫(A) ⥤ Grpd.{v₁,u₁}) : Γ ⥤ Grpd.{v₁,u₁} where
-  obj := sigmaObj B
+  -- NOTE using Grpd.of here instead of earlier speeds things up
+  obj x := Grpd.of $ sigmaObj B x
   map := sigmaMap B
-  map_id x := by
-    sorry
-  map_comp := by
-    intro x y z f g
-    have h (a : A.obj x) : B.map ((Grothendieck.ιNatTrans (f ≫ g)).app a)
-        = B.map ((Grothendieck.ιNatTrans f).app a)
-        ⋙ B.map (eqToHom (by
-          simp [Grpd.forgetToCat]))
-        ⋙ B.map ((Grothendieck.ιNatTrans g).app ((A.map f).obj a))
-        ⋙ B.map (eqToHom (by
-          simp [Grpd.forgetToCat, Grpd.comp_eq_comp])) := by
-      simp only [Grothendieck.ιNatTrans_comp_app, Functor.map_comp,
-        eqToHom_map, CategoryTheory.Functor.map_id]
-      rfl
-    simp only [Grothendieck.Groupoidal.pre, Grothendieck.pre]
-    apply CategoryTheory.Functor.ext
-    · sorry
-    · intro p
-      simp only [Grpd.coe_of, Functor.comp_obj, Functor.comp_map]
-      congr 1
-      · rw [Grpd.map_comp_obj]
-        rfl
-      · simp [map, Grpd.forgetToCat, Functor.congr_obj (h p.base) p.fiber,
-        eqToHom_refl, eqToHom_map, Grpd.eqToHom_obj, Grpd.id_eq_id, Functor.id_obj]
+  map_id := sigma_map_id
+  map_comp := by sorry
+--     intro x y z f g
+--     have h (a : A.obj x) : B.map ((Grothendieck.ιNatTrans (f ≫ g)).app a)
+--         = B.map ((Grothendieck.ιNatTrans f).app a)
+--         ⋙ B.map (eqToHom (by
+--           simp [Grpd.forgetToCat]))
+--         ⋙ B.map ((Grothendieck.ιNatTrans g).app ((A.map f).obj a))
+--         ⋙ B.map (eqToHom (by
+--           simp [Grpd.forgetToCat, Grpd.comp_eq_comp])) := by
+--       simp only [Grothendieck.ιNatTrans_comp_app, Functor.map_comp,
+--         eqToHom_map, CategoryTheory.Functor.map_id]
+--       rfl
+--     simp only [Grothendieck.Groupoidal.pre, Grothendieck.pre]
+--     apply CategoryTheory.Functor.ext
+--     · sorry
+--     · intro p
+--       simp only [Grpd.coe_of, Functor.comp_obj, Functor.comp_map]
+--       congr 1
+--       · rw [Grpd.map_comp_obj]
+--         rfl
+--       · simp [map, Grpd.forgetToCat, Functor.congr_obj (h p.base) p.fiber,
+--         eqToHom_refl, eqToHom_map, Grpd.eqToHom_obj, Grpd.id_eq_id, Functor.id_obj]
 
+#exit
 section
 
 variable {Δ Γ: Grpd.{v₂,u₂}} (σ : Δ ⥤ Γ) (A : Γ ⥤ Grpd.{v₁,u₁})

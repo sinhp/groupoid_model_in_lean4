@@ -240,8 +240,8 @@ theorem lift_uniq (m : C ⥤ Grothendieck A)
       generalize_proofs pf1 pf2 _ _ _ _ _ pf3
       have h0 := Functor.congr_hom hl f
       have h1 := PointedFunctor.congr_point h0
-      have h2 := @eqToHom_fiber (Cat.of Γ) A (m.obj x) _ pf1
-      have h3 := @eqToHom_fiber (Cat.of Γ) A _ _ pf2
+      have h2 := @eqToHom_fiber (Cat.of Γ) _ _ (m.obj x) _ pf1
+      have h3 := @eqToHom_fiber (Cat.of Γ) _ _ _ _ pf2
       have h4 := congr_arg A.map (eqToHom_base pf2)
       simp only [eqToHom_map] at h4
       have h5 := Functor.congr_hom h4 (cast pf3 (point fst f))

@@ -29,6 +29,8 @@ def groupoidalAsSmallFunctorToPGrpd :
   map f := {
     toFunctor := f.base
     point := AsSmall.down.map f.fiber}
+  map_id := sorry
+  map_comp := sorry
 
 def pGrpdToGroupoidalAsSmallFunctor : PGrpd.{v, v} ⥤
     Groupoidal (Grpd.asSmallFunctor.{max w (v+1), v, v}) where
