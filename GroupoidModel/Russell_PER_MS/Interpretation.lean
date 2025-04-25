@@ -90,7 +90,7 @@ theorem substWk_length {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : s.ExtSeq Γ Γ')
 
 theorem substWk_disp {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : s.ExtSeq Γ Γ') :
     (d.substWk σ).2.2 ≫ d.disp = (d.substWk σ).2.1.disp ≫ σ := by
-  induction d generalizing σ <;> simp [substWk, *]
+  induction d generalizing σ <;> simp [substWk, NaturalModelBase.substWk_disp_assoc, *]
 
 /-- `Γ.Aₖ.….A₀ ⊢ vₙ : Aₙ[↑ⁿ⁺¹]` -/
 @[simp]
@@ -172,7 +172,7 @@ theorem var_substWk_of_lt_length {l i} {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : 
       obtain ⟨a, amem, rfl⟩ := st_mem
       refine ⟨_, ih amem h, ?_⟩
       simp only [wk, ← Functor.map_comp_assoc]
-      simp
+      simp [NaturalModelBase.substWk_disp_assoc, NaturalModelBase.substWk_disp]
 
 theorem mem_var_liftVar {l} {llen : l < s.length + 1} {sΓ sΓ' sΓ'' sΘ : 𝒞}
     {st : y(sΓ'') ⟶ (s[l]'llen).Tm} (i)
