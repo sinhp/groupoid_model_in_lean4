@@ -104,12 +104,12 @@ groupoidal Grothendieck construction.-/
 def ι (c : C) : F.obj c ⥤ Groupoidal F :=
   Grothendieck.ι (F ⋙ Grpd.forgetToCat) c
 
-@[simp] theorem ι_obj (c : C) (d : ↑(F.obj c)) :
+theorem ι_obj (c : C) (d : ↑(F.obj c)) :
     (ι F c).obj d = { base := c, fiber := d } :=
   Grothendieck.ι_obj _ _ _
 
-@[simp] theorem ι_map (c : C) {X Y : ↑(F.obj c)} (f : X ⟶ Y) :
-    (ι F c).map f = ⟨𝟙 _, eqToHom (by simp) ≫ f⟩ :=
+theorem ι_map (c : C) {X Y : ↑(F.obj c)} (f : X ⟶ Y) :
+    (ι F c).map f = ⟨𝟙 _, eqToHom (by simp [ι_obj]) ≫ f⟩ :=
   Grothendieck.ι_map _ _ _
 
 variable {F}
@@ -218,6 +218,11 @@ theorem ext {X Y : Groupoidal F} (f g : Hom X Y) (w_base : f.base = g.base)
 @[simp] theorem ιNatTrans_id_app {X : Γ} {a : F.obj X} :
     (@ιNatTrans _ _ F _ _ (𝟙 X)).app a =
     eqToHom (by simp) := Grothendieck.ιNatTrans_id_app
+
+@[simp] theorem ιNatTrans_comp_app {X Y Z : Γ} {f : X ⟶ Y} {g : Y ⟶ Z} {a} :
+    (@ιNatTrans _ _ F _ _ (f ≫ g)).app a =
+    (@ιNatTrans _ _ F _ _ f).app a ≫
+    (@ιNatTrans _ _ F _ _ g).app ((F.map f).obj a) ≫ eqToHom (by simp) := Grothendieck.ιNatTrans_comp_app
 
 @[simp] theorem base_eqToHom {X Y : Groupoidal F} (h : X = Y) :
     (eqToHom h).base = eqToHom (congrArg base h) :=
@@ -543,7 +548,7 @@ end
 
 section
 
-variable {Γ : Grpd.{v₂,u₂}} {A : Γ ⥤ Grpd.{v₁,u₁}}
+variable {Γ : Type u} [Category.{v} Γ] {A : Γ ⥤ Grpd.{v₁,u₁}}
     {α : Γ ⥤ PGrpd.{v₁,u₁}} (h : α ⋙ PGrpd.forgetToGrpd = A)
 
 def sec' :
@@ -560,7 +565,7 @@ def sec' :
 
 end
 
-variable {Γ : Grpd.{v₂,u₂}}
+variable {Γ : Type u} [Category.{v} Γ]
 /-- `sec` is the universal lift in the following diagram,
   which is a section of `Groupoidal.forget`
              α

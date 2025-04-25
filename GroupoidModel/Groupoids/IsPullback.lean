@@ -29,8 +29,9 @@ def groupoidalAsSmallFunctorToPGrpd :
   map f := {
     toFunctor := f.base
     point := AsSmall.down.map f.fiber}
-  map_id := sorry
-  map_comp := sorry
+  map_comp f g := by
+    simp only [comp_fiber, eqToHom_refl, Category.id_comp]
+    rfl
 
 def pGrpdToGroupoidalAsSmallFunctor : PGrpd.{v, v} ⥤
     Groupoidal (Grpd.asSmallFunctor.{max w (v+1), v, v}) where
@@ -42,7 +43,9 @@ def pGrpdToGroupoidalAsSmallFunctor : PGrpd.{v, v} ⥤
     fiber := AsSmall.up.map f.point}
   map_comp f g := by
     apply Grothendieck.ext
-    · simp [Grpd.forgetToCat, Grpd.asSmallFunctor]
+    · simp only [Grpd.asSmallFunctor, Grpd.coe_of, AsSmall.down_obj, AsSmall.up_obj_down, comp_obj,
+  Grpd.forgetToCat, Cat.of_α, comp_base, Functor.comp_map, id_eq, PGrpd.comp_toFunctor, PGrpd.comp_point, eqToHom_refl,
+  map_comp, Category.id_comp, Grothendieck.comp_fiber, AsSmall.down_map, AsSmall.up_map_down]
     · rfl
 
 namespace PGrpd.IsMegaPullback'

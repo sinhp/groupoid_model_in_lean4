@@ -157,7 +157,7 @@ theorem eqToHom_hom {C1 C2 : PCat.{v,u}} {x y: C1} (f : x ⟶ y) (eq : C1 = C2) 
   cases eq
   simp[CategoryStruct.id]
 
-theorem map_id_point {C : Type u} [Category.{v} C] {F : C ⥤ PCat} {x : C} :
+@[simp] theorem map_id_point {C : Type u} [Category.{v} C] {F : C ⥤ PCat} {x : C} :
     (F.map (CategoryStruct.id x)).point =
     eqToHom (by simp : (F.map (CategoryStruct.id x)).obj (F.obj x).str.pt = (F.obj x).str.pt) := by
   have : (CategoryStruct.id (F.obj x)).point = _ := PCat.id_point
@@ -166,6 +166,12 @@ theorem map_id_point {C : Type u} [Category.{v} C] {F : C ⥤ PCat} {x : C} :
   · simp
   · refine HEq.symm (heq_of_eqRec_eq ?_ rfl)
     · symm; assumption
+
+@[simp] theorem map_comp_point {C : Type u} [Category.{v} C] {F : C ⥤ PCat} {x y z: C} (f : x ⟶ y) (g : y ⟶ z) :
+    (F.map (f ≫ g)).point =
+    eqToHom (by simp) ≫ (F.map g).map (F.map f).point ≫ (F.map g).point := by
+  have : F.map (f ≫ g) = F.map f ≫ F.map g := by simp
+  simp [PointedFunctor.congr_point this]
 
 theorem eqToHom_toFunctor {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
     (eqToHom eq).toFunctor = (eqToHom (congrArg PCat.forgetToCat.obj eq)) := by
@@ -305,7 +311,7 @@ lemma comp_toFunctor {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) :
 lemma comp_point {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) :
     (F ≫ G).point = G.map (F.point) ≫ G.point := rfl
 
-theorem map_id_point {C : Type u} [Category.{v} C] {F : C ⥤ PGrpd} {x : C} :
+@[simp] theorem map_id_point {C : Type u} [Category.{v} C] {F : C ⥤ PGrpd} {x : C} :
     (F.map (CategoryStruct.id x)).point =
     eqToHom (by simp : (F.map (CategoryStruct.id x)).obj (F.obj x).str.pt = (F.obj x).str.pt) := by
   have : (CategoryStruct.id (F.obj x)).point = _ := PGrpd.id_point
@@ -389,6 +395,21 @@ def compForgetToGrpdMapPoint {x y : Γ} (f : x ⟶ y) :
       Grpd.comp_eq_comp, compForgetToGrpdObjPt, Grpd.eqToHom_obj, cast_cast]
     rfl)
     ≫ (eqToHom (Functor.congr_obj h y)).map (α.map f).point
+
+@[simp] theorem compForgetToGrpdMapPoint_id {x} :
+    compForgetToGrpdMapPoint h (𝟙 x) = eqToHom (by simp) := by
+  subst h
+  simp only [compForgetToGrpdMapPoint, map_id_point]
+  apply eq_of_heq
+  simp [eqToHom_comp_heq_iff]
+
+@[simp] theorem compForgetToGrpdMapPoint_comp {x y z} (f : x ⟶ y) (g : y ⟶ z):
+    compForgetToGrpdMapPoint h (f ≫ g) = sorry := by
+  subst h
+  simp [compForgetToGrpdMapPoint, PGrpd.map_id_point]
+  apply eq_of_heq
+  -- rfl
+  sorry
 
 end
 

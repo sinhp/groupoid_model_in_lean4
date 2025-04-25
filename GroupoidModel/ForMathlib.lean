@@ -680,14 +680,14 @@ variable {Γ : Type u₂} [Category.{v₂} Γ] {A : Γ ⥤ Grpd.{v₁,u₁}}
   have : A.map (𝟙 x) = 𝟙 (A.obj x) := by simp
   exact Functor.congr_obj this a
 
-theorem Grpd.map_id_map
+@[simp] theorem Grpd.map_id_map
     {x : Γ} {a b : A.obj x} {f : a ⟶ b} :
     (A.map (𝟙 x)).map f = eqToHom Grpd.map_id_obj
       ≫ f ≫ eqToHom Grpd.map_id_obj.symm := by
   have : A.map (𝟙 x) = 𝟙 (A.obj x) := by simp
   exact Functor.congr_hom this f
 
-theorem Grpd.map_comp_obj
+@[simp] theorem Grpd.map_comp_obj
     {x y z : Γ} {f : x ⟶ y} {g : y ⟶ z} {a : A.obj x} :
     (A.map (f ≫ g)).obj a = (A.map g).obj ((A.map f).obj a) := by
   have : A.map (f ≫ g) = A.map f ⋙ A.map g := by
@@ -696,7 +696,7 @@ theorem Grpd.map_comp_obj
   simp only [Functor.comp_obj] at h
   exact h
 
-theorem Grpd.map_comp_map
+@[simp] theorem Grpd.map_comp_map
     {x y z : Γ} {f : x ⟶ y} {g : y ⟶ z} {a b : A.obj x} {φ : a ⟶ b} :
     (A.map (f ≫ g)).map φ
     = eqToHom Grpd.map_comp_obj ≫ (A.map g).map ((A.map f).map φ)
