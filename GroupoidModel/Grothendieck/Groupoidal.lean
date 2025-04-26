@@ -460,18 +460,18 @@ end
   ===== Γ --α ≫ forgetToGrpd--> Grpd
 -/
 def sec
-    {Γ : Grpd.{v₂,u₂}} (α : Γ ⥤ PGrpd.{v₁,u₁}) :
-    Γ ⥤ Groupoidal (α ⋙ PGrpd.forgetToGrpd) :=
-  Groupoidal.IsMegaPullback.lift α (Functor.id _) rfl
+    {Γ : Grpd.{v₂,u₂}} (A : Γ ⥤ Grpd.{v₁,u₁}) (α : Γ ⥤ PGrpd.{v₁,u₁})
+    (α_tp : α ⋙ PGrpd.forgetToGrpd = A) : Γ ⥤ Groupoidal A :=
+  Groupoidal.IsMegaPullback.lift α (Functor.id _) α_tp
 
-@[simp] def sec_toPGrpd
-    {Γ : Grpd.{v₂,u₂}} (α : Γ ⥤ PGrpd.{v₁,u₁}) :
-    Groupoidal.sec α ⋙ Groupoidal.toPGrpd _ = α := by
+@[simp] def sec_toPGrpd {Γ : Grpd.{v₂,u₂}} (A : Γ ⥤ Grpd.{v₁,u₁}) (α : Γ ⥤ PGrpd.{v₁,u₁})
+    (α_tp : α ⋙ PGrpd.forgetToGrpd = A) :
+    Groupoidal.sec A α α_tp ⋙ Groupoidal.toPGrpd _ = α := by
   simp [Groupoidal.sec]
 
-@[simp] def sec_forget
-    {Γ : Grpd.{v₂,u₂}} (α : Γ ⥤ PGrpd.{v₁,u₁}) :
-    Groupoidal.sec α ⋙ Grothendieck.forget _ = Functor.id _ :=
+@[simp] def sec_forget {Γ : Grpd.{v₂,u₂}} (A : Γ ⥤ Grpd.{v₁,u₁}) (α : Γ ⥤ PGrpd.{v₁,u₁})
+    (α_tp : α ⋙ PGrpd.forgetToGrpd = A) :
+    Groupoidal.sec A α α_tp ⋙ Grothendieck.forget _ = Functor.id _ :=
   rfl
 
 end Groupoidal
