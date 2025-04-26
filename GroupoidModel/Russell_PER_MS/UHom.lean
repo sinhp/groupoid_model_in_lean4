@@ -174,6 +174,7 @@ theorem code_tp {Γ : Ctx} {i : Nat} (s : UHomSeq Ctx) (ilen : i < s.length) (A 
     s.code ilen A ≫ s[i+1].tp = (s.homSucc i).wkU Γ :=
   sorry
 
+@[reassoc]
 theorem comp_code {Δ Γ : Ctx} {i : Nat} (s : UHomSeq Ctx) (ilen : i < s.length)
     (σ : y(Δ) ⟶ y(Γ)) (A : y(Γ) ⟶ s[i].Ty) :
     σ ≫ s.code ilen A = s.code ilen (σ ≫ A) := by
@@ -184,6 +185,7 @@ def el (s : UHomSeq Ctx) {Γ : Ctx} {i : Nat} (ilen : i < s.length)
     y(Γ) ⟶ s[i].Ty :=
   sorry
 
+@[reassoc]
 theorem comp_el (s : UHomSeq Ctx) {Δ Γ : Ctx} {i : Nat} (ilen : i < s.length)
     (σ : y(Δ) ⟶ y(Γ)) (a : y(Γ) ⟶ s[i+1].Tm) (a_tp : a ≫ s[i+1].tp = (s.homSucc i).wkU Γ) :
     σ ≫ s.el ilen a a_tp = s.el ilen (σ ≫ a) (by simp [a_tp]) := by
@@ -323,13 +325,14 @@ theorem unLam_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].
 def mkApp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (f : y(Γ) ⟶ s[max i j].Tm) (f_tp : f ≫ s[max i j].tp = s.mkPi ilen jlen A B)
     (a : y(Γ) ⟶ s[i].Tm) (a_tp : a ≫ s[i].tp = A) : y(Γ) ⟶ s[j].Tm :=
-  s[i].inst A (s.unLam ilen jlen A B f f_tp) a a_tp
+
+  ym(s[i].sec A a a_tp) ≫ s.unLam ilen jlen A B f f_tp
 
 @[simp]
 theorem mkApp_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (f : y(Γ) ⟶ s[max i j].Tm) (f_tp : f ≫ s[max i j].tp = s.mkPi ilen jlen A B)
     (a : y(Γ) ⟶ s[i].Tm) (a_tp : a ≫ s[i].tp = A) :
-    s.mkApp ilen jlen A B f f_tp a a_tp ≫ s[j].tp = s[i].inst A B a a_tp := by
+    s.mkApp ilen jlen A B f f_tp a a_tp ≫ s[j].tp = ym(s[i].sec A a a_tp) ≫ B := by
   simp [mkApp]
 
 theorem comp_mkApp {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
@@ -388,8 +391,7 @@ theorem mkApp_mkLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[
     (t : y(s[i].ext A) ⟶ s[j].Tm) (t_tp : t ≫ s[j].tp = B)
     (lam_tp : s.mkLam ilen jlen A t ≫ s[max i j].tp = s.mkPi ilen jlen A B)
     (a : y(Γ) ⟶ s[i].Tm) (a_tp : a ≫ s[i].tp = A) :
-    -- Q: should `inst ..` be the simp-NF, or should the more basic `σ ≫ _`?
-    s.mkApp ilen jlen A B (s.mkLam ilen jlen A t) lam_tp a a_tp = s[i].inst A t a a_tp := by
+    s.mkApp ilen jlen A B (s.mkLam ilen jlen A t) lam_tp a a_tp = ym(s[i].sec A a a_tp) ≫ t := by
   rw [mkApp, unLam_mkLam]
   assumption
 
@@ -405,6 +407,73 @@ def Sig_pb : IsPullback
     (s.pair ilen jlen)
   (s[i].uvPolyTp.comp s[j].uvPolyTp).p s[max i j].tp
     (s.Sig ilen jlen) :=
+  sorry
+
+/--
+```
+Γ ⊢ᵢ A  Γ.A ⊢ⱼ B
+-----------------
+Γ ⊢ₘₐₓ₍ᵢ,ⱼ₎ ΣA. B
+``` -/
+def mkSigma {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty) :
+    y(Γ) ⟶ s[max i j].Ty :=
+  s[i].Ptp_equiv.symm ⟨A, B⟩ ≫ s.Sig ilen jlen
+
+theorem comp_mkSigma {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
+    (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty) :
+    ym(σ) ≫ s.mkSigma ilen jlen A B =
+      s.mkSigma ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ B) := by
+  sorry
+
+/--
+```
+Γ ⊢ᵢ t : A  Γ ⊢ⱼ u : B[t]
+--------------------------
+Γ ⊢ₘₐₓ₍ᵢ,ⱼ₎ ⟨t, u⟩ : ΣA. B
+``` -/
+def mkPair {Γ : Ctx} (t : y(Γ) ⟶ s[i].Tm) (B : y(s[i].ext (t ≫ s[i].tp)) ⟶ s[j].Ty)
+    (u : y(Γ) ⟶ s[j].Tm) (u_tp : u ≫ s[j].tp = ym(s[i].sec _ t rfl) ≫ B) :
+    y(Γ) ⟶ s[max i j].Tm :=
+  (s[i].uvPolyTpCompDomEquiv s[j] Γ).symm ⟨t, B, u, u_tp⟩ ≫ s.pair ilen jlen
+
+theorem comp_mkPair {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
+    (t : y(Γ) ⟶ s[i].Tm) (B : y(s[i].ext (t ≫ s[i].tp)) ⟶ s[j].Ty)
+    (u : y(Γ) ⟶ s[j].Tm) (u_tp : u ≫ s[j].tp = ym(s[i].sec _ t rfl) ≫ B) :
+    ym(σ) ≫ s.mkPair ilen jlen t B u u_tp =
+      s.mkPair ilen jlen (ym(σ) ≫ t) (ym(s[i].substWk σ (t ≫ s[i].tp)) ≫ B) (ym(σ) ≫ u)
+      (by simp [u_tp, comp_sec_functor_map_assoc]; rfl) := by
+  sorry
+
+def mkFst {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
+    (p : y(Γ) ⟶ s[max i j].Tm) (p_tp : p ≫ s[max i j].tp = s.mkSigma ilen jlen A B) :
+    y(Γ) ⟶ s[i].Tm :=
+  let AB := s[i].Ptp_equiv.symm ⟨A, B⟩
+  let tu : y(Γ) ⟶ s[i].uvPolyTp.compDom s[j].uvPolyTp :=
+    (s.Sig_pb ilen jlen).lift p AB p_tp
+  s[i].uvPolyTpCompDomEquiv s[j] Γ tu |>.1
+
+theorem comp_mkFst {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
+    (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
+    (p : y(Γ) ⟶ s[max i j].Tm) (p_tp : p ≫ s[max i j].tp = s.mkSigma ilen jlen A B) :
+    ym(σ) ≫ s.mkFst ilen jlen A B p p_tp =
+      s.mkFst ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ B) (ym(σ) ≫ p)
+        (by simp [p_tp, comp_mkSigma]) := by
+  sorry
+
+def mkSnd {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
+    (p : y(Γ) ⟶ s[max i j].Tm) (p_tp : p ≫ s[max i j].tp = s.mkSigma ilen jlen A B) :
+    y(Γ) ⟶ s[j].Tm :=
+  let AB := s[i].Ptp_equiv.symm ⟨A, B⟩
+  let tu : y(Γ) ⟶ s[i].uvPolyTp.compDom s[j].uvPolyTp :=
+    (s.Sig_pb ilen jlen).lift p AB p_tp
+  s[i].uvPolyTpCompDomEquiv s[j] Γ tu |>.2.2.1
+
+theorem comp_mkSnd {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
+    (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
+    (p : y(Γ) ⟶ s[max i j].Tm) (p_tp : p ≫ s[max i j].tp = s.mkSigma ilen jlen A B) :
+    ym(σ) ≫ s.mkSnd ilen jlen A B p p_tp =
+      s.mkSnd ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ B) (ym(σ) ≫ p)
+        (by simp [p_tp, comp_mkSigma]) := by
   sorry
 
 end UHomSeqPiSigma
