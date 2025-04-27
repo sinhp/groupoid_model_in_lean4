@@ -378,12 +378,22 @@ theorem pairSectionMap_comp_fiber_base {x y z} (f : x ⟶ y) (g : y ⟶ z) :
   simp [pairSectionMap_fiber_base, PGrpd.mapPoint_comp,
     pairSectionMap, PGrpd.mapPoint, pairSectionMapFiber]
 
+theorem pairSectionMap_comp_fiber_fiber_aux {x y z} (f : x ⟶ y) (g : y ⟶ z) :
+  (B.map ((ι _ (pairSectionObj h z).base).map (PGrpd.mapPoint α (f ≫ g)))).obj
+      ((sigmaMap B (pairSectionMap h (f ≫ g)).base).obj (pairSectionObj h x).fiber).fiber =
+    (B.map ((sec α).map g)).obj
+      ((B.map ((sec α).map f)).obj (PGrpd.objPt' h x)) := by
+  have h1 : B.map ((sec α).map f) ⋙ B.map ((sec α).map g)
+    = B.map ((sec α).map (f ≫ g)) := by simp
+  simp only [← Functor.comp_obj, Functor.congr_obj h1]
+  rw! [← pairSectionMap_aux]
+  rfl
+
+
 theorem pairSectionMap_comp_fiber_fiber {x y z} (f : x ⟶ y) (g : y ⟶ z) :
     (pairSectionMap h (f ≫ g)).fiber.fiber =
-    eqToHom (by
-    simp
-
-    sorry) ≫ PGrpd.mapPoint' h (f ≫ g) := by
+    eqToHom (by simp [pairSectionMap_comp_fiber_fiber_aux])
+    ≫ PGrpd.mapPoint' h (f ≫ g) := by
   rw! [homMk_fiber, homMk_fiber]
 
 /--
