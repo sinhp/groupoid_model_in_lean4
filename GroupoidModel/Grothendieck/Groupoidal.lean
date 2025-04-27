@@ -60,7 +60,7 @@ namespace Grothendieck
   the Grothendieck construction of the composite `F ⋙ Grpd.forgetToCat`, where
   `forgetToCat : Grpd ⥤ Cat` is the embedding of groupoids into categories, is a groupoid.
 -/
-abbrev Groupoidal {C : Type u₁} [Category.{v₁,u₁} C] (F : C ⥤ Grpd.{v₂,u₂}) :=
+def Groupoidal {C : Type u₁} [Category.{v₁,u₁} C] (F : C ⥤ Grpd.{v₂,u₂}) :=
   Grothendieck (Groupoid.compForgetToCat F)
 
 notation:max "∫(" A ")" => Grothendieck.Groupoidal A
@@ -69,9 +69,54 @@ namespace Groupoidal
 
 section
 
-instance {C : Type u₁} [Category.{v₁,u₁} C] {F : C ⥤ Grpd.{v₂,u₂}} :
-    Category (Groupoidal F) :=
+variable {C : Type u₁} [Category.{v₁,u₁} C] {F : C ⥤ Grpd.{v₂,u₂}}
+
+instance : Category (Groupoidal F) :=
   inferInstanceAs (Category (Grothendieck _))
+
+/--
+  We should use this to introduce objects,
+  rather than the API for `Grothendieck`.
+  This might seem redundant, but it simplifies the goal when
+  making a point so that it does not show `Groupoid.compForgetToCat`
+-/
+def objMk (c : C) (x : F.obj c) : ∫(F) where
+  base := c
+  fiber := x
+
+-- FIXME should this be done by adding @[simps] to objMk?
+@[simp] theorem objMk_base (c : C) (x : F.obj c) : (objMk c x).base = c :=
+  rfl
+
+-- FIXME should this be done by adding @[simps] to objMk?
+@[simp] theorem objMk_fiber (c : C) (x : F.obj c) : (objMk c x).fiber = x :=
+  rfl
+
+/--
+  We should use this to introduce morphisms,
+  rather than the API for `Grothendieck`.
+  This might seem redundant, but it simplifies the goal when
+  making a path in the fiber so that it does not show `Groupoid.compForgetToCat`
+-/
+def homMk {X Y : ∫(F)} (fb : X.base ⟶ Y.base) (ff : (F.map fb).obj X.fiber ⟶ Y.fiber)
+    : X ⟶ Y where
+  base := fb
+  fiber := ff
+
+-- FIXME should this be done by adding @[simps] to homMk?
+@[simp] theorem homMk_base {X Y : ∫(F)} (fb : X.base ⟶ Y.base)
+    (ff : (F.map fb).obj X.fiber ⟶ Y.fiber) : (homMk fb ff).base = fb :=
+  rfl
+
+-- FIXME should this be done by adding @[simps] to homMk?
+@[simp] theorem homMk_fiber {X Y : ∫(F)} (fb : X.base ⟶ Y.base)
+    (ff : (F.map fb).obj X.fiber ⟶ Y.fiber) : (homMk fb ff).fiber = ff :=
+  rfl
+
+end
+
+section
+
 
 variable {C : Type u₁} [Groupoid.{v₁,u₁} C] {F : C ⥤ Grpd.{v₂,u₂}}
 
@@ -108,6 +153,8 @@ theorem ι_obj (c : C) (d : ↑(F.obj c)) :
     (ι F c).obj d = { base := c, fiber := d } :=
   Grothendieck.ι_obj _ _ _
 
+-- NOTE when `f = eqToHom` this is not the rewrite I want.
+-- Instead I want to do `eqToHom_map`
 theorem ι_map (c : C) {X Y : ↑(F.obj c)} (f : X ⟶ Y) :
     (ι F c).map f = ⟨𝟙 _, eqToHom (by simp [ι_obj]) ≫ f⟩ :=
   Grothendieck.ι_map _ _ _
@@ -194,19 +241,21 @@ section
 variable {F : Γ ⥤ Grpd.{v₁,u₁}}
 
 /-- This proves that base of an eqToHom morphism in the category Grothendieck A is an eqToHom morphism -/
-theorem eqToHom_base {x y : Groupoidal F} (eq : x = y) :
-    (eqToHom eq).base = eqToHom (by simp [eq]) := by
-  cases eq
-  simp
+@[simp] theorem eqToHom_base {x y : Groupoidal F} (eq : x = y) :
+    (eqToHom eq).base = eqToHom (by simp [eq]) :=
+  Grothendieck.eqToHom_base _
 
 /-- This is the proof of equality used in the eqToHom in `Groupoidal.eqToHom_fiber` -/
 theorem eqToHom_fiber_aux {g1 g2 : Groupoidal F}
     (eq : g1 = g2) : (F.map (eqToHom eq).base).obj g1.fiber = g2.fiber := by
+  unfold Groupoidal
   cases eq
   simp
 
 /-- This proves that fiber of an eqToHom morphism in the category Grothendieck A is an eqToHom morphism -/
-theorem eqToHom_fiber {g1 g2 : Groupoidal F} (eq : g1 = g2) : (eqToHom eq).fiber = eqToHom (eqToHom_fiber_aux eq) := by
+@[simp] theorem eqToHom_fiber {g1 g2 : Groupoidal F} (eq : g1 = g2) :
+    (eqToHom eq).fiber = eqToHom (eqToHom_fiber_aux eq) := by
+  unfold Groupoidal
   cases eq
   simp
 
@@ -228,8 +277,25 @@ theorem ext {X Y : Groupoidal F} (f g : Hom X Y) (w_base : f.base = g.base)
     (eqToHom h).base = eqToHom (congrArg base h) :=
   Grothendieck.base_eqToHom _
 
-@[simp] theorem comp_base {X Y Z : Groupoidal F} (f : X ⟶ Y)
-    (g : Y ⟶ Z) : (f ≫ g).base = f.base ≫ g.base :=
+@[simp]
+theorem id_base (X : Groupoidal F) :
+    Hom.base (𝟙 X) = 𝟙 X.base := by
+  rfl
+
+@[simp]
+theorem id_fiber (X : Groupoidal F) :
+    Hom.fiber (𝟙 X) = eqToHom (by simp) :=
+  rfl
+
+@[simp]
+theorem comp_base {X Y Z : Groupoidal F} (f : X ⟶ Y) (g : Y ⟶ Z) :
+    (f ≫ g).base = f.base ≫ g.base :=
+  rfl
+
+@[simp]
+theorem comp_fiber {X Y Z : Groupoidal F} (f : X ⟶ Y) (g : Y ⟶ Z) :
+    Hom.fiber (f ≫ g) =
+      eqToHom (by simp) ≫ (F.map g.base).map f.fiber ≫ g.fiber :=
   rfl
 
 section
@@ -283,13 +349,14 @@ variable {X} {Y : Groupoidal F} (f : X ⟶ Y)
     ≫ (α.app Y.base).map f.fiber := Grothendieck.map_map_fiber _ _
 
 @[simp] theorem fiber_eqToHom (h : X = Y) :
-    (eqToHom h).fiber = eqToHom (by subst h; simp) :=
+    (eqToHom h).fiber = eqToHom (by unfold Groupoidal; subst h; simp) :=
   Grothendieck.fiber_eqToHom _
 
-@[simp] theorem comp_fiber {Z : Groupoidal F}
-    (g : Y ⟶ Z) : Hom.fiber (f ≫ g) = eqToHom (by simp [Grpd.forgetToCat])
-    ≫ (F.map g.base).map f.fiber ≫ g.fiber :=
-  rfl
+@[simp] theorem eqToHom_comp_fiber {C : Type u} [Category.{v} C] {A : C ⥤ Grpd.{v₁, u₁}}
+    {p q r : ∫(A)} (h : p = q) {f : q ⟶ r} :
+    (eqToHom h ≫ f).fiber = eqToHom (by subst h; simp) ≫ f.fiber := by
+  simp [eqToHom_map]
+
 end
 end
 
@@ -551,15 +618,14 @@ section
 variable {Γ : Type u} [Category.{v} Γ] {A : Γ ⥤ Grpd.{v₁,u₁}}
     {α : Γ ⥤ PGrpd.{v₁,u₁}} (h : α ⋙ PGrpd.forgetToGrpd = A)
 
-def sec' :
-    Γ ⥤ Groupoidal A :=
-  Groupoidal.IsMegaPullback.lift α (Functor.id _)
+def sec' : Γ ⥤ ∫(A) :=
+  IsMegaPullback.lift α (Functor.id _)
     (by simp [h, Functor.id_comp])
 
-@[simp] def sec'_toPGrpd : Groupoidal.sec' h ⋙ Groupoidal.toPGrpd _ = α := by
+@[simp] def sec'_toPGrpd : sec' h ⋙ toPGrpd _ = α := by
   simp [Groupoidal.sec']
 
-@[simp] def sec'_forget : Groupoidal.sec' h ⋙ Grothendieck.forget _
+@[simp] def sec'_forget : sec' h ⋙ forget _
     = Functor.id _ :=
   rfl
 
@@ -580,14 +646,14 @@ variable {Γ : Type u} [Category.{v} Γ]
   ===== Γ --α ≫ forgetToGrpd--> Grpd
 -/
 def sec (α : Γ ⥤ PGrpd.{v₁,u₁}) :
-    Γ ⥤ Groupoidal (α ⋙ PGrpd.forgetToGrpd) :=
+    Γ ⥤ ∫(α ⋙ PGrpd.forgetToGrpd) :=
   sec' rfl
 
 @[simp] def sec_toPGrpd (α : Γ ⥤ PGrpd.{v₁,u₁}) :
-    Groupoidal.sec α ⋙ Groupoidal.toPGrpd _ = α := sec'_toPGrpd _
+    sec α ⋙ toPGrpd _ = α := sec'_toPGrpd _
 
 @[simp] def sec_forget (α : Γ ⥤ PGrpd.{v₁,u₁}) :
-    Groupoidal.sec α ⋙ Grothendieck.forget _ = Functor.id _ := rfl
+    sec α ⋙ forget _ = Functor.id _ := rfl
 
 end Groupoidal
 end Grothendieck
