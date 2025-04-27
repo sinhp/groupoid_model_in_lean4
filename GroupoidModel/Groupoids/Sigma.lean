@@ -284,7 +284,7 @@ section
 def mapPairSectionObjFiber {x y : Γ} (f : x ⟶ y) : sigmaObj B y :=
   (sigmaMap B f).obj (pairSectionObjFiber h x)
 
--- TODO clean up
+-- TODO rename
 theorem pairSectionMap_aux_aux {x y} (f : x ⟶ y) :
     (ιNatTrans f).app (pairSectionObjFiber h x).base
     ≫ (ι _ y).map (PGrpd.mapPoint α f)
@@ -315,12 +315,12 @@ theorem pairSectionMap_aux_aux {x y} (f : x ⟶ y) :
 theorem pairSectionMap_aux {x y} (f : x ⟶ y) :
     ((ι _ y ⋙ B).map (PGrpd.mapPoint α f)).obj (mapPairSectionObjFiber h f).fiber =
     ((sec α ⋙ B).map f).obj (PGrpd.objPt' h x) := by
-      simp only [Functor.comp_obj, Grpd.forgetToCat.eq_1, sigma, sigmaObj,
-        Functor.comp_map, sigmaMap, PGrpd.forgetToGrpd_map, id_eq, map_obj,
-        whiskerRight_app, pre_obj_base, pre_obj_fiber,
-        mapPairSectionObjFiber]
-      rw [← Grpd.map_comp_obj, pairSectionMap_aux_aux]
-      rfl
+  simp only [Functor.comp_obj, Grpd.forgetToCat.eq_1, sigma, sigmaObj,
+    Functor.comp_map, sigmaMap, PGrpd.forgetToGrpd_map, id_eq, map_obj,
+    whiskerRight_app, pre_obj_base, pre_obj_fiber,
+    mapPairSectionObjFiber]
+  rw [← Grpd.map_comp_obj, pairSectionMap_aux_aux]
+  rfl
 
 /--
 This can be thought of as the action of parallel transport on f
@@ -508,13 +508,23 @@ theorem pair_comp_forget :
 end
 
 variable {Γ : Type u₂} [Category.{v₂} Γ] {A : Γ ⥤ Grpd.{v₁,u₁}}
-    (B : ∫(A) ⥤ Grpd.{v₁,u₁}) (x : Γ)
+    (B : ∫(A) ⥤ Grpd.{v₁,u₁})
 
 def fstAux : sigma A B ⟶ A where
   app x := Grpd.homOf (Grothendieck.forget _)
 
 def fst : ∫(sigma A B) ⥤ ∫(A) :=
   map (fstAux B)
+
+def assocFib (x : Γ) : sigmaObj B x ⥤ ∫(B) :=
+  Grothendieck.Groupoidal.pre _ _
+
+def assocHom {x y : Γ} (f : x ⟶ y) :
+    assocFib B x ⟶ sigmaMap B f ⋙ assocFib B y := by
+  dsimp [assocFib, sigmaMap]
+  rw [Functor.assoc, ← pre_comp]
+  -- refine (preNatIso B (eqToIso _)).hom ≫
+  sorry
 
 -- JH: changed name from `snd` to `assoc`
 -- maybe we should use `Grothendieck.functorFrom`
@@ -523,7 +533,8 @@ def fst : ∫(sigma A B) ⥤ ∫(A) :=
 -- B : Γ.A ⥤ Grpd
 -- ∫(B) = (Γ.A).B
 -- Γ.(sigma A B) ≅ (Γ.A).B
-def assoc : ∫(sigma A B) ⥤ ∫(B) := sorry
+def assoc : ∫(sigma A B) ⥤ ∫(B) :=
+  functorFrom (assocFib B) (assocHom B) sorry sorry
 
 def snd : ∫(sigma A B) ⥤ PGrpd :=
   assoc B ⋙ toPGrpd B
