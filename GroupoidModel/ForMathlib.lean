@@ -11,6 +11,7 @@ import Mathlib.CategoryTheory.ChosenFiniteProducts
 import Mathlib.CategoryTheory.Core
 import Mathlib.CategoryTheory.Adjunction.Limits
 import Mathlib.CategoryTheory.Grothendieck
+import SEq.Tactic.DepRewrite
 
 /-! This file contains declarations missing from mathlib,
 to be upstreamed. -/
@@ -284,6 +285,80 @@ theorem eqToHom_obj
   cases eq
   simp[CategoryStruct.id]
 
+section
+variable {Γ : Type u₂} [Category.{v₂} Γ] {A : Γ ⥤ Grpd.{v₁,u₁}}
+
+@[simp] theorem map_id_obj {x : Γ} {a : A.obj x} :
+    (A.map (𝟙 x)).obj a = a := by
+  have : A.map (𝟙 x) = 𝟙 (A.obj x) := by simp
+  exact Functor.congr_obj this a
+
+@[simp] theorem map_id_map
+    {x : Γ} {a b : A.obj x} {f : a ⟶ b} :
+    (A.map (𝟙 x)).map f = eqToHom Grpd.map_id_obj
+      ≫ f ≫ eqToHom Grpd.map_id_obj.symm := by
+  have : A.map (𝟙 x) = 𝟙 (A.obj x) := by simp
+  exact Functor.congr_hom this f
+
+@[simp] theorem map_comp_obj
+    {x y z : Γ} {f : x ⟶ y} {g : y ⟶ z} {a : A.obj x} :
+    (A.map (f ≫ g)).obj a = (A.map g).obj ((A.map f).obj a) := by
+  have : A.map (f ≫ g) = A.map f ⋙ A.map g := by
+    simp [Grpd.comp_eq_comp]
+  have h := Functor.congr_obj this a
+  simp only [Functor.comp_obj] at h
+  exact h
+
+@[simp] theorem map_comp_map
+    {x y z : Γ} {f : x ⟶ y} {g : y ⟶ z} {a b : A.obj x} {φ : a ⟶ b} :
+    (A.map (f ≫ g)).map φ
+    = eqToHom Grpd.map_comp_obj ≫ (A.map g).map ((A.map f).map φ)
+    ≫ eqToHom Grpd.map_comp_obj.symm := by
+  have : A.map (f ≫ g) = A.map f ≫ A.map g := by simp
+  exact Functor.congr_hom this φ
+
+theorem map_comp_map'
+    {x y z : Γ} {f : x ⟶ y} {g : y ⟶ z} {a b : A.obj x} {φ : a ⟶ b} :
+    (A.map g).map ((A.map f).map φ)
+    = eqToHom Grpd.map_comp_obj.symm ≫ (A.map (f ≫ g)).map φ ≫ eqToHom Grpd.map_comp_obj
+    := by
+  simp [Grpd.map_comp_map]
+end
+
+@[simp] theorem id_obj {C : Grpd} (X : C) :
+    (𝟙 C : C ⥤ C).obj X = X :=
+  rfl
+
+@[simp] theorem comp_obj {C D E : Grpd} (F : C ⟶ D) (G : D ⟶ E)
+    (X : C) : (F ≫ G).obj X = G.obj (F.obj X) :=
+  rfl
+
+variable {Γ : Type u} [Category.{v} Γ] (F : Γ ⥤ Grpd.{v₁,u₁})
+
+@[simp] theorem map_eqToHom_obj {x y : Γ} (h : x = y) (t) :
+    (F.map (eqToHom h)).obj t = cast (by rw [h]) t := by
+  subst h
+  simp
+
+/-- This is the proof of equality used in the eqToHom in `Cat.eqToHom_hom` -/
+theorem eqToHom_hom_aux {C1 C2 : Grpd.{v,u}} (x y: C1) (eq : C1 = C2) :
+    (x ⟶ y) = ((eqToHom eq).obj x ⟶ (eqToHom eq).obj y) := by
+  cases eq
+  simp[CategoryStruct.id]
+
+/-- This is the turns the hom part of eqToHom functors into a cast-/
+theorem eqToHom_hom {C1 C2 : Grpd.{v,u}} {x y: C1} (f : x ⟶ y) (eq : C1 = C2) :
+    (eqToHom eq).map f = (cast (Grpd.eqToHom_hom_aux x y eq) f) := by
+  cases eq
+  simp[CategoryStruct.id]
+
+@[simp] theorem map_eqToHom_map {x y : Γ} (h : x = y) {t s} (f : t ⟶ s) :
+    (F.map (eqToHom h)).map f =
+    eqToHom (Functor.congr_obj (eqToHom_map _ _) t)
+    ≫ cast (Grpd.eqToHom_hom_aux t s (by rw [h])) f
+    ≫ eqToHom (Eq.symm (Functor.congr_obj (eqToHom_map _ _) s)) := by
+  have h1 : F.map (eqToHom h) = eqToHom (by rw [h]) := eqToHom_map _ _
+  rw [Functor.congr_hom h1, Grpd.eqToHom_hom]
 end Grpd
 
 namespace AsSmall
@@ -677,35 +752,6 @@ end equivalence
 section
 variable {Γ : Type u₂} [Category.{v₂} Γ] {A : Γ ⥤ Grpd.{v₁,u₁}}
 
-@[simp] theorem Grpd.map_id_obj {x : Γ} {a : A.obj x} :
-    (A.map (𝟙 x)).obj a = a := by
-  have : A.map (𝟙 x) = 𝟙 (A.obj x) := by simp
-  exact Functor.congr_obj this a
-
-@[simp] theorem Grpd.map_id_map
-    {x : Γ} {a b : A.obj x} {f : a ⟶ b} :
-    (A.map (𝟙 x)).map f = eqToHom Grpd.map_id_obj
-      ≫ f ≫ eqToHom Grpd.map_id_obj.symm := by
-  have : A.map (𝟙 x) = 𝟙 (A.obj x) := by simp
-  exact Functor.congr_hom this f
-
-@[simp] theorem Grpd.map_comp_obj
-    {x y z : Γ} {f : x ⟶ y} {g : y ⟶ z} {a : A.obj x} :
-    (A.map (f ≫ g)).obj a = (A.map g).obj ((A.map f).obj a) := by
-  have : A.map (f ≫ g) = A.map f ⋙ A.map g := by
-    simp [Grpd.comp_eq_comp]
-  have h := Functor.congr_obj this a
-  simp only [Functor.comp_obj] at h
-  exact h
-
-@[simp] theorem Grpd.map_comp_map
-    {x y z : Γ} {f : x ⟶ y} {g : y ⟶ z} {a b : A.obj x} {φ : a ⟶ b} :
-    (A.map (f ≫ g)).map φ
-    = eqToHom Grpd.map_comp_obj ≫ (A.map g).map ((A.map f).map φ)
-    ≫ eqToHom Grpd.map_comp_obj.symm := by
-  have : A.map (f ≫ g) = A.map f ≫ A.map g := by simp
-  exact Functor.congr_hom this φ
-
 @[simp] theorem Cat.map_id_obj {A : Γ ⥤ Cat.{v₁,u₁}}
     {x : Γ} {a : A.obj x} :
     (A.map (𝟙 x)).obj a = a := by
@@ -720,18 +766,6 @@ theorem Cat.map_id_map {A : Γ ⥤ Cat.{v₁,u₁}}
   exact Functor.congr_hom this f
 
 end
-
-/-- This is the proof of equality used in the eqToHom in `Cat.eqToHom_hom` -/
-theorem Grpd.eqToHom_hom_aux {C1 C2 : Grpd.{v,u}} (x y: C1) (eq : C1 = C2) :
-    (x ⟶ y) = ((eqToHom eq).obj x ⟶ (eqToHom eq).obj y) := by
-  cases eq
-  simp[CategoryStruct.id]
-
-/-- This is the turns the hom part of eqToHom functors into a cast-/
-theorem Grpd.eqToHom_hom {C1 C2 : Grpd.{v,u}} {x y: C1} (f : x ⟶ y) (eq : C1 = C2) :
-    (eqToHom eq).map f = (cast (Grpd.eqToHom_hom_aux x y eq) f) := by
-  cases eq
-  simp[CategoryStruct.id]
 
 namespace Grothendieck
 
@@ -765,6 +799,45 @@ variable {Γ : Type u₂} [Category.{v₂} Γ] {Δ : Type u₃} [Category.{v₃}
     · simp
   · intro x
     rfl
+
+section
+variable {C : Type u} [Category.{v} C] {D : Type u₁} [Category.{v₁} D]
+    (F : C ⥤ Cat.{v₂,u₂})
+
+theorem preNatIso_congr {G H : D ⥤ C} {α β : G ≅ H} (h : α = β) :
+    preNatIso F α = preNatIso F β ≪≫ eqToIso (by subst h; simp) := by
+  subst h
+  simp
+
+@[simp] theorem preNatIso_eqToIso {G H : D ⥤ C} {h : G = H} :
+    preNatIso F (eqToIso h) = eqToIso (by
+      subst h
+      simp [Grothendieck.map_id_eq, Cat.id_eq_id, Functor.id_comp]) := by
+  subst h
+  ext
+  apply Grothendieck.ext
+  · simp only [eqToIso_refl, Iso.refl_hom, eqToIso.hom, Category.comp_id,
+      pre_obj_fiber, preNatIso, transportIso, transport_base,
+      isoMk, transport_fiber, Iso.refl_inv, Iso.symm_mk, NatIso.ofComponents_hom_app]
+    rw! [eqToHom_app, eqToHom_fiber]
+  · simp [preNatIso]
+
+theorem preNatIso_comp {G1 G2 G3 : D ⥤ C} (α : G1 ≅ G2) (β : G2 ≅ G3) :
+    preNatIso F (α ≪≫ β) = preNatIso F α ≪≫ isoWhiskerLeft _ (preNatIso F β) ≪≫
+    eqToIso (by simp [map_comp_eq, Functor.assoc]) := by
+  ext p
+  apply Grothendieck.ext
+  · simp only [Iso.trans_hom, Functor.comp_obj, pre_obj_base, map_obj_base, preNatIso,
+      Iso.app_hom, isoWhiskerLeft_hom, eqToIso.hom, NatTrans.comp_app,
+      NatIso.ofComponents_hom_app, Iso.symm_hom, whiskerLeft_app,
+      map_obj_fiber, transportIso_inv_base, pre_obj_fiber,
+      transportIso_inv_fiber, Category.comp_id, comp_fiber, Functor.map_id,
+      Category.id_comp, eqToHom_app, base_eqToHom,
+      eqToHom_refl, Cat.id_obj, eqToHom_naturality_assoc, eqToHom_trans_assoc]
+    rw! [eqToHom_app, eqToHom_fiber, eqToHom_trans]
+  · simp [preNatIso]
+
+end
 
 end Grothendieck
 end CategoryTheory
