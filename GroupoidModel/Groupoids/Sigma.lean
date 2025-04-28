@@ -1,5 +1,5 @@
 import GroupoidModel.Groupoids.NaturalModelBase
-import GroupoidModel.Russell_PER_MS.NaturalModelSigma
+import GroupoidModel.Russell_PER_MS.NaturalModel
 import SEq.Tactic.DepRewrite
 
 universe v u v₁ u₁ v₂ u₂ v₃ u₃
@@ -584,7 +584,7 @@ theorem PairUP_Uniqueness {Γ : Ctx}
       (f ≫ (base.uvPolyTp.comp base.uvPolyTp).p)
       (by rw[Category.assoc,Category.assoc]; congr 1; exact comm_sq))     := by
   unfold lift
-  refine (base.uvPolyTpCompDomEquiv Γ).injective ?_
+  refine (base.uvPolyTpCompDomEquiv base Γ).injective ?_
   refine Sigma.ext ?_ ?_
   . sorry
   . sorry

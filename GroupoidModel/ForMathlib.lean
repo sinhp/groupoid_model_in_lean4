@@ -883,3 +883,33 @@ noncomputable def pullbackHomEquiv {A B C: 𝒞} {Γ : 𝒞} {f : A ⟶ C} {g : 
   right_inv := by rintro ⟨_,_,_⟩; congr!; simp; simp
 
 end CategoryTheory.Limits
+
+namespace CategoryTheory.IsPullback
+
+variable {C : Type*} [Category C]
+
+@[simp]
+lemma lift_fst_snd {P X Y Z : C} {fst : P ⟶ X} {snd : P ⟶ Y} {f : X ⟶ Z} {g : Y ⟶ Z}
+    (pb : IsPullback fst snd f g) w : pb.lift fst snd w = 𝟙 _ := by
+  apply pb.hom_ext <;> simp
+
+end CategoryTheory.IsPullback
+
+-- TODO: delete this when bumping mathlib, it's in newer versions.
+namespace CategoryTheory.Functor.FullyFaithful
+
+variable {C : Type u₁} [Category.{v₁} C] {D : Type u₂} [Category.{v₂} D]
+variable {F : C ⥤ D} {X Y Z : C}
+variable (hF : F.FullyFaithful)
+
+@[simp]
+lemma preimage_id {X : C} :
+    hF.preimage (𝟙 (F.obj X)) = 𝟙 X :=
+  hF.map_injective (by simp)
+
+@[simp, reassoc]
+lemma preimage_comp {X Y Z : C} (f : F.obj X ⟶ F.obj Y) (g : F.obj Y ⟶ F.obj Z) :
+    hF.preimage (f ≫ g) = hF.preimage f ≫ hF.preimage g :=
+  hF.map_injective (by simp)
+
+end CategoryTheory.Functor.FullyFaithful

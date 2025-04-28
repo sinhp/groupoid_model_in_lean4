@@ -3,7 +3,7 @@ import Mathlib.CategoryTheory.Functor.ReflectsIso
 import Mathlib.CategoryTheory.Category.Cat.Limit
 import Mathlib.CategoryTheory.ChosenFiniteProducts.Cat
 
-import GroupoidModel.Russell_PER_MS.NaturalModelBase
+import GroupoidModel.Russell_PER_MS.NaturalModel
 import GroupoidModel.Grothendieck.IsPullback
 import GroupoidModel.Grothendieck.Groupoidal
 import GroupoidModel.Groupoids.Basic
