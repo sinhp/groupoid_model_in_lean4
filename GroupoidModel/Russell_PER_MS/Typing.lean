@@ -46,6 +46,11 @@ inductive EqTp : Ctx → Nat → Expr → Expr → Prop
     (A,l) :: Γ ⊢[l'] B ≡ B' →
     Γ ⊢[max l l'] .pi l l' A B ≡ .pi l l' A' B'
 
+  | cong_sigma {Γ A A' B B' l l'} :
+    Γ ⊢[l] A ≡ A'→
+    (A,l) :: Γ ⊢[l'] B ≡ B' →
+    Γ ⊢[max l l'] .sigma l l' A B ≡ .sigma l l' A' B'
+
   | cong_univ (Γ l) :
     l < univMax →
     Γ ⊢[l+1] .univ l
@@ -91,6 +96,24 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     Γ ⊢[l] a ≡ a' : A →
     Γ ⊢[l'] .app l l' B f a ≡ .app l l' B' f' a' : B.inst a
 
+  | cong_pair {Γ A B B' t t' u u' l l'} :
+    (A,l) :: Γ ⊢[l'] B ≡ B' →
+    Γ ⊢[l] t ≡ t' : A →
+    Γ ⊢[l'] u ≡ u' : B.inst t →
+    Γ ⊢[max l l'] .pair l l' B t u ≡ .pair l l' B' t' u' : .sigma l l' A B
+
+  | cong_fst {Γ A A' B B' p p' l l'} :
+    Γ ⊢[l] A ≡ A' →
+    (A,l) :: Γ ⊢[l'] B ≡ B' →
+    Γ ⊢[max l l'] p ≡ p' : .sigma l l' A B →
+    Γ ⊢[l] .fst l l' A B p ≡ .fst l l' A' B' p' : A
+
+  | cong_snd {Γ A A' B B' p p' l l'} :
+    Γ ⊢[l] A ≡ A' →
+    (A,l) :: Γ ⊢[l'] B ≡ B' →
+    Γ ⊢[max l l'] p ≡ p' : .sigma l l' A B →
+    Γ ⊢[l'] .snd l l' A B p ≡ .snd l l' A' B' p' : B.inst (.fst l l' A B p)
+
   | cong_code {Γ A A' l} :
     l < univMax →
     Γ ⊢[l] A ≡ A' →
@@ -102,10 +125,30 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     Γ ⊢[l] u : A →
     Γ ⊢[l'] .app l l' B (.lam l l' A t) u ≡ t.inst u : B.inst u
 
+  | fst_pair {Γ} {A B t u : Expr} {l l'} :
+    Γ ⊢[l] A →
+    (A,l) :: Γ ⊢[l'] B →
+    Γ ⊢[l] t : A →
+    Γ ⊢[l'] u : B.inst t →
+    Γ ⊢[l] .fst l l' A B (.pair l l' B t u) ≡ t : A
+
+  | snd_pair {Γ} {A B t u : Expr} {l l'} :
+    Γ ⊢[l] A →
+    (A,l) :: Γ ⊢[l'] B →
+    Γ ⊢[l] t : A →
+    Γ ⊢[l'] u : B.inst t →
+    Γ ⊢[l'] .snd l l' A B (.pair l l' B t u) ≡ u : B.inst t
+
   -- Expansions
-  | eta {Γ A B f l l'} :
+  | lam_app {Γ A B f l l'} :
     Γ ⊢[max l l'] f : .pi l l' A B →
     Γ ⊢[max l l'] f ≡ .lam l l' A (.app l l' (B.liftN 1 1) f.lift (.bvar 0)) : .pi l l' A B
+
+  | pair_fst_snd {Γ A B p l l'} :
+    Γ ⊢[l] A →
+    (A,l) :: Γ ⊢[l'] B →
+    Γ ⊢[max l l'] p : .sigma l l' A B →
+    Γ ⊢[max l l'] p ≡ .pair l l' B (.fst l l' A B p) (.snd l l' A B p) : .sigma l l' A B
 
   -- Conversion
   | conv {Γ A A' t t' l} :
