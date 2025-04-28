@@ -543,46 +543,66 @@ theorem yonedaCatEquiv_baseSig {Γ : Ctx} {A : Ctx.toGrpd.obj Γ ⥤ Grpd.{u,u}}
 namespace SigmaPullback
 
 def comm_sq : basePair ≫ base.tp =
-  (base.uvPolyTp.comp base.uvPolyTp).p ≫ baseSig := by sorry
+    (base.uvPolyTp.comp base.uvPolyTp).p ≫ baseSig := by
+  apply hom_ext_yoneda
+  intro Γ ab
+  apply yonedaCatEquiv.injective
+  dsimp only [baseSig]
+  sorry
 
-def lift' {Γ : Ctx.{u}} (AB : y(Γ) ⟶ base.Ptp.obj base.{u}.Ty) :
+variable  {Γ : Ctx.{u}}
+
+def lift' (AB : y(Γ) ⟶ base.Ptp.obj base.{u}.Ty) :
     y(base.ext (AB ≫ baseSig)) ⟶ base.uvPolyTp.compDom base.uvPolyTp :=
   yonedaEquiv.invFun $
   baseUvPolyTpCompDomEquiv.invFun $
   let B := (baseUvPolyTpEquiv (yonedaEquiv.toFun AB)).snd
   ⟨ fst B, dependent B, snd B, snd_forgetToGrpd _ ⟩
 
-def lift {Γ : Ctx} (top : y(Γ) ⟶ base.Tm)
+def lift (top : y(Γ) ⟶ base.Tm)
     (left : y(Γ) ⟶ base.Ptp.obj base.{u}.Ty)
     (h : top ≫ base.tp = left ≫ baseSig) :
     y(Γ) ⟶ base.uvPolyTp.compDom base.uvPolyTp :=
-  base.sec' h ≫ (lift' left)
+  ym(base.sec top ≫ eqToHom (by rw [h])) ≫ (lift' left)
 
-theorem PairUP_Comm1' {Γ : Ctx} (top : (yoneda.obj Γ) ⟶ base.Tm) (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty) (h : top ≫ base.tp = left ≫ baseSig) : lift' left ≫ basePair = (yoneda.map (base.disp (left ≫ baseSig))) ≫ top := by
-  sorry
-
-theorem PairUP_Comm1 {Γ : Ctx} (top : (yoneda.obj Γ) ⟶ base.Tm) (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty) (h : top ≫ base.tp = left ≫ baseSig) : (lift top left h) ≫ basePair = top := by
-  unfold lift 
-  rw[Category.assoc,PairUP_Comm1' top left h,<- Category.assoc,
-    sec'_disp,Category.id_comp]
-
-theorem PairUP_Comm2' {Γ : Ctx} (top : (yoneda.obj Γ) ⟶ base.Tm) (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty) (h : top ≫ base.tp = left ≫ baseSig) : lift' left ≫ (base.uvPolyTp.comp base.uvPolyTp).p = (yoneda.map (base.disp (left ≫ baseSig))) ≫ left := by
-  sorry
-
-theorem PairUP_Comm2 {Γ : Ctx} (top : (yoneda.obj Γ) ⟶ base.Tm)
+theorem PairUP_Comm1' (top : (yoneda.obj Γ) ⟶ base.Tm)
     (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty)
+    (h : top ≫ base.tp = left ≫ baseSig) :
+    lift' left ≫ basePair
+    = (yoneda.map (base.disp (left ≫ baseSig))) ≫ top := by
+  sorry
+
+theorem PairUP_Comm1 (top : (yoneda.obj Γ) ⟶ base.Tm)
+    (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty)
+    (h : top ≫ base.tp = left ≫ baseSig) :
+    (lift top left h) ≫ basePair = top := by
+  unfold lift
+  rw [Category.assoc, PairUP_Comm1' top left h,<- Category.assoc,
+    ← Functor.map_comp, Category.assoc, sec_eqToHom_disp,
+    CategoryTheory.Functor.map_id, Category.id_comp]
+  exact h
+
+theorem PairUP_Comm2' (top : y(Γ) ⟶ base.Tm)
+    (left : y(Γ) ⟶ base.Ptp.obj base.{u}.Ty)
+    (h : top ≫ base.tp = left ≫ baseSig) :
+    lift' left ≫ (base.uvPolyTp.comp base.uvPolyTp).p
+    = (yoneda.map (base.disp (left ≫ baseSig))) ≫ left := by
+  sorry
+
+theorem PairUP_Comm2 (top : y(Γ) ⟶ base.Tm)
+    (left : y(Γ) ⟶ base.Ptp.obj base.{u}.Ty)
     (h : top ≫ base.tp = left ≫ baseSig) :
     (lift top left h) ≫ (base.uvPolyTp.comp base.uvPolyTp).p = left
     := by
   unfold lift
-  rw[Category.assoc,PairUP_Comm2' top left h,<- Category.assoc,
-    sec'_disp,Category.id_comp]
+  rw [Category.assoc,PairUP_Comm2' top left h,<- Category.assoc,
+    ← Functor.map_comp, Category.assoc,
+    sec_eqToHom_disp, CategoryTheory.Functor.map_id, Category.id_comp]
+  · exact h
 
-theorem PairUP_Uniqueness {Γ : Ctx}
-    (f : (yoneda.obj Γ) ⟶ base.uvPolyTp.compDom base.uvPolyTp) :
-    f = (lift (f ≫  basePair)
-      (f ≫ (base.uvPolyTp.comp base.uvPolyTp).p)
-      (by rw[Category.assoc,Category.assoc]; congr 1; exact comm_sq))     := by
+theorem PairUP_Uniqueness (f : y(Γ) ⟶ base.uvPolyTp.compDom base.uvPolyTp) :
+    f = (lift (f ≫  basePair) (f ≫ (base.uvPolyTp.comp base.uvPolyTp).p)
+      (by rw[Category.assoc,Category.assoc]; congr 1; exact comm_sq)) := by
   unfold lift
   refine (base.uvPolyTpCompDomEquiv base Γ).injective ?_
   refine Sigma.ext ?_ ?_

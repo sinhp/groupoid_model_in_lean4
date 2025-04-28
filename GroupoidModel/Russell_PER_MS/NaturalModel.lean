@@ -266,17 +266,6 @@ section
 variable {Γ : Ctx} {α : y(Γ) ⟶ M.Tm} {A : y(Γ) ⟶ M.Ty}
   (h : α ≫ M.tp = A)
 
-/-- See `sec` -/
-def sec' : y(Γ) ⟶ y(M.ext A) :=
-  (M.disp_pullback A).lift α (𝟙 _) (by simp [h])
-
-@[simp] theorem sec'_var :
-    M.sec' h ≫ M.var A = α :=
-  (M.disp_pullback A).lift_fst _ _ _
-
-@[simp] def sec'_disp : M.sec' h ≫ ym(M.disp A) = 𝟙 y(Γ) := by
-  simp [sec']
-
 end
 /-- `sec` is the section of `disp (α ≫ M.tp)` corresponding to `α`.
 
@@ -294,6 +283,13 @@ def sec {Γ : Ctx} (α : y(Γ) ⟶ M.Tm) : Γ ⟶ M.ext (α ≫ M.tp) :=
 
 @[reassoc (attr := simp)]
 theorem sec_disp {Γ : Ctx} (α : y(Γ) ⟶ M.Tm) : M.sec α ≫ M.disp (α ≫ M.tp) = 𝟙 _ := by
+  simp [sec]
+
+@[reassoc (attr := simp)]
+theorem sec_eqToHom_disp {Γ : Ctx} {α : y(Γ) ⟶ M.Tm} {A : y(Γ) ⟶ M.Ty}
+    (h : α ≫ M.tp = A) :
+    M.sec α ≫ eqToHom (by subst h; rfl) ≫ M.disp A = 𝟙 _ := by
+  subst h
   simp [sec]
 
 @[reassoc (attr := simp)]
