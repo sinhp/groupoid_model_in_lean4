@@ -840,6 +840,24 @@ theorem preNatIso_comp {G1 G2 G3 : D ⥤ C} (α : G1 ≅ G2) (β : G2 ≅ G3) :
 end
 
 end Grothendieck
+
+-- NOTE this was added to mathlib very recently
+variable {C : Type u₁} [Category.{v₁} C] {D : Type u₂} [Category.{v₂} D] {E : Type u₃}
+  [Category.{v₃} E]
+@[simp]
+theorem isoWhiskerLeft_trans (F : C ⥤ D) {G H K : D ⥤ E} (α : G ≅ H) (β : H ≅ K) :
+    isoWhiskerLeft F (α ≪≫ β) = isoWhiskerLeft F α ≪≫ isoWhiskerLeft F β :=
+  rfl
+
+section
+variable {B : Type u} [Category.{v} B]
+
+@[simp]
+theorem isoWhiskerLeft_eqToIso (F : C ⥤ D) {G H : D ⥤ E} (η : G = H) :
+    isoWhiskerLeft F (eqToIso η) = eqToIso (by subst η; rfl) := by
+  subst η
+  rfl
+end
 end CategoryTheory
 
 
