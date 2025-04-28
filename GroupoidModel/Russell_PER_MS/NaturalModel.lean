@@ -3,16 +3,13 @@ import Poly.ForMathlib.CategoryTheory.LocallyCartesianClosed.Presheaf
 import Poly.UvPoly.UPFan
 import GroupoidModel.ForPoly
 import GroupoidModel.ForMathlib.Tactic.CategoryTheory.FunctorMap
+import GroupoidModel.ForMathlib.CategoryTheory.Yoneda
 
 universe v u
 
 noncomputable section
 
 open CategoryTheory Limits Opposite
-
--- TODO: have the pretty-printer show these
-notation:max "y(" Γ ")" => yoneda.obj Γ
-notation:max "ym(" f ")" => yoneda.map f
 
 /-- A natural model with support for dependent types (and nothing more).
 The data is a natural transformation with representable fibers,
