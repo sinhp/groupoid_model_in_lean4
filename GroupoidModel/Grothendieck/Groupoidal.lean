@@ -833,6 +833,35 @@ theorem preNatIso_comp {G1 G2 G3 : D ⥤ C} (α : G1 ≅ G2) (β : G2 ≅ G3) :
 
 end
 
+section
+variable {Γ : Type u} [Category.{v} Γ] {Δ : Type u₃} [Category.{v₃} Δ]
+  (σ : Δ ⥤ Γ)
+
+open PGrpd
+
+theorem pre_toPGrpd (A : Γ ⥤ Grpd) : pre A σ ⋙ toPGrpd _ = toPGrpd _ := by
+  rfl
+
+theorem sec_naturality (α : Γ ⥤ PGrpd.{v₁,u₁}) :
+    σ ⋙ sec α = sec (σ ⋙ α) ⋙ pre (α ⋙ forgetToGrpd) σ :=
+  calc
+    _ = IsMegaPullback.lift (σ ⋙ α) σ rfl := by
+      rw [Grothendieck.Groupoidal.IsMegaPullback.lift_uniq (σ ⋙ α) σ rfl
+        (σ ⋙ sec α) _ rfl]
+      rw [Functor.assoc, sec_toPGrpd]
+    _ = _ := by
+      rw [Grothendieck.Groupoidal.IsMegaPullback.lift_uniq (σ ⋙ α) σ rfl
+        (sec (σ ⋙ α) ⋙ pre (α ⋙ forgetToGrpd) σ) _ rfl]
+      convert_to sec (σ ⋙ α) ⋙ toPGrpd ((σ ⋙ α) ⋙ forgetToGrpd) = _
+      rw [sec_toPGrpd (σ ⋙ α)]
+
+theorem map_eqToHom_toPGrpd {F G : Γ ⥤ Grpd} (h : F = G) :
+    map (eqToHom h) ⋙ toPGrpd G = toPGrpd F := by
+  subst h
+  simp [map_id_eq, Functor.id_comp]
+
+end
+
 end Groupoidal
 end Grothendieck
 end CategoryTheory

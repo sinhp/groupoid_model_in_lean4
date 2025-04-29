@@ -151,6 +151,13 @@ namespace Grothendieck
 
 variable {Γ : Type u} [Category.{v} Γ] {A : Γ ⥤ Cat.{v₁,u₁}} {x y : Grothendieck A}
 
+theorem cast_eq {F G : Γ ⥤ Cat.{v₁,u₁}}
+    (h : F = G) (p : Grothendieck F) :
+    (cast (by subst h; rfl) p : Grothendieck G)
+    = ⟨ p.base , cast (by subst h; rfl) p.fiber ⟩ := by
+  subst h
+  rfl
+
 theorem obj_ext_hEq
     (hbase : x.base = y.base) (hfiber : HEq x.fiber y.fiber) : x = y := by
   rcases x with ⟨xbase, xfiber⟩

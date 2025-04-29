@@ -144,7 +144,7 @@ theorem sigmaMap_comp : sigmaMap B (f ≫ g) = sigmaMap B f ⋙ sigmaMap B g := 
   unfolded into operations between functors.
   See `sigmaObj` and `sigmaMap` for the actions of this functor.
  -/
-@[simp] def sigma (A : Γ ⥤ Grpd.{v₁,u₁})
+@[simps] def sigma (A : Γ ⥤ Grpd.{v₁,u₁})
     (B : ∫(A) ⥤ Grpd.{v₁,u₁}) : Γ ⥤ Grpd.{v₁,u₁} where
   -- NOTE using Grpd.of here instead of earlier speeds things up
   obj x := Grpd.of $ sigmaObj B x
@@ -155,9 +155,10 @@ theorem sigmaMap_comp : sigmaMap B (f ≫ g) = sigmaMap B f ⋙ sigmaMap B g := 
 @[simp] theorem sigmaMap_map_base {a b : sigmaObj B x} {p : a ⟶ b} :
     ((sigmaMap B f).map p).base = (A.map f).map p.base := rfl
 
-variable {Δ : Type u₃} [Category.{v₃} Δ] (σ : Δ ⥤ Γ)
+variable (B) {Δ : Type u₃} [Category.{v₃} Δ] (σ : Δ ⥤ Γ)
 
-theorem sigmaBeckChevalley : σ ⋙ sigma A B = sigma (σ ⋙ A) (pre A σ ⋙ B) := by
+-- NOTE formerly called `sigmaBeckChevalley`
+theorem sigma_naturality : σ ⋙ sigma A B = sigma (σ ⋙ A) (pre A σ ⋙ B) := by
   refine CategoryTheory.Functor.ext ?_ ?_
   . intros x
     dsimp only [Functor.comp_obj, sigma, sigmaObj]
@@ -422,6 +423,56 @@ theorem pair_comp_forget :
   unfold pair
   rw [Functor.assoc]
   exact rfl
+
+section
+
+variable {Δ : Type u₃} [Category.{v₃} Δ] (σ : Δ ⥤ Γ)
+
+include h in
+lemma pairSection_naturality_aux : (σ ⋙ β) ⋙ forgetToGrpd
+    = sec (σ ⋙ α) ⋙ pre (α ⋙ forgetToGrpd) σ ⋙ B := by
+  conv => right; rw [← Functor.assoc, ← sec_naturality]
+  simp only [Functor.assoc, h]
+
+theorem pairSection_naturality : σ ⋙ pairSection h =
+    pairSection (pairSection_naturality_aux h σ)
+    ⋙ map (eqToHom (sigma_naturality B σ).symm) ⋙ pre _ _ := by
+  apply CategoryTheory.Functor.ext
+  · sorry
+  · intro x
+    apply obj_ext_hEq
+    · simp [pairSection, pairSectionObj]
+    · rw [heq_eq_eq]
+      have : (ι ((σ ⋙ α) ⋙ forgetToGrpd) x ⋙ pre (α ⋙ forgetToGrpd) σ ⋙ B)
+          ⋙ Grpd.forgetToCat =
+          (ι (α ⋙ forgetToGrpd) (σ.obj x) ⋙ B) ⋙ Grpd.forgetToCat := by
+        rw [← ιCompPre]
+        rfl
+      apply obj_ext_hEq
+      -- TODO tidy this up by adding some lemmas +
+      -- block simp lemmas that simplify too far
+      · simp only [pairSection, Functor.comp_obj, pairSectionObj, objMk,
+          pairSectionObjFiber, forgetToGrpd_obj, map_obj,
+          sigma_obj, sigmaObj, pre_obj_fiber, eqToHom_app, Grpd.eqToHom_obj,
+          objPt]
+        rw! [Grothendieck.cast_eq this]
+      · simp only [pairSection, Functor.comp_obj, pairSectionObj, objMk,
+          pairSectionObjFiber, objPt, objPt', Grpd.eqToHom_obj,
+          map_obj, sigma_obj, sigmaObj, pre_obj_fiber, cast_heq_iff_heq]
+        rw! [eqToHom_app, Grpd.eqToHom_obj, Grothendieck.cast_eq this]
+        simp [Grpd.eqToHom_obj]
+
+theorem pair_naturality : σ ⋙ pair h =
+    @pair _ _ (σ ⋙ α) (σ ⋙ β) (pre (α ⋙ forgetToGrpd) σ ⋙ B) (by
+      rw [Functor.assoc, h, ← Functor.assoc, sec_naturality, Functor.assoc])
+    := by
+  dsimp only [pair]
+  rw [← Functor.assoc, pairSection_naturality, Functor.assoc]
+  congr 1
+  convert_to map (eqToHom _) ⋙ Grothendieck.Groupoidal.pre (sigma (α ⋙ forgetToGrpd) B) σ ⋙ toPGrpd (sigma (α ⋙ forgetToGrpd) B) = toPGrpd (sigma (σ ⋙ α ⋙ forgetToGrpd) (Grothendieck.Groupoidal.pre (α ⋙ forgetToGrpd) σ ⋙ B))
+  rw [pre_toPGrpd, map_eqToHom_toPGrpd]
+
+end
 
 end
 

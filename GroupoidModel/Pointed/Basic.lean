@@ -392,6 +392,7 @@ section
 variable (α : Γ ⥤ PGrpd.{v₁,u₁})
 
 def objPt (x : Γ) : α.obj x := (α.obj x).str.pt
+
 def mapObjPt {x y : Γ} (f : x ⟶ y) : α.obj y :=
     (α.map f).obj (objPt α x)
 def mapPoint {x y : Γ} (f : x ⟶ y) :
