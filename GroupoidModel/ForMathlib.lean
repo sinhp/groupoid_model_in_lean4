@@ -920,3 +920,24 @@ lemma preimage_comp {X Y Z : C} (f : F.obj X ⟶ F.obj Y) (g : F.obj Y ⟶ F.obj
   hF.map_injective (by simp)
 
 end CategoryTheory.Functor.FullyFaithful
+
+namespace CategoryTheory
+
+variable {C : Type u₁} [SmallCategory C] {F G : Cᵒᵖ ⥤ Type u₁}
+  (app : ∀ {X : C}, (yoneda.obj X ⟶ F) → (yoneda.obj X ⟶ G))
+  (naturality : ∀ {X Y : C} (f : X ⟶ Y) (α : yoneda.obj Y ⟶ F),
+    app (yoneda.map f ≫ α) = yoneda.map f ≫ app α)
+
+variable (F) in
+def yonedaIso : yoneda.op ⋙ yoneda.obj F ≅ F :=
+  NatIso.ofComponents (fun _ => Equiv.toIso yonedaEquiv)
+    (fun f => by ext : 1; dsimp; rw [yonedaEquiv_naturality'])
+
+def yonedaIsoMap : yoneda.op ⋙ yoneda.obj F ⟶ yoneda.op ⋙ yoneda.obj G where
+  app _ := app
+  naturality _ _ _ := by ext : 1; apply naturality
+
+def NatTrans.yonedaMk : F ⟶ G :=
+  (yonedaIso F).inv ≫ yonedaIsoMap app naturality ≫ (yonedaIso G).hom
+
+end CategoryTheory

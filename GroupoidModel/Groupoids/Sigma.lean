@@ -671,7 +671,27 @@ def baseSigma : NaturalModelSigma base where
   pair := basePair
   Sig_pullback := is_pb
 
-def smallUSigma : NaturalModelSigma smallU := sorry
+-- END section on base
+
+/-- The formation rule for Σ-types for the ambient natural model `base` -/
+def smallUSig : smallU.{v,u}.Ptp.obj smallU.{v,u}.Ty ⟶ smallU.{v,u}.Ty :=
+  NatTrans.yonedaMk _ sorry
+
+def smallUPair : smallU.{v,u}.uvPolyTp.compDom smallU.{v,u}.uvPolyTp ⟶
+    smallU.{v,u}.Tm where
+  app Γ := fun ε => sorry
+    -- let ⟨α,B,β,h⟩ := baseUvPolyTpCompDomEquiv ε
+    -- yonedaEquiv (yonedaCatEquiv.symm (pair h))
+  naturality := by sorry
+
+theorem smallU_pb : IsPullback smallUPair (smallU.uvPolyTp.comp smallU.uvPolyTp).p
+    smallU.tp smallUSig := by
+  sorry
+
+def smallUSigma : NaturalModelSigma smallU where
+  Sig := smallUSig
+  pair := smallUPair
+  Sig_pullback := smallU_pb
 
 def uHomSeqSigmas' (i : ℕ) (ilen : i < 4) :
   NaturalModelSigma (uHomSeqObjs i ilen) :=
