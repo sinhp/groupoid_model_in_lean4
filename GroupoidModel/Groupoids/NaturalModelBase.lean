@@ -210,16 +210,17 @@ def baseUvPolyTpEquiv {Γ : Ctx.{u}} {C : Cat.{u,u+1}} :
   yonedaEquiv.symm.trans baseUvPolyTpEquiv'
 
 @[simp] theorem base_sec {Γ : Ctx.{u}} (α : y(Γ) ⟶ base.Tm) :
-    base.sec α = Ctx.ofGrpd.map (Groupoidal.sec (yonedaCatEquiv α)) := by
+    base.sec _ α rfl = Ctx.ofGrpd.map (Groupoidal.sec _ (yonedaCatEquiv α) rfl) := by
   apply Yoneda.fullyFaithful.map_injective
   apply (base.disp_pullback _).hom_ext
   . rw [NaturalModelBase.sec_var]
     dsimp only [base_var, var]
     convert_to α =
     yonedaCatEquiv.symm
-      (Groupoidal.sec (yonedaCatEquiv α) ⋙ Groupoidal.toPGrpd (yonedaCatEquiv α ⋙ Cat.homOf PGrpd.forgetToGrpd))
+      (Groupoidal.sec _ (yonedaCatEquiv α) rfl ⋙
+        Groupoidal.toPGrpd (yonedaCatEquiv α ⋙ Cat.homOf PGrpd.forgetToGrpd))
     rw [Groupoidal.sec_toPGrpd _, yonedaCatEquiv.eq_symm_apply]
-  . rw [NaturalModelBase.ym_sec_ym_disp]; rfl
+  . rw [NaturalModelBase.sec_disp_functor_map]; rfl
 
 /-- A specialization of the universal property of `UvPoly.compDom`
   to the natural model `base`.
@@ -233,23 +234,24 @@ def baseUvPolyTpCompDomEquiv {Γ : Ctx.{u}} :
     ≃ (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
     × (B : Groupoidal (α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{u,u})
     × (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
-    ×' β ⋙ PGrpd.forgetToGrpd = Groupoidal.sec α ⋙ B :=
-  yonedaEquiv.symm.trans (
-  (base.uvPolyTpCompDomEquiv base Γ).trans
-  (Equiv.sigmaCongr
+    ×' β ⋙ PGrpd.forgetToGrpd = Groupoidal.sec _ α rfl ⋙ B :=
+  yonedaEquiv.symm.trans <|
+  (base.uvPolyTpCompDomEquiv base Γ).trans <|
+  Equiv.sigmaCongr
     yonedaCatEquiv $
     fun α => Equiv.sigmaCongr
       yonedaCatEquiv $
       fun B => Equiv.psigmaCongrProp
         yonedaCatEquiv $
         fun β => by
-  convert_to _ ↔ yonedaCatEquiv (β ≫ yonedaCat.map PGrpd.forgetToGrpd)
-    = Ctx.toGrpd.map (Ctx.ofGrpd.map
-      (Groupoidal.sec (yonedaCatEquiv α))) ⋙ yonedaCatEquiv B
-  convert_to _ ↔ β ≫ yonedaCat.map PGrpd.forgetToGrpd =
-    yoneda.map (Ctx.ofGrpd.map (Groupoidal.sec (yonedaCatEquiv α))) ≫ B
-  · simp only [yonedaCatEquiv_naturality_left, ← yonedaCatEquiv.apply_eq_iff_eq]
-  simp [yonedaCatEquiv.apply_eq_iff_eq]))
+          convert_to _ ↔ yonedaCatEquiv (β ≫ yonedaCat.map PGrpd.forgetToGrpd)
+            = Ctx.toGrpd.map (Ctx.ofGrpd.map
+              (Groupoidal.sec _ (yonedaCatEquiv α) rfl)) ⋙ yonedaCatEquiv B
+          convert_to _ ↔ β ≫ yonedaCat.map PGrpd.forgetToGrpd =
+            yoneda.map (Ctx.ofGrpd.map (Groupoidal.sec _ (yonedaCatEquiv α) rfl)) ≫ B
+          · simp only [yonedaCatEquiv_naturality_left, ← yonedaCatEquiv.apply_eq_iff_eq]
+          rw [base_sec]
+          simp [yonedaCatEquiv.apply_eq_iff_eq]
 
 def baseUvPolyTpCompDomEquiv' {Γ : Ctx.{u}} :
     (base.uvPolyTp.compDom base.uvPolyTp).obj (op Γ)

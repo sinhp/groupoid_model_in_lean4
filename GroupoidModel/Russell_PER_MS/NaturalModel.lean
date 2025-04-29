@@ -2,16 +2,14 @@ import SEq.Tactic.DepRewrite
 import Poly.ForMathlib.CategoryTheory.LocallyCartesianClosed.Presheaf
 import Poly.UvPoly.UPFan
 import GroupoidModel.ForPoly
+import GroupoidModel.ForMathlib.Tactic.CategoryTheory.FunctorMap
+import GroupoidModel.ForMathlib.CategoryTheory.Yoneda
 
 universe v u
 
 noncomputable section
 
 open CategoryTheory Limits Opposite
-
--- TODO: have the pretty-printer show these
-notation:max "y(" Γ ")" => yoneda.obj Γ
-notation:max "ym(" f ")" => yoneda.map f
 
 /-- A natural model with support for dependent types (and nothing more).
 The data is a natural transformation with representable fibers,
@@ -99,17 +97,11 @@ def substCons {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty)
   let i : y(M.ext A) ≅ pullback M.tp A := (M.disp_pullback A).isoPullback
   Yoneda.fullyFaithful.1 <| pullback.lift t ym(σ) t_tp ≫ i.inv
 
-@[reassoc (attr := simp)]
+@[functor_map (attr := reassoc (attr := simp))]
 theorem substCons_disp {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (t : y(Δ) ⟶ M.Tm)
     (tTp : t ≫ M.tp = ym(σ) ≫ A) :
     M.substCons σ A t tTp ≫ M.disp A = σ := by
   apply Yoneda.fullyFaithful.map_injective
-  simp [substCons]
-
-@[reassoc (attr := simp)]
-theorem ym_substCons_ym_disp {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (t : y(Δ) ⟶ M.Tm)
-    (tTp : t ≫ M.tp = ym(σ) ≫ A) :
-    ym(M.substCons σ A t tTp) ≫ ym(M.disp A) = ym(σ) := by
   simp [substCons]
 
 @[reassoc (attr := simp)]
@@ -168,7 +160,7 @@ Weaken a substitution.
 def substWk {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) : M.ext (ym(σ) ≫ A) ⟶ M.ext A :=
   M.substCons (M.disp _ ≫ σ) A (M.var _) (by simp [wk])
 
-@[reassoc]
+@[functor_map (attr := reassoc)]
 theorem substWk_disp {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) :
     M.substWk σ A ≫ M.disp A = M.disp (ym(σ) ≫ A) ≫ σ := by
   simp [substWk]
@@ -178,32 +170,42 @@ theorem substWk_var {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) :
     ym(M.substWk σ A) ≫ M.var A = M.var (ym(σ) ≫ A) := by
   simp [substWk]
 
-/--
-```
-Γ ⊢ A type  Γ.A ⊢ x ⟶ X  Γ ⊢ a : A
------------------------------------
-Γ ⊢ x[id.a] ⟶ X
-```
--/
-def inst {Γ : Ctx} {X : Psh Ctx}
-    (A : y(Γ) ⟶ M.Ty) (x : y(M.ext A) ⟶ X)
-    (a : y(Γ) ⟶ M.Tm) (a_tp : a ≫ M.tp = A) : y(Γ) ⟶ X :=
-  ym(M.substCons (𝟙 _) A a (by simpa using a_tp)) ≫ x
+/-- `sec` is the section of `disp A` corresponding to `a`.
+
+  ===== Γ ------ a --------¬
+ ‖      ↓ sec             V
+ ‖   M.ext A -----------> M.Tm
+ ‖      |                  |
+ ‖      |                  |
+ ‖    disp A              M.tp
+ ‖      |                  |
+ ‖      V                  V
+  ===== Γ ------ A -----> M.Ty -/
+def sec {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (a : y(Γ) ⟶ M.Tm) (a_tp : a ≫ M.tp = A) : Γ ⟶ M.ext A :=
+  M.substCons (𝟙 Γ) A a (by simp [a_tp])
+
+@[functor_map (attr := reassoc (attr := simp))]
+theorem sec_disp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (a : y(Γ) ⟶ M.Tm) (a_tp : a ≫ M.tp = A) :
+    M.sec A a a_tp ≫ M.disp A = 𝟙 _ := by
+  simp [sec]
 
 @[reassoc (attr := simp)]
-theorem inst_tp {N : NaturalModelBase Ctx} {Γ : Ctx}  (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ N.Ty)
-    (t : y(M.ext A) ⟶ N.Tm) (t_tp : t ≫ N.tp = B)
-    (a : y(Γ) ⟶ M.Tm) (a_tp : a ≫ M.tp = A) :
-    M.inst A t a a_tp ≫ N.tp = M.inst A B a a_tp :=
-  by simp [inst, t_tp]
+theorem sec_var {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (a : y(Γ) ⟶ M.Tm) (a_tp : a ≫ M.tp = A) :
+    ym(M.sec A a a_tp) ≫ M.var A = a := by
+  simp [sec]
 
-@[simp]
-theorem inst_wk {Γ : Ctx} {X : Psh Ctx}
-    (A : y(Γ) ⟶ M.Ty) (x : y(Γ) ⟶ X) (a : y(Γ) ⟶ M.Tm) (a_tp : a ≫ M.tp = A) :
-    M.inst A (M.wk A x) a a_tp = x := by
-  unfold inst wk
-  slice_lhs 1 2 => rw [← yoneda.map_comp]; simp
-  simp
+@[functor_map (attr := reassoc)]
+theorem comp_sec {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty)
+    (a : y(Γ) ⟶ M.Tm) (a_tp : a ≫ M.tp = A) :
+    σ ≫ M.sec A a a_tp = M.sec (ym(σ) ≫ A) (ym(σ) ≫ a) (by simp [a_tp]) ≫ M.substWk σ A := by
+  apply Yoneda.fullyFaithful.map_injective
+  apply (M.disp_pullback _).hom_ext <;>
+    simp [sec, substWk_disp_functor_map]
+
+@[reassoc (attr := simp)]
+theorem sec_wk {Γ : Ctx} {X : Psh Ctx} (A : y(Γ) ⟶ M.Ty) (a : y(Γ) ⟶ M.Tm) (a_tp : a ≫ M.tp = A)
+    (x : y(Γ) ⟶ X) : ym(M.sec A a a_tp) ≫ M.wk A x = x := by
+  simp [sec, wk]
 
 /-! ## Polynomial functor on `tp`
 
@@ -308,7 +310,7 @@ private lemma lift_ev {Γ : Ctx} {N : NaturalModelBase Ctx}
     {AB : y(Γ) ⟶ M.Ptp.obj N.Ty} {α : y(Γ) ⟶ M.Tm}
     (hA : AB ≫ M.uvPolyTp.fstProj N.Ty = α ≫ M.tp) :
     pullback.lift AB α hA ≫ (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).snd =
-      ym(M.sec α) ≫
+      ym(M.sec (α ≫ M.tp) α rfl) ≫
         (M.disp_pullback _).lift (M.var _) ym(M.disp _)
           (by dsimp; rw [hA, (M.disp_pullback _).w]) ≫
         (M.Ptp_equiv AB).2 :=
@@ -355,7 +357,7 @@ def uvPolyTpCompDomEquiv (N : NaturalModelBase Ctx) (Γ : Ctx) :
     ≃ (α : y(Γ) ⟶ M.Tm)
     × (B : y(M.ext (α ≫ M.tp)) ⟶ N.Ty)
     × (β : y(Γ) ⟶ N.Tm)
-    ×' β ≫ N.tp = ym(M.sec α) ≫ B :=
+    ×' β ≫ N.tp = ym(M.sec (α ≫ M.tp) α rfl) ≫ B :=
   calc
     _ ≃ _ := UvPoly.compDomEquiv
     _ ≃ _ := {
