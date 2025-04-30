@@ -240,8 +240,8 @@ theorem lift_uniq (m : C ⥤ Grothendieck A)
       generalize_proofs pf1 pf2 _ _ _ _ _ pf3
       have h0 := Functor.congr_hom hl f
       have h1 := PointedFunctor.congr_point h0
-      have h2 := @eqToHom_fiber (Cat.of Γ) A (m.obj x) _ pf1
-      have h3 := @eqToHom_fiber (Cat.of Γ) A _ _ pf2
+      have h2 := @eqToHom_fiber (Cat.of Γ) _ _ (m.obj x) _ pf1
+      have h3 := @eqToHom_fiber (Cat.of Γ) _ _ _ _ pf2
       have h4 := congr_arg A.map (eqToHom_base pf2)
       simp only [eqToHom_map] at h4
       have h5 := Functor.congr_hom h4 (cast pf3 (point fst f))
@@ -265,6 +265,20 @@ theorem lift_uniq (m : C ⥤ Grothendieck A)
       have h0 := Functor.congr_obj hl x
       have h1 := Functor.congr_obj (fac_left _ _ w) x
       simp [congr_arg_heq (λ x : PCat ↦ x.str.pt) (h0.trans h1.symm)]
+
+theorem hom_ext {m n : C ⥤ Grothendieck A}
+    (hl : m ⋙ Grothendieck.toPCat A = n ⋙ Grothendieck.toPCat A)
+    (hr : m ⋙ Grothendieck.forget A = n ⋙ Grothendieck.forget A) :
+    m = n := by
+  rw [lift_uniq (m ⋙ toPCat A) (m ⋙ forget A) ?_ m rfl rfl,
+    lift_uniq (n ⋙ toPCat A) (n ⋙ forget A) ?_ n rfl rfl]
+  rw! [hl, hr]
+  . show n ⋙ (toPCat A ⋙ PCat.forgetToCat) = _
+    rw [toPCat_comp_forgetPoint]
+    rfl
+  . show m ⋙ (toPCat A ⋙ PCat.forgetToCat) = _
+    rw [toPCat_comp_forgetPoint]
+    rfl
 
 end IsMegaPullback
 end morphism_universe_v₁
