@@ -365,15 +365,18 @@ def basePi : NaturalModelPi base where
   lam := sorry
   Pi_pullback := sorry
 
-def smallUPi : NaturalModelPi smallU := sorry
+def smallUPi : NaturalModelPi smallU.{v,u} where
+  Pi := sorry
+  lam := sorry
+  Pi_pullback := sorry
 
 def uHomSeqPis' (i : ℕ) (ilen : i < 4) :
   NaturalModelPi (uHomSeqObjs i ilen) :=
   match i with
-  | 0 => smallUPi
-  | 1 => smallUPi
-  | 2 => smallUPi
-  | 3 => sorry --basePi
+  | 0 => smallUPi.{0,4}
+  | 1 => smallUPi.{1,4}
+  | 2 => smallUPi.{2,4}
+  | 3 => smallUPi.{3,4}
   | (n+4) => by omega
 
 def uHomSeqPis : UHomSeqPiSigma Ctx := { uHomSeq with
