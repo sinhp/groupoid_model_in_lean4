@@ -757,8 +757,10 @@ end naturality
     ((sec A α h).map f).base = f := by
   simp [sec, IsMegaPullback.lift, Grothendieck.IsMegaPullback.lift]
 
+-- TODO likely will also need the non-trivially forded case, in which case rename this
+-- to `sec_map_fiber_rfl`
 @[simp] lemma sec_map_fiber {x y} {f : x ⟶ y} :
-    ((sec A α h).map f).fiber = (α.map f).point := by
+    ((sec (α ⋙ PGrpd.forgetToGrpd) α rfl).map f).fiber = (α.map f).point := by
   simp [sec, IsMegaPullback.lift, Grothendieck.IsMegaPullback.lift,
     Grothendieck.IsMegaPullback.lift_map, Grothendieck.IsMegaPullback.point]
 

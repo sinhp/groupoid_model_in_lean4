@@ -540,6 +540,11 @@ theorem inclusion_comp_functorToCore : inclusion G ⋙ functorToCore (𝟭 G) = 
     · intro
       rfl
 
+theorem functorToCore_inclusion_apply {C : Type u} [Category.{v} C] :
+    Core.functorToCore (Core.inclusion C) = Functor.id (Core C) :=
+  rfl
+
+
 /-- Mildly evil. -/
 instance : IsIso (Grpd.homOf (Core.inclusion G)) where
   out := ⟨ Grpd.homOf (Core.functorToCore (Functor.id G)),
