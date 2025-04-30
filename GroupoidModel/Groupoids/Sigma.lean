@@ -608,7 +608,7 @@ def uHomSeqSigmas' (i : ℕ) (ilen : i < 4) :
   | 1 => smallUSigma.{1, 4}
   | 2 => smallUSigma.{2, 4}
   | 3 => smallUSigma.{3, 4}
-  | (n+4) => by omega
+  | _+4 => by omega
 
 -- NOTE the rest of this file will be removed
 
