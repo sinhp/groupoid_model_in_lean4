@@ -392,7 +392,6 @@ theorem snoc_mem_ofCtx {Γ A l llen sΓ sA} : sΓ ∈ s.ofCtx Γ → sA ∈ ofTy
 
 /-! ## Admissibility of thinning -/
 
-set_option trace.profiler true in
 set_option maxHeartbeats 400000 in -- the `mutual` block takes a while to check.
 mutual
 

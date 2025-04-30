@@ -789,14 +789,14 @@ def ιNatIso {X Y : Γ} (f : X ⟶ Y) : ι A X ≅ A.map f ⋙ ι A Y where
    apply Grothendieck.Groupoidal.ext
    · simp only [NatTrans.id_app, NatTrans.comp_app]
      rw! [Grpd.eqToHom_app]
-     simp
+     simp [Grpd.forgetToCat]
    · simp
   inv_hom_id := by
     ext a
     apply Grothendieck.Groupoidal.ext
     · simp only [NatTrans.id_app, NatTrans.comp_app]
       rw! [eqToHom_app]
-      simp [eqToHom_map]
+      simp [eqToHom_map, Grpd.forgetToCat]
     · simp
 
 theorem ιNatIso_hom {x y : Γ} (f : x ⟶ y) :

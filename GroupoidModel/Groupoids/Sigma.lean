@@ -209,7 +209,7 @@ theorem pairSectionMap_aux_aux {x y} (f : x ⟶ y) :
     ≫ (ι _ y).map (mapPoint α f)
     = (sec _ α rfl).map f := by
   apply Grothendieck.Groupoidal.ext
-  · simp [ι_map, mapPoint]
+  · simp [ι_map, mapPoint, Grpd.forgetToCat]
   · simp [ι_map]
 
 /--
@@ -282,8 +282,8 @@ def pairSectionMap {x y} (f : x ⟶ y) :
     (pairSectionMap h (CategoryStruct.id x)).fiber
     = eqToHom (by rw! [sigmaMap_id_obj]):= by
   apply Grothendieck.Groupoidal.ext
-  · simp [pairSectionMap_fiber_base]
-  · simp [pairSectionMap_fiber_fiber]
+  · simp [pairSectionMap_fiber_base, Grpd.forgetToCat]
+  · simp [pairSectionMap_fiber_fiber, Grpd.forgetToCat]
 
 theorem pairSectionMap_id (x) :
     pairSectionMap h (CategoryStruct.id x) = CategoryStruct.id _ := by
@@ -311,7 +311,7 @@ theorem pairSectionMap_comp_fiber_fiber_aux {x y z} (f : x ⟶ y) (g : y ⟶ z) 
 
 theorem pairSectionMap_comp_fiber_fiber {x y z} (f : x ⟶ y) (g : y ⟶ z) :
     (pairSectionMap h (f ≫ g)).fiber.fiber =
-    eqToHom (by simp [pairSectionMap_comp_fiber_fiber_aux])
+    eqToHom (by simp [pairSectionMap_comp_fiber_fiber_aux, Grpd.forgetToCat])
     ≫ mapPoint' h (f ≫ g) := by
   rw! [homMk_fiber, homMk_fiber]
 
@@ -560,7 +560,7 @@ theorem assoc_forget : assoc B ⋙ forget = fst' B := by
     simp only [heq_eq_eq]
     apply Grothendieck.Groupoidal.ext
     -- TODO improve API for these two goals
-    · simp [ι_map, assocHom, assocIso, preNatIso, ιNatIso, Grothendieck.preNatIso]
+    · simp [ι_map, assocHom, assocIso, preNatIso, ιNatIso, Grothendieck.preNatIso, Grpd.forgetToCat]
     · simp [ι_map, assocHom, assocIso, preNatIso, ιNatIso, Grothendieck.preNatIso]
 
 theorem snd_forgetToGrpd : snd B ⋙ forgetToGrpd = sec _ (fst B) rfl ⋙ dependent B :=
