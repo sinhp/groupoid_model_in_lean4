@@ -24,8 +24,12 @@ variable (n : Nat) in
 def Expr.liftN : Expr → (k : Nat := 0) → Expr
   | .bvar i,            k => .bvar (liftVar n i k)
   | .pi l l' A B,       k => .pi l l' (A.liftN k) (B.liftN (k+1))
+  | .sigma l l' A B,    k => .sigma l l' (A.liftN k) (B.liftN (k+1))
   | .lam l l' A t,      k => .lam l l' (A.liftN k) (t.liftN (k+1))
   | .app l l' B fn arg, k => .app l l' (B.liftN (k+1)) (fn.liftN k) (arg.liftN k)
+  | .pair l l' B t u,   k => .pair l l' (B.liftN (k+1)) (t.liftN k) (u.liftN k)
+  | .fst l l' A B p,    k => .fst l l' (A.liftN k) (B.liftN (k+1)) (p.liftN k)
+  | .snd l l' A B p,    k => .snd l l' (A.liftN k) (B.liftN (k+1)) (p.liftN k)
   | .univ l,            _ => .univ l
   | .el a,              k => .el (a.liftN k)
   | .code A,            k => .code (A.liftN k)
@@ -54,8 +58,12 @@ def instVar (i : Nat) (e : Expr) (k := 0) : Expr :=
 def Expr.inst : Expr → Expr → (k :_:= 0) → Expr
   | .bvar i,            e, k => instVar i e k
   | .pi l l' A B,       e, k => .pi l l' (A.inst e k) (B.inst e (k+1))
+  | .sigma l l' A B,    e, k => .sigma l l' (A.inst e k) (B.inst e (k+1))
   | .lam l l' A t,      e, k => .lam l l' (A.inst e k) (t.inst e (k+1))
   | .app l l' B fn arg, e, k => .app l l' (B.inst e (k+1)) (fn.inst e k) (arg.inst e k)
+  | .pair l l' B t u,   e, k => .pair l l' (B.inst e (k+1)) (t.inst e k) (u.inst e k)
+  | .fst l l' A B p,    e, k => .fst l l' (A.inst e k) (B.inst e (k+1)) (p.inst e k)
+  | .snd l l' A B p,    e, k => .snd l l' (A.inst e k) (B.inst e (k+1)) (p.inst e k)
   | .univ l,            _, _ => .univ l
   | .el a,              e, k => .el (a.inst e k)
   | .code A,            e, k => .code (A.inst e k)
@@ -73,4 +81,3 @@ theorem liftVar_zero' (n i) : liftVar n i 0 = n + i := by
 @[simp]
 theorem Expr.lift_zero (t : Expr) (k) : t.liftN 0 k = t := by
   induction t generalizing k <;> simp [liftN, *]
-

@@ -35,14 +35,20 @@ theorem EqTm.wf_tp {Γ A t u l} : Γ ⊢[l] t ≡ u : A → Γ ⊢[l] A := by
     exact (EqTp.inst_tp B_eq a_eq).wf_left
   case cong_code =>
     apply EqTp.cong_univ; assumption
-  case inst_tm a_eq B_wf _ =>
-    exact (EqTp.inst_tp B_wf a_eq).wf_left
-  case lift_tm t_eq A_wf =>
-    exact EqTp.lift_tp _ _ A_wf
+  case cong_pair B_eq _ _ _ A_wf _  =>
+    exact .cong_sigma A_wf B_eq.wf_left
+  case cong_fst A_eq _ _ _ _ _ =>
+    exact A_eq.wf_left
+  case cong_snd A_eq B_eq p_eq _ _ _ =>
+    exact (EqTm.cong_fst A_eq B_eq p_eq |> EqTp.inst_tp B_eq).wf_left
   case app_lam u_wf B_wf _ =>
     exact EqTp.inst_tp B_wf u_wf
   case conv A_eq _ _ _ =>
     exact A_eq.wf_right
+  case inst_tm a_eq B_wf _ =>
+    exact (EqTp.inst_tp B_wf a_eq).wf_left
+  case lift_tm t_eq A_wf =>
+    exact EqTp.lift_tp _ _ A_wf
 
 theorem Lookup.wf_tp {Γ i A l} : Lookup Γ i A l → Γ ⊢[l] A := by
   intro h; induction h <;> { apply EqTp.lift_tp; assumption }

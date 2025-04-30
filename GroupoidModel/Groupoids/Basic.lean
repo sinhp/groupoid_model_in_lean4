@@ -3,7 +3,7 @@ import Mathlib.CategoryTheory.Functor.ReflectsIso
 import Mathlib.CategoryTheory.Category.Cat.Limit
 import Mathlib.CategoryTheory.ChosenFiniteProducts.Cat
 
-import GroupoidModel.Russell_PER_MS.NaturalModelBase
+import GroupoidModel.Russell_PER_MS.NaturalModel
 import GroupoidModel.Grothendieck.IsPullback
 import GroupoidModel.Grothendieck.Groupoidal
 
@@ -46,6 +46,9 @@ abbrev toGrpd : Ctx.{u} ⥤ Grpd.{u,u} := equivalence.inverse
 def ofGroupoid (Γ : Type u) [Groupoid.{u} Γ] : Ctx.{u} :=
   ofGrpd.obj (Grpd.of Γ)
 
+def ofCategory (C : Type (v+1)) [Category.{v} C] : Ctx.{max u (v+1)} :=
+  Ctx.ofGrpd.obj $ Grpd.of (Core (AsSmall C))
+
 instance : ChosenFiniteProducts Ctx := equivalence.chosenFiniteProducts
 
 end Ctx
@@ -74,15 +77,17 @@ instance yonedaCatPreservesLimits : PreservesLimits yonedaCat :=
 
 variable {Γ Δ : Ctx.{u}} {C D : Cat.{u,u+1}}
 
+def yonedaCatEquivAux : (yonedaCat.obj C).obj (Opposite.op Γ)
+    ≃ (Ctx.toGrpd.obj Γ) ⥤ C where
+  toFun     := λ A ↦ ULift.upFunctor ⋙ A
+  invFun    := λ A ↦ ULift.downFunctor ⋙ A
+  left_inv  := λ _ ↦ rfl
+  right_inv := λ _ ↦ rfl
+
 /- The bijection y(Γ) → [-,C]   ≃   Γ ⥤ C -/
-def yonedaCatEquiv :
-    (yoneda.obj Γ ⟶ yonedaCat.obj C)
-      ≃ Ctx.toGrpd.obj Γ ⥤ C :=
-  Equiv.trans yonedaEquiv
-    {toFun     := λ A ↦ ULift.upFunctor ⋙ A
-     invFun    := λ A ↦ ULift.downFunctor ⋙ A
-     left_inv  := λ _ ↦ rfl
-     right_inv := λ _ ↦ rfl}
+def yonedaCatEquiv : (yoneda.obj Γ ⟶ yonedaCat.obj C)
+    ≃ Ctx.toGrpd.obj Γ ⥤ C :=
+  yonedaEquiv.trans yonedaCatEquivAux
 
 lemma yonedaCatEquiv_yonedaEquivSymm {Γ : Ctx}
     (A : (yonedaCat.obj C).obj (Opposite.op Γ)) :
@@ -122,11 +127,35 @@ def Ctx.homGrpdEquivFunctor {Γ : Ctx} {G : Type v} [Groupoid.{v} G]
   left_inv _ := rfl
   right_inv _ := rfl
 
-def toCoreAsSmallEquiv {Γ : Ctx} {C : Type (v+1)} [Category.{v} C]
-    : (Γ ⟶ Ctx.ofGrpd.obj (Grpd.of (Core (AsSmall C))))
+section
+
+variable {Γ Δ : Ctx} (σ : Δ ⟶ Γ) {C : Type (v+1)} [Category.{v} C]
+  {A : Ctx.toGrpd.obj Γ ⥤ C}
+
+def toCoreAsSmallEquiv : (Γ ⟶ Ctx.ofGrpd.obj (Grpd.of (Core (AsSmall C))))
     ≃ (Ctx.toGrpd.obj Γ ⥤ C) :=
   Ctx.homGrpdEquivFunctor.trans (
     Core.functorToCoreEquiv.symm.trans functorToAsSmallEquiv)
+
+theorem toCoreAsSmallEquiv_symm_naturality_left :
+    toCoreAsSmallEquiv.symm (Ctx.toGrpd.map σ ⋙ A) = σ ≫ toCoreAsSmallEquiv.symm A := by
+  sorry
+
+theorem toCoreAsSmallEquiv_naturality_left (A : Γ ⟶ Ctx.ofCategory C) :
+    toCoreAsSmallEquiv (σ ≫ A) = Ctx.toGrpd.map σ ⋙ toCoreAsSmallEquiv A := by
+  sorry
+
+/- The bijection y(Γ) → y[-,C]   ≃   Γ ⥤ C -/
+abbrev yonedaCategoryEquiv {Γ : Ctx} {C : Type (v+1)} [Category.{v} C] :
+    (y(Γ) ⟶ y(Ctx.ofCategory C))
+    ≃ Ctx.toGrpd.obj Γ ⥤ C :=
+  Yoneda.fullyFaithful.homEquiv.symm.trans toCoreAsSmallEquiv
+
+theorem yonedaCategoryEquiv_naturality_left (A : y(Γ) ⟶ y(Ctx.ofCategory C)) :
+    yonedaCategoryEquiv (ym(σ) ≫ A) = Ctx.toGrpd.map σ ⋙ yonedaCategoryEquiv A :=
+  sorry
+
+end
 
 /-- This is a natural isomorphism between functors in the following diagram
   Ctx.{u}------ yoneda -----> Psh Ctx
@@ -142,8 +171,8 @@ Cat.{big univ}-- yoneda -----> Psh Cat
 
 -/
 def asSmallUp_comp_yoneda_iso_forgetToCat_comp_catLift_comp_yonedaCat :
-    (AsSmall.up) ⋙ (yoneda : Ctx.{u} ⥤ Ctx.{u}ᵒᵖ ⥤ Type (u + 1))
-    ≅ Grpd.forgetToCat ⋙ catLift ⋙ yonedaCat where
+    (yoneda : Ctx.{u} ⥤ Ctx.{u}ᵒᵖ ⥤ Type (u + 1))
+    ≅ AsSmall.down ⋙ Grpd.forgetToCat ⋙ catLift ⋙ yonedaCat where
   hom := {app Γ := yonedaEquiv.symm (CategoryStruct.id _)}
   inv := {
     app Γ := {
@@ -169,39 +198,31 @@ abbrev var : (y(ext A) : Psh Ctx) ⟶ Tm :=
 
 end Ty
 
-def U' : Grpd.{max u (v+1),max u (v+1)} :=
-  Grpd.of (Core (AsSmall.{max u (v+1)} Grpd.{v,v}))
-
 /-- `U.{v}` is the object representing the
   universe of `v`-small types
   i.e. `y(U) = Ty` for the small natural models `baseU`. -/
 def U : Ctx.{max u (v+1)} :=
-  Ctx.ofGrpd.obj U'.{v,u}
-
-def E' : Grpd.{max u (v+1),max u (v+1)} :=
-  Grpd.of (Core (AsSmall.{max u (v+1)} PGrpd.{v,v}))
+  Ctx.ofCategory Grpd.{v,v}
 
 /-- `E.{v}` is the object representing `v`-small terms,
   living over `U.{v}`
   i.e. `y(E) = Tm` for the small natural models `baseU`. -/
 def E : Ctx.{max u (v + 1)} :=
-  Ctx.ofGrpd.obj E'.{v,u}
+  Ctx.ofCategory PGrpd.{v,v}
 
 def π'' : AsSmall.{max u (v+1)} PGrpd.{v,v}
     ⥤ AsSmall.{max u (v+1)} Grpd.{v,v} :=
   AsSmall.down ⋙ PGrpd.forgetToGrpd ⋙ AsSmall.up
 
-abbrev π' : E'.{v,u} ⟶ U'.{v,u} :=
-  Grpd.homOf (Core.map' π'')
-
-lemma π'_eq : Grpd.homOf (Core.map' π'') =
-    Core.map.map (Cat.asSmallFunctor.map (Cat.homOf PGrpd.forgetToGrpd)) :=
-  rfl
+-- TODO remove
+-- lemma π'_eq : Grpd.homOf (Core.map' π'') =
+--     Core.map.map (Cat.asSmallFunctor.map (Cat.homOf PGrpd.forgetToGrpd)) :=
+--   rfl
 
 /-- `π.{v}` is the morphism representing `v`-small `tp`,
   for the small natural models `baseU`. -/
-abbrev π : E.{v,u} ⟶ U.{v,u} :=
-  Ctx.ofGrpd.map π'
+abbrev π : E.{v,max u (v+1)} ⟶ U.{v, max u (v+1)} :=
+  Ctx.ofGrpd.map (Grpd.homOf (Core.map' π''))
 
 namespace U
 
@@ -221,10 +242,6 @@ abbrev disp' : ext' A ⟶ Ctx.toGrpd.obj Γ :=
 
 abbrev disp : ext A ⟶ Γ :=
   AsSmall.up.map (Grothendieck.forget _)
-
-abbrev var' : ext' A ⟶ E'.{v} :=
-  Grpd.homOf (Core.functorToCore
-    (Groupoidal.toPGrpd (classifier A) ⋙ AsSmall.up))
 
 abbrev var : ext A ⟶ E.{v} :=
   Ctx.ofGrpd.map (Grpd.homOf (Core.functorToCore

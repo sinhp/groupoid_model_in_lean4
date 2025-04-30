@@ -1,6 +1,6 @@
 import GroupoidModel.Groupoids.Sigma
-import GroupoidModel.Russell_PER_MS.NaturalModelSigma
-import SEq.Tactic.DepRewrite
+import GroupoidModel.Russell_PER_MS.NaturalModel
+
 universe v u v₁ u₁ v₂ u₂
 
 noncomputable section
@@ -205,8 +205,8 @@ def Conjugate_FiberFunc {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
     {x y: Γ} (f: x ⟶ y):
     (A.obj x ⥤ (GroupoidModel.FunctorOperation.sigma A B).obj x) ⥤
     (A.obj y ⥤ (GroupoidModel.FunctorOperation.sigma A B).obj y) :=
-     Conjugating (Groupoid.compForgetToCat A)
-      (Groupoid.compForgetToCat (GroupoidModel.FunctorOperation.sigma A B)) f
+     Conjugating (A ⋙ Grpd.forgetToCat)
+      (GroupoidModel.FunctorOperation.sigma A B ⋙ Grpd.forgetToCat) f
 
 lemma Conjugate_FiberFunc.obj {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
     (B : Groupoidal A ⥤ Grpd.{u₁,u₁})
@@ -337,7 +337,7 @@ lemma ConjugateLiftFunc_comp
      simp only [FunctorOperation.sigma_obj, Grpd.coe_of, ConjugateLiftFunc_Inc A B g,
                 ← Functor.assoc,ConjugateLiftFunc_Inc A B f, FunctorOperation.sigma_obj,
                 Grpd.coe_of, Conjugate_FiberFunc]
-     simp only [Functor.assoc, ← Conjugating_comp (compForgetToCat A),
+     simp only [Functor.assoc, ← Conjugating_comp (A ⋙ Grpd.forgetToCat),
                 ConjugateLiftFunc_Inc A B (f ≫ g),Conjugate_FiberFunc]
     refine e
 
@@ -373,7 +373,7 @@ def uHomSeqPis' (i : ℕ) (ilen : i < 4) :
   | 0 => smallUPi
   | 1 => smallUPi
   | 2 => smallUPi
-  | 3 => basePi
+  | 3 => sorry --basePi
   | (n+4) => by omega
 
 def uHomSeqPis : UHomSeqPiSigma Ctx := { uHomSeq with

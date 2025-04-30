@@ -157,7 +157,7 @@ theorem eqToHom_hom {C1 C2 : PCat.{v,u}} {x y: C1} (f : x ⟶ y) (eq : C1 = C2) 
   cases eq
   simp[CategoryStruct.id]
 
-theorem map_id_point {C : Type u} [Category.{v} C] {F : C ⥤ PCat} {x : C} :
+@[simp] theorem map_id_point {C : Type u} [Category.{v} C] {F : C ⥤ PCat} {x : C} :
     (F.map (CategoryStruct.id x)).point =
     eqToHom (by simp : (F.map (CategoryStruct.id x)).obj (F.obj x).str.pt = (F.obj x).str.pt) := by
   have : (CategoryStruct.id (F.obj x)).point = _ := PCat.id_point
@@ -166,6 +166,12 @@ theorem map_id_point {C : Type u} [Category.{v} C] {F : C ⥤ PCat} {x : C} :
   · simp
   · refine HEq.symm (heq_of_eqRec_eq ?_ rfl)
     · symm; assumption
+
+@[simp] theorem map_comp_point {C : Type u} [Category.{v} C] {F : C ⥤ PCat} {x y z: C} (f : x ⟶ y) (g : y ⟶ z) :
+    (F.map (f ≫ g)).point =
+    eqToHom (by simp) ≫ (F.map g).map (F.map f).point ≫ (F.map g).point := by
+  have : F.map (f ≫ g) = F.map f ≫ F.map g := by simp
+  simp [PointedFunctor.congr_point this]
 
 theorem eqToHom_toFunctor {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
     (eqToHom eq).toFunctor = (eqToHom (congrArg PCat.forgetToCat.obj eq)) := by
@@ -305,7 +311,7 @@ lemma comp_toFunctor {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) :
 lemma comp_point {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) :
     (F ≫ G).point = G.map (F.point) ≫ G.point := rfl
 
-theorem map_id_point {C : Type u} [Category.{v} C] {F : C ⥤ PGrpd} {x : C} :
+@[simp] theorem map_id_point {C : Type u} [Category.{v} C] {F : C ⥤ PGrpd} {x : C} :
     (F.map (CategoryStruct.id x)).point =
     eqToHom (by simp : (F.map (CategoryStruct.id x)).obj (F.obj x).str.pt = (F.obj x).str.pt) := by
   have : (CategoryStruct.id (F.obj x)).point = _ := PGrpd.id_point
@@ -314,6 +320,12 @@ theorem map_id_point {C : Type u} [Category.{v} C] {F : C ⥤ PGrpd} {x : C} :
   · simp
   · refine HEq.symm (heq_of_eqRec_eq ?_ rfl)
     · symm; assumption
+
+@[simp] theorem map_comp_point {C : Type u} [Category.{v} C] {F : C ⥤ PGrpd}
+    {x y z: C} (f : x ⟶ y) (g : y ⟶ z) : (F.map (f ≫ g)).point =
+    eqToHom (by simp) ≫ (F.map g).map (F.map f).point ≫ (F.map g).point := by
+  have : F.map (f ≫ g) = F.map f ≫ F.map g := by simp
+  simp [PointedFunctor.congr_point this]
 
 /-- This is the proof of equality used in the eqToHom in `PGrpd.eqToHom_point` -/
 theorem eqToHom_point_aux {P1 P2 : PGrpd.{v,u}} (eq : P1 = P2) :
@@ -377,27 +389,78 @@ section
 variable {Γ : Type u₂} [Category.{v₂} Γ]
 
 section
-variable {A : Γ ⥤ Grpd.{v₁,u₁}} {α : Γ ⥤ PGrpd.{v₁,u₁}} (h : α ⋙ PGrpd.forgetToGrpd = A)
+variable (α : Γ ⥤ PGrpd.{v₁,u₁})
 
-def compForgetToGrpdObjPt (x : Γ) : A.obj x :=
-  (eqToHom (Functor.congr_obj h x)).obj (α.obj x).str.pt
+def objPt (x : Γ) : α.obj x := (α.obj x).str.pt
 
-def compForgetToGrpdMapPoint {x y : Γ} (f : x ⟶ y) :
-    (A.map f).obj (compForgetToGrpdObjPt h x) ⟶ compForgetToGrpdObjPt h y :=
-  eqToHom (by
-    simp only [Functor.congr_hom h.symm f, Functor.comp_obj,
-      Grpd.comp_eq_comp, compForgetToGrpdObjPt, Grpd.eqToHom_obj, cast_cast]
-    rfl)
-    ≫ (eqToHom (Functor.congr_obj h y)).map (α.map f).point
+def mapObjPt {x y : Γ} (f : x ⟶ y) : α.obj y :=
+    (α.map f).obj (objPt α x)
+def mapPoint {x y : Γ} (f : x ⟶ y) :
+    mapObjPt α f ⟶ objPt α y := (α.map f).point
+
+@[simp] theorem mapPoint_id {x} : mapPoint α (𝟙 x) = eqToHom (by simp [mapObjPt]) := by
+  simp [mapPoint]
+
+theorem mapPoint_comp {x y z} (f : x ⟶ y) (g : y ⟶ z) :
+    mapPoint α (f ≫ g)
+    = eqToHom (by simp [mapObjPt, objPt])
+      ≫ (α.map g).map (mapPoint α f) ≫ mapPoint α g := by
+  simp [mapPoint]
 
 end
 
-theorem map_comp_point {A : Γ ⥤ PGrpd.{v₁,u₁}}
-    {x y z : Γ} {f : x ⟶ y} {g : y ⟶ z} :
-    (A.map (f ≫ g)).point = eqToHom (by simp) ≫ (A.map g).map (A.map f).point ≫ (A.map g).point := by
-  have : A.map (f ≫ g) = A.map f ≫ A.map g := by
-    simp [Grpd.comp_eq_comp]
-  rw [PointedFunctor.congr_point this, PGrpd.comp_point]
+section
+variable {A : Γ ⥤ Grpd.{v₁,u₁}} {α : Γ ⥤ PGrpd.{v₁,u₁}} (h : α ⋙ PGrpd.forgetToGrpd = A)
+
+def objPt' (x : Γ) : A.obj x :=
+  (eqToHom (Functor.congr_obj h x)).obj (objPt α x)
+
+def mapPoint' {x y : Γ} (f : x ⟶ y) :
+    (A.map f).obj (objPt' h x) ⟶ objPt' h y :=
+  eqToHom (by
+    simp only [Functor.congr_hom h.symm f, Functor.comp_obj,
+      Grpd.comp_eq_comp, objPt', Grpd.eqToHom_obj, cast_cast]
+    rfl)
+    ≫ (eqToHom (Functor.congr_obj h y)).map (α.map f).point
+
+@[simp] theorem mapPoint'_id {x} :
+    mapPoint' h (𝟙 x) = eqToHom (by simp) := by
+  subst h
+  simp only [mapPoint', map_id_point]
+  apply eq_of_heq
+  simp [eqToHom_comp_heq_iff]
+
+include h in
+theorem mapPoint'_comp_aux0 {z} : Grpd.of (α.obj z) = A.obj z := by
+  subst h
+  rfl
+
+theorem mapPoint'_comp_aux1 {x y z} (f : x ⟶ y) (g : y ⟶ z) :
+    (A.map (f ≫ g)).obj (objPt' h x) =
+    (eqToHom (mapPoint'_comp_aux0 h)).obj ((α.map (f ≫ g)).obj PointedCategory.pt) := by
+  subst h
+  rfl
+
+theorem mapPoint'_comp_aux2 {x y z} (f : x ⟶ y) (g : y ⟶ z) :
+    ((α.map (f ≫ g)).obj PointedCategory.pt ⟶ objPt α z) =
+    ((eqToHom (mapPoint'_comp_aux0 h)).obj ((α.map (f ≫ g)).obj PointedCategory.pt) ⟶ objPt' h z) := by
+  subst h
+  rfl
+
+theorem mapPoint'_comp_aux3 (h : α ⋙ PGrpd.forgetToGrpd = A) {x y z} (f : x ⟶ y)
+    (g : y ⟶ z) : (α.map (f ≫ g)).obj PointedCategory.pt
+    = (α.map g).obj ((α.map f).obj PointedCategory.pt) := by
+  subst h
+  simp
+
+theorem mapPoint'_comp {x y z} (f : x ⟶ y)
+    (g : y ⟶ z) : mapPoint' h (f ≫ g)
+    = eqToHom (by rw [mapPoint'_comp_aux1 h f g]; simp)
+    ≫ (eqToHom (mapPoint'_comp_aux0 h)).map ((α.map g).map (α.map f).point)
+    ≫ (eqToHom (mapPoint'_comp_aux0 h)).map (α.map g).point := by
+  simp [mapPoint', eqToHom_map]
+
+end
 
 end
 
