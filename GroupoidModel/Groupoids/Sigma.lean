@@ -569,6 +569,43 @@ end FunctorOperation
 open FunctorOperation
 
 /-- The formation rule for Σ-types for the ambient natural model `base` -/
+def smallUSig : smallU.{v, max u (v+1)}.Ptp.obj smallU.{v, max u (v+1)}.Ty ⟶ smallU.{v, max u (v+1)}.Ty :=
+  NatTrans.yonedaMk (fun AB =>
+    yonedaCategoryEquiv.symm (sigma _ (smallUUvPolyTpEquiv AB).2))
+    (by
+      intro Δ Γ σ α
+      dsimp [yonedaCategoryEquiv]
+      erw [← Functor.map_comp, ← toCoreAsSmallEquiv_symm_naturality_left,
+        sigma_naturality, smallUUvPolyTpEquiv_naturality_left]
+      rfl)
+
+def smallUPair : smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp ⟶
+    smallU.{v}.Tm :=
+  NatTrans.yonedaMk (fun ε =>
+    yonedaCategoryEquiv.symm (pair (smallUUvPolyTpCompDomEquiv ε).2.2.2))
+    sorry
+
+theorem smallU_pb : IsPullback smallUPair (smallU.uvPolyTp.comp smallU.uvPolyTp).p
+    smallU.tp smallUSig := by
+  sorry
+
+def smallUSigma : NaturalModelSigma smallU.{v, max u (v+1)} where
+  Sig := smallUSig
+  pair := smallUPair
+  Sig_pullback := smallU_pb
+
+def uHomSeqSigmas' (i : ℕ) (ilen : i < 4) :
+  NaturalModelSigma (uHomSeqObjs i ilen) :=
+  match i with
+  | 0 => smallUSigma.{0, 4}
+  | 1 => smallUSigma.{1, 4}
+  | 2 => smallUSigma.{2, 4}
+  | 3 => smallUSigma.{3, 4}
+  | (n+4) => by omega
+
+-- NOTE the rest of this file will be removed
+
+/-- The formation rule for Σ-types for the ambient natural model `base` -/
 def baseSig : base.Ptp.obj base.{u}.Ty ⟶ base.Ty where
   app Γ := fun p =>
     let ⟨A,B⟩ := baseUvPolyTpEquiv p
@@ -672,35 +709,6 @@ def baseSigma : NaturalModelSigma base where
   Sig_pullback := is_pb
 
 -- END section on base
-
-/-- The formation rule for Σ-types for the ambient natural model `base` -/
-def smallUSig : smallU.{v,u}.Ptp.obj smallU.{v,u}.Ty ⟶ smallU.{v,u}.Ty :=
-  NatTrans.yonedaMk _ sorry
-
-def smallUPair : smallU.{v,u}.uvPolyTp.compDom smallU.{v,u}.uvPolyTp ⟶
-    smallU.{v,u}.Tm where
-  app Γ := fun ε => sorry
-    -- let ⟨α,B,β,h⟩ := baseUvPolyTpCompDomEquiv ε
-    -- yonedaEquiv (yonedaCatEquiv.symm (pair h))
-  naturality := by sorry
-
-theorem smallU_pb : IsPullback smallUPair (smallU.uvPolyTp.comp smallU.uvPolyTp).p
-    smallU.tp smallUSig := by
-  sorry
-
-def smallUSigma : NaturalModelSigma smallU where
-  Sig := smallUSig
-  pair := smallUPair
-  Sig_pullback := smallU_pb
-
-def uHomSeqSigmas' (i : ℕ) (ilen : i < 4) :
-  NaturalModelSigma (uHomSeqObjs i ilen) :=
-  match i with
-  | 0 => smallUSigma
-  | 1 => smallUSigma
-  | 2 => smallUSigma
-  | 3 => baseSigma
-  | (n+4) => by omega
 
 end GroupoidModel
 end

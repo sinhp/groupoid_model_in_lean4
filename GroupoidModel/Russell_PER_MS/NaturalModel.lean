@@ -325,6 +325,22 @@ def uvPolyTpEquiv {Γ : Ctx} {X : Psh Ctx} :
   (Equiv.sigmaCongrRight (fun _ =>
     Iso.homCongr (pullbackIsoExt _ _) (Iso.refl _)))
 
+section
+variable {Ctx : Type u} [SmallCategory Ctx] {M : NaturalModelBase Ctx} {Γ Δ : Ctx}
+  {σ : Δ ⟶ Γ} {X : Psh Ctx} {A : y(Γ) ⟶ M.uvPolyTp.functor.obj X}
+
+theorem uvPolyTpEquiv_naturality_left : M.uvPolyTpEquiv (ym(σ) ≫ A) =
+    ⟨ ym(σ) ≫ (M.uvPolyTpEquiv A).1 , ym(M.substWk σ _) ≫ (M.uvPolyTpEquiv A).2 ⟩ := by
+  sorry
+
+@[simp] theorem uvPolyTpEquiv_naturality_left_snd :
+    (M.uvPolyTpEquiv (ym(σ) ≫ A)).2 = ym(M.substWk σ _) ≫ (M.uvPolyTpEquiv A).2 := by
+  have h := @uvPolyTpEquiv_naturality_left _ _ _ _ _ σ _ A
+  rw [Sigma.mk.inj_iff] at h
+  exact eq_of_heq h.2
+
+end
+
 @[simp] theorem uvPolyTpEquiv_fst {Γ : Ctx} {X : Psh Ctx}
     (AB : y(Γ) ⟶ M.uvPolyTp.functor.obj X) :
     (M.uvPolyTpEquiv AB).1 = AB ≫ M.uvPolyTp.fstProj _ :=
@@ -337,6 +353,7 @@ def uvPolyTpEquiv {Γ : Ctx} {X : Psh Ctx} :
   rw [eqToHom_comp_heq_iff]
   have h1 : M.uvPolyTpEquiv (M.uvPolyTpEquiv.symm ⟨A, B⟩) = ⟨A, B⟩ := by simp
   exact (Sigma.mk.inj_iff.mp ((Sigma.eta _).trans h1)).2
+
 theorem uvPolyTpEquiv_symm {Γ : Ctx} {X : Psh Ctx}
     (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
     M.uvPolyTpEquiv.symm ⟨ A, B ⟩ =
