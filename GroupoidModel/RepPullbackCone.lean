@@ -151,6 +151,10 @@ abbrev fst : yoneda.obj t.pt ⟶ X :=
 abbrev snd : yoneda.obj t.pt ⟶ Y :=
   t.pullbackCone.snd
 
+@[reassoc]
+theorem condition : t.fst ≫ f = t.snd ≫ g :=
+  t.pullbackCone.condition
+
 open WalkingSpan.Hom WalkingCospan.Hom WidePullbackShape.Hom WidePushoutShape.Hom Limits.PullbackCone
 
 def repIsLimitAux (t : PullbackCone f g) (lift : ∀ s : RepPullbackCone f g, yoneda.obj s.pt ⟶ t.pt)
@@ -181,6 +185,17 @@ def RepIsLimit.mk {fst : W ⟶ X} {snd : W ⟶ Y} (eq : fst ≫ f = snd ≫ g)
   RepIsLimit.IsLimit $
   repIsLimitAux _ lift fac_left fac_right fun s m w =>
   uniq s m (w WalkingCospan.left) (w WalkingCospan.right)
+
+theorem is_pullback {fst : W ⟶ X} {snd : W ⟶ Y} (eq : fst ≫ f = snd ≫ g)
+    (lift : ∀ s : RepPullbackCone f g, yoneda.obj s.pt ⟶ W)
+    (fac_left : ∀ s : RepPullbackCone f g, lift s ≫ fst = s.fst)
+    (fac_right : ∀ s : RepPullbackCone f g, lift s ≫ snd = s.snd)
+    (uniq :
+      ∀ (s : RepPullbackCone f g) (m : yoneda.obj s.pt ⟶ W)
+      (_ : m ≫ fst = s.fst) (_ : m ≫ snd = s.snd),
+        m = lift s) :
+    IsPullback fst snd f g :=
+  IsPullback.of_isLimit' ⟨ eq ⟩ (RepIsLimit.mk eq lift fac_left fac_right uniq)
 
 end RepPullbackCone
 

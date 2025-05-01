@@ -942,7 +942,15 @@ def yonedaIsoMap : yoneda.op ⋙ yoneda.obj F ⟶ yoneda.op ⋙ yoneda.obj G whe
   app _ := app
   naturality _ _ _ := by ext : 1; apply naturality
 
+/-- Build natural transformations between presheaves on a small category
+  by defining their action when precomposing by a morphism with
+  representable domain -/
 def NatTrans.yonedaMk : F ⟶ G :=
   (yonedaIso F).inv ≫ yonedaIsoMap app naturality ≫ (yonedaIso G).hom
+
+theorem NatTrans.yonedaMk_app {X : C} (α : yoneda.obj X ⟶ F) :
+    α ≫ yonedaMk app naturality = app α := by
+  rw [← yonedaEquiv.apply_eq_iff_eq, yonedaEquiv_comp]
+  simp [yonedaMk, yonedaIso, yonedaIsoMap]
 
 end CategoryTheory
