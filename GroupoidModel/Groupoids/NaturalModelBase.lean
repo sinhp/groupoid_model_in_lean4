@@ -295,12 +295,11 @@ def baseUvPolyTpEquiv {Γ : Ctx.{u}} {C : Cat.{u,u+1}} :
   and `b : B[a / x] = β ⋙ forgetToGrpd` caputred by `β`.
   -/
 def baseUvPolyTpCompDomEquiv {Γ : Ctx.{u}} :
-    (base.uvPolyTp.compDom base.uvPolyTp).obj (op Γ)
+    (y(Γ) ⟶ base.uvPolyTp.compDom base.uvPolyTp)
     ≃ (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
     × (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{u,u})
     × (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
     ×' β ⋙ PGrpd.forgetToGrpd = sec _ α rfl ⋙ B :=
-  yonedaEquiv.symm.trans <|
   (base.uvPolyTpCompDomEquiv base Γ).trans <|
   Equiv.sigmaCongr
     yonedaCatEquiv $
@@ -319,7 +318,7 @@ def baseUvPolyTpCompDomEquiv {Γ : Ctx.{u}} :
           simp [yonedaCatEquiv.apply_eq_iff_eq]
 
 def baseUvPolyTpCompDomEquiv' {Γ : Ctx.{u}} :
-    (base.uvPolyTp.compDom base.uvPolyTp).obj (op Γ)
+    (y(Γ) ⟶ base.uvPolyTp.compDom base.uvPolyTp)
     ≃ (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{u,u})
     × (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
     × (B : ∫(A) ⥤ Grpd.{u,u})
