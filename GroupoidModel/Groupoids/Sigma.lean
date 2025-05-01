@@ -3,7 +3,6 @@ import GroupoidModel.Russell_PER_MS.NaturalModel
 import GroupoidModel.RepPullbackCone
 import SEq.Tactic.DepRewrite
 
-
 universe v u v₁ u₁ v₂ u₂ v₃ u₃
 
 noncomputable section
@@ -211,7 +210,7 @@ theorem pairSectionMap_aux_aux {x y} (f : x ⟶ y) :
     ≫ (ι _ y).map (mapPoint α f)
     = (sec _ α rfl).map f := by
   apply Grothendieck.Groupoidal.ext
-  · simp [ι_map, mapPoint]
+  · simp [ι_map, mapPoint, Grpd.forgetToCat]
   · simp [ι_map]
 
 /--
@@ -284,8 +283,8 @@ def pairSectionMap {x y} (f : x ⟶ y) :
     (pairSectionMap h (CategoryStruct.id x)).fiber
     = eqToHom (by rw! [sigmaMap_id_obj]):= by
   apply Grothendieck.Groupoidal.ext
-  · simp [pairSectionMap_fiber_base]
-  · simp [pairSectionMap_fiber_fiber]
+  · simp [pairSectionMap_fiber_base, Grpd.forgetToCat]
+  · simp [pairSectionMap_fiber_fiber, Grpd.forgetToCat]
 
 theorem pairSectionMap_id (x) :
     pairSectionMap h (CategoryStruct.id x) = CategoryStruct.id _ := by
@@ -313,7 +312,7 @@ theorem pairSectionMap_comp_fiber_fiber_aux {x y z} (f : x ⟶ y) (g : y ⟶ z) 
 
 theorem pairSectionMap_comp_fiber_fiber {x y z} (f : x ⟶ y) (g : y ⟶ z) :
     (pairSectionMap h (f ≫ g)).fiber.fiber =
-    eqToHom (by simp [pairSectionMap_comp_fiber_fiber_aux])
+    eqToHom (by simp [pairSectionMap_comp_fiber_fiber_aux, Grpd.forgetToCat])
     ≫ mapPoint' h (f ≫ g) := by
   rw! [homMk_fiber, homMk_fiber]
 
@@ -562,7 +561,7 @@ theorem assoc_forget : assoc B ⋙ forget = fst' B := by
     simp only [heq_eq_eq]
     apply Grothendieck.Groupoidal.ext
     -- TODO improve API for these two goals
-    · simp [ι_map, assocHom, assocIso, preNatIso, ιNatIso, Grothendieck.preNatIso]
+    · simp [ι_map, assocHom, assocIso, preNatIso, ιNatIso, Grothendieck.preNatIso, Grpd.forgetToCat]
     · simp [ι_map, assocHom, assocIso, preNatIso, ιNatIso, Grothendieck.preNatIso]
 
 theorem snd_forgetToGrpd : snd B ⋙ forgetToGrpd = sec _ (fst B) rfl ⋙ dependent B :=
@@ -616,6 +615,108 @@ variable (s : RepPullbackCone smallU.{v}.tp smallUSig.{v})
 
 abbrev A := (smallUUvPolyTpEquiv s.snd).fst
 
+-- NOTE the rest of this file will be removed
+
+/-- The formation rule for Σ-types for the ambient natural model `base` -/
+def baseSig : base.Ptp.obj base.{u}.Ty ⟶ base.Ty where
+  app Γ := fun p =>
+    let ⟨A,B⟩ := baseUvPolyTpEquiv p
+    yonedaEquiv (yonedaCatEquiv.symm (sigma A B))
+  naturality := sorry -- do not attempt
+
+def basePair : base.uvPolyTp.compDom base.uvPolyTp ⟶ base.Tm where
+  app Γ := fun ε =>
+    let ⟨α,B,β,h⟩ := baseUvPolyTpCompDomEquiv ε
+    yonedaEquiv (yonedaCatEquiv.symm (pair h))
+  naturality := by sorry
+
+theorem yonedaCatEquiv_baseSig {Γ : Ctx} {A : Ctx.toGrpd.obj Γ ⥤ Grpd.{u,u}}
+    {B : ∫(A) ⥤ Grpd.{u,u}} :
+    yonedaCatEquiv ((baseUvPolyTpEquiv'.symm ⟨A,B⟩) ≫ baseSig) = sigma A B
+    := by
+  simp only [yonedaCatEquiv, Equiv.trans_apply, yonedaEquiv_comp, baseSig, Equiv.symm_trans_apply, Equiv.toFun_as_coe, baseUvPolyTpEquiv]
+  rw [yonedaCatEquivAux.apply_eq_iff_eq_symm_apply,
+    yonedaEquiv.apply_eq_iff_eq_symm_apply,
+    Equiv.symm_apply_apply, Equiv.apply_symm_apply]
+  congr
+
+namespace SigmaPullback
+
+def comm_sq : basePair ≫ base.tp =
+    (base.uvPolyTp.comp base.uvPolyTp).p ≫ baseSig := by
+  apply hom_ext_yoneda
+  intro Γ ab
+  apply yonedaCatEquiv.injective
+  dsimp only [baseSig]
+  sorry
+
+-- variable  {Γ : Ctx.{u}}
+
+-- def lift' (AB : y(Γ) ⟶ base.Ptp.obj base.{u}.Ty) :
+--     y(base.ext (AB ≫ baseSig)) ⟶ base.uvPolyTp.compDom base.uvPolyTp :=
+--   yonedaEquiv.invFun $
+--   baseUvPolyTpCompDomEquiv.invFun $
+--   let B := (baseUvPolyTpEquiv (yonedaEquiv.toFun AB)).snd
+--   ⟨ fst B, dependent B, snd B, snd_forgetToGrpd _ ⟩
+
+-- def lift (top : y(Γ) ⟶ base.Tm)
+--     (left : y(Γ) ⟶ base.Ptp.obj base.{u}.Ty)
+--     (h : top ≫ base.tp = left ≫ baseSig) :
+--     y(Γ) ⟶ base.uvPolyTp.compDom base.uvPolyTp :=
+--   ym(base.sec _ top rfl ≫ eqToHom (by rw [h])) ≫ (lift' left)
+
+-- theorem PairUP_Comm1' (top : (yoneda.obj Γ) ⟶ base.Tm)
+--     (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty)
+--     (h : top ≫ base.tp = left ≫ baseSig) :
+--     lift' left ≫ basePair
+--     = (yoneda.map (base.disp (left ≫ baseSig))) ≫ top := by
+--   sorry
+
+-- -- TODO remove / at least move this
+-- @[reassoc (attr := simp)]
+-- theorem sec_eqToHom_disp {Γ : Ctx} (M : NaturalModelBase Ctx) {α : y(Γ) ⟶ M.Tm} {A : y(Γ) ⟶ M.Ty}
+--     (h : α ≫ M.tp = A) :
+--     M.sec _ α rfl ≫ eqToHom (by subst h; rfl) ≫ M.disp A = 𝟙 _ := by
+--   subst h
+--   simp
+
+-- theorem PairUP_Comm1 (top : (yoneda.obj Γ) ⟶ base.Tm)
+--     (left : (yoneda.obj Γ) ⟶ base.Ptp.obj base.{u}.Ty)
+--     (h : top ≫ base.tp = left ≫ baseSig) :
+--     (lift top left h) ≫ basePair = top := by
+--   unfold lift
+--   rw [Category.assoc, PairUP_Comm1' top left h,<- Category.assoc,
+--     ← Functor.map_comp, Category.assoc, sec_eqToHom_disp,
+--     CategoryTheory.Functor.map_id, Category.id_comp]
+--   exact h
+
+-- theorem PairUP_Comm2' (top : y(Γ) ⟶ base.Tm)
+--     (left : y(Γ) ⟶ base.Ptp.obj base.{u}.Ty)
+--     (h : top ≫ base.tp = left ≫ baseSig) :
+--     lift' left ≫ (base.uvPolyTp.comp base.uvPolyTp).p
+--     = (yoneda.map (base.disp (left ≫ baseSig))) ≫ left := by
+--   sorry
+
+-- theorem PairUP_Comm2 (top : y(Γ) ⟶ base.Tm)
+--     (left : y(Γ) ⟶ base.Ptp.obj base.{u}.Ty)
+--     (h : top ≫ base.tp = left ≫ baseSig) :
+--     (lift top left h) ≫ (base.uvPolyTp.comp base.uvPolyTp).p = left
+--     := by
+--   unfold lift
+--   rw [Category.assoc,PairUP_Comm2' top left h,<- Category.assoc,
+--     ← Functor.map_comp, Category.assoc,
+--     sec_eqToHom_disp, CategoryTheory.Functor.map_id, Category.id_comp]
+--   · exact h
+
+-- theorem PairUP_Uniqueness (f : y(Γ) ⟶ base.uvPolyTp.compDom base.uvPolyTp) :
+--     f = (lift (f ≫  basePair) (f ≫ (base.uvPolyTp.comp base.uvPolyTp).p)
+--       (by rw[Category.assoc,Category.assoc]; congr 1; exact comm_sq)) := by
+--   unfold lift
+--   refine (base.uvPolyTpCompDomEquiv base Γ).injective ?_
+--   refine Sigma.ext ?_ ?_
+--   . sorry
+--   . sorry
+
 abbrev B := (smallUUvPolyTpEquiv s.snd).snd
 
 def lift' : y(Ctx.ofGrpd.obj $ Grpd.of ∫(sigma (A s) (B s))) ⟶
@@ -650,9 +751,9 @@ theorem lift_uniq (s : Limits.RepPullbackCone smallU.tp smallUSig) (m : y(s.pt) 
     = s.snd → m = lift s :=
   sorry
 
-end IsPullback
+end SigmaPullback
 
-open IsPullback
+open SigmaPullback
 
 theorem smallU_pb : IsPullback smallUPair.{v} (smallU.{v}.uvPolyTp.comp smallU.{v}.uvPolyTp).p
     smallU.{v}.tp smallUSig.{v, max u (v+1)} := (Limits.RepPullbackCone.is_pullback
@@ -671,6 +772,8 @@ def uHomSeqSigmas' (i : ℕ) (ilen : i < 4) :
   | 2 => smallUSigma.{2, 4}
   | 3 => smallUSigma.{3, 4}
   | (n+4) => by omega
+
+end IsPullback
 
 end GroupoidModel
 end
