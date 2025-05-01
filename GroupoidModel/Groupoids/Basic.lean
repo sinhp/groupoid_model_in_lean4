@@ -14,7 +14,7 @@ Here we construct universes for the groupoid natural model.
 universe w v u v₁ u₁ v₂ u₂ v₃ u₃
 
 noncomputable section
-open CategoryTheory ULift Grothendieck
+open CategoryTheory ULift Grothendieck.Groupoidal
   Limits NaturalModelBase CategoryTheory.Functor
 
 namespace GroupoidModel
@@ -48,6 +48,11 @@ def ofGroupoid (Γ : Type u) [Groupoid.{u} Γ] : Ctx.{u} :=
 
 def ofCategory (C : Type (v+1)) [Category.{v} C] : Ctx.{max u (v+1)} :=
   Ctx.ofGrpd.obj $ Grpd.of (Core (AsSmall C))
+
+def homOfFunctor {C : Type (v+1)} [Category.{v} C] {D : Type (w+1)} [Category.{w} D]
+    (F : C ⥤ D) : Ctx.ofCategory.{v, max u (v+1) (w+1)} C
+    ⟶ Ctx.ofCategory.{w, max u (v+1) (w+1)} D :=
+  Ctx.ofGrpd.map $ Grpd.homOf $ Core.map' $ AsSmall.down ⋙ F ⋙ AsSmall.up
 
 instance : ChosenFiniteProducts Ctx := equivalence.chosenFiniteProducts
 
@@ -155,6 +160,11 @@ theorem yonedaCategoryEquiv_naturality_left (A : y(Γ) ⟶ y(Ctx.ofCategory C)) 
     yonedaCategoryEquiv (ym(σ) ≫ A) = Ctx.toGrpd.map σ ⋙ yonedaCategoryEquiv A :=
   sorry
 
+theorem yonedaCategoryEquiv_naturality_right {D : Type (v+1)} [Category.{v} D]
+    (A : y(Γ) ⟶ y(Ctx.ofCategory C)) (F : C ⥤ D) :
+    yonedaCategoryEquiv (A ≫ ym(Ctx.homOfFunctor F)) = yonedaCategoryEquiv A ⋙ F :=
+  sorry
+
 end
 
 /-- This is a natural isomorphism between functors in the following diagram
@@ -188,13 +198,13 @@ abbrev tp : Tm ⟶ Ty := yonedaCat.map (PGrpd.forgetToGrpd)
 section Ty
 variable {Γ : Ctx.{u}} (A : yoneda.obj Γ ⟶ Ty)
 
-abbrev ext : Ctx := Ctx.ofGrpd.obj $ Grpd.of (Groupoidal (yonedaCatEquiv A))
+abbrev ext : Ctx := Ctx.ofGrpd.obj $ Grpd.of ∫(yonedaCatEquiv A)
 
 abbrev disp : ext A ⟶ Γ :=
-  Ctx.ofGrpd.map (Grothendieck.forget _)
+  Ctx.ofGrpd.map forget
 
 abbrev var : (y(ext A) : Psh Ctx) ⟶ Tm :=
-  yonedaCatEquiv.symm (Groupoidal.toPGrpd (yonedaCatEquiv A))
+  yonedaCatEquiv.symm (toPGrpd (yonedaCatEquiv A))
 
 end Ty
 
@@ -210,10 +220,6 @@ def U : Ctx.{max u (v+1)} :=
 def E : Ctx.{max u (v + 1)} :=
   Ctx.ofCategory PGrpd.{v,v}
 
-def π'' : AsSmall.{max u (v+1)} PGrpd.{v,v}
-    ⥤ AsSmall.{max u (v+1)} Grpd.{v,v} :=
-  AsSmall.down ⋙ PGrpd.forgetToGrpd ⋙ AsSmall.up
-
 -- TODO remove
 -- lemma π'_eq : Grpd.homOf (Core.map' π'') =
 --     Core.map.map (Cat.asSmallFunctor.map (Cat.homOf PGrpd.forgetToGrpd)) :=
@@ -222,7 +228,7 @@ def π'' : AsSmall.{max u (v+1)} PGrpd.{v,v}
 /-- `π.{v}` is the morphism representing `v`-small `tp`,
   for the small natural models `baseU`. -/
 abbrev π : E.{v,max u (v+1)} ⟶ U.{v, max u (v+1)} :=
-  Ctx.ofGrpd.map (Grpd.homOf (Core.map' π''))
+  Ctx.homOfFunctor PGrpd.forgetToGrpd
 
 namespace U
 
@@ -232,20 +238,44 @@ def classifier : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v} :=
   Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd) ⋙ AsSmall.down
 
 abbrev ext' : Grpd.{max u (v+1), max u (v+1)}:=
-  Grpd.of (Groupoidal (classifier A))
+  Grpd.of ∫(classifier A)
 
 abbrev ext : Ctx.{max u (v + 1)} :=
   Ctx.ofGrpd.obj (ext' A)
 
+-- TODO remove
 abbrev disp' : ext' A ⟶ Ctx.toGrpd.obj Γ :=
-  Grothendieck.forget _
+  forget
 
 abbrev disp : ext A ⟶ Γ :=
-  AsSmall.up.map (Grothendieck.forget _)
+  AsSmall.up.map forget
 
 abbrev var : ext A ⟶ E.{v} :=
-  Ctx.ofGrpd.map (Grpd.homOf (Core.functorToCore
-    (Groupoidal.toPGrpd (classifier A) ⋙ AsSmall.up)))
+  toCoreAsSmallEquiv.symm (toPGrpd (classifier A))
+
+section SmallUHom
+
+variable {Γ : Ctx.{max u (v + 1)}} (A : Γ ⟶ U.{v})
+
+-- TODO rename `U.toU` to `U.liftU` and rename `U.toE` to `U.liftE`
+/-- `toU` is the base map between two `v`-small universes
+               toE
+    E.{v} --------------> E.{v+1}
+    |                      |
+    |                      |
+  π |                      | π
+    |                      |
+    v                      v
+    U.{v}-------toU-----> U.{v+1}
+ -/
+def toU : U.{v, max u (v+2)} ⟶ U.{v+1, max u (v+2)} :=
+  Ctx.homOfFunctor.{v+1,v} Grpd.asSmallFunctor.{v+1}
+
+def toE : E.{v, max u (v+2)} ⟶ E.{v+1,max u (v+2)} :=
+  Ctx.homOfFunctor.{v+1,v} PGrpd.asSmallFunctor.{v+1}
+  -- Ctx.ofGrpd.map (Core.map.map $ Cat.homOf toE'')
+
+end SmallUHom
 
 end U
 

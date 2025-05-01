@@ -407,29 +407,20 @@ namespace SmallUHom
 
 variable {Γ : Ctx.{max u (v + 1)}} (A : Γ ⟶ U.{v})
 
+-- TODO remove
 def toU'' : AsSmall.{max u (v+2)} Grpd.{v,v}
     ⥤ AsSmall.{max u (v+2)} Grpd.{v+1,v+1} :=
   AsSmall.down ⋙ Grpd.asSmallFunctor.{v+1} ⋙ AsSmall.up
 
-
-/-- `toU` is the base map between two `v`-small universes
-    E.{v} --------------> E.{v+1}
-    |                      |
-    |                      |
-    |                      |
-    |                      |
-    v                      v
-    U.{v}-------toU-----> U.{v+1}
- -/
-def toU : U.{v, max u (v+2)} ⟶ U.{v+1, max u (v+2)} :=
-  Ctx.ofGrpd.map (Core.map.map (Cat.homOf toU''))
-
+-- TODO remove
 def toE'' : AsSmall.{max u (v+2)} PGrpd.{v,v}
     ⥤ AsSmall.{max u (v+2)} PGrpd.{v+1,v+1} :=
   AsSmall.down ⋙ PGrpd.asSmallFunctor.{v+1} ⋙ AsSmall.up
 
-def toE : E.{v, max u (v+2)} ⟶ E.{v+1,max u (v+2)} :=
-  Ctx.ofGrpd.map (Core.map.map $ Cat.homOf toE'')
+-- TODO remove
+def π'' : AsSmall.{max u (v+1)} PGrpd.{v,v}
+    ⥤ AsSmall.{max u (v+1)} Grpd.{v,v} :=
+  AsSmall.down ⋙ PGrpd.forgetToGrpd ⋙ AsSmall.up
 
 theorem comm_sq : Cat.homOf toE''.{v,u} ≫ Cat.homOf π''.{v+1, max u (v+2)} =
   Cat.homOf π''.{v, max u (v+2)} ≫ Cat.homOf toU''.{v,u} := rfl
@@ -517,6 +508,8 @@ theorem isPullback_π''_π'' :
   IsPullback.of_isLimit
     (PullbackCone.IsLimit.mk
       comm_sq lift' fac_left' fac_right' lift_uniq')
+
+open U
 
 /--
 The small universes form pullbacks
@@ -637,6 +630,8 @@ theorem isPullback_disp'_asSmallForgetToGrpd :
       lift fac_left fac_right lift_uniq)
 
 end IsPullback
+
+open SmallUHom
 
 /--
   The following square is a pullback in `Grpd`

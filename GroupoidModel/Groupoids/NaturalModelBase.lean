@@ -21,6 +21,7 @@ open CategoryTheory
   GroupoidModel.IsPullback.LargeUHom
   GroupoidModel.IsPullback.SmallBase
   GroupoidModel.IsPullback.SmallUHom
+  Grothendieck.Groupoidal
 
 
 namespace GroupoidModel
@@ -50,9 +51,9 @@ namespace GroupoidModel
   Ty := y(U.{v})
   Tm := y(E)
   tp := ym(π)
-  ext A := U.ext (Yoneda.fullyFaithful.homEquiv.symm A)
-  disp A := U.disp (Yoneda.fullyFaithful.homEquiv.symm A)
-  var A := ym(U.var (Yoneda.fullyFaithful.homEquiv.symm A))
+  ext A := Ctx.ofGrpd.obj (Grpd.of ∫(yonedaCategoryEquiv A))
+  disp A := Ctx.ofGrpd.map forget
+  var A := yonedaCategoryEquiv.symm (toPGrpd _)
   disp_pullback A := by
     convert isPullback_yonedaDisp_yonedaπ (Yoneda.fullyFaithful.homEquiv.symm A)
     simp
@@ -150,8 +151,8 @@ def uHomSeqObjs (i : Nat) (h : i < 4) : NaturalModelBase Ctx.{4} :=
 
 def smallUHom : UHom smallU.{v, max u (v+2)} smallU.{v+1, max u (v+2)} :=
     @UHom.ofTyIsoExt _ _ _ _ _
-    { mapTy := ym(toU.{v,max u (v+2)})
-      mapTm := ym(toE)
+    { mapTy := ym(U.toU.{v,max u (v+2)})
+      mapTm := ym(U.toE)
       pb := isPullback_yπ_yπ }
     U.asSmallClosedType
     (Functor.mapIso yoneda U.isoExtAsSmallClosedType.{v,u})
@@ -173,7 +174,7 @@ def uHomSeq : NaturalModelBase.UHomSeq Ctx.{4} where
   objs := uHomSeqObjs
   homSucc' := uHomSeqHomSucc'
 
-open CategoryTheory NaturalModelBase Opposite Grothendieck.Groupoidal
+open CategoryTheory NaturalModelBase Opposite
 
 section
 
@@ -206,17 +207,15 @@ end
     smallU.sec _ α rfl = Ctx.ofGrpd.map (sec _ (yonedaCategoryEquiv α) rfl) := by
   apply Yoneda.fullyFaithful.map_injective
   apply (smallU.disp_pullback _).hom_ext
-  . rw [NaturalModelBase.sec_var, smallU_var, U.var, ← Functor.comp_map,
-      ← Functor.comp_map, ← Functor.map_comp, Grpd.comp_eq_comp, Grpd.homOf]
-    erw [← Core.functorToCore_naturality_left, ← Functor.assoc, sec_toPGrpd]
-    simp only [smallU_Tm, Ctx.equivalence_functor, Ctx.equivalence_inverse,
-      yonedaCategoryEquiv, toCoreAsSmallEquiv, Ctx.homGrpdEquivFunctor,
-      Core.functorToCoreEquiv, functorToAsSmallEquiv, Equiv.trans_apply,
-      Functor.FullyFaithful.homEquiv_symm_apply, whiskeringRight_obj_obj,
-      Equiv.coe_fn_mk, Equiv.coe_fn_symm_mk, Functor.comp_map, Functor.assoc,
-      AsSmall.down_comp_up, Functor.comp_id, Core.forgetFunctorToCore,
-      Core.functorToCore_naturality_left, Core.functorToCore_inclusion_apply,
-      AsSmall.down_map_up_map, Functor.FullyFaithful.map_preimage]
+  . rw [NaturalModelBase.sec_var, smallU_var]
+    convert_to α = ym(Ctx.ofGrpd.map $ Grpd.homOf (sec (yonedaCategoryEquiv (α ≫ ym(Ctx.homOfFunctor PGrpd.forgetToGrpd))) (yonedaCategoryEquiv α) _)) ≫ yonedaCategoryEquiv.symm (_)
+    dsimp [toCoreAsSmallEquiv, Ctx.homGrpdEquivFunctor, functorToAsSmallEquiv,
+      Core.functorToCoreEquiv]
+    rw [← Functor.map_comp, ← Functor.map_comp, Grpd.comp_eq_comp, ← Core.functorToCore_naturality_left, ← Functor.assoc, sec_toPGrpd]
+    simp [yonedaCategoryEquiv, toCoreAsSmallEquiv, functorToAsSmallEquiv,
+      Core.functorToCoreEquiv, Core.forgetFunctorToCore, Ctx.homGrpdEquivFunctor,
+      -AsSmall.down_map, Functor.assoc, Functor.comp_id,
+      Core.functorToCore_naturality_left, Core.functorToCore_inclusion_apply]
   . rw [← Functor.map_comp, sec_disp]
     rfl
 

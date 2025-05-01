@@ -477,7 +477,10 @@ theorem pair_naturality : σ ⋙ pair h =
   dsimp only [pair]
   rw [← Functor.assoc, pairSection_naturality, Functor.assoc]
   congr 1
-  convert_to map (eqToHom _) ⋙ Grothendieck.Groupoidal.pre (sigma (α ⋙ forgetToGrpd) B) σ ⋙ toPGrpd (sigma (α ⋙ forgetToGrpd) B) = toPGrpd (sigma (σ ⋙ α ⋙ forgetToGrpd) (Grothendieck.Groupoidal.pre (α ⋙ forgetToGrpd) σ ⋙ B))
+  convert_to map (eqToHom _)
+  ⋙ Grothendieck.Groupoidal.pre (sigma (α ⋙ forgetToGrpd) B) σ
+  ⋙ toPGrpd (sigma (α ⋙ forgetToGrpd) B)
+  = toPGrpd (sigma (σ ⋙ α ⋙ forgetToGrpd) (Grothendieck.Groupoidal.pre (α ⋙ forgetToGrpd) σ ⋙ B))
   rw [pre_toPGrpd, map_eqToHom_toPGrpd]
 
 end
@@ -622,17 +625,13 @@ def lift' : y(Ctx.ofGrpd.obj $ Grpd.of ∫(sigma (A s) (B s))) ⟶
   smallUUvPolyTpCompDomEquiv.symm
     ⟨ fst (B s), dependent (B s), snd (B s), snd_forgetToGrpd _ ⟩
 
--- TODO move
-theorem smallU_ext {Γ : Ctx} (A : y(Γ) ⟶ smallU.Ty) :
-    smallU.ext A = Ctx.ofGrpd.obj (Grpd.of ∫(yonedaCategoryEquiv A)) := by
-  sorry
-
 def lift : y(s.pt) ⟶ smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp :=
-  -- let B := IsMegaPullback.lift
-  -- sorry -- ym((smallU.disp_pullback _).lift _ _ _)
   ym(smallU.{v}.sec (s.snd ≫ smallUSig) s.fst s.condition ≫ eqToHom (by
-    -- dsimp only [smallU, U.ext, U.ext', U.classifier, A, B]
-    rw [smallU_ext, smallUSig_app, Equiv.apply_symm_apply]))
+    dsimp only [smallU_ext, U.ext, U.ext', U.classifier, A, B]
+    have : (yonedaCategoryEquiv (s.snd ≫ smallUSig)) =
+        (sigma (smallUUvPolyTpEquiv s.snd).fst (smallUUvPolyTpEquiv s.snd).snd) := by
+      rw [smallUSig_app, Equiv.apply_symm_apply]
+    rw [this]))
   ≫ lift' s
 
 theorem fac_left (s : RepPullbackCone smallU.{v}.tp smallUSig.{v}) :
