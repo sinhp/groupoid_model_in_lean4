@@ -17,8 +17,6 @@ universe w v u v₁ u₁ v₂ u₂ v₃ u₃
 noncomputable section
 open CategoryTheory
   Limits NaturalModelBase CategoryTheory.Functor
-  GroupoidModel.IsPullback.Base
-  GroupoidModel.IsPullback.LargeUHom
   GroupoidModel.IsPullback.SmallBase
   GroupoidModel.IsPullback.SmallUHom
   Grothendieck.Groupoidal
@@ -27,25 +25,10 @@ open CategoryTheory
 namespace GroupoidModel
 
 -- TODO link to this in blueprint
-/-- The natural model that acts as the ambient
-  model in which the other universes live.
-  Note that unlike the other universes this is *not* representable,
-  but enjoys having representable fibers that land in itself.
--/
-@[simps] def base : NaturalModelBase Ctx.{u} where
-  Ty := Ty
-  Tm := Tm
-  tp := tp
-  ext := ext
-  disp := disp
-  var := var
-  disp_pullback := isPullback_yonedaDisp_tp
-
--- TODO link to this in blueprint
 /-- The natural model that acts as the classifier of `v`-large terms and types.
-  Note that unlike `GroupoidNaturalModel.base` this is representable,
+  Note that `Ty` and `Tm` are representables,
   but since representables are `max u (v+1)`-large,
-  its representable fibers can be larger than itself.
+  its representable fibers can be larger (in terms of universe levels) than itself.
 -/
 @[simps] def smallU : NaturalModelBase Ctx.{max u (v+1)} where
   Ty := y(U.{v})
@@ -112,34 +95,7 @@ def isoExtAsSmallClosedType :
   hom_inv_id := rfl
   inv_hom_id := rfl
 
-def asClosedType :
-    y(tensorUnit) ⟶ base.Ty :=
-  yonedaCatEquiv.invFun ((CategoryTheory.Functor.const _).obj
-    (Grpd.of (Core (AsSmall Grpd.{v,v}))))
-
-def isoExtAsClosedTypeFun : Core (AsSmall Grpd)
-    ⥤ ∫(yonedaCatEquiv U.asClosedType.{v,u}) where
-  obj X := ⟨ ⟨⟨⟩⟩ , X ⟩
-  map {X Y} F := ⟨ id _ , F ⟩
-
-def isoExtAsClosedTypeInv : ∫(yonedaCatEquiv U.asClosedType.{v,u})
-    ⥤ Core (AsSmall Grpd) where
-  obj X := X.fiber
-  map {X Y} F := F.fiber
-
-def isoExtAsClosedType :
-    U.{v,u} ≅ base.ext asClosedType.{v,u} where
-  hom := Ctx.ofGrpd.map isoExtAsClosedTypeFun
-  inv := Ctx.ofGrpd.map isoExtAsClosedTypeInv
-
 end U
-
-def largeUHom : UHom smallU.{v,u} base :=
-  UHom.ofTyIsoExt
-    { mapTy := toTy
-      mapTm := toTm
-      pb := isPullback_yπ_tp }
-    (Functor.mapIso yoneda U.isoExtAsClosedType)
 
 def uHomSeqObjs (i : Nat) (h : i < 4) : NaturalModelBase Ctx.{4} :=
   match i with
@@ -243,123 +199,6 @@ def smallUUvPolyTpCompDomEquiv {Γ : Ctx.{max u (v+1)}} :
     convert (yonedaCategoryEquiv.apply_eq_iff_eq).symm
     rw [yonedaCategoryEquiv_naturality_left, smallU_sec]
     rfl)
-
-
--- NOTE the rest of this file will be removed
-
-def baseUvPolyTpEquiv' {Γ : Ctx.{u}} {C : Cat.{u,u+1}} :
-    (y(Γ) ⟶ base.Ptp.obj (yonedaCat.obj C))
-    ≃ (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{u,u}) × (∫(A) ⥤ C) :=
-  base.uvPolyTpEquiv.trans (
-  Equiv.sigmaCongr
-    yonedaCatEquiv
-    (fun _ => yonedaCatEquiv))
-
-/-- A specialization of the polynomial universal property to the natural model `base`
-  The polynomial functor on `tp` taken at `yonedaCat.obj C`
-  `P_tp(yonedaCat C)` takes a groupoid `Γ`
-  to a pair of functors `A` and `B`
-
-      B
-   C ⇇ ∫(A)   ⥤   PGrpd
-            ⇊               ⇊
-            Γ          ⥤   Grpd
-                       A
-As a special case, if `C` is taken to be `Grpd`,
-then this is how `P_tp(Ty)` classifies dependent pairs.
--/
-def baseUvPolyTpEquiv {Γ : Ctx.{u}} {C : Cat.{u,u+1}} :
-    (base.Ptp.obj (yonedaCat.obj C)).obj (op Γ)
-    ≃ (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{u,u}) × (∫(A) ⥤ C) :=
-  yonedaEquiv.symm.trans baseUvPolyTpEquiv'
-
-@[simp] theorem base_sec {Γ : Ctx.{u}} (α : y(Γ) ⟶ base.Tm) :
-    base.sec _ α rfl = Ctx.ofGrpd.map (sec _ (yonedaCatEquiv α) rfl) := by
-  apply Yoneda.fullyFaithful.map_injective
-  apply (base.disp_pullback _).hom_ext
-  . rw [NaturalModelBase.sec_var]
-    dsimp only [base_var, var]
-    convert_to α =
-    yonedaCatEquiv.symm
-      (sec _ (yonedaCatEquiv α) rfl ⋙
-        toPGrpd (yonedaCatEquiv α ⋙ Cat.homOf PGrpd.forgetToGrpd))
-    rw [sec_toPGrpd _, yonedaCatEquiv.eq_symm_apply]
-  . rw [NaturalModelBase.sec_disp_functor_map]; rfl
-
-/-- A specialization of the universal property of `UvPoly.compDom`
-  to the natural model `base`.
-  This consists of a pair of dependent types
-  `A = α ⋙ forgetToGrpd` and `B`,
-  `a : A` captured by `α`,
-  and `b : B[a / x] = β ⋙ forgetToGrpd` caputred by `β`.
-  -/
-def baseUvPolyTpCompDomEquiv {Γ : Ctx.{u}} :
-    (y(Γ) ⟶ base.uvPolyTp.compDom base.uvPolyTp)
-    ≃ (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
-    × (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{u,u})
-    × (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
-    ×' β ⋙ PGrpd.forgetToGrpd = sec _ α rfl ⋙ B :=
-  (base.uvPolyTpCompDomEquiv base Γ).trans <|
-  Equiv.sigmaCongr
-    yonedaCatEquiv $
-    fun α => Equiv.sigmaCongr
-      yonedaCatEquiv $
-      fun B => Equiv.psigmaCongrProp
-        yonedaCatEquiv $
-        fun β => by
-          convert_to _ ↔ yonedaCatEquiv (β ≫ yonedaCat.map PGrpd.forgetToGrpd)
-            = Ctx.toGrpd.map (Ctx.ofGrpd.map
-              (sec _ (yonedaCatEquiv α) rfl)) ⋙ yonedaCatEquiv B
-          convert_to _ ↔ β ≫ yonedaCat.map PGrpd.forgetToGrpd =
-            yoneda.map (Ctx.ofGrpd.map (sec _ (yonedaCatEquiv α) rfl)) ≫ B
-          · simp only [yonedaCatEquiv_naturality_left, ← yonedaCatEquiv.apply_eq_iff_eq]
-          rw [base_sec]
-          simp [yonedaCatEquiv.apply_eq_iff_eq]
-
-def baseUvPolyTpCompDomEquiv' {Γ : Ctx.{u}} :
-    (y(Γ) ⟶ base.uvPolyTp.compDom base.uvPolyTp)
-    ≃ (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{u,u})
-    × (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
-    × (B : ∫(A) ⥤ Grpd.{u,u})
-    × (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{u,u})
-    ×' (h : α ⋙ PGrpd.forgetToGrpd = A)
-    ×' β ⋙ PGrpd.forgetToGrpd = sec _ α rfl ⋙ map (eqToHom h) ⋙ B :=
-  baseUvPolyTpCompDomEquiv.trans $ {
-    toFun := fun ⟨α,B,β,h⟩ => ⟨α ⋙ PGrpd.forgetToGrpd, α, B, β, rfl, by
-      rw [h, eqToHom_refl, map_id_eq]
-      rfl⟩
-    invFun := fun ⟨A,α,B,β,hA,hB⟩ => ⟨α, map (eqToHom hA) ⋙ B, β, by rw [hB] ⟩
-    left_inv := by
-      intro ⟨α,B,β,h⟩
-      dsimp
-      congr!
-      simp [map_id_eq, Functor.id_comp]
-    right_inv := by
-      intro ⟨A,α,B,β,h1,h2⟩
-      subst h1
-      congr!
-      · simp [eqToHom_refl, map_id_eq, Functor.id_comp]
-    }
-
-def baseTmEquiv {Γ : Ctx} :
-    (A : y(Γ) ⟶ base.Ty) × (α : y(Γ) ⟶ base.Tm)
-    ×' (α ≫ base.tp = A) ≃
-    (A : Ctx.toGrpd.obj Γ ⥤ Grpd) × (α : Ctx.toGrpd.obj Γ ⥤ PGrpd)
-    ×' (α ⋙ PGrpd.forgetToGrpd = A) :=
-  Equiv.sigmaCongr yonedaCatEquiv $ fun A =>
-    Equiv.psigmaCongrProp yonedaCatEquiv $ fun α => (by
-      simp only [base_tp, tp]
-      convert_to _ ↔ yonedaCatEquiv
-        (α ≫ yonedaCat.map (Cat.homOf PGrpd.forgetToGrpd)) = _
-      simp)
-
-theorem baseTmEquiv_fst {Γ : Ctx} {A : y(Γ) ⟶ base.Ty} {α : y(Γ) ⟶ base.Tm}
-    (h : α ≫ base.tp = A) : (baseTmEquiv ⟨A,α,h⟩).1 = yonedaCatEquiv A := by
-  simp [baseTmEquiv, Equiv.sigmaCongr]
-
-theorem baseTmEquiv_snd {Γ : Ctx} {A : y(Γ) ⟶ base.Ty} {α : y(Γ) ⟶ base.Tm}
-    (h : α ≫ base.tp = A) : (baseTmEquiv ⟨A,α,h⟩).2.1 = yonedaCatEquiv α := by
-  simp [baseTmEquiv, Equiv.sigmaCongr, Equiv.psigmaCongrProp]
 
 end GroupoidModel
 

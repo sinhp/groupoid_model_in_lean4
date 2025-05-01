@@ -189,44 +189,41 @@ def asSmallUp_comp_yoneda_iso_forgetToCat_comp_catLift_comp_yonedaCat :
       app Δ := λ F ↦
         AsSmall.up.map $ ULift.upFunctor ⋙ F ⋙ ULift.downFunctor}}
 
-abbrev Ty : Psh Ctx.{u} := yonedaCat.obj (Cat.of Grpd.{u,u})
+-- TODO remove
+-- abbrev Ty : Psh Ctx.{u} := yonedaCat.obj (Cat.of Grpd.{u,u})
 
-abbrev Tm : Psh Ctx.{u} := yonedaCat.obj (Cat.of PGrpd.{u,u})
+-- abbrev Tm : Psh Ctx.{u} := yonedaCat.obj (Cat.of PGrpd.{u,u})
 
-abbrev tp : Tm ⟶ Ty := yonedaCat.map (PGrpd.forgetToGrpd)
+-- abbrev tp : Tm ⟶ Ty := yonedaCat.map (PGrpd.forgetToGrpd)
 
-section Ty
-variable {Γ : Ctx.{u}} (A : yoneda.obj Γ ⟶ Ty)
+-- section Ty
+-- variable {Γ : Ctx.{u}} (A : yoneda.obj Γ ⟶ Ty)
 
-abbrev ext : Ctx := Ctx.ofGrpd.obj $ Grpd.of ∫(yonedaCatEquiv A)
+-- abbrev ext : Ctx := Ctx.ofGrpd.obj $ Grpd.of ∫(yonedaCatEquiv A)
 
-abbrev disp : ext A ⟶ Γ :=
-  Ctx.ofGrpd.map forget
+-- abbrev disp : ext A ⟶ Γ :=
+--   Ctx.ofGrpd.map forget
 
-abbrev var : (y(ext A) : Psh Ctx) ⟶ Tm :=
-  yonedaCatEquiv.symm (toPGrpd (yonedaCatEquiv A))
+-- abbrev var : (y(ext A) : Psh Ctx) ⟶ Tm :=
+--   yonedaCatEquiv.symm (toPGrpd (yonedaCatEquiv A))
 
-end Ty
+-- end Ty
 
 /-- `U.{v}` is the object representing the
   universe of `v`-small types
-  i.e. `y(U) = Ty` for the small natural models `baseU`. -/
+  i.e. `y(U) = Ty` for the small natural models `smallU`. -/
 def U : Ctx.{max u (v+1)} :=
   Ctx.ofCategory Grpd.{v,v}
 
 /-- `E.{v}` is the object representing `v`-small terms,
   living over `U.{v}`
-  i.e. `y(E) = Tm` for the small natural models `baseU`. -/
+  i.e. `y(E) = Tm` for the small natural models `smallU`. -/
 def E : Ctx.{max u (v + 1)} :=
   Ctx.ofCategory PGrpd.{v,v}
 
--- TODO remove
--- lemma π'_eq : Grpd.homOf (Core.map' π'') =
---     Core.map.map (Cat.asSmallFunctor.map (Cat.homOf PGrpd.forgetToGrpd)) :=
---   rfl
 
 /-- `π.{v}` is the morphism representing `v`-small `tp`,
-  for the small natural models `baseU`. -/
+  for the small natural models `smallU`. -/
 abbrev π : E.{v,max u (v+1)} ⟶ U.{v, max u (v+1)} :=
   Ctx.homOfFunctor PGrpd.forgetToGrpd
 
@@ -273,7 +270,6 @@ def toU : U.{v, max u (v+2)} ⟶ U.{v+1, max u (v+2)} :=
 
 def toE : E.{v, max u (v+2)} ⟶ E.{v+1,max u (v+2)} :=
   Ctx.homOfFunctor.{v+1,v} PGrpd.asSmallFunctor.{v+1}
-  -- Ctx.ofGrpd.map (Core.map.map $ Cat.homOf toE'')
 
 end SmallUHom
 

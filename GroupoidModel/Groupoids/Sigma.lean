@@ -12,6 +12,10 @@ open CategoryTheory NaturalModelBase Opposite Grothendieck.Groupoidal
 
 end ForOther
 
+-- NOTE these simp lemmas from mathlib should maybe be removed
+-- Grpd.forgetToCat...?
+-- Some `AsSmall` related lemmas
+
 -- NOTE content for this doc starts here
 namespace GroupoidModel
 
@@ -275,9 +279,6 @@ def pairSectionMap {x y} (f : x ⟶ y) :
 @[simp] theorem pairSectionMap_id_base (x) :
     (pairSectionMap h (CategoryStruct.id x)).base = CategoryStruct.id x := by
   simp [pairSectionMap]
-
--- NOTE these simp lemmas from mathlib should maybe be removed
--- Grpd.forgetToCat...?
 
 @[simp] theorem pairSectionMap_id_fiber (x) :
     (pairSectionMap h (CategoryStruct.id x)).fiber
