@@ -208,7 +208,7 @@ theorem smallUUvPolyTpCompDomEquiv_apply_fst {Γ : Ctx.{max u (v+1)}}
     = (smallUPTpEquiv (ab ≫ (
       smallU.{v}.uvPolyTp.comp smallU.{v}.uvPolyTp).p)).fst := by
   dsimp only [smallUPTpEquiv, Equiv.trans_apply, Equiv.sigmaCongrLeft]
-  rw [sigmaCongr_apply_fst]
+  rw [Equiv.sigmaCongr_apply_fst]
   convert congr_arg yonedaCategoryEquiv.toFun
     (@uvPolyTpCompDomEquiv_apply_fst Ctx.{max u (v+1)} _ smallU.{v} smallU.{v} Γ ab)
 

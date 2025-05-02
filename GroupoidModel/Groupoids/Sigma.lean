@@ -637,12 +637,9 @@ theorem comm_sq : smallUPair.{v} ≫ smallU.{v}.tp =
   rw [← yonedaCategoryEquiv_symm_naturality_right]
   rw [pair_comp_forgetToGrpd]
   congr 2
-  · rw []
-    -- rw []
-    sorry
+  · rw [smallUUvPolyTpCompDomEquiv_apply_fst]
   · sorry
 
-#exit
 variable (s : RepPullbackCone smallU.{v}.tp smallUSig.{v})
 
 abbrev A := (smallUPTpEquiv s.snd).fst

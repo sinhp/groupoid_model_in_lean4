@@ -371,7 +371,7 @@ def pi {Γ : Grpd.{v,u}} {A : Γ ⥤ Grpd.{u₁,u₁}}
 /-- The formation rule for Π-types for the ambient natural model `smallU` -/
 def smallUPi.Pi : smallU.{v}.Ptp.obj smallU.{v}.Ty ⟶ smallU.{v}.Ty :=
   NatTrans.yonedaMk (fun AB =>
-    yonedaCategoryEquiv.symm (pi (smallUUvPolyTpEquiv AB).2))
+    yonedaCategoryEquiv.symm (pi (smallUPTpEquiv AB).2))
     sorry
 
 def smallUPi : NaturalModelPi smallU.{v} where
