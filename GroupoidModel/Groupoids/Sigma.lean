@@ -594,6 +594,7 @@ theorem smallUSig_naturality {Γ Δ : Ctx} (f : Δ ⟶ Γ)
   If possible, don't use NatTrans.app on this,
   instead precompose it with maps from representables.
 -/
+
 def smallUSig : smallU.{v, max u (v+1)}.Ptp.obj smallU.{v, max u (v+1)}.Ty
   ⟶ smallU.{v, max u (v+1)}.Ty :=
   NatTrans.yonedaMk smallUSig_app smallUSig_naturality
@@ -623,7 +624,12 @@ lemma smallUPair_app_eq {Γ : Ctx} (ab : y(Γ) ⟶ _) : ab ≫ smallUPair =
     yonedaCategoryEquiv.symm (pair (smallUUvPolyTpCompDomEquiv ab).2.2.2) := by
   simp only [smallUPair, smallUPair_app, NatTrans.yonedaMk_app]
 
-namespace SigmaPullback
+abbrev B := (smallUUvPolyTpEquiv s.snd).snd
+
+def lift' : y(Ctx.ofGrpd.obj $ Grpd.of ∫(sigma (A s) (B s))) ⟶
+    smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp :=
+  smallUUvPolyTpCompDomEquiv.symm
+    ⟨ fst (B s), dependent (B s), snd (B s), snd_forgetToGrpd _ ⟩
 
 open Limits
 

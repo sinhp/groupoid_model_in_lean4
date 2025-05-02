@@ -202,6 +202,7 @@ def smallUUvPolyTpCompDomEquiv {Γ : Ctx.{max u (v+1)}} :
     rw [yonedaCategoryEquiv_naturality_left, smallU_sec]
     rfl)
 
+
 theorem smallUUvPolyTpCompDomEquiv_apply_fst {Γ : Ctx.{max u (v+1)}}
     (ab : y(Γ) ⟶ smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp) :
     (smallUUvPolyTpCompDomEquiv ab).fst ⋙ PGrpd.forgetToGrpd
