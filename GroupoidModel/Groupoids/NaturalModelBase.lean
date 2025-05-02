@@ -184,7 +184,7 @@ end
   `a : A` captured by `α`,
   and `b : B[a / x] = β ⋙ forgetToGrpd` caputred by `β`.
   -/
-def smallUUvPolyTpCompDomEquiv {Γ : Ctx.{max u (v+1)}} :
+def smallUCompDomEquiv {Γ : Ctx.{max u (v+1)}} :
     (y(Γ) ⟶ smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp)
     ≃ (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
     × (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v,v})
@@ -202,16 +202,40 @@ def smallUUvPolyTpCompDomEquiv {Γ : Ctx.{max u (v+1)}} :
     rw [yonedaCategoryEquiv_naturality_left, smallU_sec]
     rfl)
 
-
-theorem smallUUvPolyTpCompDomEquiv_apply_fst {Γ : Ctx.{max u (v+1)}}
+theorem smallUCompDomEquiv_apply_fst_forgetToGrpd
+    {Γ : Ctx.{max u (v+1)}}
     (ab : y(Γ) ⟶ smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp) :
-    (smallUUvPolyTpCompDomEquiv ab).fst ⋙ PGrpd.forgetToGrpd
+    (smallUCompDomEquiv ab).fst ⋙ PGrpd.forgetToGrpd
     = (smallUPTpEquiv (ab ≫ (
       smallU.{v}.uvPolyTp.comp smallU.{v}.uvPolyTp).p)).fst := by
-  dsimp only [smallUPTpEquiv, Equiv.trans_apply, Equiv.sigmaCongrLeft]
+  dsimp only [smallUPTpEquiv, Equiv.trans_apply]
   rw [Equiv.sigmaCongr_apply_fst]
   convert congr_arg yonedaCategoryEquiv.toFun
-    (@uvPolyTpCompDomEquiv_apply_fst Ctx.{max u (v+1)} _ smallU.{v} smallU.{v} Γ ab)
+    (@uvPolyTpCompDomEquiv_apply_fst_tp
+      Ctx.{max u (v+1)} _ smallU.{v} smallU.{v} Γ ab)
+
+-- JH: I think this is slow because it is trying to unify objects in `Grpd`
+-- with groupoids (Γ : Type) [Groupoid Γ]; and morphisms with functors
+set_option maxHeartbeats 0 in
+theorem smallUCompDomEquiv_apply_snd_fst {Γ : Ctx.{max u (v+1)}}
+    (ab : y(Γ) ⟶ smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp) :
+    (smallUCompDomEquiv ab).snd.fst
+    = IsMegaPullback.lift (toPGrpd _) forget (by rw
+      [smallUCompDomEquiv_apply_fst_forgetToGrpd]; rfl)
+      ⋙ (smallUPTpEquiv (ab ≫ (
+      smallU.{v}.uvPolyTp.comp smallU.{v}.uvPolyTp).p)).snd := by
+  dsimp only [smallUPTpEquiv, Equiv.trans_apply, smallUCompDomEquiv]
+  conv => left; erw [Equiv.sigmaCongr_apply_snd, Equiv.sigmaCongr_apply_fst]
+  conv => right; rw [Equiv.sigmaCongr_apply_snd]
+  rw [uvPolyTpCompDomEquiv_apply_snd_fst]
+  apply (yonedaCategoryEquiv_naturality_left' _).trans
+  congr 1
+  apply IsMegaPullback.lift_uniq
+  · sorry
+  · sorry
+  -- rw [Equiv.sigmaCongr_apply_fst]
+  -- convert congr_arg yonedaCategoryEquiv.toFun
+  --   (@uvPolyTpCompDomEquiv_apply_fst Ctx.{max u (v+1)} _ smallU.{v} smallU.{v} Γ ab)
 
 end GroupoidModel
 

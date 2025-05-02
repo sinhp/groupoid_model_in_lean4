@@ -160,6 +160,14 @@ theorem yonedaCategoryEquiv_naturality_left (A : y(Γ) ⟶ y(Ctx.ofCategory C)) 
     yonedaCategoryEquiv (ym(σ) ≫ A) = Ctx.toGrpd.map σ ⋙ yonedaCategoryEquiv A :=
   sorry
 
+theorem yonedaCategoryEquiv_naturality_left' (A : y(Γ) ⟶ y(Ctx.ofCategory C))
+    {σ : y(Δ) ⟶ y(Γ)} : yonedaCategoryEquiv (σ ≫ A) =
+    Ctx.toGrpd.map (Yoneda.fullyFaithful.preimage σ)
+    ⋙ yonedaCategoryEquiv A := by
+  have h : σ = ym(Yoneda.fullyFaithful.preimage σ) := by simp
+  rw [h, yonedaCategoryEquiv_naturality_left]
+  rfl
+
 theorem yonedaCategoryEquiv_naturality_right {D : Type (v+1)} [Category.{v} D]
     (A : y(Γ) ⟶ y(Ctx.ofCategory C)) (F : C ⥤ D) :
     yonedaCategoryEquiv (A ≫ ym(Ctx.homOfFunctor F)) = yonedaCategoryEquiv A ⋙ F :=

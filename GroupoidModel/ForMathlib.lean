@@ -943,6 +943,10 @@ variable {C : Type u₁} [SmallCategory C] {F G : Cᵒᵖ ⥤ Type u₁}
     app (yoneda.map f ≫ α) = yoneda.map f ≫ app α)
 
 variable (F) in
+/--
+  A presheaf `F` on a small category `C` is isomorphic to
+  the hom-presheaf `Hom(y(•),F)`.
+-/
 def yonedaIso : yoneda.op ⋙ yoneda.obj F ≅ F :=
   NatIso.ofComponents (fun _ => Equiv.toIso yonedaEquiv)
     (fun f => by ext : 1; dsimp; rw [yonedaEquiv_naturality'])

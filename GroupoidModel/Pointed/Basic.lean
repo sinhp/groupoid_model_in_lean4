@@ -409,7 +409,16 @@ theorem mapPoint_comp {x y z} (f : x ⟶ y) (g : y ⟶ z) :
 
 end
 
+
 section
+/-
+     ---------------> PGrpd
+   α |                  |
+     |                  | forgetToGrpd
+     |                  V
+    Γ ---------------> Grpd
+            A
+-/
 variable {A : Γ ⥤ Grpd.{v₁,u₁}} {α : Γ ⥤ PGrpd.{v₁,u₁}} (h : α ⋙ PGrpd.forgetToGrpd = A)
 
 def objPt' (x : Γ) : A.obj x :=
