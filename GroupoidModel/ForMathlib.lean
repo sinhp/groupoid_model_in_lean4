@@ -872,8 +872,8 @@ theorem isoWhiskerLeft_eqToIso (F : C ⥤ D) {G H : D ⥤ E} (η : G = H) :
 end
 end CategoryTheory
 
-
-def Equiv.psigmaCongrProp {α₁ α₂} {β₁ : α₁ → Prop} {β₂ : α₂ → Prop} (f : α₁ ≃ α₂)
+namespace Equiv
+def psigmaCongrProp {α₁ α₂} {β₁ : α₁ → Prop} {β₂ : α₂ → Prop} (f : α₁ ≃ α₂)
     (F : ∀ a, β₁ a ↔ β₂ (f a)) : PSigma β₁ ≃ PSigma β₂ where
   toFun x := .mk (f x.1) (by rw [← F]; exact x.2)
   invFun x := .mk (f.symm x.1) (by
@@ -881,6 +881,15 @@ def Equiv.psigmaCongrProp {α₁ α₂} {β₁ : α₁ → Prop} {β₂ : α₂ 
   left_inv _ := by simp
   right_inv _ := by simp
 
+@[simp] theorem sigmaCongr_apply_fst {α₁ α₂} {β₁ : α₁ → Sort _} {β₂ : α₂ → Sort _} (f : α₁ ≃ α₂)
+    (F : ∀ a, β₁ a ≃ β₂ (f a)) (x : Sigma β₁) : (sigmaCongr f F x).fst = f x.fst := by
+  simp [sigmaCongr]
+
+@[simp] def sigmaCongr_apply_snd {α₁ α₂} {β₁ : α₁ → Sort _} {β₂ : α₂ → Sort _} (f : α₁ ≃ α₂)
+    (F : ∀ a, β₁ a ≃ β₂ (f a)) (x : Sigma β₁) : (sigmaCongr f F x).snd = F x.fst x.snd := by
+  simp [sigmaCongr]
+
+end Equiv
 
 namespace CategoryTheory.Limits
 

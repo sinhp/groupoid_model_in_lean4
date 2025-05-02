@@ -447,6 +447,7 @@ theorem mapPoint'_comp_aux2 {x y z} (f : x ⟶ y) (g : y ⟶ z) :
   subst h
   rfl
 
+set_option linter.unusedVariables false in
 theorem mapPoint'_comp_aux3 (h : α ⋙ PGrpd.forgetToGrpd = A) {x y z} (f : x ⟶ y)
     (g : y ⟶ z) : (α.map (f ≫ g)).obj PointedCategory.pt
     = (α.map g).obj ((α.map f).obj PointedCategory.pt) := by

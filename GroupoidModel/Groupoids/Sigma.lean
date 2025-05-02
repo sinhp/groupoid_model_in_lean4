@@ -12,6 +12,10 @@ open CategoryTheory NaturalModelBase Opposite Grothendieck.Groupoidal
 
 end ForOther
 
+-- NOTE these simp lemmas from mathlib should maybe be removed
+-- Grpd.forgetToCat...?
+-- Some `AsSmall` related lemmas
+
 -- NOTE content for this doc starts here
 namespace GroupoidModel
 
@@ -276,9 +280,6 @@ def pairSectionMap {x y} (f : x ⟶ y) :
     (pairSectionMap h (CategoryStruct.id x)).base = CategoryStruct.id x := by
   simp [pairSectionMap]
 
--- NOTE these simp lemmas from mathlib should maybe be removed
--- Grpd.forgetToCat...?
-
 @[simp] theorem pairSectionMap_id_fiber (x) :
     (pairSectionMap h (CategoryStruct.id x)).fiber
     = eqToHom (by rw! [sigmaMap_id_obj]):= by
@@ -419,11 +420,8 @@ theorem pairSection_comp_forget :
 
 def pair : Γ ⥤ PGrpd.{v₁,u₁} := pairSection h ⋙ toPGrpd _
 
-theorem pair_comp_forget :
-    pair h ⋙ forgetToGrpd = sigma (α ⋙ forgetToGrpd) B := by
-  unfold pair
-  rw [Functor.assoc]
-  exact rfl
+@[simp] theorem pair_comp_forgetToGrpd :
+    pair h ⋙ forgetToGrpd = sigma (α ⋙ forgetToGrpd) B := rfl
 
 section
 
@@ -477,7 +475,10 @@ theorem pair_naturality : σ ⋙ pair h =
   dsimp only [pair]
   rw [← Functor.assoc, pairSection_naturality, Functor.assoc]
   congr 1
-  convert_to map (eqToHom _) ⋙ Grothendieck.Groupoidal.pre (sigma (α ⋙ forgetToGrpd) B) σ ⋙ toPGrpd (sigma (α ⋙ forgetToGrpd) B) = toPGrpd (sigma (σ ⋙ α ⋙ forgetToGrpd) (Grothendieck.Groupoidal.pre (α ⋙ forgetToGrpd) σ ⋙ B))
+  convert_to map (eqToHom _)
+  ⋙ Grothendieck.Groupoidal.pre (sigma (α ⋙ forgetToGrpd) B) σ
+  ⋙ toPGrpd (sigma (α ⋙ forgetToGrpd) B)
+  = toPGrpd (sigma (σ ⋙ α ⋙ forgetToGrpd) (Grothendieck.Groupoidal.pre (α ⋙ forgetToGrpd) σ ⋙ B))
   rw [pre_toPGrpd, map_eqToHom_toPGrpd]
 
 end
@@ -576,63 +577,88 @@ end FunctorOperation
 
 open FunctorOperation
 
+def smallUSig_app {Γ : Ctx.{max u (v+1)}}
+    (AB : y(Γ) ⟶ smallU.{v, max u (v+1)}.Ptp.obj smallU.{v, max u (v+1)}.Ty) :
+    y(Γ) ⟶ smallU.{v, max u (v+1)}.Ty :=
+  yonedaCategoryEquiv.symm (sigma _ (smallUPTpEquiv AB).2)
+
+theorem smallUSig_naturality {Γ Δ : Ctx} (f : Δ ⟶ Γ)
+    (AB : y(Γ) ⟶ smallU.{v, max u (v+1)}.Ptp.obj smallU.{v, max u (v+1)}.Ty) :
+    smallUSig_app (ym(f) ≫ AB) = ym(f) ≫ smallUSig_app AB := by
+  dsimp [yonedaCategoryEquiv, smallUSig_app]
+  erw [← Functor.map_comp, ← toCoreAsSmallEquiv_symm_naturality_left,
+    sigma_naturality, smallUPTpEquiv_naturality_left]
+  rfl
+
 /-- The formation rule for Σ-types for the ambient natural model `base`
   If possible, don't use NatTrans.app on this,
   instead precompose it with maps from representables.
 -/
-def smallUSig : smallU.{v, max u (v+1)}.Ptp.obj smallU.{v, max u (v+1)}.Ty ⟶ smallU.{v, max u (v+1)}.Ty :=
-  NatTrans.yonedaMk (fun AB =>
-    yonedaCategoryEquiv.symm (sigma _ (smallUUvPolyTpEquiv AB).2))
-    (by
-      intro Δ Γ σ α
-      dsimp [yonedaCategoryEquiv]
-      erw [← Functor.map_comp, ← toCoreAsSmallEquiv_symm_naturality_left,
-        sigma_naturality, smallUUvPolyTpEquiv_naturality_left]
-      rfl)
 
-lemma smallUSig_app {Γ : Ctx} (AB : y(Γ) ⟶ _) : AB ≫ smallUSig =
-    yonedaCategoryEquiv.symm (sigma _ (smallUUvPolyTpEquiv AB).2) := by
-  simp only [smallUSig]
-  rw [NatTrans.yonedaMk_app]
-  -- TODO why can't lean infer the naturality condition?
+def smallUSig : smallU.{v, max u (v+1)}.Ptp.obj smallU.{v, max u (v+1)}.Ty
+  ⟶ smallU.{v, max u (v+1)}.Ty :=
+  NatTrans.yonedaMk smallUSig_app smallUSig_naturality
+
+lemma smallUSig_app_eq {Γ : Ctx} (AB : y(Γ) ⟶ _) : AB ≫ smallUSig =
+    yonedaCategoryEquiv.symm (sigma _ (smallUPTpEquiv AB).2) := by
+  simp only [smallUSig, smallUSig_app, NatTrans.yonedaMk_app]
+
+def smallUPair_app {Γ : Ctx.{max u (v+1)}}
+    (ab : y(Γ) ⟶ smallU.{v, max u (v+1)}.uvPolyTp.compDom
+    smallU.{v, max u (v+1)}.uvPolyTp)
+    : y(Γ) ⟶ smallU.{v, max u (v+1)}.Tm :=
+  yonedaCategoryEquiv.symm (pair (smallUUvPolyTpCompDomEquiv ab).2.2.2)
+
+theorem smallUPair_naturality {Γ Δ : Ctx} (f : Δ ⟶ Γ)
+    (ab : y(Γ) ⟶ smallU.{v, max u (v+1)}.uvPolyTp.compDom
+    smallU.{v, max u (v+1)}.uvPolyTp) :
+    smallUPair_app (ym(f) ≫ ab) = ym(f) ≫ smallUPair_app ab := by
   sorry
 
-def smallUPair : smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp ⟶
-    smallU.{v}.Tm :=
-  NatTrans.yonedaMk (fun ε =>
-    yonedaCategoryEquiv.symm (pair (smallUUvPolyTpCompDomEquiv ε).2.2.2))
-    sorry
+def smallUPair : smallU.{v, max u (v+1)}.uvPolyTp.compDom
+    smallU.{v, max u (v+1)}.uvPolyTp
+    ⟶ smallU.{v, max u (v+1)}.Tm :=
+  NatTrans.yonedaMk smallUPair_app smallUPair_naturality
+
+lemma smallUPair_app_eq {Γ : Ctx} (ab : y(Γ) ⟶ _) : ab ≫ smallUPair =
+    yonedaCategoryEquiv.symm (pair (smallUUvPolyTpCompDomEquiv ab).2.2.2) := by
+  simp only [smallUPair, smallUPair_app, NatTrans.yonedaMk_app]
 
 namespace SigmaPullback
 
 open Limits
 
+set_option maxHeartbeats 0
 theorem comm_sq : smallUPair.{v} ≫ smallU.{v}.tp =
-    (smallU.{v}.uvPolyTp.comp smallU.{v}.uvPolyTp).p ≫ smallUSig :=
-  sorry
+    (smallU.{v}.uvPolyTp.comp smallU.{v}.uvPolyTp).p ≫ smallUSig := by
+  apply hom_ext_yoneda
+  intros Γ ab
+  simp only [← Category.assoc]
+  rw [smallUPair_app_eq, smallUSig_app_eq, smallU_tp]
+  rw [← yonedaCategoryEquiv_symm_naturality_right]
+  rw [pair_comp_forgetToGrpd]
+  congr 2
+  · rw [smallUUvPolyTpCompDomEquiv_apply_fst]
+  · sorry
 
 variable (s : RepPullbackCone smallU.{v}.tp smallUSig.{v})
 
-abbrev A := (smallUUvPolyTpEquiv s.snd).fst
+abbrev A := (smallUPTpEquiv s.snd).fst
 
-abbrev B := (smallUUvPolyTpEquiv s.snd).snd
+abbrev B := (smallUPTpEquiv s.snd).snd
 
 def lift' : y(Ctx.ofGrpd.obj $ Grpd.of ∫(sigma (A s) (B s))) ⟶
     smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp :=
   smallUUvPolyTpCompDomEquiv.symm
     ⟨ fst (B s), dependent (B s), snd (B s), snd_forgetToGrpd _ ⟩
 
--- TODO move
-theorem smallU_ext {Γ : Ctx} (A : y(Γ) ⟶ smallU.Ty) :
-    smallU.ext A = Ctx.ofGrpd.obj (Grpd.of ∫(yonedaCategoryEquiv A)) := by
-  sorry
-
 def lift : y(s.pt) ⟶ smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp :=
-  -- let B := IsMegaPullback.lift
-  -- sorry -- ym((smallU.disp_pullback _).lift _ _ _)
   ym(smallU.{v}.sec (s.snd ≫ smallUSig) s.fst s.condition ≫ eqToHom (by
-    -- dsimp only [smallU, U.ext, U.ext', U.classifier, A, B]
-    rw [smallU_ext, smallUSig_app, Equiv.apply_symm_apply]))
+    dsimp only [smallU_ext, U.ext, U.classifier, A, B]
+    have : yonedaCategoryEquiv (s.snd ≫ smallUSig) =
+        sigma (smallUPTpEquiv s.snd).fst (smallUPTpEquiv s.snd).snd := by
+      rw [smallUSig_app_eq, Equiv.apply_symm_apply]
+    rw [this]))
   ≫ lift' s
 
 theorem fac_left (s : RepPullbackCone smallU.{v}.tp smallUSig.{v}) :
