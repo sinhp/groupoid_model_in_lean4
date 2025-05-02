@@ -624,12 +624,7 @@ lemma smallUPair_app_eq {Γ : Ctx} (ab : y(Γ) ⟶ _) : ab ≫ smallUPair =
     yonedaCategoryEquiv.symm (pair (smallUUvPolyTpCompDomEquiv ab).2.2.2) := by
   simp only [smallUPair, smallUPair_app, NatTrans.yonedaMk_app]
 
-abbrev B := (smallUUvPolyTpEquiv s.snd).snd
-
-def lift' : y(Ctx.ofGrpd.obj $ Grpd.of ∫(sigma (A s) (B s))) ⟶
-    smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp :=
-  smallUUvPolyTpCompDomEquiv.symm
-    ⟨ fst (B s), dependent (B s), snd (B s), snd_forgetToGrpd _ ⟩
+namespace SigmaPullback
 
 open Limits
 
