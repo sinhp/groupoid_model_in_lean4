@@ -83,17 +83,14 @@ namespace SmallUHom
 
 variable {Γ : Ctx.{max u (v + 1)}} (A : Γ ⟶ U.{v})
 
--- TODO remove
 def toU'' : AsSmall.{max u (v+2)} Grpd.{v,v}
     ⥤ AsSmall.{max u (v+2)} Grpd.{v+1,v+1} :=
   AsSmall.down ⋙ Grpd.asSmallFunctor.{v+1} ⋙ AsSmall.up
 
--- TODO remove
 def toE'' : AsSmall.{max u (v+2)} PGrpd.{v,v}
     ⥤ AsSmall.{max u (v+2)} PGrpd.{v+1,v+1} :=
   AsSmall.down ⋙ PGrpd.asSmallFunctor.{v+1} ⋙ AsSmall.up
 
--- TODO remove
 def π'' : AsSmall.{max u (v+1)} PGrpd.{v,v}
     ⥤ AsSmall.{max u (v+1)} Grpd.{v,v} :=
   AsSmall.down ⋙ PGrpd.forgetToGrpd ⋙ AsSmall.up
@@ -217,7 +214,14 @@ open U PGrpd
 abbrev coreΓ (Γ : Ctx.{max u (v+1)}) : Grpd.{max u (v+1), max u (v+1)} :=
   Core.map.obj (Cat.of (Ctx.toGrpd.obj Γ))
 
+section
 variable {Γ : Ctx.{max u (v+1)}} (A : Γ ⟶ U.{v})
+
+abbrev ext' : Grpd.{max u (v+1), max u (v+1)}:=
+  Grpd.of ∫(classifier A)
+
+abbrev disp' : ext' A ⟶ Ctx.toGrpd.obj Γ :=
+  forget
 
 abbrev coreExt' : Grpd.{max u (v+1), max u (v+1)}:=
   Core.map.obj (Cat.of ∫(classifier A))
@@ -239,6 +243,7 @@ def isPullback_disp'_asSmallForgetToGrpd_comm_sq :
     ≫ Cat.homOf (Cat.asSmallFunctor.map (Cat.homOf forgetToGrpd))
     = Cat.homOf (Grothendieck.forget (classifier A ⋙ Grpd.forgetToCat))
     ≫ Cat.homOf (Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd)) := rfl
+end
 
 variable {Γ : Ctx.{max u (v+1)}} (A : Γ ⟶ U.{v, max u (v+1)})
 

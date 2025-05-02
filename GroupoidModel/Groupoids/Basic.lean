@@ -135,14 +135,14 @@ def Ctx.homGrpdEquivFunctor {Γ : Ctx} {G : Type v} [Groupoid.{v} G]
 section
 
 variable {Γ Δ : Ctx} (σ : Δ ⟶ Γ) {C : Type (v+1)} [Category.{v} C]
-  {A : Ctx.toGrpd.obj Γ ⥤ C}
+    {D : Type (v+1)} [Category.{v} D]
 
 def toCoreAsSmallEquiv : (Γ ⟶ Ctx.ofGrpd.obj (Grpd.of (Core (AsSmall C))))
     ≃ (Ctx.toGrpd.obj Γ ⥤ C) :=
   Ctx.homGrpdEquivFunctor.trans (
     Core.functorToCoreEquiv.symm.trans functorToAsSmallEquiv)
 
-theorem toCoreAsSmallEquiv_symm_naturality_left :
+theorem toCoreAsSmallEquiv_symm_naturality_left {A : Ctx.toGrpd.obj Γ ⥤ C} :
     toCoreAsSmallEquiv.symm (Ctx.toGrpd.map σ ⋙ A) = σ ≫ toCoreAsSmallEquiv.symm A := by
   sorry
 
@@ -163,6 +163,12 @@ theorem yonedaCategoryEquiv_naturality_left (A : y(Γ) ⟶ y(Ctx.ofCategory C)) 
 theorem yonedaCategoryEquiv_naturality_right {D : Type (v+1)} [Category.{v} D]
     (A : y(Γ) ⟶ y(Ctx.ofCategory C)) (F : C ⥤ D) :
     yonedaCategoryEquiv (A ≫ ym(Ctx.homOfFunctor F)) = yonedaCategoryEquiv A ⋙ F :=
+  sorry
+
+theorem yonedaCategoryEquiv_symm_naturality_right
+    {A : Ctx.toGrpd.obj Γ ⥤ C} (F : C ⥤ D):
+    yonedaCategoryEquiv.symm (A ⋙ F) =
+    yonedaCategoryEquiv.symm A ≫ ym(Ctx.homOfFunctor F) := by
   sorry
 
 end
@@ -189,26 +195,6 @@ def asSmallUp_comp_yoneda_iso_forgetToCat_comp_catLift_comp_yonedaCat :
       app Δ := λ F ↦
         AsSmall.up.map $ ULift.upFunctor ⋙ F ⋙ ULift.downFunctor}}
 
--- TODO remove
--- abbrev Ty : Psh Ctx.{u} := yonedaCat.obj (Cat.of Grpd.{u,u})
-
--- abbrev Tm : Psh Ctx.{u} := yonedaCat.obj (Cat.of PGrpd.{u,u})
-
--- abbrev tp : Tm ⟶ Ty := yonedaCat.map (PGrpd.forgetToGrpd)
-
--- section Ty
--- variable {Γ : Ctx.{u}} (A : yoneda.obj Γ ⟶ Ty)
-
--- abbrev ext : Ctx := Ctx.ofGrpd.obj $ Grpd.of ∫(yonedaCatEquiv A)
-
--- abbrev disp : ext A ⟶ Γ :=
---   Ctx.ofGrpd.map forget
-
--- abbrev var : (y(ext A) : Psh Ctx) ⟶ Tm :=
---   yonedaCatEquiv.symm (toPGrpd (yonedaCatEquiv A))
-
--- end Ty
-
 /-- `U.{v}` is the object representing the
   universe of `v`-small types
   i.e. `y(U) = Ty` for the small natural models `smallU`. -/
@@ -234,18 +220,11 @@ variable {Γ : Ctx.{max u (v + 1)}} (A : Γ ⟶ U.{v})
 def classifier : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v} :=
   Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd) ⋙ AsSmall.down
 
-abbrev ext' : Grpd.{max u (v+1), max u (v+1)}:=
-  Grpd.of ∫(classifier A)
-
 abbrev ext : Ctx.{max u (v + 1)} :=
-  Ctx.ofGrpd.obj (ext' A)
-
--- TODO remove
-abbrev disp' : ext' A ⟶ Ctx.toGrpd.obj Γ :=
-  forget
+  Ctx.ofGrpd.obj (Grpd.of ∫(classifier A))
 
 abbrev disp : ext A ⟶ Γ :=
-  AsSmall.up.map forget
+  Ctx.ofGrpd.map forget
 
 abbrev var : ext A ⟶ E.{v} :=
   toCoreAsSmallEquiv.symm (toPGrpd (classifier A))

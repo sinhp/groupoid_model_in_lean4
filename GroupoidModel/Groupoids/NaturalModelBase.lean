@@ -136,20 +136,21 @@ section
 
 variable {Γ : Ctx} {C : Type (v+1)} [Category.{v} C] {Δ : Ctx} (σ : Δ ⟶ Γ)
 
-def smallUUvPolyTpEquiv :
+-- TODO rename
+def smallUPTpEquiv :
     (y(Γ) ⟶ smallU.{v}.Ptp.obj y(Ctx.ofCategory C))
     ≃ (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v}) × (∫(A) ⥤ C) :=
-  smallU.uvPolyTpEquiv.trans (
+  smallU.Ptp_equiv.trans (
   Equiv.sigmaCongr
     yonedaCategoryEquiv
     (fun _ => yonedaCategoryEquiv))
 
-theorem smallUUvPolyTpEquiv_naturality_left
-    (AB : y(Γ) ⟶ smallU.{v}.Ptp.obj y(Ctx.ofCategory C)) : smallUUvPolyTpEquiv (ym(σ) ≫ AB) =
-    ⟨ Ctx.toGrpd.map σ ⋙ (smallUUvPolyTpEquiv AB).fst,
-    pre _ (Ctx.toGrpd.map σ) ⋙ (smallUUvPolyTpEquiv AB).snd ⟩ := by
-  dsimp [smallUUvPolyTpEquiv]
-  erw [uvPolyTpEquiv_naturality_left]
+theorem smallUPTpEquiv_naturality_left
+    (AB : y(Γ) ⟶ smallU.{v}.Ptp.obj y(Ctx.ofCategory C)) : smallUPTpEquiv (ym(σ) ≫ AB) =
+    ⟨ Ctx.toGrpd.map σ ⋙ (smallUPTpEquiv AB).fst,
+    pre _ (Ctx.toGrpd.map σ) ⋙ (smallUPTpEquiv AB).snd ⟩ := by
+  dsimp [smallUPTpEquiv]
+  erw [Ptp_equiv_naturality_left]
   simp [Equiv.sigmaCongr]
   constructor
   · erw [← yonedaCategoryEquiv_naturality_left]
@@ -175,6 +176,7 @@ end
   . rw [← Functor.map_comp, sec_disp]
     rfl
 
+-- TODO shorten name
 /-- A specialization of the universal property of `UvPoly.compDom`
   to the natural model `smallU`.
   This consists of a pair of dependent types
@@ -199,6 +201,16 @@ def smallUUvPolyTpCompDomEquiv {Γ : Ctx.{max u (v+1)}} :
     convert (yonedaCategoryEquiv.apply_eq_iff_eq).symm
     rw [yonedaCategoryEquiv_naturality_left, smallU_sec]
     rfl)
+
+theorem smallUUvPolyTpCompDomEquiv_apply_fst {Γ : Ctx.{max u (v+1)}}
+    (ab : y(Γ) ⟶ smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp) :
+    (smallUUvPolyTpCompDomEquiv ab).fst ⋙ PGrpd.forgetToGrpd
+    = (smallUPTpEquiv (ab ≫ (
+      smallU.{v}.uvPolyTp.comp smallU.{v}.uvPolyTp).p)).fst := by
+  dsimp only [smallUPTpEquiv, Equiv.trans_apply, Equiv.sigmaCongrLeft]
+  rw [sigmaCongr_apply_fst]
+  convert congr_arg yonedaCategoryEquiv.toFun
+    (@uvPolyTpCompDomEquiv_apply_fst Ctx.{max u (v+1)} _ smallU.{v} smallU.{v} Γ ab)
 
 end GroupoidModel
 
