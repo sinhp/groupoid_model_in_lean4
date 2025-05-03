@@ -498,6 +498,32 @@ def fst' : ∫(sigma A B) ⥤ ∫(A) :=
 def fst : ∫(sigma A B) ⥤ PGrpd :=
   fst' B ⋙ toPGrpd A
 
+-- TODO move to ForMathlib and Grothendieck
+section
+variable {C : Type u} [Category.{v} C]
+    {F G : C ⥤ Cat.{v₂,u₂}}
+
+theorem _root_.CategoryTheory.Grothendieck.map_forget (α : F ⟶ G) :
+    Grothendieck.map α ⋙ Grothendieck.forget G =
+    Grothendieck.forget F := by
+  rfl
+
+variable
+    {F G : C ⥤ Grpd.{v₂,u₂}}
+theorem _root_.CategoryTheory.Grothendieck.Groupoidal.map_forget
+    (α : F ⟶ G) : map α ⋙ forget =
+    Grothendieck.Groupoidal.forget := by
+  rfl
+
+end
+-- END
+
+theorem fst_forgetToGrpd : fst B ⋙ forgetToGrpd = forget ⋙ A := by
+  dsimp only [fst, fst']
+  rw [Functor.assoc, Grothendieck.Groupoidal.IsMegaPullback.comm_sq,
+    ← Functor.assoc, map_forget]
+
+
 end
 
 section
@@ -607,7 +633,7 @@ def smallUPair_app {Γ : Ctx.{max u (v+1)}}
     (ab : y(Γ) ⟶ smallU.{v, max u (v+1)}.uvPolyTp.compDom
     smallU.{v, max u (v+1)}.uvPolyTp)
     : y(Γ) ⟶ smallU.{v, max u (v+1)}.Tm :=
-  yonedaCategoryEquiv.symm (pair (smallUUvPolyTpCompDomEquiv ab).2.2.2)
+  yonedaCategoryEquiv.symm (pair (smallUCompDomEquiv ab).2.2.2)
 
 theorem smallUPair_naturality {Γ Δ : Ctx} (f : Δ ⟶ Γ)
     (ab : y(Γ) ⟶ smallU.{v, max u (v+1)}.uvPolyTp.compDom
@@ -621,13 +647,47 @@ def smallUPair : smallU.{v, max u (v+1)}.uvPolyTp.compDom
   NatTrans.yonedaMk smallUPair_app smallUPair_naturality
 
 lemma smallUPair_app_eq {Γ : Ctx} (ab : y(Γ) ⟶ _) : ab ≫ smallUPair =
-    yonedaCategoryEquiv.symm (pair (smallUUvPolyTpCompDomEquiv ab).2.2.2) := by
+    yonedaCategoryEquiv.symm (pair (smallUCompDomEquiv ab).2.2.2) := by
   simp only [smallUPair, smallUPair_app, NatTrans.yonedaMk_app]
 
 namespace SigmaPullback
 
 open Limits
 
+section
+open Grothendieck.Groupoidal.IsMegaPullback
+
+-- JH: this seems kind of bad to me. See `comm_sq`
+-- theorem lift_heq_id {Γ : Type*} [Category Γ] {A B : Γ ⥤ Grpd.{v,v}}
+--     (h : A = B) : HEq ((lift (toPGrpd B)) forget
+--     (h ▸ comm_sq A : toPGrpd B ⋙ forgetToGrpd = forget ⋙ A))
+--     (Functor.id ∫(B)) := by
+--   subst h
+--   apply heq_of_eq
+--   symm
+--   apply lift_uniq
+--   · rfl
+--   · rfl
+
+-- JH: this seems kind of bad to me. See `comm_sq`
+theorem lift_heq_id_comp {Γ C : Type*} [Category Γ] [Category C]
+    {A B : Γ ⥤ Grpd.{v,v}}
+    (h : A = B) (F : ∫(A) ⥤ C) : HEq ((lift (toPGrpd B)) forget
+    (h ▸ comm_sq A : toPGrpd B ⋙ forgetToGrpd = forget ⋙ A) ⋙ F)
+    (Functor.id ∫(A) ⋙ F) := by
+  subst h
+  apply heq_of_eq
+  congr 1
+  symm
+  apply lift_uniq
+  · rfl
+  · rfl
+end
+
+-- JH: there should be a better way to prove this,
+-- by rewriting backwards
+-- resulting in an equality of morphisms in a category (not evil) as the goal
+-- rather than a morphism of functors (evil).
 set_option maxHeartbeats 0
 theorem comm_sq : smallUPair.{v} ≫ smallU.{v}.tp =
     (smallU.{v}.uvPolyTp.comp smallU.{v}.uvPolyTp).p ≫ smallUSig := by
@@ -638,8 +698,97 @@ theorem comm_sq : smallUPair.{v} ≫ smallU.{v}.tp =
   rw [← yonedaCategoryEquiv_symm_naturality_right]
   rw [pair_comp_forgetToGrpd]
   congr 2
-  · rw [smallUUvPolyTpCompDomEquiv_apply_fst]
-  · sorry
+  · rw [smallUCompDomEquiv_apply_fst_forgetToGrpd]
+  · rw [smallUCompDomEquiv_apply_snd_fst]
+    apply lift_heq_id_comp
+    · rw [smallUCompDomEquiv_apply_fst_forgetToGrpd]
+
+def repPullbackConeEquivToFun
+    (s : RepPullbackCone smallU.{v}.tp smallUSig.{v})
+    : (Γ : Ctx.{max u (v+1)})
+    × (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v})
+    × (B : ∫(A) ⥤ Grpd.{v,v})
+    × (ab : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
+    ×' ab ⋙ PGrpd.forgetToGrpd = sigma A B :=
+  ⟨ s.pt,
+    (smallUPTpEquiv s.snd).fst,
+    (smallUPTpEquiv s.snd).snd,
+    yonedaCategoryEquiv s.fst,
+    by erw [← yonedaCategoryEquiv_naturality_right, s.condition,
+        smallUSig_app_eq, yonedaCategoryEquiv.apply_symm_apply] ⟩
+
+def repPullbackConeEquivInvFun
+    (Γ : Ctx.{max u (v+1)})
+    (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v})
+    (B : ∫(A) ⥤ Grpd.{v,v})
+    (ab : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
+    (h : ab ⋙ PGrpd.forgetToGrpd = sigma A B) :
+    RepPullbackCone smallU.{v}.tp smallUSig.{v} :=
+  RepPullbackCone.mk Γ
+    (yonedaCategoryEquiv.symm ab)
+    (smallUPTpEquiv.symm ⟨A,B⟩)
+    (by
+      erw [← yonedaCategoryEquiv_symm_naturality_right, h,
+        smallUSig_app_eq, smallUPTpEquiv.apply_symm_apply])
+
+def repPullbackConeEquiv :
+    RepPullbackCone smallU.{v}.tp smallUSig.{v}
+    ≃ (Γ : Ctx.{max u (v+1)})
+    × (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v})
+    × (B : ∫(A) ⥤ Grpd.{v,v})
+    × (ab : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
+    ×' ab ⋙ PGrpd.forgetToGrpd = sigma A B where
+  toFun     := repPullbackConeEquivToFun
+  invFun  X := repPullbackConeEquivInvFun X.1 X.2.1 X.2.2.1 X.2.2.2.1 X.2.2.2.2
+  left_inv  := sorry
+  right_inv := sorry
+
+def anotherEquiv (Γ : Ctx.{max u (v+1)}) (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v})
+    (B : ∫(A) ⥤ Grpd.{v,v}) :
+    (ab : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
+    ×' ab ⋙ PGrpd.forgetToGrpd = sigma A B
+    ≃ (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
+    × (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
+    ×' (h : α ⋙ PGrpd.forgetToGrpd = A)
+    ×' β ⋙ PGrpd.forgetToGrpd = sec _ α rfl ⋙ map (eqToHom h) ⋙ B where
+  toFun := fun ⟨ab,hab⟩ => ⟨
+    Grothendieck.Groupoidal.sec (sigma A B) ab hab ⋙ fst _,
+    Grothendieck.Groupoidal.sec (sigma A B) ab hab ⋙ snd _,
+    by rw [Functor.assoc, fst_forgetToGrpd, ← Functor.assoc,
+      sec_forget, Functor.id_comp],
+    by
+       -- simp 
+       rw [Functor.assoc, snd_forgetToGrpd]
+       sorry ⟩
+  invFun := fun ⟨α,β,hα,hβ⟩ => sorry
+  left_inv := by sorry
+  right_inv := by sorry
+
+def baseUvPolyTpCompDomEquiv' {Γ : Ctx.{max u (v+1)}} :
+    (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
+    × (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v,v})
+    × (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
+    ×' β ⋙ PGrpd.forgetToGrpd = sec _ α rfl ⋙ B
+    ≃ (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v})
+    × (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
+    × (B : ∫(A) ⥤ Grpd.{v,v})
+    × (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
+    ×' (h : α ⋙ PGrpd.forgetToGrpd = A)
+    ×' β ⋙ PGrpd.forgetToGrpd = sec _ α rfl ⋙ map (eqToHom h) ⋙ B where
+  toFun := fun ⟨α,B,β,h⟩ => ⟨α ⋙ PGrpd.forgetToGrpd, α, B, β, rfl, by
+    rw [h, eqToHom_refl, map_id_eq]
+    rfl⟩
+  invFun := fun ⟨A,α,B,β,hA,hB⟩ => ⟨α, map (eqToHom hA) ⋙ B, β, by rw [hB] ⟩
+  left_inv := by
+    intro ⟨α,B,β,h⟩
+    dsimp
+    congr!
+    simp [map_id_eq, Functor.id_comp]
+  right_inv := by
+    intro ⟨A,α,B,β,h1,h2⟩
+    subst h1
+    congr!
+    · simp [eqToHom_refl, map_id_eq, Functor.id_comp]
 
 variable (s : RepPullbackCone smallU.{v}.tp smallUSig.{v})
 
@@ -649,7 +798,7 @@ abbrev B := (smallUPTpEquiv s.snd).snd
 
 def lift' : y(Ctx.ofGrpd.obj $ Grpd.of ∫(sigma (A s) (B s))) ⟶
     smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp :=
-  smallUUvPolyTpCompDomEquiv.symm
+  smallUCompDomEquiv.symm
     ⟨ fst (B s), dependent (B s), snd (B s), snd_forgetToGrpd _ ⟩
 
 def lift : y(s.pt) ⟶ smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp :=
@@ -661,9 +810,16 @@ def lift : y(s.pt) ⟶ smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp :=
     rw [this]))
   ≫ lift' s
 
+set_option pp.proofs true in
 theorem fac_left (s : RepPullbackCone smallU.{v}.tp smallUSig.{v}) :
     lift s ≫ smallUPair.{v} = s.fst := by
-  simp [lift]
+  rw [smallUPair_app_eq, yonedaCategoryEquiv.symm_apply_eq]
+  dsimp only [FunctorOperation.pair]
+  have w := s.condition
+  -- dsimp only [lift, lift']
+  -- erw [← smallUPair_naturality]
+
+  -- simp [lift]
   sorry
 
 theorem fac_right (s : Limits.RepPullbackCone smallU.tp smallUSig) :

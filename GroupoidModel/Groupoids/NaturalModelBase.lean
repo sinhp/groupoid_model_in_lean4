@@ -176,6 +176,17 @@ end
   . rw [← Functor.map_comp, sec_disp]
     rfl
 
+theorem smallU_lift {Γ Δ : Ctx.{max u (v+1)}} (A : y(Γ) ⟶ smallU.{v}.Ty)
+    (fst : y(Δ) ⟶ smallU.{v}.Tm) (snd : Δ ⟶ Γ)
+    (w : fst ≫ smallU.{v}.tp = ym(snd) ≫ A) :
+    (smallU.{v}.disp_pullback A).lift fst ym(snd) w =
+    ym(Ctx.ofGrpd.map (IsMegaPullback.lift
+      (yonedaCategoryEquiv fst)
+      (Ctx.toGrpd.map snd)
+      (by erw [← yonedaCategoryEquiv_naturality_right, w,
+        yonedaCategoryEquiv_naturality_left]))) :=
+  sorry
+
 -- TODO shorten name
 /-- A specialization of the universal property of `UvPoly.compDom`
   to the natural model `smallU`.
@@ -214,9 +225,6 @@ theorem smallUCompDomEquiv_apply_fst_forgetToGrpd
     (@uvPolyTpCompDomEquiv_apply_fst_tp
       Ctx.{max u (v+1)} _ smallU.{v} smallU.{v} Γ ab)
 
--- JH: I think this is slow because it is trying to unify objects in `Grpd`
--- with groupoids (Γ : Type) [Groupoid Γ]; and morphisms with functors
-set_option maxHeartbeats 0 in
 theorem smallUCompDomEquiv_apply_snd_fst {Γ : Ctx.{max u (v+1)}}
     (ab : y(Γ) ⟶ smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp) :
     (smallUCompDomEquiv ab).snd.fst
@@ -229,13 +237,12 @@ theorem smallUCompDomEquiv_apply_snd_fst {Γ : Ctx.{max u (v+1)}}
   conv => right; rw [Equiv.sigmaCongr_apply_snd]
   rw [uvPolyTpCompDomEquiv_apply_snd_fst]
   apply (yonedaCategoryEquiv_naturality_left' _).trans
-  congr 1
-  apply IsMegaPullback.lift_uniq
-  · sorry
-  · sorry
-  -- rw [Equiv.sigmaCongr_apply_fst]
-  -- convert congr_arg yonedaCategoryEquiv.toFun
-  --   (@uvPolyTpCompDomEquiv_apply_fst Ctx.{max u (v+1)} _ smallU.{v} smallU.{v} Γ ab)
+  rw [smallU_lift]
+  simp only [Ctx.equivalence_inverse, Ctx.equivalence_functor,
+    AsSmall.down_obj, AsSmall.up_obj_down, FullyFaithful.preimage_map,
+    AsSmall.down_map, AsSmall.up_map_down]
+  rw! [smallU_var]
+  rfl
 
 end GroupoidModel
 
