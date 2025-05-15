@@ -472,6 +472,51 @@ def lift : C ⥤ Groupoidal A :=
       simp only [← Functor.assoc, ← w]
       rfl)
 
+@[simp] theorem lift_obj_base (x : C) :
+    ((lift fst snd w).obj x).base = snd.obj x :=
+  Grothendieck.IsMegaPullback.lift_obj_base _ _
+
+theorem lift_obj_fiber (x : C) : ((lift fst snd w).obj x).fiber =
+    ((eqToHom w).app x).obj (PGrpd.objPt fst x) := by
+  erw [Grothendieck.IsMegaPullback.lift_obj_fiber]
+  simp only [Grpd.forgetToCat, Functor.comp_obj,
+  eqToHom_app, IsMegaPullback.pt, PGrpd.objPt, Cat.eqToHom_obj,
+  Grpd.eqToHom_obj, cast_inj]
+  rfl
+
+@[simp] theorem lift_map_base {x y : C} (f : x ⟶ y) :
+    ((lift fst snd w).map f).base = (snd.map f) :=
+  rfl
+
+include w in
+theorem lift_map_fiber_aux (y : C) :
+    Grpd.of (fst.obj y) = (A.obj (snd.obj y)) :=
+  Functor.congr_obj w y
+
+-- theorem lift_map_fiber {x y : C} (f : x ⟶ y) :
+--     ((lift fst snd w).map f).fiber =
+--       eqToHom sorry
+--       ≫ (eqToHom (lift_map_fiber_aux fst snd w y)).map (fst.map f).point
+--       ≫ eqToHom sorry := by
+--   dsimp [lift, Grothendieck.IsMegaPullback.lift]
+--   generalize_proofs h
+--   simp only [Grothendieck.IsMegaPullback.lift_map_fiber, Cat.eqToHom_app]
+--   have h1 : (eqToHom h).app y = eqToHom (by
+--     have h2 := Functor.congr_obj w y
+--     simp only [Functor.comp_obj, PGrpd.forgetToGrpd_obj, PGrpd.forgetToPCat_obj, PCat.forgetToCat_obj] at *
+--     rw [← h2]
+--     rfl) := by
+--     rw [Grpd.eqToHom_app]
+--   rw [Functor.congr_hom h1]
+--   simp only [Functor.comp_obj, Cat.of_α, PGrpd.forgetToPCat_obj,
+--     PCat.forgetToCat_obj, Functor.comp_map, id_eq,
+--     Cat.comp_obj, PGrpd.forgetToPCat_map, PCat.forgetToCat_map,
+--     PGrpd.forgetToGrpd_obj, Grpd.coe_of, eq_mpr_eq_cast,
+--     IsMegaPullback.point, eqToHom_trans_assoc, eqToHom_comp_iff, eqToHom_refl,
+--     Category.id_comp, comp_eqToHom_iff,
+--     Category.assoc, eqToHom_trans, Category.comp_id]
+--   rfl
+
 theorem fac_left' : (lift fst snd w ⋙ toPGrpd A) ⋙ PGrpd.forgetToPCat
     = fst ⋙ PGrpd.forgetToPCat := by
   rw [toPGrpd_eq_lift, Functor.assoc,
@@ -753,6 +798,14 @@ theorem sec_naturality : σ ⋙ sec A α h = sec (σ ⋙ A) (σ ⋙ α) (by rw [
 
 end naturality
 
+@[simp] lemma sec_obj_base (x) : ((sec A α h).obj x).base = x := by
+  rfl
+
+@[simp] lemma sec_obj_fiber (x) :
+    ((sec A α h).obj x).fiber = PGrpd.objPt' h x := by
+  simp [Grothendieck.Groupoidal.sec, PGrpd.objPt',
+    Grothendieck.Groupoidal.IsMegaPullback.lift_obj_fiber]
+
 @[simp] lemma sec_map_base {x y} {f : x ⟶ y} :
     ((sec A α h).map f).base = f := by
   simp [sec, IsMegaPullback.lift, Grothendieck.IsMegaPullback.lift]
@@ -761,8 +814,9 @@ end naturality
 -- to `sec_map_fiber_rfl`
 @[simp] lemma sec_map_fiber {x y} {f : x ⟶ y} :
     ((sec (α ⋙ PGrpd.forgetToGrpd) α rfl).map f).fiber = (α.map f).point := by
-  simp [sec, IsMegaPullback.lift, Grothendieck.IsMegaPullback.lift,
-    Grothendieck.IsMegaPullback.lift_map, Grothendieck.IsMegaPullback.point]
+  simp [sec, Grothendieck.Groupoidal.IsMegaPullback.lift,
+    Grothendieck.IsMegaPullback.lift, Grothendieck.IsMegaPullback.point,
+    Grothendieck.IsMegaPullback.lift_map_fiber]
 
 end
 

@@ -74,8 +74,15 @@ abbrev point {x y : C} (f : x ⟶ y) :
 
 variable {A} {fst} {snd}
 
-@[simp] def lift_obj (x : C) : Grothendieck A :=
+def lift_obj (x : C) : Grothendieck A :=
   ⟨ snd.obj x , ((eqToHom w).app x).obj (pt fst x) ⟩
+
+@[simp] theorem lift_obj_base (x : C) : (lift_obj w x).base = snd.obj x := by
+  simp [lift_obj]
+
+theorem lift_obj_fiber (x : C) : (lift_obj w x).fiber =
+    ((eqToHom w).app x).obj (pt fst x) := by
+  simp [lift_obj]
 
 variable {x y : C} (f : x ⟶ y)
 
@@ -159,7 +166,7 @@ def lift : C ⥤ Grothendieck A where
       rename_i pf1 pf2 pf3 pf4
       apply HEq.trans $ cast_heq pf2 (eqToHom pf3)
       apply lift_aux pf1 pf3 pf4
-    · simp
+    · simp [lift_obj]
   map_comp {x y z} f g := by
     dsimp [Grothendieck.comp]
     apply Grothendieck.ext
@@ -237,7 +244,7 @@ theorem lift_uniq (m : C ⥤ Grothendieck A)
     apply Grothendieck.ext
     · dsimp [lift]
       rw [lift_map_fiber']
-      generalize_proofs pf1 pf2 _ _ _ _ _ pf3
+      generalize_proofs pf1 pf2 _ _ _ _ _ _ pf3
       have h0 := Functor.congr_hom hl f
       have h1 := PointedFunctor.congr_point h0
       have h2 := @eqToHom_fiber (Cat.of Γ) _ _ (m.obj x) _ pf1

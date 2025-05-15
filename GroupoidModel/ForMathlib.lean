@@ -158,12 +158,21 @@ theorem cast_eq {F G : Γ ⥤ Cat.{v₁,u₁}}
   subst h
   rfl
 
-theorem obj_ext_hEq
+theorem obj_hext
     (hbase : x.base = y.base) (hfiber : HEq x.fiber y.fiber) : x = y := by
   rcases x with ⟨xbase, xfiber⟩
   subst hbase
   subst hfiber
   rfl
+
+theorem obj_hext_iff : x.base = y.base ∧ HEq x.fiber y.fiber
+    ↔ x = y := by
+  constructor
+  · intro ⟨ hα , hstr ⟩
+    exact obj_hext hα hstr
+  · intro hCD
+    subst hCD
+    exact ⟨ rfl , HEq.rfl ⟩
 
 /-- This proves that base of an eqToHom morphism in the category Grothendieck A is an eqToHom morphism -/
 theorem eqToHom_base (eq : x = y) :
@@ -186,7 +195,7 @@ theorem eqToHom_fiber {Γ : Type u} [Category.{v} Γ] {A : Γ ⥤ Cat.{v₁,u₁
 theorem obj_ext_cast
     (hbase : x.base = y.base)
     (hfiber : cast (congrArg (λ x ↦ (A.obj x).α) hbase) x.fiber = y.fiber)
-    : x = y := obj_ext_hEq hbase (heq_of_cast_eq (by simp[hbase]) (by simp[hfiber]))
+    : x = y := obj_hext hbase (heq_of_cast_eq (by simp[hbase]) (by simp[hfiber]))
 
 theorem map_eqToHom_base_pf {G1 G2 : Grothendieck A} (eq : G1 = G2) :
     A.obj G1.base = A.obj G2.base := by subst eq; rfl
@@ -802,7 +811,7 @@ theorem ιNatTrans_comp_app {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {a} :
 variable {Γ : Type u₂} [Category.{v₂} Γ] {Δ : Type u₃} [Category.{v₃} Δ]
     (σ : Δ ⥤ Γ)
 
-@[simp] theorem ιCompPre (A : Γ ⥤ Cat.{v₁,u₁}) (x : Δ)
+@[simp] theorem ι_pre (A : Γ ⥤ Cat.{v₁,u₁}) (x : Δ)
     : ι (σ ⋙ A) x ⋙ Grothendieck.pre A σ = ι A (σ.obj x) := by
   apply CategoryTheory.Functor.ext
   · intro x y f

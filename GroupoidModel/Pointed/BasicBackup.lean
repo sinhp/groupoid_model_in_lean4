@@ -229,24 +229,32 @@ def homOf {C D : PCat.{v,u}} (F : ⇓C ⟶ ⇓D)
 
 end PCat
 
-/- Implementation note:
-  Unlike with `Grothendieck.Groupoidal` we simplify everything down to
-  the underlying `Grothendieck` definitions
--/
+-- /-- The class of pointed groupoids. -/
+-- class PointedGroupoid (C : Type u) extends Groupoid.{v} C, PointedCategory.{v,u} C
 
-abbrev PGrpd := ∫(Functor.id Grpd.{v,u})
+-- /-- A constructor that makes a pointed groupoid from a groupoid and a point. -/
+-- def PointedGroupoid.of (C : Type*) (pt : C) [Groupoid C]: PointedGroupoid C where
+--   pt := pt
+
+-- /-- The category of pointed groupoids and pointed functors-/
+-- def PGrpdBundled :=
+--   Bundled PointedGroupoid.{v,u}
+
+def PGrpd := ∫(Functor.id Grpd.{v,u})
 
 namespace PGrpd
 
 open Grothendieck.Groupoidal Grpd
 
-/-- The functor that takes PGrpd to Grpd by forgetting the points -/
+instance category : Category PGrpd.{v, u} :=
+  inferInstanceAs (Category ∫(_))
+
+/-- The functor that takes PGrpd to Grpd by forgetting the points-/
 abbrev forgetToGrpd : PGrpd.{v,u} ⥤ Grpd.{v,u} :=
   Grothendieck.Groupoidal.forget
 
-/-- The forgetful functor from PGrpd to PCat -/
-def forgetToPCat : PGrpd.{v,u} ⥤ PCat.{v,u} :=
-  Grothendieck.pre (Functor.id Cat) (Functor.id Grpd ⋙ forgetToCat)
+-- write using `\d=`
+prefix:max "⇓" => forgetToGrpd.obj
 
 -- write using `\d==`
 postfix:max "⟱" => forgetToGrpd.map
@@ -254,44 +262,81 @@ postfix:max "⟱" => forgetToGrpd.map
 lemma forgetToGrpd_map {C D : PGrpd} (F : C ⟶ D) :
     F⟱ = F.base := rfl
 
+/-- Construct a bundled `PCat` from the underlying type and the typeclass. -/
+def mk (C : Grpd) (x : C) : PGrpd.{v, u} :=
+  ⟨C , x⟩
+
+/-- The point in a pointed groupoid -/
+def point (C : PGrpd) : ⇓C := fiber C
+
+def Hom (C D : PGrpd) := C ⟶ D
+
+namespace Hom
+
+def comp {C D E} (F : Hom C D) (G : Hom D E) : Hom C E := F ≫ G
+
+infix:80 " ≫≫ " => PGrpd.Hom.comp
+
+/-- The arrow in the codomain fiber in a morphism of pointed categories -/
+def point {C D : PGrpd} (F : Hom C D) : F⟱.obj C.point ⟶ D.point :=
+  F.fiber
+
+end Hom
+
+lemma hext {C D : PGrpd} (hCat : ⇓C = ⇓D)
+    (hp : HEq C.point D.point) :
+    C = D :=
+  obj_hext hCat hp
+
+lemma hext_iff {C D : PGrpd} : ⇓C = ⇓D ∧ HEq C.point D.point
+    ↔ C = D :=
+  Grothendieck.obj_hext_iff
+
+/-- Construct a morphism in `PGrpd` from the underlying functor -/
+def homOf {C D : PGrpd.{v,u}} (F : ⇓C ⟶ ⇓D)
+    (φ : F.obj C.point ⟶ D.point) : C ⟶ D :=
+  ⟨ F , φ ⟩
+
+/-- The forgetful functor from PGrpd to PCat-/
+def forgetToPCat : PGrpd.{v,u} ⥤ PCat.{v,u} :=
+  Grothendieck.pre (Functor.id Cat) (Functor.id Grpd ⋙ forgetToCat)
+
 @[simp]
-theorem id_obj {C : PGrpd} (X : C.base) : (𝟙 C)⟱.obj X = X :=
+theorem id_obj {C : PGrpd} (X : ⇓C) : (𝟙 C)⟱.obj X = X :=
   rfl
 
 @[simp]
-theorem id_map {C : PGrpd} {X Y : C.base} (f : X ⟶ Y) :
-    (𝟙 C)⟱.map f = f :=
+theorem id_map {C : PGrpd} {X Y : ⇓C} (f : X ⟶ Y) : (𝟙 C)⟱.map f = f :=
   rfl
 
-@[simp] lemma id_fiber {C : PGrpd} : (𝟙 C).fiber = 𝟙 _ := by
+@[simp] lemma id_point {C : PGrpd} : fiber (𝟙 C) = 𝟙 _ := by
   rfl
 
 @[simp]
-theorem comp_obj {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) (X : C.base) :
+theorem comp_obj {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) (X : ⇓C) :
     (F ≫ G)⟱.obj X = G⟱.obj (F⟱.obj X) :=
   rfl
 
 @[simp]
-theorem comp_map {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) {X Y : C.base}
-    (f : X ⟶ Y) : (F ≫ G)⟱.map f = G⟱.map (F⟱.map f) :=
+theorem comp_map {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) {X Y : ⇓C} (f : X ⟶ Y) :
+    (F ≫ G)⟱.map f = G⟱.map (F⟱.map f) :=
   rfl
 
 -- formerly `comp_point`
-@[simp] lemma comp_point {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) :
-    (F ≫ G).fiber = G⟱.map F.fiber ≫ G.fiber := by
-  simp [PGrpd, Grothendieck.Groupoidal.forget]
+@[simp] lemma comp_point {C D E : PGrpd} (F : Hom C D) (G : Hom D E) :
+    (F ≫≫ G).point = G⟱.map F.point ≫ G.point := by
+  simp [PGrpd, Grothendieck.Groupoidal.forget, Hom.point]
 
 -- formerly `map_id_point`
 @[simp] theorem map_id_fiber {C : Type u} [Category.{v} C] {F : C ⥤ PGrpd} {x : C} :
     (F.map (CategoryStruct.id x)).fiber =
-    eqToHom (by simp) := by
-  sorry
-  -- have : (CategoryStruct.id (F.obj x)).point = _ := PGrpd.id_point
-  -- convert this
-  -- · simp
-  -- · simp
-  -- · refine HEq.symm (heq_of_eqRec_eq ?_ rfl)
-  --   · symm; assumption
+    eqToHom (by simp; sorry ) := by
+  have : (CategoryStruct.id (F.obj x)).point = _ := PGrpd.id_point
+  convert this
+  · simp
+  · simp
+  · refine HEq.symm (heq_of_eqRec_eq ?_ rfl)
+    · symm; assumption
 
 -- @[simp] theorem map_comp_point {C : Type u} [Category.{v} C] {F : C ⥤ PGrpd}
 --     {x y z: C} (f : x ⟶ y) (g : y ⟶ z) : (F.map (f ≫ g)).point =
@@ -301,47 +346,63 @@ theorem comp_map {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) {X Y : C.base}
 
 /-- This is the proof of equality used in the eqToHom in `PGrpd.eqToHom_point` -/
 theorem eqToHom_point_aux {P1 P2 : PGrpd.{v,u}} (eq : P1 = P2) :
-    (eqToHom eq)⟱.obj P1.fiber = P2.fiber := by
+    (⟱(eqToHom eq)).obj P1.point = P2.point := by
   subst eq
   simp
 
 /-- This shows that the point of an eqToHom in PGrpd is an eqToHom-/
 theorem eqToHom_point {P1 P2 : PGrpd.{v,u}} (eq : P1 = P2) :
-    (eqToHom eq).fiber = (eqToHom (eqToHom_point_aux eq)) := by
+    homFiber (eqToHom eq) = (eqToHom (eqToHom_point_aux eq)) := by
   subst eq
   simp
   sorry
 
 
--- instance asSmall (Γ : Type u) [PointedGroupoid.{v} Γ] :
---     PointedGroupoid.{max w v u, max w v u} (AsSmall.{w} Γ) := {
---   CategoryTheory.Groupoid.asSmallGroupoid.{w,v,u} Γ with
---   pt := AsSmall.up.obj PointedGroupoid.pt}
+lemma hext {C D : PGrpd} (hα : C.α = D.α) (hstr : HEq C.str D.str) :
+    C = D := by
+  cases C
+  cases D
+  subst hα
+  subst hstr
+  rfl
 
--- def asSmallFunctor : PGrpd.{v, u} ⥤ PGrpd.{max w v u, max w v u} where
---   obj Γ := PGrpd.of $ AsSmall.{max w v u} Γ
---   map F := {
---     toFunctor := AsSmall.down ⋙ F.toFunctor ⋙ AsSmall.up
---     point := AsSmall.up.map F.point}
+lemma hext_iff {C D : PGrpd} : C.α = D.α ∧ HEq C.str D.str
+    ↔ C = D := by
+  constructor
+  · intro ⟨ hα , hstr ⟩
+    exact hext hα hstr
+  · intro hCD
+    subst hCD
+    exact ⟨ rfl , HEq.rfl ⟩
 
--- instance : forgetToGrpd.ReflectsIsomorphisms := by
---   constructor
---   intro A B F hiso
---   rcases hiso with ⟨ G , hFG , hGF ⟩
---   use ⟨ G , G.map (Groupoid.inv F.point)
---     ≫ eqToHom (Functor.congr_obj hFG A.str.pt) ⟩
---   constructor
---   · apply PointedFunctor.ext
---     · simp
---     · exact hFG
---   · apply PointedFunctor.ext
---     · simp
---       have h := Functor.congr_hom hGF F.point
---       simp [Grpd.id_eq_id, Grpd.comp_eq_comp, Functor.comp_map] at h
---       simp [h, eqToHom_map]
---     · exact hGF
+instance asSmall (Γ : Type u) [PointedGroupoid.{v} Γ] :
+    PointedGroupoid.{max w v u, max w v u} (AsSmall.{w} Γ) := {
+  CategoryTheory.Groupoid.asSmallGroupoid.{w,v,u} Γ with
+  pt := AsSmall.up.obj PointedGroupoid.pt}
 
-#exit
+def asSmallFunctor : PGrpd.{v, u} ⥤ PGrpd.{max w v u, max w v u} where
+  obj Γ := PGrpd.of $ AsSmall.{max w v u} Γ
+  map F := {
+    toFunctor := AsSmall.down ⋙ F.toFunctor ⋙ AsSmall.up
+    point := AsSmall.up.map F.point}
+
+instance : forgetToGrpd.ReflectsIsomorphisms := by
+  constructor
+  intro A B F hiso
+  rcases hiso with ⟨ G , hFG , hGF ⟩
+  use ⟨ G , G.map (Groupoid.inv F.point)
+    ≫ eqToHom (Functor.congr_obj hFG A.str.pt) ⟩
+  constructor
+  · apply PointedFunctor.ext
+    · simp
+    · exact hFG
+  · apply PointedFunctor.ext
+    · simp
+      have h := Functor.congr_hom hGF F.point
+      simp [Grpd.id_eq_id, Grpd.comp_eq_comp, Functor.comp_map] at h
+      simp [h, eqToHom_map]
+    · exact hGF
+
 section
 variable {Γ : Type u₂} [Category.{v₂} Γ]
 
