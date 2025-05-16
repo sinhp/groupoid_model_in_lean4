@@ -179,14 +179,18 @@ lemma hom_of_map_eq_eqToHom {F G : Γ ⥤ Grpd} (h : F = G) :
     rw! [Grothendieck.Groupoidal.map_id_eq]
     simp
 
-lemma pre_lemma {F G : Γ ⥤ Grpd} (h : F = G) :
+lemma pre_lemma1 {F G : Γ ⥤ Grpd} (h : F = G) :
   Grothendieck.Groupoidal.pre F σ =
   map (whiskerLeft σ (eqToHom h)) ⋙ Grothendieck.Groupoidal.pre G σ ⋙ map (eqToHom h.symm) := sorry
 
-lemma h1 {F G : Γ ⥤ Grpd} (h : F = G) :
-  eqToHom (by sorry) ⋙ Grothendieck.Groupoidal.pre F σ ⋙ eqToHom (by sorry) =
+lemma pre_lemma2 {F G : Γ ⥤ Grpd} (h : F = G) :
+  map (eqToHom (by sorry)) ⋙ Grothendieck.Groupoidal.pre F σ ⋙ map (eqToHom (by sorry)) =
   Grothendieck.Groupoidal.pre G σ := sorry
 
+-- This doesn't typecheck!
+-- lemma pre_lemma3 {F G : Γ ⥤ Grpd} (h : F = G) :
+--   (eqToHom (by sorry)) ⋙ Grothendieck.Groupoidal.pre F σ ⋙ (eqToHom (by sorry)) =
+--   Grothendieck.Groupoidal.pre G σ := sorry
 end
 
 
