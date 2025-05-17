@@ -258,6 +258,43 @@ def map (α : F ⟶ G) : Groupoidal F ⥤ Groupoidal G :=
 @[simp] theorem map_obj {α : F ⟶ G} (X : Groupoidal F) :
     (Groupoidal.map α).obj X = ⟨X.base, (α.app X.base).obj X.fiber⟩ := rfl
 
+
+-- lemma h' {α : F ⟶ G} {X Y : C} (f : X ⟶ Y) :
+--   (F ⋙ Grpd.forgetToCat).map f ≫ (whiskerRight α Grpd.forgetToCat).app Y =
+--   (whiskerRight α Grpd.forgetToCat).app X ≫ (G ⋙ Grpd.forgetToCat).map f := by
+--     simp
+--     rw [← Grpd.forgetToCat.map_comp]; rw [← Grpd.forgetToCat.map_comp]
+--     simp
+
+--lemma h2 {α : F ⟶ G} {X : C} : (whiskerRight α Grpd.forgetToCat).app X = Grpd.forgetToCat.map (α.app X) := rfl
+
+lemma comp_forget_naturality  {α : F ⟶ G} {X Y : C} (f : X ⟶ Y) : (F ⋙ Grpd.forgetToCat).map f ≫ Grpd.forgetToCat.map (α.app Y)=
+  Grpd.forgetToCat.map (α.app X) ≫ (G ⋙ Grpd.forgetToCat).map f := by
+  simp
+  rw [← Grpd.forgetToCat.map_comp]; rw [← Grpd.forgetToCat.map_comp]
+  simp
+
+lemma map_map_eqToHom {α : F ⟶ G} {X Y : ∫(F)} (f : X ⟶ Y): ((G ⋙ Grpd.forgetToCat).map f.base).obj ((map α).obj X).fiber =
+  (α.app Y.base).obj (((F ⋙ Grpd.forgetToCat).map f.base).obj X.fiber) := by
+    simp
+    apply Eq.symm
+    have equ1 :
+      (α.app Y.base).obj ((Grpd.forgetToCat.map (F.map f.base)).obj X.fiber) =
+      ((Grpd.forgetToCat.map (F.map f.base)) ⋙ (α.app Y.base)).obj X.fiber := by simp
+    have equ2 :
+      (Grpd.forgetToCat.map (G.map f.base)).obj ((α.app X.base).obj X.fiber) =
+      ((α.app X.base) ⋙ (Grpd.forgetToCat.map (G.map f.base))).obj X.fiber := by simp
+    rw[equ1, equ2]
+    refine Functor.congr_obj ?_ X.fiber
+    apply comp_forget_naturality
+
+
+theorem map_map {α : F ⟶ G} {X Y : ∫(F)} (f : X ⟶ Y) :
+    (map α).map f =
+    ⟨f.base, eqToHom (map_map_eqToHom f) ≫ (α.app Y.base).map f.fiber⟩ := by
+    simp[map, Grothendieck.map_map]; exact rfl
+
+
 -- TODO move to ForMathlib
 theorem Grothendieck.map_eqToHom_obj_base {F G : C ⥤ Cat.{v,u}} (h : F = G)
   (x) : ((Grothendieck.map (eqToHom h)).obj x).base = x.base := rfl
