@@ -197,6 +197,14 @@ theorem ext {X Y : ∫(F)} (f g : Hom X Y) (w_base : f.base = g.base)
     (w_fiber : eqToHom (by rw [w_base]) ≫ f.fiber = g.fiber) : f = g :=
   Grothendieck.ext f g w_base w_fiber
 
+theorem ext_homMk {X Y : ∫(F)} (fb gb : X.base ⟶ Y.base)
+  (ff: (F.map fb).obj X.fiber ⟶ Y.fiber)
+  (gf: (F.map gb).obj X.fiber ⟶ Y.fiber)
+  (w_base : fb = gb)
+    (w_fiber : eqToHom (by rw [w_base]) ≫ ff = gf) :
+    homMk fb ff = homMk gb gf := by
+  apply ext (homMk fb ff) (homMk gb gf) w_base w_fiber
+
 /-- Every morphism `f : X ⟶ Y` in the base category induces a natural transformation from the fiber
 inclusion `ι F X` to the composition `F.map f ⋙ ι F Y`. -/
 def ιNatTrans {X Y : C} (f : X ⟶ Y) : ι F X ⟶ F.map f ⋙ ι F Y :=

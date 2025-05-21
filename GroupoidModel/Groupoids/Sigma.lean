@@ -497,20 +497,23 @@ lemma pairSection_naturality_aux : (σ ⋙ β) ⋙ forgetToGrpd
   conv => right; erw [← Functor.assoc, ← sec_naturality]
   simp only [Functor.assoc, h]
 
-
+-- set_option trace.pp.analyze
 -- TODO consider changing this statement. Namely the `map (eqToHom ⋯)` part.
 theorem pairSection_naturality : σ ⋙ pairSection h =
     pairSection (pairSection_naturality_aux h σ)
     ⋙ map (eqToHom (sigma_naturality B σ).symm) ⋙ pre _ _ := by
   apply CategoryTheory.Functor.ext
   · intros X Y f
-    simp only[pairSection]
-    simp
-    simp only [pairSectionMap, homMk, pairSectionMapFiber]
-    apply Grothendieck.Groupoidal.ext
+    simp only [pairSection, Functor.comp_obj, Functor.comp_map, pairSectionMap, pairSectionMapFiber,
+      forgetToGrpd_obj, map_obj, sigma_obj, sigmaObj]
+    apply ext_homMk
+    -- simp [homMk]
+    -- apply Grothendieck.Groupoidal.ext
     . --simp[comp_fiber]
       sorry
-    . simp
+    . sorry
+      -- simp only [Grpd.coe_of, pre_obj_base, eqToHom_base, eqToHom_refl, comp_base, pre_map_base,
+      -- map_map_base, homMk_base, Category.comp_id, Category.id_comp]
 
 
   · intro x
