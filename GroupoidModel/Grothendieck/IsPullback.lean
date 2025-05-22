@@ -19,129 +19,116 @@ section morphism_universe_v₁
 variable {Γ : Type u} [Category.{v} Γ] {A : Γ ⥤ Cat.{v₁,u₁}}
 
 @[simps] def toPCatObj (x : Grothendieck A) : PCat.{v₁,u₁} :=
-  ⟨(A.obj x.base), PointedCategory.of (A.obj x.base) x.fiber⟩
+  ⟨ A.obj x.base, x.fiber ⟩
 
-def toPCatMap {x y : Grothendieck A} (f : x ⟶ y) :
+@[simps] def toPCatMap {x y : Grothendieck A} (f : x ⟶ y) :
     toPCatObj x ⟶ toPCatObj y :=
   ⟨ A.map f.base , f.fiber ⟩
 
 variable (A)
 
-def toPCat : Grothendieck A ⥤ PCat.{v₁,u₁} where
+@[simps] def toPCat : Grothendieck A ⥤ PCat.{v₁,u₁} where
   obj := toPCatObj
   map := toPCatMap
   map_id x := by
     dsimp
-    let _ := (PointedCategory.of (A.obj x.base) x.fiber)
-    apply PointedFunctor.ext
-    · simp [toPCatMap]
-    · simp [CategoryStruct.id, Functor.id, Grothendieck.id, PointedFunctor.id, toPCatMap]
+    apply Grothendieck.ext
+    · simp
+    · simp
   map_comp {x y z} f g := by
-    dsimp [PointedFunctor.comp]
-    let _ := (PointedCategory.of (A.obj x.base) x.fiber)
-    let _ := (PointedCategory.of (A.obj z.base) z.fiber)
-    apply PointedFunctor.ext
-    · simp [toPCatMap]
-    · simp [toPCatMap, A.map_comp, Cat.comp_eq_comp]
+    apply Grothendieck.ext
+    · simp
+    · simp
 
-theorem toPCat_comp_forgetPoint : toPCat A ⋙ PCat.forgetToCat
-    = Grothendieck.forget A ⋙ A := by
-  apply Functor.ext
-  · intro X Y f
-    rfl
-  · intro
-    rfl
-
-theorem toPCatObj_fiber_inj {x y : Grothendieck A}
-    (h : HEq ((toPCat A).obj x).str.pt ((toPCat A).obj y).str.pt) :
-  HEq x.fiber y.fiber := h
-
-theorem comm_sq : toPCat A ⋙ PCat.forgetToCat
-  = Grothendieck.forget A ⋙ A := rfl
+-- theorem toPCatObj_fiber_inj {x y : Grothendieck A}
+--     (h : HEq ((toPCat A).obj x).fiber ((toPCat A).obj y).fiber) :
+--   HEq x.fiber y.fiber := h
 
 namespace IsMegaPullback
+
+-- formerly duplicated as `toPCat_comp_forgetPoint`
+theorem comm_sq : toPCat A ⋙ PCat.forgetToCat
+  = Grothendieck.forget A ⋙ A := rfl
 
 variable {C : Type u₂} [Category.{v₂} C]
   (fst : C ⥤ PCat.{v₁, u₁})
   (snd : C ⥤ Γ)
   (w : fst ⋙ PCat.forgetToCat = snd ⋙ A)
 
-abbrev pt (x : C) := (fst.obj x).str.pt
+abbrev pt (x : C) := (fst.obj x).fiber
 
 abbrev point {x y : C} (f : x ⟶ y) :
-    ((fst.map f)).obj (pt fst x) ⟶ pt fst y :=
-  (fst.map f).point
+    (fst.map f)⟱.obj (pt fst x) ⟶ pt fst y :=
+  (fst.map f).fiber
 
 variable {A} {fst} {snd}
 
-def lift_obj (x : C) : Grothendieck A :=
+@[simps] def liftObj (x : C) : Grothendieck A :=
   ⟨ snd.obj x , ((eqToHom w).app x).obj (pt fst x) ⟩
-
-@[simp] theorem lift_obj_base (x : C) : (lift_obj w x).base = snd.obj x := by
-  simp [lift_obj]
-
-theorem lift_obj_fiber (x : C) : (lift_obj w x).fiber =
-    ((eqToHom w).app x).obj (pt fst x) := by
-  simp [lift_obj]
 
 variable {x y : C} (f : x ⟶ y)
 
-def lift_map : lift_obj w x ⟶ lift_obj w y :=
+def liftMap : liftObj w x ⟶ liftObj w y :=
   ⟨ (snd.map f) ,
     let m1 := ((eqToHom w).app y).map (point fst f)
     let m2 := (eqToHom ((eqToHom w).naturality f).symm).app
       (pt fst x)
     m2 ≫ m1 ⟩
 
-@[simp] theorem lift_map_base :
-  (lift_map w f).base = (snd.map f) := rfl
+@[simp] theorem liftMap_base :
+  (liftMap w f).base = (snd.map f) := rfl
 
-theorem lift_map_fiber :
-    (lift_map w f).fiber =
+theorem liftMap_fiber :
+    (liftMap w f).fiber =
       (eqToHom ((eqToHom w).naturality f).symm).app (pt fst x)
         ≫ ((eqToHom w).app y).map (point fst f) :=
   rfl
 
 include w in
-theorem lift_map_fiber_pf3 :
-    Cat.of (fst.obj y).α = A.obj (snd.obj y) :=
+theorem liftMap_fiber_pf3 :
+    (fst.obj y).base = A.obj (liftObj w y).base :=
   Functor.congr_obj w y
 
-theorem lift_map_fiber_pf2 :
-    (A.map (snd.map f)).obj
-      (((eqToHom w).app x).obj (pt fst x))
-    = (eqToHom (lift_map_fiber_pf3 w)).obj
-      ((fst.map f).obj (pt fst x)) := by
+theorem liftMap_fiber_pf2 :
+    (A.map (snd.map f)).obj (liftObj w x).fiber =
+    (eqToHom (liftMap_fiber_pf3 w)).obj ((fst.map f).base.obj (pt fst x)) := by
   have h := Functor.congr_obj
     ((eqToHom w).naturality f).symm (pt fst x)
   simp only [eqToHom_app, Functor.comp_map,
-  Cat.comp_obj, PCat.forgetToCat_map] at *
+    Cat.comp_obj, PCat.forgetToCat_map, liftObj_fiber] at *
   rw [h]
 
-theorem lift_map_fiber_pf0 :
-    (eqToHom (lift_map_fiber_pf3 w)).obj (pt fst y)
-    = ((eqToHom w).app y).obj (pt fst y) := by simp
+theorem liftMap_fiber_pf0 :
+    (eqToHom (liftMap_fiber_pf3 w)).obj (pt fst y)
+    = ((eqToHom w).app y).obj (pt fst y) :=
+  by simp
 
-theorem lift_map_fiber_pf1 :
-    ((fst.map f).obj (pt fst x) ⟶ pt fst y)
-    = ((eqToHom (lift_map_fiber_pf3 w)).obj
-      ((fst.map f).obj (pt fst x))
-      ⟶ (eqToHom (lift_map_fiber_pf3 w)).obj (pt fst y)) :=
-  Cat.eqToHom_hom_aux
-    ((fst.map f).obj (pt fst x))
-    (pt fst y)
-    (lift_map_fiber_pf3 w)
+-- theorem liftMap_fiber_pf1 :
+--     ((fst.map f).obj (pt fst x) ⟶ pt fst y)
+--     = ((eqToHom (liftMap_fiber_pf3 w)).obj
+--       ((fst.map f).obj (pt fst x))
+--       ⟶ (eqToHom (liftMap_fiber_pf3 w)).obj (pt fst y)) :=
+--   Cat.eqToHom_hom_aux
+--     ((fst.map f).obj (pt fst x))
+--     (pt fst y)
+--     (liftMap_fiber_pf3 w)
 
-theorem lift_map_fiber' : (lift_map w f).fiber =
-    eqToHom (lift_map_fiber_pf2 w f)
-    ≫ cast (lift_map_fiber_pf1 w f) (point fst f)
-    ≫ eqToHom (lift_map_fiber_pf0 w) := by
-  have hy := Functor.congr_hom
-    (eqToHom_app w y) (point fst f)
-  have hx := eqToHom_app
-    ((eqToHom w).naturality f).symm (pt fst x)
-  rw [lift_map_fiber, hy, hx, Cat.eqToHom_hom]
-  simp
+-- theorem liftMap_fiber' : (liftMap w f).fiber =
+--     eqToHom (liftMap_fiber_pf2 w f)
+--     ≫ cast (liftMap_fiber_pf1 w f) (point fst f)
+--     ≫ eqToHom (liftMap_fiber_pf0 w) := by
+--   have hy := Functor.congr_hom
+--     (eqToHom_app w y) (point fst f)
+--   have hx := eqToHom_app
+--     ((eqToHom w).naturality f).symm (pt fst x)
+--   rw [liftMap_fiber, hy, hx, Cat.eqToHom_hom]
+--   simp
+
+theorem liftMap_fiber' : (liftMap w f).fiber =
+    eqToHom (liftMap_fiber_pf2 w f) ≫ (eqToHom (liftMap_fiber_pf3 w)).map (point fst f) ≫ eqToHom (liftMap_fiber_pf0 w) := by
+  simp [liftMap_fiber, Functor.congr_hom
+     (eqToHom_app w y) (point fst f), eqToHom_app
+      ((eqToHom w).naturality f).symm (pt fst x)]
 
 theorem lift_aux {C D : Cat.{v,u}} {X Y : C}
     (pf1 : C = D) (pf2 : X = Y) (pf3 : (eqToHom pf1).obj X = (eqToHom pf1).obj Y) :
@@ -152,126 +139,86 @@ theorem lift_aux {C D : Cat.{v,u}} {X Y : C}
 
 variable (fst) (snd)
 
-def lift : C ⥤ Grothendieck A where
-  obj := lift_obj w
-  map := lift_map w
+@[simps] def lift : C ⥤ Grothendieck A where
+  obj := liftObj w
+  map := liftMap w
   map_id x := by
     apply Grothendieck.ext
-    · have h := @PCat.map_id_point _ _ fst x
-      simp only [comp_obj, Functor.comp_map] at h
-      simp only [lift_map_fiber', lift_obj, Cat.of_α, comp_obj, lift_map_base, h,
-        eqToHom_trans_assoc, id_fiber, eqToHom_comp_iff, eqToHom_trans, comp_eqToHom_iff]
-      apply eq_of_heq
-      generalize_proofs
-      rename_i pf1 pf2 pf3 pf4
-      apply HEq.trans $ cast_heq pf2 (eqToHom pf3)
-      apply lift_aux pf1 pf3 pf4
-    · simp [lift_obj]
+    · simp [liftMap_fiber, eqToHom_app, eqToHom_map]
+    · simp
   map_comp {x y z} f g := by
-    dsimp [Grothendieck.comp]
     apply Grothendieck.ext
-    · dsimp
-      have h1 := dcongr_arg PointedFunctor.point
-        (Functor.map_comp fst f g)
-      have h2 : (fst.map f ≫ fst.map g).point =
-        ((fst.map g).map (fst.map f).point) ≫ (fst.map g).point := rfl
-      have hgNatNatF := (eqToHom ((eqToHom w).naturality g).symm).naturality (fst.map f).point
-      have h3 := congr_arg (λ x ↦ x ≫ ((eqToHom w).app z).map (fst.map g).point) hgNatNatF
-      dsimp at h3
-      simp only [Category.assoc, eqToHom_app ((eqToHom w).naturality g).symm] at h3
-      simp only [h1, h2, map_comp, comp_fiber, Category.assoc, lift_map_fiber,
-        eqToHom_map (A.map (snd.map g)),
-        eqToHom_app ((eqToHom w).naturality f).symm,
-        eqToHom_app ((eqToHom w).naturality (f ≫ g)).symm,
-        eqToHom_app ((eqToHom w).naturality g).symm, eqToHom_map]
-      rw [h3]
-      simp
+    · have hgNatNatF := (eqToHom ((eqToHom w).naturality g).symm).naturality (fst.map f).fiber
+      have h := congr_arg (λ x ↦ x ≫ ((eqToHom w).app z).map (fst.map g).fiber) hgNatNatF
+      dsimp at h
+      simp only [Category.assoc, eqToHom_app ((eqToHom w).naturality g).symm] at h
+      simp [liftMap_fiber, eqToHom_map, h]
     · simp
 
 @[simp] theorem fac_right : lift fst snd w ⋙ Grothendieck.forget A = snd := by
   apply Functor.ext
-  · simp [lift]
-  · simp [lift]
+  · simp
+  · simp
 
 @[simp] theorem fac_left : lift fst snd w ⋙ Grothendieck.toPCat A = fst := by
   apply Functor.ext
   · intro x y f
-    apply PointedFunctor.ext
-    · simp only [lift, lift_obj, lift_map, Cat.of_α, Functor.comp_obj,
-        PCat.forgetToCat_obj, toPCat, toPCatMap, toPCatObj_α,
-        Functor.comp_map, lift_map_base, comp_obj, PCat.forgetToCat_obj,
-        Cat.of_α, Functor.comp_map, Cat.comp_obj, PCat.forgetToCat_map,
-        Cat.eqToHom_app, PCat.eqToHom_point, eqToHom_map,
-        PCat.comp_point, heq_eqToHom_comp_iff,
-        heq_comp_eqToHom_iff, Functor.congr_hom (eqToHom_app w y) (point fst f), PCat.eqToHom_hom (fst.map f).point,
-        point, eqToHom_trans_assoc, PCat.comp_toFunctor, toPCatObj_α, Functor.comp_obj]
-      simp only [Cat.eqToHom_hom, Cat.of_α, eqToHom_comp_iff, eqToHom_trans_assoc, comp_eqToHom_iff, Category.assoc, eqToHom_trans]
-      generalize_proofs
-      rw [CategoryTheory.conj_eqToHom_iff_heq]
-      · rw [heq_cast_iff_heq, cast_heq_iff_heq]
-      · simp [PCat.eqToHom_toFunctor]
-    · simp only [lift, lift_obj, Cat.of_α, Functor.comp_obj,
-        PCat.forgetToCat_obj, toPCat, toPCatMap, toPCatObj_α,
-        Functor.comp_map, lift_map_base]
-      have h := Functor.congr_hom w f
-      simp only [PCat.forgetToCat_map, Cat.of_α, Functor.comp_obj, Functor.comp_map] at h
-      simp [h, PCat.eqToHom_toFunctor, ← Cat.comp_eq_comp]
+    apply Grothendieck.ext
+    · simp [liftMap, forget_map, eqToHom_map, PCat.eqToHom_base_map,
+        Functor.congr_hom (eqToHom_app w y) (point fst f)]
+    · have h := Functor.congr_hom w f
+      simp only [PCat.forgetToCat_map, Functor.comp_map] at h
+      simp [h, ← Cat.comp_eq_comp]
   · intro x
-    simp only [toPCat, toPCatObj, toPCatMap, lift, lift_obj,
-      Functor.comp_obj, Cat.eqToHom_app]
     have h := (Functor.congr_obj w x).symm
-    simp only [Cat.comp_obj, Functor.comp_obj, PCat.forgetToCat_obj] at h
-    congr 1
-    · rw [h]
-      rfl
-    · congr 1
-      · rw [h]
-        rfl
-      · refine heq_of_cast_eq ?_ ?_
-        · rw [h]
-          rfl
-        · simp [eqToHom_app, Cat.eqToHom_obj]
-      · rw [h]
-        simp only [heq_eq_eq]
-        rfl
+    simp only [Cat.comp_obj, Functor.comp_obj, forget_obj] at h
+    fapply obj_hext
+    · simp [h]
+    · simp [h, Cat.eqToHom_obj]
+
+theorem Grothendieck.Functor.ext (F G : C ⥤ Grothendieck A)
+    (hbase : F ⋙ forget _ = G ⋙ forget _)
+    (hfiber_obj : ∀ x : C, HEq (F.obj x).fiber (G.obj x).fiber)
+    (hfiber_map : ∀ {x y : C} (f : x ⟶ y), HEq (F.map f).fiber (G.map f).fiber)
+    : F = G := by
+  fapply CategoryTheory.Functor.ext
+  · intro x
+    apply obj_hext
+    · exact Functor.congr_obj hbase x
+    · apply hfiber_obj
+  · intro x y f
+    fapply Grothendieck.ext
+    · simp only [comp_base, base_eqToHom]
+      exact Functor.congr_hom hbase f
+    · apply eq_of_heq
+      simp only [eqToHom_comp_heq_iff, comp_fiber, fiber_eqToHom, eqToHom_map, heq_eqToHom_comp_iff]
+      rw! [eqToHom_base, eqToHom_map, Cat.eqToHom_hom]
+      simp [hfiber_map]
+
+theorem Grothendieck.hext_iff (x y : Grothendieck A) (f g : x ⟶ y) : f.base = g.base ∧ HEq f.fiber g.fiber ↔ f = g := by
+  constructor
+  · intro h
+    apply Grothendieck.ext
+    · apply eq_of_heq
+      simp only [eqToHom_comp_heq_iff, h.2]
+    · exact h.1
+  · aesop
 
 theorem lift_uniq (m : C ⥤ Grothendieck A)
     (hl : m ⋙ Grothendieck.toPCat A = fst)
     (hr : m ⋙ Grothendieck.forget A = snd) :
     m = lift _ _ w := by
-  apply Functor.ext
-  · intro x y f
-    apply Grothendieck.ext
-    · dsimp [lift]
-      rw [lift_map_fiber']
-      generalize_proofs pf1 pf2 _ _ _ _ _ _ pf3
-      have h0 := Functor.congr_hom hl f
-      have h1 := PointedFunctor.congr_point h0
-      have h2 := @eqToHom_fiber (Cat.of Γ) _ _ (m.obj x) _ pf1
-      have h3 := @eqToHom_fiber (Cat.of Γ) _ _ _ _ pf2
-      have h4 := congr_arg A.map (eqToHom_base pf2)
-      simp only [eqToHom_map] at h4
-      have h5 := Functor.congr_hom h4 (cast pf3 (point fst f))
-      simp only [toPCat, toPCatObj, toPCatMap, comp_obj, Functor.comp_map,
-        PCat.comp_toFunctor, PCat.comp_point] at h1
-      simp only [h1, h2, h3, h5, PCat.eqToHom_point, eqToHom_map, eqToHom_trans_assoc, eqToHom_fiber,
-        PCat.forgetToCat_obj, Cat.of_α, map_comp, Category.assoc, eqToHom_trans]
-      simp only [PCat.eqToHom_hom, Functor.congr_hom (map_eqToHom_base _), Cat.eqToHom_hom, cast_cast,
-        Category.assoc, eqToHom_comp_iff,  comp_eqToHom_iff,
-        eqToHom_trans, eqToHom_trans_assoc]
-      rw [CategoryTheory.conj_eqToHom_iff_heq]
-      · rw [heq_cast_iff_heq, cast_heq_iff_heq]
-      · simp [← Functor.comp_obj, ← Cat.comp_eq_comp,
-        PCat.eqToHom_toFunctor]
-    · simp only [comp_base, eqToHom_base, Functor.congr_hom hr f]
-      exact Functor.congr_hom hr f
+  apply Grothendieck.Functor.ext
+  · rw [hr, fac_right]
   · intro x
-    apply Grothendieck.obj_ext_hEq
-    · exact Functor.congr_obj hr x
-    · apply toPCatObj_fiber_inj
-      have h0 := Functor.congr_obj hl x
-      have h1 := Functor.congr_obj (fac_left _ _ w) x
-      simp [congr_arg_heq (λ x : PCat ↦ x.str.pt) (h0.trans h1.symm)]
+    have h := Functor.congr_obj hl x
+    simp only [comp_obj, toPCat_obj, ← obj_hext_iff, toPCatObj_base, id_obj, toPCatObj_fiber] at h
+    simp [Cat.eqToHom_obj, h]
+  · intro x y f
+    have h := Functor.congr_hom hl f
+    rw [← Grothendieck.hext_iff] at h
+    simp only [h.2, lift_map, liftMap_fiber]
+    aesop
 
 theorem hom_ext {m n : C ⥤ Grothendieck A}
     (hl : m ⋙ Grothendieck.toPCat A = n ⋙ Grothendieck.toPCat A)
@@ -281,10 +228,10 @@ theorem hom_ext {m n : C ⥤ Grothendieck A}
     lift_uniq (n ⋙ toPCat A) (n ⋙ forget A) ?_ n rfl rfl]
   rw! [hl, hr]
   . show n ⋙ (toPCat A ⋙ PCat.forgetToCat) = _
-    rw [toPCat_comp_forgetPoint]
+    rw [comm_sq]
     rfl
   . show m ⋙ (toPCat A ⋙ PCat.forgetToCat) = _
-    rw [toPCat_comp_forgetPoint]
+    rw [comm_sq]
     rfl
 
 end IsMegaPullback
@@ -359,7 +306,7 @@ def cone : Limits.PullbackCone uLiftPCatForgetToCat (uLiftA A)
 variable {A}
 
 abbrev pt' {s : PullbackCone uLiftPCatForgetToCat (uLiftA A)}
-    (x : s.pt) := (downFunctor.obj (s.fst.obj x)).str.pt
+    (x : s.pt) := (downFunctor.obj (s.fst.obj x)).fiber
 
 theorem condition' {s : PullbackCone uLiftPCatForgetToCat (uLiftA A)} :
     s.fst ⋙ downFunctor ⋙ PCat.forgetToCat = s.snd ⋙ downFunctor ⋙ A := by

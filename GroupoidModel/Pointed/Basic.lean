@@ -8,224 +8,119 @@ Here we define pointed categories and pointed groupoids as well as prove some ba
 
 universe w v u v₁ u₁ v₂ u₂
 
+noncomputable section
+
 namespace CategoryTheory
 
-noncomputable section PointedCategories
-
--- /-- A typeclass for pointed categories. -/
--- class PointedCategory (C : Type u) extends Category.{v} C where
---   pt : C
-
--- /-- A constructor that makes a pointed category from a category and a point. -/
--- def PointedCategory.of (C : Type*) (pt : C) [Category C] : PointedCategory C where
---   pt := pt
-
--- /-- The structure of a functor from C to D
--- along with a morphism from the image of the point of C to the point of D. -/
--- structure PointedFunctor (C D : Type*) [cp : PointedCategory C] [dp : PointedCategory D]
---     extends C ⥤ D where
---   point : obj (cp.pt) ⟶ (dp.pt)
-
--- namespace PointedFunctor
-
--- /-- The identity `PointedFunctor` whose underlying functor is the identity functor-/
--- @[simps!]
--- def id (C : Type*) [PointedCategory C] : PointedFunctor C C where
---   toFunctor := Functor.id C
---   point := 𝟙 PointedCategory.pt
-
--- variable {C D E : Type*} [cp : PointedCategory C] [PointedCategory D] [PointedCategory E]
-
--- /-- Composition of `PointedFunctor` composes the underlying functors and the point morphisms. -/
--- @[simps!]
--- def comp (F : PointedFunctor C D) (G : PointedFunctor D E) : PointedFunctor C E where
---   toFunctor := F.toFunctor ⋙ G.toFunctor
---   point := (G.map F.point) ≫ (G.point)
-
--- theorem congr_func {F G: PointedFunctor C D} (eq : F = G) : F.toFunctor = G.toFunctor :=
---   congrArg toFunctor eq
-
--- theorem congr_point {F G: PointedFunctor C D} (eq : F = G) :
---       F.point = (eqToHom (Functor.congr_obj (congr_func eq) cp.pt)) ≫ G.point := by
---     have h :=
---       (conj_eqToHom_iff_heq
---         F.point G.point (Functor.congr_obj (congr_func eq) cp.pt) rfl).mpr
---     simp at h
---     apply h
---     rw [eq]
-
--- /-- The extensionality principle for pointed functors-/
--- @[ext (iff := false)]
--- theorem ext (F G: PointedFunctor C D) (h_func : F.toFunctor = G.toFunctor)
---     (h_point : F.point = (eqToHom (Functor.congr_obj h_func cp.pt)) ≫ G.point) : F = G := by
---   rcases F with ⟨F.func,F.point⟩
---   rcases G with ⟨G.func,G.point⟩
---   congr
---   simp at h_point
---   have temp : G.point = G.point ≫ (eqToHom rfl) := by simp
---   rw [temp] at h_point
---   exact
---     (conj_eqToHom_iff_heq F.point G.point
---           (congrFun (congrArg Prefunctor.obj (congrArg Functor.toPrefunctor h_func))
---             PointedCategory.pt)
---           rfl).mp
---       h_point
-
--- end PointedFunctor
-
--- /-- The category of pointed categorys and pointed functors-/
--- def PCatBundled :=
---   Bundled PointedCategory.{v, u}
-
-def PCat := Grothendieck (Functor.id Cat.{v,u})
+abbrev PCat := Grothendieck (Functor.id Cat.{v,u})
 
 namespace PCat
 
--- open Grothendieck
--- instance : CoeSort PCat.{v,u} (Type u) :=
---   ⟨Bundled.α⟩
-
--- instance str (C : PCat.{v, u}) : PointedCategory.{v, u} C :=
---   Bundled.str C
-
-instance category : Category PCat.{v, u} :=
-  inferInstanceAs (Category (Grothendieck _))
+open Grothendieck
 
 /-- The functor that takes PCat to Cat by forgetting the points-/
-def forgetToCat : PCat.{v,u} ⥤ Cat.{v,u} :=
+abbrev forgetToCat : PCat.{v,u} ⥤ Cat.{v,u} :=
   Grothendieck.forget _
 
 -- write using `\d=`
 prefix:max "⇓" => forgetToCat.obj
 
 -- write using `\d==`
-prefix:max "⟱" => forgetToCat.map
+postfix:max "⟱" => forgetToCat.map
 
-/-- Construct a bundled `PCat` from the underlying type and the typeclass. -/
-def mk (C : Cat) (x : C) : PCat.{v, u} :=
-  ⟨C , x⟩
+lemma forgetToCat_map {C D : PCat} (F : C ⟶ D) :
+    F⟱ = F.base := rfl
 
-/-- The point in a pointed category -/
-def point (C : PCat) : ⇓C := Grothendieck.fiber C
+@[simp]
+theorem id_obj {C : PCat} (X : C.base) : (𝟙 C)⟱.obj X = X :=
+  rfl
 
--- /-- The arrow in the codomain fiber in a morphism of pointed categories -/
--- def homFiber {C D : PCat} (F : C ⟶ D) : (⟱F).obj C.point ⟶ D.point :=
---   F.fiber
+@[simp]
+theorem id_map {C : PCat} {X Y : C.base} (f : X ⟶ Y) :
+    (𝟙 C)⟱.map f = f :=
+  rfl
 
-lemma hext {C D : PCat} (hCat : ⇓C = ⇓D)
-    (hp : HEq C.fiber D.fiber) :
-    C = D :=
-  Grothendieck.obj_hext hCat hp
+@[simp] lemma id_fiber {C : PCat} : Hom.fiber (𝟙 C) = 𝟙 _ := by
+  rfl
 
-lemma hext_iff {C D : PCat} : ⇓C = ⇓D ∧ HEq C.point D.point
-    ↔ C = D :=
-  Grothendieck.obj_hext_iff
+@[simp]
+theorem comp_obj {C D E : PCat} (F : C ⟶ D) (G : D ⟶ E) (X : C.base) :
+    (F ≫ G)⟱.obj X = G⟱.obj (F⟱.obj X) :=
+  rfl
 
-/-- Construct a morphism in `PCat` from the underlying functor -/
-def homOf {C D : PCat.{v,u}} (F : ⇓C ⟶ ⇓D)
-    (φ : F.obj C.point ⟶ D.point) : C ⟶ D :=
-  ⟨ F , φ ⟩
+@[simp]
+theorem comp_map {C D E : PCat} (F : C ⟶ D) (G : D ⟶ E) {X Y : C.base}
+    (f : X ⟶ Y) : (F ≫ G)⟱.map f = G⟱.map (F⟱.map f) :=
+  rfl
 
--- @[simp]
--- theorem id_obj {C : PCat} (X : C) : (𝟙 C : PointedFunctor C C).obj X = X :=
---   rfl
+@[simp] lemma comp_fiber {C D E : PCat} (F : C ⟶ D) (G : D ⟶ E) :
+    (F ≫ G).fiber = G⟱.map F.fiber ≫ G.fiber := by
+  simp
 
--- @[simp]
--- theorem id_map {C : PCat} {X Y : C} (f : X ⟶ Y) : (𝟙 C : PointedFunctor C C).map f = f :=
---   rfl
+-- formerly `map_id_point`
+@[simp] theorem map_id_fiber {C : Type u} [Category.{v} C] {F : C ⥤ PCat}
+    {x : C} : (F.map (𝟙 x)).fiber =
+    eqToHom (by simp) := by
+  rw! [Functor.map_id]
+  simp
 
--- @[simp]
--- lemma id_toFunctor {C : PCat} : (𝟙 C : PointedFunctor C C).toFunctor = 𝟭 C :=
---   rfl
+-- formerly `map_comp_point`
+@[simp] theorem map_comp_fiber {C : Type u} [Category.{v} C] {F : C ⥤ PCat}
+    {x y z: C} (f : x ⟶ y) (g : y ⟶ z) : (F.map (f ≫ g)).fiber =
+    eqToHom (by simp) ≫ (F.map g)⟱.map (F.map f).fiber ≫ (F.map g).fiber := by
+  rw! [Functor.map_comp]
+  simp
 
--- @[simp]
--- lemma id_point {C : PCat} : (𝟙 C : PointedFunctor C C).point = 𝟙 PointedCategory.pt :=
---   rfl
+/-- This is the proof of equality used in the eqToHom in `PCat.eqToHom_point` -/
+theorem eqToHom_point_aux {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
+    (eqToHom eq)⟱.obj P1.fiber = P2.fiber := by
+  subst eq
+  simp
 
--- @[simp]
--- theorem comp_obj {C D E : PCat} (F : C ⟶ D) (G : D ⟶ E) (X : C) :
---     (F ≫ G).obj X = G.obj (F.obj X) :=
---   rfl
+/-- This shows that the fiber map of an eqToHom in PCat is an eqToHom-/
+theorem eqToHom_fiber {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
+    (eqToHom eq).fiber = (eqToHom (eqToHom_point_aux eq)) := by
+  subst eq
+  simp
 
--- @[simp]
--- theorem comp_map {C D E : PCat} (F : C ⟶ D) (G : D ⟶ E) {X Y : C} (f : X ⟶ Y) :
---     (F ≫ G).map f = G.map (F.map f) :=
---   rfl
+section
+variable {Γ : Type u₂} [Category.{v₂} Γ]
 
--- @[simp]
--- lemma comp_toFunctor {C D E : PCat} (F : C ⟶ D) (G : D ⟶ E) :
---     (F ≫ G).toFunctor = F.toFunctor ⋙ G.toFunctor := rfl
+-- TODO factor through `objFiber'`
+section
+variable (α : Γ ⥤ PCat.{v₁,u₁})
 
--- @[simp]
--- lemma comp_point {C D E : PCat} (F : C ⟶ D) (G : D ⟶ E) :
---     (F ≫ G).point = G.map (F.point) ≫ G.point := rfl
+-- formerly `objPt`
+def objFiber (x : Γ) : ⇓(α.obj x) := (α.obj x).fiber
 
+-- formerly `mapObjPt`
+def mapObjFiber {x y : Γ} (f : x ⟶ y) : ⇓(α.obj y) :=
+    (α.map f)⟱.obj (objFiber α x)
 
--- /-- This is the proof of equality used in the eqToHom in `PCat.eqToHom_hom` -/
--- theorem eqToHom_hom_aux {C1 C2 : PCat.{v,u}} (x y: C1) (eq : C1 = C2) :
---     (x ⟶ y) = ((eqToHom eq).obj x ⟶ (eqToHom eq).obj y) := by
---   cases eq
---   simp[CategoryStruct.id]
+-- formerly `mapPoint`
+def mapFiber {x y : Γ} (f : x ⟶ y) :
+    mapObjFiber α f ⟶ objFiber α y := (α.map f).fiber
 
--- /-- This is the turns the hom part of eqToHom functors into a cast-/
--- theorem eqToHom_hom {C1 C2 : PCat.{v,u}} {x y: C1} (f : x ⟶ y) (eq : C1 = C2) :
---     (eqToHom eq).map f = (cast (PCat.eqToHom_hom_aux x y eq) f) := by
---   cases eq
---   simp[CategoryStruct.id]
+-- formerly `mapPoint_id`
+@[simp] theorem mapFiber_id {x} : mapFiber α (𝟙 x) =
+    eqToHom (by simp [mapObjFiber]) := by
+  simp [mapFiber]
 
--- @[simp] theorem map_id_point {C : Type u} [Category.{v} C] {F : C ⥤ PCat} {x : C} :
---     (F.map (CategoryStruct.id x)).point =
---     eqToHom (by simp : (F.map (CategoryStruct.id x)).obj (F.obj x).str.pt = (F.obj x).str.pt) := by
---   have : (CategoryStruct.id (F.obj x)).point = _ := PCat.id_point
---   convert this
---   · simp
---   · simp
---   · refine HEq.symm (heq_of_eqRec_eq ?_ rfl)
---     · symm; assumption
+-- formerly `mapPoint_comp`
+theorem mapFiber_comp {x y z} (f : x ⟶ y) (g : y ⟶ z) :
+    mapFiber α (f ≫ g)
+    = eqToHom (by simp [mapObjFiber, objFiber])
+      ≫ (α.map g)⟱.map (mapFiber α f) ≫ mapFiber α g := by
+  simp [mapFiber]
 
--- @[simp] theorem map_comp_point {C : Type u} [Category.{v} C] {F : C ⥤ PCat} {x y z: C} (f : x ⟶ y) (g : y ⟶ z) :
---     (F.map (f ≫ g)).point =
---     eqToHom (by simp) ≫ (F.map g).map (F.map f).point ≫ (F.map g).point := by
---   have : F.map (f ≫ g) = F.map f ≫ F.map g := by simp
---   simp [PointedFunctor.congr_point this]
+end
 
--- theorem eqToHom_toFunctor {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
---     (eqToHom eq).toFunctor = (eqToHom (congrArg PCat.forgetToCat.obj eq)) := by
---   cases eq
---   simp[ PointedFunctor.id, CategoryStruct.id, PCat.forgetToCat,Cat.of,Bundled.of]
+theorem eqToHom_base_map {x y : PCat} (eq : x = y) {a b} (f : a ⟶ b) :
+    (eqToHom eq).base.map f = eqToHom (by simp) ≫ (eqToHom (by simp [eq] : x.base = y.base)).map f ≫ eqToHom (by simp) := by
+  cases eq
+  simp
 
--- -- TODO this should be renamed to PCat.eqToHom_point_aux
--- -- because PCat and PGrpd both use pointed functors
--- /-- This is the proof of equality used in the eqToHom in `PointedFunctor.eqToHom_point` -/
--- theorem eqToHom_point_aux {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
---     (eqToHom eq).obj PointedCategory.pt = PointedCategory.pt := by
---   cases eq
---   simp [CategoryStruct.id]
-
--- -- TODO this should be renamed to PCat.eqToHom_point
--- -- because PCat and PGrpd both use pointed functors
--- /-- This shows that the point of an eqToHom in PCat is an eqToHom-/
--- theorem eqToHom_point {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
---     (eqToHom eq).point = (eqToHom (PCat.eqToHom_point_aux eq)) := by
---   cases eq
---   simp[PointedFunctor.id, CategoryStruct.id, PCat.forgetToCat,Cat.of,Bundled.of]
-
--- lemma hext {C D : PCat} (hα : C.α = D.α) (hstr : HEq C.str D.str) :
---     C = D := by
---   cases C
---   cases D
---   subst hα
---   subst hstr
---   rfl
-
--- lemma hext_iff {C D : PCat} : C.α = D.α ∧ HEq C.str D.str
---     ↔ C = D := by
---   constructor
---   · intro ⟨ hα , hstr ⟩
---     exact hext hα hstr
---   · intro hCD
---     subst hCD
---     exact ⟨ rfl , HEq.rfl ⟩
+end
 
 end PCat
 
@@ -234,19 +129,22 @@ end PCat
   the underlying `Grothendieck` definitions
 -/
 
-abbrev PGrpd := ∫(Functor.id Grpd.{v,u})
+abbrev PGrpd := Grothendieck Grpd.forgetToCat.{v,u}
 
 namespace PGrpd
 
-open Grothendieck.Groupoidal Grpd
+open Grothendieck Grpd
 
 /-- The functor that takes PGrpd to Grpd by forgetting the points -/
 abbrev forgetToGrpd : PGrpd.{v,u} ⥤ Grpd.{v,u} :=
-  Grothendieck.Groupoidal.forget
+  Grothendieck.forget _
 
 /-- The forgetful functor from PGrpd to PCat -/
 def forgetToPCat : PGrpd.{v,u} ⥤ PCat.{v,u} :=
-  Grothendieck.pre (Functor.id Cat) (Functor.id Grpd ⋙ forgetToCat)
+  pre (Functor.id Cat) forgetToCat
+
+-- write using `\d=`
+prefix:max "⇓" => forgetToGrpd.obj
 
 -- write using `\d==`
 postfix:max "⟱" => forgetToGrpd.map
@@ -263,7 +161,7 @@ theorem id_map {C : PGrpd} {X Y : C.base} (f : X ⟶ Y) :
     (𝟙 C)⟱.map f = f :=
   rfl
 
-@[simp] lemma id_fiber {C : PGrpd} : (𝟙 C).fiber = 𝟙 _ := by
+@[simp] lemma id_fiber {C : PGrpd} : Hom.fiber (𝟙 C) = 𝟙 _ := by
   rfl
 
 @[simp]
@@ -277,27 +175,23 @@ theorem comp_map {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) {X Y : C.base}
   rfl
 
 -- formerly `comp_point`
-@[simp] lemma comp_point {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) :
+@[simp] lemma comp_fiber {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) :
     (F ≫ G).fiber = G⟱.map F.fiber ≫ G.fiber := by
-  simp [PGrpd, Grothendieck.Groupoidal.forget]
+  simp
 
 -- formerly `map_id_point`
-@[simp] theorem map_id_fiber {C : Type u} [Category.{v} C] {F : C ⥤ PGrpd} {x : C} :
-    (F.map (CategoryStruct.id x)).fiber =
+@[simp] theorem map_id_fiber {C : Type u} [Category.{v} C] {F : C ⥤ PGrpd}
+    {x : C} : (F.map (𝟙 x)).fiber =
     eqToHom (by simp) := by
-  sorry
-  -- have : (CategoryStruct.id (F.obj x)).point = _ := PGrpd.id_point
-  -- convert this
-  -- · simp
-  -- · simp
-  -- · refine HEq.symm (heq_of_eqRec_eq ?_ rfl)
-  --   · symm; assumption
+  rw! [Functor.map_id]
+  simp
 
--- @[simp] theorem map_comp_point {C : Type u} [Category.{v} C] {F : C ⥤ PGrpd}
---     {x y z: C} (f : x ⟶ y) (g : y ⟶ z) : (F.map (f ≫ g)).point =
---     eqToHom (by simp) ≫ (F.map g).map (F.map f).point ≫ (F.map g).point := by
---   have : F.map (f ≫ g) = F.map f ≫ F.map g := by simp
---   simp [PointedFunctor.congr_point this]
+-- formerly `map_comp_point`
+@[simp] theorem map_comp_fiber {C : Type u} [Category.{v} C] {F : C ⥤ PGrpd}
+    {x y z: C} (f : x ⟶ y) (g : y ⟶ z) : (F.map (f ≫ g)).fiber =
+    eqToHom (by simp) ≫ (F.map g)⟱.map (F.map f).fiber ≫ (F.map g).fiber := by
+  rw! [Functor.map_comp]
+  simp
 
 /-- This is the proof of equality used in the eqToHom in `PGrpd.eqToHom_point` -/
 theorem eqToHom_point_aux {P1 P2 : PGrpd.{v,u}} (eq : P1 = P2) :
@@ -305,67 +199,60 @@ theorem eqToHom_point_aux {P1 P2 : PGrpd.{v,u}} (eq : P1 = P2) :
   subst eq
   simp
 
-/-- This shows that the point of an eqToHom in PGrpd is an eqToHom-/
-theorem eqToHom_point {P1 P2 : PGrpd.{v,u}} (eq : P1 = P2) :
+/-- This shows that the fiber map of an eqToHom in PGrpd is an eqToHom-/
+theorem eqToHom_fiber {P1 P2 : PGrpd.{v,u}} (eq : P1 = P2) :
     (eqToHom eq).fiber = (eqToHom (eqToHom_point_aux eq)) := by
   subst eq
   simp
-  sorry
 
+instance : forgetToGrpd.ReflectsIsomorphisms := by
+  constructor
+  intro A B F hiso
+  rcases hiso with ⟨ G , hFG , hGF ⟩
+  use ⟨ G , G.map (Groupoid.inv F.fiber)
+    ≫ eqToHom (Functor.congr_obj hFG A.fiber) ⟩
+  constructor
+  · apply Grothendieck.ext
+    · simp
+    · exact hFG
+  · apply Grothendieck.ext
+    · simp
+      have h := Functor.congr_hom hGF F.fiber
+      simp [Grpd.id_eq_id, Grpd.comp_eq_comp, Functor.comp_map] at h
+      simp [h, eqToHom_map]
+    · exact hGF
 
--- instance asSmall (Γ : Type u) [PointedGroupoid.{v} Γ] :
---     PointedGroupoid.{max w v u, max w v u} (AsSmall.{w} Γ) := {
---   CategoryTheory.Groupoid.asSmallGroupoid.{w,v,u} Γ with
---   pt := AsSmall.up.obj PointedGroupoid.pt}
-
--- def asSmallFunctor : PGrpd.{v, u} ⥤ PGrpd.{max w v u, max w v u} where
---   obj Γ := PGrpd.of $ AsSmall.{max w v u} Γ
---   map F := {
---     toFunctor := AsSmall.down ⋙ F.toFunctor ⋙ AsSmall.up
---     point := AsSmall.up.map F.point}
-
--- instance : forgetToGrpd.ReflectsIsomorphisms := by
---   constructor
---   intro A B F hiso
---   rcases hiso with ⟨ G , hFG , hGF ⟩
---   use ⟨ G , G.map (Groupoid.inv F.point)
---     ≫ eqToHom (Functor.congr_obj hFG A.str.pt) ⟩
---   constructor
---   · apply PointedFunctor.ext
---     · simp
---     · exact hFG
---   · apply PointedFunctor.ext
---     · simp
---       have h := Functor.congr_hom hGF F.point
---       simp [Grpd.id_eq_id, Grpd.comp_eq_comp, Functor.comp_map] at h
---       simp [h, eqToHom_map]
---     · exact hGF
-
-#exit
 section
 variable {Γ : Type u₂} [Category.{v₂} Γ]
 
+-- TODO factor through `objFiber'`
 section
 variable (α : Γ ⥤ PGrpd.{v₁,u₁})
 
-def objPt (x : Γ) : α.obj x := (α.obj x).str.pt
+-- formerly `objPt`
+def objFiber (x : Γ) : ⇓(α.obj x) := (α.obj x).fiber
 
-def mapObjPt {x y : Γ} (f : x ⟶ y) : α.obj y :=
-    (α.map f).obj (objPt α x)
-def mapPoint {x y : Γ} (f : x ⟶ y) :
-    mapObjPt α f ⟶ objPt α y := (α.map f).point
+-- formerly `mapObjPt`
+def mapObjFiber {x y : Γ} (f : x ⟶ y) : ⇓(α.obj y) :=
+    (α.map f)⟱.obj (objFiber α x)
 
-@[simp] theorem mapPoint_id {x} : mapPoint α (𝟙 x) = eqToHom (by simp [mapObjPt]) := by
-  simp [mapPoint]
+-- formerly `mapPoint`
+def mapFiber {x y : Γ} (f : x ⟶ y) :
+    mapObjFiber α f ⟶ objFiber α y := (α.map f).fiber
 
-theorem mapPoint_comp {x y z} (f : x ⟶ y) (g : y ⟶ z) :
-    mapPoint α (f ≫ g)
-    = eqToHom (by simp [mapObjPt, objPt])
-      ≫ (α.map g).map (mapPoint α f) ≫ mapPoint α g := by
-  simp [mapPoint]
+-- formerly `mapPoint_id`
+@[simp] theorem mapFiber_id {x} : mapFiber α (𝟙 x) =
+    eqToHom (by simp [mapObjFiber]) := by
+  simp [mapFiber]
+
+-- formerly `mapPoint_comp`
+theorem mapFiber_comp {x y z} (f : x ⟶ y) (g : y ⟶ z) :
+    mapFiber α (f ≫ g)
+    = eqToHom (by simp [mapObjFiber, objFiber])
+      ≫ (α.map g)⟱.map (mapFiber α f) ≫ mapFiber α g := by
+  simp [mapFiber]
 
 end
-
 
 section
 /-
@@ -378,61 +265,63 @@ section
 -/
 variable {A : Γ ⥤ Grpd.{v₁,u₁}} {α : Γ ⥤ PGrpd.{v₁,u₁}} (h : α ⋙ PGrpd.forgetToGrpd = A)
 
-def objPt' (x : Γ) : A.obj x :=
-  (eqToHom (Functor.congr_obj h x)).obj (objPt α x)
+-- formerly `objPt'`
+def objFiber' (x : Γ) : A.obj x :=
+  (eqToHom (Functor.congr_obj h x)).obj (objFiber α x)
 
-def mapPoint' {x y : Γ} (f : x ⟶ y) :
-    (A.map f).obj (objPt' h x) ⟶ objPt' h y :=
+@[simp] lemma objFiber'_rfl (x : Γ) : objFiber' rfl x = objFiber α x := rfl
+
+-- formerly `mapPoint'`
+def mapFiber' {x y : Γ} (f : x ⟶ y) :
+    (A.map f).obj (objFiber' h x) ⟶ objFiber' h y :=
   eqToHom (by
     simp only [Functor.congr_hom h.symm f, Functor.comp_obj,
-      Grpd.comp_eq_comp, objPt', Grpd.eqToHom_obj, cast_cast]
+      Grpd.comp_eq_comp, objFiber', Grpd.eqToHom_obj, cast_cast]
     rfl)
-    ≫ (eqToHom (Functor.congr_obj h y)).map (α.map f).point
+    ≫ (eqToHom (Functor.congr_obj h y)).map (α.map f).fiber
 
-@[simp] theorem mapPoint'_id {x} :
-    mapPoint' h (𝟙 x) = eqToHom (by simp) := by
+@[simp] theorem mapFiber'_id {x} :
+    mapFiber' h (𝟙 x) = eqToHom (by simp) := by
   subst h
-  simp only [mapPoint', map_id_point]
+  simp only [mapFiber', map_id_fiber]
   apply eq_of_heq
   simp [eqToHom_comp_heq_iff]
 
 include h in
-theorem mapPoint'_comp_aux0 {z} : Grpd.of (α.obj z) = A.obj z := by
+theorem mapFiber'_comp_aux0 {z} : Grpd.of ⇓(α.obj z) = A.obj z := by
   subst h
   rfl
 
-theorem mapPoint'_comp_aux1 {x y z} (f : x ⟶ y) (g : y ⟶ z) :
-    (A.map (f ≫ g)).obj (objPt' h x) =
-    (eqToHom (mapPoint'_comp_aux0 h)).obj ((α.map (f ≫ g)).obj PointedCategory.pt) := by
+theorem mapFiber'_comp_aux1 {x y z} (f : x ⟶ y) (g : y ⟶ z) :
+    (A.map (f ≫ g)).obj (objFiber' h x) =
+    (eqToHom (mapFiber'_comp_aux0 h)).obj ((α.map (f ≫ g))⟱.obj ((α.obj x)).fiber) := by
   subst h
-  rfl
-
-theorem mapPoint'_comp_aux2 {x y z} (f : x ⟶ y) (g : y ⟶ z) :
-    ((α.map (f ≫ g)).obj PointedCategory.pt ⟶ objPt α z) =
-    ((eqToHom (mapPoint'_comp_aux0 h)).obj ((α.map (f ≫ g)).obj PointedCategory.pt) ⟶ objPt' h z) := by
-  subst h
-  rfl
-
-set_option linter.unusedVariables false in
-theorem mapPoint'_comp_aux3 (h : α ⋙ PGrpd.forgetToGrpd = A) {x y z} (f : x ⟶ y)
-    (g : y ⟶ z) : (α.map (f ≫ g)).obj PointedCategory.pt
-    = (α.map g).obj ((α.map f).obj PointedCategory.pt) := by
-  subst h
-  simp
+  simp [objFiber]
 
 theorem mapPoint'_comp {x y z} (f : x ⟶ y)
-    (g : y ⟶ z) : mapPoint' h (f ≫ g)
-    = eqToHom (by rw [mapPoint'_comp_aux1 h f g]; simp)
-    ≫ (eqToHom (mapPoint'_comp_aux0 h)).map ((α.map g).map (α.map f).point)
-    ≫ (eqToHom (mapPoint'_comp_aux0 h)).map (α.map g).point := by
-  simp [mapPoint', eqToHom_map]
+    (g : y ⟶ z) : mapFiber' h (f ≫ g)
+    = eqToHom (by rw [mapFiber'_comp_aux1 h f g]; simp) ≫
+    (eqToHom (mapFiber'_comp_aux0 h)).map ((α.map g).base.map (α.map f).fiber)
+    ≫ (eqToHom (mapFiber'_comp_aux0 h)).map (α.map g).fiber := by
+  simp [mapFiber', eqToHom_map]
 
 end
 
 end
+
+-- instance asSmall (Γ : Type u) [PointedGroupoid.{v} Γ] :
+--     PointedGroupoid.{max w v u, max w v u} (AsSmall.{w} Γ) := {
+--   CategoryTheory.Groupoid.asSmallGroupoid.{w,v,u} Γ with
+--   pt := AsSmall.up.obj PointedGroupoid.pt}
+
+-- def asSmallFunctor : PGrpd.{v, u} ⥤ PGrpd.{max w v u, max w v u} where
+--   obj Γ := PGrpd.of $ AsSmall.{max w v u} Γ
+--   map F := {
+--     toFunctor := AsSmall.down ⋙ F.toFunctor ⋙ AsSmall.up
+--     point := AsSmall.up.map F.point}
 
 end PGrpd
 
-end PointedCategories
-
 end CategoryTheory
+
+end
