@@ -3,26 +3,47 @@ import GroupoidModel.Grothendieck.Groupoidal.Basic
 
 import SEq.Tactic.DepRewrite
 
+/-!
+# The Groupidal Grothendieck construction
 
+  ∫(toCat A) ------- toPGrpd ---------> PGrpd
+        |                                 |
+        |                                 |
+     forget                     PGrpd.forgetToGrpd
+        |                                 |
+        v                                 v
+        Γ--------------A---------------> Grpd
+-/
+
+universe v u v₁ u₁ v₂ u₂ v₃ u₃
+
+namespace CategoryTheory
+
+namespace Grothendieck
+
+namespace Groupoidal
+
+section
+
+variable {Γ : Type u} [Category.{v} Γ] {A : Γ ⥤ Grpd.{v₁,u₁}}
+
+variable (A) in
+def toPGrpd : ∫(A) ⥤ PGrpd.{v₁,u₁} :=
+  IsMegaPullback.lift (toPCat (A ⋙ Grpd.forgetToCat)) (forget ⋙ A) rfl
+
+theorem toPGrpd_comp_forgetToPCat :
+    toPGrpd A ⋙ PGrpd.forgetToPCat = toPCat (A ⋙ Grpd.forgetToCat) :=
+  IsMegaPullback.fac_left _ _ _
 
 namespace IsMegaPullback
 
-theorem comm_sq : Groupoidal.toPGrpd A ⋙ PGrpd.forgetToGrpd = Groupoidal.forget ⋙ A := rfl
+theorem comm_sq : toPGrpd A ⋙ PGrpd.forgetToGrpd = forget ⋙ A :=
+  IsMegaPullback.fac_right _ _ _
 
-variable {A} {C : Type u₂} [Category.{v₂} C]
+variable {C : Type u₂} [Category.{v₂} C]
   (fst : C ⥤ PGrpd.{v₁, u₁})
   (snd : C ⥤ Γ)
   (w : fst ⋙ PGrpd.forgetToGrpd = snd ⋙ A)
-
-theorem toPGrpd_eq_lift :
-    toPGrpd A =
-    PGrpd.IsMegaPullback.lift
-      (toPCat (A ⋙ Grpd.forgetToCat))
-      (Groupoidal.forget ⋙ A) rfl :=
-  PGrpd.IsMegaPullback.lift_uniq
-    (toPCat (A ⋙ Grpd.forgetToCat))
-    (Groupoidal.forget ⋙ A)
-    rfl _ rfl rfl
 
 def lift : C ⥤ Groupoidal A :=
   Grothendieck.IsMegaPullback.lift
@@ -30,80 +51,32 @@ def lift : C ⥤ Groupoidal A :=
       simp only [← Functor.assoc, ← w]
       rfl)
 
-@[simp] theorem lift_obj_base (x : C) :
-    ((lift fst snd w).obj x).base = snd.obj x :=
-  Grothendieck.IsMegaPullback.lift_obj_base _ _
-
-theorem lift_obj_fiber (x : C) : ((lift fst snd w).obj x).fiber =
-    ((eqToHom w).app x).obj (PGrpd.objPt fst x) := by
-  erw [Grothendieck.IsMegaPullback.lift_obj_fiber]
-  simp only [Grpd.forgetToCat, Functor.comp_obj,
-  eqToHom_app, IsMegaPullback.pt, PGrpd.objPt, Cat.eqToHom_obj,
-  Grpd.eqToHom_obj, cast_inj]
-  rfl
-
-@[simp] theorem lift_map_base {x y : C} (f : x ⟶ y) :
-    ((lift fst snd w).map f).base = (snd.map f) :=
-  rfl
-
-include w in
-theorem lift_map_fiber_aux (y : C) :
-    Grpd.of (fst.obj y) = (A.obj (snd.obj y)) :=
-  Functor.congr_obj w y
-
--- theorem lift_map_fiber {x y : C} (f : x ⟶ y) :
---     ((lift fst snd w).map f).fiber =
---       eqToHom sorry
---       ≫ (eqToHom (lift_map_fiber_aux fst snd w y)).map (fst.map f).point
---       ≫ eqToHom sorry := by
---   dsimp [lift, Grothendieck.IsMegaPullback.lift]
---   generalize_proofs h
---   simp only [Grothendieck.IsMegaPullback.lift_map_fiber, Cat.eqToHom_app]
---   have h1 : (eqToHom h).app y = eqToHom (by
---     have h2 := Functor.congr_obj w y
---     simp only [Functor.comp_obj, PGrpd.forgetToGrpd_obj, PGrpd.forgetToPCat_obj, PCat.forgetToCat_obj] at *
---     rw [← h2]
---     rfl) := by
---     rw [Grpd.eqToHom_app]
---   rw [Functor.congr_hom h1]
---   simp only [Functor.comp_obj, Cat.of_α, PGrpd.forgetToPCat_obj,
---     PCat.forgetToCat_obj, Functor.comp_map, id_eq,
---     Cat.comp_obj, PGrpd.forgetToPCat_map, PCat.forgetToCat_map,
---     PGrpd.forgetToGrpd_obj, Grpd.coe_of, eq_mpr_eq_cast,
---     IsMegaPullback.point, eqToHom_trans_assoc, eqToHom_comp_iff, eqToHom_refl,
---     Category.id_comp, comp_eqToHom_iff,
---     Category.assoc, eqToHom_trans, Category.comp_id]
---   rfl
-
-theorem fac_left' : (lift fst snd w ⋙ toPGrpd A) ⋙ PGrpd.forgetToPCat
-    = fst ⋙ PGrpd.forgetToPCat := by
-  rw [toPGrpd_eq_lift, Functor.assoc,
-    PGrpd.IsMegaPullback.fac_left,
-    ← PGrpd.IsMegaPullback.fac_left
-      (fst ⋙ PGrpd.forgetToPCat) (snd ⋙ A) (by rw [← w]; rfl)]
-  rfl
-
-@[simp] theorem fac_left : lift fst snd w ⋙ Groupoidal.toPGrpd _ = fst :=
-   calc lift fst snd w ⋙ Groupoidal.toPGrpd _
-    _ = PGrpd.IsMegaPullback.lift
-      (fst ⋙ PGrpd.forgetToPCat)
-      (snd ⋙ A)
-      (by rw [Functor.assoc, PGrpd.IsMegaPullback.comm_sq, ← w]; rfl) :=
-    PGrpd.IsMegaPullback.lift_uniq
-      (fst ⋙ PGrpd.forgetToPCat)
-      (snd ⋙ A) _ _
-      (fac_left' _ _ _)
-      (by rw [Functor.assoc, comm_sq]; rfl)
-    _ = fst :=
-    symm $ PGrpd.IsMegaPullback.lift_uniq _ _ _ _ rfl w
+@[simp] theorem fac_left : lift fst snd w ⋙ toPGrpd _ = fst := by
+  apply Grothendieck.IsMegaPullback.hom_ext
+  · calc lift _ _ _ ⋙ toPGrpd _ ⋙ toPCat _
+      _ = lift _ _ _ ⋙ toPCat _ := by
+        rw [← toPGrpd_comp_forgetToPCat]; rfl
+      _ = fst ⋙ PGrpd.forgetToPCat :=
+        (@Grothendieck.IsMegaPullback.fac_left _ _ (A ⋙ Grpd.forgetToCat) _ _
+        (fst ⋙ PGrpd.forgetToPCat) snd (by rw [← Functor.assoc, ← w]; rfl))
+  · calc lift _ _ _ ⋙ toPGrpd _ ⋙ Grothendieck.forget _
+      _ = snd ⋙ A := by
+        conv => right; rw [← @Grothendieck.IsMegaPullback.fac_right _ _
+          (A ⋙ Grpd.forgetToCat) _ _ (fst ⋙ PGrpd.forgetToPCat) snd
+          (by rw [← Functor.assoc, ← w]; rfl)]
+        rfl
+      _ = fst ⋙ Grothendieck.forget _ := by
+        rw [w]
 
 @[simp] theorem fac_right :
     lift fst snd w ⋙ Groupoidal.forget
     = snd :=
   Grothendieck.IsMegaPullback.fac_right
-    (fst ⋙ PGrpd.forgetToPCat) snd (by
-    rw [Functor.assoc, PGrpd.IsMegaPullback.comm_sq,
-      ← Functor.assoc, w, Functor.assoc])
+    (fst ⋙ PGrpd.forgetToPCat) snd (
+      calc fst ⋙ (PGrpd.forgetToPCat ⋙ PCat.forgetToCat)
+       _ = (fst ⋙ Grothendieck.forget _) ⋙ Grpd.forgetToCat := by
+         rw [PGrpd.forgetToPCat_forgetToCat]; rfl
+       _ = snd ⋙ A ⋙ Grpd.forgetToCat := by rw [w, Functor.assoc])
 
 theorem lift_uniq (m : C ⥤ Groupoidal A)
     (hl : m ⋙ toPGrpd _ = fst)
@@ -213,8 +186,7 @@ theorem
 
 theorem isPullback_aux:
     IsPullback
-      (Cat.homOf (var' A)
-        ≫ (Cat.ULift_iso_self ≪≫ PGrpd.isoGrothendieckForgetToCat.{u,u}.symm).hom)
+      (Cat.homOf (var' A) ≫ Cat.ULift_iso_self.hom)
       (IsPullback.uLiftGrothendieckForget (A ⋙ Grpd.forgetToCat))
       (Cat.homOf PGrpd.forgetToGrpd.{u,u})
       (uLiftA A ≫ Cat.ULift_iso_self.hom) :=
@@ -226,9 +198,9 @@ open ULift
 
 variable {Γ : Type u} [Category.{u} Γ] (A : Γ ⥤ Grpd.{u,u})
 
-theorem toPGrpd_comp_forgetToPCat_eq_var'_comp_isoGrothendieckForgetToCatInv_comp_forgetToPCat :
+theorem toPGrpd_comp_forgetToPCat_eq_var'_comp_forgetToPCat :
     downFunctor ⋙ toPGrpd A ⋙ PGrpd.forgetToPCat
-      = var' A ⋙ downFunctor ⋙ PGrpd.isoGrothendieckForgetToCatInv ⋙ PGrpd.forgetToPCat := by
+      = var' A ⋙ downFunctor ⋙ PGrpd.forgetToPCat := by
   have h : var' A ⋙ (IsPullback.uLiftToPCat (Grpd.forgetToCat.{u,u}))
     = IsPullback.uLiftToPCat (A ⋙ Grpd.forgetToCat) := var'_uLiftToPCat A
   dsimp only [IsPullback.uLiftToPCat] at h
@@ -238,13 +210,13 @@ theorem toPGrpd_comp_forgetToPCat_eq_var'_comp_isoGrothendieckForgetToCatInv_com
   rw [← h]
   rfl
 
-theorem toPGrpd_comp_forgetToGrpd_eq_var'_comp_isoGrothendieckForgetToCatInv_comp_forgetToGrpd :
+theorem toPGrpd_comp_forgetToGrpd_eq_var'_comp_forgetToGrpd :
     downFunctor ⋙ toPGrpd A ⋙ PGrpd.forgetToGrpd
-      = var' A ⋙ downFunctor ⋙ PGrpd.isoGrothendieckForgetToCatInv ⋙ PGrpd.forgetToGrpd := by
-  have h : (downFunctor ⋙ PGrpd.isoGrothendieckForgetToCatInv.{u,u})
+      = var' A ⋙ downFunctor ⋙ PGrpd.forgetToGrpd := by
+  have h : downFunctor
       ⋙ PGrpd.forgetToGrpd.{u,u} =
       IsPullback.uLiftGrothendieckForget Grpd.forgetToCat.{u,u} ⋙ downFunctor :=
-    PGrpd.IsPullback.isPullback_forgetToGrpd_uLiftGrothendieckForget_commSq.horiz_inv.{u,u}.w
+      PGrpd.IsPullback.isPullback_forgetToGrpd_uLiftGrothendieckForget_commSq.horiz_inv.{u,u}.w
   simp only [← toPGrpd_comp_forgetToPCat, Functor.assoc] at h
   have h1 : var' A ⋙ IsPullback.uLiftGrothendieckForget Grpd.forgetToCat.{u}
       = IsPullback.uLiftGrothendieckForget (A ⋙ Grpd.forgetToCat) ⋙ uLiftA A :=
@@ -252,21 +224,20 @@ theorem toPGrpd_comp_forgetToGrpd_eq_var'_comp_isoGrothendieckForgetToCatInv_com
   simp only [Cat.of_α, IsPullback.uLiftGrothendieckForget, ← Functor.assoc,
     uLiftA] at h1
   rw [comp_upFunctor_inj] at h1
-  simp only [h, ← Functor.assoc, h1]
+  erw [h, ← Functor.assoc, h1]
   rfl
 
-theorem toPGrpd_eq_var'_comp_isoGrothendieckForgetToCatInv' :
+theorem toPGrpd_eq_var'' :
     Cat.homOf (downFunctor ⋙ toPGrpd A)
-      = Cat.homOf (var' A ⋙ downFunctor ⋙ PGrpd.isoGrothendieckForgetToCatInv)
+      = Cat.homOf (var' A ⋙ downFunctor)
       :=
   PGrpd.isPullback_forgetToGrpd_forgetToCat.{u}.hom_ext
-    (toPGrpd_comp_forgetToPCat_eq_var'_comp_isoGrothendieckForgetToCatInv_comp_forgetToPCat _)
-    (toPGrpd_comp_forgetToGrpd_eq_var'_comp_isoGrothendieckForgetToCatInv_comp_forgetToGrpd _)
+    (toPGrpd_comp_forgetToPCat_eq_var'_comp_forgetToPCat _)
+    (toPGrpd_comp_forgetToGrpd_eq_var'_comp_forgetToGrpd _)
 
-theorem toPGrpd_eq_var'_comp_isoGrothendieckForgetToCatInv :
-    downFunctor ⋙ toPGrpd A
-      = var' A ⋙ downFunctor ⋙ PGrpd.isoGrothendieckForgetToCatInv :=
-  toPGrpd_eq_var'_comp_isoGrothendieckForgetToCatInv' _
+theorem toPGrpd_eq_var' :
+    downFunctor ⋙ toPGrpd A = var' A ⋙ downFunctor :=
+  toPGrpd_eq_var'' _
 
 end IsPullback
 
@@ -296,7 +267,7 @@ theorem isPullback {Γ : Type u} [Category.{u} Γ] (A : Γ ⥤ Grpd.{u,u}) :
   have h := isPullback_aux.{u} A
   simp at h
   convert h
-  apply toPGrpd_eq_var'_comp_isoGrothendieckForgetToCatInv
+  apply toPGrpd_eq_var'
 
 end
 
@@ -346,8 +317,8 @@ end naturality
   rfl
 
 @[simp] lemma sec_obj_fiber (x) :
-    ((sec A α h).obj x).fiber = PGrpd.objPt' h x := by
-  simp [Grothendieck.Groupoidal.sec, PGrpd.objPt',
+    ((sec A α h).obj x).fiber = PGrpd.objFiber' h x := by
+  simp [Grothendieck.Groupoidal.sec, PGrpd.objFiber',
     Grothendieck.Groupoidal.IsMegaPullback.lift_obj_fiber]
 
 @[simp] lemma sec_map_base {x y} {f : x ⟶ y} :

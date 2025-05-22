@@ -31,7 +31,6 @@ variable (A)
   obj := toPCatObj
   map := toPCatMap
   map_id x := by
-    dsimp
     apply Grothendieck.ext
     · simp
     · simp
@@ -39,10 +38,6 @@ variable (A)
     apply Grothendieck.ext
     · simp
     · simp
-
--- theorem toPCatObj_fiber_inj {x y : Grothendieck A}
---     (h : HEq ((toPCat A).obj x).fiber ((toPCat A).obj y).fiber) :
---   HEq x.fiber y.fiber := h
 
 namespace IsMegaPullback
 
@@ -84,59 +79,6 @@ theorem liftMap_fiber :
         ≫ ((eqToHom w).app y).map (point fst f) :=
   rfl
 
-include w in
-theorem liftMap_fiber_pf3 :
-    (fst.obj y).base = A.obj (liftObj w y).base :=
-  Functor.congr_obj w y
-
-theorem liftMap_fiber_pf2 :
-    (A.map (snd.map f)).obj (liftObj w x).fiber =
-    (eqToHom (liftMap_fiber_pf3 w)).obj ((fst.map f).base.obj (pt fst x)) := by
-  have h := Functor.congr_obj
-    ((eqToHom w).naturality f).symm (pt fst x)
-  simp only [eqToHom_app, Functor.comp_map,
-    Cat.comp_obj, PCat.forgetToCat_map, liftObj_fiber] at *
-  rw [h]
-
-theorem liftMap_fiber_pf0 :
-    (eqToHom (liftMap_fiber_pf3 w)).obj (pt fst y)
-    = ((eqToHom w).app y).obj (pt fst y) :=
-  by simp
-
--- theorem liftMap_fiber_pf1 :
---     ((fst.map f).obj (pt fst x) ⟶ pt fst y)
---     = ((eqToHom (liftMap_fiber_pf3 w)).obj
---       ((fst.map f).obj (pt fst x))
---       ⟶ (eqToHom (liftMap_fiber_pf3 w)).obj (pt fst y)) :=
---   Cat.eqToHom_hom_aux
---     ((fst.map f).obj (pt fst x))
---     (pt fst y)
---     (liftMap_fiber_pf3 w)
-
--- theorem liftMap_fiber' : (liftMap w f).fiber =
---     eqToHom (liftMap_fiber_pf2 w f)
---     ≫ cast (liftMap_fiber_pf1 w f) (point fst f)
---     ≫ eqToHom (liftMap_fiber_pf0 w) := by
---   have hy := Functor.congr_hom
---     (eqToHom_app w y) (point fst f)
---   have hx := eqToHom_app
---     ((eqToHom w).naturality f).symm (pt fst x)
---   rw [liftMap_fiber, hy, hx, Cat.eqToHom_hom]
---   simp
-
-theorem liftMap_fiber' : (liftMap w f).fiber =
-    eqToHom (liftMap_fiber_pf2 w f) ≫ (eqToHom (liftMap_fiber_pf3 w)).map (point fst f) ≫ eqToHom (liftMap_fiber_pf0 w) := by
-  simp [liftMap_fiber, Functor.congr_hom
-     (eqToHom_app w y) (point fst f), eqToHom_app
-      ((eqToHom w).naturality f).symm (pt fst x)]
-
-theorem lift_aux {C D : Cat.{v,u}} {X Y : C}
-    (pf1 : C = D) (pf2 : X = Y) (pf3 : (eqToHom pf1).obj X = (eqToHom pf1).obj Y) :
-    HEq (eqToHom pf2) (eqToHom pf3) := by
-  subst pf2
-  subst pf1
-  simp at *
-
 variable (fst) (snd)
 
 @[simps] def lift : C ⥤ Grothendieck A where
@@ -156,12 +98,12 @@ variable (fst) (snd)
     · simp
 
 @[simp] theorem fac_right : lift fst snd w ⋙ Grothendieck.forget A = snd := by
-  apply Functor.ext
+  apply CategoryTheory.Functor.ext
   · simp
   · simp
 
 @[simp] theorem fac_left : lift fst snd w ⋙ Grothendieck.toPCat A = fst := by
-  apply Functor.ext
+  apply CategoryTheory.Functor.ext
   · intro x y f
     apply Grothendieck.ext
     · simp [liftMap, forget_map, eqToHom_map, PCat.eqToHom_base_map,
@@ -176,34 +118,6 @@ variable (fst) (snd)
     · simp [h]
     · simp [h, Cat.eqToHom_obj]
 
-theorem Grothendieck.Functor.ext (F G : C ⥤ Grothendieck A)
-    (hbase : F ⋙ forget _ = G ⋙ forget _)
-    (hfiber_obj : ∀ x : C, HEq (F.obj x).fiber (G.obj x).fiber)
-    (hfiber_map : ∀ {x y : C} (f : x ⟶ y), HEq (F.map f).fiber (G.map f).fiber)
-    : F = G := by
-  fapply CategoryTheory.Functor.ext
-  · intro x
-    apply obj_hext
-    · exact Functor.congr_obj hbase x
-    · apply hfiber_obj
-  · intro x y f
-    fapply Grothendieck.ext
-    · simp only [comp_base, base_eqToHom]
-      exact Functor.congr_hom hbase f
-    · apply eq_of_heq
-      simp only [eqToHom_comp_heq_iff, comp_fiber, fiber_eqToHom, eqToHom_map, heq_eqToHom_comp_iff]
-      rw! [eqToHom_base, eqToHom_map, Cat.eqToHom_hom]
-      simp [hfiber_map]
-
-theorem Grothendieck.hext_iff (x y : Grothendieck A) (f g : x ⟶ y) : f.base = g.base ∧ HEq f.fiber g.fiber ↔ f = g := by
-  constructor
-  · intro h
-    apply Grothendieck.ext
-    · apply eq_of_heq
-      simp only [eqToHom_comp_heq_iff, h.2]
-    · exact h.1
-  · aesop
-
 theorem lift_uniq (m : C ⥤ Grothendieck A)
     (hl : m ⋙ Grothendieck.toPCat A = fst)
     (hr : m ⋙ Grothendieck.forget A = snd) :
@@ -212,8 +126,9 @@ theorem lift_uniq (m : C ⥤ Grothendieck A)
   · rw [hr, fac_right]
   · intro x
     have h := Functor.congr_obj hl x
-    simp only [comp_obj, toPCat_obj, ← obj_hext_iff, toPCatObj_base, id_obj, toPCatObj_fiber] at h
-    simp [Cat.eqToHom_obj, h]
+    simp only [Functor.comp_obj, toPCat_obj, ← obj_hext_iff, toPCatObj_base,
+      toPCatObj_fiber] at h
+    simp [Cat.eqToHom_obj, h, pt]
   · intro x y f
     have h := Functor.congr_hom hl f
     rw [← Grothendieck.hext_iff] at h
@@ -290,7 +205,7 @@ variable {A}
 
 theorem comm_sq : uLiftToPCat A ≫ uLiftPCatForgetToCat
     = uLiftGrothendieckForget A ≫ uLiftA A := by
-  apply Functor.ext
+  apply CategoryTheory.Functor.ext
   · intro X Y f
     rfl
   · intro

@@ -3,16 +3,6 @@ import Mathlib.CategoryTheory.Category.Grpd
 import GroupoidModel.ForMathlib
 
 /-!
-# The Groupidal Grothendieck construction
-
-  ↑Grothendieck (toCat A) -- toPGrpd --> PGrpd
-        |                                 |
-        |                                 |
-↑ Grothendieck.forget        PGrpd.forgetToGrpd
-        |                                 |
-        v                                 v
-        ↑Γ--------------A---------------> Grpd
-
 ## Main definitions
 * `CategoryTheory.Grothendieck.Groupoidal`
   takes a functor from a groupoid into `Grpd` the category of groupoids,
@@ -259,9 +249,6 @@ def map (α : F ⟶ G) : Groupoidal F ⥤ Groupoidal G :=
 @[simp] theorem map_obj {α : F ⟶ G} (X : Groupoidal F) :
     (Groupoidal.map α).obj X = ⟨X.base, (α.app X.base).obj X.fiber⟩ := rfl
 
--- TODO move to ForMathlib
-theorem Grothendieck.map_eqToHom_obj_base {F G : C ⥤ Cat.{v,u}} (h : F = G)
-  (x) : ((Grothendieck.map (eqToHom h)).obj x).base = x.base := rfl
 
 theorem map_id_eq : map (𝟙 F) = Functor.id (Cat.of <| Groupoidal <| F) :=
   Grothendieck.map_id_eq
@@ -313,23 +300,6 @@ theorem pre_forget (α : D ⥤ C) (A : C ⥤ Grpd) :
   rfl
 
 end
-
--- instance toPCatObjGroupoid (x : ∫(A)) : Groupoid x.toPCatObj := by
---   dsimp [Grpd.forgetToCat]
---   infer_instance
-
--- instance toPCatObjPointed (x : ∫(A)) : PointedGroupoid x.toPCatObj :=
---   PointedGroupoid.of x.toPCatObj PointedCategory.pt
-
--- def toPGrpd : ∫(A) ⥤ PGrpd.{v₁,u₁} where
---   obj x := PGrpd.of x.toPCatObj
---   map := Grothendieck.toPCatMap
---   map_id := (Grothendieck.toPCat (A ⋙ Grpd.forgetToCat)).map_id
---   map_comp := (Grothendieck.toPCat (A ⋙ Grpd.forgetToCat)).map_comp
-
--- theorem toPGrpd_comp_forgetToPCat :
---     toPGrpd A ⋙ PGrpd.forgetToPCat = toPCat (A ⋙ Grpd.forgetToCat) :=
---   rfl
 
 section
 

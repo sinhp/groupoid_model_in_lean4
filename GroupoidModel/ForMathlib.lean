@@ -204,9 +204,12 @@ theorem map_eqToHom_base {G1 G2 : Grothendieck A} (eq : G1 = G2)
     : A.map (eqToHom eq).base = eqToHom (map_eqToHom_base_pf eq) := by
   simp [eqToHom_base, eqToHom_map]
 
+theorem map_eqToHom_obj_base {F G : Γ ⥤ Cat.{v,u}} (h : F = G)
+  (x) : ((Grothendieck.map (eqToHom h)).obj x).base = x.base := rfl
+
 open Iso
 
-variable {C : Type u₁} [Category.{v₁,u₁} C] {G : C ⥤ Cat.{v₂,u₂}}
+variable {C : Type*} [Category C] {G : C ⥤ Cat.{v₂,u₂}}
 
 /-- A morphism in the Grothendieck construction is an isomorphism if
 - the morphism in the base is an isomorphism; and
@@ -241,6 +244,34 @@ def mkIso {X Y : Grothendieck G}
     simp only [Functor.map_comp, eq2, eqToHom_map, Category.assoc] at eq ⊢
     conv at eq => lhs; slice 1 3
     rw [(comp_eqToHom_iff ..).1 eq]; simp
+
+theorem Functor.ext (F G : C ⥤ Grothendieck A)
+    (hbase : F ⋙ forget _ = G ⋙ forget _)
+    (hfiber_obj : ∀ x : C, HEq (F.obj x).fiber (G.obj x).fiber)
+    (hfiber_map : ∀ {x y : C} (f : x ⟶ y), HEq (F.map f).fiber (G.map f).fiber)
+    : F = G := by
+  fapply CategoryTheory.Functor.ext
+  · intro x
+    apply obj_hext
+    · exact Functor.congr_obj hbase x
+    · apply hfiber_obj
+  · intro x y f
+    fapply Grothendieck.ext
+    · simp only [comp_base, base_eqToHom]
+      exact Functor.congr_hom hbase f
+    · apply eq_of_heq
+      simp only [eqToHom_comp_heq_iff, comp_fiber, fiber_eqToHom, eqToHom_map, heq_eqToHom_comp_iff]
+      rw! [eqToHom_base, eqToHom_map, Cat.eqToHom_hom]
+      simp [hfiber_map]
+
+theorem hext_iff (x y : Grothendieck A) (f g : x ⟶ y) : f.base = g.base ∧ HEq f.fiber g.fiber ↔ f = g := by
+  constructor
+  · intro h
+    apply Grothendieck.ext
+    · apply eq_of_heq
+      simp only [eqToHom_comp_heq_iff, h.2]
+    · exact h.1
+  · aesop
 
 end Grothendieck
 
