@@ -4,6 +4,7 @@ import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 
 import GroupoidModel.Pointed.Basic
 import GroupoidModel.ForMathlib
+import GroupoidModel.ForMathlib.CategoryTheory.Functor.IsPullback
 
 universe v u v₁ u₁ v₂ u₂ v₃ u₃
 
@@ -27,6 +28,7 @@ variable {Γ : Type u} [Category.{v} Γ] {A : Γ ⥤ Cat.{v₁,u₁}}
 
 variable (A)
 
+-- JH: TODO (maybe) factor through `Grothendieck.functorTo`
 @[simps] def toPCat : Grothendieck A ⥤ PCat.{v₁,u₁} where
   obj := toPCatObj
   map := toPCatMap
@@ -81,6 +83,7 @@ theorem liftMap_fiber :
 
 variable (fst) (snd)
 
+-- TODO JH: (maybe) factor through Grothendieck.functorTo
 @[simps] def lift : C ⥤ Grothendieck A where
   obj := liftObj w
   map := liftMap w
@@ -149,7 +152,17 @@ theorem hom_ext {m n : C ⥤ Grothendieck A}
     rw [comm_sq]
     rfl
 
+def lift' : Functor.Pullback
+    (Functor.PullbackCone.mk (toPCat A) (Grothendieck.forget _) (comm_sq _))
+    (Functor.PullbackCone.mk fst snd w) where
+  lift := lift fst snd w
+  fac_left := fac_left _ _ _
+  fac_right := fac_right _ _ _
+  hom_ext _ _ := hom_ext
+
+
 end IsMegaPullback
+
 end morphism_universe_v₁
 
 /-

@@ -18,6 +18,7 @@ namespace PCat
 
 open Grothendieck
 
+-- TODO remove this
 /-- The functor that takes PCat to Cat by forgetting the points-/
 abbrev forgetToCat : PCat.{v,u} ⥤ Cat.{v,u} :=
   Grothendieck.forget _
@@ -122,6 +123,14 @@ theorem eqToHom_base_map {x y : PCat} (eq : x = y) {a b} (f : a ⟶ b) :
 
 end
 
+def asSmallFunctor : PCat.{v, u} ⥤ PCat.{max w v u, max w v u} :=
+  Grothendieck.functorTo
+    (Grothendieck.forget _ ⋙ Cat.asSmallFunctor.{w,v,u})
+    (fun x => ⟨x.fiber⟩)
+    (fun f => ⟨f.fiber⟩)
+    (fun _ => rfl)
+    (fun _ _ => rfl)
+
 end PCat
 
 /- Implementation note:
@@ -135,6 +144,7 @@ namespace PGrpd
 
 open Grothendieck Grpd
 
+-- TODO remove this
 /-- The functor that takes PGrpd to Grpd by forgetting the points -/
 abbrev forgetToGrpd : PGrpd.{v,u} ⥤ Grpd.{v,u} :=
   Grothendieck.forget _
@@ -307,18 +317,18 @@ theorem mapPoint'_comp {x y z} (f : x ⟶ y)
 
 end
 
+def asSmallFunctor : PGrpd.{v, u} ⥤ PGrpd.{max w v u, max w v u} :=
+  Grothendieck.functorTo
+    (Grothendieck.forget Grpd.forgetToCat ⋙ Grpd.asSmallFunctor.{w,v,u})
+    (fun x => ⟨x.fiber⟩)
+    (fun f => ⟨f.fiber⟩)
+    (fun _ => rfl)
+    (fun _ _ => rfl)
+
+theorem asSmallFunctor_forget : asSmallFunctor.{w,v,u} ⋙ Grothendieck.forget _
+  = Grothendieck.forget _ ⋙ Grpd.asSmallFunctor := rfl
+
 end
-
--- instance asSmall (Γ : Type u) [PointedGroupoid.{v} Γ] :
---     PointedGroupoid.{max w v u, max w v u} (AsSmall.{w} Γ) := {
---   CategoryTheory.Groupoid.asSmallGroupoid.{w,v,u} Γ with
---   pt := AsSmall.up.obj PointedGroupoid.pt}
-
--- def asSmallFunctor : PGrpd.{v, u} ⥤ PGrpd.{max w v u, max w v u} where
---   obj Γ := PGrpd.of $ AsSmall.{max w v u} Γ
---   map F := {
---     toFunctor := AsSmall.down ⋙ F.toFunctor ⋙ AsSmall.up
---     point := AsSmall.up.map F.point}
 
 end PGrpd
 

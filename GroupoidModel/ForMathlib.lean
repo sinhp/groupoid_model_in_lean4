@@ -891,6 +891,34 @@ theorem preNatIso_comp {G1 G2 G3 : D ⥤ C} (α : G1 ≅ G2) (β : G2 ≅ G3) :
 
 end
 
+section
+variable {C : Type u} [Category.{v} C] {D : Type u₁} [Category.{v₁} D]
+variable {F : C ⥤ Cat.{v₂, u₂}} (A : D ⥤ C) (fibObj : Π (x : D), (A ⋙ F).obj x)
+    (fibMap : Π {x y : D} (f : x ⟶ y),
+      ((A ⋙ F).map f).obj (fibObj x) ⟶ fibObj y)
+    (map_id : Π (x : D), fibMap (CategoryStruct.id x) = eqToHom (by simp))
+    (map_comp : Π {x y z : D} (f : x ⟶ y) (g : y ⟶ z), fibMap (f ≫ g)
+      = eqToHom (by simp) ≫ (F.map (A.map g)).map (fibMap f) ≫ fibMap g)
+
+def functorTo : D ⥤ Grothendieck F where
+  obj x := ⟨ A.obj x, fibObj x ⟩
+  map f := ⟨ A.map f, fibMap f ⟩
+  map_id x := by
+    fapply Grothendieck.ext
+    · simp
+    · simp [map_id]
+  map_comp f g := by
+    fapply Grothendieck.ext
+    · simp
+    · simp [eqToHom_comp_iff, map_comp]
+
+variable {A} {fibObj} {fibMap} {map_id} {map_comp}
+@[simp] theorem functorTo_forget :
+    functorTo _ _ _ map_id map_comp ⋙ Grothendieck.forget _ = A :=
+  rfl
+
+end
+
 end Grothendieck
 
 -- NOTE this was added to mathlib very recently

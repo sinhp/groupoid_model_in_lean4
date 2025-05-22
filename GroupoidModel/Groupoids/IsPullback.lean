@@ -4,8 +4,7 @@ import Mathlib.CategoryTheory.Category.Cat.Limit
 import Mathlib.CategoryTheory.ChosenFiniteProducts.Cat
 
 import GroupoidModel.Russell_PER_MS.NaturalModel
-import GroupoidModel.Grothendieck.IsPullback
-import GroupoidModel.Grothendieck.Groupoidal
+import GroupoidModel.Grothendieck.Groupoidal.IsPullback
 import GroupoidModel.Groupoids.Basic
 
 /-!
@@ -22,28 +21,30 @@ namespace GroupoidModel
 namespace IsPullback
 
 def groupoidalAsSmallFunctorToPGrpd :
-    ∫(Grpd.asSmallFunctor.{max w (v+1), v, v}) ⥤ PGrpd.{v,v} where
-  obj x := PGrpd.fromGrpd x.base
-    (AsSmall.down.obj.{v, v, max w (v + 1)} x.fiber)
-  map f := {
-    toFunctor := f.base
-    point := AsSmall.down.map f.fiber}
-  map_comp f g := by
-    simp only [comp_fiber, eqToHom_refl, Category.id_comp]
-    rfl
+    ∫(Grpd.asSmallFunctor.{max w (v+1), v, v}) ⥤ PGrpd.{v,v} :=
+  Grothendieck.functorTo (Grothendieck.forget _)
+  (fun x => AsSmall.down.obj.{v, v, max w (v + 1)} x.fiber)
+  (fun f => AsSmall.down.map f.fiber)
+  (by aesop_cat)
+  (by aesop_cat)
 
 def pGrpdToGroupoidalAsSmallFunctor : PGrpd.{v, v} ⥤
-    ∫(Grpd.asSmallFunctor.{max w (v+1), v, v}) where
-  obj x := {
-    base := Grpd.of x
-    fiber := AsSmall.up.obj.{v, v, max w (v + 1)} x.str.pt}
-  map f := {
-    base := f.toFunctor
-    fiber := AsSmall.up.map f.point}
-  map_comp f g := by
-    apply Grothendieck.Groupoidal.ext
-    · simp [Grpd.asSmallFunctor]
-    · rfl
+    ∫(Grpd.asSmallFunctor.{max w (v+1), v, v}) :=
+  Grothendieck.functorTo (Grothendieck.forget _)
+  (fun x => AsSmall.up.obj.{v, v, max w (v + 1)} x.fiber)
+  (fun f => AsSmall.up.map f.fiber)
+  (by aesop_cat)
+  (by aesop_cat)
+
+lemma groupoidalAsSmallFunctorToPGrpd_asSmallFunctor :
+    groupoidalAsSmallFunctorToPGrpd.{w,v} ⋙ PGrpd.asSmallFunctor.{max w (v+1),v}
+    = toPGrpd _ := by
+  apply Grothendieck.Functor.ext
+  · rw [Grothendieck.Groupoidal.IsMegaPullback.comm_sq,
+      Functor.assoc, PGrpd.asSmallFunctor_forget]
+    rfl
+  · sorry
+  · sorry
 
 namespace PGrpd.IsMegaPullback'
 
@@ -55,19 +56,28 @@ variable {C : Type u₂} [Category.{v₁} C]
 
 variable (fst) (snd)
 
+-- def lift : C ⥤ PGrpd.{v,v} :=
+--   Grothendieck.IsMegaPullback.lift (fst ⋙ PGrpd.forgetToPCat) snd (by
+--       rw [← Functor.assoc, ← condition, Functor.assoc,
+--         PGrpd.forgetToPCat_forgetToCat]
+--       rfl)
+--   ⋙ groupoidalAsSmallFunctorToPGrpd.{w,v}
+
 def lift : C ⥤ PGrpd.{v,v} :=
   IsMegaPullback.lift fst snd condition
   ⋙ groupoidalAsSmallFunctorToPGrpd.{w,v}
 
-def fac_left : lift fst snd condition
-    ⋙ PGrpd.asSmallFunctor.{max w (v+1)} = fst :=
-  IsMegaPullback.fac_left fst snd condition
-
-def fac_right : lift fst snd condition
+theorem fac_left : lift fst snd condition
+    ⋙ PGrpd.asSmallFunctor.{max w (v+1)} = fst := by
+  convert IsMegaPullback.fac_left fst snd condition
+  dsimp [lift]
+  sorry
+#exit
+theorem fac_right : lift fst snd condition
     ⋙ PGrpd.forgetToGrpd.{v} = snd :=
   IsMegaPullback.fac_right fst snd condition
 
-def lift_uniq (m : C ⥤ PGrpd.{v,v})
+theorem lift_uniq (m : C ⥤ PGrpd.{v,v})
     (hl : m ⋙ PGrpd.asSmallFunctor.{max w (v+1)} = fst)
     (hr : m ⋙ PGrpd.forgetToGrpd.{v} = snd) :
     m = lift fst snd condition := by
