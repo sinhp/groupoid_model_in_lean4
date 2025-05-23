@@ -912,6 +912,22 @@ def functorTo : D ⥤ Grothendieck F where
     · simp
     · simp [eqToHom_comp_iff, map_comp]
 
+@[simp] theorem functorTo_obj_base (x) :
+    ((functorTo A fibObj fibMap map_id map_comp).obj x).base = A.obj x :=
+  rfl
+
+@[simp] theorem functorTo_obj_fiber (x) :
+    ((functorTo A fibObj fibMap map_id map_comp).obj x).fiber = fibObj x :=
+  rfl
+
+@[simp] theorem functorTo_map_base {x y} (f : x ⟶ y) :
+    ((functorTo A fibObj fibMap map_id map_comp).map f).base = A.map f :=
+  rfl
+
+@[simp] theorem functorTo_map_fiber {x y} (f : x ⟶ y) :
+    ((functorTo A fibObj fibMap map_id map_comp).map f).fiber = fibMap f :=
+  rfl
+
 variable {A} {fibObj} {fibMap} {map_id} {map_comp}
 @[simp] theorem functorTo_forget :
     functorTo _ _ _ map_id map_comp ⋙ Grothendieck.forget _ = A :=

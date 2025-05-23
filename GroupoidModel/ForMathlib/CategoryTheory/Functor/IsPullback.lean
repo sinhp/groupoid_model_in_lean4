@@ -57,23 +57,43 @@ variable {Algeria Niger : Type*} [Category Algeria] [Category Niger]
 
 variable {C : Type u} [Category.{v} C] (cone : PullbackCone C east (so ⋙ uth))
 
-def pasteHorizEastCone : PullbackCone C east uth where
+@[simps] def pasteHorizEastCone : PullbackCone C east uth where
   north := cone.north
   west := cone.west ⋙ so
   comm_sq := cone.comm_sq
 
-def pasteHorizWestCone : PullbackCone C sah so where
+@[simps] def pasteHorizWestCone : PullbackCone C sah so where
   north := (esah_pb (pasteHorizEastCone cone)).lift
   west := cone.west
-  comm_sq := sorry
+  comm_sq := (esah_pb (pasteHorizEastCone cone)).fac_right
 
+/--
+Pullback pasting =>.
+The outer square is a pullback when the two inner squares
+are both pullbacks.
+           no           rth
+  Algeria -----> Libya ----> Egypt
+    |              |          |
+  west         sah |          | east
+    |              |          |
+    V              V          V
+  Niger   -----> Chad  ----> Sudan
+           so           uth
+-/
 def pasteHoriz : Pullback (PullbackCone.mk (no ⋙ rth) west (by
-        rw [Functor.assoc, esah, ← Functor.assoc, wsah, Functor.assoc]
-        )) cone where
-  lift := sorry
-  fac_left := sorry
-  fac_right := sorry
-  hom_ext := sorry
+    rw [Functor.assoc, esah, ← Functor.assoc, wsah, Functor.assoc])) cone where
+  lift := (wsah_pb (pasteHorizWestCone esah esah_pb cone)).lift
+  fac_left := by
+    rw [← Functor.assoc, (wsah_pb _).fac_left]
+    exact (esah_pb _).fac_left
+  fac_right := (wsah_pb _).fac_right
+  hom_ext hleft hright := by
+    apply (wsah_pb (pasteHorizWestCone esah esah_pb cone)).hom_ext
+    · apply (esah_pb (pasteHorizEastCone cone)).hom_ext
+      · exact hleft
+      · simp only [Functor.assoc, wsah]
+        simp only [← Functor.assoc, hright]
+    · exact hright
 end
 
 section
@@ -112,6 +132,19 @@ def ofRightRightCone : PullbackCone C east uth where
   west := cone.west ⋙ so
   comm_sq := by rw [Functor.assoc, esah, ← Functor.assoc, cone.comm_sq]
 
+/--
+Pullback pasting <=.
+The left square is a pullback when the right and outer squares
+are both pullbacks.
+           no           rth
+  Algeria -----> Libya ----> Egypt
+    |              |          |
+  west         sah |          | east
+    |              |          |
+    V              V          V
+  Niger   -----> Chad  ----> Sudan
+           so           uth
+-/
 def ofRight : Pullback (PullbackCone.mk no west wsah) cone where
   lift := (outer_pb (ofRightOuterCone esah cone)).lift
   fac_left := by

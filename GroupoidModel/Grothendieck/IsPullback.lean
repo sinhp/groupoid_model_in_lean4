@@ -14,32 +14,33 @@ namespace Grothendieck
 
 open Functor
 
-section morphism_universe_v₁
+section
 
 
 variable {Γ : Type u} [Category.{v} Γ] {A : Γ ⥤ Cat.{v₁,u₁}}
 
-@[simps] def toPCatObj (x : Grothendieck A) : PCat.{v₁,u₁} :=
-  ⟨ A.obj x.base, x.fiber ⟩
-
-@[simps] def toPCatMap {x y : Grothendieck A} (f : x ⟶ y) :
-    toPCatObj x ⟶ toPCatObj y :=
-  ⟨ A.map f.base , f.fiber ⟩
-
 variable (A)
 
--- JH: TODO (maybe) factor through `Grothendieck.functorTo`
-@[simps] def toPCat : Grothendieck A ⥤ PCat.{v₁,u₁} where
-  obj := toPCatObj
-  map := toPCatMap
-  map_id x := by
-    apply Grothendieck.ext
-    · simp
-    · simp
-  map_comp {x y z} f g := by
-    apply Grothendieck.ext
-    · simp
-    · simp
+def toPCat : Grothendieck A ⥤ PCat.{v₁,u₁} :=
+  functorTo (forget _ ⋙ A) (fun x => x.fiber) (fun f => f.fiber)
+    (by simp) (by simp)
+
+@[simp] theorem toPCat_obj_base (x) :
+    ((toPCat A).obj x).base = A.obj x.base := by
+  simp [toPCat]
+
+@[simp] theorem toPCat_obj_fiber (x) :
+    ((toPCat A).obj x).fiber = x.fiber := by
+  simp [toPCat]
+
+@[simp] theorem toPCat_map_base {x y} (f : x ⟶ y) :
+    ((toPCat A).map f).base = A.map f.base := by
+  simp [toPCat]
+
+@[simp] theorem toPCat_map_fiber {x y} (f : x ⟶ y) :
+    ((toPCat A).map f).fiber = f.fiber := by
+  simp [toPCat]
+
 
 namespace IsMegaPullback
 
@@ -60,45 +61,56 @@ abbrev point {x y : C} (f : x ⟶ y) :
 
 variable {A} {fst} {snd}
 
-@[simps] def liftObj (x : C) : Grothendieck A :=
-  ⟨ snd.obj x , ((eqToHom w).app x).obj (pt fst x) ⟩
+@[simp] def liftObjFiber (x : C) : A.obj (snd.obj x) :=
+  ((eqToHom w).app x).obj (pt fst x)
 
 variable {x y : C} (f : x ⟶ y)
 
-def liftMap : liftObj w x ⟶ liftObj w y :=
-  ⟨ (snd.map f) ,
-    let m1 := ((eqToHom w).app y).map (point fst f)
-    let m2 := (eqToHom ((eqToHom w).naturality f).symm).app
-      (pt fst x)
-    m2 ≫ m1 ⟩
+@[simp] def liftMapFiber : ((snd ⋙ A).map f).obj (liftObjFiber w x) ⟶ liftObjFiber w y :=
+  let m1 := ((eqToHom w).app y).map (point fst f)
+  let m2 := (eqToHom ((eqToHom w).naturality f).symm).app
+    (pt fst x)
+  m2 ≫ m1
 
-@[simp] theorem liftMap_base :
-  (liftMap w f).base = (snd.map f) := rfl
+theorem liftMapFiber_id (x : C) : liftMapFiber w (𝟙 x) = eqToHom (by simp) := by
+  simp [eqToHom_app, eqToHom_map]
 
-theorem liftMap_fiber :
-    (liftMap w f).fiber =
-      (eqToHom ((eqToHom w).naturality f).symm).app (pt fst x)
-        ≫ ((eqToHom w).app y).map (point fst f) :=
-  rfl
+theorem liftMapFiber_comp {x y z} (f : x ⟶ y) (g : y ⟶ z) :
+    liftMapFiber w (f ≫ g) =
+    eqToHom (by simp)
+    ≫ (A.map (snd.map g)).map (liftMapFiber w f)
+    ≫ liftMapFiber w g := by
+  have hgNatNatF := (eqToHom ((eqToHom w).naturality g).symm).naturality (fst.map f).fiber
+  have h := congr_arg (λ x ↦ x ≫ ((eqToHom w).app z).map (fst.map g).fiber) hgNatNatF
+  dsimp at h
+  simp only [Category.assoc, eqToHom_app ((eqToHom w).naturality g).symm] at h
+  simp [eqToHom_map, h]
 
 variable (fst) (snd)
 
--- TODO JH: (maybe) factor through Grothendieck.functorTo
-@[simps] def lift : C ⥤ Grothendieck A where
-  obj := liftObj w
-  map := liftMap w
-  map_id x := by
-    apply Grothendieck.ext
-    · simp [liftMap_fiber, eqToHom_app, eqToHom_map]
-    · simp
-  map_comp {x y z} f g := by
-    apply Grothendieck.ext
-    · have hgNatNatF := (eqToHom ((eqToHom w).naturality g).symm).naturality (fst.map f).fiber
-      have h := congr_arg (λ x ↦ x ≫ ((eqToHom w).app z).map (fst.map g).fiber) hgNatNatF
-      dsimp at h
-      simp only [Category.assoc, eqToHom_app ((eqToHom w).naturality g).symm] at h
-      simp [liftMap_fiber, eqToHom_map, h]
-    · simp
+def lift : C ⥤ Grothendieck A :=
+  functorTo
+    snd
+    (liftObjFiber w)
+    (liftMapFiber w)
+    (liftMapFiber_id w)
+    (liftMapFiber_comp w)
+
+@[simp] theorem lift_obj_base (x) :
+    ((lift fst snd w).obj x).base = snd.obj x := by
+  simp [lift]
+
+@[simp] theorem lift_obj_fiber (x) :
+    ((lift fst snd w).obj x).fiber = liftObjFiber w x := by
+  simp [lift]
+
+@[simp] theorem lift_map_base {x y} (f : x ⟶ y) :
+    ((lift fst snd w).map f).base = snd.map f := by
+  simp [lift]
+
+@[simp] theorem lift_map_fiber {x y} (f : x ⟶ y) :
+    ((lift fst snd w).map f).fiber = liftMapFiber w f := by
+  simp [lift]
 
 @[simp] theorem fac_right : lift fst snd w ⋙ Grothendieck.forget A = snd := by
   apply CategoryTheory.Functor.ext
@@ -109,7 +121,7 @@ variable (fst) (snd)
   apply CategoryTheory.Functor.ext
   · intro x y f
     apply Grothendieck.ext
-    · simp [liftMap, forget_map, eqToHom_map, PCat.eqToHom_base_map,
+    · simp [forget_map, eqToHom_map, PCat.eqToHom_base_map,
         Functor.congr_hom (eqToHom_app w y) (point fst f)]
     · have h := Functor.congr_hom w f
       simp only [PCat.forgetToCat_map, Functor.comp_map] at h
@@ -129,13 +141,13 @@ theorem lift_uniq (m : C ⥤ Grothendieck A)
   · rw [hr, fac_right]
   · intro x
     have h := Functor.congr_obj hl x
-    simp only [Functor.comp_obj, toPCat_obj, ← obj_hext_iff, toPCatObj_base,
-      toPCatObj_fiber] at h
+    simp only [Functor.comp_obj, ← obj_hext_iff, toPCat_obj_base,
+      Functor.id_obj, toPCat_obj_fiber] at h
     simp [Cat.eqToHom_obj, h, pt]
   · intro x y f
     have h := Functor.congr_hom hl f
     rw [← Grothendieck.hext_iff] at h
-    simp only [h.2, lift_map, liftMap_fiber]
+    simp only [h.2, lift_map_fiber]
     aesop
 
 theorem hom_ext {m n : C ⥤ Grothendieck A}
@@ -152,176 +164,180 @@ theorem hom_ext {m n : C ⥤ Grothendieck A}
     rw [comm_sq]
     rfl
 
-def lift' : Functor.Pullback
-    (Functor.PullbackCone.mk (toPCat A) (Grothendieck.forget _) (comm_sq _))
-    (Functor.PullbackCone.mk fst snd w) where
-  lift := lift fst snd w
-  fac_left := fac_left _ _ _
-  fac_right := fac_right _ _ _
-  hom_ext _ _ := hom_ext
-
-
 end IsMegaPullback
 
-end morphism_universe_v₁
+open IsMegaPullback
 
-/-
-In this section we build the lemmas for showing the pullback
+def pullback (C : Type u) [Category.{v} C]
+    (cone : Functor.PullbackCone C (PCat.forgetToCat) A) :
+    Functor.Pullback
+    (Functor.PullbackCone.mk (toPCat A) (Grothendieck.forget _) (comm_sq _))
+    cone where
+  lift := lift cone.north cone.west cone.comm_sq
+  fac_left := fac_left _ _ _
+  fac_right := fac_right _ _ _
+  hom_ext := hom_ext
 
-  Grothendieck A --- toPCat ----> PCat
-        |                           |
-        |                           |
- Grothendieck.forget        PCat.forgetToCat
-        |                           |
-        v                           v
-        Γ--------------A---------> Cat
-in the appropriately sized category `Cat.{v, max u (v+1)}`;
-where `(Γ : Type u) [Category.{v} Γ] (A : Γ ⥤ Cat.{v,v})`.
+end
 
-This particular choice of hom universe level avoids using ULiftHom.
-In our applications either `u = v` for a small `Γ`
-so that `A : Γ ⥤ Cat.{u,u}`,
-or `Γ = Grpd.{v,v}` and `A : Grpd.{v,v} ⥤ Cat.{v,v}` is the inclusion
-so that `u = v + 1`.
--/
-namespace IsPullback
+-- TODO verify that the rest of this file is no longer needed
+-- /-
+-- In this section we build the lemmas for showing the pullback
 
-variable (Γ : Type u) [Category.{v} Γ] (A : Γ ⥤ Cat.{v,v})
+--   Grothendieck A --- toPCat ----> PCat
+--         |                           |
+--         |                           |
+--  Grothendieck.forget        PCat.forgetToCat
+--         |                           |
+--         v                           v
+--         Γ--------------A---------> Cat
+-- in the appropriately sized category `Cat.{v, max u (v+1)}`;
+-- where `(Γ : Type u) [Category.{v} Γ] (A : Γ ⥤ Cat.{v,v})`.
 
-open Functor ULift
+-- This particular choice of hom universe level avoids using ULiftHom.
+-- In our applications either `u = v` for a small `Γ`
+-- so that `A : Γ ⥤ Cat.{u,u}`,
+-- or `Γ = Grpd.{v,v}` and `A : Grpd.{v,v} ⥤ Cat.{v,v}` is the inclusion
+-- so that `u = v + 1`.
+-- -/
+-- namespace IsPullback
 
-variable {Γ}
+-- variable (Γ : Type u) [Category.{v} Γ] (A : Γ ⥤ Cat.{v,v})
 
-abbrev uLiftGrothendieck : Cat.{v, max u (v+1)} :=
-  Cat.ofULift.{max u (v+1)} (Grothendieck A)
+-- open Functor ULift
 
-abbrev uLiftGrothendieckForget :
-    uLiftGrothendieck.{v,u} A ⟶ Cat.ofULift.{v+1} Γ :=
-  downFunctor ⋙ Grothendieck.forget A ⋙ upFunctor
+-- variable {Γ}
 
-abbrev uLiftCat : Cat.{v, max u (v+1)} :=
-  Cat.ofULift.{max u (v+1)} Cat.{v,v}
+-- abbrev uLiftGrothendieck : Cat.{v, max u (v+1)} :=
+--   Cat.ofULift.{max u (v+1)} (Grothendieck A)
 
-abbrev uLiftPCat : Cat.{v, max u (v+1)} :=
-  Cat.ofULift.{max u (v+1)} PCat.{v,v}
+-- abbrev uLiftGrothendieckForget :
+--     uLiftGrothendieck.{v,u} A ⟶ Cat.ofULift.{v+1} Γ :=
+--   downFunctor ⋙ Grothendieck.forget A ⋙ upFunctor
 
-abbrev uLiftPCatForgetToCat : uLiftPCat.{v,u} ⟶ uLiftCat.{v,u} :=
-  downFunctor ⋙ PCat.forgetToCat ⋙ upFunctor
+-- abbrev uLiftCat : Cat.{v, max u (v+1)} :=
+--   Cat.ofULift.{max u (v+1)} Cat.{v,v}
 
-abbrev uLiftToPCat : uLiftGrothendieck.{v,u} A ⟶ uLiftPCat.{v,u} :=
-  ULift.downFunctor ⋙ Grothendieck.toPCat A ⋙ ULift.upFunctor
+-- abbrev uLiftPCat : Cat.{v, max u (v+1)} :=
+--   Cat.ofULift.{max u (v+1)} PCat.{v,v}
 
-abbrev uLiftA : Cat.ofULift.{v+1} Γ ⥤ uLiftCat.{v,u} :=
-  downFunctor ⋙ A ⋙ upFunctor
+-- abbrev uLiftPCatForgetToCat : uLiftPCat.{v,u} ⟶ uLiftCat.{v,u} :=
+--   downFunctor ⋙ PCat.forgetToCat ⋙ upFunctor
 
-variable {A}
+-- abbrev uLiftToPCat : uLiftGrothendieck.{v,u} A ⟶ uLiftPCat.{v,u} :=
+--   ULift.downFunctor ⋙ Grothendieck.toPCat A ⋙ ULift.upFunctor
 
-theorem comm_sq : uLiftToPCat A ≫ uLiftPCatForgetToCat
-    = uLiftGrothendieckForget A ≫ uLiftA A := by
-  apply CategoryTheory.Functor.ext
-  · intro X Y f
-    rfl
-  · intro
-    rfl
+-- abbrev uLiftA : Cat.ofULift.{v+1} Γ ⥤ uLiftCat.{v,u} :=
+--   downFunctor ⋙ A ⋙ upFunctor
 
-variable (A)
+-- variable {A}
 
-open Limits PullbackCone
+-- theorem comm_sq : uLiftToPCat A ≫ uLiftPCatForgetToCat
+--     = uLiftGrothendieckForget A ≫ uLiftA A := by
+--   apply CategoryTheory.Functor.ext
+--   · intro X Y f
+--     rfl
+--   · intro
+--     rfl
 
-def cone : Limits.PullbackCone uLiftPCatForgetToCat (uLiftA A)
-  := Limits.PullbackCone.mk (uLiftToPCat A) (uLiftGrothendieckForget A) comm_sq
+-- variable (A)
 
-variable {A}
+-- open Limits PullbackCone
 
-abbrev pt' {s : PullbackCone uLiftPCatForgetToCat (uLiftA A)}
-    (x : s.pt) := (downFunctor.obj (s.fst.obj x)).fiber
+-- def cone : Limits.PullbackCone uLiftPCatForgetToCat (uLiftA A)
+--   := Limits.PullbackCone.mk (uLiftToPCat A) (uLiftGrothendieckForget A) comm_sq
 
-theorem condition' {s : PullbackCone uLiftPCatForgetToCat (uLiftA A)} :
-    s.fst ⋙ downFunctor ⋙ PCat.forgetToCat = s.snd ⋙ downFunctor ⋙ A := by
-  rw [← comp_upFunctor_inj.{_,_,_,_,max u (v + 1)}]
-  exact s.condition
+-- variable {A}
 
-variable {s : PullbackCone uLiftPCatForgetToCat.{v,u} (uLiftA.{v,u} A)} {x y : s.pt} {f : x ⟶ y}
+-- abbrev pt' {s : PullbackCone uLiftPCatForgetToCat (uLiftA A)}
+--     (x : s.pt) := (downFunctor.obj (s.fst.obj x)).fiber
 
-def lift (s : PullbackCone uLiftPCatForgetToCat.{v,u} (uLiftA.{v,u} A)) :
-    s.pt ⥤ Grothendieck A :=
-  IsMegaPullback.lift
-    (s.fst ⋙ downFunctor)
-    (s.snd ⋙ downFunctor)
-    condition'
+-- theorem condition' {s : PullbackCone uLiftPCatForgetToCat (uLiftA A)} :
+--     s.fst ⋙ downFunctor ⋙ PCat.forgetToCat = s.snd ⋙ downFunctor ⋙ A := by
+--   rw [← comp_upFunctor_inj.{_,_,_,_,max u (v + 1)}]
+--   exact s.condition
 
-def lift' (s : PullbackCone uLiftPCatForgetToCat (uLiftA A)) :
-    s.pt ⟶ uLiftGrothendieck A := (lift s) ⋙ ULift.upFunctor
+-- variable {s : PullbackCone uLiftPCatForgetToCat.{v,u} (uLiftA.{v,u} A)} {x y : s.pt} {f : x ⟶ y}
 
-theorem fac_left (s : PullbackCone uLiftPCatForgetToCat (uLiftA A)) :
-    lift s ⋙ Grothendieck.toPCat A ⋙ upFunctor = s.fst := by
-  rw [← comp_downFunctor_inj]
-  exact IsMegaPullback.fac_left
-    (s.fst ⋙ downFunctor)
-    (s.snd ⋙ downFunctor)
-    condition'
+-- def lift (s : PullbackCone uLiftPCatForgetToCat.{v,u} (uLiftA.{v,u} A)) :
+--     s.pt ⥤ Grothendieck A :=
+--   IsMegaPullback.lift
+--     (s.fst ⋙ downFunctor)
+--     (s.snd ⋙ downFunctor)
+--     condition'
 
-theorem fac_right (s : PullbackCone uLiftPCatForgetToCat (uLiftA A)) :
-    lift s ⋙ Grothendieck.forget A ⋙ upFunctor
-    = s.snd := by
-  rw [← comp_downFunctor_inj]
-  exact IsMegaPullback.fac_right
-    (s.fst ⋙ downFunctor)
-    (s.snd ⋙ downFunctor)
-    condition'
+-- def lift' (s : PullbackCone uLiftPCatForgetToCat (uLiftA A)) :
+--     s.pt ⟶ uLiftGrothendieck A := (lift s) ⋙ ULift.upFunctor
 
-theorem lift_uniq (s : PullbackCone uLiftPCatForgetToCat.{v,u} (uLiftA.{v,u} A)) (m : s.pt ⥤ Grothendieck A)
-    (hl : m ⋙ Grothendieck.toPCat A = s.fst ⋙ downFunctor)
-    (hr : m ⋙ Grothendieck.forget A = s.snd ⋙ downFunctor) :
-    m = lift s :=
-  IsMegaPullback.lift_uniq
-    (s.fst ⋙ downFunctor) (s.snd ⋙ downFunctor) condition' m hl hr
+-- theorem fac_left (s : PullbackCone uLiftPCatForgetToCat (uLiftA A)) :
+--     lift s ⋙ Grothendieck.toPCat A ⋙ upFunctor = s.fst := by
+--   rw [← comp_downFunctor_inj]
+--   exact IsMegaPullback.fac_left
+--     (s.fst ⋙ downFunctor)
+--     (s.snd ⋙ downFunctor)
+--     condition'
 
-theorem lift_uniq' (s : PullbackCone uLiftPCatForgetToCat.{v,u} (uLiftA.{v,u} A)) (m : s.pt ⟶ uLiftGrothendieck A)
-    (hl : m ≫ uLiftToPCat A = s.fst) (hr : m ≫ uLiftGrothendieckForget A = s.snd) :
-    m = lift' s := by
-  unfold lift'
-  rw [← lift_uniq s (m ⋙ downFunctor) (congr_arg (λ F ↦ F ⋙ downFunctor) hl)
-    (by
-      simp only [Cat.of_α, Functor.assoc, ← hr, uLiftGrothendieckForget, Cat.comp_eq_comp]
-      rfl)]
-  aesop_cat
+-- theorem fac_right (s : PullbackCone uLiftPCatForgetToCat (uLiftA A)) :
+--     lift s ⋙ Grothendieck.forget A ⋙ upFunctor
+--     = s.snd := by
+--   rw [← comp_downFunctor_inj]
+--   exact IsMegaPullback.fac_right
+--     (s.fst ⋙ downFunctor)
+--     (s.snd ⋙ downFunctor)
+--     condition'
 
-variable (A)
+-- theorem lift_uniq (s : PullbackCone uLiftPCatForgetToCat.{v,u} (uLiftA.{v,u} A)) (m : s.pt ⥤ Grothendieck A)
+--     (hl : m ⋙ Grothendieck.toPCat A = s.fst ⋙ downFunctor)
+--     (hr : m ⋙ Grothendieck.forget A = s.snd ⋙ downFunctor) :
+--     m = lift s :=
+--   IsMegaPullback.lift_uniq
+--     (s.fst ⋙ downFunctor) (s.snd ⋙ downFunctor) condition' m hl hr
 
-def isLimit : IsLimit (cone A) :=
-  IsLimit.mk comm_sq lift' fac_left fac_right lift_uniq'
+-- theorem lift_uniq' (s : PullbackCone uLiftPCatForgetToCat.{v,u} (uLiftA.{v,u} A)) (m : s.pt ⟶ uLiftGrothendieck A)
+--     (hl : m ≫ uLiftToPCat A = s.fst) (hr : m ≫ uLiftGrothendieckForget A = s.snd) :
+--     m = lift' s := by
+--   unfold lift'
+--   rw [← lift_uniq s (m ⋙ downFunctor) (congr_arg (λ F ↦ F ⋙ downFunctor) hl)
+--     (by
+--       simp only [Cat.of_α, Functor.assoc, ← hr, uLiftGrothendieckForget, Cat.comp_eq_comp]
+--       rfl)]
+--   aesop_cat
 
-end IsPullback
+-- variable (A)
 
-open IsPullback
+-- def isLimit : IsLimit (cone A) :=
+--   IsLimit.mk comm_sq lift' fac_left fac_right lift_uniq'
 
-/-
-The following square is a pullback
+-- end IsPullback
 
-  Grothendieck A --- toPCat ----> PCat
-        |                           |
-        |                           |
- Grothendieck.forget        PCat.forgetToCat
-        |                           |
-        v                           v
-        Γ--------------A---------> Cat
-in the appropriately sized category `Cat.{v, max u (v+1)}`;
-where `(Γ : Type u) [Category.{v} Γ] (A : Γ ⥤ Cat.{v,v})`.
+-- open IsPullback
 
-This particular choice of hom universe level avoids using ULiftHom.
-In our applications either `u = v` for a small `Γ`
-so that `A : Γ ⥤ Cat.{u,u}`,
-or `Γ = Grpd.{v,v}` and `A : Grpd.{v,v} ⥤ Cat.{v,v}` is the inclusion
-so that `u = v + 1`.
--/
-theorem isPullback {Γ : Type u} [Category.{v} Γ] (A : Γ ⥤ Cat.{v,v}) :
-    IsPullback
-      (uLiftToPCat A)
-      (uLiftGrothendieckForget A)
-      (uLiftPCatForgetToCat)
-      (uLiftA A) :=
-  IsPullback.of_isLimit (isLimit A)
+-- /-
+-- The following square is a pullback
+
+--   Grothendieck A --- toPCat ----> PCat
+--         |                           |
+--         |                           |
+--  Grothendieck.forget        PCat.forgetToCat
+--         |                           |
+--         v                           v
+--         Γ--------------A---------> Cat
+-- in the appropriately sized category `Cat.{v, max u (v+1)}`;
+-- where `(Γ : Type u) [Category.{v} Γ] (A : Γ ⥤ Cat.{v,v})`.
+
+-- This particular choice of hom universe level avoids using ULiftHom.
+-- In our applications either `u = v` for a small `Γ`
+-- so that `A : Γ ⥤ Cat.{u,u}`,
+-- or `Γ = Grpd.{v,v}` and `A : Grpd.{v,v} ⥤ Cat.{v,v}` is the inclusion
+-- so that `u = v + 1`.
+-- -/
+-- theorem isPullback {Γ : Type u} [Category.{v} Γ] (A : Γ ⥤ Cat.{v,v}) :
+--     IsPullback
+--       (uLiftToPCat A)
+--       (uLiftGrothendieckForget A)
+--       (uLiftPCatForgetToCat)
+--       (uLiftA A) :=
+--   IsPullback.of_isLimit (isLimit A)
 
 end Grothendieck
 
