@@ -4,6 +4,7 @@ universe v u
 
 namespace CategoryTheory.Functor
 
+section
 variable {Libya Egypt Chad Sudan : Type*}
   [Category Libya] [Category Egypt] [Category Chad] [Category Sudan]
 
@@ -163,4 +164,52 @@ end
 
 end Pullback
 
+end
+
+
 end CategoryTheory.Functor
+
+namespace CategoryTheory.Cat
+
+open Functor Limits
+
+section
+variable {Libya Egypt Chad Sudan : Type u} [Category.{v} Libya]
+  [Category.{v} Egypt] [Category.{v} Chad] [Category.{v} Sudan]
+  {north : Libya ⥤ Egypt} {west : Libya ⥤ Chad}
+  {east : Egypt ⥤ Sudan} {south : Chad ⥤ Sudan}
+  {comm_sq : north ⋙ east = west ⋙ south}
+  (h : Π {C : Type u} [Category.{v} C] (cone : PullbackCone C east south),
+      Pullback (PullbackCone.mk north west comm_sq) cone)
+  (s : Limits.PullbackCone (homOf east) (homOf south))
+
+def pullbackCone :
+    Functor.PullbackCone s.pt east south where
+  north := s.fst
+  west := s.snd
+  comm_sq := s.condition
+
+def lift : s.pt ⟶ of Libya := (h (pullbackCone s)).lift
+
+def fac_left : lift h s ≫ (homOf north) = s.fst :=
+  (h (pullbackCone s)).fac_left
+
+def fac_right : lift h s ≫ (homOf west) = s.snd :=
+  (h (pullbackCone s)).fac_right
+
+def uniq (m : s.pt ⟶ of Libya) (hl : m ≫ homOf north = s.fst)
+    (hr : m ≫ homOf west = s.snd) : m = lift h s := by
+  apply (h (pullbackCone s)).hom_ext
+  · convert (fac_left h s).symm
+  · convert (fac_right h s).symm
+
+variable (comm_sq) in
+def isPullback :
+    IsPullback (homOf north) (homOf west) (homOf east)
+    (homOf south) :=
+  IsPullback.of_isLimit (PullbackCone.IsLimit.mk
+    comm_sq (lift h) (fac_left _) (fac_right _) (uniq _))
+
+end
+
+end CategoryTheory.Cat

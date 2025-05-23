@@ -168,7 +168,7 @@ end IsMegaPullback
 
 open IsMegaPullback
 
-def pullback (C : Type u) [Category.{v} C]
+def pullback (C : Type*) [Category C]
     (cone : Functor.PullbackCone C (PCat.forgetToCat) A) :
     Functor.Pullback
     (Functor.PullbackCone.mk (toPCat A) (Grothendieck.forget _) (comm_sq _))
