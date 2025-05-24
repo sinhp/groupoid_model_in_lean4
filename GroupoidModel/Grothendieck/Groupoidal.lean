@@ -198,6 +198,14 @@ theorem ι_map (c : C) {X Y : ↑(F.obj c)} (f : X ⟶ Y) :
     (ι F c).map f = ⟨𝟙 _, eqToHom (by simp [ι_obj, Grpd.forgetToCat]) ≫ f⟩ :=
   Grothendieck.ι_map _ _ _
 
+theorem ι_map_base (c : C) {X Y : ↑(F.obj c)} (f : X ⟶ Y) :
+    ((ι F c).map f).base = 𝟙 _ := by
+  simp[ι_map]
+
+theorem ι_map_fiber (c : C) {X Y : ↑(F.obj c)} (f : X ⟶ Y) :
+    ((ι F c).map f).fiber = eqToHom (by simp [ι_obj, Grpd.forgetToCat, ι_map]) ≫ f := by
+  simp[ι_map]
+
 variable {F}
 
 @[ext (iff := false)]
