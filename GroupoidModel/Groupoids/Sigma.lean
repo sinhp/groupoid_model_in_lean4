@@ -589,7 +589,7 @@ set_option maxHeartbeats 0 in
 
 set_option trace.profiler true in
 set_option trace.profiler.threshold 3000 in
-theorem pairSection_naturality_map_fiber' {x y} (f : x ⟶ y) :
+theorem pairSection_naturality_map_fiber {x y} (f : x ⟶ y) :
     eqToHom (by rw [pairSection_naturality_map_base])
     ≫ ((σ ⋙ pairSection h).map f).fiber =
     (eqToHom (pairSection_naturality_obj h σ x)
@@ -606,11 +606,11 @@ theorem pairSection_naturality_map_fiber' {x y} (f : x ⟶ y) :
         map_map_fiber, Functor.id_map, Category.assoc, eqToHom_trans_assoc, pairSection_obj]
         rw [eqToHom_eqToHom_base]
         simp [pairSectionObj, pairSectionMap, pairSectionMapFiber, mapPoint']
-        --Pointed.congr_point?
         --rw[eqToHom_app (Eq.symm (sigma_naturality B σ)) y]
---, Grpd.eqToHom_hom
+        --Pointed.congr_point?
+        -- Grpd.eqToHom_hom
         sorry
-      · simp[pairSectionMap_fiber_fiber, eqToHom_trans_assoc, pre_map_fiber, map_map_fiber,
+      · simp [pairSectionMap_fiber_fiber, eqToHom_trans_assoc, pre_map_fiber, map_map_fiber,
         pairSectionMap, homMk_fiber, pairSectionMapFiber]
         --rw! [eqToHom_eqToHom_fiber]
         sorry
