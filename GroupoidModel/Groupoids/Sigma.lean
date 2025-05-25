@@ -569,7 +569,7 @@ variable {A : Γ ⥤ Grpd}{x' x y y' : ∫(A)}
 --   simp [eqToHom_eqToHom_base, Grpd.forgetToCat]
 
 lemma eqToHom_eqToHom_fiber {A : Γ ⥤ Grpd} {x' x y y' : ∫(A)}
-    (hx : x' = x) (hy : y = y') (f : x ⟶ y) :
+    {hx : x' = x} {hy : y = y'} (f : x ⟶ y) :
     (eqToHom hx ≫ f ≫ eqToHom hy).fiber =
     eqToHom (by simp [eqToHom_eqToHom_base, Grpd.forgetToCat]) ≫ (A.map f.base ≫ (A.map (eqToHom hy).base)).map (eqToHom hx).fiber
     ≫ (A.map (eqToHom hy).base).map f.fiber ≫ (eqToHom hy).fiber := by
@@ -583,31 +583,9 @@ theorem eqToHom_base_map {C D : Type*} [Category C] [Category D] {A}
   by simp [eqToHom_map]
 
 
---set_option maxHeartbeats 0 in
-set_option trace.profiler true in
-set_option trace.profiler.threshold 3000 in
-theorem pairSection_naturality_map_fiber {x y} (f : x ⟶ y) :
-    eqToHom (by rw [pairSection_naturality_map_base])
-    ≫ ((σ ⋙ pairSection h).map f).fiber =
-    (eqToHom (pairSection_naturality_obj h σ x)
-      ≫ (pairSection (pairSection_naturality_aux h σ)
-        ⋙ map (eqToHom (sigma_naturality B σ).symm)
-        ⋙ pre (sigma (α ⋙ forgetToGrpd) B) σ).map f
-      ≫ eqToHom (pairSection_naturality_obj h σ y).symm).fiber := by
-      rw [comp_fiber, comp_fiber, eqToHom_fiber, eqToHom_fiber, eqToHom_comp_iff, eqToHom_trans_assoc]
-      --simp only [eqToHom_map, eqToHom_fiber, ]
-      --simp timeout!!!
-      --rw! [eqToHom_base_map]
-      dsimp only [Functor.comp_map, pairSection_map]
-      fapply Grothendieck.Groupoidal.ext
-      swap
-      · sorry
-      · ----rw[pairSectionMap_fiber_base]
-        -- simp only [pairSectionMap_fiber_base, eqToHom_refl, Grpd.id_eq_id, pre_map_fiber,
-        --   map_map_fiber, Functor.id_map, Category.assoc, eqToHom_trans_assoc]
-        -- rw [eqToHom_eqToHom_base]
-        ----rw! [eqToHom_app, Grpd.eqToHom_hom]
-        sorry
+
+set_option maxHeartbeats 0 in
+
 
 set_option trace.profiler true in
 set_option trace.profiler.threshold 3000 in
@@ -627,10 +605,14 @@ theorem pairSection_naturality_map_fiber' {x y} (f : x ⟶ y) :
       · simp only [pairSectionMap_fiber_base, eqToHom_refl, Grpd.id_eq_id, pre_map_fiber,
         map_map_fiber, Functor.id_map, Category.assoc, eqToHom_trans_assoc, pairSection_obj]
         rw [eqToHom_eqToHom_base]
-        --rw! [eqToHom_app, Grpd.eqToHom_hom]
-
+        simp [pairSectionObj, pairSectionMap, pairSectionMapFiber, mapPoint']
+        --Pointed.congr_point?
+        --rw[eqToHom_app (Eq.symm (sigma_naturality B σ)) y]
+--, Grpd.eqToHom_hom
         sorry
-      · simp only[pairSectionMap_fiber_fiber, eqToHom_trans_assoc, pre_map_fiber, ]
+      · simp[pairSectionMap_fiber_fiber, eqToHom_trans_assoc, pre_map_fiber, map_map_fiber,
+        pairSectionMap, homMk_fiber, pairSectionMapFiber]
+        --rw! [eqToHom_eqToHom_fiber]
         sorry
 
 -- TODO consider changing this statement. Namely the `map (eqToHom ⋯)` part.
