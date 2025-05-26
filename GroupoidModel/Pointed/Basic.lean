@@ -308,6 +308,20 @@ theorem mapFiber'_comp_aux1 {x y z} (f : x ⟶ y) (g : y ⟶ z) :
   subst h
   simp [objFiber]
 
+theorem mapPoint'_comp_aux2 {x y z} (f : x ⟶ y) (g : y ⟶ z) :
+    ((α.map (f ≫ g)).obj PointedCategory.pt ⟶ objPt α z) =
+    ((eqToHom (mapPoint'_comp_aux0 h)).obj ((α.map (f ≫ g)).obj PointedCategory.pt) ⟶ objPt' h z) := by
+  subst h
+  rfl
+
+set_option linter.unusedVariables false in
+theorem mapPoint'_comp_aux3 (h : α ⋙ PGrpd.forgetToGrpd = A) {x y z} (f : x ⟶ y)
+    (g : y ⟶ z) : (α.map (f ≫ g)).obj PointedCategory.pt
+    = (α.map g).obj ((α.map f).obj PointedCategory.pt) := by
+  subst h
+  simp
+>>>>>>> master
+
 theorem mapPoint'_comp {x y z} (f : x ⟶ y)
     (g : y ⟶ z) : mapFiber' h (f ≫ g)
     = eqToHom (by rw [mapFiber'_comp_aux1 h f g]; simp) ≫

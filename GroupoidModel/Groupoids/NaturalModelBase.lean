@@ -244,6 +244,16 @@ theorem smallUCompDomEquiv_apply_snd_fst {Γ : Ctx.{max u (v+1)}}
   rw! [smallU_var]
   rfl
 
+theorem smallUUvPolyTpCompDomEquiv_apply_fst {Γ : Ctx.{max u (v+1)}}
+    (ab : y(Γ) ⟶ smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp) :
+    (smallUUvPolyTpCompDomEquiv ab).fst ⋙ PGrpd.forgetToGrpd
+    = (smallUPTpEquiv (ab ≫ (
+      smallU.{v}.uvPolyTp.comp smallU.{v}.uvPolyTp).p)).fst := by
+  dsimp only [smallUPTpEquiv, Equiv.trans_apply, Equiv.sigmaCongrLeft]
+  rw [Equiv.sigmaCongr_apply_fst]
+  convert congr_arg yonedaCategoryEquiv.toFun
+    (@uvPolyTpCompDomEquiv_apply_fst Ctx.{max u (v+1)} _ smallU.{v} smallU.{v} Γ ab)
+
 end GroupoidModel
 
 end
