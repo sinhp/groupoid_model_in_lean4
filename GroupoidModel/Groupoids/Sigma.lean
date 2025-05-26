@@ -606,13 +606,14 @@ theorem pairSection_naturality_map_fiber {x y} (f : x ⟶ y) :
         map_map_fiber, Functor.id_map, Category.assoc, eqToHom_trans_assoc, pairSection_obj]
         rw [eqToHom_eqToHom_base]
         simp [pairSectionObj, pairSectionMap, pairSectionMapFiber, mapPoint']
-        --rw[eqToHom_app (Eq.symm (sigma_naturality B σ)) y]
+        rw! [eqToHom_app (Eq.symm (sigma_naturality B σ)) y]
         --Pointed.congr_point?
         -- Grpd.eqToHom_hom
         sorry
-      · simp [pairSectionMap_fiber_fiber, eqToHom_trans_assoc, pre_map_fiber, map_map_fiber,
-        pairSectionMap, homMk_fiber, pairSectionMapFiber]
-        --rw! [eqToHom_eqToHom_fiber]
+      · simp only[ pairSectionMap, pairSectionMapFiber, pairSectionObjFiber_base, eqToHom_refl,
+        Grpd.id_eq_id, pre_map_fiber, Functor.id_map, homMk_fiber, eqToHom_trans_assoc]
+-- simp [pairSectionMap_fiber_fiber, eqToHom_trans_assoc, pre_map_fiber, map_map_fiber,pairSectionMap, homMk_fiber, pairSectionMapFiber]
+       -- simp [eqToHom_eqToHom_fiber, map_map_fiber]
         sorry
 
 -- TODO consider changing this statement. Namely the `map (eqToHom ⋯)` part.
