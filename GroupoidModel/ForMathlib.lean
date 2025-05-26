@@ -147,6 +147,22 @@ end CategoryTheory.Cat
 
 namespace CategoryTheory
 
+section
+
+variable (C : Type*) [Category C] (D : Type*) [Category D]
+
+@[simp] lemma prod.eqToHom_fst (x y : C × D) (h : x = y) :
+    (eqToHom h).1 = eqToHom (by aesop) := by
+  subst h
+  rfl
+
+@[simp] lemma prod.eqToHom_snd (x y : C × D) (h : x = y) :
+    (eqToHom h).2 = eqToHom (by aesop) := by
+  subst h
+  rfl
+
+end
+
 namespace Grothendieck
 
 variable {Γ : Type u} [Category.{v} Γ] {A : Γ ⥤ Cat.{v₁,u₁}} {x y : Grothendieck A}

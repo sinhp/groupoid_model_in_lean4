@@ -1,199 +1,9 @@
 import GroupoidModel.ForMathlib
-import Mathlib.CategoryTheory.Widesubcategory
 
-universe v u v₁ u₁ v₂ u₂ v₃ u₃
+universe v u v₁ u₁
 
 namespace CategoryTheory.Functor
 
-section
-
-variable {Egypt : Type u₂} [Category.{v₂} Egypt]
-  {Chad : Type u₃} [Category.{v₃} Chad]
-  {Sudan : Type*} [Category Sudan]
-  (east : Egypt ⥤ Sudan) (south : Chad ⥤ Sudan)
-
-namespace Pullback
-
-def ChosenObjects := FullSubcategory (
-  fun p : Egypt × Chad => east.obj p.1 = south.obj p.2 )
-
-namespace ChosenObjects
-
-instance : Category (ChosenObjects east south) :=
-  inferInstanceAs (Category (FullSubcategory _))
-
-end ChosenObjects
-
-def morphismProperty : MorphismProperty (ChosenObjects east south) :=
-  fun {x y} f => east.map f.1
-    = eqToHom x.property ≫ south.map f.2 ≫ eqToHom y.property.symm
-
-instance : MorphismProperty.IsMultiplicative (morphismProperty east south) where
-  id_mem x := by
-    simp [morphismProperty, ChosenObjects, FullSubcategory.id_def]
-  comp_mem f g hf hg := by
-    simp only [morphismProperty, ChosenObjects,
-      FullSubcategory.comp_def, comp_eqToHom_iff] at *
-    simp [hg, hf]
-
-def Chosen := WideSubcategory (morphismProperty east south)
-
-instance : Category (Chosen east south) :=
-  inferInstanceAs (Category (WideSubcategory _))
-
-variable (Libya : Type*) [Category Libya]
-
-/-
-       north
-  Libya ----> Egypt
-    |          |
-  west         |east
-    |          |
-    V          V
-  Chad ----> Sudan
-       south
--/
-
-structure Cone where
-  (north : Libya ⥤ Egypt)
-  (west : Libya ⥤ Chad)
-  (comm_sq : north ⋙ east = west ⋙ south)
-
-namespace Chosen
-
-variable {C : Type u} [Category.{v} C]
-variable {east} {south}
-
-def north : Chosen east south ⥤ Egypt :=
-  wideSubcategoryInclusion _ ⋙ fullSubcategoryInclusion _ ⋙ Prod.fst _ _
-
-def west : Chosen east south ⥤ Chad :=
-  wideSubcategoryInclusion _ ⋙ fullSubcategoryInclusion _ ⋙ Prod.snd _ _
-
-@[simps!] def cone : Cone east south (Chosen east south) where
-  north := north
-  west := west
-  comm_sq := by
-    fapply Functor.ext
-    · intro x
-      dsimp [north, west]
-
-      sorry
-    · sorry
-
-variable (cone : Cone east south C)
-
-def lift : C ⥤ Chosen east south where
-  obj x := ⟨ ⟨ cone.north.obj x , cone.west.obj x ⟩ , congr_obj cone.comm_sq x ⟩
-  map f := ⟨ ⟨ cone.north.map f , cone.west.map f ⟩ , congr_hom cone.comm_sq f ⟩
-
-theorem fac_left : lift cone ⋙ north = cone.north :=
-  rfl
-
-theorem fac_right : lift cone ⋙ west = cone.west :=
-  rfl
-
-theorem hom_ext {l0 l1 : C ⥤ Chosen east south} (hnorth : l0 ⋙ north = l1 ⋙ north)
-   (hwest : l0 ⋙ west = l1 ⋙ west) : l0 = l1 := by
-  fapply Functor.ext
-  · intro x
-    apply WideSubcategory.ext
-    apply FullSubcategory.ext
-    apply Prod.ext
-    · exact congr_obj hnorth x
-    · exact congr_obj hwest x
-  · intro x y f
-    apply (wideSubcategory.faithful _).map_injective
-    apply (FullSubcategory.faithful _).map_injective
-    apply prod.hom_ext
-    · convert congr_hom hnorth f
-      simp only [Functor.map_comp, eqToHom_map]
-      simp [north]
-    · convert congr_hom hwest f
-      simp only [Functor.map_comp, eqToHom_map]
-      simp [west]
-
-end Chosen
-
-end Pullback
-
-open Pullback
-
-structure Pullback (Libya : Type*) [Category Libya] extends
-    Cone east south Libya where
-  (toChosen : Libya ⥤ Chosen east south)
-  (fromChosen : Chosen east south ⥤ Libya)
-  (to_from_id : toChosen ⋙ fromChosen = 𝟭 _)
-  (from_to_id : fromChosen ⋙ toChosen = 𝟭 _)
-  (from_north : fromChosen ⋙ north = Chosen.north)
-  (from_west : fromChosen ⋙ west = Chosen.west)
-
-namespace Pullback
-
-variable {east} {south}
-
-section
-
-variable {Libya : Type*} [Category Libya] (P : Pullback east south Libya)
-
-theorem to_north : P.toChosen ⋙ Chosen.north = P.north := by
-  rw [← P.from_north, ← Functor.assoc, to_from_id, Functor.id_comp]
-
-theorem to_west : P.toChosen ⋙ Chosen.west = P.west := by
-  rw [← P.from_west, ← Functor.assoc, to_from_id, Functor.id_comp]
-
-variable {C : Type u} [Category.{v} C] (cone : Cone east south C)
-
-def lift : C ⥤ Libya := Chosen.lift cone ⋙ P.fromChosen
-
-theorem fac_left : lift P cone ⋙ P.north = cone.north := by
-  simp [lift, Functor.assoc, from_north, Chosen.fac_left]
-
-theorem fac_right : lift P cone ⋙ P.west = cone.west := by
-  simp [lift, Functor.assoc, from_west, Chosen.fac_right]
-
-theorem hom_ext {l0 l1 : C ⥤ Libya} (hnorth : l0 ⋙ P.north = l1 ⋙ P.north)
-    (hwest : l0 ⋙ P.west = l1 ⋙ P.west) : l0 = l1 :=
-  calc l0
-    _ = l0 ⋙ P.toChosen ⋙ P.fromChosen := by rw [to_from_id, Functor.comp_id]
-    _ = l1 ⋙ P.toChosen ⋙ P.fromChosen := by
-      dsimp only [← Functor.assoc]
-      congr 1
-      apply Chosen.hom_ext
-      · simp [Functor.assoc, to_north, hnorth]
-      · simp [Functor.assoc, to_west, hwest]
-    _ = l1 := by rw [to_from_id, Functor.comp_id]
-
-end
-
-section
-variable {Libya : Type*} [Category Libya] (P : Cone east south Libya)
-variable (L : ∀ {C : Type (max u₂ u₃)} [Category.{max v₂ v₃} C]
-  (cone : Cone east south C),
-  (lift : C ⥤ Libya) ×'
-  (lift ⋙ P.north = cone.north) ∧
-  (lift ⋙ P.west = cone.west) ∧
-  (∀ {l0 l1 : C ⥤ Libya}, l0 ⋙ P.north = l1 ⋙ P.north →
-    l0 ⋙ P.west = l1 ⋙ P.west → l0 = l1))
-
-def ofLift : Pullback east south Libya := {
-  P with
-  toChosen := Chosen.lift P
-  fromChosen := L (Chosen.cone) sorry
-  to_from_id := sorry
-  from_to_id := sorry
-  from_north := sorry
-  from_west := sorry
-}
-
-
-end
-
-end Pullback
-
-end
-
-#exit
 section
 variable {Libya Egypt Chad Sudan : Type*}
   [Category Libya] [Category Egypt] [Category Chad] [Category Sudan]
@@ -213,6 +23,93 @@ structure PullbackCone (C : Type*) [Category C] (east : Egypt ⥤ Sudan) (south 
   (north : C ⥤ Egypt)
   (west : C ⥤ Chad)
   (comm_sq : north ⋙ east = west ⋙ south)
+
+namespace PullbackCone
+
+def pre {C : Type*} [Category C] {east : Egypt ⥤ Sudan} {south : Chad ⥤ Sudan}
+    (cone : PullbackCone C east south) {D : Type*} [Category D] (F : D ⥤ C)
+    : PullbackCone D east south where
+  north := F ⋙ cone.north
+  west := F ⋙ cone.west
+  comm_sq := by rw [Functor.assoc, Functor.assoc, cone.comm_sq]
+
+end PullbackCone
+
+section
+variable {C : Type*} [Category C]
+
+-- set_option pp.instances true in
+-- def asd : Category (Fin 2) := inferInstance
+
+-- lemma sdlfkj : asd = sorry := by
+--   dsimp [asd, inferInstance]
+--   sorry
+-- #print asd
+
+def Fin1.functor (x : C) : Fin 1 ⥤ C where
+  obj n := match n with
+  | 0 => x
+  map {n m} lt := match n, m with
+  | 0, 0 => 𝟙 x
+  map_comp {n m l} nm ml := match n, m, l with
+  | 0, 0, 0 => by simp
+
+def Fin2.arrow : (0 : Fin 2) ⟶ 1 := ⟨⟨ by simp ⟩⟩
+
+def Fin2.functor {x y : C} (f : x ⟶ y) : Fin 2 ⥤ C where
+  obj n := match n with
+  | 0 => x
+  | 1 => y
+  map {n m} lt := match n, m with
+  | 0, 0 => 𝟙 x
+  | 0, 1 => f
+  | 1, 0 => by
+      have := lt.1.1
+      aesop
+  | 1, 1 => 𝟙 y
+  map_comp {n m l} nm ml := match n, m, l with
+  | 0, 0, 0 => by simp
+  | 0, 0, 1 => by simp
+  | 0, 1, 0 => by have := ml.1.1; aesop
+  | 0, 1, 1 => by simp
+  | 1, 0, 0 => by simp
+  | 1, 0, 1 => by have := nm.1.1; aesop
+  | 1, 1, 0 => by simp
+  | 1, 1, 1 => by simp
+
+end
+
+section
+variable (Libya) (east : Egypt ⥤ Sudan) (south : Chad ⥤ Sudan)
+
+structure Pullback extends
+  PullbackCone Libya east south where
+  (lift1 : PullbackCone (Fin 1) east south → Fin 1 ⥤ Libya)
+  (fac_left1 (cone : PullbackCone (Fin 1) east south) :
+    lift1 cone ⋙ north = cone.north)
+  (fac_right1 (cone : PullbackCone (Fin 1) east south) :
+    lift1 cone ⋙ west = cone.west)
+  (hom_ext1 {l0 l1 : Fin 1 ⥤ Libya} : l0 ⋙ north = l1 ⋙ north →
+    l0 ⋙ west = l1 ⋙ west → l0 = l1)
+  (lift2 : PullbackCone (Fin 2) east south → Fin 2 ⥤ Libya)
+  (fac_left2 (cone : PullbackCone (Fin 2) east south) :
+    lift2 cone ⋙ north = cone.north)
+  (fac_right2 (cone : PullbackCone (Fin 2) east south) :
+    lift2 cone ⋙ west = cone.west)
+  (hom_ext2 {l0 l1 : Fin 2 ⥤ Libya} : l0 ⋙ north = l1 ⋙ north →
+    l0 ⋙ west = l1 ⋙ west → l0 = l1)
+
+variable (pb : Pullback Libya east south)
+  {C : Type*} [Category C] (cone : PullbackCone C east south)
+
+def lift : C ⥤ Libya where
+  obj x := (pb.lift1 (cone.pre (Fin1.functor x))).obj 0
+  map f := eqToHom (by simp; sorry) ≫ (pb.lift2 (cone.pre (Fin2.functor f))).map Fin2.arrow ≫ eqToHom (by simp; sorry)
+  map_id := sorry
+  map_comp := sorry
+
+#exit
+end
 
 structure Pullback {east : Egypt ⥤ Sudan} {south : Chad ⥤ Sudan}
     (P : PullbackCone Libya east south)
