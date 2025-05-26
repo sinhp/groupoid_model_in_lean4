@@ -41,14 +41,14 @@ The following square is a (meta-theoretic) pullback
         v                           v
       Grpd------forgetToCat------->Cat
 -/
-def pullback {C : Type*} [Category C]
+def pullback {C : Type u₁} [Category.{v₁} C]
     (cone : Functor.PullbackCone C PCat.forgetToCat.{v,u}
       Grpd.forgetToCat.{v,u}) :
     Functor.Pullback
     (Functor.PullbackCone.mk PGrpd.forgetToPCat.{v,u} PGrpd.forgetToGrpd.{v,u}
       forgetToPCat_forgetToCat)
     cone :=
-  Grothendieck.pullback (Grpd.forgetToCat.{v,u}) C cone
+  Grothendieck.pullback (Grpd.forgetToCat.{v,u}) cone
 
 /--
 The following square is a pullback in `Cat`

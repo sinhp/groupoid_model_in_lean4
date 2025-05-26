@@ -168,7 +168,17 @@ end IsMegaPullback
 
 open IsMegaPullback
 
-def pullback (C : Type*) [Category C]
+/--
+The following square is a (meta-theoretic) pullback of functors
+  Grothendieck A --- toPCat ----> PCat
+        |                           |
+        |                           |
+ Grothendieck.forget        PCat.forgetToCat
+        |                           |
+        v                           v
+        Γ--------------A---------> Cat
+-/
+def pullback {C : Type u₂} [Category.{v₂} C]
     (cone : Functor.PullbackCone C (PCat.forgetToCat) A) :
     Functor.Pullback
     (Functor.PullbackCone.mk (toPCat A) (Grothendieck.forget _) (comm_sq _))

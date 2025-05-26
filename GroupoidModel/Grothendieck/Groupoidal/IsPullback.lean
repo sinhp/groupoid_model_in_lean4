@@ -6,7 +6,7 @@ import SEq.Tactic.DepRewrite
 /-!
 # The Groupidal Grothendieck construction
 
-  ∫(toCat A) ------- toPGrpd ---------> PGrpd
+       ∫(A) ------- toPGrpd ---------> PGrpd
         |                                 |
         |                                 |
      forget                     PGrpd.forgetToGrpd
@@ -23,6 +23,74 @@ namespace Grothendieck
 
 namespace Groupoidal
 
+section
+
+variable {Γ : Type u} [Category.{v} Γ] (A : Γ ⥤ Grpd.{v₁,u₁})
+
+/--
+`toPGrpd` is the lift induced by the pullback property of `PGrpd`
+       ∫(A) ------- toPGrpd ---------> PGrpd --------> PCat
+        |                                 |              |
+        |                                 |              |
+     forget                     PGrpd.forgetToGrpd      PCat.forgetToCat
+        |                                 |              |
+        |                                 |              |
+        v                                 v              v
+        Γ--------------A---------------> Grpd --------> Cat
+-/
+def toPGrpd : ∫(A) ⥤ PGrpd.{v₁,u₁} := Functor.Pullback.ofRight'Lift
+  (Grothendieck.IsMegaPullback.comm_sq (A ⋙ Grpd.forgetToCat))
+  PGrpd.forgetToPCat_forgetToCat PGrpd.pullback
+
+theorem toPGrpd_forgetToGrpd :
+    toPGrpd A ⋙ PGrpd.forgetToGrpd = forget ⋙ A :=
+  Functor.Pullback.ofRight'CommSq _ _ _
+
+def pullback' {C : Type u₂} [Category.{v₂} C]
+    (cone : Functor.PullbackCone C (PCat.forgetToCat) (A ⋙ Grpd.forgetToCat)) :
+    Functor.Pullback
+    (Functor.PullbackCone.mk (toPCat _) (Grothendieck.forget _) (Grothendieck.IsMegaPullback.comm_sq _))
+    cone := Grothendieck.pullback.{_,_,_,_,v₂,u₂} (A ⋙ Grpd.forgetToCat) cone
+
+/--
+The left square is a pullback since the right square and outer square are.
+       ∫(A) ------- toPGrpd ---------> PGrpd --------> PCat
+        |                                 |              |
+        |                                 |              |
+     forget                     PGrpd.forgetToGrpd      PCat.forgetToCat
+        |                                 |              |
+        |                                 |              |
+        v                                 v              v
+        Γ--------------A---------------> Grpd --------> Cat
+-/
+def pullback {C : Type u₂} [Category.{v₂} C]
+    (cone : Functor.PullbackCone C (PGrpd.forgetToGrpd) A) :
+    Functor.Pullback (Functor.PullbackCone.mk (toPGrpd A)
+      (Grothendieck.forget _)
+      (toPGrpd_forgetToGrpd A))
+    cone := by
+  -- have h := @Functor.Pullback.ofRight'.{v₂,u₂} PGrpd PCat Grpd Cat _ _ _ _ ∫(A) Γ _ _
+  --   (Grothendieck.toPCat (A ⋙ Grpd.forgetToCat)) PGrpd.forgetToPCat forget
+  --   PGrpd.forgetToGrpd PCat.forgetToCat A Grpd.forgetToCat
+  --   (Grothendieck.IsMegaPullback.comm_sq (A ⋙ Grpd.forgetToCat))
+  --   PGrpd.forgetToPCat_forgetToCat
+  --   PGrpd.pullback
+  --   (pullback' A)
+  --   C
+    -- _ _
+    -- cone
+    -- (toPGrpd_forgetToGrpd A)
+
+  -- apply h
+  -- (Grothendieck.IsMegaPullback.comm_sq (A ⋙ Grpd.forgetToCat)) (toPGrpd_forgetToGrpd A) (fun cone' => PGrpd.pullback.{_,_,v₂,u₂} cone') (fun cone' => Grothendieck.pullback.{_,_,_,_,v₂,u₂} (A ⋙ Grpd.forgetToCat) cone') cone
+  sorry
+
+-- def pullback {C : Type*} [Category C]
+--     (cone : Functor.PullbackCone C (PGrpd.forgetToGrpd) A) :=
+--   Functor.Pullback.ofRight' _ _ PGrpd.pullback (pullback' A) cone
+
+end
+#exit
 section
 
 variable {Γ : Type u} [Category.{v} Γ] {A : Γ ⥤ Grpd.{v₁,u₁}}
