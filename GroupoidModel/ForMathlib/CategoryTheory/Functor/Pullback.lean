@@ -76,10 +76,9 @@ def west : Chosen east south ⥤ Chad :=
   comm_sq := by
     fapply Functor.ext
     · intro x
-      dsimp [north, west]
-
-      sorry
-    · sorry
+      exact x.obj.property
+    · intro x y f
+      exact f.property
 
 variable (cone : Cone east south C)
 
@@ -179,7 +178,7 @@ variable (L : ∀ {C : Type (max u₂ u₃)} [Category.{max v₂ v₃} C]
 def ofLift : Pullback east south Libya := {
   P with
   toChosen := Chosen.lift P
-  fromChosen := L (Chosen.cone) sorry
+  fromChosen := (L Chosen.cone).1
   to_from_id := sorry
   from_to_id := sorry
   from_north := sorry
