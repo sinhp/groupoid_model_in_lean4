@@ -4,8 +4,6 @@
 - judgments stratified by universe.
 -/
 
-set_option autoImplicit false -- no, bad.
-
 /-- A Hott₀ expression. -/
 inductive Expr where
   /-- De Bruijn index. -/
