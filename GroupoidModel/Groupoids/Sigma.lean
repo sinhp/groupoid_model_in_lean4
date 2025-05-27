@@ -605,20 +605,20 @@ theorem pairSection_naturality_map_fiber {x y} (f : x ⟶ y) :
       rw! [eqToHom_base_map]
       dsimp only [Functor.comp_map, pairSection_map]
       fapply Grothendieck.Groupoidal.ext
-      · simp only [pairSectionMap_fiber_base, eqToHom_refl, Grpd.id_eq_id, pre_map_fiber,
-        map_map_fiber, Functor.id_map, Category.assoc, eqToHom_trans_assoc, pairSection_obj]
-        rw [eqToHom_eqToHom_base]
-        simp [pairSectionObj, pairSectionMap, pairSectionMapFiber, mapPoint']
-        rw! [eqToHom_app (Eq.symm (sigma_naturality B σ)) y]
-        --Pointed.congr_point?
-        -- Grpd.eqToHom_hom
+      ·
+        -- simp only [pairSectionMap_fiber_base, eqToHom_refl, Grpd.id_eq_id, pre_map_fiber]
+        -- simp only [map_map_fiber, Functor.id_map, Category.assoc, eqToHom_trans_assoc, pairSection_obj]
+        -- rw [eqToHom_eqToHom_base]
+        -- simp [pairSectionObj, pairSectionMap, pairSectionMapFiber, mapPoint']
+        -- rw! [eqToHom_app (Eq.symm (sigma_naturality B σ)) y]
         sorry
-      · simp only[ pairSectionMap, pairSectionMapFiber, pairSectionObjFiber_base, eqToHom_refl,
-        Grpd.id_eq_id, pre_map_fiber, Functor.id_map, homMk_fiber, eqToHom_trans_assoc]
--- simp [pairSectionMap_fiber_fiber, eqToHom_trans_assoc, pre_map_fiber, map_map_fiber,pairSectionMap, homMk_fiber, pairSectionMapFiber]
-       -- simp [eqToHom_eqToHom_fiber, map_map_fiber]
+      ·
+        -- simp only[ pairSectionMap, pairSectionMapFiber, pairSectionObjFiber_base, eqToHom_refl,
+        -- Grpd.id_eq_id, pre_map_fiber, Functor.id_map, homMk_fiber, eqToHom_trans_assoc]
+        -- the above simp only comes from: simp [pairSectionMap_fiber_fiber, eqToHom_trans_assoc, pre_map_fiber, map_map_fiber,pairSectionMap, homMk_fiber, pairSectionMapFiber]
+        -- doesnt work but looks useful: simp [eqToHom_eqToHom_fiber, map_map_fiber]
         sorry
-#check Grpd.eqToHom_h
+
 -- TODO consider changing this statement. Namely the `map (eqToHom ⋯)` part.
 theorem pairSection_naturality : σ ⋙ pairSection h =
     pairSection (pairSection_naturality_aux h σ)
