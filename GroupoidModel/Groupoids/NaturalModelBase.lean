@@ -20,7 +20,6 @@ open CategoryTheory
   GroupoidModel.IsPullback.SmallUHom
   Grothendieck.Groupoidal
 
-
 namespace GroupoidModel
 
 -- TODO link to this in blueprint
@@ -172,7 +171,10 @@ end
       Core.functorToCoreEquiv, Core.forgetFunctorToCore, Ctx.homGrpdEquivFunctor,
       -AsSmall.down_map, Functor.assoc, Functor.comp_id,
       Core.functorToCore_naturality_left, Core.functorToCore_inclusion_apply]
-  . rw [← Functor.map_comp, sec_disp, ← Functor.map_comp]
+  . rw [← Functor.map_comp, sec_disp]
+    simp only [CategoryTheory.Functor.map_id, smallU_Tm, smallU_Ty, smallU_tp, smallU_ext,
+      Ctx.equivalence_functor, Ctx.equivalence_inverse, smallU_disp, ←
+      Functor.map_comp, Grpd.comp_eq_comp, Grpd.coe_of, sec_forget, ← Grpd.id_eq_id]
     rfl
 
 theorem smallU_lift {Γ Δ : Ctx.{max u (v+1)}} (A : y(Γ) ⟶ smallU.{v}.Ty)
@@ -183,8 +185,11 @@ theorem smallU_lift {Γ Δ : Ctx.{max u (v+1)}} (A : y(Γ) ⟶ smallU.{v}.Ty)
       (yonedaCategoryEquiv fst)
       (Ctx.toGrpd.map snd)
       (by erw [← yonedaCategoryEquiv_naturality_right, w,
-        yonedaCategoryEquiv_naturality_left]))) :=
-  rfl
+        yonedaCategoryEquiv_naturality_left]))) := by
+  apply (smallU.{v}.disp_pullback A).hom_ext
+  · simp [← Functor.map_comp, toCoreAsSmallEquiv]
+    sorry
+  · sorry
 
 -- TODO shorten name
 /-- A specialization of the universal property of `UvPoly.compDom`
@@ -227,8 +232,8 @@ theorem smallUCompDomEquiv_apply_fst_forgetToGrpd
 theorem smallUCompDomEquiv_apply_snd_fst {Γ : Ctx.{max u (v+1)}}
     (ab : y(Γ) ⟶ smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp) :
     (smallUCompDomEquiv ab).snd.fst
-    = IsMegaPullback.lift (toPGrpd _) forget (by rw
-      [smallUCompDomEquiv_apply_fst_forgetToGrpd]; rfl)
+    = (Grothendieck.Groupoidal.isPullback _).lift (toPGrpd _) forget (by
+      rw [smallUCompDomEquiv_apply_fst_forgetToGrpd]; rfl)
       ⋙ (smallUPTpEquiv (ab ≫ (
       smallU.{v}.uvPolyTp.comp smallU.{v}.uvPolyTp).p)).snd := by
   dsimp only [smallUPTpEquiv, Equiv.trans_apply, smallUCompDomEquiv]
@@ -238,20 +243,21 @@ theorem smallUCompDomEquiv_apply_snd_fst {Γ : Ctx.{max u (v+1)}}
   apply (yonedaCategoryEquiv_naturality_left' _).trans
   rw [smallU_lift]
   simp only [Ctx.equivalence_inverse, Ctx.equivalence_functor,
-    AsSmall.down_obj, AsSmall.up_obj_down, FullyFaithful.preimage_map,
+    AsSmall.down_obj, AsSmall.up_obj_down, Functor.FullyFaithful.preimage_map,
     AsSmall.down_map, AsSmall.up_map_down]
   rw! [smallU_var]
   rfl
 
-theorem smallUUvPolyTpCompDomEquiv_apply_fst {Γ : Ctx.{max u (v+1)}}
+theorem smallUTpCompDomEquiv_apply_fst {Γ : Ctx.{max u (v+1)}}
     (ab : y(Γ) ⟶ smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp) :
-    (smallUUvPolyTpCompDomEquiv ab).fst ⋙ PGrpd.forgetToGrpd
+    (smallUCompDomEquiv ab).fst ⋙ PGrpd.forgetToGrpd
     = (smallUPTpEquiv (ab ≫ (
       smallU.{v}.uvPolyTp.comp smallU.{v}.uvPolyTp).p)).fst := by
   dsimp only [smallUPTpEquiv, Equiv.trans_apply, Equiv.sigmaCongrLeft]
   rw [Equiv.sigmaCongr_apply_fst]
-  convert congr_arg yonedaCategoryEquiv.toFun
-    (@uvPolyTpCompDomEquiv_apply_fst Ctx.{max u (v+1)} _ smallU.{v} smallU.{v} Γ ab)
+  sorry
+  -- convert congr_arg yonedaCategoryEquiv.toFun
+  --   (@compDomEquiv_apply_fst Ctx.{max u (v+1)} _ smallU.{v} smallU.{v} Γ ab)
 
 end GroupoidModel
 
