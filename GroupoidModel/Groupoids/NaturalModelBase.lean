@@ -4,8 +4,7 @@ import Mathlib.CategoryTheory.Category.Cat.Limit
 import Mathlib.CategoryTheory.ChosenFiniteProducts.Cat
 
 import GroupoidModel.Russell_PER_MS.UHom
-import GroupoidModel.Grothendieck.IsPullback
-import GroupoidModel.Grothendieck.Groupoidal
+import GroupoidModel.Grothendieck.Groupoidal.IsPullback
 import GroupoidModel.Groupoids.IsPullback
 
 /-!

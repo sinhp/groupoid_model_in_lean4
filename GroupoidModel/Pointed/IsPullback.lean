@@ -41,14 +41,9 @@ The following square is a (meta-theoretic) pullback
         v                           v
       Grpd------forgetToCat------->Cat
 -/
-def pullback {C : Type u₁} [Category.{v₁} C]
-    (cone : Functor.PullbackCone C PCat.forgetToCat.{v,u}
-      Grpd.forgetToCat.{v,u}) :
-    Functor.Pullback
-    (Functor.PullbackCone.mk PGrpd.forgetToPCat.{v,u} PGrpd.forgetToGrpd.{v,u}
-      forgetToPCat_forgetToCat)
-    cone :=
-  Grothendieck.pullback (Grpd.forgetToCat.{v,u}) cone
+def isPullback : Functor.IsPullback forgetToPCat.{v,u} forgetToGrpd.{v,u}
+      PCat.forgetToCat Grpd.forgetToCat :=
+  Grothendieck.isPullback _
 
 /--
 The following square is a pullback in `Cat`
@@ -61,13 +56,14 @@ The following square is a pullback in `Cat`
         v                           v
       Grpd------forgetToCat------->Cat
 -/
-theorem isPullback :
+theorem isPullback' :
     IsPullback
       (Cat.homOf PGrpd.forgetToPCat.{u,u})
       (Cat.homOf PGrpd.forgetToGrpd.{u,u})
       (Cat.homOf PCat.forgetToCat.{u,u})
       (Cat.homOf Grpd.forgetToCat.{u,u}) :=
-  Cat.isPullback _ pullback
+  Cat.isPullback forgetToPCat_forgetToCat isPullback
+
 
 end PGrpd
 end CategoryTheory

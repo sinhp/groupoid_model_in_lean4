@@ -912,10 +912,24 @@ variable {C : Type u} [Category.{v} C] {D : Type u₁} [Category.{v₁} D]
 variable {F : C ⥤ Cat.{v₂, u₂}} (A : D ⥤ C) (fibObj : Π (x : D), (A ⋙ F).obj x)
     (fibMap : Π {x y : D} (f : x ⟶ y),
       ((A ⋙ F).map f).obj (fibObj x) ⟶ fibObj y)
-    (map_id : Π (x : D), fibMap (CategoryStruct.id x) = eqToHom (by simp))
-    (map_comp : Π {x y z : D} (f : x ⟶ y) (g : y ⟶ z), fibMap (f ≫ g)
-      = eqToHom (by simp) ≫ (F.map (A.map g)).map (fibMap f) ≫ fibMap g)
 
+theorem functorTo_map_id_aux (x : D) : ((A ⋙ F).map (𝟙 x)).obj (fibObj x) = fibObj x := by
+  simp
+
+theorem functorTo_map_comp_aux {x y z : D} (f : x ⟶ y) (g : y ⟶ z) :
+    ((A ⋙ F).map (f ≫ g)).obj (fibObj x)
+    = (F.map (A.map g)).obj (((A ⋙ F).map f).obj (fibObj x)) := by
+  simp
+
+variable
+    (map_id : Π (x : D), fibMap (CategoryStruct.id x)
+      = eqToHom (functorTo_map_id_aux A fibObj x))
+    (map_comp : Π {x y z : D} (f : x ⟶ y) (g : y ⟶ z), fibMap (f ≫ g)
+      = eqToHom (functorTo_map_comp_aux A fibObj f g)
+      ≫ (F.map (A.map g)).map (fibMap f) ≫ fibMap g)
+
+/-- To define a functor into `Grothendieck F` we can make use of an existing
+  functor into the base. -/
 def functorTo : D ⥤ Grothendieck F where
   obj x := ⟨ A.obj x, fibObj x ⟩
   map f := ⟨ A.map f, fibMap f ⟩

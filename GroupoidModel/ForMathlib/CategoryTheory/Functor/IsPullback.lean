@@ -199,20 +199,53 @@ variable {Libya Egypt Chad Sudan : Type*} [Category Libya]
   (north : Libya ⥤ Egypt) (west : Libya ⥤ Chad)
   (east : Egypt ⥤ Sudan) (south : Chad ⥤ Sudan)
 
+section
+variable {Libya'} [Category Libya']
+  (h : IsPullback north west east south)
+
+/--
+We can construct a pullback by only providing an isomorphism to the chosen pullback.
+-/
+def ofIso (to' : Libya' ⥤ Libya)
+    (from' : Libya ⥤ Libya')
+    (htf : to' ⋙ from' = 𝟭 _) (hft: from' ⋙ to' = 𝟭 _) :
+    IsPullback (to' ⋙ north) (to' ⋙ west) east south where
+  comm_sq := by rw [Functor.assoc, h.comm_sq, Functor.assoc]
+  toChosen := to' ⋙ h.toChosen
+  fromChosen := h.fromChosen ⋙ from'
+  to_from_id := calc to' ⋙ (h.toChosen ⋙ h.fromChosen) ⋙ from'
+    _ = to' ⋙ from' := by rw [h.to_from_id, Functor.id_comp]
+    _ = 𝟭 _ := htf
+  from_to_id := calc h.fromChosen ⋙ (from' ⋙ to') ⋙ h.toChosen
+    _ = h.fromChosen ⋙ h.toChosen := by rw [hft, Functor.id_comp]
+    _ = 𝟭 _ := h.from_to_id
+  from_north := calc h.fromChosen ⋙ (from' ⋙ to') ⋙ north
+    _ = h.fromChosen ⋙ north := by rw [hft, Functor.id_comp]
+    _ = Chosen.north := h.from_north
+  from_west := calc h.fromChosen ⋙ (from' ⋙ to') ⋙ west
+    _ = h.fromChosen ⋙ west := by rw [hft, Functor.id_comp]
+    _ = Chosen.west := h.from_west
+
+end
+
+def Chosen.isPullback : IsPullback (@Chosen.north _ _ _ _ _ _ east south)
+    Chosen.west east south where
+  comm_sq := Chosen.comm_sq
+  toChosen := 𝟭 _
+  fromChosen := 𝟭 _
+  to_from_id := rfl
+  from_to_id := rfl
+  from_north := rfl
+  from_west := rfl
+
 /--
 We can construct a pullback by only providing an isomorphism to the chosen pullback.
 -/
 def ofIsoChosen (toChosen : Libya ⥤ Chosen east south)
     (fromChosen : Chosen east south ⥤ Libya)
     (htf : toChosen ⋙ fromChosen = 𝟭 _) (hft: fromChosen ⋙ toChosen = 𝟭 _) :
-    IsPullback (toChosen ⋙ Chosen.north) (toChosen ⋙ Chosen.west) east south where
-  comm_sq := by simp [Functor.assoc, Chosen.comm_sq]
-  toChosen := toChosen
-  fromChosen := fromChosen
-  to_from_id := htf
-  from_to_id := hft
-  from_north := by simp [← Functor.assoc, hft, Functor.id_comp]
-  from_west := by simp [← Functor.assoc, hft, Functor.id_comp]
+    IsPullback (toChosen ⋙ Chosen.north) (toChosen ⋙ Chosen.west) east south :=
+  ofIso _ _ _ _ (Chosen.isPullback east south) toChosen fromChosen htf hft
 
 variable {north} {east} {south} {west} (P : IsPullback north west east south)
 /--
@@ -494,7 +527,14 @@ are both pullbacks.
   Niger   -----> Chad  ----> Sudan
            so           uth
 -/
-def ofRight' : IsPullback (esah_pb.lift north (west ⋙ so) outer) west sah so := sorry
+def ofRight' {north : Algeria ⥤ Egypt} {rth : Libya ⥤ Egypt}
+  {west : Algeria ⥤ Niger} {sah : Libya ⥤ Chad} {east : Egypt ⥤ Sudan}
+  {so : Niger ⥤ Chad} {uth : Chad ⥤ Sudan}
+  (outer : north ⋙ east = west ⋙ so ⋙ uth)
+  (outer_pb : IsPullback north west east (so ⋙ uth))
+  (esah : rth ⋙ east = sah ⋙ uth)
+  (esah_pb : IsPullback rth sah east uth) :
+  IsPullback (esah_pb.lift north (west ⋙ so) outer) west sah so := sorry
 
 
 end ofRight'
@@ -507,3 +547,46 @@ end IsPullback
 
 end Functor
 end CategoryTheory
+
+namespace CategoryTheory.Cat
+
+open Functor Limits
+
+section
+variable {Libya Egypt Chad Sudan : Type u} [Category.{v} Libya]
+  [Category.{v} Egypt] [Category.{v} Chad] [Category.{v} Sudan]
+  {north : Libya ⥤ Egypt} {west : Libya ⥤ Chad}
+  {east : Egypt ⥤ Sudan} {south : Chad ⥤ Sudan}
+  {comm_sq : north ⋙ east = west ⋙ south}
+  (h : Functor.IsPullback north west east south)
+  (s : Limits.PullbackCone (homOf east) (homOf south))
+
+-- def pullbackCone :
+--     Functor.PullbackCone s.pt east south where
+--   north := s.fst
+--   west := s.snd
+--   comm_sq := s.condition
+
+def lift : s.pt ⟶ of Libya := h.lift s.fst s.snd s.condition
+
+def fac_left : lift h s ≫ (homOf north) = s.fst :=
+  h.fac_left _ _ _
+
+def fac_right : lift h s ≫ (homOf west) = s.snd :=
+  h.fac_right _ _ _
+
+def uniq (m : s.pt ⟶ of Libya) (hl : m ≫ homOf north = s.fst)
+    (hr : m ≫ homOf west = s.snd) : m = lift h s := by
+  apply h.hom_ext
+  · convert (fac_left h s).symm
+  · convert (fac_right h s).symm
+
+variable (comm_sq) in
+def isPullback : IsPullback (homOf north) (homOf west) (homOf east)
+    (homOf south) :=
+  IsPullback.of_isLimit (PullbackCone.IsLimit.mk
+    comm_sq (lift h) (fac_left _) (fac_right _) (uniq _))
+
+end
+
+end CategoryTheory.Cat

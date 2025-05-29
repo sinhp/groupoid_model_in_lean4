@@ -12,7 +12,7 @@ namespace CategoryTheory
 
 namespace Grothendieck
 
-open Functor
+open Functor.IsPullback
 
 section
 
@@ -41,12 +41,11 @@ def toPCat : Grothendieck A ⥤ PCat.{v₁,u₁} :=
     ((toPCat A).map f).fiber = f.fiber := by
   simp [toPCat]
 
-
-namespace IsMegaPullback
-
--- formerly duplicated as `toPCat_comp_forgetPoint`
-theorem comm_sq : toPCat A ⋙ PCat.forgetToCat
+-- formerly duplicated as `toPCat_comp_forgetPoint` and `comm_sq`
+theorem toPCat_forgetToCat : toPCat A ⋙ PCat.forgetToCat
   = Grothendieck.forget A ⋙ A := rfl
+
+namespace IsPullback
 
 variable {C : Type u₂} [Category.{v₂} C]
   (fst : C ⥤ PCat.{v₁, u₁})
@@ -88,9 +87,7 @@ theorem liftMapFiber_comp {x y z} (f : x ⟶ y) (g : y ⟶ z) :
 
 variable (fst) (snd)
 
-def lift : C ⥤ Grothendieck A :=
-  functorTo
-    snd
+def lift : C ⥤ Grothendieck A := functorTo snd
     (liftObjFiber w)
     (liftMapFiber w)
     (liftMapFiber_id w)
@@ -158,15 +155,22 @@ theorem hom_ext {m n : C ⥤ Grothendieck A}
     lift_uniq (n ⋙ toPCat A) (n ⋙ forget A) ?_ n rfl rfl]
   rw! [hl, hr]
   . show n ⋙ (toPCat A ⋙ PCat.forgetToCat) = _
-    rw [comm_sq]
-    rfl
+    rw [toPCat_forgetToCat, Functor.assoc]
   . show m ⋙ (toPCat A ⋙ PCat.forgetToCat) = _
-    rw [comm_sq]
-    rfl
+    rw [toPCat_forgetToCat, Functor.assoc]
 
-end IsMegaPullback
+def aux {C : Type*} [inst : Category C] (Cn : C ⥤ PCat) (Cw : C ⥤ Γ)
+    (hC : Cn ⋙ forget (𝟭 Cat) = Cw ⋙ A) :
+    (lift : C ⥤ Grothendieck A) ×'
+    lift ⋙ toPCat A = Cn ∧
+    lift ⋙ forget A = Cw ∧
+    ∀ {l0 l1 : C ⥤ Grothendieck A}, l0 ⋙ toPCat A = l1 ⋙ toPCat A →
+    l0 ⋙ forget A = l1 ⋙ forget A → l0 = l1 :=
+  ⟨ lift Cn Cw hC, fac_left _ _ _, fac_right _ _ _, hom_ext ⟩
 
-open IsMegaPullback
+end IsPullback
+
+open IsPullback
 
 /--
 The following square is a (meta-theoretic) pullback of functors
@@ -178,15 +182,10 @@ The following square is a (meta-theoretic) pullback of functors
         v                           v
         Γ--------------A---------> Cat
 -/
-def pullback {C : Type u₂} [Category.{v₂} C]
-    (cone : Functor.PullbackCone C (PCat.forgetToCat) A) :
-    Functor.Pullback
-    (Functor.PullbackCone.mk (toPCat A) (Grothendieck.forget _) (comm_sq _))
-    cone where
-  lift := lift cone.north cone.west cone.comm_sq
-  fac_left := fac_left _ _ _
-  fac_right := fac_right _ _ _
-  hom_ext := hom_ext
+def isPullback : Functor.IsPullback (toPCat A) (forget _) (forget _) A :=
+  ofUniversal (toPCat A) (forget _) (forget _) A (toPCat_forgetToCat _)
+  (fun Cn Cw hC => aux Cn Cw hC)
+  (fun Cn Cw hC => aux Cn Cw hC)
 
 end
 

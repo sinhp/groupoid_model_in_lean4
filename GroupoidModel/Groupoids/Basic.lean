@@ -16,6 +16,41 @@ noncomputable section
 open CategoryTheory ULift Grothendieck.Groupoidal
   Limits NaturalModelBase CategoryTheory.Functor
 
+namespace CategoryTheory.PGrpd
+def pGrpdToGroupoidalAsSmallFunctor : PGrpd.{v, v} ⥤
+    ∫(Grpd.asSmallFunctor.{max w (v+1), v, v}) :=
+  Grothendieck.functorTo (Grothendieck.forget _)
+  (fun x => AsSmall.up.obj.{v, v, max w (v + 1)} x.fiber)
+  (fun f => AsSmall.up.map f.fiber)
+  (by aesop_cat)
+  (by aesop_cat)
+
+def groupoidalAsSmallFunctorToPGrpd :
+    ∫(Grpd.asSmallFunctor.{max w (v+1), v, v}) ⥤ PGrpd.{v,v} :=
+  PGrpd.functorTo (Grothendieck.forget _)
+  (fun x => AsSmall.down.obj.{v, v, max w (v + 1)} x.fiber)
+  (fun f => AsSmall.down.map f.fiber)
+  (by aesop_cat)
+  (by aesop_cat)
+
+@[simp] def pGrpdToGroupoidalAsSmallFunctor_groupoidalAsSmallFunctorToPGrpd :
+    groupoidalAsSmallFunctorToPGrpd ⋙ pGrpdToGroupoidalAsSmallFunctor = 𝟭 _ :=
+  rfl
+
+@[simp] def groupoidalAsSmallFunctorToPGrpd_pGrpdToGroupoidalAsSmallFunctor :
+    pGrpdToGroupoidalAsSmallFunctor ⋙ groupoidalAsSmallFunctorToPGrpd = 𝟭 _ :=
+  rfl
+
+@[simp] def pGrpdToGroupoidalAsSmallFunctor_forget : pGrpdToGroupoidalAsSmallFunctor
+    ⋙ Grothendieck.Groupoidal.forget = Grothendieck.forget _ :=
+  rfl
+
+def asSmallFunctor : PGrpd.{v, v} ⥤ PGrpd.{max w (v+1), max w (v+1)} :=
+  pGrpdToGroupoidalAsSmallFunctor ⋙
+  Grothendieck.Groupoidal.toPGrpd Grpd.asSmallFunctor.{max w (v+1), v, v}
+
+end CategoryTheory.PGrpd
+
 namespace GroupoidModel
 
 /--
