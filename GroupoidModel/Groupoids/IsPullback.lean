@@ -164,34 +164,35 @@ end
 
 variable {Γ : Ctx.{max u (v+1)}} (A : Γ ⟶ U.{v, max u (v+1)})
 
-section IsPullback
+-- section IsPullback
 
-variable {C : Type*} [Category C] (Cn : C ⥤ AsSmall PGrpd)
-  (Cw : C ⥤ ↑(Ctx.toGrpd.obj Γ))
-  (hC : Cn ⋙ AsSmall.down ⋙ forgetToGrpd ⋙ AsSmall.up
-    = Cw ⋙ Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd))
+-- variable {C : Type*} [Category C] (Cn : C ⥤ AsSmall PGrpd)
+--   (Cw : C ⥤ ↑(Ctx.toGrpd.obj Γ))
+--   (hC : Cn ⋙ AsSmall.down ⋙ forgetToGrpd ⋙ AsSmall.up
+--     = Cw ⋙ Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd))
 
-include hC in
-theorem isPullback_disp'_asSmallForgetToGrpd.universal_aux :
-    (Cn ⋙ AsSmall.down) ⋙ forgetToGrpd = Cw ⋙ classifier A := by
-  erw [← congrArg (fun x => Functor.comp x AsSmall.down) hC]
-  rfl
+-- TODO remove
+-- include hC in
+-- theorem isPullback_disp'_asSmallForgetToGrpd.universal_aux :
+--     (Cn ⋙ AsSmall.down) ⋙ forgetToGrpd = Cw ⋙ classifier A := by
+--   erw [← congrArg (fun x => Functor.comp x AsSmall.down) hC]
+--   rfl
 
-def isPullback_disp'_asSmallForgetToGrpd.universal : (lift : C ⥤ ∫(classifier A)) ×'
-    lift ⋙ toPGrpd (classifier A) ⋙ AsSmall.up = Cn ∧
-    lift ⋙ Grothendieck.forget (classifier A ⋙ Grpd.forgetToCat) = Cw ∧
-    ∀ {l0 l1 : C ⥤ ∫(classifier A)},
-    l0 ⋙ toPGrpd (classifier A) ⋙ AsSmall.up = l1 ⋙ toPGrpd (classifier A) ⋙ AsSmall.up
-    → l0 ⋙ Grothendieck.forget (classifier A ⋙ Grpd.forgetToCat)
-    = l1 ⋙ Grothendieck.forget (classifier A ⋙ Grpd.forgetToCat)
-    → l0 = l1 :=
-  ⟨ (Grothendieck.Groupoidal.isPullback (classifier A)).lift (Cn ⋙ AsSmall.down)
-    Cw (universal_aux A Cn Cw hC),
-    by rw [← Functor.assoc, (Grothendieck.Groupoidal.isPullback _).fac_left]; rfl,
-    (Grothendieck.Groupoidal.isPullback _).fac_right _ _ _,
-    fun hn hw => (Grothendieck.Groupoidal.isPullback _).hom_ext
-      (congrArg (fun x => Functor.comp x AsSmall.down) hn) hw
-    ⟩
+-- def isPullback_disp'_asSmallForgetToGrpd.universal : (lift : C ⥤ ∫(classifier A)) ×'
+--     lift ⋙ toPGrpd (classifier A) ⋙ AsSmall.up = Cn ∧
+--     lift ⋙ Grothendieck.forget (classifier A ⋙ Grpd.forgetToCat) = Cw ∧
+--     ∀ {l0 l1 : C ⥤ ∫(classifier A)},
+--     l0 ⋙ toPGrpd (classifier A) ⋙ AsSmall.up = l1 ⋙ toPGrpd (classifier A) ⋙ AsSmall.up
+--     → l0 ⋙ Grothendieck.forget (classifier A ⋙ Grpd.forgetToCat)
+--     = l1 ⋙ Grothendieck.forget (classifier A ⋙ Grpd.forgetToCat)
+--     → l0 = l1 :=
+--   ⟨ (Grothendieck.Groupoidal.isPullback (classifier A)).lift (Cn ⋙ AsSmall.down)
+--     Cw (universal_aux A Cn Cw hC),
+--     by rw [← Functor.assoc, (Grothendieck.Groupoidal.isPullback _).fac_left]; rfl,
+--     (Grothendieck.Groupoidal.isPullback _).fac_right _ _ _,
+--     fun hn hw => (Grothendieck.Groupoidal.isPullback _).hom_ext
+--       (congrArg (fun x => Functor.comp x AsSmall.down) hn) hw
+--     ⟩
 
 theorem isPullback_disp'_asSmallForgetToGrpd :
     IsPullback
@@ -201,16 +202,26 @@ theorem isPullback_disp'_asSmallForgetToGrpd :
       (Cat.homOf $ AsSmall.down ⋙ forgetToGrpd ⋙ AsSmall.up)
       (Cat.homOf (Ctx.toGrpd.map A ⋙
         Core.inclusion (AsSmall Grpd))) :=
-  Cat.isPullback rfl $ Functor.IsPullback.ofUniversal
-    (toPGrpd (classifier A) ⋙ AsSmall.up)
-    (Grothendieck.forget (classifier A ⋙ Grpd.forgetToCat))
-    (AsSmall.down ⋙ forgetToGrpd ⋙ AsSmall.up)
-    (Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd))
-    rfl
-    (fun Cn Cw hC => isPullback_disp'_asSmallForgetToGrpd.universal A Cn Cw hC)
-    (fun Cn Cw hC => isPullback_disp'_asSmallForgetToGrpd.universal A Cn Cw hC)
+  Cat.isPullback rfl $ Functor.IsPullback.ofIso'
+      (toPGrpd (classifier A)) (Grothendieck.forget (classifier A ⋙ Grpd.forgetToCat))
+      forgetToGrpd (classifier A) (Grothendieck.Groupoidal.isPullback (classifier A))
+      (toPGrpd (classifier A) ⋙ AsSmall.up)
+      (Grothendieck.forget (classifier A ⋙ Grpd.forgetToCat))
+      (AsSmall.down ⋙ forgetToGrpd ⋙ AsSmall.up)
+      (Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd))
+      (Functor.Iso.refl _) AsSmall.downIso (Functor.Iso.refl _) AsSmall.downIso
+      rfl rfl rfl rfl
 
-end IsPullback
+  --Functor.IsPullback.ofUniversal
+    -- (toPGrpd (classifier A) ⋙ AsSmall.up)
+    -- (Grothendieck.forget (classifier A ⋙ Grpd.forgetToCat))
+    -- (AsSmall.down ⋙ forgetToGrpd ⋙ AsSmall.up)
+    -- (Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd))
+    -- rfl
+    -- (fun Cn Cw hC => isPullback_disp'_asSmallForgetToGrpd.universal A Cn Cw hC)
+    -- (fun Cn Cw hC => isPullback_disp'_asSmallForgetToGrpd.universal A Cn Cw hC)
+
+-- end IsPullback
 
 open SmallUHom
 
