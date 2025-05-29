@@ -15,8 +15,8 @@ universe w v u v₁ u₁ v₂ u₂ v₃ u₃
 
 noncomputable section
 open CategoryTheory
-  Limits NaturalModelBase CategoryTheory.Functor
-  GroupoidModel.IsPullback.SmallBase
+  Limits NaturalModelBase
+  GroupoidModel.IsPullback.SmallU
   GroupoidModel.IsPullback.SmallUHom
   Grothendieck.Groupoidal
 
@@ -172,19 +172,19 @@ end
       Core.functorToCoreEquiv, Core.forgetFunctorToCore, Ctx.homGrpdEquivFunctor,
       -AsSmall.down_map, Functor.assoc, Functor.comp_id,
       Core.functorToCore_naturality_left, Core.functorToCore_inclusion_apply]
-  . rw [← Functor.map_comp, sec_disp]
+  . rw [← Functor.map_comp, sec_disp, ← Functor.map_comp]
     rfl
 
 theorem smallU_lift {Γ Δ : Ctx.{max u (v+1)}} (A : y(Γ) ⟶ smallU.{v}.Ty)
     (fst : y(Δ) ⟶ smallU.{v}.Tm) (snd : Δ ⟶ Γ)
     (w : fst ≫ smallU.{v}.tp = ym(snd) ≫ A) :
     (smallU.{v}.disp_pullback A).lift fst ym(snd) w =
-    ym(Ctx.ofGrpd.map (IsMegaPullback.lift
+    ym(Ctx.ofGrpd.map ((Grothendieck.Groupoidal.isPullback _).lift
       (yonedaCategoryEquiv fst)
       (Ctx.toGrpd.map snd)
       (by erw [← yonedaCategoryEquiv_naturality_right, w,
         yonedaCategoryEquiv_naturality_left]))) :=
-  sorry
+  rfl
 
 -- TODO shorten name
 /-- A specialization of the universal property of `UvPoly.compDom`
@@ -199,7 +199,7 @@ def smallUCompDomEquiv {Γ : Ctx.{max u (v+1)}} :
     ≃ (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
     × (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v,v})
     × (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
-    ×' β ⋙ PGrpd.forgetToGrpd = sec _ α rfl ⋙ B :=
+    ×' β ⋙ PGrpd.forgetToGrpd = Grothendieck.Groupoidal.sec _ α rfl ⋙ B :=
   (smallU.uvPolyTpCompDomEquiv smallU Γ).trans
   (Equiv.sigmaCongr
     yonedaCategoryEquiv $

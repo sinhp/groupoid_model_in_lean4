@@ -1,5 +1,6 @@
 import GroupoidModel.ForMathlib
 import Mathlib.CategoryTheory.Widesubcategory
+import GroupoidModel.ForMathlib.CategoryTheory.Functor.Iso
 
 universe v u v₁ u₁ v₂ u₂ v₃ u₃
 
@@ -167,6 +168,7 @@ theorem hom_ext {l0 l1 : C ⥤ Chosen east south} (hnorth : l0 ⋙ north = l1 �
 end Chosen
 
 end IsPullback
+
 
 open IsPullback
 
@@ -361,6 +363,96 @@ def ofUniversal : IsPullback north west east south := {
   from_west := (lChosen _ _ Chosen.comm_sq).2.2.1
 }
 
+
+end
+
+section
+
+variable {Libya Egypt Chad Sudan : Type*} [Category Libya]
+  [Category Egypt] [Category Chad] [Category Sudan]
+  (north : Libya ⥤ Egypt) (west : Libya ⥤ Chad)
+  (east : Egypt ⥤ Sudan) (south : Chad ⥤ Sudan)
+  (pb : IsPullback north west east south)
+
+variable {north} in
+lemma Iso.inv_comp_eq_comp_inv {north'} (lib : Iso Chad Libya) (egy : Iso Sudan Egypt)
+(hnorth : north' ⋙ egy.hom = lib.hom ⋙ north): lib.inv ⋙ north' = north ⋙ egy.inv
+    ↔ north' ⋙ egy.hom = lib.hom ⋙ north := by
+    rw [lib.inv_comp_eq, ← Functor.assoc, egy.eq_comp_inv, hnorth]
+
+variable {Libya' Egypt' Chad' Sudan' : Type*} [Category Libya']
+  [Category Egypt'] [Category Chad'] [Category Sudan']
+  (north' : Libya' ⥤ Egypt') (west' : Libya' ⥤ Chad')
+  (east' : Egypt' ⥤ Sudan') (south' : Chad' ⥤ Sudan')
+  (lib : Iso Libya' Libya) (egy : Iso Egypt' Egypt)
+  (cha : Iso Chad' Chad) (sud : Iso Sudan' Sudan)
+  (hnorth : north' ⋙ egy.hom = lib.hom ⋙ north) (hwest : lib.hom ⋙ west = west' ⋙ cha.hom)
+  (heast : egy.hom ⋙ east = east' ⋙ sud.hom) (hsouth : south' ⋙ sud.hom = cha.hom ⋙ south)
+
+include hnorth in
+
+include north west east south pb north' west' east' south' lib egy cha
+  sud hnorth hwest heast hsouth in
+theorem ofIso'_comm_sq : north' ⋙ east' = west' ⋙ south' :=
+  calc north' ⋙ east'
+  _ = lib.hom ⋙ north ⋙ egy.inv ⋙ east' := by rw [egy.eq_comp_inv.mpr hnorth]; rfl
+  _ = lib.hom ⋙ (north ⋙ east) ⋙ sud.inv := by
+    rw [egy.eq_inv_comp.mpr heast]; simp [Functor.comp_id, Functor.assoc]
+  _ = lib.hom ⋙ (west ⋙ south) ⋙ sud.inv := by rw [pb.comm_sq]
+  _ = west' ⋙ (cha.hom ⋙ south) ⋙ sud.inv := by
+    rw [lib.eq_inv_comp.mpr hwest]; simp [Functor.id_comp, ← Functor.assoc]
+  _ = west' ⋙ south' := by rw [sud.eq_comp_inv.mpr hsouth]
+
+def ofIso'Lift {C : Type*} [Category C] (Cn : C ⥤ Egypt') (Cw : C ⥤ Chad')
+    (hC : Cn ⋙ east' = Cw ⋙ south') : C ⥤ Libya' :=
+  pb.lift (Cn ⋙ egy.hom) (Cw ⋙ cha.hom) (by simp [Functor.assoc, heast, ← hsouth, hC])
+  ⋙ lib.inv
+
+def ofIso'Universal {C : Type*} [Category C]
+    (Cn : C ⥤ Egypt') (Cw : C ⥤ Chad') (hC : Cn ⋙ east' = Cw ⋙ south')
+    : (lift : C ⥤ Libya') ×' lift ⋙ north' = Cn ∧ lift ⋙ west' = Cw ∧
+    ∀ {l0 l1 : C ⥤ Libya'}, l0 ⋙ north' = l1 ⋙ north' → l0 ⋙ west' = l1 ⋙ west'
+    → l0 = l1 :=
+  ⟨ ofIso'Lift north west east south pb east' south' lib egy cha sud heast hsouth Cn Cw hC,
+    by rw [ofIso'Lift, Functor.assoc, (Iso.inv_comp_eq_comp_inv lib egy hnorth).mpr hnorth,
+        ← Functor.assoc, pb.fac_left, Functor.assoc, egy.hom_inv_id, Functor.comp_id],
+    by rw [ofIso'Lift, Functor.assoc, (Iso.inv_comp_eq_comp_inv lib cha hwest.symm).mpr hwest.symm,
+        ← Functor.assoc, pb.fac_right, Functor.assoc, cha.hom_inv_id, Functor.comp_id],
+    by
+      intro l0 l1 hn hw
+      have : l0 ⋙ lib.hom = l1 ⋙ lib.hom := by
+        apply pb.hom_ext
+        · rw [Functor.assoc, ← hnorth, ← Functor.assoc, hn, Functor.assoc, hnorth, Functor.assoc]
+        · rw [Functor.assoc, hwest, ← Functor.assoc, hw, Functor.assoc, ← hwest, Functor.assoc]
+      calc l0
+        _ = l0 ⋙ lib.hom ⋙ lib.inv := by aesop_cat
+        _ = l1 ⋙ lib.hom ⋙ lib.inv := by rw [← Functor.assoc, this, Functor.assoc]
+        _ = l1 := by aesop_cat
+  ⟩
+
+/--
+Libya' --------------------------> Egypt'
+  |    \∨                       v/   |
+  |        Libya -------->Egypt      |
+  |          |              |        |
+  |          |              |        |
+  |          |              |        |
+  |          v              v        |
+  |        Chad ---------> Sudan     |
+  v      /^                     ^\   v
+Chad' ---------------------------> Sudan
+
+If the inner square is a pullback and all corners are isomorphic to the outer square,
+then the outer square is also a pullback.
+-/
+def ofIso' : IsPullback north' west' east' south' :=
+  ofUniversal north' west' east' south'
+  (ofIso'_comm_sq north west east south pb north' west' east' south' lib egy cha
+    sud hnorth hwest heast hsouth)
+  (fun Cn Cw hC => ofIso'Universal north west east south pb north' west' east' south' lib egy cha
+      sud hnorth hwest heast hsouth Cn Cw hC)
+  (fun Cn Cw hC => ofIso'Universal north west east south pb north' west' east' south' lib egy cha
+      sud hnorth hwest heast hsouth Cn Cw hC)
 
 end
 
