@@ -18,6 +18,14 @@ def snoc.{u} {X : Sort u} (σ : Nat → X) (x : X) : Nat → X
   | 0   => x
   | n+1 => σ n
 
+@[simp]
+theorem snoc_zero {X} (σ : Nat → X) (x : X) : snoc σ x 0 = x := by
+  dsimp [snoc]
+
+@[simp]
+theorem snoc_succ {X} (σ : Nat → X) (x : X) (n) : snoc σ x (n + 1) = σ n := by
+  dsimp [snoc]
+
 /-! ## Renaming -/
 
 /-- Lift a renaming under a binder. See `up`. -/
@@ -49,7 +57,9 @@ def rename (ξ : Nat → Nat) : Expr → Expr
 Δ ⊢ σ : Γ  Γ ⊢ A
 ------------------------
 Δ.A[σ] ⊢ (↑≫σ).v₀ : Γ.A
-``` -/
+```
+
+Warning: don't unfold this definition! Use `up_eq_snoc` instead. -/
 def up (σ : Nat → Expr) : Nat → Expr :=
   snoc (fun i => (σ i).rename Nat.succ) (.bvar 0)
 
@@ -74,6 +84,10 @@ def subst (σ : Nat → Expr) : Expr → Expr
 @[simp]
 theorem subst_bvar : subst Expr.bvar = id := by
   ext t; dsimp; induction t <;> grind [subst, up_bvar]
+
+@[simp]
+theorem subst_snoc_zero (σ : Nat → Expr) (t : Expr) : subst (snoc σ t) (.bvar 0) = t := by
+  dsimp [subst, snoc]
 
 /-- Turn a renaming into a substitution. -/
 def ofRen (ξ : Nat → Nat) : Nat → Expr :=
@@ -145,9 +159,9 @@ theorem subst_subst (σ τ : Nat → Expr) (t : Expr) :
   case bvar => dsimp [subst, comp]
   all_goals grind [subst, up_comp]
 
-theorem comp_assoc (σ τ ρ) : comp (comp σ τ) ρ = comp σ (comp τ ρ) := by
+theorem comp_assoc (σ τ ρ) : comp σ (comp τ ρ) = comp (comp σ τ) ρ := by
   ext i
-  conv => lhs; enter [0]; unfold comp
+  conv => rhs; enter [0]; unfold comp
   rw [← subst_subst]; dsimp [comp]
 
 theorem comp_snoc (σ τ : Nat → Expr) (t : Expr) :
@@ -163,17 +177,20 @@ theorem comp_snoc (σ τ : Nat → Expr) (t : Expr) :
 def wk : Nat → Expr :=
   ofRen Nat.succ
 
+@[simp]
+theorem ofRen_succ : ofRen Nat.succ = wk := by rfl
+
 theorem up_eq_snoc (σ : Nat → Expr) : up σ = snoc (comp wk σ) (.bvar 0) := by
   ext i; unfold up comp; congr 1; ext j
   rw [rename_eq_subst_ofRen]; congr 1
 
 @[simp]
 theorem snoc_comp_wk (σ : Nat → Expr) (t) : comp (snoc σ t) wk = σ := by
-  ext i; cases i <;> dsimp [comp, snoc, wk, ofRen, subst]
+  ext i; cases i <;> dsimp [comp, snoc, wk, ofRen, subst, -ofRen_succ]
 
 @[simp]
-theorem wk_snoc_bvar : snoc wk (Expr.bvar 0) = Expr.bvar := by
-  ext i; cases i <;> dsimp [snoc, wk, ofRen]
+theorem snoc_wk_zero : snoc wk (Expr.bvar 0) = Expr.bvar := by
+  ext i; cases i <;> dsimp [snoc, wk, ofRen, -ofRen_succ]
 
 /-- A substitution that instantiates one binder.
 ```
@@ -186,26 +203,38 @@ def toSb (t : Expr) : Nat → Expr :=
 
 /-! ## Decision procedure -/
 
-theorem snoc_comp_wk_bvar (σ) : snoc (comp σ Expr.wk) ((Expr.bvar 0).subst σ) = σ := by
-  ext i; cases i <;> dsimp [snoc, comp, subst, wk, ofRen]
+theorem snoc_comp_wk_zero_subst (σ) : snoc (comp σ Expr.wk) ((Expr.bvar 0).subst σ) = σ := by
+  ext i; cases i <;> dsimp [snoc, comp, subst, wk, ofRen, -ofRen_succ]
 
--- See Fig. 1 in the paper.
+-- Rules from Fig. 1 in the paper.
+attribute [autosubst low]
+  subst
 attribute [autosubst]
+  subst_snoc_zero
+  snoc_zero -- Not in the paper, but seems needed.
   snoc_comp_wk
+  snoc_succ -- Same.
   subst_bvar
-  snoc_comp_wk_bvar
+  snoc_comp_wk_zero_subst
   comp_bvar
   bvar_comp
-  comp_assoc -- In the other direction than in the paper.
+  comp_assoc
   comp_snoc
   subst_subst
-  wk_snoc_bvar
+  snoc_wk_zero
+
+-- Rules to unfold abbreviations.
+attribute [autosubst high]
+  up_eq_snoc
+  toSb
 
 -- More rules to deal with renamings. These are ad-hoc, not from paper.
+attribute [autosubst low]
+  rename
 attribute [autosubst]
   rename_eq_subst_ofRen
   ofRen_upr
-  up_eq_snoc
+  ofRen_succ
 
 /-- Decides equality of substitutions applied to expressions. -/
 macro "autosubst" : tactic => `(tactic| simp only [autosubst])
