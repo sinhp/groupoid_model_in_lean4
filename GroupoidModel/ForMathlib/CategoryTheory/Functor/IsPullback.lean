@@ -300,6 +300,14 @@ theorem hom_ext {l0 l1 : C ⥤ Libya} (hnorth : l0 ⋙ north = l1 ⋙ north)
       · simp [Functor.assoc, toChosen_west, hwest]
     _ = l1 := by rw [P.to_from_id, Functor.comp_id]
 
+/--
+Uniqueness of universal lifts for the pullback `P`.
+-/
+theorem lift_uniq {l : C ⥤ Libya} (hnorth : l ⋙ north = Cn)
+    (hwest : l ⋙ west = Cw) : l = lift P Cn Cw hC := by
+  apply hom_ext P
+  · simp [hnorth, fac_left]
+  · simp [hwest, fac_right]
 end
 
 section

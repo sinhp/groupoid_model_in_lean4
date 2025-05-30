@@ -177,19 +177,25 @@ end
       Functor.map_comp, Grpd.comp_eq_comp, Grpd.coe_of, sec_forget, ← Grpd.id_eq_id]
     rfl
 
-theorem smallU_lift {Γ Δ : Ctx.{max u (v+1)}} (A : y(Γ) ⟶ smallU.{v}.Ty)
-    (fst : y(Δ) ⟶ smallU.{v}.Tm) (snd : Δ ⟶ Γ)
-    (w : fst ≫ smallU.{v}.tp = ym(snd) ≫ A) :
-    (smallU.{v}.disp_pullback A).lift fst ym(snd) w =
-    ym(Ctx.ofGrpd.map ((Grothendieck.Groupoidal.isPullback _).lift
-      (yonedaCategoryEquiv fst)
-      (Ctx.toGrpd.map snd)
-      (by erw [← yonedaCategoryEquiv_naturality_right, w,
-        yonedaCategoryEquiv_naturality_left]))) := by
-  apply (smallU.{v}.disp_pullback A).hom_ext
-  · simp [← Functor.map_comp, toCoreAsSmallEquiv]
-    sorry
-  · sorry
+-- theorem smallU_lift {Γ Δ : Ctx.{max u (v+1)}} (A : y(Γ) ⟶ smallU.{v}.Ty)
+--     (fst : y(Δ) ⟶ smallU.{v}.Tm) (snd : Δ ⟶ Γ)
+--     (w : fst ≫ smallU.{v}.tp = ym(snd) ≫ A) :
+--     (smallU.{v}.disp_pullback A).lift fst ym(snd) w =
+--     ym(Ctx.ofGrpd.map ((Grothendieck.Groupoidal.isPullback _).lift
+--       (yonedaCategoryEquiv fst)
+--       (Ctx.toGrpd.map snd)
+--       (by erw [← yonedaCategoryEquiv_naturality_right, w,
+--         yonedaCategoryEquiv_naturality_left]))) := by
+--   apply (smallU.{v}.disp_pullback A).hom_ext
+--   · simp [← Functor.map_comp]
+--     dsimp at *
+--     -- erw [(isPullback (yonedaCategoryEquiv A)).fac_left]
+--     sorry
+--   · simp only [smallU_ext, Ctx.equivalence_functor, Ctx.equivalence_inverse,
+--       smallU_Tm, smallU_Ty, smallU_var, Grpd.coe_of, Equiv.symm_trans_apply,
+--       Equiv.symm_symm, Functor.FullyFaithful.homEquiv_apply, smallU_disp, smallU_tp,
+--       IsPullback.lift_snd, ← Functor.map_comp, Grpd.comp_eq_comp]
+--     erw [(isPullback (yonedaCategoryEquiv A)).fac_right, AsSmall.down_map_up_map]
 
 -- TODO shorten name
 /-- A specialization of the universal property of `UvPoly.compDom`
@@ -229,24 +235,24 @@ theorem smallUCompDomEquiv_apply_fst_forgetToGrpd
     (@uvPolyTpCompDomEquiv_apply_fst_tp
       Ctx.{max u (v+1)} _ smallU.{v} smallU.{v} Γ ab)
 
-theorem smallUCompDomEquiv_apply_snd_fst {Γ : Ctx.{max u (v+1)}}
-    (ab : y(Γ) ⟶ smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp) :
-    (smallUCompDomEquiv ab).snd.fst
-    = (Grothendieck.Groupoidal.isPullback _).lift (toPGrpd _) forget (by
-      rw [smallUCompDomEquiv_apply_fst_forgetToGrpd]; rfl)
-      ⋙ (smallUPTpEquiv (ab ≫ (
-      smallU.{v}.uvPolyTp.comp smallU.{v}.uvPolyTp).p)).snd := by
-  dsimp only [smallUPTpEquiv, Equiv.trans_apply, smallUCompDomEquiv]
-  conv => left; erw [Equiv.sigmaCongr_apply_snd, Equiv.sigmaCongr_apply_fst]
-  conv => right; rw [Equiv.sigmaCongr_apply_snd]
-  rw [uvPolyTpCompDomEquiv_apply_snd_fst]
-  apply (yonedaCategoryEquiv_naturality_left' _).trans
-  rw [smallU_lift]
-  simp only [Ctx.equivalence_inverse, Ctx.equivalence_functor,
-    AsSmall.down_obj, AsSmall.up_obj_down, Functor.FullyFaithful.preimage_map,
-    AsSmall.down_map, AsSmall.up_map_down]
-  rw! [smallU_var]
-  rfl
+-- theorem smallUCompDomEquiv_apply_snd_fst {Γ : Ctx.{max u (v+1)}}
+--     (ab : y(Γ) ⟶ smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp) :
+--     (smallUCompDomEquiv ab).snd.fst
+--     = (Grothendieck.Groupoidal.isPullback _).lift (toPGrpd _) forget (by
+--       rw [smallUCompDomEquiv_apply_fst_forgetToGrpd]; rfl)
+--       ⋙ (smallUPTpEquiv (ab ≫ (
+--       smallU.{v}.uvPolyTp.comp smallU.{v}.uvPolyTp).p)).snd := by
+--   dsimp only [smallUPTpEquiv, Equiv.trans_apply, smallUCompDomEquiv]
+--   conv => left; erw [Equiv.sigmaCongr_apply_snd, Equiv.sigmaCongr_apply_fst]
+--   conv => right; rw [Equiv.sigmaCongr_apply_snd]
+--   rw [uvPolyTpCompDomEquiv_apply_snd_fst]
+--   apply (yonedaCategoryEquiv_naturality_left' _).trans
+--   rw [smallU_lift]
+--   simp only [Ctx.equivalence_inverse, Ctx.equivalence_functor,
+--     AsSmall.down_obj, AsSmall.up_obj_down, Functor.FullyFaithful.preimage_map,
+--     AsSmall.down_map, AsSmall.up_map_down]
+--   rw! [smallU_var]
+--   rfl
 
 theorem smallUTpCompDomEquiv_apply_fst {Γ : Ctx.{max u (v+1)}}
     (ab : y(Γ) ⟶ smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp) :

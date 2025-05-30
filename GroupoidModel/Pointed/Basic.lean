@@ -283,6 +283,9 @@ def objFiber' (x : Γ) : A.obj x :=
 
 @[simp] lemma objFiber'_rfl (x : Γ) : objFiber' rfl x = objFiber α x := rfl
 
+@[simp] theorem objFiber'_heq {x} : HEq (PGrpd.objFiber' h x) (α.obj x).fiber := by
+  simp [PGrpd.objFiber', PGrpd.objFiber, Grpd.eqToHom_obj]
+
 -- formerly `mapPoint'`
 def mapFiber' {x y : Γ} (f : x ⟶ y) :
     (A.map f).obj (objFiber' h x) ⟶ objFiber' h y :=
@@ -298,6 +301,11 @@ def mapFiber' {x y : Γ} (f : x ⟶ y) :
   simp only [mapFiber', map_id_fiber]
   apply eq_of_heq
   simp [eqToHom_comp_heq_iff]
+
+@[simp] theorem mapFiber'_heq {x y} (f : x ⟶ y) :
+    HEq (PGrpd.mapFiber' h f) (α.map f).fiber := by
+  simp only [PGrpd.mapFiber']
+  aesop_cat
 
 include h in
 theorem mapFiber'_comp_aux0 {z} : Grpd.of ⇓(α.obj z) = A.obj z := by

@@ -171,15 +171,30 @@ groupoidal Grothendieck construction.-/
 def ι (c : C) : F.obj c ⥤ Groupoidal F :=
   Grothendieck.ι (F ⋙ Grpd.forgetToCat) c
 
-theorem ι_obj (c : C) (d : ↑(F.obj c)) :
+theorem ι_obj (c : C) (d : F.obj c) :
     (ι F c).obj d = { base := c, fiber := d } :=
   Grothendieck.ι_obj _ _ _
 
+@[simp] theorem ι_obj_base (c : C) (d : F.obj c) : ((ι F c).obj d).base = c :=
+  rfl
+
+@[simp] theorem ι_obj_fiber (c : C) (d : F.obj c) : ((ι F c).obj d).fiber = d :=
+  rfl
+
+-- NOTE the `Grothendieck` version in `mathlib` should NOT be a simp lemma
 -- NOTE when `f = eqToHom` this is not the rewrite I want.
 -- Instead I want to do `eqToHom_map`
-theorem ι_map (c : C) {X Y : ↑(F.obj c)} (f : X ⟶ Y) :
+theorem ι_map (c : C) {X Y : F.obj c} (f : X ⟶ Y) :
     (ι F c).map f = ⟨𝟙 _, eqToHom (by simp [ι_obj, Grpd.forgetToCat]) ≫ f⟩ :=
   Grothendieck.ι_map _ _ _
+
+@[simp] theorem ι_map_base (c : C) {X Y : F.obj c} (f : X ⟶ Y) :
+    ((ι F c).map f).base = 𝟙 _ :=
+  rfl
+
+@[simp] theorem ι_map_fiber (c : C) {X Y : F.obj c} (f : X ⟶ Y) :
+    ((ι F c).map f).fiber = eqToHom (by simp [ι_obj, Grpd.forgetToCat]) ≫ f :=
+  rfl
 
 variable {F}
 
@@ -246,9 +261,8 @@ a functor `Groupoidal.map : Groupoidal F ⥤ Groupoidal G`.
 def map (α : F ⟶ G) : Groupoidal F ⥤ Groupoidal G :=
   Grothendieck.map (whiskerRight α _)
 
-@[simp] theorem map_obj {α : F ⟶ G} (X : Groupoidal F) :
+theorem map_obj {α : F ⟶ G} (X : Groupoidal F) :
     (Groupoidal.map α).obj X = ⟨X.base, (α.app X.base).obj X.fiber⟩ := rfl
-
 
 theorem map_id_eq : map (𝟙 F) = Functor.id (Cat.of <| Groupoidal <| F) :=
   Grothendieck.map_id_eq
@@ -515,5 +529,52 @@ theorem ιNatIso_comp {x y z : Γ} (f : x ⟶ y) (g : y ⟶ z) :
 
 end
 
+section
+variable {C : Type u} [Category.{v} C] {D : Type u₁} [Category.{v₁} D]
+variable {F : C ⥤ Grpd.{v₂, u₂}} (A : D ⥤ C) (fibObj : Π (x : D), (A ⋙ F).obj x)
+    (fibMap : Π {x y : D} (f : x ⟶ y),
+      ((A ⋙ F).map f).obj (fibObj x) ⟶ fibObj y)
+
+theorem functorTo_map_id_aux (x : D) : ((A ⋙ F).map (𝟙 x)).obj (fibObj x) = fibObj x := by
+  simp
+
+theorem functorTo_map_comp_aux {x y z : D} (f : x ⟶ y) (g : y ⟶ z) :
+    ((A ⋙ F).map (f ≫ g)).obj (fibObj x)
+    = (F.map (A.map g)).obj (((A ⋙ F).map f).obj (fibObj x)) := by
+  simp
+
+variable
+    (map_id : Π (x : D), fibMap (CategoryStruct.id x)
+      = eqToHom (functorTo_map_id_aux A fibObj x))
+    (map_comp : Π {x y z : D} (f : x ⟶ y) (g : y ⟶ z), fibMap (f ≫ g)
+      = eqToHom (functorTo_map_comp_aux A fibObj f g)
+      ≫ (F.map (A.map g)).map (fibMap f) ≫ fibMap g)
+
+/-- To define a functor into `Grothendieck F` we can make use of an existing
+  functor into the base. -/
+def functorTo : D ⥤ ∫(F) := Grothendieck.functorTo A fibObj fibMap map_id map_comp
+
+@[simp] theorem functorTo_obj_base (x) :
+    ((functorTo A fibObj fibMap map_id map_comp).obj x).base = A.obj x :=
+  rfl
+
+@[simp] theorem functorTo_obj_fiber (x) :
+    ((functorTo A fibObj fibMap map_id map_comp).obj x).fiber = fibObj x :=
+  rfl
+
+@[simp] theorem functorTo_map_base {x y} (f : x ⟶ y) :
+    ((functorTo A fibObj fibMap map_id map_comp).map f).base = A.map f :=
+  rfl
+
+@[simp] theorem functorTo_map_fiber {x y} (f : x ⟶ y) :
+    ((functorTo A fibObj fibMap map_id map_comp).map f).fiber = fibMap f :=
+  rfl
+
+variable {A} {fibObj} {fibMap} {map_id} {map_comp}
+@[simp] theorem functorTo_forget :
+    functorTo _ _ _ map_id map_comp ⋙ Grothendieck.forget _ = A :=
+  rfl
+
+end
 end Groupoidal
 end Grothendieck
