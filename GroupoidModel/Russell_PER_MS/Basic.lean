@@ -1,3 +1,5 @@
+import Lean.Meta.Tactic.Simp
+
 /-! Presentation with
 - PER-style equality judgments; and
 - Russell-style universes up to N; and
@@ -33,3 +35,7 @@ inductive Expr where
 @[simp]
 theorem Expr.sizeOf_pos (e : Expr) : 0 < sizeOf e := by
   induction e <;> { dsimp; omega }
+
+/-- The convergent rewriting system of HoTT₀ σ-calculus.
+The attribute has to be initialized in an import of `Autosubst.lean`. -/
+register_simp_attr autosubst
