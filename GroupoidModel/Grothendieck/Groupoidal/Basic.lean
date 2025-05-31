@@ -15,20 +15,14 @@ import GroupoidModel.ForMathlib
 * `CategoryTheory.Grothendieck.Groupoidal.groupoid`
   is an instance of a groupoid structure on the groupidal
   Grothendieck construction.
-* `CategoryTheory.Grothendieck.Groupoidal.isPullback`
-  shows that `Grothendieck.forget A` is classified by `PGrpd.forgetToGrpd`
-  as the pullback of `A`.
-  This uses the proof of the similar fact
-  `CategoryTheory.Grothendieck.isPullback`,
-  as well as the proof `CategoryTheory.isPullback_forgetToGrpd_forgetToCat`
-  that `PGrpd` is the pullback of `PCat`.
 
-- TODO Probably the proof of `Groupoidal.IsPullback` can be shortened
-  significantly by providing a direct proof of pullback
-  using the `IsMegaPullback` defintions
-- NOTE Design: `Groupoidal.ι`, `Groupoidal.pre` and so on should *not* be
-  reduced by `simp`. Instead we should add `simp` lemmas by hand.
-  This avoids `Grpd.forgetToCat` cluttering the user's context
+## Implementation notes
+* To avoid `Grpd.forgetToCat` cluttering the user's context,
+  although we use `Grothendieck` to define `Grothendieck.Groupoidal`,
+  all definitions and lemmas are restated.
+  This _probably_ also means that Lean has an easier time when type checking,
+  as long as the user does not unfold down
+  to `Grothendieck` definitions.
 -/
 
 universe v u v₁ u₁ v₂ u₂ v₃ u₃
@@ -54,14 +48,49 @@ section
 
 variable {C : Type u₁} [Category.{v₁,u₁} C] {F : C ⥤ Grpd.{v₂,u₂}}
 
-instance : Category (Groupoidal F) :=
-  inferInstanceAs (Category (Grothendieck _))
+/-- A morphism in the groupoidal Grothendieck category `F : C ⥤ Grpd`
+is defined to be a morphism in the Grothendieck category `F ⋙ Grpd.forgetToCat`.
+-/
+def Hom (x y : ∫(F)) := Grothendieck.Hom x y
+
+def id (x : ∫(F)) : Hom x x := Grothendieck.id x
+
+def comp {x y z : ∫(F)} (f : Hom x y) (g : Hom y z) : Hom x z := Grothendieck.comp f g
+
+attribute [local simp] eqToHom_map
+
+instance : Category ∫(F) := {
+  Hom := Hom
+  id := id
+  comp := comp
+  comp_id := (inferInstanceAs $ Category (Grothendieck (F ⋙ Grpd.forgetToCat))).comp_id
+  id_comp := (inferInstanceAs $ Category (Grothendieck (F ⋙ Grpd.forgetToCat))).id_comp
+  assoc := (inferInstanceAs $ Category (Grothendieck (F ⋙ Grpd.forgetToCat))).assoc
+  }
 
 def forget : ∫(F) ⥤ C := Grothendieck.forget _
 
+@[simp] theorem forget_obj (x : ∫(F)) : forget.obj x = x.base :=
+  rfl
+
+@[simp] theorem forget_map {x y : ∫(F)} (f : x ⟶ y) : forget.map f = f.base :=
+  rfl
+
 def base (p : ∫(F)) : C := Grothendieck.base p
 
-def fiber (p : ∫(F)) := Grothendieck.fiber p
+def fiber (p : ∫(F)) : F.obj p.base := Grothendieck.fiber p
+
+namespace Hom
+
+variable {x y : ∫(F)} (f : Hom x y)
+
+/-- The morphism between base objects. -/
+def base : x.base ⟶ y.base := Grothendieck.Hom.base f
+
+/-- The morphism from the pushforward to the source fiber object to the target fiber object. -/
+def fiber : (F.map f.base).obj x.fiber ⟶ y.fiber := Grothendieck.Hom.fiber f
+
+end Hom
 
 /--
   We should use this to introduce objects,
@@ -107,16 +136,14 @@ end
 
 section
 
-
 variable {C : Type u₁} [Groupoid.{v₁,u₁} C] {F : C ⥤ Grpd.{v₂,u₂}}
 
-instance
-    (X : C) : Groupoid (F ⋙ Grpd.forgetToCat |>.obj X) where
+instance (X : C) : Groupoid (F ⋙ Grpd.forgetToCat |>.obj X) where
   inv f := ((F.obj X).str').inv f
 
 /--
-If `F : C ⥤ Grpd` is a functor and `t : c ⟶ d` is a morphism in `C`, then `transport` maps each
-`c`-based element of `∫(F)` to a `d`-based element.
+If `F : C ⥤ Grpd` is a functor and `t : c ⟶ d` is a morphism in `C`,
+then `transport` maps each `c`-based element of `∫(F)` to a `d`-based element.
 -/
 def transport (x : ∫(F)) {c : C} (t : x.base ⟶ c) : ∫(F) :=
   Grothendieck.transport x t
@@ -195,7 +222,7 @@ def ι (c : C) : F.obj c ⥤ Groupoidal F :=
 
 -- NOTE maybe this should be an HEq?
 @[simp] theorem ι_map_fiber (c : C) {X Y : F.obj c} (f : X ⟶ Y) :
-    ((ι F c).map f).fiber = eqToHom (by simp [Grpd.forgetToCat, ι]) ≫ f :=
+    ((ι F c).map f).fiber = eqToHom (by simp) ≫ f :=
   rfl
 
 variable {F}
@@ -204,6 +231,11 @@ variable {F}
 theorem ext {X Y : ∫(F)} (f g : Hom X Y) (w_base : f.base = g.base)
     (w_fiber : eqToHom (by rw [w_base]) ≫ f.fiber = g.fiber) : f = g :=
   Grothendieck.ext f g w_base w_fiber
+
+theorem hext {X Y : ∫(F)} (f g : Hom X Y) (w_base : f.base = g.base)
+    (w_fiber : HEq f.fiber g.fiber) : f = g := by
+  cases f; cases g
+  congr
 
 /-- Every morphism `f : X ⟶ Y` in the base category induces a natural transformation from the fiber
 inclusion `ι F X` to the composition `F.map f ⋙ ι F Y`. -/
@@ -240,11 +272,14 @@ base of `Groupoidal F` and coherence data for this family of natural transformat
 def functorFrom : ∫(F) ⥤ E :=
   Grothendieck.functorFrom fib hom hom_id hom_comp
 
-@[simp] theorem functorFrom_obj (X : ∫(F)) : (functorFrom fib hom hom_id hom_comp).obj X = (fib X.base).obj X.fiber := by apply Grothendieck.functorFrom_obj
+@[simp] theorem functorFrom_obj (X : ∫(F)) :
+    (functorFrom fib hom hom_id hom_comp).obj X = (fib X.base).obj X.fiber := by
+  apply Grothendieck.functorFrom_obj
 
 @[simp] theorem functorFrom_map {X Y : ∫(F)} (f : X ⟶ Y) :
-  (functorFrom fib hom hom_id hom_comp).map f
-  = (hom f.base).app X.fiber ≫ (fib Y.base).map f.fiber := by apply Grothendieck.functorFrom_map
+    (functorFrom fib hom hom_id hom_comp).map f
+    = (hom f.base).app X.fiber ≫ (fib Y.base).map f.fiber := by
+  apply Grothendieck.functorFrom_map
 
 /-- `Groupoidal.ι F c` composed with `Groupoidal.functorFrom` is isomorphic a functor on a fiber
 on `F` supplied as the first argument to `Groupoidal.functorFrom`. -/
@@ -329,17 +364,13 @@ variable {Γ : Type u} [Category.{v} Γ] (A : Γ ⥤ Grpd.{v₁, u₁})
 
 /-- This is the proof of equality used in the eqToHom in `Groupoidal.eqToHom_fiber` -/
 theorem eqToHom_fiber_aux {g1 g2 : ∫(F)}
-    (eq : g1 = g2) : (F.map (eqToHom eq).base).obj g1.fiber = g2.fiber := by
-  unfold Groupoidal
-  cases eq
-  simp
+    (eq : g1 = g2) : (F.map (eqToHom eq).base).obj g1.fiber = g2.fiber :=
+  Grothendieck.eqToHom_fiber_aux eq
 
 /-- This proves that fiber of an eqToHom morphism in the category Grothendieck A is an eqToHom morphism -/
 @[simp] theorem eqToHom_fiber {g1 g2 : ∫(F)} (eq : g1 = g2) :
-    (eqToHom eq).fiber = eqToHom (eqToHom_fiber_aux eq) := by
-  unfold Groupoidal
-  cases eq
-  simp
+    (eqToHom eq).fiber = eqToHom (eqToHom_fiber_aux eq) :=
+  Grothendieck.eqToHom_fiber eq
 
 @[simp] theorem base_eqToHom {X Y : ∫(F)} (h : X = Y) :
     (eqToHom h).base = eqToHom (congrArg base h) :=
@@ -362,25 +393,15 @@ theorem comp_base {X Y Z : ∫(F)} (f : X ⟶ Y) (g : Y ⟶ Z) :
 
 @[simp]
 theorem comp_fiber {X Y Z : ∫(F)} (f : X ⟶ Y) (g : Y ⟶ Z) :
-    Hom.fiber (f ≫ g) =
+    (f ≫ g).fiber =
       eqToHom (by simp [Grpd.forgetToCat]) ≫ (F.map g.base).map f.fiber ≫ g.fiber :=
   rfl
 
-
-@[simp] theorem _root_.CategoryTheory.Grpd.eqToHom_app {C : Type u₁} [Category.{v₁} C]
-    {D : Type u₂} [Category.{v₂} D] (F G : C ⥤ D) (h : F = G) (X : C) :
-    (eqToHom h).app X = eqToHom (by subst h; rfl) := by
-  subst h
-  simp
-
 variable {G : Γ ⥤ Grpd}
-
--- theorem eta (p : ∫(F)) : ⟨p.base, p.fiber⟩ = p := rfl
 
 theorem obj_hext {p1 p2 : ∫(F)} (hbase : p1.base = p2.base)
     (hfib : HEq p1.fiber p2.fiber) : p1 = p2 :=
   Grothendieck.obj_hext hbase hfib
-
 
 variable (α : F ⟶ G) (X : ∫(F))
 
@@ -402,7 +423,7 @@ variable {X} {Y : ∫(F)} (f : X ⟶ Y)
     ≫ (α.app Y.base).map f.fiber := Grothendieck.map_map_fiber _ _
 
 @[simp] theorem fiber_eqToHom (h : X = Y) :
-    (eqToHom h).fiber = eqToHom (by unfold Groupoidal; subst h; simp [Grpd.forgetToCat]) :=
+    (eqToHom h).fiber = eqToHom (by subst h; simp) :=
   Grothendieck.fiber_eqToHom _
 
 @[simp] theorem eqToHom_comp_fiber {C : Type u} [Category.{v} C] {A : C ⥤ Grpd.{v₁, u₁}}
@@ -472,47 +493,40 @@ end
 section
 variable {Γ : Type u} [Groupoid.{v} Γ] (A : Γ ⥤ Grpd.{v₁,u₁})
 
--- NOTE something broke between versions of mathlib?
--- seems like issue is some definitional equalities can no longer be
--- closed by simp
 /-- Every morphism `f : X ⟶ Y` in the base category induces a natural transformation from the fiber
 inclusion `ι F X` to the composition `F.map f ⋙ ι F Y`. -/
 def ιNatIso {X Y : Γ} (f : X ⟶ Y) : ι A X ≅ A.map f ⋙ ι A Y where
-  hom := (ιNatTrans f)
+  hom := ιNatTrans f
   inv := whiskerLeft (A.map f) (ιNatTrans (Groupoid.inv f)) ≫ eqToHom (by
     convert_to A.map (f ≫ Groupoid.inv f) ⋙ ι A X = ι A X
     · simp only [Functor.map_comp, Grpd.comp_eq_comp, Functor.assoc]
     · simp [Functor.id_comp])
   hom_inv_id := by
-   ext a
-   apply Grothendieck.Groupoidal.ext
-   · simp only [NatTrans.id_app, NatTrans.comp_app]
-     rw! [Grpd.eqToHom_app]
-     simp only [Grpd.forgetToCat, Functor.comp_obj, Cat.of_α, id_base, Functor.comp_map, id_eq, whiskerLeft_app,
-  Grpd.comp_eq_comp, Grpd.id_eq_id, eq_mpr_eq_cast, comp_base, ιNatTrans_app_base, comp_fiber, ιNatTrans_app_fiber,
-  Grpd.map_comp_map, eqToHom_fiber, Category.assoc, eqToHom_trans_assoc, eqToHom_refl, Category.id_comp, id_fiber,
-  eqToHom_comp_iff, eqToHom_trans]
-     generalize_proofs p1
-     erw [Functor.map_id (A.map (Groupoid.inv f)),
-       Functor.map_id (A.map (eqToHom p1).base),
-       Category.id_comp, Category.id_comp]
-   · simp only [NatTrans.comp_app, Functor.comp_obj, whiskerLeft_app, eqToHom_app, comp_base, ιNatTrans_app_base,
-  Groupoid.inv_eq_inv, eqToHom_base, eqToHom_refl, Category.comp_id, IsIso.hom_inv_id, NatTrans.id_app, id_base]
-     rfl
+    ext a
+    apply Grothendieck.Groupoidal.hext
+    · simp
+    · simp only [ι_obj_base, Grpd.comp_eq_comp, Grpd.id_eq_id, id_eq, eq_mpr_eq_cast,
+        NatTrans.comp_app, Functor.comp_obj, whiskerLeft_app, comp_base, ιNatTrans_app_base,
+        ι_obj_fiber, comp_fiber, ιNatTrans_app_fiber, Grpd.map_comp_map, Functor.map_id, eqToHom_app,
+        eqToHom_base, eqToHom_refl, Groupoid.inv_eq_inv, Functor.map_inv, Functor.id_obj,
+        Category.comp_id, eqToHom_naturality, eqToHom_trans, Category.id_comp,
+        eqToHom_naturality_assoc, eqToHom_trans_assoc, NatTrans.id_app, id_base, id_fiber,
+        eqToHom_comp_heq_iff]
+      rw! [Grpd.eqToHom_app, eqToHom_fiber]
+      apply HEq.trans (eqToHom_heq_id_cod _ _ _) (eqToHom_heq_id_cod _ _ _).symm
   inv_hom_id := by
     ext a
-    apply Grothendieck.Groupoidal.ext
-    · simp only [NatTrans.id_app, NatTrans.comp_app]
-      rw! [eqToHom_app]
-      simp only [Grpd.forgetToCat, Functor.comp_obj, Cat.of_α, id_base, Functor.comp_map, id_eq, whiskerLeft_app,
-  Grpd.comp_eq_comp, Grpd.id_eq_id, eq_mpr_eq_cast, comp_base, ιNatTrans_app_base, comp_fiber, ιNatTrans_app_fiber,
-  eqToHom_fiber, Functor.map_comp, eqToHom_map, Category.assoc, eqToHom_trans_assoc, id_fiber]
-      generalize_proofs p1
-      erw [Category.comp_id, Functor.map_id (A.map (eqToHom p1).base),
-        Functor.map_id (A.map f)]
-      simp
+    apply Grothendieck.Groupoidal.hext
     · simp
-      rfl
+    · simp only [ι_obj_base, Grpd.comp_eq_comp, Grpd.id_eq_id, id_eq, eq_mpr_eq_cast,
+        NatTrans.comp_app, Functor.comp_obj, whiskerLeft_app, comp_base, ιNatTrans_app_base,
+        ι_obj_fiber, comp_fiber, ιNatTrans_app_fiber, Grpd.map_comp_map, Functor.map_id, eqToHom_app,
+        eqToHom_base, eqToHom_refl, Groupoid.inv_eq_inv, Functor.map_inv, Functor.id_obj,
+        Category.comp_id, eqToHom_naturality, eqToHom_trans, Category.id_comp,
+        eqToHom_naturality_assoc, eqToHom_trans_assoc, NatTrans.id_app, id_base, id_fiber,
+        eqToHom_comp_heq_iff]
+      rw! [Grpd.eqToHom_app, eqToHom_fiber, eqToHom_trans, eqToHom_map]
+      apply HEq.trans (eqToHom_heq_id_cod _ _ _) (eqToHom_heq_id_cod _ _ _).symm
 
 theorem ιNatIso_hom {x y : Γ} (f : x ⟶ y) :
     (ιNatIso A f).hom = ιNatTrans f := by

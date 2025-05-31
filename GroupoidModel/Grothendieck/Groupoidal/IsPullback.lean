@@ -6,7 +6,13 @@ import SEq.Tactic.DepRewrite
 /-!
 # The Grothendieck construction as a pullback of categories
 
-The following square is a (meta-theoretic) pullback
+* `CategoryTheory.Grothendieck.Groupoidal.isPullback`
+  shows that `Grothendieck.forget A` is classified by `PGrpd.forgetToGrpd`
+  as the (meta-theoretic) pullback of `A`.
+  This uses the proof of the similar fact
+  `CategoryTheory.Grothendieck.isPullback`,
+  as well as the proof `CategoryTheory.isPullback_forgetToGrpd_forgetToCat`
+  that `PGrpd` is the pullback of `PCat`
 
        ∫(A) ------- toPGrpd ---------> PGrpd
         |                                 |
@@ -15,6 +21,7 @@ The following square is a (meta-theoretic) pullback
         |                                 |
         v                                 v
         Γ--------------A---------------> Grpd
+
 -/
 
 universe v u v₁ u₁ v₂ u₂ v₃ u₃
@@ -29,6 +36,8 @@ section
 
 variable {Γ : Type u} [Category.{v} Γ] (A : Γ ⥤ Grpd.{v₁,u₁})
 
+-- TODO maybe revert this to the direct definition `toPGrpd'`
+-- so that the style is consistent with `sec` and `ι`
 /--
 `toPGrpd` is the lift induced by the pullback property of `PGrpd`
        ∫(A) ------- toPGrpd ---------> PGrpd --------> PCat
@@ -76,7 +85,7 @@ We avoid using this version and doing direct computations if possible.
 -/
 def toPGrpd' : ∫(A) ⥤ PGrpd.{v₁,u₁} :=
   PGrpd.functorTo (forget ⋙ A) (fun x => x.fiber) (fun f => f.fiber)
-    (by simp) (by simp [Grpd.forgetToCat, forget])
+    (by simp) (by simp [forget_map, Hom.base])
 
 @[simp] theorem toPGrpd'_obj_base (x) :
     ((toPGrpd A).obj x).base = A.obj x.base := by

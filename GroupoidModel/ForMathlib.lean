@@ -398,7 +398,7 @@ end
 
 variable {Γ : Type u} [Category.{v} Γ] (F : Γ ⥤ Grpd.{v₁,u₁})
 
-@[simp] theorem map_eqToHom_obj {x y : Γ} (h : x = y) (t) :
+theorem map_eqToHom_obj {x y : Γ} (h : x = y) (t) :
     (F.map (eqToHom h)).obj t = cast (by rw [h]) t := by
   subst h
   simp
@@ -422,6 +422,13 @@ theorem eqToHom_hom {C1 C2 : Grpd.{v,u}} {x y: C1} (f : x ⟶ y) (eq : C1 = C2) 
     ≫ eqToHom (Eq.symm (Functor.congr_obj (eqToHom_map _ _) s)) := by
   have h1 : F.map (eqToHom h) = eqToHom (by rw [h]) := eqToHom_map _ _
   rw [Functor.congr_hom h1, Grpd.eqToHom_hom]
+
+@[simp] theorem eqToHom_app {C : Type u₁} [Category.{v₁} C]
+    {D : Type u₂} [Category.{v₂} D] (F G : C ⥤ D) (h : F = G) (X : C) :
+    (eqToHom h).app X = eqToHom (by subst h; rfl) := by
+  subst h
+  simp
+
 end Grpd
 
 namespace AsSmall

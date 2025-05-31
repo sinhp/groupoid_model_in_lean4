@@ -661,12 +661,6 @@ variable {Libya Egypt Chad Sudan : Type u} [Category.{v} Libya]
   (h : Functor.IsPullback north west east south)
   (s : Limits.PullbackCone (homOf east) (homOf south))
 
--- def pullbackCone :
---     Functor.PullbackCone s.pt east south where
---   north := s.fst
---   west := s.snd
---   comm_sq := s.condition
-
 def lift : s.pt ⟶ of Libya := h.lift s.fst s.snd s.condition
 
 def fac_left : lift h s ≫ (homOf north) = s.fst :=
