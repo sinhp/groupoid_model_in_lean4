@@ -79,12 +79,14 @@ inductive EqTp : Ctx → Nat → Expr → Expr → Prop
   -- Congruences
   | cong_pi {Γ A A' B B' l l'} :
     Γ ⊢[l] A → -- presupp
+    Γ ⊢[l] A' → -- presupp
     Γ ⊢[l] A ≡ A' →
     (A,l) :: Γ ⊢[l'] B ≡ B' →
     Γ ⊢[max l l'] .pi l l' A B ≡ .pi l l' A' B'
 
   | cong_sigma {Γ A A' B B' l l'} :
     Γ ⊢[l] A → -- presupp
+    Γ ⊢[l] A' → -- presupp
     Γ ⊢[l] A ≡ A'→
     (A,l) :: Γ ⊢[l'] B ≡ B' →
     Γ ⊢[max l l'] .sigma l l' A B ≡ .sigma l l' A' B'
@@ -160,6 +162,7 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
   -- Congruences
   | cong_lam {Γ A A' B t t' l l'} :
     Γ ⊢[l] A → -- presupp
+    Γ ⊢[l] A' → -- presupp
     Γ ⊢[l] A ≡ A' →
     (A,l) :: Γ ⊢[l'] t ≡ t' : B →
     Γ ⊢[max l l'] .lam l l' A t ≡ .lam l l' A' t' : .pi l l' A B
@@ -200,6 +203,7 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
   -- Reductions
   | app_lam {Γ A B t u l l'} :
     Γ ⊢[l] A → -- presupp
+    (A,l) :: Γ ⊢[l'] B → -- presupp
     (A,l) :: Γ ⊢[l'] t : B →
     Γ ⊢[l] u : A →
     Γ ⊢[l'] .app l l' B (.lam l l' A t) u ≡ t.subst u.toSb : B.subst u.toSb
@@ -220,6 +224,8 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
 
   -- Expansions
   | lam_app {Γ A B f l l'} :
+    Γ ⊢[l] A → -- presupp
+    (A,l) :: Γ ⊢[l'] B → -- presupp
     Γ ⊢[max l l'] f : .pi l l' A B →
     Γ ⊢[max l l'] f ≡ .lam l l' A (.app l l' (B.subst (Expr.up Expr.wk)) (f.subst Expr.wk) (.bvar 0)) : .pi l l' A B
 
@@ -241,10 +247,12 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     Γ ⊢[l] t ≡ t : A
 
   | symm_tm {Γ A t t' l} :
+    Γ ⊢[l] A → -- presupp
     Γ ⊢[l] t ≡ t' : A →
     Γ ⊢[l] t' ≡ t : A
 
   | trans_tm {Γ A t t' t'' l} :
+    Γ ⊢[l] A → -- presupp
     Γ ⊢[l] t ≡ t' : A →
     Γ ⊢[l] t' ≡ t'' : A →
     Γ ⊢[l] t ≡ t'' : A
