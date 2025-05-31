@@ -93,6 +93,9 @@ theorem subst_snoc_zero (σ : Nat → Expr) (t : Expr) : subst (snoc σ t) (.bva
 def ofRen (ξ : Nat → Nat) : Nat → Expr :=
   fun i => Expr.bvar (ξ i)
 
+@[simp]
+theorem ofRen_id : ofRen id = Expr.bvar := by rfl
+
 theorem ofRen_upr (ξ) : ofRen (upr ξ) = up (ofRen ξ) := by
   ext i; cases i <;> simp [ofRen, upr, up, snoc, rename]
 
@@ -233,8 +236,13 @@ attribute [autosubst low]
   rename
 attribute [autosubst]
   rename_eq_subst_ofRen
-  ofRen_upr
+  ofRen_id
   ofRen_succ
+  ofRen_upr
+
+-- Cleanup rules.
+attribute [autosubst]
+  id_eq
 
 /-- Decides equality of substitutions applied to expressions. -/
 macro "autosubst" : tactic => `(tactic| simp only [autosubst])
