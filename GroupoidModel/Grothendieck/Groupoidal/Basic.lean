@@ -60,12 +60,10 @@ def comp {x y z : ∫(F)} (f : Hom x y) (g : Hom y z) : Hom x z := Grothendieck.
 attribute [local simp] eqToHom_map
 
 instance : Category ∫(F) := {
+  (inferInstanceAs $ Category (Grothendieck (F ⋙ Grpd.forgetToCat))) with
   Hom := Hom
   id := id
   comp := comp
-  comp_id := (inferInstanceAs $ Category (Grothendieck (F ⋙ Grpd.forgetToCat))).comp_id
-  id_comp := (inferInstanceAs $ Category (Grothendieck (F ⋙ Grpd.forgetToCat))).id_comp
-  assoc := (inferInstanceAs $ Category (Grothendieck (F ⋙ Grpd.forgetToCat))).assoc
   }
 
 def forget : ∫(F) ⥤ C := Grothendieck.forget _
