@@ -47,7 +47,7 @@ theorem toPCat_forgetToCat : toPCat A ⋙ PCat.forgetToCat
 
 namespace IsPullback
 
-variable {C : Type u₂} [Category.{v₂} C]
+variable {C : Type*} [Category C]
   (fst : C ⥤ PCat.{v₁, u₁})
   (snd : C ⥤ Γ)
   (w : fst ⋙ PCat.forgetToCat = snd ⋙ A)
@@ -134,7 +134,7 @@ theorem lift_uniq (m : C ⥤ Grothendieck A)
     (hl : m ⋙ Grothendieck.toPCat A = fst)
     (hr : m ⋙ Grothendieck.forget A = snd) :
     m = lift _ _ w := by
-  apply Grothendieck.Functor.ext
+  apply Grothendieck.Functor.hext
   · rw [hr, fac_right]
   · intro x
     have h := Functor.congr_obj hl x

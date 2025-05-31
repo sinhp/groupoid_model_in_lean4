@@ -88,7 +88,7 @@ namespace Chosen
 section
 /-
        north
-  Libya ----> Egypt
+  Chosen ----> Egypt
     |          |
   west         |east
     |          |

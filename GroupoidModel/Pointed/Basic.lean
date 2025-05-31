@@ -318,7 +318,7 @@ theorem mapFiber'_comp_aux1 {x y z} (f : x ⟶ y) (g : y ⟶ z) :
   subst h
   simp [objFiber]
 
-theorem mapPoint'_comp {x y z} (f : x ⟶ y)
+theorem mapFiber'_comp {x y z} (f : x ⟶ y)
     (g : y ⟶ z) : mapFiber' h (f ≫ g)
     = eqToHom (by rw [mapFiber'_comp_aux1 h f g]; simp [forgetToCat]) ≫
     (eqToHom (mapFiber'_comp_aux0 h)).map ((α.map g).base.map (α.map f).fiber)
@@ -327,6 +327,14 @@ theorem mapPoint'_comp {x y z} (f : x ⟶ y)
 
 end
 
+theorem Functor.hext (F G : Γ ⥤ PGrpd)
+    (hbase : F ⋙ forgetToGrpd = G ⋙ forgetToGrpd)
+    (hfiber_obj : ∀ x : Γ, HEq (F.obj x).fiber (G.obj x).fiber)
+    (hfiber_map : ∀ {x y : Γ} (f : x ⟶ y), HEq (F.map f).fiber (G.map f).fiber)
+    : F = G :=
+  Grothendieck.Functor.hext F G hbase hfiber_obj hfiber_map
+
+section
 variable {Γ : Type u₁} [Category.{v₁} Γ]
 variable (A : Γ ⥤ Grpd) (fibObj : Π (x : Γ), A.obj x)
     (fibMap : Π {x y : Γ} (f : x ⟶ y),
@@ -340,6 +348,7 @@ theorem functorTo_map_comp_aux {x y z : Γ} (f : x ⟶ y) (g : y ⟶ z) :
     = (A.map g).obj ((A.map f).obj (fibObj x)) := by
   simp
 
+section
 variable
     (map_id : Π (x : Γ), fibMap (CategoryStruct.id x) = eqToHom (functorTo_map_id_aux _ _ _))
     (map_comp : Π {x y z : Γ} (f : x ⟶ y) (g : y ⟶ z), fibMap (f ≫ g)
@@ -370,6 +379,42 @@ variable {A} {fibObj} {fibMap} {map_id} {map_comp}
 @[simp] theorem functorTo_forget :
     functorTo _ _ _ map_id map_comp ⋙ Grothendieck.forget _ = A :=
   rfl
+
+end
+
+section
+variable
+  (map_id : Π (x : Γ), fibMap (CategoryStruct.id x) = eqToHom (functorTo_map_id_aux _ _ _))
+  (map_comp : Π {x y z : Γ} (f : x ⟶ y) (g : y ⟶ z), HEq (fibMap (f ≫ g))
+    ((A.map g).map (fibMap f) ≫ fibMap g))
+/-- To define a functor into `PGrpd` we can make use of an existing functor into `Grpd`.
+  This is definitinoally just `Grothendieck.functorTo`,
+  but giving the user a slightly less bloated context. -/
+def functorTo' : Γ ⥤ PGrpd := Grothendieck.functorTo' A fibObj fibMap map_id map_comp
+
+@[simp] theorem functorTo'_obj_base (x) :
+    ((functorTo' A fibObj fibMap map_id map_comp).obj x).base = A.obj x :=
+  rfl
+
+@[simp] theorem functorTo'_obj_fiber (x) :
+    ((functorTo' A fibObj fibMap map_id map_comp).obj x).fiber = fibObj x :=
+  rfl
+
+@[simp] theorem functorTo'_map_base {x y} (f : x ⟶ y) :
+    ((functorTo' A fibObj fibMap map_id map_comp).map f).base = A.map f :=
+  rfl
+
+@[simp] theorem functorTo'_map_fiber {x y} (f : x ⟶ y) :
+    ((functorTo' A fibObj fibMap map_id map_comp).map f).fiber = fibMap f :=
+  rfl
+
+variable {A} {fibObj} {fibMap} {map_id} {map_comp}
+@[simp] theorem functorTo'_forget :
+    functorTo' _ _ _ map_id map_comp ⋙ Grothendieck.forget _ = A :=
+  rfl
+
+end
+end
 
 -- @[simp] theorem groupoidalAsSmallFunctorToPGrpd_obj_base (x) :
 --     (groupoidalAsSmallFunctorToPGrpd.obj x).base = (Grothendieck.forget _).obj x := by

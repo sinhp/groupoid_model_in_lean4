@@ -127,7 +127,7 @@ variable (A : Γ ⥤ Grpd.{v₁,u₁}) (α : Γ ⥤ PGrpd.{v₁,u₁}) (h : α �
              α
   ===== Γ -------α--------------¬
  ‖      ↓ sec                   V
- ‖     ∫(A) ⋯ -------------> PGrpd
+ ‖     ∫(A) ----------------> PGrpd
  ‖      |                        |
  ‖      |                        |
  ‖   forget                  forgetToGrpd
@@ -136,64 +136,41 @@ variable (A : Γ ⥤ Grpd.{v₁,u₁}) (α : Γ ⥤ PGrpd.{v₁,u₁}) (h : α �
   ===== Γ --α ≫ forgetToGrpd--> Grpd
 -/
 def sec : Γ ⥤ ∫(A) :=
-  (isPullback A).lift α (𝟭 _) (by simp [h, Functor.id_comp])
-
-@[simp] def sec_toPGrpd : sec A α h ⋙ toPGrpd _ = α := by
-  simp [sec, (isPullback A).fac_left]
-
-@[simp] def sec_forget : sec A α h ⋙ forget = 𝟭 _ :=
-  (isPullback A).fac_right _ _ _
-
-/-- An alternative to `sec` that can be used for computation. -/
-def sec' : Γ ⥤ ∫(A) :=
   Groupoidal.functorTo (𝟭 _) (fun x => PGrpd.objFiber' h x) (fun f => PGrpd.mapFiber' h f)
   (fun x => by simp) (fun f g => by subst h; simp [PGrpd.mapFiber'])
 
-@[simp] lemma sec'_obj_base (x) : ((sec' A α h).obj x).base = x :=
-  rfl
-
-@[simp] lemma sec'_obj_fiber (x) :
-    ((sec' A α h).obj x).fiber = PGrpd.objFiber' h x :=
-  rfl
-
-@[simp] lemma sec'_map_base {x y} {f : x ⟶ y} : ((sec' A α h).map f).base = f :=
-  rfl
-
-@[simp] lemma sec'_map_fiber {x y} {f : x ⟶ y} :
-    ((sec' A α h).map f).fiber = PGrpd.mapFiber' h f :=
-  rfl
-
-theorem sec_eq_sec' : sec A α h = sec' A α h := by
-  symm
-  apply (Grothendieck.Groupoidal.isPullback _).lift_uniq
-  · apply Grothendieck.Functor.ext
-    · rw [Functor.assoc, toPGrpd_forgetToGrpd, sec', ← Functor.assoc, h]
-      rfl
-    · intro x
-      apply (toPGrpd_obj_fiber _ _).trans
-      simp
-    · intro x y f
-      apply (toPGrpd_map_fiber _ _).trans
-      exact PGrpd.mapFiber'_heq _ _
-  · rfl
-
-@[simp] lemma sec_obj_base (x) : ((sec A α h).obj x).base = x := by
-  rw [sec_eq_sec']
+@[simp] lemma sec_obj_base (x) : ((sec A α h).obj x).base = x :=
   rfl
 
 @[simp] lemma sec_obj_fiber (x) :
-    HEq ((sec A α h).obj x).fiber (PGrpd.objFiber' h x) := by
-  rw [sec_eq_sec']
+    ((sec A α h).obj x).fiber = PGrpd.objFiber' h x :=
   rfl
 
-@[simp] lemma sec_map_base {x y} {f : x ⟶ y} : HEq ((sec A α h).map f).base f := by
-  rw [sec_eq_sec']
+@[simp] lemma sec_map_base {x y} {f : x ⟶ y} : ((sec A α h).map f).base = f :=
   rfl
 
 @[simp] lemma sec_map_fiber {x y} {f : x ⟶ y} :
-    HEq ((sec A α h).map f).fiber (PGrpd.mapFiber' h f) := by
-  rw [sec_eq_sec']
+    ((sec A α h).map f).fiber = PGrpd.mapFiber' h f :=
   rfl
+
+@[simp] def sec_toPGrpd : sec A α h ⋙ toPGrpd _ = α := by
+  apply Grothendieck.Functor.hext
+  · rw [Functor.assoc, toPGrpd_forgetToGrpd, sec, ← Functor.assoc, h]
+    rfl
+  · intro x
+    apply (toPGrpd_obj_fiber _ _).trans
+    simp
+  · intro x y f
+    apply (toPGrpd_map_fiber _ _).trans
+    exact PGrpd.mapFiber'_heq _ _
+
+@[simp] def sec_forget : sec A α h ⋙ forget = 𝟭 _ :=
+  rfl
+
+theorem sec_eq_lift : sec A α h = (isPullback A).lift α (𝟭 _) (by simp [h, Functor.id_comp]) := by
+  apply (Grothendieck.Groupoidal.isPullback _).lift_uniq
+  · simp
+  · simp
 
 section naturality
 variable {Δ : Type u₃} [Category.{v₃} Δ] (σ : Δ ⥤ Γ)
@@ -209,26 +186,6 @@ theorem sec_naturality : σ ⋙ sec A α h = sec (σ ⋙ A) (σ ⋙ α) (by rw [
     simp [Functor.assoc, Functor.comp_id, Functor.id_comp]
 
 end naturality
-
-include h in
-theorem sec_rfl_obj {x} : (sec _ α rfl).obj x =
-    (ι (α ⋙ PGrpd.forgetToGrpd) x).obj (PGrpd.objFiber α x) := by
-  fapply Grothendieck.Groupoidal.obj_hext
-  · apply Functor.congr_obj $
-      (isPullback (α ⋙ PGrpd.forgetToGrpd)).fac_right α (𝟭 _) (by simp [h, Functor.id_comp])
-  · dsimp [PGrpd.objFiber, sec]
-    rw! [← Functor.congr_obj
-      ((isPullback (α ⋙ PGrpd.forgetToGrpd)).fac_left α (𝟭 _) (by simp [h, Functor.id_comp])) x]
-    symm
-    apply toPGrpd_obj_fiber
-
-theorem sec_rfl_obj' {x} : (sec _ α rfl).obj x =
-    (ι (α ⋙ PGrpd.forgetToGrpd) x).obj (PGrpd.objFiber α x) := by
-  rw [sec_eq_sec']
-  rfl
-
-theorem sec'_rfl_obj {x} : (sec' _ α rfl).obj x =
-    (ι (α ⋙ PGrpd.forgetToGrpd) x).obj (PGrpd.objFiber α x) := rfl
 
 end
 
