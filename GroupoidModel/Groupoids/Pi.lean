@@ -368,15 +368,22 @@ def pi {Γ : Grpd.{v,u}} {A : Γ ⥤ Grpd.{u₁,u₁}}
       map_id x:= conjugateLiftFunc_id A B x
       map_comp := conjugateLiftFunc_comp A B
 
-/-- The formation rule for Π-types for the ambient natural model `smallU` -/
+def smallUPi_app {Γ : Ctx.{max u (v+1)}}
+    (AB : y(Γ) ⟶ smallU.{v, max u (v+1)}.Ptp.obj smallU.{v, max u (v+1)}.Ty) :
+    y(Γ) ⟶ smallU.{v, max u (v+1)}.Ty :=
+  yonedaCategoryEquiv.symm (pi (smallUPTpEquiv AB).2)
+
+/-- The formation rule for Π-types for the natural model `smallU` -/
 def smallUPi.Pi : smallU.{v}.Ptp.obj smallU.{v}.Ty ⟶ smallU.{v}.Ty :=
-  NatTrans.yonedaMk (fun AB =>
-    yonedaCategoryEquiv.symm (pi (smallUPTpEquiv AB).2))
-    sorry
+  NatTrans.yonedaMk smallUPi_app sorry
+
+/-- The introduction rule for Π-types for the natural model `smallU` -/
+def smallUPi.lam : smallU.{v}.Ptp.obj smallU.{v}.Tm ⟶ smallU.{v}.Tm :=
+  NatTrans.yonedaMk sorry sorry
 
 def smallUPi : NaturalModelPi smallU.{v} where
   Pi := smallUPi.Pi.{v}
-  lam := sorry
+  lam := smallUPi.lam.{v}
   Pi_pullback := sorry
 
 def uHomSeqPis' (i : ℕ) (ilen : i < 4) :

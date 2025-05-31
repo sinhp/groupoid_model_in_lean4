@@ -39,4 +39,12 @@ def compDomEquiv {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} :
       left_inv _ := rfl
       right_inv _ := rfl }
 
+@[simp] theorem compDomEquiv_symm_comp_p {Γ E B D A : 𝒞} {P : UvPoly E B}
+    {Q : UvPoly D A} (AB : Γ ⟶ P.functor.obj A) (α : Γ ⟶ E)
+    (β : Γ ⟶ D) (w : AB ≫ P.fstProj A = α ≫ P.p)
+    (h : β ≫ Q.p = pullback.lift AB α w ≫ (PartialProduct.fan P A).snd) :
+    compDomEquiv.symm ⟨AB,α,β,w,h⟩ ≫ (P.comp Q).p = AB := by
+   simp [compDomEquiv, Equiv.psigmaCongrProp, Equiv.sigmaCongrRight_symm,
+    Equiv.coe_fn_symm_mk, pullbackHomEquiv]
+
 end CategoryTheory.UvPoly

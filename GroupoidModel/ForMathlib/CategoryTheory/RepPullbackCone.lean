@@ -53,10 +53,7 @@ structure RepIsLimit (t : Cone F) where
     (_ : ∀ j : J, m ≫ t.π.app j = s.cone.π.app j), m = lift s := by
     aesop_cat
 
-abbrev ConeMap (s : Cone F) (c : C) :=
- yoneda.obj c ⟶ s.pt
-
-def repConeOfConeMap (s : Cone F) (c : C) (x' : ConeMap s c) : RepCone F :=
+def repConeOfConeMap (s : Cone F) (c : C) (x' : yoneda.obj c ⟶ s.pt) : RepCone F :=
     { pt := c
       π := {app := λ j ↦ x' ≫ s.π.app j}}
 
@@ -64,11 +61,11 @@ namespace RepIsLimit
 
 variable {t : Cone F} (P : RepIsLimit t) {s : Cone F}
 
-def lift' (c : C) (x' : ConeMap s c) : ConeMap t c :=
+def lift' (c : C) (x' : yoneda.obj c ⟶ s.pt) : yoneda.obj c ⟶ t.pt :=
   P.lift $ repConeOfConeMap s c x'
 
 @[simp] lemma lift'_naturality {s : Cone F} {c d : C}
-    (f : c ⟶ d) (x' : ConeMap s d) :
+    (f : c ⟶ d) (x' : yoneda.obj d ⟶ s.pt) :
     lift' P c (yoneda.map f ≫ x') = yoneda.map f ≫ lift' P d x' := by
   apply Eq.symm
   apply P.uniq (repConeOfConeMap s c (yoneda.map f ≫ x')) (yoneda.map f ≫ lift' P d x')
@@ -138,6 +135,11 @@ namespace RepPullbackCone
 
 variable {W X Y Z : Cᵒᵖ ⥤ Type v₃}
   {f : X ⟶ Z} {g : Y ⟶ Z} (t : RepPullbackCone f g)
+
+def mk (W : C) (fst : yoneda.obj W ⟶ X) (snd : yoneda.obj W ⟶ Y)
+    (h : fst ≫ f = snd ≫ g) :
+    RepPullbackCone f g :=
+  repConeOfConeMap (PullbackCone.mk fst snd h) W (𝟙 _)
 
 def pullbackCone : PullbackCone f g where
   pt := yoneda.obj t.pt
