@@ -134,6 +134,12 @@ theorem wk (Γ A l) : WfRen ((A,l) :: Γ) Nat.succ Γ := by
   convert Lookup.succ _ _ lk
   autosubst
 
+theorem comp {Θ Δ Γ ξ₁ ξ₂} : WfRen Θ ξ₁ Δ → WfRen Δ ξ₂ Γ → WfRen Θ (fun i => ξ₁ (ξ₂ i)) Γ := by
+  intro wf₁ wf₂ _ _ _ lk
+  convert wf₁ <| wf₂ lk using 1
+  autosubst
+  congr 1
+
 theorem up {Δ Γ A ξ l} : WfRen Δ ξ Γ →
     WfRen ((A.rename ξ, l) :: Δ) (Expr.upr ξ) ((A, l) :: Γ) := by
   intro wf _ _ _ lk
@@ -193,7 +199,8 @@ they include tons of redundant assumptions
 needed to make the main induction go through.
 
 After substitution and inversion,
-we can define better versions with fewer arguments. -/
+we define better versions with fewer arguments. -/
+-- TODO: could un-namespace `WfSb`/`EqSb` and give them smart constructors/eliminators
 namespace SubstProof
 
 /-- The substitution `σ : Δ ⟶ Γ` is well-formed
@@ -373,11 +380,7 @@ theorem subst_all :
     . autosubst; grind [IndWfSb.snoc]
     . autosubst
       rename_i iht _ _ _ _ _ _ _ _
-      apply (iht ..).2
-      . grind [IndWfSb.snoc]
-      . grind [IndEqSb.snoc]
-      . grind
-      . grind [IndWfSb.snoc]
+      apply (iht ..).2 <;> grind [IndWfSb.snoc, IndEqSb.snoc]
     all_goals grind
   case fst_pair => apply (EqTm.fst_pair ..).trans_tm <;> grind
   case snd_pair =>
@@ -402,21 +405,3 @@ theorem subst_all :
   case cong_snd => rw [ih_subst]; apply EqTm.cong_snd <;> grind
 
 end SubstProof
-
-
-theorem WfTp.subst {Δ Γ A σ l} : Γ ⊢[l] A → WfCtx Δ → WfSb Δ σ Γ → Δ ⊢[l] A.subst σ :=
-  fun h h₁ h₂ => WfSb.subst_all.2.1 h h₁ h₂
-
-theorem EqTp.subst {Δ Γ A B σ l} :
-    Γ ⊢[l] A ≡ B → WfCtx Δ → WfSb Δ σ Γ → Δ ⊢[l] A.subst σ ≡ B.subst σ :=
-  fun h h₁ h₂ => WfSb.subst_all.2.2.1 h h₁ h₂
-
-theorem WfTm.subst {Δ Γ A t σ l} :
-    Γ ⊢[l] t : A → WfCtx Δ → WfSb Δ σ Γ → Δ ⊢[l] t.subst σ : A.subst σ :=
-  fun h h₁ h₂ => WfSb.subst_all.2.2.2.1 h h₁ h₂
-
-theorem EqTm.subst {Δ Γ A t u σ l} :
-    Γ ⊢[l] t ≡ u : A → WfCtx Δ → WfSb Δ σ Γ → Δ ⊢[l] t.subst σ ≡ u.subst σ : A.subst σ :=
-  fun h h₁ h₂ => WfSb.subst_all.2.2.2.2 h h₁ h₂
-
--- TODO: derive context conversion?
