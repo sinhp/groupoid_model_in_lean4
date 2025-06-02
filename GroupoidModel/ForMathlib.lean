@@ -357,7 +357,7 @@ theorem eqToHom_hom_aux {C1 C2 : Grpd.{v,u}} (x y: C1) (eq : C1 = C2) :
 theorem eqToHom_hom {C1 C2 : Grpd.{v,u}} {x y: C1} (f : x ⟶ y) (eq : C1 = C2) :
     (eqToHom eq).map f = (cast (Grpd.eqToHom_hom_aux x y eq) f) := by
   cases eq
-  simp[CategoryStruct.id]
+  simp only [eqToHom_refl, id_eq_id, Functor.id_map, cast_eq]
 
 @[simp] theorem map_eqToHom_map {x y : Γ} (h : x = y) {t s} (f : t ⟶ s) :
     (F.map (eqToHom h)).map f =
