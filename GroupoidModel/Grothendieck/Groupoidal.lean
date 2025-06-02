@@ -283,14 +283,6 @@ theorem map_obj_objMk {α : F ⟶ G} (xb : C) (xf : F.obj xb) :
     (Groupoidal.map α).obj (objMk xb xf) = objMk xb ((α.app xb).obj xf) :=
   rfl
 
--- lemma h' {α : F ⟶ G} {X Y : C} (f : X ⟶ Y) :
---   (F ⋙ Grpd.forgetToCat).map f ≫ (whiskerRight α Grpd.forgetToCat).app Y =
---   (whiskerRight α Grpd.forgetToCat).app X ≫ (G ⋙ Grpd.forgetToCat).map f := by
---     simp
---     rw [← Grpd.forgetToCat.map_comp]; rw [← Grpd.forgetToCat.map_comp]
---     simp
-
---lemma h2 {α : F ⟶ G} {X : C} : (whiskerRight α Grpd.forgetToCat).app X = Grpd.forgetToCat.map (α.app X) := rfl
 
 
 
