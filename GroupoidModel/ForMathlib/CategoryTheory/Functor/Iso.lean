@@ -33,6 +33,19 @@ theorem ext ⦃α β : X ≅≅ Y⦄ (w : α.hom = β.hom) : α = β :=
     _     = (α.inv ⋙ α.hom) ⋙ β.inv := by rw [Functor.assoc, ← w]
     _     = β.inv                    := by rw [Iso.inv_hom_id, Functor.id_comp]
 
+--@[ext]
+theorem ext_inv ⦃α β : X ≅≅ Y⦄ (w : α.inv = β.inv) : α = β :=
+  suffices α.hom = β.hom by
+    cases α
+    cases β
+    cases w
+    cases this
+    rfl
+  calc
+    α.hom = α.hom ⋙ β.inv ⋙ β.hom   := by rw [inv_hom_id', Functor.comp_id]
+    _     = (α.hom ⋙ α.inv) ⋙ β.hom := by rw [Functor.assoc, ← w]
+    _     = β.hom                    := by rw [hom_inv_id, Functor.id_comp]
+
 /-- Inverse isomorphism. -/
 @[symm]
 def symm (I : X ≅≅ Y) : Y ≅≅ X where
@@ -90,8 +103,16 @@ theorem refl_symm : (Iso.refl X).symm = Iso.refl X := rfl
 def trans (α : X ≅≅ Y) (β : Y ≅≅ Z) : X ≅≅ Z where
   hom := α.hom ⋙ β.hom
   inv := β.inv ⋙ α.inv
-  hom_inv_id := sorry
-  inv_hom_id := sorry
+  hom_inv_id := by
+    calc (α.hom ⋙ β.hom) ⋙ β.inv ⋙ α.inv = α.hom ⋙ (β.hom ⋙ β.inv) ⋙ α.inv := by rw! [Functor.assoc]
+    _ = α.hom ⋙ 𝟭 _ ⋙ α.inv := by rw [β.hom_inv_id]
+    _ = α.hom ⋙ α.inv := by rw [Functor.id_comp]
+    _ = 𝟭 _ := by rw [α.hom_inv_id']
+  inv_hom_id := by
+    calc (β.inv ⋙ α.inv) ⋙ α.hom ⋙ β.hom = β.inv ⋙ (α.inv ⋙ α.hom) ⋙ β.hom := by rw! [Functor.assoc]
+    _ = β.inv ⋙ 𝟭 _ ⋙ β.hom := by rw [α.inv_hom_id]
+    _ = β.inv ⋙ β.hom := by rw [Functor.id_comp]
+    _ = 𝟭 _ := by rw [β.inv_hom_id']
 
 /-- Notation for composition of isomorphisms. -/
 infixr:80 " ≪⋙ " => Iso.trans -- type as `\ll \ggg`.
@@ -150,7 +171,7 @@ theorem eq_comp_inv (α : X ≅≅ Y) {f : Z ⥤ Y} {g : Z ⥤ X} : g = f ⋙ α
   (comp_inv_eq α.symm).symm
 
 theorem inv_eq_inv (f g : X ≅≅ Y) : f.inv = g.inv ↔ f.hom = g.hom :=
-  ⟨fun h => sorry, fun h => by rw [ext h]⟩
+  ⟨fun h => by rw [ext_inv h], fun h => by rw [ext h]⟩
 
 theorem hom_comp_eq_id (α : X ≅≅ Y) {f : Y ⥤ X} : α.hom ⋙ f = Functor.id X ↔ f = α.inv := by
   rw [← eq_inv_comp, Functor.comp_id]
@@ -173,16 +194,28 @@ theorem hom_eq_inv (α : X ≅≅ Y) (β : Y ≅≅ X) : α.hom = β.inv ↔ β.
 def homToEquiv (α : X ≅≅ Y) : (Z ⥤ X) ≃ (Z ⥤ Y) where
   toFun f := f ⋙ α.hom
   invFun g := g ⋙ α.inv
-  left_inv := sorry
-  right_inv := sorry
+  left_inv := by
+    refine Function.leftInverse_iff_comp.mpr ?_
+    ext g
+    rw [Function.comp_apply, id_eq, Functor.assoc, hom_inv_id, Functor.comp_id]
+  right_inv := by
+    refine Function.rightInverse_iff_comp.mpr ?_
+    ext g
+    rw [Function.comp_apply, id_eq, Functor.assoc, inv_hom_id, Functor.comp_id]
 
 /-- The bijection `(X ⥤ Z) ≃ (Y ⥤ Z)` induced by `α : X ≅≅ Y`. -/
 @[simps]
 def homFromEquiv (α : X ≅≅ Y) : (X ⥤ Z) ≃ (Y ⥤ Z) where
   toFun f := α.inv ⋙ f
   invFun g := α.hom ⋙ g
-  left_inv := sorry
-  right_inv := sorry
+  left_inv := by
+    refine Function.leftInverse_iff_comp.mpr ?_
+    ext g
+    rw [Function.comp_apply, id_eq, ← Functor.assoc, hom_inv_id, Functor.id_comp]
+  right_inv := by
+    refine Function.rightInverse_iff_comp.mpr ?_
+    ext g
+    rw [Function.comp_apply, id_eq, ← Functor.assoc, inv_hom_id, Functor.id_comp]
 
 @[aesop apply safe (rule_sets := [CategoryTheory])]
 theorem inv_ext {f : X ≅≅ Y} {g : Y ⥤ X} (hom_inv_id : f.hom ⋙ g = Functor.id X) : f.inv = g :=
@@ -195,22 +228,55 @@ theorem inv_ext' {f : X ≅≅ Y} {g : Y ⥤ X} (hom_inv_id : f.hom ⋙ g = Func
 @[simp]
 theorem cancel_iso_hom_left (f : X ≅≅ Y) (g g' : Y ⥤ Z) :
     f.hom ⋙ g = f.hom ⋙ g' ↔ g = g' := by
-  sorry
+  constructor
+  . intro h
+    calc g = (f.inv ⋙ f.hom) ⋙ g := by rw [f.inv_hom_id, Functor.id_comp]
+    _ = f.inv ⋙ (f.hom ⋙ g) := by rw [Functor.assoc]
+    _ = f.inv ⋙ (f.hom ⋙ g') := by rw [h]
+    _ = (f.inv ⋙ f.hom) ⋙ g' := by rw [Functor.assoc]
+    _ = g' := by rw [f.inv_hom_id, Functor.id_comp]
+  . intro h
+    rw[h]
+
 
 @[simp]
 theorem cancel_iso_inv_left (f : Y ≅≅ X) (g g' : Y ⥤ Z) :
     f.inv ⋙ g = f.inv ⋙ g' ↔ g = g' := by
-  sorry
+  constructor
+  . intro h
+    calc g = (f.hom ⋙ f.inv) ⋙ g := by rw [f.hom_inv_id, Functor.id_comp]
+    _ = f.hom ⋙ (f.inv ⋙ g) := by rw [Functor.assoc]
+    _ = f.hom ⋙ (f.inv ⋙ g') := by rw [h]
+    _ = (f.hom ⋙ f.inv) ⋙ g' := by rw [Functor.assoc]
+    _ = g' := by rw [f.hom_inv_id, Functor.id_comp]
+  . intro h
+    rw[h]
 
 @[simp]
 theorem cancel_iso_hom_right (f f' : X ⥤ Y) (g : Y ≅≅ Z) :
     f ⋙ g.hom = f' ⋙ g.hom ↔ f = f' := by
-  sorry
+  constructor
+  . intro h
+    calc f = f ⋙ (g.hom ⋙ g.inv) := by rw [g.hom_inv_id, Functor.comp_id]
+    _ = (f ⋙ g.hom) ⋙ g.inv := by rw [Functor.assoc]
+    _ = (f' ⋙ g.hom) ⋙ g.inv := by rw [h]
+    _ = f' ⋙ (g.hom ⋙ g.inv) := by rw [Functor.assoc]
+    _ = f' := by rw [g.hom_inv_id, Functor.comp_id]
+  . intro h
+    rw[h]
 
 @[simp]
 theorem cancel_iso_inv_right (f f' : X ⥤ Y) (g : Z ≅≅ Y) :
     f ⋙ g.inv = f' ⋙ g.inv ↔ f = f' := by
-  sorry
+  constructor
+  . intro h
+    calc f = f ⋙ (g.inv ⋙ g.hom) := by rw [g.inv_hom_id, Functor.comp_id]
+    _ = (f ⋙ g.inv) ⋙ g.hom := by rw [Functor.assoc]
+    _ = (f' ⋙ g.inv) ⋙ g.hom := by rw [h]
+    _ = f' ⋙ (g.inv ⋙ g.hom) := by rw [Functor.assoc]
+    _ = f' := by rw [g.inv_hom_id, Functor.comp_id]
+  . intro h
+    rw[h]
 
 variable {W X' : Type*} [Category W] [Category X']
 /-
@@ -223,12 +289,24 @@ but then stop.
 @[simp]
 theorem cancel_iso_hom_right_assoc (f : W ⥤ X) (g : X ⥤ Y) (f' : W ⥤ X')
     (g' : X' ⥤ Y) (h : Y ≅≅ Z) : f ⋙ g ⋙ h.hom = f' ⋙ g' ⋙ h.hom ↔ f ⋙ g = f' ⋙ g' := by
-  sorry
+  constructor
+  . intro hy
+    rw [← Functor.assoc, ← Functor.assoc] at hy
+    exact (cancel_iso_hom_right (f ⋙ g) (f' ⋙ g') h).mp hy
+  . intro hy
+    simp only [← Functor.assoc, cancel_iso_hom_right]
+    exact hy
 
 @[simp]
 theorem cancel_iso_inv_right_assoc (f : W ⥤ X) (g : X ⥤ Y) (f' : W ⥤ X')
     (g' : X' ⥤ Y) (h : Z ≅≅ Y) : f ⋙ g ⋙ h.inv = f' ⋙ g' ⋙ h.inv ↔ f ⋙ g = f' ⋙ g' := by
-  sorry
+  constructor
+  . intro hy
+    rw [← Functor.assoc, ← Functor.assoc] at hy
+    exact (cancel_iso_inv_right (f ⋙ g) (f' ⋙ g') h).mp hy
+  . intro hy
+    simp only [← Functor.assoc, cancel_iso_inv_right]
+    exact hy
 
 end Iso
 
