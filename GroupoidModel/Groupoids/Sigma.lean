@@ -577,11 +577,6 @@ theorem eqToHom_base_map {C D : Type*} [Category C] [Category D] {A}
 
 
 
-set_option maxHeartbeats 0 in
-
-
-set_option trace.profiler true in
-set_option trace.profiler.threshold 3000 in
 theorem pairSection_naturality_map_fiber {x y} (f : x ⟶ y) :
     eqToHom (by rw [pairSection_naturality_map_base])
     ≫ ((σ ⋙ pairSection h).map f).fiber =
