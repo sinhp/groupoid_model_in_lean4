@@ -560,16 +560,6 @@ lemma eqToHom_eqToHom_base {A : Γ ⥤ Grpd} {x' x y y' : ∫(A)}
 variable {A : Γ ⥤ Grpd}{x' x y y' : ∫(A)}
     (hx : x' = x) (hy : y = y') (f : x ⟶ y)
 
-#check (eqToHom hx ≫ f ≫ eqToHom hy).fiber
-#check (A.map f.base ≫ (A.map (eqToHom hy).base)).map (eqToHom hx).fiber
-#check (eqToHom hy).fiber
-#check (A.map (eqToHom hy).base).map f.fiber
-
--- lemma eqToHom_eqToHom_fiber_aux {A : Γ ⥤ Grpd} {x' x y y' : ∫(A)}
---     (hx : x' = x) (hy : y = y') (f : x ⟶ y) :
---     ((A ⋙ Grpd.forgetToCat).map (eqToHom hx ≫ f ≫ eqToHom hy).base).obj x'.fiber =
---     (A.map f.base ≫ A.map (eqToHom hy).base).obj (((A ⋙ Grpd.forgetToCat).map (eqToHom hx).base).obj x'.fiber) := by
---   simp [eqToHom_eqToHom_base, Grpd.forgetToCat]
 
 lemma eqToHom_eqToHom_fiber {A : Γ ⥤ Grpd} {x' x y y' : ∫(A)}
     {hx : x' = x} {hy : y = y'} (f : x ⟶ y) :
