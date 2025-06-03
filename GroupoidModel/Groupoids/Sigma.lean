@@ -324,23 +324,26 @@ def pairMapFiber {x y : Γ} (f : x ⟶ y) : (sigmaMap B f).obj (pairObjFiber h x
     ⟶ (pairObjFiber h y : ∫(ι _ y ⋙ B)) :=
   homMk (mapFiber α f) (eqToHom (pairMapFiber_aux h f) ≫ mapFiber' h f)
 
--- FIXME this simp lemma does not simp. It did in the past, but broke when I (JH)
--- changed the category strucutre on ∫(F) to have homs `Groupoidal.Hom`
--- instead of `Grothendieck.Groupoidal.Hom`.
-@[simp] theorem pairMapFiber_base {x y} (f : x ⟶ y) :
+@[simp↓] theorem pairMapFiber_base {x y} (f : x ⟶ y) :
     (pairMapFiber h f).base = mapFiber α f :=
   rfl
 
-@[simp] theorem pairMapFiber_fiber {x y} (f : x ⟶ y) :
+/-
+1. The first implicit argument to `Groupoidal.Hom.fiber` is `(α ⋙ forgetToGrpd).obj y`.
+   The global `simp` rule `Functor.comp_obj` (which normally fires before this)
+   rewrites that to `forgetToGrpd.obj (α.obj x)`,
+   and then this lemma no longer applies.
+   As a workaround, we instruct `simp` to apply this before visiting subterms.
+
+2. `@[simps! fiber]` on `pairMapFiber` generates a lemma
+  that refers to `Grothendieck.Hom.fiber` rather than `Groupoidal.Hom.fiber`,
+  so we write this by hand. -/
+@[simp↓] theorem pairMapFiber_fiber {x y} (f : x ⟶ y) :
     (pairMapFiber h f).fiber = eqToHom (pairMapFiber_aux h f) ≫ mapFiber' h f :=
   rfl
 
 theorem pairMapFiber_id (x : Γ) : pairMapFiber h (𝟙 x) = eqToHom (by simp) := by
-  apply Grothendieck.Groupoidal.ext
-  · rw [pairMapFiber_fiber] -- FIXME why does this no longer simp?
-    simp
-  · rw [pairMapFiber_base]
-    simp
+  apply Grothendieck.Groupoidal.ext <;> simp
 
 theorem pairMapFiber_comp_aux_aux {x y z} (f : x ⟶ y) (g : y ⟶ z) :
     ((ι _ z ⋙ B).map (mapFiber α g)).obj
