@@ -1,4 +1,4 @@
-import GroupoidModel.Russell_PER_MS.LemmasAutosubst
+import GroupoidModel.Russell_PER_MS.Substitution
 
 set_option grind.warning false
 
