@@ -100,11 +100,9 @@ def objMk (c : C) (x : F.obj c) : ∫(F) where
   base := c
   fiber := x
 
--- FIXME should this be done by adding @[simps] to objMk?
 @[simp] theorem objMk_base (c : C) (x : F.obj c) : (objMk c x).base = c :=
   rfl
 
--- FIXME should this be done by adding @[simps] to objMk?
 @[simp] theorem objMk_fiber (c : C) (x : F.obj c) : (objMk c x).fiber = x :=
   rfl
 
@@ -196,6 +194,15 @@ groupoidal Grothendieck construction.-/
 def ι (c : C) : F.obj c ⥤ Groupoidal F :=
   Grothendieck.ι (F ⋙ Grpd.forgetToCat) c
 
+/-
+JH: `ι_obj` in my opinion is a bad lemma. However,
+
+1. The analogous thing for Grothendieck.ι exists, and is even a simp lemma.
+2. Some proofs are shorter when feeding it to simp.
+
+So for now let's avoid using it, but maybe we can put it back if
+proves to be useful
+-/
 -- theorem ι_obj (c : C) (d : F.obj c) :
 --     (ι F c).obj d = { base := c, fiber := d } :=
 --   Grothendieck.ι_obj _ _ _
@@ -203,17 +210,18 @@ def ι (c : C) : F.obj c ⥤ Groupoidal F :=
 @[simp] theorem ι_obj_base (c : C) (d : F.obj c) : ((ι F c).obj d).base = c :=
   rfl
 
--- NOTE maybe this should be an HEq?
 @[simp] theorem ι_obj_fiber (c : C) (d : F.obj c) : ((ι F c).obj d).fiber = d :=
   rfl
 
--- -- NOTE the `Grothendieck` version in `mathlib` should NOT be a simp lemma
--- -- NOTE when `f = eqToHom` this is not the rewrite I want.
--- -- Instead I want to do `eqToHom_map`
--- theorem ι_map (c : C) {X Y : F.obj c} (f : X ⟶ Y) :
---     (ι F c).map f = ⟨𝟙 _, eqToHom (by simp [ι_obj, Grpd.forgetToCat]) ≫ f⟩ :=
---   Grothendieck.ι_map _ _ _
-
+/-
+Similar to `ι_obj`
+NOTE the `Grothendieck` version in `mathlib` should NOT be a simp lemma
+NOTE when `f = eqToHom` this is not the rewrite I want.
+Instead I want to do `eqToHom_map`
+theorem ι_map (c : C) {X Y : F.obj c} (f : X ⟶ Y) :
+    (ι F c).map f = ⟨𝟙 _, eqToHom (by simp [ι_obj, Grpd.forgetToCat]) ≫ f⟩ :=
+  Grothendieck.ι_map _ _ _
+-/
 @[simp] theorem ι_map_base (c : C) {X Y : F.obj c} (f : X ⟶ Y) :
     ((ι F c).map f).base = 𝟙 _ :=
   rfl

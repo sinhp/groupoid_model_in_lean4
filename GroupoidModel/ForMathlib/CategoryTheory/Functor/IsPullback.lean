@@ -11,7 +11,7 @@ universe v u v₁ u₁ v₂ u₂ v₃ u₃
   providing a universal property for cones with apex of any universe size.
   This is essentially the same as asking for a pullback in `Cat.{max ⋯, max ⋯}`,
   (where all the categories are adjusted by `ULift`).
-* However, Lean cannot express quantification of universe variables,
+* However, since Lean cannot express quantification of universe variables,
   we state `CategoryTheory.Functor.IsPullback` via being isomorphic
   to a chosen pullback
   `CategoryTheory.Functor.IsPullback.Chosen`.
