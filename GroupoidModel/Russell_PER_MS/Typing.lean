@@ -1,7 +1,8 @@
-import GroupoidModel.Russell_PER_MS.Basic
 import GroupoidModel.Russell_PER_MS.Autosubst
 
-/-! In this file we specify typing judgments of the type theory
+/-! ## Typing rules
+
+In this file we specify typing judgments of the type theory
 as `Prop`-valued relations. -/
 
 section Notation -- TODO make notation local
@@ -23,30 +24,26 @@ macro_rules
 
 end Notation
 
-/-- A typing context consisting of expressions and their universe levels. -/
+/-- A typing context consisting of type expressions and their universe levels. -/
 abbrev Ctx := List (Expr × Nat)
+
 /-- The maximum `l` for which `Γ ⊢[l] 𝒥` makes sense.
-When set to `0`, types cannot be quantified over at all.
-TODO: should be a parameter -/
-def univMax := 37
+When set to `0`, types cannot be quantified over at all. -/
+-- TODO: this should be a parameter,
+-- but adding an `optParam` to all judgments is super noisy.
+-- If only we had parameterized modules..
+def univMax : Nat := 3
 
-/- `presupp` indicates presuppositions.
-We don't add literally all of them,
-just the ones needed to make syntactic metatheory easy.
-
-TODO: mark some other premises not yet marked with presupp,
-if we can eliminate them post-inversion. -/
-
-/- Convention on order of implicit parameters:
-contexts, types, de Bruijn indices, universe levels. -/
-
-/-- `Lookup Γ i A l` means that `(A, l)` is stored at index `i` in `Γ`.
+/-- `Lookup Γ i A l` means that `A = A'[↑ⁱ⁺¹]`
+where `(A', l)` is stored at index `i` in `Γ`.
 Together with `⊢ Γ`, this implies `Γ ⊢[l] .bvar i : A`. -/
 inductive Lookup : Ctx → Nat → Expr → Nat → Prop where
   | zero (Γ A l) : Lookup ((A,l) :: Γ) 0 (A.subst Expr.wk) l
   | succ {Γ A i l} (B l') : Lookup Γ i A l → Lookup ((B,l') :: Γ) (i+1) (A.subst Expr.wk) l
 
 mutual
+
+/-- All types in the given context are well-formed. -/
 inductive WfCtx : Ctx → Prop
   | nil : WfCtx []
   | snoc {Γ A l} :
@@ -54,14 +51,27 @@ inductive WfCtx : Ctx → Prop
     Γ ⊢[l] A →
     WfCtx ((A,l) :: Γ)
 
+/-- The type is well-formed at the specified universe level.
+
+Many of the inference rules have redundant premises ("presuppositions");
+these rules are postfixed with a prime (').
+This makes it easier to push syntactic metatheory through.
+After proving inversion lemmas,
+we define more efficient rules with fewer premises,
+named the same but without the prime.
+This is not just for usability:
+it also means the Lean kernel is checking smaller derivation trees.
+
+Convention on order of implicit parameters:
+contexts, types, terms, de Bruijn indices, universe levels. -/
 inductive WfTp : Ctx → Nat → Expr → Prop
-  -- Formers
-  | pi {Γ A B l l'} :
+  -- Type formers
+  | pi' {Γ A B l l'} :
     Γ ⊢[l] A →
     (A,l) :: Γ ⊢[l'] B →
     Γ ⊢[max l l'] .pi l l' A B
 
-  | sigma {Γ A B l l'} :
+  | sigma' {Γ A B l l'} :
     Γ ⊢[l] A →
     (A,l) :: Γ ⊢[l'] B →
     Γ ⊢[max l l'] .sigma l l' A B
@@ -75,18 +85,19 @@ inductive WfTp : Ctx → Nat → Expr → Prop
     Γ ⊢[l+1] A : .univ l →
     Γ ⊢[l] .el A
 
+/-- The two types are equal at the specified universe level. -/
 inductive EqTp : Ctx → Nat → Expr → Expr → Prop
   -- Congruences
-  | cong_pi {Γ A A' B B' l l'} :
-    Γ ⊢[l] A → -- presupp
-    Γ ⊢[l] A' → -- presupp
+  | cong_pi' {Γ A A' B B' l l'} :
+    Γ ⊢[l] A →
+    Γ ⊢[l] A' →
     Γ ⊢[l] A ≡ A' →
     (A,l) :: Γ ⊢[l'] B ≡ B' →
     Γ ⊢[max l l'] .pi l l' A B ≡ .pi l l' A' B'
 
-  | cong_sigma {Γ A A' B B' l l'} :
-    Γ ⊢[l] A → -- presupp
-    Γ ⊢[l] A' → -- presupp
+  | cong_sigma' {Γ A A' B B' l l'} :
+    Γ ⊢[l] A →
+    Γ ⊢[l] A' →
     Γ ⊢[l] A ≡ A'→
     (A,l) :: Γ ⊢[l'] B ≡ B' →
     Γ ⊢[max l l'] .sigma l l' A B ≡ .sigma l l' A' B'
@@ -109,39 +120,40 @@ inductive EqTp : Ctx → Nat → Expr → Expr → Prop
     Γ ⊢[l] A' ≡ A'' →
     Γ ⊢[l] A ≡ A''
 
+/-- The term has the specified type at the specified universe level. -/
 inductive WfTm : Ctx → Nat → Expr → Expr → Prop
-  -- Formers
+  -- Term formers
   | bvar {Γ A i l} :
     WfCtx Γ →
     Lookup Γ i A l →
     Γ ⊢[l] .bvar i : A
 
-  | lam {Γ A B t l l'} :
+  | lam' {Γ A B t l l'} :
     Γ ⊢[l] A →
     (A,l) :: Γ ⊢[l'] t : B →
     Γ ⊢[max l l'] .lam l l' A t : .pi l l' A B
 
-  | app {Γ A B f a l l'} :
-    Γ ⊢[l] A → -- presupp
+  | app' {Γ A B f a l l'} :
+    Γ ⊢[l] A →
     (A,l) :: Γ ⊢[l'] B →
     Γ ⊢[max l l'] f : .pi l l' A B →
     Γ ⊢[l] a : A →
     Γ ⊢[l'] .app l l' B f a : B.subst a.toSb
 
-  | pair {Γ A B t u l l'} :
-    Γ ⊢[l] A → -- presupp
+  | pair' {Γ A B t u l l'} :
+    Γ ⊢[l] A →
     (A,l) :: Γ ⊢[l'] B →
     Γ ⊢[l] t : A →
     Γ ⊢[l'] u : B.subst t.toSb →
     Γ ⊢[max l l'] .pair l l' B t u : .sigma l l' A B
 
-  | fst {Γ A B p l l'} :
+  | fst' {Γ A B p l l'} :
     Γ ⊢[l] A →
     (A,l) :: Γ ⊢[l'] B →
     Γ ⊢[max l l'] p : .sigma l l' A B →
     Γ ⊢[l] .fst l l' A B p : A
 
-  | snd {Γ A B p l l'} :
+  | snd' {Γ A B p l l'} :
     Γ ⊢[l] A →
     (A,l) :: Γ ⊢[l'] B →
     Γ ⊢[max l l'] p : .sigma l l' A B →
@@ -158,38 +170,39 @@ inductive WfTm : Ctx → Nat → Expr → Expr → Prop
     Γ ⊢[l] A ≡ A' →
     Γ ⊢[l] t : A'
 
+/-- The two terms are equal at the specified type and universe level. -/
 inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
   -- Congruences
-  | cong_lam {Γ A A' B t t' l l'} :
-    Γ ⊢[l] A → -- presupp
-    Γ ⊢[l] A' → -- presupp
+  | cong_lam' {Γ A A' B t t' l l'} :
+    Γ ⊢[l] A →
+    Γ ⊢[l] A' →
     Γ ⊢[l] A ≡ A' →
     (A,l) :: Γ ⊢[l'] t ≡ t' : B →
     Γ ⊢[max l l'] .lam l l' A t ≡ .lam l l' A' t' : .pi l l' A B
 
-  | cong_app {Γ A B B' f f' a a' l l'} :
-    Γ ⊢[l] A → -- presupp
+  | cong_app' {Γ A B B' f f' a a' l l'} :
+    Γ ⊢[l] A →
     (A,l) :: Γ ⊢[l'] B ≡ B' →
     Γ ⊢[max l l'] f ≡ f' : .pi l l' A B →
     Γ ⊢[l] a ≡ a' : A →
     Γ ⊢[l'] .app l l' B f a ≡ .app l l' B' f' a' : B.subst a.toSb
 
-  | cong_pair {Γ A B B' t t' u u' l l'} :
-    Γ ⊢[l] A → -- presupp
+  | cong_pair' {Γ A B B' t t' u u' l l'} :
+    Γ ⊢[l] A →
     (A,l) :: Γ ⊢[l'] B ≡ B' →
     Γ ⊢[l] t ≡ t' : A →
     Γ ⊢[l'] u ≡ u' : B.subst t.toSb →
     Γ ⊢[max l l'] .pair l l' B t u ≡ .pair l l' B' t' u' : .sigma l l' A B
 
-  | cong_fst {Γ A A' B B' p p' l l'} :
-    Γ ⊢[l] A → -- presupp
+  | cong_fst' {Γ A A' B B' p p' l l'} :
+    Γ ⊢[l] A →
     Γ ⊢[l] A ≡ A' →
     (A,l) :: Γ ⊢[l'] B ≡ B' →
     Γ ⊢[max l l'] p ≡ p' : .sigma l l' A B →
     Γ ⊢[l] .fst l l' A B p ≡ .fst l l' A' B' p' : A
 
-  | cong_snd {Γ A A' B B' p p' l l'} :
-    Γ ⊢[l] A → -- presupp
+  | cong_snd' {Γ A A' B B' p p' l l'} :
+    Γ ⊢[l] A →
     Γ ⊢[l] A ≡ A' →
     (A,l) :: Γ ⊢[l'] B ≡ B' →
     Γ ⊢[max l l'] p ≡ p' : .sigma l l' A B →
@@ -201,21 +214,21 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     Γ ⊢[l+1] .code A ≡ .code A' : .univ l
 
   -- Reductions
-  | app_lam {Γ A B t u l l'} :
-    Γ ⊢[l] A → -- presupp
-    (A,l) :: Γ ⊢[l'] B → -- presupp
+  | app_lam' {Γ A B t u l l'} :
+    Γ ⊢[l] A →
+    (A,l) :: Γ ⊢[l'] B →
     (A,l) :: Γ ⊢[l'] t : B →
     Γ ⊢[l] u : A →
     Γ ⊢[l'] .app l l' B (.lam l l' A t) u ≡ t.subst u.toSb : B.subst u.toSb
 
-  | fst_pair {Γ} {A B t u : Expr} {l l'} :
+  | fst_pair' {Γ} {A B t u : Expr} {l l'} :
     Γ ⊢[l] A →
     (A,l) :: Γ ⊢[l'] B →
     Γ ⊢[l] t : A →
     Γ ⊢[l'] u : B.subst t.toSb →
     Γ ⊢[l] .fst l l' A B (.pair l l' B t u) ≡ t : A
 
-  | snd_pair {Γ} {A B t u : Expr} {l l'} :
+  | snd_pair' {Γ} {A B t u : Expr} {l l'} :
     Γ ⊢[l] A →
     (A,l) :: Γ ⊢[l'] B →
     Γ ⊢[l] t : A →
@@ -223,13 +236,13 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     Γ ⊢[l'] .snd l l' A B (.pair l l' B t u) ≡ u : B.subst t.toSb
 
   -- Expansions
-  | lam_app {Γ A B f l l'} :
-    Γ ⊢[l] A → -- presupp
-    (A,l) :: Γ ⊢[l'] B → -- presupp
+  | lam_app' {Γ A B f l l'} :
+    Γ ⊢[l] A →
+    (A,l) :: Γ ⊢[l'] B →
     Γ ⊢[max l l'] f : .pi l l' A B →
     Γ ⊢[max l l'] f ≡ .lam l l' A (.app l l' (B.subst (Expr.up Expr.wk)) (f.subst Expr.wk) (.bvar 0)) : .pi l l' A B
 
-  | pair_fst_snd {Γ A B p l l'} :
+  | pair_fst_snd' {Γ A B p l l'} :
     Γ ⊢[l] A →
     (A,l) :: Γ ⊢[l'] B →
     Γ ⊢[max l l'] p : .sigma l l' A B →
@@ -246,19 +259,19 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     Γ ⊢[l] t : A →
     Γ ⊢[l] t ≡ t : A
 
-  | symm_tm {Γ A t t' l} :
-    Γ ⊢[l] A → -- presupp
+  | symm_tm' {Γ A t t' l} :
+    Γ ⊢[l] A →
     Γ ⊢[l] t ≡ t' : A →
     Γ ⊢[l] t' ≡ t : A
 
-  | trans_tm {Γ A t t' t'' l} :
-    Γ ⊢[l] A → -- presupp
+  | trans_tm' {Γ A t t' t'' l} :
+    Γ ⊢[l] A →
     Γ ⊢[l] t ≡ t' : A →
     Γ ⊢[l] t' ≡ t'' : A →
     Γ ⊢[l] t ≡ t'' : A
 end
 
-/-! Pretty-printers. -/
+/-! ## Pretty-printers -/
 
 section PrettyPrinting
 open Lean PrettyPrinter

@@ -1,11 +1,7 @@
 import Mathlib.Tactic.Convert
 import GroupoidModel.Russell_PER_MS.Typing
 
-/-! # Syntactic metatheory
-
-This version uses `Autosubst.lean`. -/
-
-set_option grind.warning false
+/-! # Admissibility of substitution -/
 
 -- TODO: generalize, or make a namespace and scope this
 /-- Proof by mutual induction on typing judgments. -/
@@ -15,39 +11,39 @@ macro "mutual_induction" : tactic =>
       -- beautiful
       @WfCtx.rec (fun _ => _) (fun _ => _) (fun _ => _) (fun _ => _) (fun _ => _)
         ?nil ?snoc
-        ?pi ?sigma ?univ ?el
-        ?cong_pi ?cong_sigma ?cong_el ?refl_tp ?symm_tp ?trans_tp
-        ?bvar ?lam ?app ?pair ?fst ?snd ?code ?conv
-        ?cong_lam ?cong_app ?cong_pair ?cong_fst ?cong_snd ?cong_code
-        ?app_lam ?fst_pair ?snd_pair ?lam_app ?pair_fst_snd ?conv_tm ?refl_tm ?symm_tm ?trans_tm,
+        ?pi' ?sigma' ?univ ?el
+        ?cong_pi' ?cong_sigma' ?cong_el ?refl_tp ?symm_tp ?trans_tp
+        ?bvar ?lam' ?app' ?pair' ?fst' ?snd' ?code ?conv
+        ?cong_lam' ?cong_app' ?cong_pair' ?cong_fst' ?cong_snd' ?cong_code
+        ?app_lam' ?fst_pair' ?snd_pair' ?lam_app' ?pair_fst_snd' ?conv_tm ?refl_tm ?symm_tm' ?trans_tm',
       @WfTp.rec (fun _ => _) (fun _ => _) (fun _ => _) (fun _ => _) (fun _ => _)
         ?nil ?snoc
-        ?pi ?sigma ?univ ?el
-        ?cong_pi ?cong_sigma ?cong_el ?refl_tp ?symm_tp ?trans_tp
-        ?bvar ?lam ?app ?pair ?fst ?snd ?code ?conv
-        ?cong_lam ?cong_app ?cong_pair ?cong_fst ?cong_snd ?cong_code
-        ?app_lam ?fst_pair ?snd_pair ?lam_app ?pair_fst_snd ?conv_tm ?refl_tm ?symm_tm ?trans_tm,
+        ?pi' ?sigma' ?univ ?el
+        ?cong_pi' ?cong_sigma' ?cong_el ?refl_tp ?symm_tp ?trans_tp
+        ?bvar ?lam' ?app' ?pair' ?fst' ?snd' ?code ?conv
+        ?cong_lam' ?cong_app' ?cong_pair' ?cong_fst' ?cong_snd' ?cong_code
+        ?app_lam' ?fst_pair' ?snd_pair' ?lam_app' ?pair_fst_snd' ?conv_tm ?refl_tm ?symm_tm' ?trans_tm',
       @EqTp.rec (fun _ => _) (fun _ => _) (fun _ => _) (fun _ => _) (fun _ => _)
         ?nil ?snoc
-        ?pi ?sigma ?univ ?el
-        ?cong_pi ?cong_sigma ?cong_el ?refl_tp ?symm_tp ?trans_tp
-        ?bvar ?lam ?app ?pair ?fst ?snd ?code ?conv
-        ?cong_lam ?cong_app ?cong_pair ?cong_fst ?cong_snd ?cong_code
-        ?app_lam ?fst_pair ?snd_pair ?lam_app ?pair_fst_snd ?conv_tm ?refl_tm ?symm_tm ?trans_tm,
+        ?pi' ?sigma' ?univ ?el
+        ?cong_pi' ?cong_sigma' ?cong_el ?refl_tp ?symm_tp ?trans_tp
+        ?bvar ?lam' ?app' ?pair' ?fst' ?snd' ?code ?conv
+        ?cong_lam' ?cong_app' ?cong_pair' ?cong_fst' ?cong_snd' ?cong_code
+        ?app_lam' ?fst_pair' ?snd_pair' ?lam_app' ?pair_fst_snd' ?conv_tm ?refl_tm ?symm_tm' ?trans_tm',
       @WfTm.rec (fun _ => _) (fun _ => _) (fun _ => _) (fun _ => _) (fun _ => _)
         ?nil ?snoc
-        ?pi ?sigma ?univ ?el
-        ?cong_pi ?cong_sigma ?cong_el ?refl_tp ?symm_tp ?trans_tp
-        ?bvar ?lam ?app ?pair ?fst ?snd ?code ?conv
-        ?cong_lam ?cong_app ?cong_pair ?cong_fst ?cong_snd ?cong_code
-        ?app_lam ?fst_pair ?snd_pair ?lam_app ?pair_fst_snd ?conv_tm ?refl_tm ?symm_tm ?trans_tm,
+        ?pi' ?sigma' ?univ ?el
+        ?cong_pi' ?cong_sigma' ?cong_el ?refl_tp ?symm_tp ?trans_tp
+        ?bvar ?lam' ?app' ?pair' ?fst' ?snd' ?code ?conv
+        ?cong_lam' ?cong_app' ?cong_pair' ?cong_fst' ?cong_snd' ?cong_code
+        ?app_lam' ?fst_pair' ?snd_pair' ?lam_app' ?pair_fst_snd' ?conv_tm ?refl_tm ?symm_tm' ?trans_tm',
       @EqTm.rec (fun _ => _) (fun _ => _) (fun _ => _) (fun _ => _) (fun _ => _)
         ?nil ?snoc
-        ?pi ?sigma ?univ ?el
-        ?cong_pi ?cong_sigma ?cong_el ?refl_tp ?symm_tp ?trans_tp
-        ?bvar ?lam ?app ?pair ?fst ?snd ?code ?conv
-        ?cong_lam ?cong_app ?cong_pair ?cong_fst ?cong_snd ?cong_code
-        ?app_lam ?fst_pair ?snd_pair ?lam_app ?pair_fst_snd ?conv_tm ?refl_tm ?symm_tm ?trans_tm
+        ?pi' ?sigma' ?univ ?el
+        ?cong_pi' ?cong_sigma' ?cong_el ?refl_tp ?symm_tp ?trans_tp
+        ?bvar ?lam' ?app' ?pair' ?fst' ?snd' ?code ?conv
+        ?cong_lam' ?cong_app' ?cong_pair' ?cong_fst' ?cong_snd' ?cong_code
+        ?app_lam' ?fst_pair' ?snd_pair' ?lam_app' ?pair_fst_snd' ?conv_tm ?refl_tm ?symm_tm' ?trans_tm'
     ⟩
     all_goals dsimp only; try intros
   ))
@@ -56,38 +52,38 @@ macro "mutual_induction" : tactic =>
 -- TODO: can the script be shortened? metaprogram a generator for the cases?
 macro "grind_cases" : tactic =>
   `(tactic| (
-    try case pi => grind [WfTp.pi]
-    try case sigma => grind [WfTp.sigma]
+    try case pi' => grind [WfTp.pi']
+    try case sigma' => grind [WfTp.sigma']
     try case univ => grind [WfTp.univ]
     try case el => grind [WfTp.el]
-    try case cong_pi => grind [EqTp.cong_pi]
-    try case cong_sigma => grind [EqTp.cong_sigma]
+    try case cong_pi' => grind [EqTp.cong_pi']
+    try case cong_sigma' => grind [EqTp.cong_sigma']
     try case cong_el => grind [EqTp.cong_el]
     try case refl_tp => grind [EqTp.refl_tp]
     try case symm_tp => grind [EqTp.symm_tp]
     try case trans_tp => grind [EqTp.trans_tp]
-    try case lam => grind [WfTm.lam]
-    try case app => grind [WfTm.app]
-    try case pair => grind [WfTm.pair]
-    try case fst => grind [WfTm.fst]
-    try case snd => grind [WfTm.snd]
+    try case lam' => grind [WfTm.lam']
+    try case app' => grind [WfTm.app']
+    try case pair' => grind [WfTm.pair']
+    try case fst' => grind [WfTm.fst']
+    try case snd' => grind [WfTm.snd']
     try case code => grind [WfTm.code]
     try case conv => grind [WfTm.conv]
-    try case cong_lam => grind [EqTm.cong_lam]
-    try case cong_app => grind [EqTm.cong_app]
-    try case cong_pair => grind [EqTm.cong_pair]
-    try case cong_fst => grind [EqTm.cong_fst]
-    try case cong_snd => grind [EqTm.cong_snd]
+    try case cong_lam' => grind [EqTm.cong_lam']
+    try case cong_app' => grind [EqTm.cong_app']
+    try case cong_pair' => grind [EqTm.cong_pair']
+    try case cong_fst' => grind [EqTm.cong_fst']
+    try case cong_snd' => grind [EqTm.cong_snd']
     try case cong_code => grind [EqTm.cong_code]
-    try case app_lam => grind [EqTm.app_lam]
-    try case fst_pair => grind [EqTm.fst_pair]
-    try case snd_pair => grind [EqTm.snd_pair]
-    try case pair_fst_snd => grind [EqTm.pair_fst_snd]
+    try case app_lam' => grind [EqTm.app_lam']
+    try case fst_pair' => grind [EqTm.fst_pair']
+    try case snd_pair' => grind [EqTm.snd_pair']
+    try case lam_app' => grind [EqTm.lam_app']
+    try case pair_fst_snd' => grind [EqTm.pair_fst_snd']
     try case conv_tm => grind [EqTm.conv_tm]
     try case refl_tm => grind [EqTm.refl_tm]
-    try case symm_tm => grind [EqTm.symm_tm]
-    try case trans_tm => grind [EqTm.trans_tm]
-    try case lam_app => grind [EqTm.lam_app]
+    try case symm_tm' => grind [EqTm.symm_tm']
+    try case trans_tm' => grind [EqTm.trans_tm']
   ))
 
 /-! ## Universe level bounds -/
@@ -103,7 +99,7 @@ theorem le_univMax_all :
   -- I ❤ grind and omega
   all_goals first | omega | grind
 
-theorem WfCtx.le_univMax {Γ i A l} : WfCtx Γ → Lookup Γ i A l → l ≤ univMax :=
+theorem WfCtx.le_univMax_of_lookup {Γ i A l} : WfCtx Γ → Lookup Γ i A l → l ≤ univMax :=
   fun h h' => le_univMax_all.1 h h'
 
 theorem EqTp.le_univMax {Γ A B l} : Γ ⊢[l] A ≡ B → l ≤ univMax :=
@@ -172,10 +168,10 @@ theorem rename_all :
   case bvar sb => apply WfTm.bvar _ (sb _) <;> assumption
   grind_cases
   -- Cases that didn't go through automatically.
-  case snd => rw [ih_subst]; apply WfTm.snd <;> grind
-  case cong_snd => rw [ih_subst]; apply EqTm.cong_snd <;> grind
-  case lam_app =>
-    convert EqTm.lam_app .. using 1
+  case snd' => rw [ih_subst]; apply WfTm.snd' <;> grind
+  case cong_snd' => rw [ih_subst]; apply EqTm.cong_snd' <;> grind
+  case lam_app' =>
+    convert EqTm.lam_app' .. using 1
     . congr 2 <;> autosubst
     all_goals grind
 
@@ -194,7 +190,8 @@ theorem WfCtx.lookup_wf {Γ i A l} : WfCtx Γ → Lookup Γ i A l → Γ ⊢[l] 
 
 /-! ## Admissibility of substitution -/
 
-/- Warning: notions defined in this namespace are suboptimal:
+/- Like the primed typing rules,
+notions defined in this namespace are suboptimal:
 they include tons of redundant assumptions
 needed to make the main induction go through.
 
@@ -250,14 +247,16 @@ theorem up_of_eq {Δ Γ A Aσ σ l} : WfCtx Δ → IndWfSb Δ σ Γ →
   . constructor
     . convert rename_all.2.1 ΔAσ' ΔAσwf (@WfRen.wk _ _ _) using 1 <;> autosubst
     . apply WfTm.conv (A := Aσ.subst Expr.wk)
-      . apply WfTm.bvar ΔAσwf
+      . rw [Expr.up_eq_snoc]
+        apply WfTm.bvar ΔAσwf
         apply Lookup.zero
       . convert rename_all.2.2.1 ΔAσeq ΔAσwf (@WfRen.wk _ _ _) using 1 <;> autosubst
   next lk =>
     constructor
     . convert rename_all.2.1 (ΔσΓ lk).1 ΔAσwf (@WfRen.wk _ _ _) using 1 <;> autosubst
-    . convert rename_all.2.2.2.1 (ΔσΓ lk).2 ΔAσwf (@WfRen.wk _ _ _) using 1
-      autosubst
+    . rw [Expr.up_eq_snoc]
+      convert rename_all.2.2.2.1 (ΔσΓ lk).2 ΔAσwf (@WfRen.wk _ _ _) using 1 <;> autosubst
+      rw [Expr.comp]
 
 theorem up {Δ Γ A σ l} : WfCtx Δ → IndWfSb Δ σ Γ → Δ ⊢[l] A.subst σ →
     IndWfSb ((A.subst σ, l) :: Δ) (Expr.up σ) ((A,l) :: Γ) :=
@@ -279,14 +278,14 @@ theorem refl {Δ Γ σ} : IndWfSb Δ σ Γ → IndEqSb Δ σ σ Γ :=
   fun h _ _ _ lk => ⟨(h lk).1, (h lk).1, EqTp.refl_tp (h lk).1, EqTm.refl_tm (h lk).2⟩
 
 theorem symm {Δ Γ σ σ'} : IndEqSb Δ σ σ' Γ → IndEqSb Δ σ' σ Γ := by
-  grind [IndEqSb, EqTp.symm_tp, EqTm.symm_tm, EqTm.conv_tm]
+  grind [IndEqSb, EqTp.symm_tp, EqTm.symm_tm', EqTm.conv_tm]
 
 theorem trans {Δ Γ σ σ' σ''} : IndEqSb Δ σ σ' Γ → IndEqSb Δ σ' σ'' Γ → IndEqSb Δ σ σ'' Γ :=
   fun h h' _ _ _ lk => ⟨
     (h lk).1,
     (h' lk).2.1,
     (h lk).2.2.1.trans_tp (h' lk).2.2.1,
-    (h lk).2.2.2.trans_tm (h lk).1 ((h' lk).2.2.2.conv_tm (h lk).2.2.1.symm_tp)
+    (h lk).2.2.2.trans_tm' (h lk).1 ((h' lk).2.2.2.conv_tm (h lk).2.2.1.symm_tp)
   ⟩
 
 theorem snoc {Δ Γ A t t' σ σ' l} : IndEqSb Δ σ σ' Γ →
@@ -317,7 +316,8 @@ theorem up {Δ Γ A σ σ' l} : WfCtx Δ → IndEqSb Δ σ σ' Γ →
     . convert rename_all.2.1 ΔAσ ΔAσwf (@WfRen.wk _ _ _) using 1 <;> autosubst
     . convert rename_all.2.1 ΔAσ' ΔAσwf (@WfRen.wk _ _ _) using 1 <;> autosubst
     . convert rename_all.2.2.1 ΔAσeq ΔAσwf (@WfRen.wk _ _ _) using 1 <;> autosubst
-    . apply EqTm.refl_tm
+    . rw [Expr.up_eq_snoc σ, Expr.up_eq_snoc σ']
+      apply EqTm.refl_tm
       apply WfTm.bvar ΔAσwf
       convert Lookup.zero .. using 1
       autosubst
@@ -327,8 +327,9 @@ theorem up {Δ Γ A σ σ' l} : WfCtx Δ → IndEqSb Δ σ σ' Γ →
     . convert rename_all.2.1 this.1 ΔAσwf (@WfRen.wk _ _ _) using 1 <;> autosubst
     . convert rename_all.2.1 this.2.1 ΔAσwf (@WfRen.wk _ _ _) using 1 <;> autosubst
     . convert rename_all.2.2.1 this.2.2.1 ΔAσwf (@WfRen.wk _ _ _) using 1 <;> autosubst
-    . convert rename_all.2.2.2.2 this.2.2.2 ΔAσwf (@WfRen.wk Δ (A.subst σ) l) using 1 <;>
-        autosubst
+    . rw [Expr.up_eq_snoc σ, Expr.up_eq_snoc σ']
+      convert rename_all.2.2.2.2 this.2.2.2 ΔAσwf (@WfRen.wk Δ (A.subst σ) l) using 1 <;>
+        (autosubst; try rw [Expr.comp])
 
 end IndEqSb
 
@@ -358,50 +359,50 @@ theorem subst_all :
   all_goals try dsimp [Expr.subst] at *
   case bvar => grind [IndWfSb, IndEqSb]
   grind_cases
-  case pi => grind [WfTp.pi, EqTp.cong_pi]
-  case sigma => grind [WfTp.sigma, EqTp.cong_sigma]
+  case pi' => grind [WfTp.pi', EqTp.cong_pi']
+  case sigma' => grind [WfTp.sigma', EqTp.cong_sigma']
   case univ => grind [WfTp.univ, EqTp.refl_tp]
   case el => grind [WfTp.el, EqTp.cong_el]
   case symm_tp => grind [IndEqSb.symm, EqTp.symm_tp]
   case trans_tp => grind [EqTp.trans_tp, IndEqSb.trans, IndEqSb.refl]
-  case lam => grind [WfTm.lam, EqTm.cong_lam]
-  case app => grind [WfTm.app, EqTm.cong_app]
-  case pair => grind [WfTm.pair, EqTm.cong_pair]
-  case fst => grind [WfTm.fst, EqTm.cong_fst]
-  case snd =>
+  case lam' => grind [WfTm.lam', EqTm.cong_lam']
+  case app' => grind [WfTm.app', EqTm.cong_app']
+  case pair' => grind [WfTm.pair', EqTm.cong_pair']
+  case fst' => grind [WfTm.fst', EqTm.cong_fst']
+  case snd' =>
     constructor
-    . rw [ih_subst]; apply WfTm.snd <;> grind
-    . intros; rw [ih_subst]; apply EqTm.cong_snd <;> grind
+    . rw [ih_subst]; apply WfTm.snd' <;> grind
+    . intros; rw [ih_subst]; apply EqTm.cong_snd' <;> grind
   case code => grind [WfTm.code, EqTm.cong_code]
   case conv => grind [WfTm.conv, EqTm.conv_tm, IndEqSb.refl]
-  case app_lam =>
+  case app_lam' =>
     rw [ih_subst, ih_subst]
-    apply (EqTm.app_lam ..).trans_tm
+    apply (EqTm.app_lam' ..).trans_tm'
     . autosubst; grind [IndWfSb.snoc]
     . autosubst
       rename_i iht _ _ _ _ _ _ _ _
       apply (iht ..).2 <;> grind [IndWfSb.snoc, IndEqSb.snoc]
     all_goals grind
-  case fst_pair => apply (EqTm.fst_pair ..).trans_tm <;> grind
-  case snd_pair =>
-    rw [ih_subst]; apply (EqTm.snd_pair ..).trans_tm
+  case fst_pair' => apply (EqTm.fst_pair' ..).trans_tm' <;> grind
+  case snd_pair' =>
+    rw [ih_subst]; apply (EqTm.snd_pair' ..).trans_tm'
     . autosubst; grind [IndWfSb.snoc]
     all_goals grind
-  case lam_app ihA ihB ihf _ _ _ Δ σ σ' σσ' =>
-    apply (ihf Δ σ |>.2 σ' σσ').trans_tm (by grind [WfTp.pi])
-    have := EqTm.lam_app
+  case lam_app' ihA ihB ihf _ _ _ Δ σ σ' σσ' =>
+    apply (ihf Δ σ |>.2 σ' σσ').trans_tm' (by grind [WfTp.pi'])
+    have := EqTm.lam_app'
       (ihA Δ σ').1
       (ihB (Δ.snoc (by grind))
       (σ'.up Δ (by grind))).1
       (ihf Δ σ').1
     convert this.conv_tm _ using 3 <;> autosubst
-    grind [EqTp.cong_pi, IndEqSb.symm, Expr.up_eq_snoc]
-  case pair_fst_snd =>
-    apply (EqTm.pair_fst_snd ..).trans_tm <;>
-      grind [WfTp.sigma, EqTm.cong_pair, EqTm.cong_fst, EqTm.cong_snd]
+    grind [EqTp.cong_pi', IndEqSb.symm, Expr.up_eq_snoc]
+  case pair_fst_snd' =>
+    apply (EqTm.pair_fst_snd' ..).trans_tm' <;>
+      grind [WfTp.sigma', EqTm.cong_pair', EqTm.cong_fst', EqTm.cong_snd']
   case conv_tm => grind [EqTm.conv_tm, IndEqSb.refl]
-  case symm_tm => grind [EqTm.symm_tm, EqTm.conv_tm, IndEqSb.symm]
-  case trans_tm => grind [EqTm.trans_tm, EqTm.conv_tm, IndEqSb.trans, IndEqSb.refl]
-  case cong_snd => rw [ih_subst]; apply EqTm.cong_snd <;> grind
+  case symm_tm' => grind [EqTm.symm_tm', EqTm.conv_tm, IndEqSb.symm]
+  case trans_tm' => grind [EqTm.trans_tm', EqTm.conv_tm, IndEqSb.trans, IndEqSb.refl]
+  case cong_snd' => rw [ih_subst]; apply EqTm.cong_snd' <;> grind
 
 end SubstProof
