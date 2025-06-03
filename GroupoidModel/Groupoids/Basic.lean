@@ -4,8 +4,7 @@ import Mathlib.CategoryTheory.Category.Cat.Limit
 import Mathlib.CategoryTheory.ChosenFiniteProducts.Cat
 
 import GroupoidModel.Russell_PER_MS.NaturalModel
-import GroupoidModel.Grothendieck.IsPullback
-import GroupoidModel.Grothendieck.Groupoidal
+import GroupoidModel.Grothendieck.Groupoidal.IsPullback
 
 /-!
 Here we construct universes for the groupoid natural model.
@@ -16,6 +15,41 @@ universe w v u v₁ u₁ v₂ u₂ v₃ u₃
 noncomputable section
 open CategoryTheory ULift Grothendieck.Groupoidal
   Limits NaturalModelBase CategoryTheory.Functor
+
+namespace CategoryTheory.PGrpd
+def pGrpdToGroupoidalAsSmallFunctor : PGrpd.{v, v} ⥤
+    ∫(Grpd.asSmallFunctor.{max w (v+1), v, v}) :=
+  Grothendieck.functorTo (Grothendieck.forget _)
+  (fun x => AsSmall.up.obj.{v, v, max w (v + 1)} x.fiber)
+  (fun f => AsSmall.up.map f.fiber)
+  (by aesop_cat)
+  (by aesop_cat)
+
+def groupoidalAsSmallFunctorToPGrpd :
+    ∫(Grpd.asSmallFunctor.{max w (v+1), v, v}) ⥤ PGrpd.{v,v} :=
+  PGrpd.functorTo (Grothendieck.forget _)
+  (fun x => AsSmall.down.obj.{v, v, max w (v + 1)} x.fiber)
+  (fun f => AsSmall.down.map f.fiber)
+  (by aesop_cat)
+  (by aesop_cat)
+
+@[simp] def pGrpdToGroupoidalAsSmallFunctor_groupoidalAsSmallFunctorToPGrpd :
+    groupoidalAsSmallFunctorToPGrpd ⋙ pGrpdToGroupoidalAsSmallFunctor = 𝟭 _ :=
+  rfl
+
+@[simp] def groupoidalAsSmallFunctorToPGrpd_pGrpdToGroupoidalAsSmallFunctor :
+    pGrpdToGroupoidalAsSmallFunctor ⋙ groupoidalAsSmallFunctorToPGrpd = 𝟭 _ :=
+  rfl
+
+@[simp] def pGrpdToGroupoidalAsSmallFunctor_forget : pGrpdToGroupoidalAsSmallFunctor
+    ⋙ Grothendieck.Groupoidal.forget = Grothendieck.forget _ :=
+  rfl
+
+def asSmallFunctor : PGrpd.{v, v} ⥤ PGrpd.{max w (v+1), max w (v+1)} :=
+  pGrpdToGroupoidalAsSmallFunctor ⋙
+  Grothendieck.Groupoidal.toPGrpd Grpd.asSmallFunctor.{max w (v+1), v, v}
+
+end CategoryTheory.PGrpd
 
 namespace GroupoidModel
 
@@ -159,6 +193,14 @@ abbrev yonedaCategoryEquiv {Γ : Ctx} {C : Type (v+1)} [Category.{v} C] :
 theorem yonedaCategoryEquiv_naturality_left (A : y(Γ) ⟶ y(Ctx.ofCategory C)) :
     yonedaCategoryEquiv (ym(σ) ≫ A) = Ctx.toGrpd.map σ ⋙ yonedaCategoryEquiv A :=
   sorry
+
+theorem yonedaCategoryEquiv_naturality_left' (A : y(Γ) ⟶ y(Ctx.ofCategory C))
+    {σ : y(Δ) ⟶ y(Γ)} : yonedaCategoryEquiv (σ ≫ A) =
+    Ctx.toGrpd.map (Yoneda.fullyFaithful.preimage σ)
+    ⋙ yonedaCategoryEquiv A := by
+  have h : σ = ym(Yoneda.fullyFaithful.preimage σ) := by simp
+  rw [h, yonedaCategoryEquiv_naturality_left]
+  rfl
 
 theorem yonedaCategoryEquiv_naturality_right {D : Type (v+1)} [Category.{v} D]
     (A : y(Γ) ⟶ y(Ctx.ofCategory C)) (F : C ⥤ D) :

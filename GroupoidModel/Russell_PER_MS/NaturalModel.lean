@@ -272,7 +272,7 @@ theorem Ptp_equiv_naturality_left : M.Ptp_equiv (ym(σ) ≫ A) =
     ⟨ ym(σ) ≫ (M.Ptp_equiv A).1 , ym(M.substWk σ _) ≫ (M.Ptp_equiv A).2 ⟩ := by
   sorry
 
-@[simp] theorem Ptp_equiv_quiv_naturality_left_snd :
+@[simp] theorem Ptp_equiv_naturality_left_snd :
     (M.Ptp_equiv (ym(σ) ≫ A)).2 = ym(M.substWk σ _) ≫ (M.Ptp_equiv A).2 := by
   have h := @Ptp_equiv_naturality_left _ _ _ _ _ σ _ A
   rw [Sigma.mk.inj_iff] at h
@@ -349,10 +349,28 @@ def uvPolyTpCompDomEquiv (N : NaturalModelBase Ctx) (Γ : Ctx) :
         simp
     }
 
-theorem uvPolyTpCompDomEquiv_apply_fst (N : NaturalModelBase Ctx) {Γ : Ctx}
+theorem uvPolyTpCompDomEquiv_apply_fst_tp (N : NaturalModelBase Ctx) {Γ}
     (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
     (M.uvPolyTpCompDomEquiv N Γ ab).fst ≫ M.tp
     = (M.Ptp_equiv (ab ≫ (M.uvPolyTp.comp N.uvPolyTp).p)).fst :=
+  sorry
+
+theorem uvPolyTpCompDomEquiv_apply_snd_fst_aux (N : NaturalModelBase Ctx)
+    {Γ : Ctx} (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
+    M.ext (((M.uvPolyTpCompDomEquiv N Γ) ab).fst ≫ M.tp) =
+    M.ext (M.Ptp_equiv (ab ≫ (M.uvPolyTp.comp N.uvPolyTp).p)).fst := by
+  rw [uvPolyTpCompDomEquiv_apply_fst_tp]
+
+-- NOTE could define ym(eqToHom ⋯) =
+-- (M.disp_pullback _).lift (M.var _) ym(M.disp _) (by
+      -- rw [(M.disp_pullback _).w, uvPolyTpCompDomEquiv_apply_fst_tp])
+-- in this theorem, but it is convenient to have it as ym(⋯)
+theorem uvPolyTpCompDomEquiv_apply_snd_fst (N : NaturalModelBase Ctx) {Γ : Ctx}
+    (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
+    (M.uvPolyTpCompDomEquiv N Γ ab).snd.fst
+    = (M.disp_pullback _).lift (M.var _) ym(M.disp _) (by
+        rw [(M.disp_pullback _).w, uvPolyTpCompDomEquiv_apply_fst_tp]) ≫
+      (M.Ptp_equiv (ab ≫ (M.uvPolyTp.comp N.uvPolyTp).p)).snd := by
   sorry
 
 /-! ## Pi and Sigma types -/
