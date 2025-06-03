@@ -6,7 +6,8 @@ package groupoid_model where
   leanOptions := #[
     ⟨`pp.unicode.fun, true⟩, -- pretty-prints `fun a ↦ b`
     ⟨`autoImplicit, false⟩,
-    ⟨`relaxedAutoImplicit, false⟩
+    ⟨`relaxedAutoImplicit, false⟩,
+    ⟨`grind.warning, false⟩
   ]
   -- add any additional package configuration options here
 

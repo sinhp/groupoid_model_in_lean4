@@ -1,12 +1,6 @@
 import Lean.Meta.Tactic.Simp
 
-/-! Presentation with
-- PER-style equality judgments; and
-- Russell-style universes up to N; and
-- judgments stratified by universe.
--/
-
-/-- A Hott₀ expression. -/
+/-- A HoTT0 expression. -/
 inductive Expr where
   /-- De Bruijn index. -/
   | bvar (i : Nat)
@@ -14,17 +8,17 @@ inductive Expr where
   | pi (l l' : Nat) (A B : Expr)
   /-- Dependent sum. -/
   | sigma (l l' : Nat) (A B : Expr)
-  /-- Lambda. -/
+  /-- Lambda with the specified argument type. -/
   | lam (l l' : Nat) (ty body : Expr)
-  /-- Application at the specified output type. -/
+  /-- Application at the specified output type family. -/
   | app (l l' : Nat) (B fn arg : Expr)
   /-- Pair formation. -/
   | pair (l l' : Nat) (B t u : Expr)
-  /-- First component. -/
+  /-- First component of a pair. -/
   | fst (l l' : Nat) (A B p : Expr)
-  /-- Second component. -/
+  /-- Second component of a pair. -/
   | snd (l l' : Nat) (A B p : Expr)
-  /-- (Russell) type universe. -/
+  /-- A type universe. -/
   | univ (l : Nat)
   /-- Type from a code. -/
   | el (a : Expr) : Expr
@@ -36,6 +30,6 @@ inductive Expr where
 theorem Expr.sizeOf_pos (e : Expr) : 0 < sizeOf e := by
   induction e <;> { dsimp; omega }
 
-/-- The convergent rewriting system of HoTT₀ σ-calculus.
-The attribute has to be initialized in an import of `Autosubst.lean`. -/
+/-- A convergent rewriting system for the HoTT0 σ-calculus. -/
+-- The attribute has to be initialized here for use in downstream modules.
 register_simp_attr autosubst

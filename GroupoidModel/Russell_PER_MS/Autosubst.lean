@@ -4,8 +4,6 @@ import GroupoidModel.Russell_PER_MS.Basic
 following Schäfer/Tebbi/Smolka in
 *Autosubst: Reasoning with de Bruijn Terms and Parallel Substitution*. -/
 
-set_option grind.warning false
-
 namespace Expr
 
 /-- Append an element to a substitution or a renaming.
@@ -60,12 +58,13 @@ def rename (ξ : Nat → Nat) : Expr → Expr
 ```
 
 Warning: don't unfold this definition! Use `up_eq_snoc` instead. -/
+@[irreducible]
 def up (σ : Nat → Expr) : Nat → Expr :=
   snoc (fun i => (σ i).rename Nat.succ) (.bvar 0)
 
 @[simp]
 theorem up_bvar : up Expr.bvar = Expr.bvar := by
-  ext i; cases i <;> dsimp [up, snoc, rename]
+  ext i; cases i <;> (unfold up; dsimp [snoc, rename])
 
 /-- Apply a substitution to an expression. -/
 def subst (σ : Nat → Expr) : Expr → Expr
@@ -124,7 +123,7 @@ theorem comp_bvar (σ) : comp σ Expr.bvar = σ := by
 
 theorem up_comp_ren_sb (ξ : Nat → Nat) (σ : Nat → Expr) :
     up (fun i => σ (ξ i)) = fun i => up σ (upr ξ i) := by
-  ext i; cases i <;> dsimp [up, snoc, upr]
+  ext i; cases i <;> (unfold up; dsimp [snoc, upr])
 
 theorem rename_subst (σ ξ) (t : Expr) : (t.rename ξ).subst σ = t.subst (fun i => σ (ξ i)) := by
   induction t generalizing σ ξ
@@ -136,7 +135,7 @@ theorem rename_subst (σ ξ) (t : Expr) : (t.rename ξ).subst σ = t.subst (fun 
 
 theorem up_comp_sb_ren (σ : Nat → Expr) (ξ : Nat → Nat) :
     up (fun i => (σ i).rename ξ) = fun i => (up σ i).rename (upr ξ) := by
-  ext i; cases i <;> dsimp [up, snoc, rename, upr]
+  ext i; cases i <;> (unfold up; dsimp [snoc, rename, upr])
   conv => lhs; rw [rename_eq_subst_ofRen, rename_subst]
   conv => rhs; rw [rename_eq_subst_ofRen, rename_subst]
   rfl
