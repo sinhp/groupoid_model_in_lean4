@@ -69,7 +69,10 @@ def Hom.subst (M : NaturalModelBase Ctx)
 /-- A Russell universe embedding is a hom of natural models `M ⟶ N`
 such that types in `M` correspond to terms of a universe `U` in `N`.
 
-These don't form a category since `UHom.id M` is essentially `Type : Type` in `M`. -/
+These don't form a category since `UHom.id M` is essentially `Type : Type` in `M`.
+
+Note this doesn't need to extend `Hom` as none of its fields are used;
+it's just convenient to pack up the data. -/
 structure UHom (M N : NaturalModelBase Ctx) extends Hom M N where
   U : y(𝟙_ Ctx) ⟶ N.Ty
   U_pb : ∃ v : M.Ty ⟶ N.Tm, IsPullback

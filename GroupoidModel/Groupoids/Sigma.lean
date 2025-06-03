@@ -10,36 +10,40 @@ noncomputable section
 section ForOther
 open CategoryTheory NaturalModelBase Opposite Grothendieck.Groupoidal
 
-section
+-- section
 
-variable {C : Type u} [Category.{v} C]
-variable {F : C ⥤ Grpd.{v₂, u₂}}
+-- variable {C : Type u} [Category.{v} C]
+-- variable {F : C ⥤ Grpd.{v₂, u₂}}
 
-lemma Grpd.eqToHom_obj_heq {G H : Grpd} (h : G = H) (x : G) :
-    HEq ((eqToHom h).obj x) x := by
-  simp [Grpd.eqToHom_obj]
+-- JH: It is still unclear to me weather the following lemmas will be useful
+-- so far I have had difficulty with applying them or
+-- found them to be no better than equivalents.
 
-@[simp] lemma Grpd.eqToHom_obj_heq_iff {G H : Grpd} (h : G = H) (x y : G) :
-    HEq ((eqToHom h).obj x) y ↔ HEq x y := by
-  constructor
-  · apply (Grpd.eqToHom_obj_heq h _).symm.trans
-  · apply (Grpd.eqToHom_obj_heq h _).trans
+-- lemma Grpd.eqToHom_obj_heq {G H : Grpd} (h : G = H) (x : G) :
+--     HEq ((eqToHom h).obj x) x := by
+--   simp [Grpd.eqToHom_obj]
 
-lemma Grpd.eqToHom_map_heq {G H : Grpd} (h : G = H) {x y : G} (f : x ⟶ y) :
-    HEq ((eqToHom h).map f) f := by
-  simp [Grpd.eqToHom_hom]
+-- @[simp] lemma Grpd.eqToHom_obj_heq_iff {G H : Grpd} (h : G = H) (x y : G) :
+--     HEq ((eqToHom h).obj x) y ↔ HEq x y := by
+--   constructor
+--   · apply (Grpd.eqToHom_obj_heq h _).symm.trans
+--   · apply (Grpd.eqToHom_obj_heq h _).trans
 
-@[simp] lemma Grpd.eqToHom_map_heq_iff {G H : Grpd} (h : G = H) {x y z w : G} (f : x ⟶ y) (g : z ⟶ w) :
-    HEq ((eqToHom h).map f) g ↔ HEq f g := by
-  constructor
-  · apply (Grpd.eqToHom_map_heq h f).symm.trans
-  · apply (Grpd.eqToHom_map_heq h f).trans
+-- lemma Grpd.eqToHom_map_heq {G H : Grpd} (h : G = H) {x y : G} (f : x ⟶ y) :
+--     HEq ((eqToHom h).map f) f := by
+--   simp [Grpd.eqToHom_hom]
 
-theorem Grothendieck.Groupoidal.hext {X Y : ∫(F)} (f g : X ⟶ Y) (w_base : f.base = g.base)
-    (w_fiber : HEq f.fiber g.fiber) : f = g :=
-  Grothendieck.hext f g w_base w_fiber
+-- @[simp] lemma Grpd.eqToHom_map_heq_iff {G H : Grpd} (h : G = H) {x y z w : G} (f : x ⟶ y) (g : z ⟶ w) :
+--     HEq ((eqToHom h).map f) g ↔ HEq f g := by
+--   constructor
+--   · apply (Grpd.eqToHom_map_heq h f).symm.trans
+--   · apply (Grpd.eqToHom_map_heq h f).trans
 
-end
+-- theorem Grothendieck.Groupoidal.hext {X Y : ∫(F)} (f g : X ⟶ Y) (w_base : f.base = g.base)
+--     (w_fiber : HEq f.fiber g.fiber) : f = g :=
+--   Grothendieck.hext f g w_base w_fiber
+
+-- end
 
 end ForOther
 
@@ -113,7 +117,7 @@ variable {B}
 @[simp] theorem sigmaMap_id_obj {p} : (sigmaMap B (𝟙 x)).obj p = p := by
   apply obj_hext
   · simp [sigmaMap]
-  · simp [sigmaMap]
+  · simp [sigmaMap, Grpd.eqToHom_obj]
 
 @[simp] theorem sigmaMap_id_map {p1 p2} {hp2 : p2 = (sigmaMap B (𝟙 x)).obj p2}
     (f : p1 ⟶ p2) :
@@ -148,7 +152,12 @@ variable {z : Γ} {f} {g : y ⟶ z}
   dsimp only [sigmaMap]
   apply obj_hext
   · simp
-  · simp
+  · simp only [sigmaObj, Functor.comp_obj, pre_obj_base, map_obj_base, pre_obj_fiber,
+      map_obj_fiber, whiskerRight_app, ιNatTrans_comp_app, Functor.map_comp, eqToHom_map,
+      Grpd.comp_eq_comp]
+    rw [Grpd.eqToHom_obj]
+    simp
+
 
 @[simp] theorem sigmaMap_comp_map {A : Γ ⥤ Grpd.{v₁,u₁}}
     {B : ∫(A) ⥤ Grpd.{v₁,u₁}} {x y z : Γ} {f : x ⟶ y} {g : y ⟶ z}
@@ -196,28 +205,22 @@ theorem sigmaMap_comp : sigmaMap B (f ≫ g) = sigmaMap B f ⋙ sigmaMap B g := 
   map_comp _ _ := sigmaMap_comp
 
 variable (B) {Δ : Type u₃} [Category.{v₃} Δ] (σ : Δ ⥤ Γ)
-
-section
-variable {Γ : Type u₃} [Groupoid.{v₃} Γ]
-
-lemma hom_of_map_eq_eqToHom {F G : Γ ⥤ Grpd} (h : F = G) :
-    (eqToHom (by rw [h]) : Grpd.of ∫(F) ⟶ Grpd.of ∫(G)) = Grpd.homOf (map (eqToHom h)) := by
-  subst h
-  fapply CategoryTheory.Functor.ext
-  · intro x
-    apply Grothendieck.Groupoidal.obj_hext
-    · simp [Grpd.eqToHom_obj]
-    · simp
-  · intro x y f
-    rw! [Grothendieck.Groupoidal.map_id_eq]
-    simp
-
-end
-
 theorem sigma_naturality_aux (x) :
     ι (σ ⋙ A) x ⋙ pre A σ ⋙ B = ι A (σ.obj x) ⋙ B := by
   rw [← ι_pre σ A x]
   rfl
+
+lemma whiskerRight_ιNatTrans_naturality {x y : Δ} (f : x ⟶ y) :
+  whiskerRight (ιNatTrans f) (pre A σ ⋙ B)
+= eqToHom (sigma_naturality_aux B σ x) ≫ whiskerRight (ιNatTrans (σ.map f)) B ≫
+  eqToHom (by simp[Functor.assoc, sigma_naturality_aux B σ y]) := by
+  simp[whiskerRight]
+  congr
+  funext X
+  rw [NatTrans.comp_app]
+  dsimp
+  dsimp[ιNatTrans, Grothendieck.ιNatTrans, Grothendieck.Groupoidal.pre, Grothendieck.pre]
+  aesop
 
 theorem sigma_naturality_obj (x) :
     (σ ⋙ sigma A B).obj x =
@@ -225,31 +228,24 @@ theorem sigma_naturality_obj (x) :
   dsimp only [Functor.comp_obj, sigma, sigmaObj]
   rw! [sigma_naturality_aux]
 
-lemma whiskerRight_ιNatTrans_naturality {x y : Δ} (f : x ⟶ y) :
-  whiskerRight (ιNatTrans f) (pre A σ ⋙ B)
-= eqToHom sorry ≫ whiskerRight (ιNatTrans (σ.map f)) B ≫
-  eqToHom sorry := sorry
-
 -- NOTE formerly called `sigmaBeckChevalley`
 theorem sigma_naturality : σ ⋙ sigma A B = sigma (σ ⋙ A) (pre A σ ⋙ B) := by
   refine CategoryTheory.Functor.ext ?_ ?_
   . apply sigma_naturality_obj
   . intros x y f
-    -- rw [← eqToHom_comp_iff]
-    rw [hom_of_map_eq_eqToHom (sigma_naturality_aux B σ y)]
-    rw [hom_of_map_eq_eqToHom (sigma_naturality_aux B σ x).symm]
-    -- generalize_proofs
-    dsimp [Functor.comp_map, sigma, sigmaMap, Grpd.homOf,
-    ← Functor.assoc]
-    -- convert_to _ = (map (eqToHom _) ⋙
-    --   map (whiskerRight (ιNatTrans f) (Grothendieck.Groupoidal.pre A σ ⋙ B))) ⋙
-    --       Grothendieck.Groupoidal.pre (ι (σ ⋙ A) y ⋙ Grothendieck.Groupoidal.pre A σ ⋙ B) (A.map (σ.map f)) ⋙
-    --     map (eqToHom _)
+    rw [eqToHom_eq_homOf_map (sigma_naturality_aux B σ y)]
+    rw [eqToHom_eq_homOf_map (sigma_naturality_aux B σ x).symm]
+    dsimp [Grpd.homOf, sigmaMap, ← Functor.assoc]
     erw [← Grothendieck.Groupoidal.map_comp_eq]
     rw [whiskerRight_ιNatTrans_naturality]
-    simp
+    simp only [Functor.comp_obj, Functor.comp_map, eqToHom_trans_assoc, eqToHom_refl, Category.id_comp]
     erw [Grothendieck.Groupoidal.map_comp_eq]
-    sorry -- this goal might be improved by adding API for Groupoidal.ι and Groupoidal.pre
+    dsimp [Functor.assoc]
+    have : pre (ι A (σ.obj y) ⋙ B) (A.map (σ.map f)) = map (eqToHom (by rw[← (sigma_naturality_aux B σ y)])) ⋙ pre (ι (σ ⋙ A) y ⋙ pre A σ ⋙ B) (A.map (σ.map f)) ⋙
+        map (eqToHom (sigma_naturality_aux B σ y))  := by
+            apply Eq.symm
+            apply pre_congr_functor
+    rw [this]
 
 end
 
@@ -418,6 +414,20 @@ def pair : Γ ⥤ PGrpd.{v₁,u₁} :=
     pair h ⋙ forgetToGrpd = sigma (α ⋙ forgetToGrpd) B := rfl
 
 section
+
+section
+variable {Δ : Type u₃} [Category.{v₃} Δ] (σ : Δ ⥤ Γ)
+
+theorem objPt_naturality (α : Γ ⥤ PGrpd) (x : Δ) :
+    objFiber (σ ⋙ α) x = objFiber α (σ.obj x) :=
+  rfl
+
+theorem objPt'_naturality {A : Γ ⥤ Grpd.{v₁,u₁}}
+    {α : Γ ⥤ PGrpd.{v₁,u₁}} (h : α ⋙ PGrpd.forgetToGrpd = A) (x : Δ) :
+    @objFiber' _ _ (σ ⋙ A) (σ ⋙ α) (by rw [← h]; rfl) x = objFiber' h (σ.obj x) :=
+  rfl
+
+end
 
 variable {Δ : Type u₃} [Category.{v₃} Δ] (σ : Δ ⥤ Γ)
 

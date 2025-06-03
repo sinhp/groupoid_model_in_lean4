@@ -181,7 +181,7 @@ end
 This implies `Γ ⊢[l] .bvar i : A` (see `Lemmas`). -/
 inductive Lookup : Ctx → Nat → Expr → Nat → Prop where
   | zero (Γ A l) : Γ ⊢[l] A → Lookup ((A,l) :: Γ) 0 A.lift l
-  | succ {Γ A B i l l'} : Lookup Γ i A l → Lookup ((B,l') :: Γ) (i+1) A.lift l
+  | succ {Γ A i l} (B l') : Lookup Γ i A l → Lookup ((B,l') :: Γ) (i+1) A.lift l
 
 /-! Pretty-printers. -/
 

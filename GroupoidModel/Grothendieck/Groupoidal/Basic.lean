@@ -296,8 +296,9 @@ a functor `Groupoidal.map : Groupoidal F ⥤ Groupoidal G`.
 def map (α : F ⟶ G) : Groupoidal F ⥤ Groupoidal G :=
   Grothendieck.map (whiskerRight α _)
 
-theorem map_obj {α : F ⟶ G} (X : Groupoidal F) :
-    (Groupoidal.map α).obj X = ⟨X.base, (α.app X.base).obj X.fiber⟩ := rfl
+theorem map_obj_objMk {α : F ⟶ G} (xb : C) (xf : F.obj xb) :
+    (Groupoidal.map α).obj (objMk xb xf) = objMk xb ((α.app xb).obj xf) :=
+  rfl
 
 theorem map_id_eq : map (𝟙 F) = Functor.id (Cat.of <| Groupoidal <| F) :=
   Grothendieck.map_id_eq
@@ -419,6 +420,32 @@ variable {X} {Y : ∫(F)} (f : X ⟶ Y)
   ((Groupoidal.map α).map f).fiber =
     eqToHom (Functor.congr_obj (map.proof_1 (whiskerRight α _) f) X.fiber)
     ≫ (α.app Y.base).map f.fiber := Grothendieck.map_map_fiber _ _
+
+lemma comp_forget_naturality  {α : F ⟶ G} {X Y : Γ} (f : X ⟶ Y) : (F ⋙ Grpd.forgetToCat).map f ≫ Grpd.forgetToCat.map (α.app Y)=
+  Grpd.forgetToCat.map (α.app X) ≫ (G ⋙ Grpd.forgetToCat).map f := by
+  simp only [Functor.comp_obj, Functor.comp_map]
+  rw [← Grpd.forgetToCat.map_comp]; rw [← Grpd.forgetToCat.map_comp]
+  simp
+
+lemma map_map_eqToHom {α : F ⟶ G} {X Y : ∫(F)} (f : X ⟶ Y) :
+    ((G ⋙ Grpd.forgetToCat).map f.base).obj ((map α).obj X).fiber =
+  (α.app Y.base).obj (((F ⋙ Grpd.forgetToCat).map f.base).obj X.fiber) := by
+    apply Eq.symm
+    have equ1 :
+      (α.app Y.base).obj ((Grpd.forgetToCat.map (F.map f.base)).obj X.fiber) =
+      ((Grpd.forgetToCat.map (F.map f.base)) ⋙ (α.app Y.base)).obj X.fiber := by simp
+    have equ2 :
+      (Grpd.forgetToCat.map (G.map f.base)).obj ((α.app X.base).obj X.fiber) =
+      ((α.app X.base) ⋙ (Grpd.forgetToCat.map (G.map f.base))).obj X.fiber := by simp
+    simp only [Functor.comp_obj, Functor.comp_map, map_obj_fiber]
+    rw[equ1, equ2]
+    refine Functor.congr_obj ?_ X.fiber
+    apply comp_forget_naturality
+
+theorem map_map {α : F ⟶ G} {X Y : ∫(F)} (f : X ⟶ Y) :
+    (map α).map f =
+    ⟨f.base, eqToHom (map_map_eqToHom f) ≫ (α.app Y.base).map f.fiber⟩ := by
+    simp[map, Grothendieck.map_map]; exact rfl
 
 @[simp] theorem fiber_eqToHom (h : X = Y) :
     (eqToHom h).fiber = eqToHom (by subst h; simp) :=
@@ -597,5 +624,31 @@ variable {A} {fibObj} {fibMap} {map_id} {map_comp}
   rfl
 
 end
+
+section
+
+variable {Γ : Type u₃}{Δ : Type u₃} [Groupoid.{v₃} Γ][Groupoid.{v₃} Δ] (σ : Δ ⥤ Γ)
+
+lemma eqToHom_eq_homOf_map {F G : Γ ⥤ Grpd} (h : F = G) :
+    eqToHom (by rw [h]) = Grpd.homOf (map (eqToHom h)) := by
+  subst h
+  fapply CategoryTheory.Functor.ext
+  · intro x
+    apply obj_hext
+    · simp
+    · simp
+  · intro x y f
+    rw! [Grothendieck.Groupoidal.map_id_eq]
+    simp
+
+lemma pre_congr_functor {F G : Γ ⥤ Grpd} (h : F = G) :
+  map (eqToHom (by rw[← h])) ⋙ pre F σ ⋙ map (eqToHom h) =
+  pre G σ := by
+  subst h
+  simp only [eqToHom_refl, map_id_eq]
+  exact rfl
+
+end
+
 end Groupoidal
 end Grothendieck
