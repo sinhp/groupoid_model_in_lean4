@@ -301,9 +301,8 @@ theorem pairSectionMap_aux_aux {x y} (f : x ⟶ y) :
 theorem pairMapFiber_aux {x y} (f : x ⟶ y) :
     ((ι _ y ⋙ B).map (mapFiber α f)).obj ((sigmaMap B f).obj (pairObjFiber h x)).fiber =
     ((sec _ α rfl ⋙ B).map f).obj (objFiber' h x) := by
-  simp [Functor.comp_obj, Grpd.forgetToCat.eq_1, sigma, sigmaObj,
-    Functor.comp_map, sigmaMap, forgetToGrpd_map, id_eq,
-    whiskerRight_app, pre_obj_base, pre_obj_fiber]
+  simp only [Grpd.forgetToCat.eq_1, Functor.comp_obj, Grothendieck.forget_obj, Functor.comp_map,
+    sigmaObj, sigmaMap, Grothendieck.forget_map, pre_obj_fiber, map_obj_fiber, whiskerRight_app]
   rw [← Grpd.map_comp_obj, pairSectionMap_aux_aux]
   rfl
 
@@ -354,7 +353,7 @@ theorem pairMapFiber_comp_aux_aux {x y z} (f : x ⟶ y) (g : y ⟶ z) :
   have h1 : (sec _ α rfl ⋙ B).map f ≫ (sec _ α rfl ⋙ B).map g = (sec _ α rfl ⋙ B).map (f ≫ g) := by
     rw [← Functor.map_comp]
   rw [Functor.congr_obj h1, ← pairMapFiber_aux,mapFiber_comp,
-  Functor.map_comp, eqToHom_map, Grpd.comp_eq_comp]
+    Functor.map_comp, eqToHom_map, Grpd.comp_eq_comp]
   simp only [Functor.comp_obj, Functor.map_comp, Grpd.eqToHom_obj]
   congr 2
   have : (sigmaMap B g).obj ((sigmaMap B f).obj (pairObjFiber h x))
@@ -382,10 +381,7 @@ theorem pairMapFiber_comp {x y z : Γ} (f : x ⟶ y) (g : y ⟶ z) :
     (pairMapFiber h (f ≫ g)) = eqToHom (by simp)
     ≫ (((sigma (α ⋙ forgetToGrpd) B).map g).map (pairMapFiber h f) ≫ pairMapFiber h g) := by
   fapply Grothendieck.Groupoidal.ext
-  · simp only [Functor.comp_obj, Grothendieck.forget_obj, sigmaObj, sigma_obj, Grpd.coe_of,
-    sigma_map, comp_base, eqToHom_base] -- FIXME pairMapFiber_base not simping
-    rw [pairMapFiber_base, pairMapFiber_base, sigmaMap_map_base, pairMapFiber_base]
-    simp [mapFiber_comp, mapFiber]
+  · simp [- Functor.comp_obj, mapFiber] -- FIXME
   · rw! [pairMapFiber_fiber, Grothendieck.Groupoidal.comp_fiber, Grothendieck.Groupoidal.comp_fiber,
       Grothendieck.Groupoidal.eqToHom_fiber, eqToHom_map, pairMapFiber_comp_aux,
       Functor.congr_hom (Functor.congr_hom h.symm g) (mapFiber' h f), mapFiber'_comp]
@@ -393,7 +389,7 @@ theorem pairMapFiber_comp {x y z : Γ} (f : x ⟶ y) (g : y ⟶ z) :
       eqToHom_comp_iff]
     simp only [← Category.assoc]
     congr 1
-    simp only [Functor.comp_obj, Grothendieck.forget_obj, Grpd.coe_of, Grpd.eqToHom_hom,
+    simp only [Grothendieck.forget_obj, Grpd.coe_of, Grpd.eqToHom_hom, pairObjFiber_base,
       Functor.comp_map, Grothendieck.forget_map, Grpd.comp_eq_comp, Category.assoc]
     conv => right; right; simp only [← congrArg_cast_hom_left, cast_cast]
     rw [conj_eqToHom_iff_heq]
