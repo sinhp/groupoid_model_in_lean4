@@ -576,7 +576,13 @@ are both pullbacks.
   Niger   -----> Chad  ----> Sudan
            so           uth
 -/
-def ofRight : IsPullback no west sah so := sorry
+def ofRight : IsPullback no west sah so :=
+  IsPullback.ofUniversal no west sah so
+  wsah
+  (fun f g hC => sorry)
+  sorry
+
+
 
 end ofRight
 
