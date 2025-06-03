@@ -33,7 +33,6 @@ theorem ext ⦃α β : X ≅≅ Y⦄ (w : α.hom = β.hom) : α = β :=
     _     = (α.inv ⋙ α.hom) ⋙ β.inv := by rw [Functor.assoc, ← w]
     _     = β.inv                    := by rw [Iso.inv_hom_id, Functor.id_comp]
 
---@[ext]
 theorem ext_inv ⦃α β : X ≅≅ Y⦄ (w : α.inv = β.inv) : α = β :=
   suffices α.hom = β.hom by
     cases α
