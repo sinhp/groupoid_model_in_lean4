@@ -640,13 +640,10 @@ section ofRight'
 variable (esah_pb : IsPullback rth sah east uth)
   (outer_pb : IsPullback north west east (so ⋙ uth))
 
-
-
 namespace ofRight'
 
 variable {C : Type u} [Category.{v} C] (Cn : C ⥤ Libya) (Cw : C ⥤ Niger)
   (hC : Cn ⋙ sah = Cw ⋙ so)
-
 
 def universal : (lift : C ⥤ Algeria) ×'
   lift ⋙ esah_pb.lift north (west ⋙ so) outer = Cn ∧
