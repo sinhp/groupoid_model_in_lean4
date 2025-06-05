@@ -2,12 +2,14 @@ import GroupoidModel.Russell_PER_MS.Substitution
 
 /-! ## Inversion of typing -/
 
-/- We hide proof-specific lemmas in a namespace.
-See also `SubstProof`. -/
+/- We hide proof-specific lemmas in a namespace analogous to `SubstProof`. -/
 namespace InvProof
 open SubstProof
 
 /-! ## Context conversion -/
+
+theorem wfSb_wk {Γ A l} : WfCtx Γ → Γ ⊢[l] A → WfSb ((A,l) :: Γ) Expr.wk Γ :=
+  fun h h' => WfSb.ofRen (h.snoc h') h (WfRen.wk ..)
 
 theorem wfSb_conv_binder {Γ A A' l} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] A' → Γ ⊢[l] A ≡ A' →
     WfSb ((A', l) :: Γ) Expr.bvar ((A, l) :: Γ) := by
@@ -15,20 +17,21 @@ theorem wfSb_conv_binder {Γ A A' l} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] A'
   rw [show Expr.bvar = Expr.up Expr.bvar by autosubst, Expr.up_eq_snoc]
   apply wfSb_snoc
   . apply wfSb_wk <;> assumption
-  . convert rename_all.2.1 A (WfCtx.snoc Γ A') (@WfRen.wk _ _ _) using 1; autosubst
+  . assumption
+  . convert rename_all.2.1 A (WfCtx.snoc Γ A') (WfRen.wk ..) using 1; autosubst
   . apply WfTm.conv (WfTm.bvar (WfCtx.snoc Γ A') (Lookup.zero ..))
-    convert rename_all.2.2.1 AA'.symm_tp (WfCtx.snoc Γ A') (@WfRen.wk _ _ _) using 1 <;> autosubst
+    convert rename_all.2.2.1 AA'.symm_tp (WfCtx.snoc Γ A') (WfRen.wk ..) using 1 <;> autosubst
 
 theorem tp_conv_binder {Γ A A' B l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] A' → Γ ⊢[l] A ≡ A' →
     (A, l) :: Γ ⊢[l'] B → (A', l) :: Γ ⊢[l'] B := by
   intro Γ A A' AA' B
-  convert (subst_all.2.1 B (WfCtx.snoc Γ A') (wfSb_conv_binder Γ A A' AA')).1 using 1
+  convert subst_all.2.1 B |>.1 (wfSb_conv_binder Γ A A' AA') using 1
   autosubst
 
 theorem tm_conv_binder {Γ A A' B t l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] A' → Γ ⊢[l] A ≡ A' →
     (A, l) :: Γ ⊢[l'] t : B → (A', l) :: Γ ⊢[l'] t : B := by
   intro Γ A A' AA' t
-  convert (subst_all.2.2.2.1 t (WfCtx.snoc Γ A') (wfSb_conv_binder Γ A A' AA')).1 using 1 <;>
+  convert subst_all.2.2.2.1 t |>.1 (wfSb_conv_binder Γ A A' AA') using 1 <;>
     autosubst
 
 /-! ## Weakening -/
@@ -37,34 +40,34 @@ theorem tm_conv_binder {Γ A A' B t l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[
 theorem tp_wk {Γ A B l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l'] B →
     (A, l) :: Γ ⊢[l'] B.subst Expr.wk := by
   intro Γ A B
-  convert rename_all.2.1 B (WfCtx.snoc Γ A) (@WfRen.wk _ _ _) using 1 <;> autosubst
+  convert rename_all.2.1 B (WfCtx.snoc Γ A) (WfRen.wk ..) using 1 <;> autosubst
 
 theorem tm_wk {Γ A B b l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l'] b : B →
     (A, l) :: Γ ⊢[l'] b.subst Expr.wk : B.subst Expr.wk := by
   intro Γ A b
-  convert rename_all.2.2.2.1 b (WfCtx.snoc Γ A) (@WfRen.wk _ _ _) using 1 <;> autosubst
+  convert rename_all.2.2.2.1 b (WfCtx.snoc Γ A) (WfRen.wk ..) using 1 <;> autosubst
 
 /-! ## Instantiation -/
 
 theorem tp_inst {Γ A B t l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] t : A → (A, l) :: Γ ⊢[l'] B →
     Γ ⊢[l'] B.subst t.toSb :=
   fun Γ A t B =>
-    subst_all.2.1 B Γ (wfSb_snoc (WfSb.id Γ)
-      (by convert A; autosubst) (by convert t; autosubst)) |>.1
+    subst_all.2.1 B |>.1
+      (wfSb_snoc (WfSb.id Γ) A (by convert A; autosubst) (by convert t; autosubst))
 
 theorem tm_inst {Γ A B b t l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] t : A →
     (A, l) :: Γ ⊢[l'] b : B →
     Γ ⊢[l'] b.subst t.toSb : B.subst t.toSb :=
   fun Γ A t b =>
-    subst_all.2.2.2.1 b Γ (wfSb_snoc (WfSb.id Γ)
-      (by convert A; autosubst) (by convert t; autosubst)) |>.1
+    subst_all.2.2.2.1 b |>.1
+      (wfSb_snoc (WfSb.id Γ) A (by convert A; autosubst) (by convert t; autosubst))
 
 theorem eqtp_inst {Γ A B B' t t' l l'} : WfCtx Γ → Γ ⊢[l] A →
     Γ ⊢[l] t : A → Γ ⊢[l] t' : A → Γ ⊢[l] t ≡ t' : A →
     ((A, l) :: Γ) ⊢[l'] B ≡ B' →
     Γ ⊢[l'] B.subst t.toSb ≡ B'.subst t'.toSb := by
   intro Γ A t t' tt' BB'
-  apply subst_all.2.2.1 BB' Γ (wfSb_snoc _ _ _) (wfSb_snoc _ _ _) (eqSb_snoc _ _ _ _ _)
+  apply subst_all.2.2.1 BB' (eqSb_snoc ..)
   all_goals (try autosubst); grind [WfSb.id, EqSb.refl, EqTp.refl_tp]
 
 attribute [local grind] tp_conv_binder tm_conv_binder in
@@ -131,13 +134,9 @@ theorem inv_all :
       conv => enter [4]; rw [← this]
       apply WfTm.app' (A := A.subst Expr.wk)
       . grind [tp_wk]
-      . apply (subst_all.2.1 Bwf _ _).1
-        . grind [tp_wk, WfCtx.snoc]
+      . apply (subst_all.2.1 Bwf).1
         . rw [Expr.up_eq_snoc]
-          apply wfSb_snoc
-          . apply WfSb.ofRen
-            . grind [tp_wk, WfCtx.snoc]
-            . apply @WfRen.comp _ _ _ _ _ (@WfRen.wk _ _ _) (@WfRen.wk _ _ _)
+          apply wfSb_snoc _ Awf
           . convert tp_wk (B := A.subst Expr.wk) _ _ _ using 1
             . autosubst
             all_goals grind [tp_wk]
@@ -145,6 +144,10 @@ theorem inv_all :
             . grind [WfCtx.snoc, tp_wk]
             . convert Lookup.zero _ _ _ using 1
               autosubst
+          . apply WfSb.ofRen
+            . grind [tp_wk, WfCtx.snoc]
+            . assumption
+            . apply WfRen.comp (WfRen.wk ..) (WfRen.wk ..)
       . exact tm_wk Γwf Awf fwf
       . exact WfTm.bvar (by grind) (Lookup.zero ..)
     all_goals grind

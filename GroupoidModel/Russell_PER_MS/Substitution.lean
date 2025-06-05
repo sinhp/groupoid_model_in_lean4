@@ -120,7 +120,7 @@ theorem EqTm.le_univMax {Γ t u A l} : Γ ⊢[l] t ≡ u : A → l ≤ univMax :
 
 This notion is only useful as an intermediate step
 in establishing admissibility of substitution.
-After that, always use `WfSb`. -/
+After that, use `WfSb` and `EqSb`. -/
 @[irreducible]
 def WfRen (Δ : Ctx) (ξ : Nat → Nat) (Γ : Ctx) :=
   ∀ {i A l}, Lookup Γ i A l → Lookup Δ (ξ i) (A.rename ξ) l
@@ -201,70 +201,31 @@ theorem WfCtx.lookup_wf {Γ i A l} : WfCtx Γ → Lookup Γ i A l → Γ ⊢[l] 
 
 /-! ## Admissibility of substitution -/
 
-/-- The substitution `σ : Δ ⟶ Γ` is well-formed.
+/-- The substitutions `σ σ' : Δ ⟶ Γ` are judgmentally equal.
 
-This is a functional definition as in the Autosubst paper,
-but with more preservation data added so that we can use this
-before proving admissibility of substitution and inversion.
+This is a functional definition similar to that in the Autosubst paper,
+but with a lot of preservation data added
+so that we can use this before proving admissibility of substitution and inversion.
+
 The additional data is an implementation detail;
-`WfSb` should not be unfolded outside of this module.
+`EqSb` should not be unfolded outside of this module.
 
 A common alternative is to use an inductive characterization. -/
-@[irreducible]
-def WfSb (Δ : Ctx) (σ : Nat → Expr) (Γ : Ctx) :=
-  WfCtx Δ ∧ WfCtx Γ ∧ ∀ {i A l}, Lookup Γ i A l → (Δ ⊢[l] A.subst σ) ∧ (Δ ⊢[l] σ i : A.subst σ)
-
-namespace WfSb
-
-theorem wf_dom {Δ Γ σ} : WfSb Δ σ Γ → WfCtx Δ := by
-  unfold WfSb; intro h; exact h.1
-
-theorem wf_cod {Δ Γ σ} : WfSb Δ σ Γ → WfCtx Γ := by
-  unfold WfSb; intro h; exact h.2.1
-
-theorem lookup {Δ Γ A σ i l} : WfSb Δ σ Γ → Lookup Γ i A l → Δ ⊢[l] σ i : A.subst σ :=
-  fun h lk => by unfold WfSb at h; exact h.2.2 lk |>.2
-
-theorem ofRen {Δ Γ ξ} : WfCtx Δ → WfCtx Γ → WfRen Δ ξ Γ → WfSb Δ (Expr.ofRen ξ) Γ := by
-  unfold WfSb
-  intro Δ Γ ξ
-  refine ⟨Δ, Γ, fun lk => ?_⟩
-  constructor
-  . rw [← Expr.rename_eq_subst_ofRen]
-    exact Δ.lookup_wf (ξ.lookup lk)
-  . convert WfTm.bvar Δ (ξ.lookup lk) using 1
-    autosubst
-
-theorem id {Γ} : WfCtx Γ → WfSb Γ Expr.bvar Γ :=
-  fun h => ofRen h h (WfRen.id Γ)
-
-end WfSb
-
-/-- The substitutions `σ σ' : Δ ⟶ Γ` are definitionally equal. -/
 @[irreducible]
 def EqSb (Δ : Ctx) (σ σ' : Nat → Expr) (Γ : Ctx) :=
   WfCtx Δ ∧ WfCtx Γ ∧
     ∀ {i A l}, Lookup Γ i A l →
       (Δ ⊢[l] A.subst σ) ∧ (Δ ⊢[l] A.subst σ') ∧ (Δ ⊢[l] A.subst σ ≡ A.subst σ') ∧
-      (Δ ⊢[l] σ i ≡ σ' i : A.subst σ)
+      (Δ ⊢[l] σ i : A.subst σ) ∧ (Δ ⊢[l] σ' i : A.subst σ') ∧ (Δ ⊢[l] σ i ≡ σ' i : A.subst σ)
+
+/-- The substitution `σ : Δ ⟶ Γ` is well-formed. -/
+@[irreducible]
+def WfSb (Δ : Ctx) (σ : Nat → Expr) (Γ : Ctx) := EqSb Δ σ σ Γ
 
 namespace EqSb
 
-theorem wf_dom {Δ Γ σ σ'} : EqSb Δ σ σ' Γ → WfCtx Δ := by
-  unfold EqSb; intro h; exact h.1
-
-theorem wf_cod {Δ Γ σ σ'} : EqSb Δ σ σ' Γ → WfCtx Γ := by
-  unfold EqSb; intro h; exact h.2.1
-
-theorem lookup {Δ Γ A σ σ' i l} : EqSb Δ σ σ' Γ → Lookup Γ i A l →
-    Δ ⊢[l] σ i ≡ σ' i : A.subst σ :=
-  fun h lk => by unfold EqSb at h; exact h.2.2 lk |>.2.2.2
-
 theorem refl {Δ Γ σ} : WfSb Δ σ Γ → EqSb Δ σ σ Γ := by
-  unfold WfSb EqSb
-  intro σ
-  refine ⟨σ.1, σ.2.1, fun lk => ?_⟩
-  exact ⟨(σ.2.2 lk).1, (σ.2.2 lk).1, EqTp.refl_tp (σ.2.2 lk).1, EqTm.refl_tm (σ.2.2 lk).2⟩
+  unfold WfSb EqSb; grind
 
 theorem symm {Δ Γ σ σ'} : EqSb Δ σ σ' Γ → EqSb Δ σ' σ Γ := by
   unfold EqSb; grind [EqTp.symm_tp, EqTm.symm_tm', EqTm.conv_tm]
@@ -273,16 +234,52 @@ theorem trans {Δ Γ σ σ' σ''} : EqSb Δ σ σ' Γ → EqSb Δ σ' σ'' Γ �
   unfold EqSb
   intro h h'
   refine ⟨h.1, h.2.1, fun lk => ?_⟩
-  exact ⟨
-    (h.2.2 lk).1,
-    (h'.2.2 lk).2.1,
-    (h.2.2 lk).2.2.1.trans_tp (h'.2.2 lk).2.2.1,
-    (h.2.2 lk).2.2.2.trans_tm'
-      (h.2.2 lk).1
-      ((h'.2.2 lk).2.2.2.conv_tm (h.2.2 lk).2.2.1.symm_tp)
-  ⟩
+  replace h := h.2.2 lk
+  replace h' := h'.2.2 lk
+  grind [EqTp.symm_tp, EqTp.trans_tp, EqTm.trans_tm', EqTm.conv_tm]
+
+theorem lookup {Δ Γ A σ σ' i l} : EqSb Δ σ σ' Γ → Lookup Γ i A l →
+    Δ ⊢[l] σ i ≡ σ' i : A.subst σ := by
+  unfold EqSb; grind
+
+theorem wf_dom {Δ Γ σ σ'} : EqSb Δ σ σ' Γ → WfCtx Δ := by
+  unfold EqSb; intro h; exact h.1
+
+theorem wf_cod {Δ Γ σ σ'} : EqSb Δ σ σ' Γ → WfCtx Γ := by
+  unfold EqSb; intro h; exact h.2.1
+
+theorem wf_left {Δ Γ σ σ'} : EqSb Δ σ σ' Γ → WfSb Δ σ Γ := by
+  unfold WfSb; intro h; exact h.trans h.symm
+
+theorem wf_right {Δ Γ σ σ'} : EqSb Δ σ σ' Γ → WfSb Δ σ' Γ := by
+  unfold WfSb; intro h; exact h.symm.trans h
 
 end EqSb
+
+namespace WfSb
+
+theorem ofRen {Δ Γ ξ} : WfCtx Δ → WfCtx Γ → WfRen Δ ξ Γ → WfSb Δ (Expr.ofRen ξ) Γ := by
+  unfold WfSb EqSb
+  intro Δ Γ ξ
+  refine ⟨Δ, Γ, fun lk => ?_⟩
+  simp only [← Expr.rename_eq_subst_ofRen]
+  refine ⟨?A, ?A, EqTp.refl_tp ?A, ?i, ?i, EqTm.refl_tm ?i⟩
+  . exact Δ.lookup_wf (ξ.lookup lk)
+  . exact WfTm.bvar Δ (ξ.lookup lk)
+
+theorem id {Γ} : WfCtx Γ → WfSb Γ Expr.bvar Γ :=
+  fun h => ofRen h h (WfRen.id _)
+
+theorem lookup {Δ Γ A σ i l} : WfSb Δ σ Γ → Lookup Γ i A l → Δ ⊢[l] σ i : A.subst σ := by
+  unfold WfSb EqSb; grind
+
+theorem wf_dom {Δ Γ σ} : WfSb Δ σ Γ → WfCtx Δ := by
+  unfold WfSb; intro h; exact h.wf_dom
+
+theorem wf_cod {Δ Γ σ} : WfSb Δ σ Γ → WfCtx Γ := by
+  unfold WfSb; intro h; exact h.wf_cod
+
+end WfSb
 
 /- Like the primed typing rules,
 notions defined in this namespace are suboptimal:
@@ -290,71 +287,22 @@ they include tons of redundant assumptions
 needed to make the main induction go through.
 
 After substitution and inversion,
-we define better versions with fewer arguments. -/
+we can define better versions with fewer arguments. -/
 namespace SubstProof
-
-theorem wfSb_wk {Γ A l} : WfCtx Γ → Γ ⊢[l] A → WfSb ((A,l) :: Γ) Expr.wk Γ :=
-  fun h h' => WfSb.ofRen (h.snoc h') h (WfRen.wk ..)
-
-theorem wfSb_snoc {Δ Γ A t σ l} : WfSb Δ σ Γ →
-    Γ ⊢[l] A → Δ ⊢[l] A.subst σ → Δ ⊢[l] t : A.subst σ →
-    WfSb Δ (Expr.snoc σ t) ((A,l) :: Γ) := by
-  unfold WfSb; intro σ A Aσ t
-  refine ⟨σ.1, σ.2.1.snoc A, fun lk => ?_⟩
-  cases lk
-  . constructor
-    . convert Aσ using 1; autosubst
-    . autosubst; grind
-  next lk =>
-    constructor
-    . convert (σ.2.2 lk).1 using 1; autosubst
-    . autosubst; grind
-
-theorem wfSb_up_of_eq {Δ Γ A Aσ σ l} : WfSb Δ σ Γ →
-    Γ ⊢[l] A → Δ ⊢[l] Aσ → Δ ⊢[l] A.subst σ → Δ ⊢[l] Aσ ≡ A.subst σ →
-    WfSb ((Aσ, l) :: Δ) (Expr.up σ) ((A,l) :: Γ) := by
-  unfold WfSb; intro σ A Aσ Aσ' Aσeq
-  have ΔAσ := σ.1.snoc Aσ
-  refine ⟨ΔAσ, σ.2.1.snoc A, fun lk => ?_⟩
-  cases lk
-  . constructor
-    . convert rename_all.2.1 Aσ' ΔAσ (WfRen.wk ..) using 1 <;> autosubst
-    . apply WfTm.conv (A := Expr.subst Expr.wk _)
-      . rw [Expr.up_eq_snoc]
-        apply WfTm.bvar ΔAσ
-        apply Lookup.zero
-      . convert rename_all.2.2.1 Aσeq ΔAσ (WfRen.wk ..) using 1 <;> autosubst
-  next lk =>
-    constructor
-    . convert rename_all.2.1 (σ.2.2 lk).1 ΔAσ (WfRen.wk ..) using 1 <;> autosubst
-    . rw [Expr.up_eq_snoc]
-      convert rename_all.2.2.2.1 (σ.2.2 lk).2 ΔAσ (WfRen.wk ..) using 1 <;> autosubst
-      rw [Expr.comp]
-
-theorem wfSb_up {Δ Γ A σ l} : WfSb Δ σ Γ →
-    Γ ⊢[l] A → Δ ⊢[l] A.subst σ →
-    WfSb ((A.subst σ, l) :: Δ) (Expr.up σ) ((A,l) :: Γ) :=
-  fun ΔσΓ ΓA ΔAσ => wfSb_up_of_eq ΔσΓ ΓA ΔAσ ΔAσ (EqTp.refl_tp ΔAσ)
 
 theorem eqSb_snoc {Δ Γ A t t' σ σ' l} : EqSb Δ σ σ' Γ →
     Γ ⊢[l] A → Δ ⊢[l] A.subst σ → Δ ⊢[l] A.subst σ' → Δ ⊢[l] A.subst σ ≡ A.subst σ' →
-    Δ ⊢[l] t ≡ t' : A.subst σ →
+    Δ ⊢[l] t : A.subst σ → Δ ⊢[l] t' : A.subst σ' → Δ ⊢[l] t ≡ t' : A.subst σ →
     EqSb Δ (Expr.snoc σ t) (Expr.snoc σ' t') ((A,l) :: Γ) := by
   unfold EqSb
-  intro σσ' A Aσ Aσ' AσAσ' tt'
+  intro σσ' A; intros
   refine ⟨σσ'.1, σσ'.2.1.snoc A, fun lk => ?_⟩
-  cases lk
-  . repeat any_goals apply And.intro
-    . convert Aσ using 1; autosubst
-    . convert Aσ' using 1; autosubst
-    . convert AσAσ' using 1 <;> autosubst
-    . convert tt' using 1; autosubst
-  next lk =>
-    repeat any_goals apply And.intro
-    . convert (σσ'.2.2 lk).1 using 1; autosubst
-    . convert (σσ'.2.2 lk).2.1 using 1; autosubst
-    . convert (σσ'.2.2 lk).2.2.1 using 1 <;> autosubst
-    . convert (σσ'.2.2 lk).2.2.2 using 1 <;> autosubst
+  cases lk <;> (autosubst; grind)
+
+theorem wfSb_snoc {Δ Γ A t σ l} : WfSb Δ σ Γ →
+    Γ ⊢[l] A → Δ ⊢[l] A.subst σ → Δ ⊢[l] t : A.subst σ →
+    WfSb Δ (Expr.snoc σ t) ((A,l) :: Γ) :=
+  fun h A Aσ t => eqSb_snoc (EqSb.refl h) A Aσ Aσ (EqTp.refl_tp Aσ) t t (EqTm.refl_tm t) |>.wf_left
 
 theorem eqSb_up {Δ Γ A σ σ' l} : EqSb Δ σ σ' Γ →
     Γ ⊢[l] A → Δ ⊢[l] A.subst σ → Δ ⊢[l] A.subst σ' → Δ ⊢[l] A.subst σ ≡ A.subst σ' →
@@ -364,98 +312,104 @@ theorem eqSb_up {Δ Γ A σ σ' l} : EqSb Δ σ σ' Γ →
   have ΔAσ := σσ'.1.snoc Aσ
   refine ⟨ΔAσ, σσ'.2.1.snoc A, fun lk => ?_⟩
   cases lk
-  . repeat any_goals apply And.intro
+  . rw [Expr.up_eq_snoc σ, Expr.up_eq_snoc σ']; dsimp
+    repeat any_goals apply And.intro
     . convert rename_all.2.1 Aσ ΔAσ (WfRen.wk ..) using 1 <;> autosubst
     . convert rename_all.2.1 Aσ' ΔAσ (WfRen.wk ..) using 1 <;> autosubst
     . convert rename_all.2.2.1 Aσeq ΔAσ (WfRen.wk ..) using 1 <;> autosubst
-    . rw [Expr.up_eq_snoc σ, Expr.up_eq_snoc σ']
-      apply EqTm.refl_tm
-      apply WfTm.bvar ΔAσ
-      convert Lookup.zero .. using 1
-      autosubst
+    . convert WfTm.bvar ΔAσ (Lookup.zero ..) using 1 <;> autosubst
+    . convert WfTm.conv (WfTm.bvar ΔAσ (Lookup.zero ..)) ?_
+      convert rename_all.2.2.1 Aσeq ΔAσ (WfRen.wk ..) using 1 <;> autosubst
+    . convert EqTm.refl_tm (WfTm.bvar ΔAσ (Lookup.zero ..)) using 1 <;> autosubst
   next lk =>
     have := σσ'.2.2 lk
     repeat any_goals apply And.intro
     . convert rename_all.2.1 this.1 ΔAσ (WfRen.wk ..) using 1 <;> autosubst
     . convert rename_all.2.1 this.2.1 ΔAσ (WfRen.wk ..) using 1 <;> autosubst
     . convert rename_all.2.2.1 this.2.2.1 ΔAσ (WfRen.wk ..) using 1 <;> autosubst
+    . convert rename_all.2.2.2.1 this.2.2.2.1 ΔAσ (WfRen.wk ..) using 1 <;> autosubst; rfl
+    . convert rename_all.2.2.2.1 this.2.2.2.2.1 ΔAσ (WfRen.wk ..) using 1 <;> autosubst; rfl
     . rw [Expr.up_eq_snoc σ, Expr.up_eq_snoc σ']
-      convert rename_all.2.2.2.2 this.2.2.2 ΔAσ (WfRen.wk ..) using 1 <;>
+      convert rename_all.2.2.2.2 this.2.2.2.2.2 ΔAσ (WfRen.wk ..) using 1 <;>
         (autosubst; try rw [Expr.comp])
 
-attribute [local grind] WfCtx.snoc wfSb_up_of_eq wfSb_up eqSb_up in
+theorem wfSb_up {Δ Γ A σ l} : WfSb Δ σ Γ →
+    Γ ⊢[l] A → Δ ⊢[l] A.subst σ →
+    WfSb ((A.subst σ, l) :: Δ) (Expr.up σ) ((A,l) :: Γ) :=
+  fun h A Aσ => eqSb_up (EqSb.refl h) A Aσ Aσ (EqTp.refl_tp Aσ) |>.wf_left
+
+attribute [local grind] WfCtx.snoc
+  EqTp.refl_tp EqTp.symm_tp EqTp.trans_tp
+  EqSb.refl EqSb.wf_left EqSb.wf_right eqSb_up
+  wfSb_up in
 theorem subst_all :
     (∀ {Γ}, WfCtx Γ → True) ∧
     (∀ {Γ l A}, Γ ⊢[l] A →
-      ∀ {Δ σ}, WfSb Δ σ Γ →
-        (Δ ⊢[l] A.subst σ) ∧
-          ∀ {σ'}, WfSb Δ σ' Γ → EqSb Δ σ σ' Γ →
-            Δ ⊢[l] A.subst σ ≡ A.subst σ') ∧
+      (∀ {Δ σ}, WfSb Δ σ Γ → Δ ⊢[l] A.subst σ) ∧
+        ∀ {Δ σ σ'}, EqSb Δ σ σ' Γ → Δ ⊢[l] A.subst σ ≡ A.subst σ') ∧
     (∀ {Γ l A B}, Γ ⊢[l] A ≡ B →
-      ∀ {Δ σ σ'}, WfSb Δ σ Γ → WfSb Δ σ' Γ → EqSb Δ σ σ' Γ →
-        Δ ⊢[l] A.subst σ ≡ B.subst σ') ∧
+      ∀ {Δ σ σ'}, EqSb Δ σ σ' Γ → Δ ⊢[l] A.subst σ ≡ B.subst σ') ∧
     (∀ {Γ l t A}, Γ ⊢[l] t : A →
-      ∀ {Δ σ}, WfSb Δ σ Γ →
-        (Δ ⊢[l] t.subst σ : A.subst σ) ∧
-          ∀ {σ'}, WfSb Δ σ' Γ → EqSb Δ σ σ' Γ →
-            Δ ⊢[l] t.subst σ ≡ t.subst σ' : A.subst σ) ∧
+      (∀ {Δ σ}, WfSb Δ σ Γ → Δ ⊢[l] t.subst σ : A.subst σ) ∧
+        ∀ {Δ σ σ'}, EqSb Δ σ σ' Γ → Δ ⊢[l] t.subst σ ≡ t.subst σ' : A.subst σ) ∧
     (∀ {Γ l t u A}, Γ ⊢[l] t ≡ u : A →
-      ∀ {Δ σ σ'}, WfSb Δ σ Γ → WfSb Δ σ' Γ → EqSb Δ σ σ' Γ →
-        Δ ⊢[l] t.subst σ ≡ u.subst σ' : A.subst σ) := by
+      ∀ {Δ σ σ'}, EqSb Δ σ σ' Γ → Δ ⊢[l] t.subst σ ≡ u.subst σ' : A.subst σ) := by
   have ih_subst (B a : Expr) (σ) :
       (B.subst a.toSb).subst σ = (B.subst (Expr.up σ)).subst (a.subst σ).toSb := by autosubst
   mutual_induction
   case snoc => exact True.intro
   all_goals try dsimp [Expr.subst] at *
-  case bvar => grind [WfSb.lookup, EqSb.lookup]
+  case bvar => grind [EqSb.lookup, WfSb.lookup]
   grind_cases
   case pi' => grind [WfTp.pi', EqTp.cong_pi']
   case sigma' => grind [WfTp.sigma', EqTp.cong_sigma']
-  case univ => grind [WfSb.wf_dom, WfTp.univ, EqTp.refl_tp]
+  case univ => grind [WfSb.wf_dom, EqSb.wf_dom, WfTp.univ]
   case el => grind [WfTp.el, EqTp.cong_el]
-  case symm_tp => grind [EqSb.symm, EqTp.symm_tp]
-  case trans_tp => grind [EqTp.trans_tp, EqSb.trans, EqSb.refl]
+  case symm_tp => grind [EqSb.symm]
   case lam' => grind [WfTm.lam', EqTm.cong_lam']
-  case app' => grind [WfTm.app', EqTm.cong_app']
-  case pair' => grind [WfTm.pair', EqTm.cong_pair']
-  case fst' => grind [WfTm.fst', EqTm.cong_fst']
+  case app' ihA _ _ _ =>
+    constructor
+    . grind [WfTm.app']
+    . intro _ _ _ σ
+      rw [ih_subst]
+      apply EqTm.cong_app' (ihA.1 σ.wf_left) <;> grind
+  case pair' => constructor <;> grind [WfTm.pair', EqTm.cong_pair']
+  case fst' => constructor <;> grind [WfTm.fst', EqTm.cong_fst']
   case snd' =>
     constructor
-    . rw [ih_subst]; apply WfTm.snd' <;> grind
+    . intros; rw [ih_subst]; apply WfTm.snd' <;> grind
     . intros; rw [ih_subst]; apply EqTm.cong_snd' <;> grind
   case code => grind [WfTm.code, EqTm.cong_code]
-  case conv => grind [WfTm.conv, EqTm.conv_tm, EqSb.refl]
+  case conv iht ihA => constructor <;> grind [WfTm.conv, EqTm.conv_tm]
   case app_lam' =>
     rw [ih_subst, ih_subst]
     apply (EqTm.app_lam' ..).trans_tm'
-    . autosubst; grind [wfSb_snoc]
+    . autosubst; grind [eqSb_snoc, wfSb_snoc]
     . autosubst
-      rename_i iht _ _ _ _ _ _ _ _
-
-      sorry
-      -- apply (iht _).2 <;> grind [wfSb_snoc, eqSb_snoc]
+      rename_i iht _ _ _ _ _
+      apply iht.2 <;> grind [eqSb_snoc]
     all_goals grind
   case fst_pair' => apply (EqTm.fst_pair' ..).trans_tm' <;> grind
   case snd_pair' =>
     rw [ih_subst]; apply (EqTm.snd_pair' ..).trans_tm'
-    . autosubst; grind [wfSb_snoc]
+    . autosubst; grind [eqSb_snoc, wfSb_snoc]
     all_goals grind
-  case lam_app' ihA ihB ihf _ _ _ Δ σ σ' σσ' =>
-    sorry
-    -- apply (ihf Δ σ |>.2 σ' σσ').trans_tm' (by grind [WfTp.pi'])
-    -- have := EqTm.lam_app'
-    --   (ihA Δ σ').1
-    --   (ihB (Δ.snoc (by grind))
-    --   (wfSb_up Δ σ' (by grind))).1
-    --   (ihf Δ σ').1
-    -- convert this.conv_tm _ using 3 <;> autosubst
-    -- grind [EqTp.cong_pi', EqSb.symm, Expr.up_eq_snoc]
+  case lam_app' ihA ihB ihf _ _ _ σσ' =>
+    apply (ihf.2 σσ').trans_tm' (by grind [WfTp.pi'])
+    have := EqTm.lam_app'
+      (ihA.1 <| σσ'.wf_right)
+      (ihB.1 <| by grind)
+      (ihf.1 <| σσ'.wf_right)
+    convert this.conv_tm _ using 3 <;> autosubst
+    grind [EqTp.cong_pi', EqSb.symm, Expr.up_eq_snoc]
   case pair_fst_snd' =>
     apply (EqTm.pair_fst_snd' ..).trans_tm' <;>
       grind [WfTp.sigma', EqTm.cong_pair', EqTm.cong_fst', EqTm.cong_snd']
-  case conv_tm => grind [EqTm.conv_tm, EqSb.refl]
   case symm_tm' => grind [EqTm.symm_tm', EqTm.conv_tm, EqSb.symm]
-  case trans_tm' => grind [EqTm.trans_tm', EqTm.conv_tm, EqSb.trans, EqSb.refl]
+  case trans_tm' => grind [EqTm.trans_tm', EqTm.conv_tm, EqSb.symm]
+  case cong_app' ihA _ _ _ _ _ _ σ =>
+    rw [ih_subst]
+    apply EqTm.cong_app' (ihA.1 σ.wf_left) <;> grind
   case cong_snd' => rw [ih_subst]; apply EqTm.cong_snd' <;> grind
 
 end SubstProof
