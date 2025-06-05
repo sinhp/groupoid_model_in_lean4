@@ -76,7 +76,7 @@ inductive WfTp : Ctx → Nat → Expr → Prop
     (A,l) :: Γ ⊢[l'] B →
     Γ ⊢[max l l'] .sigma l l' A B
 
-  | univ (Γ l) :
+  | univ {Γ l} :
     WfCtx Γ →
     l < univMax →
     Γ ⊢[l+1] .univ l
