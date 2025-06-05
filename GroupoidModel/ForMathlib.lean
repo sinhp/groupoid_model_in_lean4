@@ -190,6 +190,13 @@ theorem obj_hext_iff : x.base = y.base ∧ HEq x.fiber y.fiber
     subst hCD
     exact ⟨ rfl , HEq.rfl ⟩
 
+theorem obj_hext'
+    (hbase : HEq x.base y.base) (hfiber : HEq x.fiber y.fiber) : HEq x y := by
+  rcases x with ⟨xbase, xfiber⟩
+  subst hbase
+  subst hfiber
+  rfl
+
 /-- This proves that base of an eqToHom morphism in the category Grothendieck A is an eqToHom morphism -/
 theorem eqToHom_base (eq : x = y) :
     (eqToHom eq).base = eqToHom (by simp [eq]) := by
