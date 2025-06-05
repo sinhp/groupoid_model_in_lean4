@@ -50,15 +50,40 @@ variable {Γ : Type u} [Category.{v} Γ] (A : Γ ⥤ Grpd.{v₁,u₁})
         Γ--------------A---------------> Grpd --------> Cat
 -/
 def toPGrpd : ∫(A) ⥤ PGrpd.{v₁,u₁} :=
+  PGrpd.functorTo (forget ⋙ A) (fun x => x.fiber) (fun f => f.fiber)
+    (by simp) (by simp [forget_map, Hom.base])
+
+@[simp] theorem toPGrpd_obj_base (x) :
+    ((toPGrpd A).obj x).base = A.obj x.base := by
+  rfl
+
+@[simp] theorem toPGrpd_obj_fiber (x) :
+    ((toPGrpd A).obj x).fiber = x.fiber := by
+  rfl
+
+@[simp] theorem toPGrpd_map_base {x y} (f : x ⟶ y) :
+    ((toPGrpd A).map f).base = A.map f.base := by
+  rfl
+
+@[simp] theorem toPGrpd_map_fiber {x y} (f : x ⟶ y) :
+    ((toPGrpd A).map f).fiber = f.fiber := by
+  rfl
+
+theorem toPGrpd_forgetToGrpd : toPGrpd A ⋙ PGrpd.forgetToGrpd = forget ⋙ A :=
+  rfl
+
+theorem toPGrpd_forgetToPCat : toPGrpd A ⋙ PGrpd.forgetToPCat = (Grothendieck.toPCat _) :=
+  rfl
+
+/--
+We also provide a definition of `toPGrpd` as the universal lift
+of the pullback `PGrpd`.
+We avoid using this version and doing direct computations if possible.
+-/
+def toPGrpd' : ∫(A) ⥤ PGrpd.{v₁,u₁} :=
   PGrpd.isPullback.lift (Grothendieck.toPCat (A ⋙ Grpd.forgetToCat)) (forget ⋙ A) (by
     rw [toPCat_forgetToCat]
     rfl)
-
-theorem toPGrpd_forgetToGrpd : toPGrpd A ⋙ PGrpd.forgetToGrpd = forget ⋙ A :=
-  PGrpd.isPullback.fac_right _ _ _
-
-theorem toPGrpd_forgetToPCat : toPGrpd A ⋙ PGrpd.forgetToPCat = (Grothendieck.toPCat _) :=
-  PGrpd.isPullback.fac_left _ _ _
 
 /--
 The left square is a pullback since the right square and outer square are.
@@ -71,59 +96,21 @@ The left square is a pullback since the right square and outer square are.
         v                                 v              v
         Γ--------------A---------------> Grpd --------> Cat
 -/
-def isPullback : Functor.IsPullback (toPGrpd A) forget PGrpd.forgetToGrpd A :=
+def isPullback' : Functor.IsPullback (toPGrpd' A) forget PGrpd.forgetToGrpd A :=
   Functor.IsPullback.Paste.ofRight'
     (Grothendieck.toPCat_forgetToCat _)
     (Grothendieck.isPullback _)
     PGrpd.forgetToPCat_forgetToCat
     PGrpd.isPullback
 
-/--
-We also provide an elementary definition of `toPGrpd` which we can
-use for computation.
-We avoid using this version and doing direct computations if possible.
--/
-def toPGrpd' : ∫(A) ⥤ PGrpd.{v₁,u₁} :=
-  PGrpd.functorTo (forget ⋙ A) (fun x => x.fiber) (fun f => f.fiber)
-    (by simp) (by simp [forget_map, Hom.base])
-
-@[simp] theorem toPGrpd'_obj_base (x) :
-    ((toPGrpd A).obj x).base = A.obj x.base := by
-  rfl
-
-@[simp] theorem toPGrpd'_obj_fiber (x) :
-    ((toPGrpd' A).obj x).fiber = x.fiber := by
-  rfl
-
-@[simp] theorem toPGrpd'_map_base {x y} (f : x ⟶ y) :
-    ((toPGrpd' A).map f).base = A.map f.base := by
-  rfl
-
-@[simp] theorem toPGrpd'_map_fiber {x y} (f : x ⟶ y) :
-    ((toPGrpd' A).map f).fiber = f.fiber := by
-  rfl
-
 theorem toPGrpd_eq_toPGrpd' : toPGrpd A = toPGrpd' A := by
-  symm
   apply PGrpd.isPullback.lift_uniq
   · rfl
   · rfl
 
-theorem toPGrpd_obj_base (x) : ((toPGrpd A).obj x).base = A.obj x.base :=
-  rfl
+def isPullback : Functor.IsPullback (toPGrpd A) forget PGrpd.forgetToGrpd A :=
+  cast (by rw [toPGrpd_eq_toPGrpd']) (isPullback' A)
 
-theorem toPGrpd_obj_fiber (x) : HEq ((toPGrpd A).obj x).fiber x.fiber := by
-  rw [toPGrpd_eq_toPGrpd']
-  rfl
-
-theorem toPGrpd_map_base {x y} (f : x ⟶ y) :
-    ((toPGrpd A).map f).base = A.map f.base := by
-  rfl
-
-theorem toPGrpd_map_fiber {x y} (f : x ⟶ y) :
-    HEq ((toPGrpd A).map f).fiber f.fiber := by
-  rw [toPGrpd_eq_toPGrpd']
-  rfl
 end
 
 section
@@ -167,11 +154,12 @@ def sec : Γ ⥤ ∫(A) :=
   · rw [Functor.assoc, toPGrpd_forgetToGrpd, sec, ← Functor.assoc, h]
     rfl
   · intro x
-    apply (toPGrpd_obj_fiber _ _).trans
-    simp
+    simp [toPGrpd_obj_fiber, PGrpd.objFiber', PGrpd.objFiber, Grpd.eqToHom_obj]
   · intro x y f
-    apply (toPGrpd_map_fiber _ _).trans
-    exact PGrpd.mapFiber'_heq _ _
+    simp only [Functor.comp_map, toPGrpd_map_fiber, sec_map_fiber, PGrpd.mapFiber',
+      Grpd.eqToHom_hom]
+    rw! [eqToHom_comp_heq]
+    simp
 
 @[simp] def sec_forget : sec A α h ⋙ forget = 𝟭 _ :=
   rfl
