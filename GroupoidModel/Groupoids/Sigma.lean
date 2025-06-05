@@ -431,55 +431,14 @@ def pair : Γ ⥤ PGrpd.{v₁,u₁} :=
 
 section
 
-section
 variable {Δ : Type u₃} [Category.{v₃} Δ] (σ : Δ ⥤ Γ)
-
--- TODO move
-theorem objPt_naturality (α : Γ ⥤ PGrpd) (x : Δ) :
-    objFiber (σ ⋙ α) x = objFiber α (σ.obj x) :=
-  rfl
-
--- TODO move
-theorem objPt'_naturality {A : Γ ⥤ Grpd.{v₁,u₁}}
-    {α : Γ ⥤ PGrpd.{v₁,u₁}} (h : α ⋙ PGrpd.forgetToGrpd = A) (x : Δ) :
-    @objFiber' _ _ (σ ⋙ A) (σ ⋙ α) (by rw [← h]; rfl) x = objFiber' h (σ.obj x) :=
-  rfl
-
-end
-
-variable {Δ : Type u₃} [Category.{v₃} Δ] (σ : Δ ⥤ Γ)
-
--- JH: at the very least these should be renamed, maybe removed
-include h in
-lemma pairSection_naturality_aux : (σ ⋙ β) ⋙ forgetToGrpd
-    = sec _ (σ ⋙ α) rfl ⋙ pre (α ⋙ forgetToGrpd) σ ⋙ B := by
-  conv => right; erw [← Functor.assoc, ← sec_naturality]
-  simp only [Functor.assoc, h]
 
 -- JH: TODO move?
--- TODO consider removal, see `pairSection_naturality`
-theorem map_eqToHom_toPGrpd {F G : Γ ⥤ Grpd} (h : F = G) :
-    map (eqToHom h) ⋙ toPGrpd G = toPGrpd F := by
-  subst h
-  simp [map_id_eq, Functor.id_comp]
-
-section
-
--- TODO move
-theorem obj_hext' {Γ : Type u} [Category.{v} Γ] {A A' : Γ ⥤ Grpd.{v₁,u₁}} (h : A = A')
-  {x : ∫(A)} {y : ∫(A')} (hbase : HEq x.base y.base) (hfiber : HEq x.fiber y.fiber) : HEq x y := by
-  rcases x; rcases y
-  subst hbase
-  congr
-
-theorem hext' {Γ : Type u} [Category.{v} Γ] {A A' : Γ ⥤ Grpd.{v₁,u₁}} (h : A = A')
-    {X Y : ∫(A)} {X' Y' : ∫(A')} (f : Hom X Y) (g : Hom X' Y')
-    (hX : HEq X X') (hY : HEq Y Y')
-    (w_base : HEq f.base g.base) (w_fiber : HEq f.fiber g.fiber) : HEq f g := by
-  cases f; cases g
-  congr
-
-end
+-- TODO consider removal, unused after refactor
+-- theorem map_eqToHom_toPGrpd {F G : Γ ⥤ Grpd} (h : F = G) :
+--     map (eqToHom h) ⋙ toPGrpd G = toPGrpd F := by
+--   subst h
+--   simp [map_id_eq, Functor.id_comp]
 
 include h in
 theorem pair_naturality_aux : (σ ⋙ β) ⋙ forgetToGrpd =
@@ -518,14 +477,8 @@ theorem pair_naturality : σ ⋙ pair α β B h = pair (σ ⋙ α) (σ ⋙ β) (
     · rw [← Functor.assoc, pair_naturality_ι_pre]
     · apply pair_naturality_aux_1
     · apply pair_naturality_obj
-    · simp only [Functor.comp_obj, pair_obj_base, Functor.comp_map, pair_map_base, id_eq,
-        pair_obj_fiber, pair_map_fiber]
-      rw [pairMapFiber_base, pairMapFiber_base] -- these still not simping
-      rfl -- should probably add a lemma here?
-    · simp only [Functor.comp_obj, pair_obj_fiber, pair_obj_base, Functor.comp_map, pair_map_base,
-        id_eq, pair_map_fiber]
-      rw [pairMapFiber_fiber, pairMapFiber_fiber]
-      simp [mapFiber']
+    · simp [- Functor.comp_obj, - Functor.comp_map, Functor.comp_map, mapFiber_naturality]
+    · simp [- Functor.comp_obj, - Functor.comp_map, Functor.comp_map, ← mapFiber'_naturality]
 
 end
 
@@ -543,26 +496,6 @@ def fst' : ∫(sigma A B) ⥤ ∫(A) :=
 
 def fst : ∫(sigma A B) ⥤ PGrpd :=
   fst' B ⋙ toPGrpd A
-
--- TODO move to ForMathlib and Grothendieck
-section
-variable {C : Type u} [Category.{v} C]
-    {F G : C ⥤ Cat.{v₂,u₂}}
-
-theorem _root_.CategoryTheory.Grothendieck.map_forget (α : F ⟶ G) :
-    Grothendieck.map α ⋙ Grothendieck.forget G =
-    Grothendieck.forget F := by
-  rfl
-
-variable
-    {F G : C ⥤ Grpd.{v₂,u₂}}
-theorem _root_.CategoryTheory.Grothendieck.Groupoidal.map_forget
-    (α : F ⟶ G) : map α ⋙ forget =
-    Grothendieck.Groupoidal.forget := by
-  rfl
-
-end
--- END
 
 theorem fst_forgetToGrpd : fst B ⋙ forgetToGrpd = forget ⋙ A := by
   dsimp only [fst, fst']
@@ -687,7 +620,7 @@ def smallUPair_app {Γ : Ctx.{max u (v+1)}}
     (ab : y(Γ) ⟶ smallU.{v, max u (v+1)}.uvPolyTp.compDom
     smallU.{v, max u (v+1)}.uvPolyTp)
     : y(Γ) ⟶ smallU.{v, max u (v+1)}.Tm :=
-  yonedaCategoryEquiv.symm (pair (smallUCompDomEquiv ab).2.2.2)
+  yonedaCategoryEquiv.symm (pair _ _ _ (smallUCompDomEquiv ab).2.2.2)
 
 theorem smallUPair_naturality {Γ Δ : Ctx} (f : Δ ⟶ Γ)
     (ab : y(Γ) ⟶ smallU.{v, max u (v+1)}.uvPolyTp.compDom
@@ -701,7 +634,7 @@ def smallUPair : smallU.{v, max u (v+1)}.uvPolyTp.compDom
   NatTrans.yonedaMk smallUPair_app smallUPair_naturality
 
 lemma smallUPair_app_eq {Γ : Ctx} (ab : y(Γ) ⟶ _) : ab ≫ smallUPair =
-    yonedaCategoryEquiv.symm (pair (smallUCompDomEquiv ab).2.2.2) := by
+    yonedaCategoryEquiv.symm (pair _ _ _ (smallUCompDomEquiv ab).2.2.2) := by
   simp only [smallUPair, smallUPair_app, NatTrans.yonedaMk_app]
 
 namespace SigmaPullback
@@ -789,7 +722,7 @@ theorem fac_right (s : Limits.RepPullbackCone smallU.tp smallUSig) :
   sorry
 
 theorem fac_left_aux_0 : yonedaCategoryEquiv s.fst ⋙ forgetToGrpd =
-    FunctorOperation.pair (smallUCompDomEquiv (lift s)).snd.snd.snd ⋙ forgetToGrpd := sorry
+    FunctorOperation.pair _ _ _ (smallUCompDomEquiv (lift s)).snd.snd.snd ⋙ forgetToGrpd := sorry
 
 
 -- set_option maxHeartbeats 0 in

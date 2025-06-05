@@ -243,6 +243,20 @@ theorem hext {X Y : ∫(F)} (f g : Hom X Y) (w_base : f.base = g.base)
   cases f; cases g
   congr
 
+theorem hext' {Γ : Type u} [Category.{v} Γ] {A A' : Γ ⥤ Grpd.{v₁,u₁}} (h : A = A')
+    {X Y : ∫(A)} {X' Y' : ∫(A')} (f : Hom X Y) (g : Hom X' Y')
+    (hX : HEq X X') (hY : HEq Y Y')
+    (w_base : HEq f.base g.base) (w_fiber : HEq f.fiber g.fiber) : HEq f g :=
+  Grothendieck.hext' (by rw [h]) f g hX hY w_base w_fiber
+
+theorem obj_hext {p1 p2 : ∫(F)} (hbase : p1.base = p2.base)
+    (hfib : HEq p1.fiber p2.fiber) : p1 = p2 :=
+  Grothendieck.obj_hext hbase hfib
+
+theorem obj_hext' {Γ : Type u} [Category.{v} Γ] {A A' : Γ ⥤ Grpd.{v₁,u₁}} (h : A = A')
+    {x : ∫(A)} {y : ∫(A')} (hbase : HEq x.base y.base) (hfiber : HEq x.fiber y.fiber) : HEq x y :=
+  Grothendieck.obj_hext' (by rw [h]) hbase hfiber
+
 /-- Every morphism `f : X ⟶ Y` in the base category induces a natural transformation from the fiber
 inclusion `ι F X` to the composition `F.map f ⋙ ι F Y`. -/
 def ιNatTrans {X Y : C} (f : X ⟶ Y) : ι F X ⟶ F.map f ⋙ ι F Y :=
@@ -310,6 +324,9 @@ theorem map_obj_objMk {α : F ⟶ G} (xb : C) (xf : F.obj xb) :
 
 theorem map_id_eq : map (𝟙 F) = Functor.id (Cat.of <| Groupoidal <| F) :=
   Grothendieck.map_id_eq
+
+theorem map_forget (α : F ⟶ G) : map α ⋙ forget = forget :=
+  rfl
 
 end
 
@@ -404,13 +421,7 @@ theorem comp_fiber {X Y Z : ∫(F)} (f : X ⟶ Y) (g : Y ⟶ Z) :
       eqToHom (by simp [Grpd.forgetToCat]) ≫ (F.map g.base).map f.fiber ≫ g.fiber :=
   rfl
 
-variable {G : Γ ⥤ Grpd}
-
-theorem obj_hext {p1 p2 : ∫(F)} (hbase : p1.base = p2.base)
-    (hfib : HEq p1.fiber p2.fiber) : p1 = p2 :=
-  Grothendieck.obj_hext hbase hfib
-
-variable (α : F ⟶ G) (X : ∫(F))
+variable {G : Γ ⥤ Grpd} (α : F ⟶ G) (X : ∫(F))
 
 @[simp] theorem map_obj_base : ((map α).obj X).base = X.base :=
   Grothendieck.map_obj_base _ _

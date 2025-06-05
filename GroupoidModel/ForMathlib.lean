@@ -190,12 +190,17 @@ theorem obj_hext_iff : x.base = y.base ∧ HEq x.fiber y.fiber
     subst hCD
     exact ⟨ rfl , HEq.rfl ⟩
 
-theorem obj_hext'
-    (hbase : HEq x.base y.base) (hfiber : HEq x.fiber y.fiber) : HEq x y := by
-  rcases x with ⟨xbase, xfiber⟩
+theorem obj_hext' {A' : Γ ⥤ Cat.{v₁,u₁}} (h : A = A') {x : Grothendieck A} {y : Grothendieck A'}
+  (hbase : HEq x.base y.base) (hfiber : HEq x.fiber y.fiber) : HEq x y := by
+  rcases x; rcases y
   subst hbase
-  subst hfiber
-  rfl
+  congr
+
+theorem hext' {A' : Γ ⥤ Cat.{v₁,u₁}} (h : A = A') {X Y : Grothendieck A} {X' Y' : Grothendieck A'}
+    (f : Hom X Y) (g : Hom X' Y') (hX : HEq X X') (hY : HEq Y Y')
+    (w_base : HEq f.base g.base) (w_fiber : HEq f.fiber g.fiber) : HEq f g := by
+  cases f; cases g
+  congr
 
 /-- This proves that base of an eqToHom morphism in the category Grothendieck A is an eqToHom morphism -/
 theorem eqToHom_base (eq : x = y) :
@@ -229,6 +234,11 @@ theorem map_eqToHom_base {G1 G2 : Grothendieck A} (eq : G1 = G2)
 
 theorem map_eqToHom_obj_base {F G : Γ ⥤ Cat.{v,u}} (h : F = G)
   (x) : ((Grothendieck.map (eqToHom h)).obj x).base = x.base := rfl
+
+theorem map_forget {F G : Γ ⥤ Cat.{v,u}} (α : F ⟶ G) :
+    Grothendieck.map α ⋙ Grothendieck.forget G =
+    Grothendieck.forget F :=
+  rfl
 
 open Iso
 
