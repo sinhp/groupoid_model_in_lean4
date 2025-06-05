@@ -78,7 +78,6 @@ theorem toPGrpd_forgetToPCat : toPGrpd A ⋙ PGrpd.forgetToPCat = (Grothendieck.
 /--
 We also provide a definition of `toPGrpd` as the universal lift
 of the pullback `PGrpd`.
-We avoid using this version and doing direct computations if possible.
 -/
 def toPGrpd' : ∫(A) ⥤ PGrpd.{v₁,u₁} :=
   PGrpd.isPullback.lift (Grothendieck.toPCat (A ⋙ Grpd.forgetToCat)) (forget ⋙ A) (by
