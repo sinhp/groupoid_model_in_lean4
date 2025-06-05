@@ -563,7 +563,7 @@ namespace ofRight
   variable {C : Type u} [Category.{v} C] (Cn : C ⥤ Libya) (Cw : C ⥤ Niger)
   (hC : Cn ⋙ sah = Cw ⋙ so)
 
-  def hC_left : (Cn ⋙ rth) ⋙ east = Cw ⋙ so ⋙ uth :=
+  def hCLeft : (Cn ⋙ rth) ⋙ east = Cw ⋙ so ⋙ uth :=
     by calc
       (Cn ⋙ rth) ⋙ east = Cn ⋙ (sah ⋙ uth) := by rw [Functor.assoc, esah]
       _ = (Cn ⋙ sah) ⋙ uth := by rw[← Functor.assoc]
@@ -571,7 +571,7 @@ namespace ofRight
       _ = Cw ⋙ so ⋙ uth := by rw [Functor.assoc]
 
   def lift : C ⥤ Algeria :=
-    outer_pb.lift (Cn ⋙ rth) Cw (hC_left esah Cn Cw hC)
+    outer_pb.lift (Cn ⋙ rth) Cw (hCLeft esah Cn Cw hC)
 
   def universal : (lift : C ⥤ Algeria) ×'
     lift ⋙ no = Cn ∧ lift ⋙ west = Cw ∧
@@ -581,9 +581,9 @@ namespace ofRight
      . apply esah_pb.hom_ext
        . exact outer_pb.fac_left _ _ _
        . rw [Functor.assoc, wsah, ← Functor.assoc, hC]
-         rw! [outer_pb.fac_right (Cn⋙rth) Cw (hC_left esah Cn Cw hC)]
+         rw! [outer_pb.fac_right (Cn⋙rth) Cw (hCLeft esah Cn Cw hC)]
      . constructor
-       . exact outer_pb.fac_right (Cn⋙rth) Cw (hC_left esah Cn Cw hC)
+       . exact outer_pb.fac_right (Cn⋙rth) Cw (hCLeft esah Cn Cw hC)
        . intro l0 l1 hln hlw
          apply outer_pb.hom_ext
          . rw[← Functor.assoc, ← Functor.assoc, hln]
@@ -651,22 +651,22 @@ def universal : (lift : C ⥤ Algeria) ×'
   ∀ {l0 l1 : C ⥤ Algeria},
     l0 ⋙ esah_pb.lift north (west ⋙ so) outer = l1 ⋙ esah_pb.lift north (west ⋙ so) outer →
       l0 ⋙ west = l1 ⋙ west → l0 = l1 :=
-  ⟨ lift outer_pb (Cn ⋙ rth) Cw (ofRight.hC_left esah Cn Cw hC),
+  ⟨ lift outer_pb (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC),
   by constructor
      . apply esah_pb.hom_ext
        . calc
-          (outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hC_left esah Cn Cw hC) ⋙ esah_pb.lift north (west ⋙ so) outer) ⋙ rth =
-            outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hC_left esah Cn Cw hC) ⋙ esah_pb.lift north (west ⋙ so) outer ⋙ rth := by rw[Functor.assoc]
-          _ = outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hC_left esah Cn Cw hC) ⋙ north := by rw[esah_pb.fac_left north (west ⋙ so) outer]
-          _ = Cn ⋙ rth := by rw[outer_pb.fac_left (Cn ⋙ rth) Cw (ofRight.hC_left esah Cn Cw hC)]
+          (outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ esah_pb.lift north (west ⋙ so) outer) ⋙ rth =
+            outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ esah_pb.lift north (west ⋙ so) outer ⋙ rth := by rw[Functor.assoc]
+          _ = outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ north := by rw[esah_pb.fac_left north (west ⋙ so) outer]
+          _ = Cn ⋙ rth := by rw[outer_pb.fac_left (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC)]
        . calc
-          (outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hC_left esah Cn Cw hC) ⋙ esah_pb.lift north (west ⋙ so) outer) ⋙ sah =
-            outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hC_left esah Cn Cw hC) ⋙ esah_pb.lift north (west ⋙ so) outer ⋙ sah := by rw[Functor.assoc]
-          _ = outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hC_left esah Cn Cw hC) ⋙ (west ⋙ so) := by rw[esah_pb.fac_right north (west ⋙ so) outer]
-          _ = Cw ⋙ so := by rw[← Functor.assoc, outer_pb.fac_right (Cn ⋙ rth) Cw (ofRight.hC_left esah Cn Cw hC)]
+          (outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ esah_pb.lift north (west ⋙ so) outer) ⋙ sah =
+            outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ esah_pb.lift north (west ⋙ so) outer ⋙ sah := by rw[Functor.assoc]
+          _ = outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ (west ⋙ so) := by rw[esah_pb.fac_right north (west ⋙ so) outer]
+          _ = Cw ⋙ so := by rw[← Functor.assoc, outer_pb.fac_right (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC)]
           _ = Cn ⋙ sah := by rw[hC]
      . constructor
-       . exact outer_pb.fac_right (Cn⋙rth) Cw (ofRight.hC_left esah Cn Cw hC)
+       . exact outer_pb.fac_right (Cn⋙rth) Cw (ofRight.hCLeft esah Cn Cw hC)
        . intro l0 l1 hll hlw
          apply outer_pb.hom_ext
          . calc
