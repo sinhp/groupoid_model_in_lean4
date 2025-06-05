@@ -681,6 +681,53 @@ section
 --     apply lift_heq_id_comp
 --     · rw [smallUCompDomEquiv_apply_fst_forgetToGrpd]
 
+-- /-
+--   For the natural model `smallU`, a map `ab : y(Γ) ⟶ compDom tp`
+--   is equivalent to the data of `(α,B,β,h)` due to `smallUCompDomEquiv`
+--   ```
+--   (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
+--     × (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v,v})
+--     × (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
+--     ×' (h : β ⋙ PGrpd.forgetToGrpd = Grothendieck.Groupoidal.sec _ α rfl ⋙ B)
+--   ```
+--   The following lemma computes the base type
+--   `α ⋙ forgetToGrpd : y(Γ) ⟶ Grpd` in two different ways.
+--   LHS is via `smallUPTpEquiv`, the universal property of `P_tp Ty`.
+--   RHS is via `smallUCompDomEquiv`
+-- -/
+-- theorem app_fst_comp_forgetToGrpd_eq (Γ : Ctx) (ab : y(Γ) ⟶ smallU.uvPolyTp.compDom smallU.uvPolyTp) :
+--     (smallUCompDomEquiv ab).fst ⋙ forgetToGrpd
+--     = (smallUPTpEquiv (ab ≫ (smallU.uvPolyTp.comp smallU.uvPolyTp).p)).fst := by
+--   apply smallUCompDomEquiv_apply_fst_forgetToGrpd
+
+theorem smallUCompDomEquiv_apply_snd_fst {Γ : Ctx} (ab : y(Γ) ⟶ smallU.uvPolyTp.compDom smallU.uvPolyTp) :
+    HEq (smallUCompDomEquiv ab).snd.fst
+      (smallUPTpEquiv (ab ≫ (smallU.uvPolyTp.comp smallU.uvPolyTp).p)).snd := sorry
+
+set_option maxHeartbeats 0 in
+theorem smallUComp_apply {Γ : Ctx} (ab : y(Γ) ⟶ smallU.uvPolyTp.compDom smallU.uvPolyTp) :
+    ab ≫ (smallU.uvPolyTp.comp smallU.uvPolyTp).p
+    = smallUPTpEquiv.symm ⟨(smallUCompDomEquiv ab).1 ⋙ forgetToGrpd,
+      (smallUCompDomEquiv ab).2.1 ⟩ := by
+  rw [← smallUPTpEquiv.apply_eq_iff_eq_symm_apply]
+  ext
+  · exact (smallUCompDomEquiv_apply_fst_forgetToGrpd ab).symm
+  · simp only []
+    dsimp only [smallUPTpEquiv, Equiv.trans_apply, smallUCompDomEquiv]
+    conv => left; rw [Equiv.sigmaCongr_apply_snd]
+    conv => right; rw [Equiv.sigmaCongr_apply_snd]
+    -- rw [uvPolyTpCompDomEquiv_apply_snd_fst]
+    -- rw [(yonedaCategoryEquiv_naturality_left' _)]
+--   rw [smallU_lift]
+--   simp only [Ctx.equivalence_inverse, Ctx.equivalence_functor,
+--     AsSmall.down_obj, AsSmall.up_obj_down, Functor.FullyFaithful.preimage_map,
+--     AsSmall.down_map, AsSmall.up_map_down]
+--   rw! [smallU_var]
+--   rfl
+
+    sorry-- exact (smallUCompDomEquiv_apply_snd_fst ab).symm
+
+set_option maxHeartbeats 0 in
 theorem comm_sq : smallUPair.{v} ≫ smallU.{v}.tp =
     (smallU.{v}.uvPolyTp.comp smallU.{v}.uvPolyTp).p ≫ smallUSig := by
   apply hom_ext_yoneda
@@ -689,7 +736,13 @@ theorem comm_sq : smallUPair.{v} ≫ smallU.{v}.tp =
     smallUSig_app_eq, smallU_tp,
     ← yonedaCategoryEquiv_symm_naturality_right,
     pair_comp_forgetToGrpd]
-  sorry-- rw [comm_sq_aux]
+  congr 1
+  congr 1
+  · exact smallUCompDomEquiv_apply_fst_forgetToGrpd ab
+  -- sorry-- rw [comm_sq_aux]
+  · sorry
+    -- exact smallUCompDomEquiv_apply_snd_fst ab
+    -- sorry-- rw [comm_sq_aux]
 
 variable (s : RepPullbackCone smallU.{v}.tp smallUSig.{v})
 
