@@ -134,27 +134,51 @@ section
 
 variable {Γ : Ctx} {C : Type (v+1)} [Category.{v} C] {Δ : Ctx} (σ : Δ ⟶ Γ)
 
--- TODO rename
-def smallUPTpEquiv :
-    (y(Γ) ⟶ smallU.{v}.Ptp.obj y(Ctx.ofCategory C))
-    ≃ (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v}) × (∫(A) ⥤ C) :=
-  smallU.Ptp_equiv.trans (
-  Equiv.sigmaCongr
-    yonedaCategoryEquiv
-    (fun _ => yonedaCategoryEquiv))
+namespace smallUPTpEquiv
 
-theorem smallUPTpEquiv_naturality_left
-    (AB : y(Γ) ⟶ smallU.{v}.Ptp.obj y(Ctx.ofCategory C)) : smallUPTpEquiv (ym(σ) ≫ AB) =
-    ⟨ Ctx.toGrpd.map σ ⋙ (smallUPTpEquiv AB).fst,
-    pre _ (Ctx.toGrpd.map σ) ⋙ (smallUPTpEquiv AB).snd ⟩ := by
-  dsimp [smallUPTpEquiv]
-  erw [Ptp_equiv_naturality_left]
-  simp [Equiv.sigmaCongr]
-  constructor
-  · erw [← yonedaCategoryEquiv_naturality_left]
-    rfl
-  · dsimp
-    sorry
+variable (AB : y(Γ) ⟶ smallU.{v}.Ptp.obj y(Ctx.ofCategory C))
+
+def fst : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v} :=
+  yonedaCategoryEquiv (PtpEquiv.fst smallU AB)
+
+def snd : (∫(fst AB) ⥤ C) :=
+  yonedaCategoryEquiv (PtpEquiv.snd smallU AB)
+
+theorem fst_naturality : fst (ym(σ) ≫ AB) = Ctx.toGrpd.map σ ⋙ fst AB := by
+  dsimp only [fst]
+  rw [PtpEquiv.fst_naturality_left, ← yonedaCategoryEquiv_naturality_left]
+
+-- RHS could be converted to Groupoidal related functors (commented out),
+-- but maybe this is cleaner?
+theorem snd_naturality : snd (ym(σ) ≫ AB) =
+    Ctx.toGrpd.map (smallU.substWk σ (PtpEquiv.fst smallU AB)) ⋙ yonedaCategoryEquiv (PtpEquiv.snd smallU AB) := by
+    -- map (eqToHom (fst_naturality σ AB)) ⋙ pre _ (Ctx.toGrpd.map σ) ⋙ snd AB := by
+  dsimp only [snd]
+  rw [PtpEquiv.snd_naturality_left, yonedaCategoryEquiv_naturality_left]
+
+end smallUPTpEquiv
+
+-- -- TODO rename
+-- def smallUPTpEquiv :
+--     (y(Γ) ⟶ smallU.{v}.Ptp.obj y(Ctx.ofCategory C))
+--     ≃ (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v}) × (∫(A) ⥤ C) :=
+--   smallU.Ptp_equiv.trans (
+--   Equiv.sigmaCongr
+--     yonedaCategoryEquiv
+--     (fun _ => yonedaCategoryEquiv))
+
+-- theorem smallUPTpEquiv_naturality_left
+--     (AB : y(Γ) ⟶ smallU.{v}.Ptp.obj y(Ctx.ofCategory C)) : smallUPTpEquiv (ym(σ) ≫ AB) =
+--     ⟨ Ctx.toGrpd.map σ ⋙ (smallUPTpEquiv AB).fst,
+--     pre _ (Ctx.toGrpd.map σ) ⋙ (smallUPTpEquiv AB).snd ⟩ := by
+--   dsimp [smallUPTpEquiv]
+--   erw [Ptp_equiv_naturality_left]
+--   simp [Equiv.sigmaCongr]
+--   constructor
+--   · erw [← yonedaCategoryEquiv_naturality_left]
+--     rfl
+--   · dsimp
+--     sorry
 
 end
 
@@ -187,10 +211,11 @@ theorem smallU_lift {Γ Δ : Ctx.{max u (v+1)}} (A : y(Γ) ⟶ smallU.{v}.Ty)
       (by erw [← yonedaCategoryEquiv_naturality_right, w,
         yonedaCategoryEquiv_naturality_left]))) := by
   apply (smallU.{v}.disp_pullback A).hom_ext
-  · simp [← Functor.map_comp]
-    dsimp at *
-    -- erw [(isPullback (yonedaCategoryEquiv A)).fac_left]
-    sorry
+  · dsimp only [smallU_var]
+    erw [← yonedaCategoryEquiv_symm_naturality_left,
+      (Grothendieck.Groupoidal.isPullback (yonedaCategoryEquiv A)).fac_left,
+      Equiv.apply_symm_apply]
+    simp
   · simp only [smallU_ext, Ctx.equivalence_functor, Ctx.equivalence_inverse,
       smallU_Tm, smallU_Ty, smallU_var, Grpd.coe_of, Equiv.symm_trans_apply,
       Equiv.symm_symm, Functor.FullyFaithful.homEquiv_apply, smallU_disp, smallU_tp,

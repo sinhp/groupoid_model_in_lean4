@@ -216,6 +216,39 @@ variable (M : NaturalModelBase Ctx)
 @[simps] def uvPolyTp : UvPoly M.Tm M.Ty := ⟨M.tp, inferInstance⟩
 def Ptp : Psh Ctx ⥤ Psh Ctx := M.uvPolyTp.functor
 
+-- TODO move to ForPoly
+
+/- namespace Equiv
+
+open UvPoly Limits PartialProduct
+
+variable {C : Type u} [Category.{v} C] [HasPullbacks C] [HasTerminal C] {E B : C}
+
+def fst (P : UvPoly E B) (Γ : C) (X : C) (f : Γ ⟶ P @ X) : Γ ⟶ B := f ≫ P.fstProj X
+
+def snd (P : UvPoly E B) (Γ : C) (X : C) (f : Γ ⟶ P @ X) : pullback (f ≫ P.fstProj X) P.p ⟶ X :=
+  ε P X ≫ prod.snd
+
+@[simps]
+def equiv (P : UvPoly E B) (Γ : C) (X : C) :
+    (Γ ⟶ P @ X) ≃ (b : Γ ⟶ B) × (pullback b P.p ⟶ X) where
+  toFun := P.proj
+  invFun u := P.lift (Γ := Γ) (X := X) u.1 u.2
+  left_inv f := by
+    dsimp
+    symm
+    fapply partialProd.hom_ext ⟨fan P X, isLimitFan P X⟩
+    · simp [partialProd.lift]
+      rfl
+    · sorry
+  right_inv := by
+    intro ⟨b, e⟩
+    ext
+    · simp only [proj_fst, lift_fst]
+    · sorr
+
+end Equi -/
+
 /--
 ```
 yΓ ⟶ P_tp(X)
@@ -229,6 +262,29 @@ def Ptp_equiv {Γ : Ctx} {X : Psh Ctx} :
   (UvPoly.equiv _ _ _).trans
     (Equiv.sigmaCongrRight fun _ =>
       (M.pullbackIsoExt _).homCongr (Iso.refl _))
+
+namespace PtpEquiv
+
+variable {Γ : Ctx} {X : Psh Ctx}
+
+def fst (AB : y(Γ) ⟶ M.Ptp.obj X) : y(Γ) ⟶ M.Ty :=
+  (M.Ptp_equiv AB).fst
+
+def snd (AB : y(Γ) ⟶ M.Ptp.obj X) : y(M.ext (fst M AB)) ⟶ X :=
+  (M.Ptp_equiv AB).snd
+
+section
+variable {Δ : Ctx} {σ : Δ ⟶ Γ} {AB : y(Γ) ⟶ M.Ptp.obj X}
+
+theorem fst_naturality_left : fst M (ym(σ) ≫ AB) = ym(σ) ≫ fst M AB := by
+  sorry
+
+theorem snd_naturality_left : snd M (ym(σ) ≫ AB) = ym(M.substWk σ _) ≫ snd M AB := by
+  sorry
+
+end
+
+end PtpEquiv
 
 theorem Ptp_equiv_naturality_right {Γ : Ctx} {X Y : Psh Ctx}
     (x : y(Γ) ⟶ M.Ptp.obj X) (α : X ⟶ Y) :
