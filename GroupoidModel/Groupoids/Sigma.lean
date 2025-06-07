@@ -741,7 +741,7 @@ section
 
 --     sorry-- exact (smallUCompDomEquiv_apply_snd_fst ab).symm
 
-theorem comm_sq : smallUPair.{v} ≫ smallU.{v}.tp =
+theorem smallUPair_tp : smallUPair.{v} ≫ smallU.{v}.tp =
     smallU.comp.{v, max u (v+1)} ≫ smallUSig.{v} := by
   apply hom_ext_yoneda
   intros Γ ab
@@ -753,8 +753,13 @@ theorem comm_sq : smallUPair.{v} ≫ smallU.{v}.tp =
   · rw [smallU.compDom.fst_forgetToGrpd]
   · exact smallU.compDom.dependent_heq.{v} ab
 
-variable (s : RepPullbackCone smallU.{v}.tp smallUSig.{v})
+section
+variable (Γ : Ctx) (AB : y(Γ) ⟶ smallU.Ptp.obj.{v} y(U.{v}))
 
+def liftExt : y(smallU.ext (AB ≫ smallUSig.{v})) ⟶ smallU.compDom.{v} := sorry
+--   smallU.compDom.mk (fst (B s)) (dependent (B s)) (snd (B s)) (snd_forgetToGrpd _)
+
+variable (s : RepPullbackCone smallU.{v}.tp smallUSig.{v})
 abbrev A := smallU.PtpEquiv.fst s.snd
 
 abbrev B := smallU.PtpEquiv.snd s.snd
@@ -855,14 +860,21 @@ theorem lift_uniq (s : Limits.RepPullbackCone smallU.tp smallUSig) (m : y(s.pt) 
   sorry
 
 end
+end
 
 end SigmaPullback
 
 open SigmaPullback
 
-theorem smallU_pb : IsPullback smallUPair.{v} (smallU.{v}.uvPolyTp.comp smallU.{v}.uvPolyTp).p
-    smallU.{v}.tp smallUSig.{v, max u (v+1)} := (Limits.RepPullbackCone.is_pullback
-      comm_sq lift fac_left fac_right lift_uniq)
+theorem smallU_pb : IsPullback smallUPair.{v} smallU.comp.{v}
+    smallU.{v}.tp smallUSig.{v, max u (v+1)} :=
+  NaturalModelBase.IsPullback.of_existsUnique_liftExt_hom_ext
+    smallU smallUPair.{v} smallU.comp.{v} smallUSig smallUPair_tp (by
+      intro Γ AB
+      constructor
+      · sorry
+      · sorry
+    ) sorry
 
 def smallUSigma : NaturalModelSigma smallU.{v, max u (v+1)} where
   Sig := smallUSig
