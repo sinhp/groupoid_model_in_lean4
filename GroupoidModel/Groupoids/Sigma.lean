@@ -590,43 +590,60 @@ end FunctorOperation
 
 open FunctorOperation
 
+/--
+Behavior of the Σ-type former (a natural transformation) on an input.
+By Yoneda, "an input" is the same as a map from a representable into the domain.
+-/
 def smallUSig_app {Γ : Ctx.{max u (v+1)}}
     (AB : y(Γ) ⟶ smallU.{v, max u (v+1)}.Ptp.obj smallU.{v, max u (v+1)}.Ty) :
     y(Γ) ⟶ smallU.{v, max u (v+1)}.Ty :=
-  yonedaCategoryEquiv.symm (sigma _ (smallUPTpEquiv AB).2)
+  yonedaCategoryEquiv.symm (sigma _ (smallU.PtpEquiv.snd AB))
 
-theorem smallUSig_naturality {Γ Δ : Ctx} (f : Δ ⟶ Γ)
+/--
+Naturality for the formation rule for Σ-types.
+Also known as Beck-Chevalley
+-/
+theorem smallUSig_naturality {Γ Δ : Ctx} (σ : Δ ⟶ Γ)
     (AB : y(Γ) ⟶ smallU.{v, max u (v+1)}.Ptp.obj smallU.{v, max u (v+1)}.Ty) :
-    smallUSig_app (ym(f) ≫ AB) = ym(f) ≫ smallUSig_app AB := by
-  dsimp [yonedaCategoryEquiv, smallUSig_app]
-  erw [← Functor.map_comp, ← toCoreAsSmallEquiv_symm_naturality_left,
-    sigma_naturality, smallUPTpEquiv_naturality_left]
-  rfl
+    smallUSig_app (ym(σ) ≫ AB) = ym(σ) ≫ smallUSig_app AB := by
+  dsimp only [smallUSig_app]
+  rw [← yonedaCategoryEquiv_symm_naturality_left, sigma_naturality,
+  -- note the order of rewrite is first the fiber, then the base
+  -- this allows rw! to cast the proof in the `eqToHom`
+    smallU.PtpEquiv.snd_naturality]
+  rw! [smallU.PtpEquiv.fst_naturality]
+  congr 2
+  · simp [map_id_eq, Functor.id_comp]
 
 /-- The formation rule for Σ-types for the ambient natural model `base`
   If possible, don't use NatTrans.app on this,
   instead precompose it with maps from representables.
 -/
-
 def smallUSig : smallU.{v, max u (v+1)}.Ptp.obj smallU.{v, max u (v+1)}.Ty
   ⟶ smallU.{v, max u (v+1)}.Ty :=
   NatTrans.yonedaMk smallUSig_app smallUSig_naturality
 
 lemma smallUSig_app_eq {Γ : Ctx} (AB : y(Γ) ⟶ _) : AB ≫ smallUSig =
-    yonedaCategoryEquiv.symm (sigma _ (smallUPTpEquiv AB).2) := by
-  simp only [smallUSig, smallUSig_app, NatTrans.yonedaMk_app]
+    smallUSig_app AB := by
+  simp only [smallUSig, NatTrans.yonedaMk_app]
 
 def smallUPair_app {Γ : Ctx.{max u (v+1)}}
     (ab : y(Γ) ⟶ smallU.{v, max u (v+1)}.uvPolyTp.compDom
     smallU.{v, max u (v+1)}.uvPolyTp)
     : y(Γ) ⟶ smallU.{v, max u (v+1)}.Tm :=
-  yonedaCategoryEquiv.symm (pair _ _ _ (smallUCompDomEquiv ab).2.2.2)
+  yonedaCategoryEquiv.symm (pair _ _ _ (smallU.compDom.snd_forgetToGrpd ab))
 
 theorem smallUPair_naturality {Γ Δ : Ctx} (f : Δ ⟶ Γ)
     (ab : y(Γ) ⟶ smallU.{v, max u (v+1)}.uvPolyTp.compDom
     smallU.{v, max u (v+1)}.uvPolyTp) :
     smallUPair_app (ym(f) ≫ ab) = ym(f) ≫ smallUPair_app ab := by
-  sorry
+  dsimp only [smallUPair_app]
+  rw [← yonedaCategoryEquiv_symm_naturality_left, pair_naturality]
+  -- Like with `smallUSig_naturality` rw from inside to outside (w.r.t type dependency)
+  rw! [smallU.compDom.fibers_naturality,
+    smallU.compDom.snd_naturality,
+    smallU.compDom.fst_naturality]
+  simp [map_id_eq, Functor.id_comp]
 
 def smallUPair : smallU.{v, max u (v+1)}.uvPolyTp.compDom
     smallU.{v, max u (v+1)}.uvPolyTp
@@ -634,7 +651,7 @@ def smallUPair : smallU.{v, max u (v+1)}.uvPolyTp.compDom
   NatTrans.yonedaMk smallUPair_app smallUPair_naturality
 
 lemma smallUPair_app_eq {Γ : Ctx} (ab : y(Γ) ⟶ _) : ab ≫ smallUPair =
-    yonedaCategoryEquiv.symm (pair _ _ _ (smallUCompDomEquiv ab).2.2.2) := by
+    yonedaCategoryEquiv.symm (pair _ _ _ (smallU.compDom.snd_forgetToGrpd ab)) := by
   simp only [smallUPair, smallUPair_app, NatTrans.yonedaMk_app]
 
 namespace SigmaPullback
@@ -700,61 +717,54 @@ section
 --     = (smallUPTpEquiv (ab ≫ (smallU.uvPolyTp.comp smallU.uvPolyTp).p)).fst := by
 --   apply smallUCompDomEquiv_apply_fst_forgetToGrpd
 
-theorem smallUCompDomEquiv_apply_snd_fst {Γ : Ctx} (ab : y(Γ) ⟶ smallU.uvPolyTp.compDom smallU.uvPolyTp) :
-    HEq (smallUCompDomEquiv ab).snd.fst
-      (smallUPTpEquiv (ab ≫ (smallU.uvPolyTp.comp smallU.uvPolyTp).p)).snd := sorry
 
-set_option maxHeartbeats 0 in
-theorem smallUComp_apply {Γ : Ctx} (ab : y(Γ) ⟶ smallU.uvPolyTp.compDom smallU.uvPolyTp) :
-    ab ≫ (smallU.uvPolyTp.comp smallU.uvPolyTp).p
-    = smallUPTpEquiv.symm ⟨(smallUCompDomEquiv ab).1 ⋙ forgetToGrpd,
-      (smallUCompDomEquiv ab).2.1 ⟩ := by
-  rw [← smallUPTpEquiv.apply_eq_iff_eq_symm_apply]
-  ext
-  · exact (smallUCompDomEquiv_apply_fst_forgetToGrpd ab).symm
-  · simp only []
-    dsimp only [smallUPTpEquiv, Equiv.trans_apply, smallUCompDomEquiv]
-    conv => left; rw [Equiv.sigmaCongr_apply_snd]
-    conv => right; rw [Equiv.sigmaCongr_apply_snd]
-    -- rw [uvPolyTpCompDomEquiv_apply_snd_fst]
-    -- rw [(yonedaCategoryEquiv_naturality_left' _)]
---   rw [smallU_lift]
---   simp only [Ctx.equivalence_inverse, Ctx.equivalence_functor,
---     AsSmall.down_obj, AsSmall.up_obj_down, Functor.FullyFaithful.preimage_map,
---     AsSmall.down_map, AsSmall.up_map_down]
---   rw! [smallU_var]
---   rfl
+-- set_option maxHeartbeats 0 in
+-- theorem smallUComp_apply {Γ : Ctx} (ab : y(Γ) ⟶ smallU.uvPolyTp.compDom smallU.uvPolyTp) :
+--     ab ≫ smallU.comp
+--     = smallU.PtpEquiv.mk ⟨(smallUCompDomEquiv ab).1 ⋙ forgetToGrpd,
+--       (smallUCompDomEquiv ab).2.1 ⟩ := by
+--   rw [← smallUPTpEquiv.apply_eq_iff_eq_symm_apply]
+--   ext
+--   · exact (smallUCompDomEquiv_apply_fst_forgetToGrpd ab).symm
+--   · simp only []
+--     dsimp only [smallUPTpEquiv, Equiv.trans_apply, smallUCompDomEquiv]
+--     conv => left; rw [Equiv.sigmaCongr_apply_snd]
+--     conv => right; rw [Equiv.sigmaCongr_apply_snd]
+--     -- rw [uvPolyTpCompDomEquiv_apply_snd_fst]
+--     -- rw [(yonedaCategoryEquiv_naturality_left' _)]
+-- --   rw [smallU_lift]
+-- --   simp only [Ctx.equivalence_inverse, Ctx.equivalence_functor,
+-- --     AsSmall.down_obj, AsSmall.up_obj_down, Functor.FullyFaithful.preimage_map,
+-- --     AsSmall.down_map, AsSmall.up_map_down]
+-- --   rw! [smallU_var]
+-- --   rfl
 
-    sorry-- exact (smallUCompDomEquiv_apply_snd_fst ab).symm
+--     sorry-- exact (smallUCompDomEquiv_apply_snd_fst ab).symm
 
-set_option maxHeartbeats 0 in
 theorem comm_sq : smallUPair.{v} ≫ smallU.{v}.tp =
-    (smallU.{v}.uvPolyTp.comp smallU.{v}.uvPolyTp).p ≫ smallUSig := by
+    smallU.comp.{v, max u (v+1)} ≫ smallUSig.{v} := by
   apply hom_ext_yoneda
   intros Γ ab
   rw [← Category.assoc, ← Category.assoc, smallUPair_app_eq,
     smallUSig_app_eq, smallU_tp,
     ← yonedaCategoryEquiv_symm_naturality_right,
-    pair_comp_forgetToGrpd]
-  congr 1
-  congr 1
-  · exact smallUCompDomEquiv_apply_fst_forgetToGrpd ab
-  -- sorry-- rw [comm_sq_aux]
-  · sorry
-    -- exact smallUCompDomEquiv_apply_snd_fst ab
-    -- sorry-- rw [comm_sq_aux]
+    pair_comp_forgetToGrpd, smallUSig_app]
+  congr 2
+  · rw [smallU.compDom.fst_forgetToGrpd]
+  · exact smallU.compDom.fibers_heq.{v} ab
 
 variable (s : RepPullbackCone smallU.{v}.tp smallUSig.{v})
 
-abbrev A := (smallUPTpEquiv s.snd).fst
+abbrev A := smallU.PtpEquiv.fst s.snd
 
-abbrev B := (smallUPTpEquiv s.snd).snd
+abbrev B := smallU.PtpEquiv.snd s.snd
 
 def lift' : y(Ctx.ofGrpd.obj $ Grpd.of ∫(sigma (A s) (B s))) ⟶
-    smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp :=
-  smallUCompDomEquiv.symm
-    ⟨ fst (B s), dependent (B s), snd (B s), snd_forgetToGrpd _ ⟩
-
+    smallU.compDom.{v} :=
+  smallU.compDom.mk
+  -- smallUCompDomEquiv.symm
+  --   ⟨ fst (B s), dependent (B s), snd (B s), snd_forgetToGrpd _ ⟩
+#exit
 def lift : y(s.pt) ⟶ smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp :=
   ym(smallU.{v}.sec (s.snd ≫ smallUSig) s.fst s.condition ≫ eqToHom (by
     dsimp only [smallU_ext, U.ext, U.classifier, A, B]

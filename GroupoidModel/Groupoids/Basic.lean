@@ -67,7 +67,7 @@ abbrev Ctx := AsSmall.{u} Grpd.{u,u}
 
 namespace Ctx
 
-@[simps] def equivalence : CategoryTheory.Equivalence Grpd.{u,u} Ctx.{u} where
+def equivalence : CategoryTheory.Equivalence Grpd.{u,u} Ctx.{u} where
   functor := AsSmall.up
   inverse := AsSmall.down
   unitIso := eqToIso rfl

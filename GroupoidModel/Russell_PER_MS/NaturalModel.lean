@@ -267,11 +267,32 @@ namespace PtpEquiv
 
 variable {Γ : Ctx} {X : Psh Ctx}
 
+/--
+A map `(AB : y(Γ) ⟶ M.Ptp.obj X)` is equivalent to a pair of maps
+`A : y(Γ) ⟶ M.Ty` and `B : y(M.ext (fst M AB)) ⟶ X`,
+thought of as a dependent pair `A : Type` and `B : A ⟶ Type`.
+`PtpEquiv.fst` is the `A` in this pair.
+-/
 def fst (AB : y(Γ) ⟶ M.Ptp.obj X) : y(Γ) ⟶ M.Ty :=
   (M.Ptp_equiv AB).fst
 
+/--
+A map `(AB : y(Γ) ⟶ M.Ptp.obj X)` is equivalent to a pair of maps
+`A : y(Γ) ⟶ M.Ty` and `B : y(M.ext (fst M AB)) ⟶ X`,
+thought of as a dependent pair `A : Type` and `B : A ⟶ Type`
+`PtpEquiv.snd` is the `B` in this pair.
+-/
 def snd (AB : y(Γ) ⟶ M.Ptp.obj X) : y(M.ext (fst M AB)) ⟶ X :=
   (M.Ptp_equiv AB).snd
+
+/--
+A map `(AB : y(Γ) ⟶ M.Ptp.obj X)` is equivalent to a pair of maps
+`A : y(Γ) ⟶ M.Ty` and `B : y(M.ext (fst M AB)) ⟶ X`,
+thought of as a dependent pair `A : Type` and `B : A ⟶ Type`
+`PtpEquiv.mk` constructs such a map `AB` from such a pair `A` and `B`.
+-/
+def mk (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) : y(Γ) ⟶ M.Ptp.obj X :=
+  (M.Ptp_equiv).symm ⟨ A , B ⟩
 
 section
 variable {Δ : Ctx} {σ : Δ ⟶ Γ} {AB : y(Γ) ⟶ M.Ptp.obj X}
@@ -360,6 +381,95 @@ private lemma lift_ev {Γ : Ctx} {N : NaturalModelBase Ctx}
           (by dsimp; rw [hA, (M.disp_pullback _).w]) ≫
         (M.Ptp_equiv AB).2 :=
   sorry
+
+namespace compDomEquiv
+
+variable {M} (N : NaturalModelBase Ctx) {Γ Δ : Ctx} (σ : Δ ⟶ Γ)
+
+/-- Universal property of `compDom`, decomposition (part 1).
+
+A map `ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp` is equivalently three maps
+`fst, fibers, snd` such that `snd_tp`. The map `fst : y(Γ) ⟶ M.Tm`
+is the `(a : A)` in `(a : A) × (b : B a)`.
+-/
+def fst (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : y(Γ) ⟶ M.Tm := sorry
+
+/-- Universal property of `compDom`, decomposition (part 2).
+
+A map `ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp` is equivalently three maps
+`fst, fibers, snd` such that `snd_tp`.
+The map `fibers : y(M.ext (fst N ab ≫ M.tp)) ⟶ M.Ty`
+is the `B : A ⟶ Type` in `(a : A) × (b : B a)`.
+Here `A` is implicit, derived by the typing of `fst`, or `(a : A)`.
+-/
+def fibers (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
+  y(M.ext (fst N ab ≫ M.tp)) ⟶ N.Ty := sorry
+
+/-- Universal property of `compDom`, decomposition (part 3).
+
+A map `ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp` is equivalently three maps
+`fst, fibers, snd` such that `snd_tp`.
+The map `snd : y(Γ) ⟶ M.Tm`
+is the `(b : B a)` in `(a : A) × (b : B a)`.
+-/
+def snd (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : y(Γ) ⟶ N.Tm := sorry
+
+/-- Universal property of `compDom`, decomposition (part 4).
+
+A map `ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp` is equivalently three maps
+`fst, fibers, snd` such that `snd_tp`.
+The equation `snd_tp` says that the type of `b : B a` agrees with
+the expression for `B a` obtained solely from `fibers`, or `B : A ⟶ Type`.
+-/
+theorem snd_tp (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : snd N ab ≫ N.tp =
+    ym(M.sec _ (fst N ab) rfl) ≫ fibers N ab := sorry
+
+/-- Universal property of `compDom`, constructing a map into `compDom`. -/
+def mk (α : y(Γ) ⟶ M.Tm) (B : y(M.ext (α ≫ M.tp)) ⟶ N.Ty) (β : y(Γ) ⟶ N.Tm)
+    (h : β ≫ N.tp = ym(M.sec _ α rfl) ≫ B) : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp :=
+  sorry
+
+/-- Computation of `comp` (part 1).
+
+`fst_tp` is (part 1) of the computation that
+      (α, B, β, h)
+     Γ ⟶ compDom
+      \        |
+       \       | comp
+(α ≫ tp, B)    |
+         \     V
+           >  P_tp Ty
+Namely the first projection `α ≫ tp` agrees.
+-/
+theorem fst_tp (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
+    fst N ab ≫ M.tp = PtpEquiv.fst M (ab ≫ (M.uvPolyTp.comp _).p) := sorry
+
+/-- Computation of `comp` (part 2).
+
+`fibers_eq` is (part 2) of the computation that
+      (α, B, β, h)
+     Γ ⟶ compDom
+      \        |
+       \       | comp
+(α ≫ tp, B)    |
+         \     V
+           >  P_tp Ty
+Namely the second projection `B` agrees.
+-/
+theorem fibers_eq (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : fibers N ab =
+    ym(eqToHom (by rw [fst_tp])) ≫ PtpEquiv.snd M (ab ≫ (M.uvPolyTp.comp _).p) := by
+  sorry
+
+def fst_naturality (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
+    fst N (ym(σ) ≫ ab) = ym(σ) ≫ fst N ab := sorry
+
+def fibers_naturality (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : fibers N (ym(σ) ≫ ab)
+    = ym(eqToHom (by simp [fst_naturality]) ≫ M.substWk σ _) ≫ fibers N ab := sorry
+
+def snd_naturality (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
+    snd N (ym(σ) ≫ ab) = ym(σ) ≫ snd N ab := sorry
+
+end compDomEquiv
 
 -- TODO shorten name to be consistent with `Ptp`
 /-- A specialization of the universal property of `UvPoly.compDom` to `M.uvPolyTp`,

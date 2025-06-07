@@ -289,12 +289,12 @@ theorem isPullback_disp'_π' :
   convert IsPullback.paste_horiz
     (isPullback_disp'_coreDisp' A) (isPullback_coreDisp'_π' A)
   convert_to Ctx.toGrpd.map A =
-    Grpd.homOf (Core.functorToCore (𝟭 ↑Γ.1)) ≫
+    Grpd.homOf (Core.functorToCore (𝟭 Γ.1)) ≫
       Core.map.map (Cat.homOf (Ctx.toGrpd.map A))
       ≫ Core.map.map (Cat.homOf (Core.inclusion (AsSmall Grpd)))
   have h := Core.adjunction.unit.naturality (Ctx.toGrpd.map A)
-  simp only [AsSmall.down_obj, Grpd.forgetToCat, Ctx.equivalence_inverse,
-    Core.adjunction, Functor.comp_map, id_eq, ← Category.assoc] at *
+  simp only [AsSmall.down_obj, Grpd.forgetToCat, Ctx.equivalence,
+    Core.adjunction, Functor.comp_map, id_eq, ← Category.assoc, Ctx.toGrpd] at *
   rw [← h]
   rfl
 

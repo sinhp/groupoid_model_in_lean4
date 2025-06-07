@@ -508,6 +508,13 @@ namespace Grpd
 abbrev homOf {C D : Type u} [Groupoid.{v} C] [Groupoid.{v} D] (F : C ⥤ D) :
     Grpd.of C ⟶ Grpd.of D := F
 
+lemma homOf_id {A : Type u} [Groupoid.{v} A] : Grpd.homOf (𝟭 A) = 𝟙 _ :=
+  rfl
+
+lemma homOf_comp {A B C : Type u} [Groupoid.{v} A] [Groupoid.{v} B] [Groupoid.{v} C]
+    (F : A ⥤ B) (G : B ⥤ C) : Grpd.homOf (F ⋙ G) = Grpd.homOf F ≫ Grpd.homOf G :=
+  rfl
+
 def asSmallFunctor : Grpd.{v, u} ⥤ Grpd.{max w v u, max w v u} where
   obj Γ := Grpd.of $ AsSmall.{max w v u} Γ
   map F := AsSmall.down ⋙ F ⋙ AsSmall.up
@@ -1154,5 +1161,17 @@ theorem NatTrans.yonedaMk_app {X : C} (α : yoneda.obj X ⟶ F) :
     α ≫ yonedaMk app naturality = app α := by
   rw [← yonedaEquiv.apply_eq_iff_eq, yonedaEquiv_comp]
   simp [yonedaMk, yonedaIso, yonedaIsoMap]
+
+namespace Functor
+
+theorem heq_id_comp {A B : Type u} {C : Type*} [Category.{v} A] [Category.{v} B] [Category C]
+    (hAB : A = B) (h0 : HEq (inferInstance : Category A) (inferInstance : Category B)) {F : A ⥤ B}
+    (h : HEq F (𝟭 B)) (G : B ⥤ C) : HEq (F ⋙ G) G := by
+  subst hAB
+  subst h0
+  subst h
+  rfl
+
+end Functor
 
 end CategoryTheory

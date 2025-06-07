@@ -646,9 +646,8 @@ end
 
 section
 
-variable {Γ : Type u₃}{Δ : Type u₃} [Groupoid.{v₃} Γ][Groupoid.{v₃} Δ] (σ : Δ ⥤ Γ)
-
-lemma eqToHom_eq_homOf_map {F G : Γ ⥤ Grpd} (h : F = G) :
+-- TODO factor through Grothendieck
+lemma eqToHom_eq_homOf_map {Γ : Type*} [Groupoid Γ] {F G : Γ ⥤ Grpd} (h : F = G) :
     eqToHom (by rw [h]) = Grpd.homOf (map (eqToHom h)) := by
   subst h
   fapply CategoryTheory.Functor.ext
@@ -660,7 +659,15 @@ lemma eqToHom_eq_homOf_map {F G : Γ ⥤ Grpd} (h : F = G) :
     rw! [Grothendieck.Groupoidal.map_id_eq]
     simp
 
-lemma pre_congr_functor {F G : Γ ⥤ Grpd} (h : F = G) :
+-- TODO factor through Grothendieck
+theorem map_eqToHom_heq_id {Γ : Type*} [Category Γ] {A A' : Γ ⥤ Grpd}
+    (h : A = A') : HEq (map (eqToHom h)) (𝟭 ∫(A')) := by
+  subst h
+  simp [map_id_eq]
+
+-- TODO factor through Grothendieck
+lemma pre_congr_functor {Γ Δ : Type*} [Category Γ] [Category Δ] (σ : Δ ⥤ Γ)
+    {F G : Γ ⥤ Grpd} (h : F = G) :
   map (eqToHom (by rw[← h])) ⋙ pre F σ ⋙ map (eqToHom h) =
   pre G σ := by
   subst h
