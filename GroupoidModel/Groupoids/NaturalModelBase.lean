@@ -269,7 +269,7 @@ variable (ab : y(Γ) ⟶ compDom.{v})
 /-- Universal property of `compDom`, decomposition (part 1).
 
 A map `ab : y(Γ) ⟶ compDom` is equivalently three functors
-`fst, fibers, snd` such that `snd_forgetToGrpd`. The functor `fst : Γ ⥤ PGrpd`
+`fst, dependent, snd` such that `snd_forgetToGrpd`. The functor `fst : Γ ⥤ PGrpd`
 is `(a : A)` in `(a : A) × (b : B a)`.
 -/
 def fst : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v} :=
@@ -278,16 +278,16 @@ def fst : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v} :=
 /-- Universal property of `compDom`, decomposition (part 2).
 
 A map `ab : y(Γ) ⟶ compDom` is equivalently three functors
-`fst, fibers, snd` such that `snd_forgetToGrpd`. The functor `fibers : Γ ⥤ Grpd`
+`fst, dependent, snd` such that `snd_forgetToGrpd`. The functor `dependent : Γ ⥤ Grpd`
 is `B : A → Type` in `(a : A) × (b : B a)`.
 -/
-def fibers : ∫(fst ab ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v,v} :=
-  yonedaCategoryEquiv (NaturalModelBase.compDomEquiv.fibers smallU ab)
+def dependent : ∫(fst ab ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v,v} :=
+  yonedaCategoryEquiv (NaturalModelBase.compDomEquiv.dependent smallU ab)
 
 /-- Universal property of `compDom`, decomposition (part 3).
 
 A map `ab : y(Γ) ⟶ compDom` is equivalently three functors
-`fst, fibers, snd` such that `snd_forgetToGrpd`. The functor `snd : Γ ⥤ PGrpd`
+`fst, dependent, snd` such that `snd_forgetToGrpd`. The functor `snd : Γ ⥤ PGrpd`
 is `(b : B a)` in `(a : A) × (b : B a)`.
 -/
 def snd : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v} :=
@@ -296,11 +296,11 @@ def snd : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v} :=
 /-- Universal property of `compDom`, decomposition (part 4).
 
 A map `ab : y(Γ) ⟶ compDom` is equivalently three functors
-`fst, fibers, snd` such that `snd_forgetToGrpd`.
+`fst, dependent, snd` such that `snd_forgetToGrpd`.
 The equation `snd_forgetToGrpd` says that the type of `b : B a` agrees with
-the expression for `B a` obtained solely from `fibers`, or `B : A ⟶ Type`.
+the expression for `B a` obtained solely from `dependent`, or `B : A ⟶ Type`.
 -/
-theorem snd_forgetToGrpd : snd ab ⋙ PGrpd.forgetToGrpd = sec _ (fst ab) rfl ⋙ (fibers ab) := by
+theorem snd_forgetToGrpd : snd ab ⋙ PGrpd.forgetToGrpd = sec _ (fst ab) rfl ⋙ (dependent ab) := by
   erw [← yonedaCategoryEquiv_naturality_right, NaturalModelBase.compDomEquiv.snd_tp smallU ab,
     smallU_sec, yonedaCategoryEquiv_naturality_left]
   rfl
@@ -310,23 +310,25 @@ def mk (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v}) (B : ∫(α ⋙ PGrpd.forgetToGr
     (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v}) (h : β ⋙ PGrpd.forgetToGrpd = sec _ α rfl ⋙ B)
     : y(Γ) ⟶ compDom.{v} :=
   NaturalModelBase.compDomEquiv.mk smallU (yonedaCategoryEquiv.symm α)
-    (yonedaCategoryEquiv.symm B)
-    (yonedaCategoryEquiv.symm β) sorry
+    (yonedaCategoryEquiv.symm B) (yonedaCategoryEquiv.symm β) (by
+      erw [← yonedaCategoryEquiv_symm_naturality_right, h,
+        ← yonedaCategoryEquiv_symm_naturality_left, smallU_sec]
+      rfl)
 
 theorem fst_forgetToGrpd : fst ab ⋙ PGrpd.forgetToGrpd =
     smallU.PtpEquiv.fst (ab ≫ comp.{v, max u (v+1)}) := by
   erw [smallU.PtpEquiv.fst, ← compDomEquiv.fst_tp smallU ab, ← yonedaCategoryEquiv_naturality_right]
   rfl
 
-theorem fibers_eq : fibers ab =
+theorem dependent_eq : dependent ab =
     map (eqToHom (fst_forgetToGrpd ab)) ⋙ smallU.PtpEquiv.snd (ab ≫ comp.{v, max u (v+1)}) := by
-  dsimp only [fibers, smallU.PtpEquiv.snd]
-  rw [NaturalModelBase.compDomEquiv.fibers_eq smallU ab, yonedaCategoryEquiv_naturality_left,
+  dsimp only [dependent, smallU.PtpEquiv.snd]
+  rw [NaturalModelBase.compDomEquiv.dependent_eq smallU ab, yonedaCategoryEquiv_naturality_left,
     eqToHom_map, eqToHom_eq_homOf_map]
   rfl
 
-theorem fibers_heq : HEq (fibers ab) (smallU.PtpEquiv.snd (ab ≫ comp.{v, max u (v+1)})) := by
-  rw [fibers_eq]
+theorem dependent_heq : HEq (dependent ab) (smallU.PtpEquiv.snd (ab ≫ comp.{v, max u (v+1)})) := by
+  rw [dependent_eq]
   apply Functor.heq_id_comp
   · rw [fst_forgetToGrpd]
   · rw [fst_forgetToGrpd]
@@ -336,9 +338,9 @@ theorem fst_naturality : fst (ym(σ) ≫ ab) = Ctx.toGrpd.map σ ⋙ fst ab := b
   dsimp only [fst]
   rw [NaturalModelBase.compDomEquiv.fst_naturality, yonedaCategoryEquiv_naturality_left]
 
-theorem fibers_naturality : fibers (ym(σ) ≫ ab) = map (eqToHom (by rw [fst_naturality, Functor.assoc]))
-    ⋙ pre _ (Ctx.toGrpd.map σ) ⋙ fibers ab := by
-  rw [fibers, fibers, NaturalModelBase.compDomEquiv.fibers_naturality, smallU_substWk,
+theorem dependent_naturality : dependent (ym(σ) ≫ ab) = map (eqToHom (by rw [fst_naturality, Functor.assoc]))
+    ⋙ pre _ (Ctx.toGrpd.map σ) ⋙ dependent ab := by
+  rw [dependent, dependent, NaturalModelBase.compDomEquiv.dependent_naturality, smallU_substWk,
     yonedaCategoryEquiv_naturality_left, Functor.map_comp, eqToHom_map, Ctx.toGrpd_map_ofGrpd_map,
     yonedaCategoryEquivPre, Grpd.homOf_comp, ← eqToHom_eq_homOf_map, ← Category.assoc,
     eqToHom_trans, Grpd.comp_eq_comp, Grpd.homOf, eqToHom_eq_homOf_map]

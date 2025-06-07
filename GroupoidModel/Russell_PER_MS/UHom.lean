@@ -429,7 +429,7 @@ def mkPair {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (t : y(Γ) ⟶ s[i].Tm) (t_tp : t ≫ s[i].tp = A)
     (u : y(Γ) ⟶ s[j].Tm) (u_tp : u ≫ s[j].tp = ym(s[i].sec A t t_tp) ≫ B) :
     y(Γ) ⟶ s[max i j].Tm :=
-  (s[i].uvPolyTpCompDomEquiv s[j] Γ).symm ⟨t, t_tp ▸ B, u, sorry⟩ ≫ s.pair ilen jlen
+  NaturalModelBase.compDomEquiv.mk s[j] t (t_tp ▸ B) u sorry ≫ s.pair ilen jlen
 
 theorem comp_mkPair {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
@@ -454,7 +454,7 @@ def mkFst {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
   let AB := s[i].Ptp_equiv.symm ⟨A, B⟩
   let tu : y(Γ) ⟶ s[i].uvPolyTp.compDom s[j].uvPolyTp :=
     (s.Sig_pb ilen jlen).lift p AB p_tp
-  s[i].uvPolyTpCompDomEquiv s[j] Γ tu |>.1
+  NaturalModelBase.compDomEquiv.fst s[j] tu
 
 @[simp]
 theorem mkFst_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
@@ -483,7 +483,7 @@ def mkSnd {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
   let AB := s[i].Ptp_equiv.symm ⟨A, B⟩
   let tu : y(Γ) ⟶ s[i].uvPolyTp.compDom s[j].uvPolyTp :=
     (s.Sig_pb ilen jlen).lift p AB p_tp
-  s[i].uvPolyTpCompDomEquiv s[j] Γ tu |>.2.2.1
+  NaturalModelBase.compDomEquiv.snd s[j] tu
 
 @[simp]
 theorem mkSnd_mkPair {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)

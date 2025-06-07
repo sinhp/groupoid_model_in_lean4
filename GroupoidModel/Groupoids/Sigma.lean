@@ -761,7 +761,7 @@ abbrev B := smallU.PtpEquiv.snd s.snd
 
 def lift' : y(Ctx.ofGrpd.obj $ Grpd.of ∫(sigma (A s) (B s))) ⟶
     smallU.compDom.{v} :=
-  smallU.compDom.mk
+  smallU.compDom.mk _ _ _ _
   -- smallUCompDomEquiv.symm
   --   ⟨ fst (B s), dependent (B s), snd (B s), snd_forgetToGrpd _ ⟩
 #exit
