@@ -67,7 +67,7 @@ abbrev Ctx := AsSmall.{u} Grpd.{u,u}
 
 namespace Ctx
 
-@[simps] def equivalence : CategoryTheory.Equivalence Grpd.{u,u} Ctx.{u} where
+def equivalence : CategoryTheory.Equivalence Grpd.{u,u} Ctx.{u} where
   functor := AsSmall.up
   inverse := AsSmall.down
   unitIso := eqToIso rfl
@@ -201,6 +201,10 @@ theorem yonedaCategoryEquiv_naturality_left' (A : y(Γ) ⟶ y(Ctx.ofCategory C))
   have h : σ = ym(Yoneda.fullyFaithful.preimage σ) := by simp
   rw [h, yonedaCategoryEquiv_naturality_left]
   rfl
+
+theorem yonedaCategoryEquiv_symm_naturality_left {A : Ctx.toGrpd.obj Γ ⥤ C} :
+    yonedaCategoryEquiv.symm (Ctx.toGrpd.map σ ⋙ A) = ym(σ) ≫ yonedaCategoryEquiv.symm A := by
+  rw [yonedaCategoryEquiv.symm_apply_eq, yonedaCategoryEquiv_naturality_left, Equiv.apply_symm_apply]
 
 theorem yonedaCategoryEquiv_naturality_right {D : Type (v+1)} [Category.{v} D]
     (A : y(Γ) ⟶ y(Ctx.ofCategory C)) (F : C ⥤ D) :
