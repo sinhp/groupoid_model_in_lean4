@@ -640,7 +640,7 @@ theorem smallUPair_naturality {Γ Δ : Ctx} (f : Δ ⟶ Γ)
   dsimp only [smallUPair_app]
   rw [← yonedaCategoryEquiv_symm_naturality_left, pair_naturality]
   -- Like with `smallUSig_naturality` rw from inside to outside (w.r.t type dependency)
-  rw! [smallU.compDom.fibers_naturality,
+  rw! [smallU.compDom.dependent_naturality,
     smallU.compDom.snd_naturality,
     smallU.compDom.fst_naturality]
   simp [map_id_eq, Functor.id_comp]
@@ -751,7 +751,7 @@ theorem comm_sq : smallUPair.{v} ≫ smallU.{v}.tp =
     pair_comp_forgetToGrpd, smallUSig_app]
   congr 2
   · rw [smallU.compDom.fst_forgetToGrpd]
-  · exact smallU.compDom.fibers_heq.{v} ab
+  · exact smallU.compDom.dependent_heq.{v} ab
 
 variable (s : RepPullbackCone smallU.{v}.tp smallUSig.{v})
 
@@ -761,21 +761,19 @@ abbrev B := smallU.PtpEquiv.snd s.snd
 
 def lift' : y(Ctx.ofGrpd.obj $ Grpd.of ∫(sigma (A s) (B s))) ⟶
     smallU.compDom.{v} :=
-  smallU.compDom.mk _ _ _ _
-  -- smallUCompDomEquiv.symm
-  --   ⟨ fst (B s), dependent (B s), snd (B s), snd_forgetToGrpd _ ⟩
-#exit
+  smallU.compDom.mk (fst (B s)) (dependent (B s)) (snd (B s)) (snd_forgetToGrpd _)
+
 def lift : y(s.pt) ⟶ smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp :=
   ym(smallU.{v}.sec (s.snd ≫ smallUSig) s.fst s.condition ≫ eqToHom (by
     dsimp only [smallU_ext, U.ext, U.classifier, A, B]
     have : yonedaCategoryEquiv (s.snd ≫ smallUSig) =
-        sigma (smallUPTpEquiv s.snd).fst (smallUPTpEquiv s.snd).snd := by
-      rw [smallUSig_app_eq, Equiv.apply_symm_apply]
+        sigma (smallU.PtpEquiv.fst s.snd) (smallU.PtpEquiv.snd s.snd) := by
+      rw [smallUSig_app_eq, smallUSig_app, Equiv.apply_symm_apply]
     rw [this]))
   ≫ lift' s
 
 theorem fac_right (s : Limits.RepPullbackCone smallU.tp smallUSig) :
-    lift s ≫ (smallU.uvPolyTp.comp smallU.uvPolyTp).p = s.snd := by
+    lift s ≫ smallU.comp = s.snd := by
   -- have h := UvPoly.compDomEquiv_symm_comp_p s.snd
   -- apply smallUPTpEquiv.apply_eq_iff_eq.mp
   -- ext
@@ -785,7 +783,7 @@ theorem fac_right (s : Limits.RepPullbackCone smallU.tp smallUSig) :
   sorry
 
 theorem fac_left_aux_0 : yonedaCategoryEquiv s.fst ⋙ forgetToGrpd =
-    FunctorOperation.pair _ _ _ (smallUCompDomEquiv (lift s)).snd.snd.snd ⋙ forgetToGrpd := sorry
+    FunctorOperation.pair _ _ _ (smallU.compDom.snd_forgetToGrpd (lift s)) ⋙ forgetToGrpd := sorry
 
 
 -- set_option maxHeartbeats 0 in
