@@ -413,3 +413,38 @@ theorem subst_all :
   case cong_snd' => rw [ih_subst]; apply EqTm.cong_snd' <;> grind
 
 end SubstProof
+
+/-! ## Consequences -/
+
+open SubstProof
+
+theorem WfTp.subst_eq {Δ Γ A l σ σ'} (h : Γ ⊢[l] A) (hσσ' : EqSb Δ σ σ' Γ) :
+    Δ ⊢[l] A.subst σ ≡ A.subst σ' :=
+  subst_all.2.1 h |>.2 hσσ'
+
+theorem EqTp.subst_eq {Δ Γ A B l σ σ'} (h : Γ ⊢[l] A ≡ B) (hσσ' : EqSb Δ σ σ' Γ) :
+    Δ ⊢[l] A.subst σ ≡ B.subst σ' :=
+  subst_all.2.2.1 h hσσ'
+
+theorem WfTm.subst_eq {Δ Γ A t σ σ' l} (h : Γ ⊢[l] t : A) (hσσ' : EqSb Δ σ σ' Γ) :
+    Δ ⊢[l] t.subst σ ≡ t.subst σ' : A.subst σ :=
+  subst_all.2.2.2.1 h |>.2 hσσ'
+
+theorem EqTm.subst_eq {Δ Γ A t u σ σ' l} (h : Γ ⊢[l] t ≡ u : A) (hσσ' : EqSb Δ σ σ' Γ) :
+    Δ ⊢[l] t.subst σ ≡ u.subst σ' : A.subst σ :=
+  subst_all.2.2.2.2 h hσσ'
+
+theorem WfTp.subst {Δ Γ A σ l} (h : Γ ⊢[l] A) (hσ : WfSb Δ σ Γ) : Δ ⊢[l] A.subst σ :=
+  subst_all.2.1 h |>.1 hσ
+
+theorem EqTp.subst {Δ Γ A B σ l} (h : Γ ⊢[l] A ≡ B) (hσ : WfSb Δ σ Γ) :
+    Δ ⊢[l] A.subst σ ≡ B.subst σ :=
+  h.subst_eq (EqSb.refl hσ)
+
+theorem WfTm.subst {Δ Γ A t σ l} (h : Γ ⊢[l] t : A) (hσ : WfSb Δ σ Γ) :
+    Δ ⊢[l] t.subst σ : A.subst σ :=
+  subst_all.2.2.2.1 h |>.1 hσ
+
+theorem EqTm.subst {Δ Γ A t u σ l} (h : Γ ⊢[l] t ≡ u : A) (hσ : WfSb Δ σ Γ) :
+    Δ ⊢[l] t.subst σ ≡ u.subst σ : A.subst σ :=
+  h.subst_eq (EqSb.refl hσ)

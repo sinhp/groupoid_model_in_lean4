@@ -6,10 +6,24 @@ import GroupoidModel.Russell_PER_MS.Substitution
 namespace InvProof
 open SubstProof
 
-/-! ## Context conversion -/
+/-! ## Weakening -/
 
 theorem wfSb_wk {Γ A l} : WfCtx Γ → Γ ⊢[l] A → WfSb ((A,l) :: Γ) Expr.wk Γ :=
   fun h h' => WfSb.ofRen (h.snoc h') h (WfRen.wk ..)
+
+theorem tp_wk {Γ A B l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l'] B →
+    (A, l) :: Γ ⊢[l'] B.subst Expr.wk :=
+  fun Γ A B => B.subst (wfSb_wk Γ A)
+
+theorem eqTp_wk {Γ A B B' l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l'] B ≡ B' →
+    (A, l) :: Γ ⊢[l'] B.subst Expr.wk ≡ B'.subst Expr.wk :=
+  fun Γ A BB' => BB'.subst (wfSb_wk Γ A)
+
+theorem tm_wk {Γ A B b l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l'] b : B →
+    (A, l) :: Γ ⊢[l'] b.subst Expr.wk : B.subst Expr.wk :=
+  fun Γ A b => b.subst (wfSb_wk Γ A)
+
+/-! ## Context conversion -/
 
 theorem wfSb_conv_binder {Γ A A' l} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] A' → Γ ⊢[l] A ≡ A' →
     WfSb ((A', l) :: Γ) Expr.bvar ((A, l) :: Γ) := by
@@ -18,34 +32,21 @@ theorem wfSb_conv_binder {Γ A A' l} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] A'
   apply wfSb_snoc
   . apply wfSb_wk <;> assumption
   . assumption
-  . convert rename_all.2.1 A (WfCtx.snoc Γ A') (WfRen.wk ..) using 1; autosubst
+  . apply tp_wk Γ A' A
   . apply WfTm.conv (WfTm.bvar (WfCtx.snoc Γ A') (Lookup.zero ..))
-    convert rename_all.2.2.1 AA'.symm_tp (WfCtx.snoc Γ A') (WfRen.wk ..) using 1 <;> autosubst
+    apply eqTp_wk Γ A' AA'.symm_tp
 
 theorem tp_conv_binder {Γ A A' B l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] A' → Γ ⊢[l] A ≡ A' →
     (A, l) :: Γ ⊢[l'] B → (A', l) :: Γ ⊢[l'] B := by
   intro Γ A A' AA' B
-  convert subst_all.2.1 B |>.1 (wfSb_conv_binder Γ A A' AA') using 1
+  convert B.subst (wfSb_conv_binder Γ A A' AA') using 1
   autosubst
 
 theorem tm_conv_binder {Γ A A' B t l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] A' → Γ ⊢[l] A ≡ A' →
     (A, l) :: Γ ⊢[l'] t : B → (A', l) :: Γ ⊢[l'] t : B := by
   intro Γ A A' AA' t
-  convert subst_all.2.2.2.1 t |>.1 (wfSb_conv_binder Γ A A' AA') using 1 <;>
+  convert t.subst (wfSb_conv_binder Γ A A' AA') using 1 <;>
     autosubst
-
-/-! ## Weakening -/
-
--- TODO: weakening helpers could be used in `SubstProof`
-theorem tp_wk {Γ A B l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l'] B →
-    (A, l) :: Γ ⊢[l'] B.subst Expr.wk := by
-  intro Γ A B
-  convert rename_all.2.1 B (WfCtx.snoc Γ A) (WfRen.wk ..) using 1 <;> autosubst
-
-theorem tm_wk {Γ A B b l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l'] b : B →
-    (A, l) :: Γ ⊢[l'] b.subst Expr.wk : B.subst Expr.wk := by
-  intro Γ A b
-  convert rename_all.2.2.2.1 b (WfCtx.snoc Γ A) (WfRen.wk ..) using 1 <;> autosubst
 
 /-! ## Instantiation -/
 
@@ -159,6 +160,7 @@ end InvProof
 /-! ## General inversion lemmas -/
 
 open InvProof
+theorem WfCtx.snoc_inv {Γ A l} : WfCtx ((A, l) :: Γ) → Γ ⊢[l] A | .snoc _ hA => hA
 theorem WfTp.wf_ctx {Γ l A} : Γ ⊢[l] A → WfCtx Γ := inv_all.2.1
 theorem EqTp.wf_left {Γ l A B} : Γ ⊢[l] A ≡ B → Γ ⊢[l] A := fun h => (inv_all.2.2.1 h).2.1
 theorem EqTp.wf_right {Γ l A B} : Γ ⊢[l] A ≡ B → Γ ⊢[l] B := fun h => (inv_all.2.2.1 h).2.2
@@ -172,10 +174,56 @@ theorem EqTm.wf_right {Γ l t u A} : Γ ⊢[l] t ≡ u : A → Γ ⊢[l] u : A :
 theorem EqTm.wf_tp {Γ l t u A} : Γ ⊢[l] t ≡ u : A → Γ ⊢[l] A := fun h => h.wf_left.wf_tp
 theorem EqTm.wf_ctx {Γ l t u A} : Γ ⊢[l] t ≡ u : A → WfCtx Γ := fun h => h.wf_tp.wf_ctx
 
-/-! ## Context inversion -/
+/-! ## Substitution -/
 
-theorem WfCtx.snoc_inv {Γ A l} : WfCtx ((A, l) :: Γ) → Γ ⊢[l] A
-  | .snoc _ hA => hA
+namespace WfSb
+
+theorem mk {Δ Γ σ} : WfCtx Δ → WfCtx Γ → (∀ {i A l}, Lookup Γ i A l → Δ ⊢[l] σ i : A.subst σ) →
+    WfSb Δ σ Γ := by
+  unfold WfSb EqSb
+  intro Δ Γ h
+  refine ⟨Δ, Γ, fun lk => ?_⟩
+  replace h := h lk
+  exact ⟨h.wf_tp, h.wf_tp, EqTp.refl_tp h.wf_tp, h, h, EqTm.refl_tm h⟩
+
+theorem wk {Γ A l} : Γ ⊢[l] A → WfSb ((A, l) :: Γ) Expr.wk Γ :=
+  fun A => InvProof.wfSb_wk A.wf_ctx A
+
+theorem up {Δ Γ σ A l} : WfSb Δ σ Γ → Γ ⊢[l] A →
+    WfSb ((A.subst σ, l) :: Δ) (Expr.up σ) ((A, l) :: Γ) :=
+  fun σ A => SubstProof.wfSb_up σ A (A.subst σ)
+
+theorem conv_binder {Γ A A' l} : Γ ⊢[l] A ≡ A' → WfSb ((A', l) :: Γ) Expr.bvar ((A, l) :: Γ) :=
+  fun AA' => InvProof.wfSb_conv_binder AA'.wf_ctx AA'.wf_left AA'.wf_right AA'
+
+theorem comp {Θ Δ Γ σ τ} : WfSb Θ σ Δ → WfSb Δ τ Γ → WfSb Θ (Expr.comp σ τ) Γ := by
+  intro σ τ
+  apply mk σ.wf_dom τ.wf_cod
+  intro _ _ _ lk
+  convert τ.lookup lk |>.subst σ using 1
+  autosubst
+
+end WfSb
+
+namespace EqSb
+
+theorem mk {Δ Γ σ σ'} : WfCtx Δ → WfCtx Γ →
+    (∀ {i A l}, Lookup Γ i A l →
+      (Δ ⊢[l] A.subst σ ≡ A.subst σ') ∧ (Δ ⊢[l] σ i ≡ σ' i : A.subst σ)) →
+    EqSb Δ σ σ' Γ := by
+  unfold EqSb
+  intro Δ Γ h
+  refine ⟨Δ, Γ, fun lk => ?_⟩
+  replace h := h lk
+  have A := Γ.lookup_wf lk
+  exact ⟨h.1.wf_left, h.1.wf_right, h.1, h.2.wf_left, WfTm.conv h.2.wf_right h.1, h.2⟩
+
+theorem up {Δ Γ σ σ' A l} : EqSb Δ σ σ' Γ → Γ ⊢[l] A →
+    EqSb ((A.subst σ, l) :: Δ) (Expr.up σ) (Expr.up σ') ((A, l) :: Γ) :=
+  fun σσ' A =>
+    SubstProof.eqSb_up σσ' A (A.subst σσ'.wf_left) (A.subst σσ'.wf_right) (A.subst_eq σσ')
+
+end EqSb
 
 /-! ## Type former inversion -/
 
@@ -412,7 +460,6 @@ theorem WfTm.inv_pair {Γ B C t u l₀ l l'} : Γ ⊢[l₀] .pair l l' B t u : C
     l₀ = max l l' ∧ ∃ A,
       (Γ ⊢[l] t : A) ∧
       (Γ ⊢[l'] u : B.subst t.toSb) ∧
-      ((A, l) :: Γ ⊢[l'] B) ∧
       (Γ ⊢[l₀] C ≡ .sigma l l' A B) := by
   suffices
     (∀ {Γ}, WfCtx Γ → True) ∧
@@ -422,7 +469,6 @@ theorem WfTm.inv_pair {Γ B C t u l₀ l l'} : Γ ⊢[l₀] .pair l l' B t u : C
       l = max l₁ l₂ ∧ ∃ A,
         (Γ ⊢[l₁] t' : A) ∧
         (Γ ⊢[l₂] u' : B.subst t'.toSb) ∧
-        ((A, l₁) :: Γ ⊢[l₂] B) ∧
         (Γ ⊢[l] C ≡ .sigma l₁ l₂ A B)) ∧
     (∀ {Γ l t u A}, Γ ⊢[l] t ≡ u : A → True) from
   fun h => this.2.2.2.1 h rfl
