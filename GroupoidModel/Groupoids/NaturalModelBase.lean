@@ -198,15 +198,9 @@ theorem smallU_substWk (A : y(Γ) ⟶ smallU.{v}.Ty) : smallU.substWk σ A =
     smallU.sec _ α rfl = Ctx.ofGrpd.map (sec _ (yonedaCategoryEquiv α) rfl) := by
   apply Yoneda.fullyFaithful.map_injective
   apply (smallU.disp_pullback _).hom_ext
-  . rw [NaturalModelBase.sec_var, smallU_var]
-    convert_to α = ym(Ctx.ofGrpd.map $ Grpd.homOf (sec (yonedaCategoryEquiv (α ≫ ym(Ctx.homOfFunctor PGrpd.forgetToGrpd))) (yonedaCategoryEquiv α) _)) ≫ yonedaCategoryEquiv.symm (_)
-    dsimp [toCoreAsSmallEquiv, Ctx.homGrpdEquivFunctor, functorToAsSmallEquiv,
-      Core.functorToCoreEquiv]
-    rw [← Functor.map_comp, ← Functor.map_comp, Grpd.comp_eq_comp, ← Core.functorToCore_naturality_left, ← Functor.assoc, sec_toPGrpd]
-    simp [yonedaCategoryEquiv, toCoreAsSmallEquiv, functorToAsSmallEquiv,
-      Core.functorToCoreEquiv, Core.forgetFunctorToCore, Ctx.homGrpdEquivFunctor,
-      -AsSmall.down_map, Functor.assoc, Functor.comp_id,
-      Core.functorToCore_naturality_left, Core.functorToCore_inclusion_apply, Ctx.equivalence]
+  . erw [NaturalModelBase.sec_var, smallU_var, ← yonedaCategoryEquiv_symm_naturality_left,
+      Equiv.eq_symm_apply, Ctx.toGrpd_map_ofGrpd_map, sec_toPGrpd]
+    rfl
   . rw [← Functor.map_comp, sec_disp]
     simp only [CategoryTheory.Functor.map_id, smallU_Tm, smallU_Ty, smallU_tp, smallU_ext,
       smallU_disp, ← Functor.map_comp, Grpd.comp_eq_comp, Grpd.coe_of, sec_forget, ← Grpd.id_eq_id]
@@ -351,6 +345,57 @@ theorem snd_naturality : snd (ym(σ) ≫ ab) = Ctx.toGrpd.map σ ⋙ snd ab := b
   rw [NaturalModelBase.compDomEquiv.snd_naturality, yonedaCategoryEquiv_naturality_left]
 
 end compDom
+
+namespace IsPullback
+
+variable {E B} (intr : E ⟶ smallU.{v}.Tm) (typ : E ⟶ B) (form : B ⟶ smallU.{v}.Ty)
+
+variable (intr_tp : intr ≫ smallU.tp = typ ≫ form)
+    (liftExt : Π {Γ : Ctx} (b : y(Γ) ⟶ B),
+      (f : y(smallU.ext (b ≫ form)) ⟶ E)
+      ×' f ≫ intr = smallU.var (b ≫ form)
+      ∧ f ≫ typ = ym(smallU.disp (b ≫ form)) ≫ b)
+
+def lift (s : RepPullbackCone smallU.tp form) : y(s.pt) ⟶ E :=
+  NaturalModelBase.IsPullback.lift smallU intr typ form liftExt s
+
+theorem fac_left (s : RepPullbackCone smallU.tp form) :
+    lift intr typ form liftExt s ≫ intr = s.fst :=
+  NaturalModelBase.IsPullback.fac_left smallU intr typ form liftExt s
+
+theorem fac_right (s : RepPullbackCone smallU.tp form) :
+    lift intr typ form liftExt s ≫ typ = s.snd :=
+  NaturalModelBase.IsPullback.fac_right smallU intr typ form liftExt s
+
+include intr_tp liftExt in
+/-- To show that the square
+
+  E ----------> M.Tm
+  |               |
+  |               |
+  |               |
+  |               |
+  V               V
+  B ----------> M.Ty
+
+  is a pullback, it suffices to construct a unique lift from
+  every context extension.
+ y(ext) --------> E ----------> M.Tm
+  |               |              |
+  |               |              |
+  |               |              |
+  |               |              |
+  V               V              V
+ y(Γ) ----------> B ----------> M.Ty
+-/
+theorem of_existsUnique_liftExt_hom_ext
+  (hom_ext : Π {Γ : Ctx} (f1 f2 : y(Γ) ⟶ E),
+    f1 ≫ intr = f2 ≫ intr ∧ f1 ≫ typ = f2 ≫ typ → f1 = f2) :
+    IsPullback intr typ smallU.{v}.tp form :=
+  NaturalModelBase.IsPullback.of_existsUnique_liftExt_hom_ext _ _ _ _ intr_tp liftExt hom_ext
+
+end IsPullback
+
 end smallU
 end
 
