@@ -455,16 +455,25 @@ theorem pair_naturality_obj (x : Δ) : HEq (pairObjFiber h (σ.obj x))
     (pairObjFiber (pair_naturality_aux h σ) x) := by
   apply obj_hext'
   · rw [← Functor.assoc, pair_naturality_ι_pre]
-  · simp only [Grpd.forgetToCat, Functor.comp_obj, Grothendieck.forget_obj, pair_obj_fiber,
-      id_eq, eq_mpr_eq_cast, cast_eq, heq_eq_eq]
+  · simp only [heq_eq_eq]
     erw [pairObjFiber_base]
-  · simp
+  · simp only [heq_eq_eq]
     erw [pairObjFiber_fiber]
 
 theorem pair_naturality_aux_1 {x y} (f : x ⟶ y) :
     HEq ((sigmaMap B (σ.map f)).obj (pairObjFiber h (σ.obj x)))
-    ((sigmaMap (pre (α ⋙ forgetToGrpd) σ ⋙ B) f).obj (pairObjFiber (pair_naturality_aux h σ) x)) :=
-  sorry
+    ((sigmaMap (pre (α ⋙ forgetToGrpd) σ ⋙ B) f).obj (pairObjFiber (pair_naturality_aux h σ) x)) := by
+  apply obj_hext'
+  . apply Eq.symm
+    calc ι (σ ⋙ α ⋙ forgetToGrpd) y ⋙ Grothendieck.Groupoidal.pre (α ⋙ forgetToGrpd) σ ⋙ B =
+        (ι ((σ ⋙ α) ⋙ forgetToGrpd) y ⋙ Grothendieck.Groupoidal.pre (α ⋙ forgetToGrpd) σ) ⋙ B := by exact
+          rfl
+        _ = ι (α ⋙ forgetToGrpd) (σ.obj y) ⋙ B := by rw! [pair_naturality_ι_pre]
+  . simp only [heq_eq_eq]
+    erw [sigmaMap_obj_base]
+  . simp only [heq_eq_eq]
+    erw [sigmaMap_obj_fiber]
+
 
 theorem pair_naturality : σ ⋙ pair α β B h = pair (σ ⋙ α) (σ ⋙ β) (pre (α ⋙ forgetToGrpd) σ ⋙ B)
     (by erw [Functor.assoc, h, ← Functor.assoc, sec_naturality, Functor.assoc]) := by
