@@ -873,8 +873,8 @@ theorem smallU_pb : IsPullback smallUPair.{v} smallU.comp.{v}
       intro Γ AB
       constructor
       · sorry
-      · have h := liftExt.{v} Γ AB
-        exact h
+      · convert liftExt.{v} Γ AB -- FIXME why does lean timeout with exact?
+        -- I could also do let h := liftExt.{v} Γ AB; exact h
     ) sorry
 
 def smallUSigma : NaturalModelSigma smallU.{v, max u (v+1)} where
