@@ -244,6 +244,10 @@ variable (α : Γ ⥤ PGrpd.{v₁,u₁})
 -- formerly `objPt`
 def objFiber (x : Γ) : ⇓(α.obj x) := (α.obj x).fiber
 
+theorem objFiber_naturality {Δ : Type*} [Category Δ] (σ : Δ ⥤ Γ) (α : Γ ⥤ PGrpd) (x : Δ) :
+    objFiber (σ ⋙ α) x = objFiber α (σ.obj x) :=
+  rfl
+
 -- formerly `mapObjPt`
 def mapObjFiber {x y : Γ} (f : x ⟶ y) : ⇓(α.obj y) :=
     (α.map f)⟱.obj (objFiber α x)
@@ -262,6 +266,10 @@ theorem mapFiber_comp {x y z} (f : x ⟶ y) (g : y ⟶ z) :
     mapFiber α (f ≫ g)
     = eqToHom (by simp [mapObjFiber, objFiber])
       ≫ (α.map g)⟱.map (mapFiber α f) ≫ mapFiber α g := by
+  simp [mapFiber]
+
+theorem mapFiber_naturality {Δ : Type*} [Category Δ] (σ : Δ ⥤ Γ) {x y} (f : x ⟶ y) :
+    mapFiber (σ ⋙ α) f = mapFiber α (σ.map f) := by
   simp [mapFiber]
 
 end
@@ -285,6 +293,11 @@ def objFiber' (x : Γ) : A.obj x :=
 
 @[simp] theorem objFiber'_heq {x} : HEq (PGrpd.objFiber' h x) (α.obj x).fiber := by
   simp [PGrpd.objFiber', PGrpd.objFiber, Grpd.eqToHom_obj]
+
+theorem objFiber'_naturality {Δ : Type*} [Category Δ] (σ : Δ ⥤ Γ) {A : Γ ⥤ Grpd.{v₁,u₁}}
+    {α : Γ ⥤ PGrpd.{v₁,u₁}} (h : α ⋙ PGrpd.forgetToGrpd = A) (x : Δ) :
+    @objFiber' _ _ (σ ⋙ A) (σ ⋙ α) (by rw [← h]; rfl) x = objFiber' h (σ.obj x) :=
+  rfl
 
 -- formerly `mapPoint'`
 def mapFiber' {x y : Γ} (f : x ⟶ y) :
@@ -324,6 +337,11 @@ theorem mapFiber'_comp {x y z} (f : x ⟶ y)
     (eqToHom (mapFiber'_comp_aux0 h)).map ((α.map g).base.map (α.map f).fiber)
     ≫ (eqToHom (mapFiber'_comp_aux0 h)).map (α.map g).fiber := by
   simp [mapFiber', eqToHom_map]
+
+theorem mapFiber'_naturality {Δ : Type*} [Category Δ] (σ : Δ ⥤ Γ) {x y} (f : x ⟶ y) :
+    @mapFiber' _ _ (σ ⋙ A) (σ ⋙ α) (by rw [Functor.assoc, h]) _ _ f
+    = mapFiber' h (σ.map f) := by
+  simp [mapFiber']
 
 end
 

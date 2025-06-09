@@ -190,6 +190,18 @@ theorem obj_hext_iff : x.base = y.base ∧ HEq x.fiber y.fiber
     subst hCD
     exact ⟨ rfl , HEq.rfl ⟩
 
+theorem obj_hext' {A' : Γ ⥤ Cat.{v₁,u₁}} (h : A = A') {x : Grothendieck A} {y : Grothendieck A'}
+  (hbase : HEq x.base y.base) (hfiber : HEq x.fiber y.fiber) : HEq x y := by
+  rcases x; rcases y
+  subst hbase
+  congr
+
+theorem hext' {A' : Γ ⥤ Cat.{v₁,u₁}} (h : A = A') {X Y : Grothendieck A} {X' Y' : Grothendieck A'}
+    (f : Hom X Y) (g : Hom X' Y') (hX : HEq X X') (hY : HEq Y Y')
+    (w_base : HEq f.base g.base) (w_fiber : HEq f.fiber g.fiber) : HEq f g := by
+  cases f; cases g
+  congr
+
 /-- This proves that base of an eqToHom morphism in the category Grothendieck A is an eqToHom morphism -/
 theorem eqToHom_base (eq : x = y) :
     (eqToHom eq).base = eqToHom (by simp [eq]) := by
@@ -222,6 +234,11 @@ theorem map_eqToHom_base {G1 G2 : Grothendieck A} (eq : G1 = G2)
 
 theorem map_eqToHom_obj_base {F G : Γ ⥤ Cat.{v,u}} (h : F = G)
   (x) : ((Grothendieck.map (eqToHom h)).obj x).base = x.base := rfl
+
+theorem map_forget {F G : Γ ⥤ Cat.{v,u}} (α : F ⟶ G) :
+    Grothendieck.map α ⋙ Grothendieck.forget G =
+    Grothendieck.forget F :=
+  rfl
 
 open Iso
 
@@ -490,6 +507,13 @@ namespace Grpd
 
 abbrev homOf {C D : Type u} [Groupoid.{v} C] [Groupoid.{v} D] (F : C ⥤ D) :
     Grpd.of C ⟶ Grpd.of D := F
+
+lemma homOf_id {A : Type u} [Groupoid.{v} A] : Grpd.homOf (𝟭 A) = 𝟙 _ :=
+  rfl
+
+lemma homOf_comp {A B C : Type u} [Groupoid.{v} A] [Groupoid.{v} B] [Groupoid.{v} C]
+    (F : A ⥤ B) (G : B ⥤ C) : Grpd.homOf (F ⋙ G) = Grpd.homOf F ≫ Grpd.homOf G :=
+  rfl
 
 def asSmallFunctor : Grpd.{v, u} ⥤ Grpd.{max w v u, max w v u} where
   obj Γ := Grpd.of $ AsSmall.{max w v u} Γ
@@ -1137,5 +1161,17 @@ theorem NatTrans.yonedaMk_app {X : C} (α : yoneda.obj X ⟶ F) :
     α ≫ yonedaMk app naturality = app α := by
   rw [← yonedaEquiv.apply_eq_iff_eq, yonedaEquiv_comp]
   simp [yonedaMk, yonedaIso, yonedaIsoMap]
+
+namespace Functor
+
+theorem heq_id_comp {A B : Type u} {C : Type*} [Category.{v} A] [Category.{v} B] [Category C]
+    (hAB : A = B) (h0 : HEq (inferInstance : Category A) (inferInstance : Category B)) {F : A ⥤ B}
+    (h : HEq F (𝟭 B)) (G : B ⥤ C) : HEq (F ⋙ G) G := by
+  subst hAB
+  subst h0
+  subst h
+  rfl
+
+end Functor
 
 end CategoryTheory

@@ -560,6 +560,35 @@ variable (esah_pb : IsPullback rth sah east uth)
 
 namespace ofRight
 
+  variable {C : Type u} [Category.{v} C] (Cn : C ⥤ Libya) (Cw : C ⥤ Niger)
+  (hC : Cn ⋙ sah = Cw ⋙ so)
+
+  def hCLeft : (Cn ⋙ rth) ⋙ east = Cw ⋙ so ⋙ uth :=
+    by calc
+      (Cn ⋙ rth) ⋙ east = Cn ⋙ (sah ⋙ uth) := by rw [Functor.assoc, esah]
+      _ = (Cn ⋙ sah) ⋙ uth := by rw[← Functor.assoc]
+      _ = (Cw ⋙ so) ⋙ uth := by rw [hC]
+      _ = Cw ⋙ so ⋙ uth := by rw [Functor.assoc]
+
+  def lift : C ⥤ Algeria :=
+    outer_pb.lift (Cn ⋙ rth) Cw (hCLeft esah Cn Cw hC)
+
+  def universal : (lift : C ⥤ Algeria) ×'
+    lift ⋙ no = Cn ∧ lift ⋙ west = Cw ∧
+    ∀ {l0 l1 : C ⥤ Algeria}, l0 ⋙ no = l1 ⋙ no → l0 ⋙ west = l1 ⋙ west → l0 = l1 :=
+  ⟨ lift esah_pb.comm_sq outer_pb Cn Cw hC,
+  by constructor
+     . apply esah_pb.hom_ext
+       . exact outer_pb.fac_left _ _ _
+       . rw [Functor.assoc, wsah, ← Functor.assoc, hC]
+         rw! [outer_pb.fac_right (Cn⋙rth) Cw (hCLeft esah Cn Cw hC)]
+     . constructor
+       . exact outer_pb.fac_right (Cn⋙rth) Cw (hCLeft esah Cn Cw hC)
+       . intro l0 l1 hln hlw
+         apply outer_pb.hom_ext
+         . rw[← Functor.assoc, ← Functor.assoc, hln]
+         . exact hlw
+    ⟩
 
 end ofRight
 
@@ -579,8 +608,8 @@ are both pullbacks.
 def ofRight : IsPullback no west sah so :=
   IsPullback.ofUniversal no west sah so
   wsah
-  (fun f g hC => sorry)
-  sorry
+  (fun Cn Cw hC => ofRight.universal wsah esah esah_pb outer_pb Cn Cw hC)
+  (fun Cn Cw hC => ofRight.universal wsah esah esah_pb outer_pb Cn Cw hC)
 
 
 
@@ -613,6 +642,41 @@ variable (esah_pb : IsPullback rth sah east uth)
 
 namespace ofRight'
 
+variable {C : Type u} [Category.{v} C] (Cn : C ⥤ Libya) (Cw : C ⥤ Niger)
+  (hC : Cn ⋙ sah = Cw ⋙ so)
+
+def universal : (lift : C ⥤ Algeria) ×'
+  lift ⋙ esah_pb.lift north (west ⋙ so) outer = Cn ∧
+  lift ⋙ west = Cw ∧
+  ∀ {l0 l1 : C ⥤ Algeria},
+    l0 ⋙ esah_pb.lift north (west ⋙ so) outer = l1 ⋙ esah_pb.lift north (west ⋙ so) outer →
+      l0 ⋙ west = l1 ⋙ west → l0 = l1 :=
+  ⟨ lift outer_pb (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC),
+  by constructor
+     . apply esah_pb.hom_ext
+       . calc
+          (outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ esah_pb.lift north (west ⋙ so) outer) ⋙ rth =
+            outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ esah_pb.lift north (west ⋙ so) outer ⋙ rth := by rw[Functor.assoc]
+          _ = outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ north := by rw[esah_pb.fac_left north (west ⋙ so) outer]
+          _ = Cn ⋙ rth := by rw[outer_pb.fac_left (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC)]
+       . calc
+          (outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ esah_pb.lift north (west ⋙ so) outer) ⋙ sah =
+            outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ esah_pb.lift north (west ⋙ so) outer ⋙ sah := by rw[Functor.assoc]
+          _ = outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ (west ⋙ so) := by rw[esah_pb.fac_right north (west ⋙ so) outer]
+          _ = Cw ⋙ so := by rw[← Functor.assoc, outer_pb.fac_right (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC)]
+          _ = Cn ⋙ sah := by rw[hC]
+     . constructor
+       . exact outer_pb.fac_right (Cn⋙rth) Cw (ofRight.hCLeft esah Cn Cw hC)
+       . intro l0 l1 hll hlw
+         apply outer_pb.hom_ext
+         . calc
+            l0 ⋙ north = l0 ⋙ (esah_pb.lift north (west ⋙ so) outer ⋙ rth) :=
+              by rw [esah_pb.fac_left north (west ⋙ so) outer ]
+            _ = (l0 ⋙ esah_pb.lift north (west ⋙ so) outer) ⋙ rth := by rw [Functor.assoc]
+            _ = (l1 ⋙ esah_pb.lift north (west ⋙ so) outer) ⋙ rth := by rw [hll]
+            _ = l1 ⋙ north := by rw [Functor.assoc, esah_pb.fac_left north (west ⋙ so) outer]
+         . exact hlw
+    ⟩
 
 end ofRight'
 
@@ -640,7 +704,12 @@ def ofRight' {north : Algeria ⥤ Egypt} {rth : Libya ⥤ Egypt}
   (outer_pb : IsPullback north west east (so ⋙ uth))
   (esah : rth ⋙ east = sah ⋙ uth)
   (esah_pb : IsPullback rth sah east uth) :
-  IsPullback (esah_pb.lift north (west ⋙ so) outer) west sah so := sorry
+  IsPullback (esah_pb.lift north (west ⋙ so) outer) west sah so :=
+  IsPullback.ofUniversal (esah_pb.lift north (west ⋙ so) outer) west sah so
+  (esah_pb.fac_right _ _ _)
+  (fun Cn Cw hC => ofRight'.universal outer esah esah_pb outer_pb Cn Cw hC)
+  (fun Cn Cw hC => ofRight'.universal outer esah esah_pb outer_pb Cn Cw hC)
+
 
 
 end ofRight'
