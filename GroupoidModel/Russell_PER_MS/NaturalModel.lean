@@ -298,10 +298,13 @@ section
 variable {Δ : Ctx} {σ : Δ ⟶ Γ} {AB : y(Γ) ⟶ M.Ptp.obj X}
 
 theorem fst_naturality_left : fst M (ym(σ) ≫ AB) = ym(σ) ≫ fst M AB := by
-  sorry
+  dsimp [fst, Ptp_equiv, uvPolyTp]
+  exact rfl
 
 theorem snd_naturality_left : snd M (ym(σ) ≫ AB) = ym(M.substWk σ _) ≫ snd M AB := by
+  simp [snd, Ptp_equiv, uvPolyTp, substWk, substCons]
   sorry
+
 
 end
 
