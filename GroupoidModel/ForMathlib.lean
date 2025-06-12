@@ -165,9 +165,10 @@ end
 
 namespace Grothendieck
 
-variable {Γ : Type u} [Category.{v} Γ] {A : Γ ⥤ Cat.{v₁,u₁}} {x y : Grothendieck A}
+variable {Γ : Type*} [Category Γ] {A : Γ ⥤ Cat}
+  {x y : Grothendieck A}
 
-theorem cast_eq {F G : Γ ⥤ Cat.{v₁,u₁}}
+theorem cast_eq {F G : Γ ⥤ Cat}
     (h : F = G) (p : Grothendieck F) :
     (cast (by subst h; rfl) p : Grothendieck G)
     = ⟨ p.base , cast (by subst h; rfl) p.fiber ⟩ := by
@@ -190,13 +191,13 @@ theorem obj_hext_iff : x.base = y.base ∧ HEq x.fiber y.fiber
     subst hCD
     exact ⟨ rfl , HEq.rfl ⟩
 
-theorem obj_hext' {A' : Γ ⥤ Cat.{v₁,u₁}} (h : A = A') {x : Grothendieck A} {y : Grothendieck A'}
+theorem obj_hext' {A' : Γ ⥤ Cat} (h : A = A') {x : Grothendieck A} {y : Grothendieck A'}
   (hbase : HEq x.base y.base) (hfiber : HEq x.fiber y.fiber) : HEq x y := by
   rcases x; rcases y
   subst hbase
   congr
 
-theorem hext' {A' : Γ ⥤ Cat.{v₁,u₁}} (h : A = A') {X Y : Grothendieck A} {X' Y' : Grothendieck A'}
+theorem hext' {A' : Γ ⥤ Cat} (h : A = A') {X Y : Grothendieck A} {X' Y' : Grothendieck A'}
     (f : Hom X Y) (g : Hom X' Y') (hX : HEq X X') (hY : HEq Y Y')
     (w_base : HEq f.base g.base) (w_fiber : HEq f.fiber g.fiber) : HEq f g := by
   cases f; cases g
@@ -242,7 +243,7 @@ theorem map_forget {F G : Γ ⥤ Cat.{v,u}} (α : F ⟶ G) :
 
 open Iso
 
-variable {C : Type*} [Category C] {G : C ⥤ Cat.{v₂,u₂}}
+variable {C : Type*} [Category C] {G : C ⥤ Cat}
 
 /-- A morphism in the Grothendieck construction is an isomorphism if
 - the morphism in the base is an isomorphism; and

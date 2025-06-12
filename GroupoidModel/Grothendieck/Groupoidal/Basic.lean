@@ -378,8 +378,7 @@ end
 
 section
 
-variable {Γ : Type u} [Category.{v} Γ] (A : Γ ⥤ Grpd.{v₁, u₁})
-  {F : Γ ⥤ Grpd.{v₁,u₁}}
+variable {Γ : Type*} [Category Γ] {F : Γ ⥤ Grpd}
 
 /-- This proves that base of an eqToHom morphism in the category Grothendieck A is an eqToHom morphism -/
 @[simp] theorem eqToHom_base {x y : ∫(F)} (eq : x = y) :
@@ -435,9 +434,12 @@ variable {X} {Y : ∫(F)} (f : X ⟶ Y)
 @[simp] theorem map_map_base : ((Groupoidal.map α).map f).base = f.base
     := Grothendieck.map_map_base _ _
 
+-- we explicitly write out the type of the eqToHom to avoid bleeding
+-- `Grothendieck` API
 @[simp] theorem map_map_fiber :
   ((Groupoidal.map α).map f).fiber =
-    eqToHom (Functor.congr_obj (map.proof_1 (whiskerRight α _) f) X.fiber)
+    eqToHom (Functor.congr_obj (map.proof_1 (whiskerRight α _) f) X.fiber :
+    (α.app X.base ≫ G.map f.base).obj X.fiber = (F.map f.base ≫ α.app Y.base).obj X.fiber)
     ≫ (α.app Y.base).map f.fiber := Grothendieck.map_map_fiber _ _
 
 lemma comp_forget_naturality  {α : F ⟶ G} {X Y : Γ} (f : X ⟶ Y) : (F ⋙ Grpd.forgetToCat).map f ≫ Grpd.forgetToCat.map (α.app Y)=
@@ -474,6 +476,13 @@ theorem map_map {α : F ⟶ G} {X Y : ∫(F)} (f : X ⟶ Y) :
     {p q r : ∫(A)} (h : p = q) {f : q ⟶ r} :
     (eqToHom h ≫ f).fiber = eqToHom (by subst h; simp) ≫ f.fiber := by
   simp [eqToHom_map]
+
+theorem Functor.hext {C : Type u} [Category.{v} C] (G1 G2 : C ⥤ ∫(F))
+    (hbase : G1 ⋙ forget = G2 ⋙ forget)
+    (hfiber_obj : ∀ x : C, HEq (G1.obj x).fiber (G2.obj x).fiber)
+    (hfiber_map : ∀ {x y : C} (f : x ⟶ y), HEq (G1.map f).fiber (G2.map f).fiber)
+    : G1 = G2 :=
+  Grothendieck.Functor.hext G1 G2 hbase hfiber_obj hfiber_map
 
 end
 
@@ -586,13 +595,6 @@ theorem ιNatIso_comp {x y z : Γ} (f : x ⟶ y) (g : y ⟶ z) :
     ≪≫ eqToIso (by simp [Functor.assoc]) := by
   ext
   simp [ιNatIso]
-
-theorem Functor.hext (F G : Γ ⥤ ∫(A))
-    (hbase : F ⋙ forget = G ⋙ forget)
-    (hfiber_obj : ∀ x : Γ, HEq (F.obj x).fiber (G.obj x).fiber)
-    (hfiber_map : ∀ {x y : Γ} (f : x ⟶ y), HEq (F.map f).fiber (G.map f).fiber)
-    : F = G :=
-  Grothendieck.Functor.hext F G hbase hfiber_obj hfiber_map
 
 end
 

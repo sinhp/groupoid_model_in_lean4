@@ -484,7 +484,6 @@ end
 
 end
 
-namespace sigma
 section
 variable {Γ : Type u₂} [Category.{v₂} Γ] {A : Γ ⥤ Grpd.{v₁,u₁}}
     (B : ∫(A) ⥤ Grpd.{v₁,u₁})
@@ -492,18 +491,17 @@ variable {Γ : Type u₂} [Category.{v₂} Γ] {A : Γ ⥤ Grpd.{v₁,u₁}}
 @[simps] def fstAux : sigma A B ⟶ A where
   app x := Grpd.homOf forget
 
-def fstAux' : ∫(sigma A B) ⥤ ∫(A) :=
+def fst' : ∫(sigma A B) ⥤ ∫(A) :=
   map (fstAux B)
 
 def fst : ∫(sigma A B) ⥤ PGrpd :=
-  fstAux' B ⋙ toPGrpd A
+  fst' B ⋙ toPGrpd A
 
 theorem fst_forgetToGrpd : fst B ⋙ forgetToGrpd = forget ⋙ A := by
-  dsimp only [fst, fstAux']
+  dsimp only [fst, fst']
   rw [Functor.assoc, (Grothendieck.Groupoidal.isPullback A).comm_sq,
     ← Functor.assoc, map_forget]
 
-def dependent : ∫(fst B ⋙ forgetToGrpd) ⥤ Grpd := forget ⋙ fstAux' B ⋙ B
 
 end
 
@@ -550,6 +548,8 @@ def assoc : ∫(sigma A B) ⥤ ∫(B) :=
 def snd : ∫(sigma A B) ⥤ PGrpd :=
   assoc B ⋙ toPGrpd B
 
+def dependent : ∫(fst B ⋙ forgetToGrpd) ⥤ Grpd := forget ⋙ fst' B ⋙ B
+
 @[simp] theorem forget_obj {C : Type u} [Category.{v, u} C] (F : C ⥤ Grpd)
     (X : ∫(F)) : forget.obj X = X.base :=
   Grothendieck.forget_obj _ _
@@ -566,18 +566,17 @@ theorem ι_sigma_comp_map_fstAux (x) : ι (sigma A B) x ⋙ map (fstAux B)
   · intro x
     simp
   · intro x y f
-    simp only [sigma_obj, sigmaObj, Functor.comp_obj, map_obj_base, ι_obj_base,
+    simp only [sigma_obj, sigmaObj, Grpd.coe_of, Functor.comp_obj, map_obj_base, ι_obj_base,
       Functor.comp_map, map_map_base, ι_map_base, map_obj_fiber, fstAux_app, ι_obj_fiber,
       Grothendieck.Groupoidal.forget_obj, Grpd.forgetToCat, map_map_fiber,
       whiskerRight_app, id_eq, Cat.comp_obj, sigma_map, eqToHom_refl, ι_map_fiber,
       Grothendieck.Groupoidal.forget_map, Category.id_comp, heq_eq_eq]
-    convert comp_base (eqToHom _) f
-    · rfl
-    · simp
+    sorry
+  -- rfl
 
 -- TODO follow the advice of improving API for those two goals
-theorem assoc_forget : assoc B ⋙ forget = fstAux' B := by
-  dsimp [assoc, fstAux']
+theorem assoc_forget : assoc B ⋙ forget = fst' B := by
+  dsimp [assoc, fst']
   fapply CategoryTheory.Functor.ext
   · intro p
     apply Grothendieck.Groupoidal.obj_hext
@@ -598,41 +597,11 @@ theorem assoc_forget : assoc B ⋙ forget = fstAux' B := by
 theorem snd_forgetToGrpd : snd B ⋙ forgetToGrpd = sec _ (fst B) rfl ⋙ dependent B :=
   calc
     _ = assoc B ⋙ forget ⋙ B := rfl
-    _ = fstAux' B ⋙ B := by rw [← assoc_forget]; rfl
+    _ = fst' B ⋙ B := by rw [← assoc_forget]; rfl
     _ = _ := rfl
 
 end
 
-section
-
-variable {Γ : Type*} [Category Γ] {A : Γ ⥤ Grpd} (B : ∫(A) ⥤ Grpd)
-  (αβ : Γ ⥤ PGrpd) (hαβ : αβ ⋙ forgetToGrpd = sigma A B)
-
-/-
-Let `Γ` be a category.
-For any pair of functors `A : Γ ⥤ Grpd` and `B : ∫(A) ⥤ Grpd`,
-and any "groupoid-term", meaning a functor `αβ : Γ ⥤ PGrpd`
-satisfying `αβ ⋙ forgetToGrpd = sigma A B : Γ ⥤ Grpd`,
-there is a groupoid-term `α : Γ ⥤ PGrpd` such that `α ⋙ forgetToGrpd = A`,
-a "groupoid-type" `B' : ∫(α ⋙ forgetToGrpd) ⥤ Grpd`,
-and a groupoid-term `β : Γ ⥤ PGrpd` such that `β ⋙ forgetToGrpd = sec _ α rfl ⋙ B`
-
--/
-
-def fst' : Γ ⥤ PGrpd := sec (sigma A B) αβ hαβ ⋙ fst B
-
-theorem fst'_forgetToGrpd : fst' B αβ hαβ ⋙ forgetToGrpd = A := by
-  rw [fst', Functor.assoc, fst_forgetToGrpd, ← Functor.assoc, sec_forget, Functor.id_comp]
-
-def dependent' : ∫(fst' B αβ hαβ ⋙ forgetToGrpd) ⥤ Grpd := by
-  have := dependent B
-  sorry
-
-end
-end sigma
-
-
-#exit
 end FunctorOperation
 
 open FunctorOperation
@@ -803,11 +772,12 @@ theorem smallUPair_tp : smallUPair.{v} ≫ smallU.{v}.tp =
 section
 variable (Γ : Ctx) (AB : y(Γ) ⟶ smallU.Ptp.obj.{v} y(U.{v}))
 
-def liftExt : y(smallU.ext.{v} (AB ≫ smallUSig.{v})) ⟶ smallU.compDom.{v} :=
+def liftExt : y(smallU.ext (AB ≫ smallUSig.{v})) ⟶ smallU.compDom.{v} :=
 
   sorry
+  -- smallU.compDom.mk (fst (B s)) (dependent (B s)) (snd (B s)) (snd_forgetToGrpd _)
 
-theorem liftExt_smallUPair : liftExt.{v} Γ AB ≫ smallUPair.{v} = smallU.var.{v} (AB ≫ smallUSig.{v}) :=
+theorem liftExt_smallUPair : liftExt Γ AB ≫ smallUPair.{v} = smallU.var (AB ≫ smallUSig) :=
   sorry
 
 theorem liftExt_comp : liftExt Γ AB ≫ smallU.comp = ym(smallU.disp (AB ≫ smallUSig)) ≫ AB :=

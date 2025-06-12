@@ -22,6 +22,20 @@ open CategoryTheory
 
 namespace GroupoidModel
 
+section
+variable {Γ : Ctx.{max u (v+1)}} (A : y(Γ) ⟶ y(U.{v}))
+
+def smallU.ext : Ctx.{max u (v+1)} :=
+  Ctx.ofGrpd.obj (Grpd.of ∫(yonedaCategoryEquiv A))
+
+def smallU.disp : smallU.ext.{v} A ⟶ Γ :=
+  Ctx.ofGrpd.map forget
+
+def smallU.var : y(smallU.ext.{v} A) ⟶ y(E.{v}) :=
+  yonedaCategoryEquiv.symm (toPGrpd (yonedaCategoryEquiv A))
+
+end
+
 -- TODO link to this in blueprint
 /-- The natural model that acts as the classifier of `v`-large terms and types.
   Note that `Ty` and `Tm` are representables,
@@ -32,9 +46,9 @@ namespace GroupoidModel
   Ty := y(U.{v})
   Tm := y(E)
   tp := ym(π)
-  ext A := Ctx.ofGrpd.obj (Grpd.of ∫(yonedaCategoryEquiv A))
-  disp A := Ctx.ofGrpd.map forget
-  var A := yonedaCategoryEquiv.symm (toPGrpd _)
+  ext A := smallU.ext A
+  disp A := smallU.disp A
+  var A := smallU.var A
   disp_pullback A := by
     convert isPullback_yonedaDisp_yonedaπ (Yoneda.fullyFaithful.homEquiv.symm A)
     simp
@@ -151,7 +165,8 @@ theorem smallU_lift {Γ Δ : Ctx.{max u (v+1)}} (A : y(Γ) ⟶ smallU.{v}.Ty)
     simp
   · simp only [smallU_ext, smallU_Tm, smallU_Ty, smallU_var, Grpd.coe_of,
       Equiv.symm_trans_apply, Equiv.symm_symm, Functor.FullyFaithful.homEquiv_apply, smallU_disp,
-      smallU_tp, IsPullback.lift_snd, ← Functor.map_comp, Grpd.comp_eq_comp]
+      smallU_tp, IsPullback.lift_snd, ← Functor.map_comp, Grpd.comp_eq_comp,
+      smallU.disp]
     erw [(isPullback (yonedaCategoryEquiv A)).fac_right, AsSmall.down_map_up_map]
 
 def yonedaCategoryEquivPre (A : y(Γ) ⟶ smallU.{v}.Ty) :
@@ -187,10 +202,10 @@ theorem smallU_substWk (A : y(Γ) ⟶ smallU.{v}.Ty) : smallU.substWk σ A =
   · conv => right; erw [← yonedaCategoryEquiv_symm_naturality_left]
     rw [substWk_var, smallU_var, yonedaCategoryEquivPre, Ctx.toGrpd_map_ofGrpd_map,
       Functor.assoc, pre_toPGrpd, Grothendieck.Groupoidal.map_eqToHom_toPGrpd]
-    dsimp only [smallU_Ty, smallU_ext]
+    dsimp only [smallU_Ty, smallU_ext, smallU.var]
   · conv => left; rw [← Functor.map_comp, substWk_disp]
     simp only [smallU_disp, ← Functor.map_comp, Grpd.homOf, yonedaCategoryEquivPre,
-      Grpd.comp_eq_comp, Functor.assoc]
+      Grpd.comp_eq_comp, Functor.assoc, smallU.disp]
     rw [pre_forget, ← Functor.assoc, map_forget]
     rfl
 
@@ -370,23 +385,23 @@ theorem fac_right (s : RepPullbackCone smallU.tp form) :
 include intr_tp liftExt in
 /-- To show that the square
 
-  E ----------> M.Tm
+  E ----------> smallU.Tm
   |               |
   |               |
   |               |
   |               |
   V               V
-  B ----------> M.Ty
+  B ----------> smallU.Ty
 
   is a pullback, it suffices to construct a unique lift from
   every context extension.
- y(ext) --------> E ----------> M.Tm
+ y(ext) --------> E ----------> smallU.Tm
   |               |              |
   |               |              |
   |               |              |
   |               |              |
   V               V              V
- y(Γ) ----------> B ----------> M.Ty
+ y(Γ) ----------> B ----------> smallU.Ty
 -/
 theorem of_existsUnique_liftExt_hom_ext
   (hom_ext : Π {Γ : Ctx} (f1 f2 : y(Γ) ⟶ E),
