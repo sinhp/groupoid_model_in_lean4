@@ -23,9 +23,9 @@ open CategoryTheory
 namespace GroupoidModel
 
 section
-variable {Γ : Ctx.{max u (v+1)}} (A : y(Γ) ⟶ y(U.{v}))
+variable {Γ : Ctx} (A : y(Γ) ⟶ y(U.{v}))
 
-def smallU.ext : Ctx.{max u (v+1)} :=
+def smallU.ext : Ctx :=
   Ctx.ofGrpd.obj (Grpd.of ∫(yonedaCategoryEquiv A))
 
 def smallU.disp : smallU.ext.{v} A ⟶ Γ :=
@@ -39,10 +39,10 @@ end
 -- TODO link to this in blueprint
 /-- The natural model that acts as the classifier of `v`-large terms and types.
   Note that `Ty` and `Tm` are representables,
-  but since representables are `max u (v+1)`-large,
+  but since representables are `Ctx`-large,
   its representable fibers can be larger (in terms of universe levels) than itself.
 -/
-@[simps] def smallU : NaturalModelBase Ctx.{max u (v+1)} where
+@[simps] def smallU : NaturalModelBase Ctx where
   Ty := y(U.{v})
   Tm := y(E)
   tp := ym(π)
@@ -148,7 +148,7 @@ section
 
 variable {Γ : Ctx} {C : Type (v+1)} [Category.{v} C] {Δ : Ctx} (σ : Δ ⟶ Γ)
 
-theorem smallU_lift {Γ Δ : Ctx.{max u (v+1)}} (A : y(Γ) ⟶ smallU.{v}.Ty)
+theorem smallU_lift {Γ Δ : Ctx} (A : y(Γ) ⟶ smallU.{v}.Ty)
     (fst : y(Δ) ⟶ smallU.{v}.Tm) (snd : Δ ⟶ Γ)
     (w : fst ≫ smallU.{v}.tp = ym(snd) ≫ A) :
     (smallU.{v}.disp_pullback A).lift fst ym(snd) w =
@@ -209,7 +209,7 @@ theorem smallU_substWk (A : y(Γ) ⟶ smallU.{v}.Ty) : smallU.substWk σ A =
     rw [pre_forget, ← Functor.assoc, map_forget]
     rfl
 
-@[simp] theorem smallU_sec {Γ : Ctx.{max u (v+1)}} (α : y(Γ) ⟶ smallU.{v}.Tm) :
+@[simp] theorem smallU_sec {Γ : Ctx} (α : y(Γ) ⟶ smallU.{v}.Tm) :
     smallU.sec _ α rfl = Ctx.ofGrpd.map (sec _ (yonedaCategoryEquiv α) rfl) := by
   apply Yoneda.fullyFaithful.map_injective
   apply (smallU.disp_pullback _).hom_ext
@@ -263,6 +263,11 @@ thought of as a dependent pair `A : Type` and `B : A ⟶ Type` when `C = Grpd`.
 def mk (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v}) (B : ∫(A) ⥤ C) :
     y(Γ) ⟶ smallU.{v}.Ptp.obj y(Ctx.ofCategory C) :=
   NaturalModelBase.PtpEquiv.mk smallU (yonedaCategoryEquiv.symm A) (yonedaCategoryEquiv.symm B)
+
+theorem hext (AB1 AB2 : y(Γ) ⟶ smallU.{v}.Ptp.obj y(U.{v})) (hfst : fst AB1 = fst AB2)
+    (hsnd : HEq (snd AB1) (snd AB2)) : AB1 = AB2 := by
+  -- apply NaturalModelBase.PtpEquiv.ext
+  sorry
 
 end PtpEquiv
 
@@ -325,18 +330,18 @@ def mk (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v}) (B : ∫(α ⋙ PGrpd.forgetToGr
       rfl)
 
 theorem fst_forgetToGrpd : fst ab ⋙ PGrpd.forgetToGrpd =
-    smallU.PtpEquiv.fst (ab ≫ comp.{v, max u (v+1)}) := by
+    smallU.PtpEquiv.fst (ab ≫ comp.{v}) := by
   erw [smallU.PtpEquiv.fst, ← compDomEquiv.fst_tp smallU ab, ← yonedaCategoryEquiv_naturality_right]
   rfl
 
 theorem dependent_eq : dependent ab =
-    map (eqToHom (fst_forgetToGrpd ab)) ⋙ smallU.PtpEquiv.snd (ab ≫ comp.{v, max u (v+1)}) := by
+    map (eqToHom (fst_forgetToGrpd ab)) ⋙ smallU.PtpEquiv.snd (ab ≫ comp.{v}) := by
   dsimp only [dependent, smallU.PtpEquiv.snd]
   rw [NaturalModelBase.compDomEquiv.dependent_eq smallU ab, yonedaCategoryEquiv_naturality_left,
     eqToHom_map, eqToHom_eq_homOf_map]
   rfl
 
-theorem dependent_heq : HEq (dependent ab) (smallU.PtpEquiv.snd (ab ≫ comp.{v, max u (v+1)})) := by
+theorem dependent_heq : HEq (dependent ab) (smallU.PtpEquiv.snd (ab ≫ comp.{v})) := by
   rw [dependent_eq]
   apply Functor.heq_id_comp
   · rw [fst_forgetToGrpd]
@@ -358,6 +363,36 @@ theorem dependent_naturality : dependent (ym(σ) ≫ ab) = map (eqToHom (by rw [
 theorem snd_naturality : snd (ym(σ) ≫ ab) = Ctx.toGrpd.map σ ⋙ snd ab := by
   dsimp only [snd]
   rw [NaturalModelBase.compDomEquiv.snd_naturality, yonedaCategoryEquiv_naturality_left]
+
+/-- First component of the computation rule for `mk`. -/
+theorem fst_mk (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
+    (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v,v}) (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
+    (h : β ⋙ PGrpd.forgetToGrpd = sec _ α rfl ⋙ B)
+    : fst (mk α B β h) = α := by
+  dsimp [fst, mk]
+  -- TODO
+  -- apply NaturalModelBase.compDomEquiv.fst_mk
+  sorry
+
+/-- Second component of the computation rule for `mk`. -/
+theorem dependent_mk (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
+    (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v,v}) (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
+    (h : β ⋙ PGrpd.forgetToGrpd = sec _ α rfl ⋙ B)
+    : dependent (mk α B β h) = map (eqToHom (by rw [fst_mk])) ⋙ B := by
+  dsimp [snd, mk]
+  -- TODO
+  -- apply NaturalModelBase.compDomEquiv.snd_mk
+  sorry
+
+/-- Second component of the computation rule for `mk`. -/
+theorem snd_mk (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
+    (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v,v}) (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
+    (h : β ⋙ PGrpd.forgetToGrpd = sec _ α rfl ⋙ B)
+    : snd (mk α B β h) = β := by
+  dsimp [snd, mk]
+  -- TODO
+  -- apply NaturalModelBase.compDomEquiv.snd_mk
+  sorry
 
 end compDom
 

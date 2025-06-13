@@ -247,29 +247,29 @@ def asSmallUp_comp_yoneda_iso_forgetToCat_comp_catLift_comp_yonedaCat :
 /-- `U.{v}` is the object representing the
   universe of `v`-small types
   i.e. `y(U) = Ty` for the small natural models `smallU`. -/
-def U : Ctx.{max u (v+1)} :=
+def U : Ctx :=
   Ctx.ofCategory Grpd.{v,v}
 
 /-- `E.{v}` is the object representing `v`-small terms,
   living over `U.{v}`
   i.e. `y(E) = Tm` for the small natural models `smallU`. -/
-def E : Ctx.{max u (v + 1)} :=
+def E : Ctx :=
   Ctx.ofCategory PGrpd.{v,v}
 
 
 /-- `π.{v}` is the morphism representing `v`-small `tp`,
   for the small natural models `smallU`. -/
-def π : E.{v,max u (v+1)} ⟶ U.{v, max u (v+1)} :=
+def π : E.{v} ⟶ U.{v} :=
   Ctx.homOfFunctor PGrpd.forgetToGrpd
 
 namespace U
 
-variable {Γ : Ctx.{max u (v + 1)}} (A : Γ ⟶ U.{v})
+variable {Γ : Ctx} (A : Γ ⟶ U.{v})
 
 def classifier : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v} :=
   Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd) ⋙ AsSmall.down
 
-def ext : Ctx.{max u (v + 1)} :=
+def ext : Ctx :=
   Ctx.ofGrpd.obj (Grpd.of ∫(classifier A))
 
 def disp : ext A ⟶ Γ :=
@@ -280,7 +280,7 @@ def var : ext A ⟶ E.{v} :=
 
 section SmallUHom
 
-variable {Γ : Ctx.{max u (v + 1)}} (A : Γ ⟶ U.{v})
+variable {Γ : Ctx} (A : Γ ⟶ U.{v})
 
 -- TODO rename `U.toU` to `U.liftU` and rename `U.toE` to `U.liftE`
 /-- `toU` is the base map between two `v`-small universes

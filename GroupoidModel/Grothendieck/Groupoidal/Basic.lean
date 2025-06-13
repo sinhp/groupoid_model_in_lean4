@@ -66,14 +66,6 @@ instance : Category ∫(F) := {
   comp := comp
   }
 
-def forget : ∫(F) ⥤ C := Grothendieck.forget _
-
-@[simp] theorem forget_obj (x : ∫(F)) : forget.obj x = x.base :=
-  rfl
-
-@[simp] theorem forget_map {x y : ∫(F)} (f : x ⟶ y) : forget.map f = f.base :=
-  rfl
-
 def base (p : ∫(F)) : C := Grothendieck.base p
 
 def fiber (p : ∫(F)) : F.obj p.base := Grothendieck.fiber p
@@ -89,6 +81,14 @@ def base : x.base ⟶ y.base := Grothendieck.Hom.base f
 def fiber : (F.map f.base).obj x.fiber ⟶ y.fiber := Grothendieck.Hom.fiber f
 
 end Hom
+
+def forget : ∫(F) ⥤ C := Grothendieck.forget _
+
+@[simp] theorem forget_obj (x : ∫(F)) : forget.obj x = x.base :=
+  rfl
+
+@[simp] theorem forget_map {x y : ∫(F)} (f : x ⟶ y) : forget.map f = f.base :=
+  rfl
 
 /--
   We should use this to introduce objects,
@@ -666,6 +666,13 @@ theorem map_eqToHom_heq_id {Γ : Type*} [Category Γ] {A A' : Γ ⥤ Grpd}
     (h : A = A') : HEq (map (eqToHom h)) (𝟭 ∫(A')) := by
   subst h
   simp [map_id_eq]
+
+theorem map_eqToHom_comp_heq {Γ D : Type*} [Category Γ] [Category D] {A A' : Γ ⥤ Grpd}
+    (h : A = A') (F : ∫(A') ⥤ D) : HEq (map (eqToHom h) ⋙ F) F := by
+  apply Functor.heq_id_comp
+  · rw [h]
+  · rw [h]
+  · apply map_eqToHom_heq_id
 
 -- TODO factor through Grothendieck
 lemma pre_congr_functor {Γ Δ : Type*} [Category Γ] [Category Δ] (σ : Δ ⥤ Γ)
