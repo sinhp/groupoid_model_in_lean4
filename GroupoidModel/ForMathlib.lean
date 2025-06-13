@@ -307,6 +307,20 @@ theorem hext_iff (x y : Grothendieck A) (f g : x ⟶ y) : f.base = g.base ∧ HE
     · exact h.1
   · aesop
 
+section
+variable {C : Type u} [Category.{v} C] {D : Type u₁} [Category.{v₁} D]
+   (F : C ⥤ Cat) {G H : D ⥤ C} (α : G ≅ H)
+
+@[simp] theorem preNatIso_hom_app_base (x) :
+    ((preNatIso F α).hom.app x).base = α.hom.app x.base := by
+  simp [Grothendieck.preNatIso]
+
+@[simp] theorem preNatIso_hom_app_fiber (x) :
+    ((preNatIso F α).hom.app x).fiber = 𝟙 _ := by
+  simp [Grothendieck.preNatIso]
+
+end
+
 end Grothendieck
 
 namespace IsPullback
@@ -1165,9 +1179,18 @@ theorem NatTrans.yonedaMk_app {X : C} (α : yoneda.obj X ⟶ F) :
 
 namespace Functor
 
-theorem heq_id_comp {A B : Type u} {C : Type*} [Category.{v} A] [Category.{v} B] [Category C]
+theorem precomp_heq_of_heq_id {A B : Type u} {C : Type*} [Category.{v} A] [Category.{v} B] [Category C]
     (hAB : A = B) (h0 : HEq (inferInstance : Category A) (inferInstance : Category B)) {F : A ⥤ B}
     (h : HEq F (𝟭 B)) (G : B ⥤ C) : HEq (F ⋙ G) G := by
+  subst hAB
+  subst h0
+  subst h
+  rfl
+
+theorem comp_heq_of_heq_id {A B : Type u} {C : Type*} [Category.{v} A] [Category.{v} B] [Category C]
+    (hAB : A = B) (h0 : HEq (inferInstance : Category A) (inferInstance : Category B))
+    {F : B ⥤ A}
+    (h : HEq F (𝟭 B)) (G : C ⥤ B) : HEq (G ⋙ F) G := by
   subst hAB
   subst h0
   subst h

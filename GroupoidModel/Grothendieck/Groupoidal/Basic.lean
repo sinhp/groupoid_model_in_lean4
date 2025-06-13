@@ -662,17 +662,32 @@ lemma eqToHom_eq_homOf_map {Γ : Type*} [Groupoid Γ] {F G : Γ ⥤ Grpd} (h : F
     simp
 
 -- TODO factor through Grothendieck
-theorem map_eqToHom_heq_id {Γ : Type*} [Category Γ] {A A' : Γ ⥤ Grpd}
+theorem map_eqToHom_heq_id_dom {Γ : Type*} [Category Γ] {A A' : Γ ⥤ Grpd}
+    (h : A = A') : HEq (map (eqToHom h)) (𝟭 ∫(A)) := by
+  subst h
+  simp [map_id_eq]
+
+-- TODO factor through Grothendieck
+theorem map_eqToHom_heq_id_cod {Γ : Type*} [Category Γ] {A A' : Γ ⥤ Grpd}
     (h : A = A') : HEq (map (eqToHom h)) (𝟭 ∫(A')) := by
   subst h
   simp [map_id_eq]
 
+-- TODO factor through Grothendieck
 theorem map_eqToHom_comp_heq {Γ D : Type*} [Category Γ] [Category D] {A A' : Γ ⥤ Grpd}
     (h : A = A') (F : ∫(A') ⥤ D) : HEq (map (eqToHom h) ⋙ F) F := by
-  apply Functor.heq_id_comp
+  apply Functor.precomp_heq_of_heq_id
   · rw [h]
   · rw [h]
-  · apply map_eqToHom_heq_id
+  · apply map_eqToHom_heq_id_cod
+
+-- TODO factor through Grothendieck
+theorem comp_map_eqToHom_heq {Γ D : Type*} [Category Γ] [Category D] {A A' : Γ ⥤ Grpd}
+    (h : A = A') (F : D ⥤ ∫(A)) : HEq (F ⋙ map (eqToHom h)) F := by
+  apply Functor.comp_heq_of_heq_id
+  · rw [h]
+  · rw [h]
+  · apply map_eqToHom_heq_id_dom
 
 -- TODO factor through Grothendieck
 lemma pre_congr_functor {Γ Δ : Type*} [Category Γ] [Category Δ] (σ : Δ ⥤ Γ)

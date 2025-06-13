@@ -343,10 +343,10 @@ theorem dependent_eq : dependent ab =
 
 theorem dependent_heq : HEq (dependent ab) (smallU.PtpEquiv.snd (ab ≫ comp.{v})) := by
   rw [dependent_eq]
-  apply Functor.heq_id_comp
+  apply Functor.precomp_heq_of_heq_id
   · rw [fst_forgetToGrpd]
   · rw [fst_forgetToGrpd]
-  · apply map_eqToHom_heq_id
+  · apply map_eqToHom_heq_id_cod
 
 theorem fst_naturality : fst (ym(σ) ≫ ab) = Ctx.toGrpd.map σ ⋙ fst ab := by
   dsimp only [fst]

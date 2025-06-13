@@ -132,7 +132,9 @@ variable (A : Γ ⥤ Grpd.{v₁,u₁}) (α : Γ ⥤ PGrpd.{v₁,u₁}) (h : α �
 -/
 def sec : Γ ⥤ ∫(A) :=
   Groupoidal.functorTo (𝟭 _) (fun x => PGrpd.objFiber' h x) (fun f => PGrpd.mapFiber' h f)
-  (fun x => by simp) (fun f g => by subst h; simp [PGrpd.mapFiber'])
+  (fun x => by simp) (fun f g => by
+    subst h
+    simp [PGrpd.mapFiber', PGrpd.mapFiber'EqToHom, PGrpd.objFiber'EqToHom])
 
 @[simp] lemma sec_obj_base (x) : ((sec A α h).obj x).base = x :=
   rfl
@@ -153,10 +155,11 @@ def sec : Γ ⥤ ∫(A) :=
   · rw [Functor.assoc, toPGrpd_forgetToGrpd, sec, ← Functor.assoc, h]
     rfl
   · intro x
-    simp [toPGrpd_obj_fiber, PGrpd.objFiber', PGrpd.objFiber, Grpd.eqToHom_obj]
+    simp [toPGrpd_obj_fiber, PGrpd.objFiber', PGrpd.objFiber, Grpd.eqToHom_obj,
+      PGrpd.mapFiber'EqToHom, PGrpd.objFiber'EqToHom]
   · intro x y f
     simp only [Functor.comp_map, toPGrpd_map_fiber, sec_map_fiber, PGrpd.mapFiber',
-      Grpd.eqToHom_hom]
+      Grpd.eqToHom_hom, PGrpd.mapFiber'EqToHom, PGrpd.objFiber'EqToHom]
     rw! [eqToHom_comp_heq]
     simp
 
@@ -199,6 +202,19 @@ theorem ι_eq_lift (c : C) : ι F c =
 
 end ι
 
+section
+variable {C : Type u} [Category.{v} C] {D : Type u₁} [Category.{v₁} D]
+  (F : C ⥤ Grpd) {G H : D ⥤ C} (α : G ≅ H)
+
+@[simp] theorem preNatIso_hom_app_base (x) :
+    ((preNatIso F α).hom.app x).base = α.hom.app x.base :=
+  Grothendieck.preNatIso_hom_app_base _ _ _
+
+@[simp] theorem preNatIso_hom_app_fiber (x) :
+    ((preNatIso F α).hom.app x).fiber = 𝟙 _ :=
+  Grothendieck.preNatIso_hom_app_fiber _ _ _
+
+end
 
 end Groupoidal
 end Grothendieck
