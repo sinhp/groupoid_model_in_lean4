@@ -327,18 +327,46 @@ end
 
 end PtpEquiv
 
+lemma Ptp_equiv_naturality_right_fst {Γ : Ctx} {X Y : Psh Ctx}
+    (x : y(Γ) ⟶ M.Ptp.obj X) (α : X ⟶ Y) :
+    (M.Ptp_equiv (x ≫ M.Ptp.map α)).fst = (M.Ptp_equiv x).fst := by
+  simp [Ptp_equiv, UvPoly.equiv]
+  rw! [UvPoly.map_fstProj]
+
+variable {Γ : Ctx} {X Y : Psh Ctx}(α : X ⟶ Y)(x : y(Γ) ⟶ M.Ptp.obj X)
+#check @UvPoly.proj_snd (Psh Ctx) _ _ _ _ _ _ X M.uvPolyTp x
+-- lemma uvPoly_proj_snd {Γ : Ctx} {X Y : Psh Ctx} (x : y(Γ) ⟶ M.Ptp.obj X) (α : X ⟶ Y) :
+-- pullback.map (x ≫ M.uvPolyTp.fstProj X) M.tp (M.uvPolyTp.fstProj X) M.tp x
+-- (𝟙 M.Tm) (𝟙 M.Ty) (by sorry) (by sorry) ≫
+-- UvPoly.PartialProduct.ε M.uvPolyTp X ≫ prod.snd ≫ α = (UvPoly.proj M.Ptp α).snd
+
+set_option maxHeartbeats 0 in
 theorem Ptp_equiv_naturality_right {Γ : Ctx} {X Y : Psh Ctx}
     (x : y(Γ) ⟶ M.Ptp.obj X) (α : X ⟶ Y) :
     M.Ptp_equiv (x ≫ M.Ptp.map α) =
       let S := M.Ptp_equiv x
       ⟨S.1, S.2 ≫ α⟩ := by
   -- See https://leanprover.zulipchat.com/#narrow/channel/116395-maths/topic/Natural.20equivalences.20and.20kernel.20performance/with/513971849
-  sorry
+  dsimp
+  congr! 1 with h
+  . simp only [Ptp_equiv, uvPolyTp_p, UvPoly.equiv, Equiv.trans_apply, Equiv.coe_fn_mk,
+    Equiv.sigmaCongrRight_apply, UvPoly.proj_fst, Category.assoc]
+    rw! [UvPoly.map_fstProj]
+  . simp only [Ptp, Ptp_equiv, uvPolyTp_p, UvPoly.equiv, Equiv.trans_apply, Equiv.coe_fn_mk,
+    Equiv.sigmaCongrRight_apply, UvPoly.proj_fst, Iso.homCongr_apply, pullbackIsoExt_inv,
+    Iso.refl_hom, UvPoly.proj_snd, Category.comp_id, Category.assoc] --Ptp_equiv, UvPoly.equiv, Ptp
+    set P := M.uvPolyTp
+    set g := (P.proj x).snd ≫ α
+    -- have : pullback.map (x ≫ M.uvPolyTp.fstProj X) M.tp (M.uvPolyTp.fstProj X) M.tp x
+    --   (𝟙 M.Tm) (𝟙 M.Ty) (by sorry) (by sorry) ≫
+    --   UvPoly.PartialProduct.ε M.uvPolyTp X ≫ prod.snd  = (UvPoly.proj M.uvPolyTp α).snd := by sorry
+    sorry
 
 @[reassoc]
 theorem Ptp_equiv_symm_naturality_right {Γ : Ctx} {X Y : Psh Ctx}
     (A : y(Γ) ⟶ M.Ty) (x : y(M.ext A) ⟶ X) (α : X ⟶ Y) :
     M.Ptp_equiv.symm ⟨A, x⟩ ≫ M.Ptp.map α = M.Ptp_equiv.symm ⟨A, x ≫ α⟩ := by
+  simp [Ptp_equiv]
   sorry
 
 /-! NOTE(WN): I am worried that the lemmas below leak implementation details of `UvPoly.equiv`:
