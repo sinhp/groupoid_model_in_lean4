@@ -90,6 +90,16 @@ def ofIsPullback {U E : Psh Ctx} {π : E ⟶ U}
 -----------------------------------
 Δ ⊢ σ.t : Γ.A
 ```
+
+ ------ Δ ------ t --------¬
+ |      ↓ substCons         ↓
+ |   M.ext A ---var A---> M.Tm
+ |      |                  |
+ σ      |                  |
+ |    disp A              M.tp
+ |      |                  |
+ |      V                  V
+  ---> Γ ------ A -----> M.Ty
 -/
 def substCons {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty)
     (t : y(Δ) ⟶ M.Tm) (t_tp : t ≫ M.tp = ym(σ) ≫ A) :
@@ -118,7 +128,7 @@ theorem substCons_var {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (t : y
 ```
 -/
 def substFst {Δ Γ : Ctx} {A : y(Γ) ⟶ M.Ty} (σ : Δ ⟶ M.ext A) : Δ ⟶ Γ :=
-  σ ≫ M.disp _
+  σ ≫ M.disp A
 
 /--
 ```
@@ -297,13 +307,20 @@ def mk (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) : y(Γ) ⟶ M.Ptp.obj X :=
 section
 variable {Δ : Ctx} {σ : Δ ⟶ Γ} {AB : y(Γ) ⟶ M.Ptp.obj X}
 
+lemma fst_naturality_left' : ((M.uvPolyTp.equiv y(Δ) X) (ym(σ) ≫ AB)).fst =
+  ym(σ) ≫ ((M.uvPolyTp.equiv y(Γ) X) AB).fst :=
+  rfl
+
 theorem fst_naturality_left : fst M (ym(σ) ≫ AB) = ym(σ) ≫ fst M AB := by
-  dsimp [fst, Ptp_equiv, uvPolyTp]
-  exact rfl
+  rfl
+
+lemma snd_naturality_left' : (pullbackIsoExt.proof_2 M ((M.uvPolyTp.equiv y(Δ) X) (ym(σ) ≫ AB)).fst).isoPullback.hom ≫ ((M.uvPolyTp.equiv y(Δ) X) (ym(σ) ≫ AB)).snd =
+  ym(M.substWk σ ((M.uvPolyTp.equiv y(Γ) X) AB).fst) ≫ (pullbackIsoExt.proof_2 M ((M.uvPolyTp.equiv y(Γ) X) AB).fst).isoPullback.hom ≫ ((M.uvPolyTp.equiv y(Γ) X) AB).snd := by
+  sorry
 
 theorem snd_naturality_left : snd M (ym(σ) ≫ AB) = ym(M.substWk σ _) ≫ snd M AB := by
-  simp [snd, Ptp_equiv, uvPolyTp, substWk, substCons]
-  sorry
+  simp [snd, Ptp_equiv, fst]
+  exact (snd_naturality_left' M)
 
 
 end
@@ -342,7 +359,7 @@ theorem Ptp_equiv_symm_apply {Γ : Ctx} {X : Psh Ctx} (p : (A : y(Γ) ⟶ M.Ty) 
 theorem Ptp_equiv_symm_apply_comp_fstProj
     {Γ : Ctx} {X : Psh Ctx} (p : (A : y(Γ) ⟶ M.Ty) × (y(M.ext A) ⟶ X)):
     M.Ptp_equiv.symm p ≫ M.uvPolyTp.fstProj _ = p.1 := by
-  sorry
+  simp [Ptp_equiv_symm_apply]
 
 section
 variable {Ctx : Type u} [SmallCategory Ctx] {M : NaturalModelBase Ctx} {Γ Δ : Ctx}
@@ -350,7 +367,14 @@ variable {Ctx : Type u} [SmallCategory Ctx] {M : NaturalModelBase Ctx} {Γ Δ : 
 
 theorem Ptp_equiv_naturality_left : M.Ptp_equiv (ym(σ) ≫ A) =
     ⟨ ym(σ) ≫ (M.Ptp_equiv A).1 , ym(M.substWk σ _) ≫ (M.Ptp_equiv A).2 ⟩ := by
-  sorry
+  dsimp [Ptp_equiv]
+  refine Sigma.ext_iff.mpr ?_
+  constructor
+  . simp
+    exact PtpEquiv.fst_naturality_left' M
+  . simp
+    rw! [PtpEquiv.snd_naturality_left' M]
+    rfl
 
 @[simp] theorem Ptp_equiv_naturality_left_snd :
     (M.Ptp_equiv (ym(σ) ≫ A)).2 = ym(M.substWk σ _) ≫ (M.Ptp_equiv A).2 := by
