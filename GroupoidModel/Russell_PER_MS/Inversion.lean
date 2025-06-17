@@ -160,7 +160,7 @@ end InvProof
 /-! ## General inversion lemmas -/
 
 open InvProof
-theorem WfCtx.snoc_inv {Γ A l} : WfCtx ((A, l) :: Γ) → Γ ⊢[l] A | .snoc _ hA => hA
+theorem WfCtx.inv_snoc {Γ A l} : WfCtx ((A, l) :: Γ) → Γ ⊢[l] A | .snoc _ hA => hA
 theorem WfTp.wf_ctx {Γ l A} : Γ ⊢[l] A → WfCtx Γ := inv_all.1
 theorem EqTp.wf_left {Γ l A B} : Γ ⊢[l] A ≡ B → Γ ⊢[l] A := fun h => (inv_all.2.1 h).2.1
 theorem EqTp.wf_right {Γ l A B} : Γ ⊢[l] A ≡ B → Γ ⊢[l] B := fun h => (inv_all.2.1 h).2.2
@@ -199,9 +199,6 @@ theorem snoc {Δ Γ A t σ l} : WfSb Δ σ Γ → Γ ⊢[l] A → Δ ⊢[l] t : 
 
 theorem terminal {Δ} (σ) : WfCtx Δ → WfSb Δ σ [] :=
   fun Δ => mk Δ .nil nofun
-
-theorem conv_binder {Γ A A' l} : Γ ⊢[l] A ≡ A' → WfSb ((A', l) :: Γ) Expr.bvar ((A, l) :: Γ) :=
-  fun AA' => InvProof.wfSb_conv_binder AA'.wf_ctx AA'.wf_left AA'.wf_right AA'
 
 theorem comp {Θ Δ Γ σ τ} : WfSb Θ σ Δ → WfSb Δ τ Γ → WfSb Θ (Expr.comp σ τ) Γ := by
   intro σ τ
@@ -265,12 +262,12 @@ theorem WfTp.inv_el {Γ a l} : Γ ⊢[l] .el a → Γ ⊢[l+1] a : .univ l := by
 theorem WfTp.pi {Γ A B l l'} :
     (A, l) :: Γ ⊢[l'] B →
     Γ ⊢[max l l'] .pi l l' A B :=
-  fun h => WfTp.pi' h.wf_ctx.snoc_inv h
+  fun h => WfTp.pi' h.wf_ctx.inv_snoc h
 
 theorem WfTp.sigma {Γ A B l l'} :
     (A, l) :: Γ ⊢[l'] B →
     Γ ⊢[max l l'] .sigma l l' A B :=
-  fun h => WfTp.sigma' h.wf_ctx.snoc_inv h
+  fun h => WfTp.sigma' h.wf_ctx.inv_snoc h
 
 theorem EqTp.cong_pi {Γ A A' B B' l l'} :
     Γ ⊢[l] A ≡ A' →
@@ -287,7 +284,7 @@ theorem EqTp.cong_sigma {Γ A A' B B' l l'} :
 theorem WfTm.lam {Γ A B t l l'} :
     (A, l) :: Γ ⊢[l'] t : B →
     Γ ⊢[max l l'] .lam l l' A t : .pi l l' A B :=
-  fun h => WfTm.lam' h.wf_ctx.snoc_inv h
+  fun h => WfTm.lam' h.wf_ctx.inv_snoc h
 
 theorem WfTm.app {Γ A B f a l l'} :
     Γ ⊢[max l l'] f : .pi l l' A B →
