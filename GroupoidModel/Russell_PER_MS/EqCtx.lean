@@ -14,6 +14,8 @@ theorem EqCtx.refl {Γ} : WfCtx Γ → EqCtx Γ Γ := by
 
 theorem WfCtx.eq_self {Γ} : WfCtx Γ → EqCtx Γ Γ := EqCtx.refl
 
+theorem WfCtx.sb_self {Γ} : WfCtx Γ → WfSb Γ Expr.bvar Γ := WfSb.id
+
 theorem EqCtx.symm {Γ Γ'} : EqCtx Γ Γ' → EqCtx Γ' Γ := by
   intro h; induction h <;> grind [EqCtx.nil, EqCtx.snoc', EqTp.symm_tp]
 
@@ -92,20 +94,20 @@ theorem EqCtx.lookup_eq {Γ Γ' A A' i l l'} : EqCtx Γ Γ' →
 
 /-! ## Single-binder conversion -/
 
-theorem WfTp.conv_binder {Γ A A' B l} : (A, l) :: Γ ⊢[l] B → Γ ⊢[l] A ≡ A' →
-    (A', l) :: Γ ⊢[l] B :=
+theorem WfTp.conv_binder {Γ A A' B l l'} : (A, l) :: Γ ⊢[l'] B → Γ ⊢[l] A ≡ A' →
+    (A', l) :: Γ ⊢[l'] B :=
   fun h eq => h.conv_ctx (eq.wf_ctx.eq_self.snoc eq)
 
-theorem WfTm.conv_binder {Γ A A' B t l} : (A, l) :: Γ ⊢[l] t : B → Γ ⊢[l] A ≡ A' →
-    (A', l) :: Γ ⊢[l] t : B :=
+theorem WfTm.conv_binder {Γ A A' B t l l'} : (A, l) :: Γ ⊢[l'] t : B → Γ ⊢[l] A ≡ A' →
+    (A', l) :: Γ ⊢[l'] t : B :=
   fun h eq => h.conv_ctx (eq.wf_ctx.eq_self.snoc eq)
 
-theorem EqTp.conv_binder {Γ A A' B B' l} : (A, l) :: Γ ⊢[l] B ≡ B' → Γ ⊢[l] A ≡ A' →
-    (A', l) :: Γ ⊢[l] B ≡ B' :=
+theorem EqTp.conv_binder {Γ A A' B B' l l'} : (A, l) :: Γ ⊢[l'] B ≡ B' → Γ ⊢[l] A ≡ A' →
+    (A', l) :: Γ ⊢[l'] B ≡ B' :=
   fun h eq => h.conv_ctx (eq.wf_ctx.eq_self.snoc eq)
 
-theorem EqTm.conv_binder {Γ A A' B t t' l} : (A, l) :: Γ ⊢[l] t ≡ t' : B → Γ ⊢[l] A ≡ A' →
-    (A', l) :: Γ ⊢[l] t ≡ t' : B :=
+theorem EqTm.conv_binder {Γ A A' B t t' l l'} : (A, l) :: Γ ⊢[l'] t ≡ t' : B → Γ ⊢[l] A ≡ A' →
+    (A', l) :: Γ ⊢[l'] t ≡ t' : B :=
   fun h eq => h.conv_ctx (eq.wf_ctx.eq_self.snoc eq)
 
 theorem WfSb.conv_dom_binder {Δ Γ A A' σ l} : WfSb ((A, l) :: Γ) σ Δ → Γ ⊢[l] A ≡ A' →

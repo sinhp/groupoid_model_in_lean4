@@ -24,7 +24,7 @@ inductive Expr where
   | el (a : Expr) : Expr
   /-- Code from a type. -/
   | code (A : Expr) : Expr
-  deriving Repr, Lean.ToExpr
+  deriving Inhabited, Repr, Lean.ToExpr
 
 @[simp]
 theorem Expr.sizeOf_pos (e : Expr) : 0 < sizeOf e := by

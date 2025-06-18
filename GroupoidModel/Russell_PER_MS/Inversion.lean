@@ -153,7 +153,7 @@ theorem inv_all :
       . exact WfTm.bvar (by grind) (Lookup.zero ..)
     all_goals grind
   case pair_fst_snd' => grind [WfTm.pair', WfTm.fst', WfTm.snd']
-  case conv_tm => grind [EqTp.symm_tp, WfTm.conv]
+  case conv_eq => grind [EqTp.symm_tp, WfTm.conv]
 
 end InvProof
 
