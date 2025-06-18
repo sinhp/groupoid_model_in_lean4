@@ -37,8 +37,10 @@ partial def elabMutualInduction (A : Ident) : TacticM Unit := withMainContext do
   -- to be filled in with the motive for that type.
   let mut typeToMotive : Std.HashMap Name MVarId := {}
   let .recInfo iRec ← getConstInfo (mkRecName iA.all[0]!) | throwError "internal error"
+  let lvls ← mkFreshLevelMVars iRec.levelParams.length
+  let tp := iRec.type.instantiateLevelParams iRec.levelParams lvls
   -- Introduce mvars for the parameters; unification will ensure they match up between motives.
-  let (_, _, tp) ← forallMetaBoundedTelescope iRec.type iRec.numParams
+  let (_, _, tp) ← forallMetaBoundedTelescope tp iRec.numParams
   let (ms, _, tp) ← forallMetaBoundedTelescope tp iRec.numMotives
   -- We assume the recursor's motives and `InductiveVal.all` are ordered identically.
   for i in [:iA.all.length] do
