@@ -1,6 +1,7 @@
 import Mathlib.CategoryTheory.Category.Grpd
 import GroupoidModel.ForMathlib
 import GroupoidModel.Grothendieck.Groupoidal.Basic
+import GroupoidModel.Grothendieck.Groupoidal.IsPullback
 import GroupoidModel.Grothendieck.IsPullback
 import GroupoidModel.ForMathlib.CategoryTheory.Functor.IsPullback
 import GroupoidModel.Pointed.Basic
@@ -11,7 +12,10 @@ universe w v u v₁ u₁ v₂ u₂
 
 namespace CategoryTheory
 
-noncomputable section DoublePointedGroupoid
+noncomputable
+
+section BiPointed
+
 
 namespace GrothendieckPointedCategories
 
@@ -72,6 +76,7 @@ theorem Comutes : FirstPointed ⋙ PGrpd.forgetToGrpd = SecondPointed ⋙ PGrpd.
 
 end BPGrpd
 
+section Id
 
 def Id : BPGrpd ⥤ Grpd where
   obj x := Grpd.of (CategoryTheory.Discrete (x.base.fiber ⟶ x.fiber))
@@ -113,14 +118,49 @@ def Refl : PGrpd ⥤ PGrpd where
   obj x := {base := Grpd.of (CategoryTheory.Discrete (x.fiber ⟶ x.fiber)), fiber := { as := 𝟙 x.fiber}}
   map {X Y} f := by
     fconstructor
-    . refine Discrete.functor (fun g => {as := (inv f.fiber ≫ f.base.map g ≫ f.fiber)})
-    . simp[Grpd.forgetToCat]
+    . exact Discrete.functor (fun g => {as := (inv f.fiber ≫ f.base.map g ≫ f.fiber)})
+    . refine eqToHom ?_
+      simp[Grpd.forgetToCat]
+  map_id X := by
+    simp[Discrete.functor,CategoryStruct.id,Grothendieck.id]
+    congr 1
+    . apply CategoryTheory.Functor.ext
+      . intro x y f
+        simp
+        refine eq_of_comp_right_eq fun {X_1} h ↦ rfl
+      . intro x
+        simp[Grpd.forgetToCat]
+    . simp [Grpd.forgetToCat]
+      set eq := of_eq_true ..
+      rw! [eq]
+      simp
+      refine eq_true ?_
+      congr
+      simp
+  map_comp {X Y Z} f g := by
+    simp[Discrete.functor,CategoryStruct.id,Grothendieck.id]
+    congr 1
+    . apply CategoryTheory.Functor.ext
+      . intros a b w
+        sorry
+      . intro w
+        simp[Grpd.forgetToCat]
+    . simp[eqToHom_map]
       sorry
 
+theorem Comute : Diag ⋙ Id = Refl ⋙ PGrpd.forgetToGrpd := by
+  fapply CategoryTheory.Functor.ext
+  . intro X
+    simp[Diag,Id,Refl,PGrpd.forgetToGrpd,Grpd.of,Bundled.of]
+    congr
+  . intro X Y f
+    simp[Diag,Id,Refl,PGrpd.forgetToGrpd]
+    exact rfl
+
+def Rho : PGrpd ⥤ Grothendieck.Groupoidal Id := (Grothendieck.Groupoidal.isPullback Id).lift Refl Diag Comute.symm
 
 
-
-
+end Id
 
 section Contract
 variable {C : Type} [Category C] (a b : C) (f : a ⟶ b) [iso : IsIso f]
@@ -163,3 +203,4 @@ instance (iso : IsIso f) : Category (ContractBase a b) where
   assoc := by
     intros w x y z g h i
     cases w <;> cases x <;> cases y <;> cases z <;> simp [ContractHomId, ContractHomComp]
+end Contract
