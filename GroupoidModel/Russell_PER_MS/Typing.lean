@@ -249,7 +249,7 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     Γ ⊢[max l l'] p ≡ .pair l l' B (.fst l l' A B p) (.snd l l' A B p) : .sigma l l' A B
 
   -- Conversion
-  | conv_tm {Γ A A' t t' l} :
+  | conv_eq {Γ A A' t t' l} :
     Γ ⊢[l] t ≡ t' : A →
     Γ ⊢[l] A ≡ A' →
     Γ ⊢[l] t ≡ t' : A'

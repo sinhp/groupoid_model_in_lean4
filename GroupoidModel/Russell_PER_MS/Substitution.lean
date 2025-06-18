@@ -36,7 +36,7 @@ macro "grind_cases" : tactic =>
     try case snd_pair' => grind [EqTm.snd_pair']
     try case lam_app' => grind [EqTm.lam_app']
     try case pair_fst_snd' => grind [EqTm.pair_fst_snd']
-    try case conv_tm => grind [EqTm.conv_tm]
+    try case conv_eq => grind [EqTm.conv_eq]
     try case refl_tm => grind [EqTm.refl_tm]
     try case symm_tm' => grind [EqTm.symm_tm']
     try case trans_tm' => grind [EqTm.trans_tm']
@@ -194,7 +194,7 @@ theorem refl {Δ Γ σ} : WfSb Δ σ Γ → EqSb Δ σ σ Γ := by
   unfold WfSb EqSb; grind
 
 theorem symm {Δ Γ σ σ'} : EqSb Δ σ σ' Γ → EqSb Δ σ' σ Γ := by
-  unfold EqSb; grind [EqTp.symm_tp, EqTm.symm_tm', EqTm.conv_tm]
+  unfold EqSb; grind [EqTp.symm_tp, EqTm.symm_tm', EqTm.conv_eq]
 
 theorem trans {Δ Γ σ σ' σ''} : EqSb Δ σ σ' Γ → EqSb Δ σ' σ'' Γ → EqSb Δ σ σ'' Γ := by
   unfold EqSb
@@ -202,7 +202,7 @@ theorem trans {Δ Γ σ σ' σ''} : EqSb Δ σ σ' Γ → EqSb Δ σ' σ'' Γ �
   refine ⟨h.1, h.2.1, fun lk => ?_⟩
   replace h := h.2.2 lk
   replace h' := h'.2.2 lk
-  grind [EqTp.symm_tp, EqTp.trans_tp, EqTm.trans_tm', EqTm.conv_tm]
+  grind [EqTp.symm_tp, EqTp.trans_tp, EqTm.trans_tm', EqTm.conv_eq]
 
 theorem lookup {Δ Γ A σ σ' i l} : EqSb Δ σ σ' Γ → Lookup Γ i A l →
     Δ ⊢[l] σ i ≡ σ' i : A.subst σ := by
@@ -346,7 +346,7 @@ theorem subst_all :
     . intros; rw [ih_subst]; apply WfTm.snd' <;> grind
     . intros; rw [ih_subst]; apply EqTm.cong_snd' <;> grind
   case code => grind [WfTm.code, EqTm.cong_code]
-  case conv iht ihA => constructor <;> grind [WfTm.conv, EqTm.conv_tm]
+  case conv => constructor <;> grind [WfTm.conv, EqTm.conv_eq]
   case app_lam' =>
     rw [ih_subst, ih_subst]
     apply (EqTm.app_lam' ..).trans_tm'
@@ -366,13 +366,13 @@ theorem subst_all :
       (ihA.1 <| σσ'.wf_right)
       (ihB.1 <| by grind)
       (ihf.1 <| σσ'.wf_right)
-    convert this.conv_tm _ using 3 <;> autosubst
+    convert this.conv_eq _ using 3 <;> autosubst
     grind [EqTp.cong_pi', EqSb.symm, Expr.up_eq_snoc]
   case pair_fst_snd' =>
     apply (EqTm.pair_fst_snd' ..).trans_tm' <;>
       grind [WfTp.sigma', EqTm.cong_pair', EqTm.cong_fst', EqTm.cong_snd']
-  case symm_tm' => grind [EqTm.symm_tm', EqTm.conv_tm, EqSb.symm]
-  case trans_tm' => grind [EqTm.trans_tm', EqTm.conv_tm, EqSb.symm]
+  case symm_tm' => grind [EqTm.symm_tm', EqTm.conv_eq, EqSb.symm]
+  case trans_tm' => grind [EqTm.trans_tm', EqTm.conv_eq, EqSb.symm]
   case cong_app' ihA _ _ _ _ _ _ σ =>
     rw [ih_subst]
     apply EqTm.cong_app' (ihA.1 σ.wf_left) <;> grind
