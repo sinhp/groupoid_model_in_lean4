@@ -447,7 +447,9 @@ A map `ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp` is equivalently three maps
 `fst, fibers, snd` such that `snd_tp`. The map `fst : y(Γ) ⟶ M.Tm`
 is the `(a : A)` in `(a : A) × (b : B a)`.
 -/
-def fst (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : y(Γ) ⟶ M.Tm := sorry
+def fst (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : y(Γ) ⟶ M.Tm :=
+  ab ≫ pullback.snd N.tp (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).snd ≫
+  pullback.snd (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).fst M.uvPolyTp.p
 
 /-- Universal property of `compDom`, decomposition (part 2).
 
@@ -467,7 +469,8 @@ A map `ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp` is equivalently three maps
 The map `snd : y(Γ) ⟶ M.Tm`
 is the `(b : B a)` in `(a : A) × (b : B a)`.
 -/
-def snd (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : y(Γ) ⟶ N.Tm := sorry
+def snd (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : y(Γ) ⟶ N.Tm :=
+  ab ≫ pullback.fst N.tp (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).snd
 
 /-- Universal property of `compDom`, decomposition (part 4).
 
