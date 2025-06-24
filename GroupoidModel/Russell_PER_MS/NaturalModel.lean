@@ -460,7 +460,18 @@ is the `B : A ⟶ Type` in `(a : A) × (b : B a)`.
 Here `A` is implicit, derived by the typing of `fst`, or `(a : A)`.
 -/
 def fibers (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
-  y(M.ext (fst N ab ≫ M.tp)) ⟶ N.Ty := sorry
+  y(M.ext (fst N ab ≫ M.tp)) ⟶ N.Ty :=
+  let toMTm := M.var (fst N ab ≫ M.tp)
+  let toPolyNTy := ym(M.disp (fst N ab ≫ M.tp)) ≫ ab ≫
+    pullback.snd N.tp (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).snd ≫
+    pullback.fst (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).fst M.uvPolyTp.p
+  have h : toMTm ≫ M.tp = toPolyNTy ≫ (M.uvPolyTp).fstProj N.Ty := by
+    simp[toMTm, toPolyNTy, fst, wk]
+    have haux : pullback.snd (M.uvPolyTp.fstProj N.Ty) M.tp ≫ M.tp =
+      pullback.fst (M.uvPolyTp.fstProj N.Ty) M.tp ≫ M.uvPolyTp.fstProj N.Ty := by sorry
+    rw [haux]
+  -- universal property of pb
+  sorry
 
 /-- Universal property of `compDom`, decomposition (part 3).
 
