@@ -49,8 +49,8 @@ theorem le_univMax_all :
     (∀ {Γ}, WfCtx Γ → ∀ {A i l}, Lookup Γ i A l → l ≤ univMax) ∧
     (∀ {Γ l A}, Γ ⊢[l] A → l ≤ univMax) ∧
     (∀ {Γ l A B}, Γ ⊢[l] A ≡ B → l ≤ univMax) ∧
-    (∀ {Γ l t A}, Γ ⊢[l] t : A → l ≤ univMax) ∧
-    (∀ {Γ l t u A}, Γ ⊢[l] t ≡ u : A → l ≤ univMax) := by
+    (∀ {Γ l A t}, Γ ⊢[l] t : A → l ≤ univMax) ∧
+    (∀ {Γ l A t u}, Γ ⊢[l] t ≡ u : A → l ≤ univMax) := by
   mutual_induction WfCtx
   -- I ❤ grind and omega
   all_goals first | omega | grind
@@ -118,9 +118,9 @@ theorem rename_all :
       ∀ {Δ ξ}, WfCtx Δ → WfRen Δ ξ Γ → Δ ⊢[l] A.rename ξ) ∧
     (∀ {Γ l A B}, Γ ⊢[l] A ≡ B →
       ∀ {Δ ξ}, WfCtx Δ → WfRen Δ ξ Γ → Δ ⊢[l] A.rename ξ ≡ B.rename ξ) ∧
-    (∀ {Γ l t A}, Γ ⊢[l] t : A →
+    (∀ {Γ l A t}, Γ ⊢[l] t : A →
       ∀ {Δ ξ}, WfCtx Δ → WfRen Δ ξ Γ → Δ ⊢[l] t.rename ξ : A.rename ξ) ∧
-    (∀ {Γ l t u A}, Γ ⊢[l] t ≡ u : A →
+    (∀ {Γ l A t u}, Γ ⊢[l] t ≡ u : A →
       ∀ {Δ ξ}, WfCtx Δ → WfRen Δ ξ Γ → Δ ⊢[l] t.rename ξ ≡ u.rename ξ : A.rename ξ) := by
   -- `grind` will pick this up to simplify goals.
   have ih_subst (B a : Expr) (ξ) :
@@ -314,10 +314,10 @@ theorem subst_all :
         ∀ {Δ σ σ'}, EqSb Δ σ σ' Γ → Δ ⊢[l] A.subst σ ≡ A.subst σ') ∧
     (∀ {Γ l A B}, Γ ⊢[l] A ≡ B →
       ∀ {Δ σ σ'}, EqSb Δ σ σ' Γ → Δ ⊢[l] A.subst σ ≡ B.subst σ') ∧
-    (∀ {Γ l t A}, Γ ⊢[l] t : A →
+    (∀ {Γ l A t}, Γ ⊢[l] t : A →
       (∀ {Δ σ}, WfSb Δ σ Γ → Δ ⊢[l] t.subst σ : A.subst σ) ∧
         ∀ {Δ σ σ'}, EqSb Δ σ σ' Γ → Δ ⊢[l] t.subst σ ≡ t.subst σ' : A.subst σ) ∧
-    (∀ {Γ l t u A}, Γ ⊢[l] t ≡ u : A →
+    (∀ {Γ l A t u}, Γ ⊢[l] t ≡ u : A →
       ∀ {Δ σ σ'}, EqSb Δ σ σ' Γ → Δ ⊢[l] t.subst σ ≡ u.subst σ' : A.subst σ) := by
   have ih_subst (B a : Expr) (σ) :
       (B.subst a.toSb).subst σ = (B.subst (Expr.up σ)).subst (a.subst σ).toSb := by autosubst
