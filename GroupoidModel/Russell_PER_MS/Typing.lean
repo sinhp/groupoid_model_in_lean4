@@ -17,10 +17,10 @@ syntax:50 term:51 " ≡ " term:51 " : " term:51 : judgment
 
 set_option hygiene false in
 macro_rules
-  | `($Γ ⊢[$l:term] $t:term : $A:term) => `(WfTm $Γ $l $t $A)
-  | `($Γ ⊢[$l:term] $A:term ≡ $B:term) => `(EqTp $Γ $l $A $B)
   | `($Γ ⊢[$l:term] $A:term) => `(WfTp $Γ $l $A)
-  | `($Γ ⊢[$l:term] $t:term ≡ $u:term : $A:term) => `(EqTm $Γ $l $t $u $A)
+  | `($Γ ⊢[$l:term] $A:term ≡ $B:term) => `(EqTp $Γ $l $A $B)
+  | `($Γ ⊢[$l:term] $t:term : $A:term) => `(WfTm $Γ $l $A $t)
+  | `($Γ ⊢[$l:term] $t:term ≡ $u:term : $A:term) => `(EqTm $Γ $l $A $t $u)
 
 end Notation
 
@@ -170,7 +170,10 @@ inductive WfTm : Ctx → Nat → Expr → Expr → Prop
     Γ ⊢[l] A ≡ A' →
     Γ ⊢[l] t : A'
 
-/-- The two terms are equal at the specified type and universe level. -/
+/-- The two terms are equal at the specified type and universe level.
+
+Note: the type is the _first_ argument in order to make `gcongr` work.
+We still pretty-print it last following convention. -/
 inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
   -- Congruences
   | cong_lam' {Γ A A' B t t' l l'} :
@@ -289,12 +292,12 @@ def EqTp.unexpand : Unexpander
 
 @[app_unexpander WfTm]
 def WfTm.unexpand : Unexpander
-  | `($_ $Γ $l $t $A) => `($Γ ⊢[$l] $t:term : $A)
+  | `($_ $Γ $l $A $t) => `($Γ ⊢[$l] $t:term : $A)
   | _ => throw ()
 
 @[app_unexpander EqTm]
 def EqTm.unexpand : Unexpander
-  | `($_ $Γ $l $t $t' $A) => `($Γ ⊢[$l] $t:term ≡ $t' : $A)
+  | `($_ $Γ $l $A $t $t') => `($Γ ⊢[$l] $t:term ≡ $t' : $A)
   | _ => throw ()
 
 end PrettyPrinting

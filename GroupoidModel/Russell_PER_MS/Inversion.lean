@@ -77,9 +77,9 @@ theorem inv_all :
       WfCtx Γ) ∧
     (∀ {Γ l A B}, Γ ⊢[l] A ≡ B →
       (WfCtx Γ) ∧ (Γ ⊢[l] A) ∧ (Γ ⊢[l] B)) ∧
-    (∀ {Γ l t A}, Γ ⊢[l] t : A →
+    (∀ {Γ l A t}, Γ ⊢[l] t : A →
       (WfCtx Γ) ∧ (Γ ⊢[l] A)) ∧
-    (∀ {Γ l t u A}, Γ ⊢[l] t ≡ u : A →
+    (∀ {Γ l A t u}, Γ ⊢[l] t ≡ u : A →
       (WfCtx Γ) ∧ (Γ ⊢[l] A) ∧ (Γ ⊢[l] t : A) ∧ (Γ ⊢[l] u : A)) := by
   mutual_induction WfCtx
   all_goals dsimp; try intros
@@ -134,7 +134,7 @@ theorem inv_all :
     -- TODO: automate this case more
     case app =>
       have : (B.subst (Expr.up Expr.wk)).subst (Expr.bvar 0).toSb = B := by autosubst
-      conv => enter [4]; rw [← this]
+      conv in B => rw [← this]
       apply WfTm.app' (A := A.subst Expr.wk)
       . grind [tp_wk]
       . apply (subst_all.1 Bwf).1
@@ -229,23 +229,29 @@ theorem up {Δ Γ σ σ' A l} : EqSb Δ σ σ' Γ → Γ ⊢[l] A →
   fun σσ' A =>
     SubstProof.eqSb_up σσ' A (A.subst σσ'.wf_left) (A.subst σσ'.wf_right) (A.subst_eq σσ')
 
+theorem snoc {Δ Γ A t t' σ σ' l} : EqSb Δ σ σ' Γ → Γ ⊢[l] A → Δ ⊢[l] t ≡ t' : A.subst σ →
+    EqSb Δ (Expr.snoc σ t) (Expr.snoc σ' t') ((A,l) :: Γ) := by
+  intro σσ' A tt'
+  apply SubstProof.eqSb_snoc σσ' A (A.subst σσ'.wf_left) (A.subst σσ'.wf_right)
+    (A.subst_eq σσ') tt'.wf_left (tt'.wf_right.conv (A.subst_eq σσ')) tt'
+
 end EqSb
 
 /-! ## Type former inversion -/
 
 theorem WfTp.inv_pi {Γ A B l₀ l l'} : Γ ⊢[l₀] .pi l l' A B →
-    l₀ = max l l' ∧ (Γ ⊢[l] A) ∧ ((A,l) :: Γ ⊢[l'] B) := by
+    l₀ = max l l' ∧ ((A,l) :: Γ ⊢[l'] B) := by
   suffices
       ∀ {Γ l A}, Γ ⊢[l] A → ∀ {A' B l₁ l₂}, A = .pi l₁ l₂ A' B →
-        l = max l₁ l₂ ∧ (Γ ⊢[l₁] A') ∧ ((A', l₁) :: Γ ⊢[l₂] B) from
+        l = max l₁ l₂ ∧ ((A', l₁) :: Γ ⊢[l₂] B) from
     fun h => this h rfl
   mutual_induction WfCtx <;> grind
 
 theorem WfTp.inv_sigma {Γ A B l₀ l l'} : Γ ⊢[l₀] .sigma l l' A B →
-    l₀ = max l l' ∧ (Γ ⊢[l] A) ∧ ((A,l) :: Γ ⊢[l'] B) := by
+    l₀ = max l l' ∧ ((A,l) :: Γ ⊢[l'] B) := by
   suffices
       ∀ {Γ l A}, Γ ⊢[l] A → ∀ {A' B l₁ l₂}, A = .sigma l₁ l₂ A' B →
-        l = max l₁ l₂ ∧ (Γ ⊢[l₁] A') ∧ ((A', l₁) :: Γ ⊢[l₂] B) from
+        l = max l₁ l₂ ∧ ((A', l₁) :: Γ ⊢[l₂] B) from
     fun h => this h rfl
   mutual_induction WfCtx <;> grind
 
@@ -293,29 +299,29 @@ theorem WfTm.app {Γ A B f a l l'} :
     Γ ⊢[l] a : A →
     Γ ⊢[l'] .app l l' A B f a : B.subst a.toSb :=
   fun hf ha =>
-    have ⟨_, hA, hB⟩ := hf.wf_tp.inv_pi
-    WfTm.app' hA hB hf ha
+    have ⟨_, hB⟩ := hf.wf_tp.inv_pi
+    WfTm.app' hB.wf_ctx.inv_snoc hB hf ha
 
 theorem WfTm.pair {Γ A B t u l l'} :
+    (A, l) :: Γ ⊢[l'] B →
     Γ ⊢[l] t : A →
     Γ ⊢[l'] u : B.subst t.toSb →
-    (A, l) :: Γ ⊢[l'] B →
     Γ ⊢[max l l'] .pair l l' B t u : .sigma l l' A B :=
-  fun ht hu hB => WfTm.pair' ht.wf_tp hB ht hu
+  fun hB ht hu => WfTm.pair' ht.wf_tp hB ht hu
 
 theorem WfTm.fst {Γ A B p l l'} :
     Γ ⊢[max l l'] p : .sigma l l' A B →
     Γ ⊢[l] .fst l l' A B p : A :=
   fun hp =>
-    have ⟨_, hA, hB⟩ := hp.wf_tp.inv_sigma
-    WfTm.fst' hA hB hp
+    have ⟨_, hB⟩ := hp.wf_tp.inv_sigma
+    WfTm.fst' hB.wf_ctx.inv_snoc hB hp
 
 theorem WfTm.snd {Γ A B p l l'} :
     Γ ⊢[max l l'] p : .sigma l l' A B →
     Γ ⊢[l'] .snd l l' A B p : B.subst (Expr.fst l l' A B p).toSb :=
   fun hp =>
-    have ⟨_, hA, hB⟩ := hp.wf_tp.inv_sigma
-    WfTm.snd' hA hB hp
+    have ⟨_, hB⟩ := hp.wf_tp.inv_sigma
+    WfTm.snd' hB.wf_ctx.inv_snoc hB hp
 
 theorem EqTm.cong_lam {Γ A A' B t t' l l'} :
     Γ ⊢[l] A ≡ A' →
@@ -376,15 +382,15 @@ theorem EqTm.lam_app {Γ A B f l l'} :
     Γ ⊢[max l l'] f : .pi l l' A B →
     Γ ⊢[max l l'] f ≡ .lam l l' A (.app l l' (A.subst Expr.wk) (B.subst (Expr.up Expr.wk)) (f.subst Expr.wk) (.bvar 0)) : .pi l l' A B :=
   fun hf =>
-    have ⟨_, hA, hB⟩ := hf.wf_tp.inv_pi
-    EqTm.lam_app' hA hB hf
+    have ⟨_, hB⟩ := hf.wf_tp.inv_pi
+    EqTm.lam_app' hB.wf_ctx.inv_snoc hB hf
 
 theorem EqTm.pair_fst_snd {Γ A B p l l'} :
     Γ ⊢[max l l'] p : .sigma l l' A B →
     Γ ⊢[max l l'] p ≡ .pair l l' B (.fst l l' A B p) (.snd l l' A B p) : .sigma l l' A B :=
   fun hp =>
-    have ⟨_, hA, hB⟩ := hp.wf_tp.inv_sigma
-    EqTm.pair_fst_snd' hA hB hp
+    have ⟨_, hB⟩ := hp.wf_tp.inv_sigma
+    EqTm.pair_fst_snd' hB.wf_ctx.inv_snoc hB hp
 
 theorem EqTm.symm_tm {Γ A t t' l} :
     Γ ⊢[l] t ≡ t' : A →
@@ -402,7 +408,7 @@ theorem EqTm.trans_tm {Γ A t t' t'' l} :
 theorem WfTm.inv_bvar {Γ A i l} : Γ ⊢[l] .bvar i : A →
   ∃ B, Lookup Γ i B l ∧ (Γ ⊢[l] A ≡ B) := by
   suffices
-    ∀ {Γ l t C}, Γ ⊢[l] t : C → ∀ {i}, t = .bvar i → ∃ B, Lookup Γ i B l ∧ (Γ ⊢[l] C ≡ B) from
+    ∀ {Γ l C t}, Γ ⊢[l] t : C → ∀ {i}, t = .bvar i → ∃ B, Lookup Γ i B l ∧ (Γ ⊢[l] C ≡ B) from
   fun h => this h rfl
   mutual_induction WfCtx <;>
     grind [EqTp.refl_tp, EqTp.symm_tp, EqTp.trans_tp, WfCtx.lookup_wf]
@@ -411,18 +417,18 @@ theorem WfTm.inv_lam {Γ A C b l₀ l l'} : Γ ⊢[l₀] .lam l l' A b : C →
     l₀ = max l l' ∧ ∃ B,
       ((A, l) :: Γ ⊢[l'] b : B) ∧ (Γ ⊢[max l l'] C ≡ .pi l l' A B) := by
   suffices
-      ∀ {Γ l t C}, Γ ⊢[l] t : C → ∀ {A b l₁ l₂}, t = .lam l₁ l₂ A b →
+      ∀ {Γ l C t}, Γ ⊢[l] t : C → ∀ {A b l₁ l₂}, t = .lam l₁ l₂ A b →
         l = max l₁ l₂ ∧ ∃ B,
           ((A, l₁) :: Γ ⊢[l₂] b : B) ∧ (Γ ⊢[max l₁ l₂] C ≡ .pi l₁ l₂ A B) from
     fun h => this h rfl
   mutual_induction WfCtx <;>
-    grind [WfTp.pi, WfTm.wf_tp, EqTp.refl_tp, EqTp.symm_tp, EqTp.trans_tp]
+    try grind [WfTp.pi, WfTm.wf_tp, EqTp.refl_tp, EqTp.symm_tp, EqTp.trans_tp]
 
 theorem WfTm.inv_app {Γ A B C f a l₀ l l'} : Γ ⊢[l₀] .app l l' A B f a : C →
     l₀ = l' ∧ (Γ ⊢[max l l'] f : .pi l l' A B) ∧ (Γ ⊢[l] a : A) ∧
       (Γ ⊢[l'] C ≡ B.subst a.toSb) := by
   suffices
-      ∀ {Γ l₀ t C}, Γ ⊢[l₀] t : C → ∀ {A B f a l l'}, t = .app l l' A B f a →
+      ∀ {Γ l₀ C t}, Γ ⊢[l₀] t : C → ∀ {A B f a l l'}, t = .app l l' A B f a →
         l₀ = l' ∧ (Γ ⊢[max l l'] f : .pi l l' A B) ∧ (Γ ⊢[l] a : A) ∧
           (Γ ⊢[l'] C ≡ B.subst a.toSb) from
     fun h => this h rfl
@@ -435,7 +441,7 @@ theorem WfTm.inv_pair {Γ B C t u l₀ l l'} : Γ ⊢[l₀] .pair l l' B t u : C
       (Γ ⊢[l'] u : B.subst t.toSb) ∧
       (Γ ⊢[l₀] C ≡ .sigma l l' A B) := by
   suffices
-    ∀ {Γ l t C}, Γ ⊢[l] t : C → ∀ {B t' u' l₁ l₂}, t = .pair l₁ l₂ B t' u' →
+    ∀ {Γ l C t}, Γ ⊢[l] t : C → ∀ {B t' u' l₁ l₂}, t = .pair l₁ l₂ B t' u' →
       l = max l₁ l₂ ∧ ∃ A,
         (Γ ⊢[l₁] t' : A) ∧
         (Γ ⊢[l₂] u' : B.subst t'.toSb) ∧
@@ -446,7 +452,7 @@ theorem WfTm.inv_pair {Γ B C t u l₀ l l'} : Γ ⊢[l₀] .pair l l' B t u : C
 theorem WfTm.inv_fst {Γ A B C p l₀ l l'} : Γ ⊢[l₀] .fst l l' A B p : C →
     l₀ = l ∧ (Γ ⊢[max l l'] p : .sigma l l' A B) ∧ (Γ ⊢[l₀] C ≡ A) := by
   suffices
-    ∀ {Γ l t C}, Γ ⊢[l] t : C → ∀ {A B p l₁ l₂}, t = .fst l₁ l₂ A B p →
+    ∀ {Γ l C t}, Γ ⊢[l] t : C → ∀ {A B p l₁ l₂}, t = .fst l₁ l₂ A B p →
       l = l₁ ∧ (Γ ⊢[max l₁ l₂] p : .sigma l₁ l₂ A B) ∧ (Γ ⊢[l] C ≡ A) from
   fun h => this h rfl
   mutual_induction WfCtx <;> grind [EqTp.refl_tp, EqTp.symm_tp, EqTp.trans_tp]
@@ -455,7 +461,7 @@ theorem WfTm.inv_snd {Γ A B C p l₀ l l'} : Γ ⊢[l₀] .snd l l' A B p : C �
     l₀ = l' ∧ (Γ ⊢[max l l'] p : .sigma l l' A B) ∧
       (Γ ⊢[l₀] C ≡ B.subst (Expr.fst l l' A B p).toSb) := by
   suffices
-    ∀ {Γ l t C}, Γ ⊢[l] t : C → ∀ {A B p l₁ l₂}, t = .snd l₁ l₂ A B p →
+    ∀ {Γ l C t}, Γ ⊢[l] t : C → ∀ {A B p l₁ l₂}, t = .snd l₁ l₂ A B p →
       l = l₂ ∧ (Γ ⊢[max l₁ l₂] p : .sigma l₁ l₂ A B) ∧
       (Γ ⊢[l] C ≡ B.subst (Expr.fst l₁ l₂ A B p).toSb) from
   fun h => this h rfl
@@ -465,7 +471,7 @@ theorem WfTm.inv_snd {Γ A B C p l₀ l l'} : Γ ⊢[l₀] .snd l l' A B p : C �
 theorem WfTm.inv_code {Γ A C l₀} : Γ ⊢[l₀] .code A : C →
     ∃ l, l₀ = l+1 ∧ (Γ ⊢[l] A) ∧ (Γ ⊢[l+1] C ≡ .univ l) := by
   suffices
-    ∀ {Γ l t C}, Γ ⊢[l] t : C → ∀ {A}, t = .code A →
+    ∀ {Γ l C t}, Γ ⊢[l] t : C → ∀ {A}, t = .code A →
       ∃ l₁, l = l₁+1 ∧ (Γ ⊢[l₁] A) ∧ (Γ ⊢[l₁+1] C ≡ .univ l₁) from
   fun h => this h rfl
   mutual_induction WfCtx <;> try grind [EqTp.refl_tp, WfTp.univ, WfTp.wf_ctx]
