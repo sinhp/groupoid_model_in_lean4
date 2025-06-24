@@ -9,9 +9,11 @@ inductive Expr where
   /-- Dependent sum. -/
   | sigma (l l' : Nat) (A B : Expr)
   /-- Lambda with the specified argument type. -/
-  | lam (l l' : Nat) (ty body : Expr)
-  /-- Application at the specified output type family. -/
-  | app (l l' : Nat) (B fn arg : Expr)
+  | lam (l l' : Nat) (A b : Expr)
+  /-- Application at the specified input type `A` and output type family `B`.
+
+  `A` is needed for NbE, but not for interpretation. -/
+  | app (l l' : Nat) (A B fn arg : Expr)
   /-- Pair formation. -/
   | pair (l l' : Nat) (B t u : Expr)
   /-- First component of a pair. -/
