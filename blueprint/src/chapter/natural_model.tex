@@ -7,7 +7,7 @@ with the following additional features
     exploiting the technology of polynomial endofunctors.
   \item A collection of N Russell-style nested universes.
   \item universe-variable $\Pi$-types and $\Si$-types,
-    i.e. with possibly different universe level inputs,
+    i.e.\ with possibly different universe level inputs,
     and landing in the largest universe
     (imitating the type theory of \texttt{Lean4}).
 \end{enumerate}
@@ -17,12 +17,12 @@ with the following additional features
 \section{Interpretation of syntax}
 
 A very brief overview of the interpretation of syntax follows.
-We will work in a presheaf category $\pshC$.
-A context $\Ga$ will be interpreted as an object $\IntpCtx{\Ga} \in \catC$.
-We will often take the image of the context under the Yoneda embedding
+We work in a presheaf category $\pshC$.
+A context $\Ga$ is interpreted as an object $\IntpCtx{\Ga} \in \catC$.
+We often take the image of the context under the Yoneda embedding
 $\yo \IntpCtx{\Ga} \in \pshC$.
 If $i \le N$ is a universe level, then
-a typing judgment $\Ga \vdash_i a : A$ will be interpreted as
+a typing judgment $\Ga \vdash_i a : A$ is interpreted as
 a commuting triangle of the following form
 \begin{center}
 \begin{tikzcd}
@@ -47,8 +47,8 @@ Fix a small category $\catC$.
   we say that a map $\tp : \Term \to \Type$ in $\pshC$ is
   \emph{fiberwise representable}
   or a \emph{natural model} when
-  any fiber of a representable is representable.
-  In other words, given any $\Ga \in \catC$ and a map $A : \yo (\Ga) \to \Type$,
+  every fiber is representable.
+  In other words, given any $\Ga \in \catC$ and any map $A : \yo (\Ga) \to \Type$,
   there is some representable $\Ga \cdot A \in \catC$ and maps $\disp{A} : \Ga \cdot A \to \Ga$
   and $\var_{A} : \yo (\Ga \cdot A) \to \Term$ forming a pullback
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXHlvIChcXEdhIFxcY2RvdCBBKSJdLFswLDEsIlxceW8gKFxcR2EpIl0sWzEsMSwiXFxUeXBlIl0sWzEsMCwiXFxUZXJtIl0sWzAsMSwiXFx5byAoXFxkaXNwe0F9KSIsMl0sWzEsMiwiQSIsMl0sWzMsMiwiXFx0cCJdLFswLDMsIlxcdmFyX0EiXSxbMCwyLCIiLDEseyJzdHlsZSI6eyJuYW1lIjoiY29ybmVyIn19XV0=
@@ -95,7 +95,7 @@ Fix a small category $\catC$.
     \end{itemize}
 \end{defn}
 
-\section{Pi types}
+\section{Product types}
 
 \begin{defn}\label{defn:NaturalModelPi}
 % \lean{CategoryTheory.NaturalModel.NaturalModelRussellPi}
@@ -123,7 +123,7 @@ for each $i, j \le N$, a pullback square
 
 % TODO: details, interpretation of syntax
 
-\section{Sigma types}
+\section{Sum types}
 
 \begin{defn}\label{defn:NaturalModelSigma}
 % \lean{CategoryTheory.NaturalModel.NaturalModelSigma} \leanok
