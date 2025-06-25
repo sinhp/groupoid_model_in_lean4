@@ -1,13 +1,11 @@
-import GroupoidModel.Russell_PER_MS.Inversion
+import GroupoidModel.Russell_PER_MS.Substitution
 
-/-! 2025-06-18:
-Launched an attempt at redefining `sbOfEnv` (in more generality)
-to be better-behaved; in particular, we have `sbOfTms [] = Expr.bvar`. -/
+/-! # Substitutions from lists of terms -/
 
 /-- The action of substitutions is determined by their action on bound variables.
 
 This has stronger assumptions than necessary:
-only well-scopedness or `maxBvar` is actually needed;
+only well-scopedness or `i < maxBvar` is actually needed;
 but I can't be bothered defining that. -/
 theorem sb_irrel :
     (∀ {Γ l A}, Γ ⊢[l] A →
@@ -30,6 +28,13 @@ theorem sb_irrel :
 
 /-! ## Substitutions from lists of expressions -/
 
+/-- The substitution `Δ ⊢ sbOfTms ts 0 : Aₙ.….A₁` corresponding to a list of terms
+`Δ ⊢ ts[ts.length - 1] : Aₙ`
+`Δ ⊢ ts[ts.length - 2] : Aₙ₋₁[ts[ts.length - 1]]`
+⋮
+`Δ ⊢ ts[0] : A₁[…]`.
+
+The parameter `k` is just a formal device to obtain nicer lemmas. -/
 def sbOfTms (ts : List Expr) (k := 0) : Nat → Expr :=
   fun i => ts[i]?.getD (Expr.bvar <| i + k)
 
