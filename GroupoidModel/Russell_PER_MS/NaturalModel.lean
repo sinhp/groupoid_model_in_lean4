@@ -464,14 +464,20 @@ def fibers (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
   let toMTm := M.var (fst N ab ≫ M.tp)
   let toPolyNTy := ym(M.disp (fst N ab ≫ M.tp)) ≫ ab ≫
     pullback.snd N.tp (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).snd ≫
-    pullback.fst (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).fst M.uvPolyTp.p
+    pullback.fst (M.uvPolyTp.fstProj N.Ty) M.uvPolyTp.p
   have h : toMTm ≫ M.tp = toPolyNTy ≫ (M.uvPolyTp).fstProj N.Ty := by
     simp[toMTm, toPolyNTy, fst, wk]
     have haux : pullback.snd (M.uvPolyTp.fstProj N.Ty) M.tp ≫ M.tp =
-      pullback.fst (M.uvPolyTp.fstProj N.Ty) M.tp ≫ M.uvPolyTp.fstProj N.Ty := by sorry
+      pullback.fst (M.uvPolyTp.fstProj N.Ty) M.tp ≫ M.uvPolyTp.fstProj N.Ty :=
+      Eq.symm pullback.condition
     rw [haux]
-  -- universal property of pb
-  sorry
+  have pb_eq : pullback M.tp (M.uvPolyTp.fstProj N.Ty) ≅
+      pullback (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).fst M.uvPolyTp.p := by
+      simp only [uvPolyTp_p, UvPoly.PartialProduct.fan_pt, UvPoly.PartialProduct.fan_fst, toMTm,
+        toPolyNTy]
+      exact pullbackSymmetry M.tp (M.uvPolyTp.fstProj N.Ty)
+  (pullback.lift toMTm toPolyNTy h) ≫ pb_eq.hom ≫  (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).snd
+
 
 /-- Universal property of `compDom`, decomposition (part 3).
 
