@@ -1,7 +1,12 @@
 import GroupoidModel.Russell_PER_MS.EqCtx
 import Mathlib.Tactic.GCongr
 
--- Note: `refl` lemmas are not marked `@[refl]` because `rfl` expects unconditional reflexivity.
+/-! # `gcongr` lemmas
+
+In this module we prove special-case congruence lemmas for use with `gcongr`. -/
+
+/- Note: `refl` lemmas are not marked `@[refl]`
+because the `rfl` tactic expects unconditional reflexivity. -/
 
 attribute [symm] EqTp.symm_tp
 attribute [trans] EqTp.trans_tp

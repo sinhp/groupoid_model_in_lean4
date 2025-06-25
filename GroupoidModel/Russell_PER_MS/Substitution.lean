@@ -377,7 +377,7 @@ theorem subst_all :
 
 end SubstProof
 
-/-! ## Consequences -/
+/-! ## Substitution helper lemmas -/
 
 open SubstProof
 
