@@ -497,7 +497,8 @@ The equation `snd_tp` says that the type of `b : B a` agrees with
 the expression for `B a` obtained solely from `fibers`, or `B : A ⟶ Type`.
 -/
 theorem snd_tp (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : snd N ab ≫ N.tp =
-    ym(M.sec _ (fst N ab) rfl) ≫ fibers N ab := sorry
+    ym(M.sec _ (fst N ab) rfl) ≫ fibers N ab := by
+  sorry
 
 /-- Universal property of `compDom`, constructing a map into `compDom`. -/
 def mk (α : y(Γ) ⟶ M.Tm) (B : y(M.ext (α ≫ M.tp)) ⟶ N.Ty) (β : y(Γ) ⟶ N.Tm)
@@ -517,7 +518,12 @@ def mk (α : y(Γ) ⟶ M.Tm) (B : y(M.ext (α ≫ M.tp)) ⟶ N.Ty) (β : y(Γ) �
 Namely the first projection `α ≫ tp` agrees.
 -/
 theorem fst_tp (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
-    fst N ab ≫ M.tp = PtpEquiv.fst M (ab ≫ (M.uvPolyTp.comp _).p) := sorry
+    fst N ab ≫ M.tp = PtpEquiv.fst M (ab ≫ (M.uvPolyTp.comp _).p) := by
+  simp [PtpEquiv.fst, fst]
+  have : pullback.snd (M.uvPolyTp.fstProj N.Ty) M.tp ≫ M.tp =
+    pullback.fst (M.uvPolyTp.fstProj N.Ty) M.tp ≫ M.uvPolyTp.fstProj N.Ty :=
+      Eq.symm pullback.condition
+  rw [this]
 
 /-- Computation of `comp` (part 2).
 
