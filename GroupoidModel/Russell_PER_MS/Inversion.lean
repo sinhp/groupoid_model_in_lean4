@@ -209,6 +209,9 @@ theorem comp {Θ Δ Γ σ τ} : WfSb Θ σ Δ → WfSb Δ τ Γ → WfSb Θ (Exp
   convert τ.lookup lk |>.subst σ using 1
   autosubst
 
+theorem toSb {Γ A t l} : Γ ⊢[l] t : A → WfSb Γ t.toSb ((A, l) :: Γ) :=
+  fun t => snoc (WfSb.id t.wf_ctx) t.wf_tp (by convert t; autosubst)
+
 end WfSb
 
 namespace EqSb
@@ -234,6 +237,9 @@ theorem snoc {Δ Γ A t t' σ σ' l} : EqSb Δ σ σ' Γ → Γ ⊢[l] A → Δ 
   intro σσ' A tt'
   apply SubstProof.eqSb_snoc σσ' A (A.subst σσ'.wf_left) (A.subst σσ'.wf_right)
     (A.subst_eq σσ') tt'.wf_left (tt'.wf_right.conv (A.subst_eq σσ')) tt'
+
+theorem toSb {Γ t t' A l} : Γ ⊢[l] t ≡ t' : A → EqSb Γ t.toSb t'.toSb ((A, l) :: Γ) :=
+  fun tt' => snoc (EqSb.refl <| WfSb.id tt'.wf_ctx) tt'.wf_tp (by convert tt'; autosubst)
 
 end EqSb
 
