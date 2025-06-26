@@ -1049,12 +1049,11 @@ end
 
 end Grothendieck
 
--- NOTE this was added to mathlib very recently
-variable {C : Type u₁} [Category.{v₁} C] {D : Type u₂} [Category.{v₂} D] {E : Type u₃}
-  [Category.{v₃} E]
-
 section
-variable {B : Type u} [Category.{v} B]
+variable {C : Type u₁} [Category.{v₁} C]
+  {D : Type u₂} [Category.{v₂} D]
+  {E : Type u₃} [Category.{v₃} E]
+  {B : Type u} [Category.{v} B]
 
 @[simp]
 theorem isoWhiskerLeft_eqToIso (F : C ⥤ D) {G H : D ⥤ E} (η : G = H) :
