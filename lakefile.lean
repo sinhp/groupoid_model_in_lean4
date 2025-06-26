@@ -10,7 +10,7 @@ package groupoid_model where
   ]
   -- add any additional package configuration options here
 
-require Poly from git "https://github.com/Vtec234/Poly.git" @ "profunctor-naturality"
+require Poly from git "https://github.com/Vtec234/Poly.git" @ "bump/v4.21.0-rc3"
 
 @[default_target]
 lean_lib GroupoidModel where
@@ -21,4 +21,4 @@ require checkdecls from git "https://github.com/PatrickMassot/checkdecls.git"
 
 meta if get_config? env = some "dev" then
 require «doc-gen4» from git
-  "https://github.com/leanprover/doc-gen4" @ "v4.17.0-rc1"
+  "https://github.com/leanprover/doc-gen4" @ "v4.21.0-rc3"

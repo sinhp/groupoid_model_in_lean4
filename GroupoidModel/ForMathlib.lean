@@ -7,7 +7,7 @@ import Mathlib.CategoryTheory.Category.Cat
 import Mathlib.CategoryTheory.Category.Grpd
 import Mathlib.CategoryTheory.Grothendieck
 import Mathlib.Data.Part
-import Mathlib.CategoryTheory.ChosenFiniteProducts
+import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
 import Mathlib.CategoryTheory.Core
 import Mathlib.CategoryTheory.Adjunction.Limits
 import Mathlib.CategoryTheory.Grothendieck
@@ -347,9 +347,13 @@ def isLimitProdCone (X Y : Grpd) : IsLimit (prodCone X Y) := BinaryFan.isLimitMk
       (by dsimp; rw [← h2]; rfl))
       (fun _ _ _ ↦ by dsimp; rw [← h1, ← h2]; rfl))
 
-instance : ChosenFiniteProducts Grpd where
-  product (X Y : Grpd) := { isLimit := isLimitProdCone X Y }
-  terminal  := { isLimit := chosenTerminalIsTerminal }
+instance : CartesianMonoidalCategory Grpd :=
+  .ofChosenFiniteProducts
+    { cone := asEmptyCone chosenTerminal
+      isLimit := chosenTerminalIsTerminal }
+    (fun X Y => {
+      cone := prodCone X Y
+      isLimit := isLimitProdCone X Y })
 
 /-- The identity in the category of groupoids equals the identity functor.-/
 @[simp] theorem id_eq_id (X : Grpd) : 𝟙 X = 𝟭 X := rfl
@@ -756,16 +760,16 @@ end Core
 
 namespace Equivalence
 noncomputable section
-open Limits ChosenFiniteProducts
+open Limits MonoidalCategory CartesianMonoidalCategory
 
 variable {C : Type u₁} {D : Type u₂}
   [Category.{v₁} C] [Category.{v₂} D]
-  [ChosenFiniteProducts C]
+  [CartesianMonoidalCategory C]
   (e : Equivalence C D)
 
 /-- The chosen terminal object in `D`. -/
 abbrev chosenTerminal : D :=
-  e.functor.obj MonoidalCategory.tensorUnit
+  e.functor.obj (𝟙_ C)
 
 /-- The chosen terminal object in `D` is terminal. -/
 def chosenTerminalIsTerminal :
@@ -785,14 +789,17 @@ def isLimitProdCone (X Y : D) : IsLimit (e.prodCone X Y) :=
   IsLimit.ofIsoLimit (
   BinaryFan.isLimitCompRightIso _ (e.counit.app _) (
   BinaryFan.isLimitCompLeftIso _ (e.counit.app _) (
-  isLimitChosenFiniteProductsOfPreservesLimits e.functor
+  isLimitCartesianMonoidalCategoryOfPreservesLimits e.functor
     (e.inverse.obj X) (e.inverse.obj Y))))
   (BinaryFan.ext (eqToIso rfl) (by aesop_cat) (by aesop_cat))
 
-def chosenFiniteProducts [ChosenFiniteProducts C] :
-  ChosenFiniteProducts D where
-  product X Y := { isLimit := e.isLimitProdCone X Y }
-  terminal := { isLimit := e.chosenTerminalIsTerminal }
+def chosenFiniteProducts [CartesianMonoidalCategory C] : CartesianMonoidalCategory D :=
+  .ofChosenFiniteProducts
+    { cone := asEmptyCone e.chosenTerminal
+      isLimit := e.chosenTerminalIsTerminal }
+    (fun X Y => {
+      cone := e.prodCone X Y
+      isLimit := e.isLimitProdCone X Y })
 
 end
 end Equivalence
@@ -1045,10 +1052,6 @@ end Grothendieck
 -- NOTE this was added to mathlib very recently
 variable {C : Type u₁} [Category.{v₁} C] {D : Type u₂} [Category.{v₂} D] {E : Type u₃}
   [Category.{v₃} E]
-@[simp]
-theorem isoWhiskerLeft_trans (F : C ⥤ D) {G H K : D ⥤ E} (α : G ≅ H) (β : H ≅ K) :
-    isoWhiskerLeft F (α ≪≫ β) = isoWhiskerLeft F α ≪≫ isoWhiskerLeft F β :=
-  rfl
 
 section
 variable {B : Type u} [Category.{v} B]
@@ -1104,25 +1107,6 @@ lemma lift_fst_snd {P X Y Z : C} {fst : P ⟶ X} {snd : P ⟶ Y} {f : X ⟶ Z} {
   apply pb.hom_ext <;> simp
 
 end CategoryTheory.IsPullback
-
--- TODO: delete this when bumping mathlib, it's in newer versions.
-namespace CategoryTheory.Functor.FullyFaithful
-
-variable {C : Type u₁} [Category.{v₁} C] {D : Type u₂} [Category.{v₂} D]
-variable {F : C ⥤ D} {X Y Z : C}
-variable (hF : F.FullyFaithful)
-
-@[simp]
-lemma preimage_id {X : C} :
-    hF.preimage (𝟙 (F.obj X)) = 𝟙 X :=
-  hF.map_injective (by simp)
-
-@[simp, reassoc]
-lemma preimage_comp {X Y Z : C} (f : F.obj X ⟶ F.obj Y) (g : F.obj Y ⟶ F.obj Z) :
-    hF.preimage (f ≫ g) = hF.preimage f ≫ hF.preimage g :=
-  hF.map_injective (by simp)
-
-end CategoryTheory.Functor.FullyFaithful
 
 namespace CategoryTheory
 
