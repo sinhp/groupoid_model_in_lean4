@@ -1,8 +1,9 @@
 import Mathlib.CategoryTheory.Limits.Preserves.FunctorCategory
-import Mathlib.CategoryTheory.Functor.ReflectsIso
+import Mathlib.CategoryTheory.Functor.ReflectsIso.Basic
 import Mathlib.CategoryTheory.Category.Cat.Limit
-import Mathlib.CategoryTheory.ChosenFiniteProducts.Cat
+import Mathlib.CategoryTheory.Monoidal.Cartesian.Cat
 
+import GroupoidModel.ForMathlib.CategoryTheory.Core
 import GroupoidModel.Russell_PER_MS.NaturalModel
 import GroupoidModel.Grothendieck.Groupoidal.IsPullback
 
@@ -86,9 +87,9 @@ def ofCategory (C : Type (v+1)) [Category.{v} C] : Ctx.{max u (v+1)} :=
 def homOfFunctor {C : Type (v+1)} [Category.{v} C] {D : Type (w+1)} [Category.{w} D]
     (F : C ⥤ D) : Ctx.ofCategory.{v, max u (v+1) (w+1)} C
     ⟶ Ctx.ofCategory.{w, max u (v+1) (w+1)} D :=
-  Ctx.ofGrpd.map $ Grpd.homOf $ Core.map' $ AsSmall.down ⋙ F ⋙ AsSmall.up
+  Ctx.ofGrpd.map $ Grpd.homOf $ Functor.core $ AsSmall.down ⋙ F ⋙ AsSmall.up
 
-instance : ChosenFiniteProducts Ctx := equivalence.chosenFiniteProducts
+instance : CartesianMonoidalCategory Ctx := equivalence.chosenFiniteProducts
 
 end Ctx
 

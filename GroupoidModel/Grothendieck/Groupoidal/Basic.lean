@@ -437,8 +437,13 @@ variable {X} {Y : ∫(F)} (f : X ⟶ Y)
 
 @[simp] theorem map_map_fiber :
   ((Groupoidal.map α).map f).fiber =
-    eqToHom (Functor.congr_obj (map.proof_1 (whiskerRight α _) f) X.fiber)
+    eqToHom (Functor.congr_obj (α.naturality f.base).symm X.fiber)
     ≫ (α.app Y.base).map f.fiber := Grothendieck.map_map_fiber _ _
+
+-- @[simp] theorem map_map_fiber :
+--   ((Groupoidal.map α).map f).fiber =
+--     eqToHom (Functor.congr_obj (map.proof_1 (whiskerRight α _) f) X.fiber)
+--     ≫ (α.app Y.base).map f.fiber := Grothendieck.map_map_fiber _ _
 
 lemma comp_forget_naturality  {α : F ⟶ G} {X Y : Γ} (f : X ⟶ Y) : (F ⋙ Grpd.forgetToCat).map f ≫ Grpd.forgetToCat.map (α.app Y)=
   Grpd.forgetToCat.map (α.app X) ≫ (G ⋙ Grpd.forgetToCat).map f := by

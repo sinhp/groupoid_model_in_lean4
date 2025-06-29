@@ -19,7 +19,7 @@ and this instance allows use to use it directly
 rather than through an isomorphism with `Limits.terminal`.
 `ChosenTerminal` would suffice but is not defined in mathlib,
 so we use `ChosenFiniteProducts`. -/
-variable [ChosenFiniteProducts Ctx]
+variable [CartesianMonoidalCategory Ctx]
 
 -- Should be in mathlib?
 def isTerminal_yUnit : IsTerminal y(𝟙_ Ctx) :=
@@ -131,7 +131,7 @@ def UHom.ofTarskiU (M : NaturalModelBase Ctx) (U : y(𝟙_ Ctx) ⟶ M.Ty) (El : 
 
 variable (Ctx) in
 /-- A sequence of Russell universe embeddings. -/
-structure UHomSeq [ChosenFiniteProducts Ctx] where
+structure UHomSeq [CartesianMonoidalCategory Ctx] where
   /-- Number of embeddings in the sequence,
   or one less than the number of models in the sequence. -/
   length : Nat
@@ -216,14 +216,14 @@ can be extended to
 --------------------------
 Γ ⊢ₘₐₓ₍ᵢ,ⱼ₎ ΠA. B type
 ``` -/
-structure UHomSeqPiSigma (Ctx : Type u) [SmallCategory.{u} Ctx] [ChosenFiniteProducts Ctx]
+structure UHomSeqPiSigma (Ctx : Type u) [SmallCategory.{u} Ctx] [CartesianMonoidalCategory Ctx]
     extends UHomSeq Ctx where
   nmPi (i : Nat) (ilen : i < length + 1 := by get_elem_tactic) : NaturalModelPi toUHomSeq[i]
   nmSigma (i : Nat) (ilen : i < length + 1 := by get_elem_tactic) : NaturalModelSigma toUHomSeq[i]
 
 namespace UHomSeqPiSigma
 
-variable {Ctx : Type u} [SmallCategory.{u} Ctx] [ChosenFiniteProducts Ctx]
+variable {Ctx : Type u} [SmallCategory.{u} Ctx] [CartesianMonoidalCategory Ctx]
 
 instance : GetElem (UHomSeqPiSigma Ctx) Nat (NaturalModelBase Ctx)
     (fun s i => i < s.length + 1) where
