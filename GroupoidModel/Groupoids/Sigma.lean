@@ -520,17 +520,22 @@ theorem ι_sigma_comp_map_fstAux (x) : ι (sigma A B) x ⋙ map (fstAux B)
 
 -- TODO follow the advice of improving API for those two goals
 theorem assoc_forget : assoc B ⋙ forget = fstAux' B := by
-  dsimp [assoc, fstAux']
-  fapply CategoryTheory.Functor.ext
-  · intro p
-    apply Grothendieck.Groupoidal.obj_hext
-    · simp
-    · simp [base]
-  · intro p q h
-    apply Grothendieck.Groupoidal.ext
-    · simp [eqToHom_map, assocHom, assocIso, preNatIso, Grothendieck.preNatIso, ιNatIso, Functor.map_id]
-      sorry
-    · sorry
+  apply Grothendieck.Groupoidal.Functor.hext
+  · rw [Functor.assoc]
+    sorry
+  · sorry
+  · sorry
+  -- dsimp [assoc, fstAux']
+  -- fapply CategoryTheory.Functor.ext
+  -- · intro p
+  --   apply Grothendieck.Groupoidal.obj_hext
+  --   · simp
+  --   · simp [base]
+  -- · intro p q h
+  --   apply Grothendieck.Groupoidal.ext
+  --   · simp [eqToHom_map, assocHom, assocIso, preNatIso, Grothendieck.preNatIso, ιNatIso, Functor.map_id]
+  --     sorry
+  --   · sorry
     -- apply Grothendieck.Groupoidal.ext
     -- -- TODO improve API for these two goals
     -- · simp [ι_map, assocHom, assocIso, preNatIso, ιNatIso, Grothendieck.preNatIso, Grpd.forgetToCat]
