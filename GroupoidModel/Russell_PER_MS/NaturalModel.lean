@@ -498,6 +498,7 @@ the expression for `B a` obtained solely from `fibers`, or `B : A ⟶ Type`.
 -/
 theorem snd_tp (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : snd N ab ≫ N.tp =
     ym(M.sec _ (fst N ab) rfl) ≫ fibers N ab := by
+  simp [snd, fst, fibers]
   sorry
 
 /-- Universal property of `compDom`, constructing a map into `compDom`. -/
@@ -539,16 +540,22 @@ Namely the second projection `B` agrees.
 -/
 theorem fibers_eq (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : fibers N ab =
     ym(eqToHom (by rw [fst_tp])) ≫ PtpEquiv.snd M (ab ≫ (M.uvPolyTp.comp _).p) := by
+  simp [PtpEquiv.snd, fibers, Ptp_equiv]
+
   sorry
 
 def fst_naturality (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
-    fst N (ym(σ) ≫ ab) = ym(σ) ≫ fst N ab := sorry
+    fst N (ym(σ) ≫ ab) = ym(σ) ≫ fst N ab := by
+  simp only [fst, Category.assoc]
 
 def fibers_naturality (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : fibers N (ym(σ) ≫ ab)
-    = ym(eqToHom (by simp [fst_naturality]) ≫ M.substWk σ _) ≫ fibers N ab := sorry
+    = ym(eqToHom (by simp [fst_naturality]) ≫ M.substWk σ _) ≫ fibers N ab := by
+  simp [fibers, fst]
+  sorry
 
 def snd_naturality (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
-    snd N (ym(σ) ≫ ab) = ym(σ) ≫ snd N ab := sorry
+    snd N (ym(σ) ≫ ab) = ym(σ) ≫ snd N ab := by
+  simp only [snd, Category.assoc]
 
 end compDomEquiv
 
