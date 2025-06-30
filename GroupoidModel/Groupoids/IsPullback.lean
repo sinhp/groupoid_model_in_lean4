@@ -1,7 +1,5 @@
 import Mathlib.CategoryTheory.Limits.Preserves.FunctorCategory
-import Mathlib.CategoryTheory.Functor.ReflectsIso
 import Mathlib.CategoryTheory.Category.Cat.Limit
-import Mathlib.CategoryTheory.ChosenFiniteProducts.Cat
 
 import GroupoidModel.Russell_PER_MS.NaturalModel
 import GroupoidModel.Grothendieck.Groupoidal.IsPullback
@@ -242,7 +240,7 @@ theorem isPullback_coreDisp'_π' :
   IsPullback
     (coreVar' A)
     (coreDisp' A)
-    (Grpd.homOf (Core.map' π''))
+    (Grpd.homOf π''.core)
     (coreA A) :=
   Functor.map_isPullback
     Core.map (isPullback_disp'_asSmallForgetToGrpd A)
@@ -284,7 +282,7 @@ theorem isPullback_disp'_π' :
   IsPullback
     (Grpd.homOf (Core.functorToCore (toPGrpd (classifier A) ⋙ AsSmall.up)))
     (disp' A)
-    (Grpd.homOf (Core.map' π''))
+    (Grpd.homOf π''.core)
     (Ctx.toGrpd.map A) := by
   convert IsPullback.paste_horiz
     (isPullback_disp'_coreDisp' A) (isPullback_coreDisp'_π' A)

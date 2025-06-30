@@ -44,13 +44,13 @@ variable {Egypt : Type*} [Category Egypt]
   Objects in this full subcategory are those whose two components are
   sent to equal objects in the base category `Sudan`.
 -/
-def ChosenObjects := FullSubcategory (
+def ChosenObjects := ObjectProperty.FullSubcategory (
   fun p : Egypt × Chad => east.obj p.1 = south.obj p.2 )
 
 namespace ChosenObjects
 
 instance : Category (ChosenObjects east south) :=
-  inferInstanceAs (Category (FullSubcategory _))
+  inferInstanceAs (Category (ObjectProperty.FullSubcategory _))
 
 end ChosenObjects
 
@@ -64,10 +64,10 @@ def morphismProperty : MorphismProperty (ChosenObjects east south) :=
 
 instance : MorphismProperty.IsMultiplicative (morphismProperty east south) where
   id_mem x := by
-    simp [morphismProperty, ChosenObjects, FullSubcategory.id_def]
+    simp [morphismProperty, ChosenObjects, ObjectProperty.FullSubcategory.id_def]
   comp_mem f g hf hg := by
     simp only [morphismProperty, ChosenObjects,
-      FullSubcategory.comp_def, comp_eqToHom_iff] at *
+      ObjectProperty.FullSubcategory.comp_def, comp_eqToHom_iff] at *
     simp [hg, hf]
 
 /--
@@ -102,10 +102,10 @@ variable {Egypt : Type*} [Category Egypt]
   {east : Egypt ⥤ Sudan} {south : Chad ⥤ Sudan}
 
 def north : Chosen east south ⥤ Egypt :=
-  wideSubcategoryInclusion _ ⋙ fullSubcategoryInclusion _ ⋙ Prod.fst _ _
+  wideSubcategoryInclusion _ ⋙ ObjectProperty.ι _ ⋙ Prod.fst _ _
 
 def west : Chosen east south ⥤ Chad :=
-  wideSubcategoryInclusion _ ⋙ fullSubcategoryInclusion _ ⋙ Prod.snd _ _
+  wideSubcategoryInclusion _ ⋙ ObjectProperty.ι _ ⋙ Prod.snd _ _
 
 theorem comm_sq : @north _ _ _ _ _ _ east south ⋙ east = west ⋙ south := by
   fapply Functor.ext
@@ -150,13 +150,13 @@ theorem hom_ext {l0 l1 : C ⥤ Chosen east south} (hnorth : l0 ⋙ north = l1 �
   fapply Functor.ext
   · intro x
     apply WideSubcategory.ext
-    apply FullSubcategory.ext
+    apply ObjectProperty.FullSubcategory.ext
     apply Prod.ext
     · exact congr_obj hnorth x
     · exact congr_obj hwest x
   · intro x y f
     apply (wideSubcategory.faithful _).map_injective
-    apply (FullSubcategory.faithful _).map_injective
+    apply (ObjectProperty.faithful_ι _).map_injective
     apply prod.hom_ext
     · convert congr_hom hnorth f
       simp only [Functor.map_comp, eqToHom_map]

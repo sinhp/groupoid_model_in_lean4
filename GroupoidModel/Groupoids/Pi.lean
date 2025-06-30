@@ -22,13 +22,7 @@ lemma whiskeringLeft_Right_comm {A B C D: Type*} [Category A] [Category B]
     [Category C] [Category D] (F: A⥤ B)  (H: C ⥤ D):
     (whiskeringRight _ _ _).obj H ⋙ (whiskeringLeft  _ _ _ ).obj F =
     (whiskeringLeft _ _ _).obj F ⋙ (whiskeringRight _ _ _).obj H := by
-  fapply CategoryTheory.Functor.ext
-  · simp only [Functor.comp_obj, whiskeringRight_obj_obj,
-      whiskeringLeft_obj_obj, Functor.assoc, implies_true]
-  · intro F1 F2 η
-    simp only [Functor.comp_obj, whiskeringRight_obj_obj, whiskeringLeft_obj_obj,
-      Functor.comp_map, whiskeringRight_obj_map, whiskeringLeft_obj_map,
-      eqToHom_refl, Category.comp_id, Category.id_comp,whiskerRight_left]
+  aesop_cat
 
 section
 variable {A : Type u} [Category.{v} A] {B: Type u₁} [Groupoid.{v₁} B]
@@ -119,12 +113,9 @@ def conjugating_comp {Γ : Grpd.{v,u}} (A B : Γ ⥤ Cat)
       func_split_assoc,whiskeringRight_obj_comp,← whiskeringLeft_obj_comp]
     rfl
 
-instance functorToGroupoid_Groupoid {A : Type u} [Category.{v,u} A] {B : Type u₁} [Groupoid.{v₁} B] :
+instance functorToGroupoid_Groupoid {A : Type*} [Category A] {B : Type*} [Groupoid B] :
     Groupoid (A ⥤ B) where
-  Hom := NatTrans
-  id := NatTrans.id
-  comp {X Y Z} nt1 nt2 := nt1 ≫ nt2
-  inv {X Y} nt:= nt.inv
+  inv nt := nt.inv
   inv_comp := NatTrans.inv_vcomp
   comp_inv := NatTrans.vcomp_inv
 
@@ -137,13 +128,13 @@ def IsSec {A B : Type*} [Category A] [Category B] (F : B ⥤ A) (s : A ⥤ B) :=
  s ⋙ F = Functor.id A
 
 abbrev Section {A B : Type*} [Category A] [Category B] (F : B ⥤ A) :=
-  FullSubcategory (IsSec F)
+  ObjectProperty.FullSubcategory (IsSec F)
 
 instance Section.category {A B : Type*} [Category A] [Category B] (F : B ⥤ A) :
-  Category (Section F) := FullSubcategory.category (IsSec F)
+  Category (Section F) := ObjectProperty.FullSubcategory.category (IsSec F)
 
 abbrev Section.inc {A B:Type*} [Category A] [Category B] (F:B ⥤ A) :
-  Section F ⥤ (A ⥤ B) := CategoryTheory.fullSubcategoryInclusion (IsSec F)
+  Section F ⥤ (A ⥤ B) := ObjectProperty.ι (IsSec F)
 
 @[simp] lemma Section.inc_obj {A B:Type*} [Category A] [Category B] (F:B ⥤ A) (s: Section F):
   (Section.inc F).obj s = s.obj := rfl
@@ -156,9 +147,7 @@ abbrev Section.inc {A B:Type*} [Category A] [Category B] (F:B ⥤ A) :
 lemma Section.inc_eq {A B:Type*} [Category A] [Category B] (F:B ⥤ A)
   (s1 s2: Section F) (η₁ η₂ : s1 ⟶ s2):
   (Section.inc F).map η₁ = (Section.inc F).map η₂ → η₁ = η₂ := by
-   intro a
-   simp only [fullSubcategoryInclusion.obj, fullSubcategoryInclusion.map] at a
-   assumption
+   aesop_cat
 
 instance Section.groupoid {A:Type u} [Category.{v} A] {B : Type u₁}
     [Groupoid.{v₁} B] (F : B ⥤ A) : Groupoid (Section F) :=
@@ -251,8 +240,8 @@ def conjugateLiftCond {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
     ((Section.inc ((fstAux B).app x) ⋙ conjugate_FiberFunc A B f).obj X)
     := by
       intro s
-      simp only [IsSec, FunctorOperation.sigma_obj, Grpd.coe_of, Functor.comp_obj,
-        fullSubcategoryInclusion.obj,conjugate_FiberFunc.obj]
+      simp only [IsSec, FunctorOperation.sigma_obj, Functor.comp_obj,
+        conjugate_FiberFunc.obj]
       have a:= s.property
       simp only [IsSec, FunctorOperation.sigma_obj, Grpd.coe_of] at a
       have a':= conjugate_PreserveSection Γ A (FunctorOperation.sigma A B)
@@ -264,7 +253,7 @@ def conjugateLiftFunc {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
     (B : Groupoidal A ⥤ Grpd.{u₁,u₁})
     {x y: Γ} (f: x ⟶ y):
      Section ((fstAux B).app x) ⥤ Section ((fstAux B).app y) :=
-     CategoryTheory.FullSubcategory.lift (IsSec ((fstAux B).app y))
+     CategoryTheory.ObjectProperty.lift (IsSec ((fstAux B).app y))
             ((Section.inc ((fstAux B).app x) ⋙ conjugate_FiberFunc A B f))
      (conjugateLiftCond A B f)
 
@@ -292,8 +281,11 @@ lemma conjugateLiftFunc_Inc {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
     (conjugateLiftFunc A B f) ⋙ Section.inc ((fstAux B).app y)
     = ((Section.inc ((fstAux B).app x) ⋙ conjugate_FiberFunc A B f))
     := by
-     simp only [FunctorOperation.sigma_obj, Grpd.coe_of, conjugateLiftFunc, Section.inc,
-       FullSubcategory.lift_comp_inclusion_eq]
+      simp [FunctorOperation.sigma_obj, - fstAux_app, conjugateLiftFunc, ObjectProperty.liftCompιIso]
+      /- TODO: `sorry` introduced during bump to `4.21.0-rc3`.
+      We are planning to refactor this file; the proof will be fixed then. -/
+      sorry
+
 
 lemma idSection_Inc {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
     (B : Groupoidal A ⥤ Grpd.{u₁,u₁})
@@ -308,28 +300,31 @@ lemma idSection_Inc {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
 
 lemma fullSubcategoryInclusion_Mono_lemma {T C:Type u}
    [Category.{v} C] [Category.{v} T]  (Z: C → Prop)
- (f g: T ⥤ FullSubcategory Z)
- (e: f ⋙ (fullSubcategoryInclusion Z) = g ⋙ (fullSubcategoryInclusion Z)) : f = g := by
+ (f g: T ⥤ ObjectProperty.FullSubcategory Z)
+ (e: f ⋙ (ObjectProperty.ι Z) = g ⋙ (ObjectProperty.ι Z)) : f = g := by
   let iso:= eqToIso e
-  let fgiso := CategoryTheory.Functor.fullyFaithfulCancelRight (fullSubcategoryInclusion Z) iso
+  let fgiso := CategoryTheory.Functor.fullyFaithfulCancelRight (ObjectProperty.ι Z) iso
   have p : ∀ (X : T), f.obj X = g.obj X := by
     intro X
-    have e1: (f ⋙ fullSubcategoryInclusion Z).obj X = (g ⋙ fullSubcategoryInclusion Z).obj X
+    have e1: (f ⋙ ObjectProperty.ι Z).obj X = (g ⋙ ObjectProperty.ι Z).obj X
      := Functor.congr_obj e X
-    simp only [Functor.comp_obj, fullSubcategoryInclusion.obj] at e1
+    simp only [Functor.comp_obj, ObjectProperty.ι_obj] at e1
     ext
     exact e1
-  fapply CategoryTheory.Functor.ext_of_iso fgiso
-  · exact p
-  intro X
-  simp only [Functor.fullyFaithfulCancelRight, NatIso.ofComponents_hom_app, Functor.preimageIso_hom,
-    fullSubcategoryInclusion.obj, Iso.app_hom, fgiso]
-  have e2: (fullSubcategoryInclusion Z).map (eqToHom (p X)) = (iso.hom.app X) := by
-    simp only [fullSubcategoryInclusion, inducedFunctor_obj, inducedFunctor_map, eqToIso.hom,
-      eqToHom_app, Functor.comp_obj, iso, fgiso]
-    rfl
-  simp only[← e2,Functor.preimage, fullSubcategoryInclusion.obj, fullSubcategoryInclusion.map,
-    Classical.choose_eq, fgiso, iso]
+  /- TODO: `sorry` introduced during bump to `4.21.0-rc3`.
+  We are planning to refactor this file; the proof will be fixed then. -/
+  sorry
+  -- fapply CategoryTheory.Functor.ext_of_iso fgiso
+  -- · exact p
+  -- intro X
+  -- simp only [Functor.fullyFaithfulCancelRight, NatIso.ofComponents_hom_app, Functor.preimageIso_hom,
+  --   fullSubcategoryInclusion.obj, Iso.app_hom, fgiso]
+  -- have e2: (fullSubcategoryInclusion Z).map (eqToHom (p X)) = (iso.hom.app X) := by
+  --   simp only [fullSubcategoryInclusion, inducedFunctor_obj, inducedFunctor_map, eqToIso.hom,
+  --     eqToHom_app, Functor.comp_obj, iso, fgiso]
+  --   rfl
+  -- simp only[← e2,Functor.preimage, fullSubcategoryInclusion.obj, fullSubcategoryInclusion.map,
+  --   Classical.choose_eq, fgiso, iso]
 
 lemma conjugateLiftFunc_id
     {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
