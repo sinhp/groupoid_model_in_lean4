@@ -395,7 +395,9 @@ A map `ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp` is equivalently three maps
 `fst, dependent, snd` such that `snd_tp`. The map `fst : y(Γ) ⟶ M.Tm`
 is the `(a : A)` in `(a : A) × (b : B a)`.
 -/
-def fst (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : y(Γ) ⟶ M.Tm := sorry
+def fst (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : y(Γ) ⟶ M.Tm :=
+ab ≫ pullback.snd N.tp (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).snd ≫
+  pullback.snd (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).fst M.uvPolyTp.p
 
 /-- Universal property of `compDom`, decomposition (part 2).
 

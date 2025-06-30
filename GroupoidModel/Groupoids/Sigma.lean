@@ -777,6 +777,21 @@ theorem eta : pair (fst' B αβ hαβ) (snd' B αβ hαβ)
 
 end
 
+section
+variable {Γ : Type*} [Groupoid Γ] {α β : Γ ⥤ PGrpd.{v₁,u₁}}
+  {B : ∫(α ⋙ forgetToGrpd) ⥤ Grpd.{v₁,u₁}} (h : β ⋙ forgetToGrpd = sec _ α rfl ⋙ B)
+
+@[simp] theorem fst'_pair : fst' B (pair α β B h) (pair_comp_forgetToGrpd _) = α := by
+  apply PGrpd.Functor.hext
+  · rw [fst'_forgetToGrpd]
+  · intro x
+    erw [fst'_obj_fiber]
+  · intro x y f
+    simp only [fst'_map_fiber, objFiber'_rfl, mapFiber'_rfl]
+    erw [pairMapFiber_base, mapFiber]
+
+end
+
 end sigma
 
 end FunctorOperation
@@ -902,10 +917,50 @@ theorem fac_right : lift.{v} AB αβ hαβ ≫ smallU.comp.{v} = AB := by
     simp [map_id_eq, Functor.id_comp]
     apply map_eqToHom_comp_heq
 
-theorem uniq (m : y(Γ) ⟶ smallU.uvPolyTp.compDom smallU.uvPolyTp)
-    (hmAB : m ≫ smallU.comp = AB) (hmαβ : m ≫ smallUPair = αβ) :
-    m = lift AB αβ hαβ :=
+theorem hom_ext (m n : y(Γ) ⟶ smallU.compDom.{v})
+    (hComp : m ≫ smallU.comp = n ≫ smallU.comp)
+    (hPair : m ≫ smallUPair = n ≫ smallUPair) : m = n := by
   sorry
+
+-- theorem hom_ext (m n : y(Γ) ⟶ smallU.compDom.{v})
+--     (hComp : m ≫ smallU.comp = n ≫ smallU.comp)
+--     (hPair : m ≫ smallUPair = n ≫ smallUPair) : m = n := by
+--   have h : (pair (smallU.compDom.fst m) (smallU.compDom.snd m) (smallU.compDom.dependent m)
+--         (smallU.compDom.snd_forgetToGrpd m)) =
+--       (pair (smallU.compDom.fst n) (smallU.compDom.snd n) (smallU.compDom.dependent n)
+--         (smallU.compDom.snd_forgetToGrpd n)) :=
+--       -- apply yonedaCategoryEquiv.symm.injective
+--       calc _
+--         _ = yonedaCategoryEquiv (m ≫ smallUPair) := by
+--           simp [smallUPair_app_eq m]
+--         _ = yonedaCategoryEquiv (n ≫ smallUPair) := by rw [hPair]
+--         _ = _ := by
+--           simp [smallUPair_app_eq n]
+--   apply smallU.compDom.smallU.compDom.hext
+--   · calc smallU.compDom.fst m
+--       _ = sigma.fst' _ (FunctorOperation.pair (smallU.compDom.fst m) (smallU.compDom.snd m)
+--         (smallU.compDom.dependent m) (smallU.compDom.snd_forgetToGrpd m)) _ :=
+--           (sigma.fst'_pair _).symm
+--       _ = sigma.fst' _ (FunctorOperation.pair (smallU.compDom.fst n) (smallU.compDom.snd n)
+--         (smallU.compDom.dependent n) (smallU.compDom.snd_forgetToGrpd n)) _ := by
+--           rw! [h]
+--           rfl
+--       _ = smallU.compDom.fst n := sigma.fst'_pair _
+--   · sorry
+--     -- have h : HEq (smallU.PtpEquiv.snd (m ≫ smallU.comp))
+--     --   (smallU.PtpEquiv.snd (n ≫ smallU.comp)) := by
+--     --   rw [hComp]
+--     -- apply eq_of_heq
+--     -- refine (smallU.compDom.dependent_heq _).trans
+--     --   $ h.trans $ (smallU.compDom.dependent_heq _).symm
+--   · sorry
+
+theorem uniq (m : y(Γ) ⟶ smallU.compDom)
+    (hmAB : m ≫ smallU.comp = AB) (hmαβ : m ≫ smallUPair = αβ) :
+    m = lift AB αβ hαβ := by
+  apply hom_ext
+  · rw [hmAB, fac_right]
+  · rw [hmαβ, fac_left]
 
 variable (s : RepPullbackCone smallU.{v}.tp smallUSig.{v})
 abbrev A := smallU.PtpEquiv.fst s.snd

@@ -394,6 +394,10 @@ theorem snd_mk (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
   -- apply NaturalModelBase.compDomEquiv.snd_mk
   sorry
 
+theorem smallU.compDom.hext (ab1 ab2 : y(Γ) ⟶ smallU.compDom.{v}) (hfst : fst ab1 = fst ab2)
+    (hdependent : HEq (dependent ab1) (dependent ab2)) (hsnd : snd ab1 = snd ab2) : ab1 = ab2 := by
+  sorry
+
 end compDom
 
 namespace IsPullback
