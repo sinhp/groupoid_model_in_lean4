@@ -7,7 +7,7 @@ import Mathlib.CategoryTheory.Category.Cat
 import Mathlib.CategoryTheory.Category.Grpd
 import Mathlib.CategoryTheory.Grothendieck
 import Mathlib.Data.Part
-import Mathlib.CategoryTheory.ChosenFiniteProducts
+import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
 import Mathlib.CategoryTheory.Core
 import Mathlib.CategoryTheory.Adjunction.Limits
 import Mathlib.CategoryTheory.Grothendieck
@@ -191,13 +191,13 @@ theorem obj_hext_iff : x.base = y.base ∧ HEq x.fiber y.fiber
     subst hCD
     exact ⟨ rfl , HEq.rfl ⟩
 
-theorem obj_hext' {A' : Γ ⥤ Cat} (h : A = A') {x : Grothendieck A} {y : Grothendieck A'}
+theorem obj_hext' {A' : Γ ⥤ Cat.{v₁,u₁}} (h : A = A') {x : Grothendieck A} {y : Grothendieck A'}
   (hbase : HEq x.base y.base) (hfiber : HEq x.fiber y.fiber) : HEq x y := by
   rcases x; rcases y
   subst hbase
   congr
 
-theorem hext' {A' : Γ ⥤ Cat} (h : A = A') {X Y : Grothendieck A} {X' Y' : Grothendieck A'}
+theorem hext' {A' : Γ ⥤ Cat.{v₁,u₁}} (h : A = A') {X Y : Grothendieck A} {X' Y' : Grothendieck A'}
     (f : Hom X Y) (g : Hom X' Y') (hX : HEq X X') (hY : HEq Y Y')
     (w_base : HEq f.base g.base) (w_fiber : HEq f.fiber g.fiber) : HEq f g := by
   cases f; cases g
@@ -362,9 +362,13 @@ def isLimitProdCone (X Y : Grpd) : IsLimit (prodCone X Y) := BinaryFan.isLimitMk
       (by dsimp; rw [← h2]; rfl))
       (fun _ _ _ ↦ by dsimp; rw [← h1, ← h2]; rfl))
 
-instance : ChosenFiniteProducts Grpd where
-  product (X Y : Grpd) := { isLimit := isLimitProdCone X Y }
-  terminal  := { isLimit := chosenTerminalIsTerminal }
+instance : CartesianMonoidalCategory Grpd :=
+  .ofChosenFiniteProducts
+    { cone := asEmptyCone chosenTerminal
+      isLimit := chosenTerminalIsTerminal }
+    (fun X Y => {
+      cone := prodCone X Y
+      isLimit := isLimitProdCone X Y })
 
 /-- The identity in the category of groupoids equals the identity functor.-/
 @[simp] theorem id_eq_id (X : Grpd) : 𝟙 X = 𝟭 X := rfl
@@ -536,258 +540,18 @@ def asSmallFunctor : Grpd.{v, u} ⥤ Grpd.{max w v u, max w v u} where
 
 end Grpd
 
-namespace Core
-
-variable {C : Type u} [Category.{v} C] {D : Type u₁} [Category.{v₁} D]
-
-@[simp]
-theorem id_inv (X : C) :
-    Iso.inv (coreCategory.id X) = @CategoryStruct.id C _ X := by
-  rfl
-
-@[simp] theorem comp_inv {X Y Z : Core C} (f : X ⟶ Y) (g : Y ⟶ Z) :
-    (f ≫ g).inv = g.inv ≫ f.inv :=
-  rfl
-
-def map' (F : C ⥤ D) : Core C ⥤ Core D where
-  obj := F.obj
-  map f := {
-    hom := F.map f.hom
-    inv := F.map f.inv}
-  map_id x := by
-    simp only [Grpd.coe_of, id_hom, Functor.map_id, id_inv]
-    congr 1
-  map_comp f g := by
-    simp only [Grpd.coe_of, comp_hom, Functor.map_comp, comp_inv]
-    congr 1
-
-lemma map'_comp_inclusion (F : C ⥤ D) :
-    map' F ⋙ inclusion D = inclusion C ⋙ F :=
-  rfl
-
-def map : Cat.{v,u} ⥤ Grpd.{v,u} where
-  obj C := Grpd.of (Core C)
-  map F := Grpd.homOf (map' F)
-
-variable {Γ : Type u} [Groupoid.{v} Γ]
-
-/-  A functor from a groupoid into a category is equivalent
-    to a functor from the groupoid into the core -/
-def functorToCoreEquiv : Γ ⥤ D ≃ Γ ⥤ Core D where
-  toFun := functorToCore
-  invFun := forgetFunctorToCore.obj
-  left_inv _ := rfl
-  right_inv _ := by
-    simp [functorToCore, forgetFunctorToCore]
-    apply Functor.ext
-    · intro x y f
-      simp only [inclusion, id_eq, Functor.comp_obj, Functor.comp_map,
-        IsIso.Iso.inv_hom, eqToHom_refl,
-        Category.comp_id, Category.id_comp]
-      congr
-    · intro
-      rfl
-
-theorem eqToIso_hom {a b : Core C} (h1 : a = b)
-  (h2 : (inclusion C).obj a = (inclusion C).obj b) :
-    (eqToHom h1).hom = eqToHom h2 := by
-  cases h1
-  rfl
-
-section Adjunction
-
-variable {C : Type u₁} [Category.{v₁} C]
-variable {G : Type u₂} [Groupoid.{v₂} G]
-variable {G' : Type u₃} [Groupoid.{v₃} G']
-variable {C' : Type u₃} [Category.{v₃} C']
-
-theorem functorToCore_naturality_left
-    (H : G ⥤ C) (F : G' ⥤ G) :
-    functorToCore (F ⋙ H) = F ⋙ functorToCore H := by
-  apply Functor.ext
-  · simp [functorToCore]
-  · intro
-    rfl
-
-theorem functorToCore_naturality_right
-    (H : G ⥤ C) (F : C ⥤ C') :
-    functorToCore (H ⋙ F)
-    = functorToCore H ⋙ (Core.map' F) := by
-  apply Functor.ext
-  · intro x y f
-    simp [functorToCore]
-    congr 1
-    simp
-  · intro
-    rfl
-
-def adjunction : Grpd.forgetToCat ⊣ Core.map where
-  unit := {
-    app G := Grpd.homOf (Core.functorToCore (Functor.id _))
-    naturality _ _ F := by
-      simp [Core.map, Grpd.comp_eq_comp,
-        ← functorToCore_naturality_left,
-        ← functorToCore_naturality_right,
-        Functor.id_comp, Functor.comp_id, Grpd.forgetToCat]}
-  counit := {app C := Cat.homOf (Core.inclusion C)}
-
-/-- Mildly evil. -/
-theorem inclusion_comp_functorToCore : inclusion G ⋙ functorToCore (𝟭 G) = Functor.id (Core G) := by
-    apply Functor.ext
-    · intro x y f
-      simp only [Core.inclusion, Grpd.homOf, Core.functorToCore, Functor.id_map,
-        Grpd.comp_eq_comp, Functor.comp_map, Groupoid.inv_eq_inv, IsIso.Iso.inv_hom,
-        Grpd.id_eq_id, eqToHom_refl, Category.comp_id, Category.id_comp]
-      rfl
-    · intro
-      rfl
-
-theorem functorToCore_inclusion_apply {C : Type u} [Category.{v} C] :
-    Core.functorToCore (Core.inclusion C) = Functor.id (Core C) :=
-  rfl
-
-
-/-- Mildly evil. -/
-instance : IsIso (Grpd.homOf (Core.inclusion G)) where
-  out := ⟨ Grpd.homOf (Core.functorToCore (Functor.id G)),
-    inclusion_comp_functorToCore, rfl ⟩
-
-/-- Mildly evil. -/
-instance {G : Type u} [Groupoid.{v} G] :
-  IsIso (Grpd.homOf (Core.functorToCore (Functor.id G))) where
-  out := ⟨ Grpd.homOf (Core.inclusion G), rfl,
-    inclusion_comp_functorToCore ⟩
-
-end Adjunction
-
-open Functor
-
-instance : IsLeftAdjoint Grpd.forgetToCat :=
-  IsLeftAdjoint.mk ⟨ Core.map , ⟨ adjunction ⟩ ⟩
-
-instance : IsRightAdjoint Core.map :=
-  IsRightAdjoint.mk ⟨ Grpd.forgetToCat , ⟨ adjunction ⟩ ⟩
-
-/- This whole section is evil. -/
-namespace IsPullback
-
-noncomputable section
-
-variable {C : Type u} [Category.{v} C] {D : Type u} [Category.{v} D]
-  (F : C ⥤ D)
-
-lemma w' : Cat.homOf (inclusion C) ≫ Cat.homOf F
-    = Cat.homOf (Core.map' F) ⋙ Cat.homOf (inclusion D) := rfl
-
-open Limits
-
-variable {F} [F.ReflectsIsomorphisms]
-  (s : PullbackCone (Cat.homOf F) (Cat.homOf (inclusion D)))
-
-def lift :
-    s.pt ⥤ Core C := {
-  obj := s.fst.obj
-  map {x y} f := @asIso _ _ _ _ (s.fst.map f) $ by
-    let f' : F.obj (s.fst.obj x) ≅ F.obj (s.fst.obj y) :=
-      (eqToIso s.condition).app x ≪≫ s.snd.map f ≪≫ (eqToIso s.condition.symm).app y
-    have hnat : F.map (s.fst.map f) ≫ _
-      = _ ≫ (inclusion D).map (s.snd.map f)
-      := (eqToHom s.condition).naturality f
-    have h : F.map (s.fst.map f) = f'.hom := by
-      simp only [Cat.eqToHom_app, comp_eqToHom_iff] at hnat
-      simp only [hnat, f', Core.inclusion]
-      simp
-    have : IsIso (F.map (s.fst.map f)) := by rw [h]; exact Iso.isIso_hom f'
-    exact Functor.ReflectsIsomorphisms.reflects F (s.fst.map f)
-  map_id x := by
-    simp only [asIso, Functor.map_id, IsIso.inv_id]
-    congr 1
-  map_comp f g := by
-    simp only [asIso, Functor.map_comp, IsIso.inv_comp]
-    congr 1
-    simp
-}
-
-@[simp] theorem fac_left :
-    lift s ≫ Cat.homOf (inclusion C) = s.fst := rfl
-
-@[simp] theorem fac_right :
-    lift s ≫ Cat.homOf (map' F) = s.snd := by
-  apply Functor.ext
-  · intro x y f
-    apply Functor.map_injective (inclusion D)
-    have h := Functor.congr_hom s.condition f
-    unfold Cat.homOf at *
-    unfold inclusion at *
-    simp only [Cat.of_α, Cat.comp_obj, lift, map', comp_hom] at *
-    convert h
-    · apply Core.eqToIso_hom
-    · apply Core.eqToIso_hom
-  · intro x
-    exact Functor.congr_obj s.condition x
-
-def lift_uniq (m : s.pt ⟶ Cat.of (Core C))
-  (fl : m ≫ Cat.homOf (inclusion C) = s.fst) :
-    m = lift s := by
-  apply Functor.ext
-  · intro x y f
-    apply Functor.map_injective (inclusion C)
-    have h := Functor.congr_hom fl f
-    unfold Cat.homOf at *
-    unfold inclusion at *
-    simp only [Cat.of_α, Cat.comp_map, lift, comp_hom, asIso_hom] at *
-    rw [h, Core.eqToIso_hom, Core.eqToIso_hom]
-  · intro x
-    exact Functor.congr_obj fl x
-
-end
-end IsPullback
-
-variable {C : Type u} [Category.{v} C] {D : Type u} [Category.{v} D]
-  (F : C ⥤ D) [F.ReflectsIsomorphisms]
-
-open IsPullback
-
-/--
-  In the category of categories,
-  if functor `F : C ⥤ D` reflects isomorphisms
-  then taking the `Core` is pullback stable along `F`
-
-  Core C ---- inclusion -----> C
-    |                          |
-    |                          |
-    |                          |
- Core.map' F               F
-    |                          |
-    |                          |
-    V                          V
-  Core D ---- inclusion -----> D
--/
-theorem isPullback_map'_self :
-    IsPullback
-      (Cat.homOf $ inclusion C)
-      (Cat.homOf $ map' F)
-      (Cat.homOf F)
-      (Cat.homOf $ inclusion D) :=
-  IsPullback.of_isLimit $
-    Limits.PullbackCone.IsLimit.mk
-      (w' F) lift fac_left fac_right
-      (λ s m fl _ ↦ lift_uniq s m fl)
-
-end Core
-
 namespace Equivalence
 noncomputable section
-open Limits ChosenFiniteProducts
+open Limits MonoidalCategory CartesianMonoidalCategory
 
 variable {C : Type u₁} {D : Type u₂}
   [Category.{v₁} C] [Category.{v₂} D]
-  [ChosenFiniteProducts C]
+  [CartesianMonoidalCategory C]
   (e : Equivalence C D)
 
 /-- The chosen terminal object in `D`. -/
 abbrev chosenTerminal : D :=
-  e.functor.obj MonoidalCategory.tensorUnit
+  e.functor.obj (𝟙_ C)
 
 /-- The chosen terminal object in `D` is terminal. -/
 def chosenTerminalIsTerminal :
@@ -807,32 +571,20 @@ def isLimitProdCone (X Y : D) : IsLimit (e.prodCone X Y) :=
   IsLimit.ofIsoLimit (
   BinaryFan.isLimitCompRightIso _ (e.counit.app _) (
   BinaryFan.isLimitCompLeftIso _ (e.counit.app _) (
-  isLimitChosenFiniteProductsOfPreservesLimits e.functor
+  isLimitCartesianMonoidalCategoryOfPreservesLimits e.functor
     (e.inverse.obj X) (e.inverse.obj Y))))
   (BinaryFan.ext (eqToIso rfl) (by aesop_cat) (by aesop_cat))
 
-def chosenFiniteProducts [ChosenFiniteProducts C] :
-  ChosenFiniteProducts D where
-  product X Y := { isLimit := e.isLimitProdCone X Y }
-  terminal := { isLimit := e.chosenTerminalIsTerminal }
+def chosenFiniteProducts [CartesianMonoidalCategory C] : CartesianMonoidalCategory D :=
+  .ofChosenFiniteProducts
+    { cone := asEmptyCone e.chosenTerminal
+      isLimit := e.chosenTerminalIsTerminal }
+    (fun X Y => {
+      cone := e.prodCone X Y
+      isLimit := e.isLimitProdCone X Y })
 
 end
 end Equivalence
-
-namespace ULift
-namespace Core
-
-variable {C : Type u} [Category.{v} C]
-
--- FIXME could be generalized?
-def isoCoreULift :
-    Cat.of (ULift.{w} (Core C)) ≅
-      Cat.of (Core (ULift.{w} C)) where
-  hom := Cat.homOf (downFunctor ⋙ Core.map' upFunctor)
-  inv := Cat.homOf (Core.map' downFunctor ⋙ upFunctor)
-
-end Core
-end ULift
 
 section equivalence
 
@@ -1064,16 +816,11 @@ end
 
 end Grothendieck
 
--- NOTE this was added to mathlib very recently
-variable {C : Type u₁} [Category.{v₁} C] {D : Type u₂} [Category.{v₂} D] {E : Type u₃}
-  [Category.{v₃} E]
-@[simp]
-theorem isoWhiskerLeft_trans (F : C ⥤ D) {G H K : D ⥤ E} (α : G ≅ H) (β : H ≅ K) :
-    isoWhiskerLeft F (α ≪≫ β) = isoWhiskerLeft F α ≪≫ isoWhiskerLeft F β :=
-  rfl
-
 section
-variable {B : Type u} [Category.{v} B]
+variable {C : Type u₁} [Category.{v₁} C]
+  {D : Type u₂} [Category.{v₂} D]
+  {E : Type u₃} [Category.{v₃} E]
+  {B : Type u} [Category.{v} B]
 
 @[simp]
 theorem isoWhiskerLeft_eqToIso (F : C ⥤ D) {G H : D ⥤ E} (η : G = H) :
@@ -1126,25 +873,6 @@ lemma lift_fst_snd {P X Y Z : C} {fst : P ⟶ X} {snd : P ⟶ Y} {f : X ⟶ Z} {
   apply pb.hom_ext <;> simp
 
 end CategoryTheory.IsPullback
-
--- TODO: delete this when bumping mathlib, it's in newer versions.
-namespace CategoryTheory.Functor.FullyFaithful
-
-variable {C : Type u₁} [Category.{v₁} C] {D : Type u₂} [Category.{v₂} D]
-variable {F : C ⥤ D} {X Y Z : C}
-variable (hF : F.FullyFaithful)
-
-@[simp]
-lemma preimage_id {X : C} :
-    hF.preimage (𝟙 (F.obj X)) = 𝟙 X :=
-  hF.map_injective (by simp)
-
-@[simp, reassoc]
-lemma preimage_comp {X Y Z : C} (f : F.obj X ⟶ F.obj Y) (g : F.obj Y ⟶ F.obj Z) :
-    hF.preimage (f ≫ g) = hF.preimage f ≫ hF.preimage g :=
-  hF.map_injective (by simp)
-
-end CategoryTheory.Functor.FullyFaithful
 
 namespace CategoryTheory
 

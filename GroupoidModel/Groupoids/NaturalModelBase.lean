@@ -1,7 +1,5 @@
 import Mathlib.CategoryTheory.Limits.Preserves.FunctorCategory
-import Mathlib.CategoryTheory.Functor.ReflectsIso
 import Mathlib.CategoryTheory.Category.Cat.Limit
-import Mathlib.CategoryTheory.ChosenFiniteProducts.Cat
 
 import GroupoidModel.Russell_PER_MS.UHom
 import GroupoidModel.Grothendieck.Groupoidal.IsPullback
@@ -57,12 +55,12 @@ namespace U
 
 open MonoidalCategory
 
-def asSmallClosedType' : tensorUnit
+def asSmallClosedType' : tensorUnit _
     ⟶ U.{v+1, max u (v+2)} :=
   toCoreAsSmallEquiv.symm ((Functor.const _).obj
     (Grpd.of (Core (AsSmall.{v+1} Grpd.{v,v}))))
 
-def asSmallClosedType : y(tensorUnit)
+def asSmallClosedType : y(tensorUnit _)
     ⟶ smallU.{v+1, max u (v+2)}.Ty :=
   ym(U.asSmallClosedType')
 
@@ -72,32 +70,32 @@ def isoGrpd : Core (AsSmall.{max u (v+2)} Grpd.{v,v})
 def isoExtAsSmallClosedTypeHom :
     Core (AsSmall.{max u (v+2)} Grpd.{v,v})
     ⥤ ∫(classifier (asSmallClosedType'.{v, max u (v + 2)})) where
-  obj X := ⟨ ⟨⟨⟩⟩ , AsSmall.up.obj.{_,_,v+1} (AsSmall.down.obj X) ⟩
-  map {X Y} F := ⟨ (CategoryStruct.id _) , {
-    hom := AsSmall.up.map.{_,_,v+1} (AsSmall.down.map F.hom)
-    inv := AsSmall.up.map.{_,_,v+1} (AsSmall.down.map (F.inv))
+  obj X := objMk ⟨⟨⟩⟩ ⟨AsSmall.up.obj.{_,_,v+1} (AsSmall.down.obj X.of)⟩
+  map {X Y} F := homMk (𝟙 _) ⟨{
+    hom := AsSmall.up.map.{_,_,v+1} (AsSmall.down.map F.iso.hom)
+    inv := AsSmall.up.map.{_,_,v+1} (AsSmall.down.map (F.iso.inv))
     hom_inv_id := by
       simp only [← Functor.map_comp, Iso.hom_inv_id]
       rfl
     inv_hom_id := by
       simp only [← Functor.map_comp, Iso.inv_hom_id]
-      rfl } ⟩
+      rfl }⟩
 
 def isoExtAsSmallClosedTypeInv :
     ∫(classifier (asSmallClosedType'.{v, max u (v + 2)})) ⥤
     Core (AsSmall.{max u (v+2)} Grpd.{v,v}) where
-  obj X := AsSmall.up.obj (AsSmall.down.obj.{_,_,v+1} X.fiber)
-  map {X Y} F := {
+  obj X := ⟨AsSmall.up.obj (AsSmall.down.obj.{_,_,v+1} X.fiber.of)⟩
+  map {X Y} F := ⟨{
     hom := AsSmall.up.map.{_,_,max u (v+2)}
-      (AsSmall.down.map F.fiber.hom)
+      (AsSmall.down.map F.fiber.iso.hom)
     inv := AsSmall.up.map.{_,_,max u (v+2)}
-      (AsSmall.down.map F.fiber.inv)
+      (AsSmall.down.map F.fiber.iso.inv)
     hom_inv_id := by
       simp only [← Functor.map_comp, Iso.hom_inv_id]
       rfl
     inv_hom_id := by
       simp only [← Functor.map_comp, Iso.inv_hom_id]
-      rfl }
+      rfl }⟩
 
 def isoExtAsSmallClosedType :
     U.{v,max u (v+2)}

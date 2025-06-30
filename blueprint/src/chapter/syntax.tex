@@ -100,19 +100,19 @@ For HoTT, most of the rules are standard. Here, we will go over them.
 \begin{bprooftree}
 \AxiomC{$\Gamma \vdash a:A$}
 \AxiomC{$\Gamma \vdash b:A$}
-\BinaryInfC{$\Gamma \vdash \text{id}_{A}(a,b) \text{ type}$}
+\BinaryInfC{$\Gamma \vdash \text{Id}_{A}(a,b) \text{ type}$}
 \end{bprooftree}
 \begin{bprooftree}
 \AxiomC{$\Gamma \vdash a:A$}
-\UnaryInfC{$\Gamma \vdash \text{refl}(a) : \text{id}_{A}(a,a)$}
+\UnaryInfC{$\Gamma \vdash \text{refl}(a) : \text{Id}_{A}(a,a)$}
 \end{bprooftree}
 \]
 
 \[
 \begin{bprooftree}
-\AxiomC{$\Gamma,x:A,y:A,u: \text{id}_A(x,y) \vdash E(x,y,u) \text{ type}$}
-\AxiomC{$\Gamma, x : A \vdash e(x) : E(x,x,\text{refl}(x))$}
-\BinaryInfC{$\Gamma,x:A,y:A,u: \text{id}_A(x,y) \vdash \text{J}(x,y,u,e) : E(x,y,u)$}
+\AxiomC{$\Gamma,x:A,y:A,u: \text{Id}_A(x,y) \vdash C(x,y,u) \text{ type}$}
+\AxiomC{$\Gamma, x : A \vdash c(x) : C(x,x,\text{refl}(x))$}
+\BinaryInfC{$\Gamma,x:A,y:A,u: \text{Id}_A(x,y) \vdash \text{J}(x,y,u,c) : C(x,y,u)$}
 \end{bprooftree}
 \]
 
