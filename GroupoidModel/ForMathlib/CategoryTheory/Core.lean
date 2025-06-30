@@ -11,9 +11,8 @@ namespace Core
 theorem obj_ext {C : Type*} {X Y : Core C} (h : X.of = Y.of) :
     X = Y := by
   cases X
-  cases Y
-  simp at *
-  exact h
+  cases h
+  rfl
 
 variable {C : Type u} [Category.{v} C] {D : Type u₁} [Category.{v₁} D]
 
@@ -40,9 +39,6 @@ def comp_inclusion_injective {l0 l1 : D ⥤ Core C} (hl : l0 ⋙ inclusion C = l
 -- @[simp] theorem comp_iso_inv {X Y Z : Core C} (f : X ⟶ Y) (g : Y ⟶ Z) :
 --     (f ≫ g).iso.inv = g.iso.inv ≫ f.iso.inv :=
 --   rfl
-
--- -- TODO: replace with F.core
--- def map' (F : C ⥤ D) : Core C ⥤ Core D := F.core
 
 lemma core_comp_inclusion (F : C ⥤ D) :
     F.core ⋙ inclusion D = inclusion C ⋙ F :=
@@ -197,7 +193,7 @@ open IsPullback
     |                          |
     |                          |
     |                          |
- Core.map' F                   F
+  F.core                       F
     |                          |
     |                          |
     V                          V
