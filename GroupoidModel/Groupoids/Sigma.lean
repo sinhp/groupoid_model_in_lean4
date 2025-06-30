@@ -632,17 +632,20 @@ and a groupoid-term `β : Γ ⥤ PGrpd` such that `β ⋙ forgetToGrpd = sec _ �
 This is `β` in the above description -/
 def snd' : Γ ⥤ PGrpd := sec (sigma A B) αβ hαβ ⋙ snd B
 
-section -- TODO move
-variable {A : Γ ⥤ Grpd.{v₁,u₁}} {α : Γ ⥤ PGrpd.{v₁,u₁}} (h : α ⋙ PGrpd.forgetToGrpd = A)
+@[simp] theorem fst'_obj_base {x} : ((fst' B αβ hαβ).obj x).base =
+    A.obj x := by
+  rfl
 
-@[simp] theorem mapFiber'_rfl {x y : Γ} (f : x ⟶ y) : mapFiber' rfl f = mapFiber α f := by
-  simp [mapFiber', mapFiber, mapFiber'EqToHom, objFiber'EqToHom]
+theorem fst'_obj_fiber {x} : ((fst' B αβ hαβ).obj x).fiber = (objFiber' hαβ x).base := by
+  simp [fst']
 
-end
+@[simp] theorem fst'_map_base {x y} (f : x ⟶ y) : ((fst' B αβ hαβ).map f).base =
+    A.map f := by
+  rfl
 
-theorem mapFiber'_base {x y} (f : x ⟶ y) : Hom.base (mapFiber' hαβ f) =
-    ((fst' B αβ hαβ).map f).fiber := by
-  simp [mapFiber', fst', fst, fstAux']
+theorem fst'_map_fiber {x y} (f : x ⟶ y) : ((fst' B αβ hαβ).map f).fiber =
+    (mapFiber' hαβ f).base := by
+  simp [fst']
 
 theorem sec_fstAux' : sec (sigma A B) αβ hαβ ⋙ fstAux' B =
   sec (fst' B αβ hαβ ⋙ forgetToGrpd) (fst' B αβ hαβ) rfl := by
@@ -653,7 +656,7 @@ theorem sec_fstAux' : sec (sigma A B) αβ hαβ ⋙ fstAux' B =
     rfl
   · intro x y f
     erw [Grothendieck.Groupoidal.sec_map_fiber]
-    simp [fstAux', mapFiber'_rfl, mapFiber, mapFiber'_base]
+    simp [fstAux', mapFiber'_rfl, mapFiber, fst'_map_fiber]
 
 /-- Let `Γ` be a category.
 For any pair of functors `A : Γ ⥤ Grpd` and `B : ∫(A) ⥤ Grpd`,
@@ -670,21 +673,6 @@ theorem snd'_forgetToGrpd : snd' B αβ hαβ ⋙ forgetToGrpd
   rw [snd', Functor.assoc, snd_forgetToGrpd, dependent', ← Functor.assoc, sec_fstAux']
   simp [map_id_eq, Functor.id_comp]
 
-@[simp] theorem fst'_obj_base {x} : ((fst' B αβ hαβ).obj x).base =
-    A.obj x := by
-  rfl
-
-theorem fst'_obj_fiber {x} : ((fst' B αβ hαβ).obj x).fiber = (objFiber' hαβ x).base := by
-  simp [fst']
-
-@[simp] theorem fst'_map_base {x y} (f : x ⟶ y) : ((fst' B αβ hαβ).map f).base =
-    A.map f := by
-  rfl
-
-theorem fst'_map_fiber {x y} (f : x ⟶ y) : ((fst' B αβ hαβ).map f).fiber =
-    (mapFiber' hαβ f).base := by
-  simp [fst']
-
 theorem snd'_obj_fiber {x} : ((snd' B αβ hαβ).obj x).fiber = (objFiber' hαβ x).fiber := by
   simp [snd']
 
@@ -693,24 +681,13 @@ theorem snd'_map_fiber {x y} (f : x ⟶ y) : ((snd' B αβ hαβ).map f).fiber =
     eqToHom (by simp [snd', snd, assoc]; rfl) ≫ Hom.fiber (mapFiber' hαβ f) := by
   simp [snd']
 
--- TODO move
-@[simp] lemma Grothendieck.Groupoidal.eta {Γ : Type*} [Category Γ]
-  {A : Γ ⥤ Grpd} (x : ∫(A)) : objMk x.base x.fiber = x :=
-  rfl
-
-@[simp] lemma Grothendieck.Groupoidal.Hom.eta {Γ : Type*} [Category Γ]
-  {A : Γ ⥤ Grpd} {x y : ∫(A)} (f : x ⟶ y) : homMk f.base f.fiber = f :=
-  rfl
-
 theorem ι_fst'_forgetToGrpd_comp_dependent' (x) :
     ι (fst' B αβ hαβ ⋙ forgetToGrpd) x ⋙ dependent' B αβ hαβ = ι A x ⋙ B := by
   simp [dependent', map_id_eq, Functor.id_comp, fst'_forgetToGrpd]
 
--- gccHEq (objMk (objFiber (fst' B αβ hαβ) x) (objFiber' ⋯ x)) (αβ.obj x).fiber
-
 theorem pairObjFiber_snd'_eq (x : Γ) : pairObjFiber (snd'_forgetToGrpd B αβ hαβ) x =
     objMk (objFiber' hαβ x).base (objFiber' (snd'_forgetToGrpd B αβ hαβ) x) := by
-  apply obj_hext--dsimp [pairObjFiber]
+  apply obj_hext
   · rw [pairObjFiber_base]
     simp [objFiber, fst'_obj_fiber]
   · rw [pairObjFiber_fiber]
@@ -720,26 +697,11 @@ theorem pairObjFiber_snd'_heq (x : Γ) : HEq (pairObjFiber (snd'_forgetToGrpd B 
     (αβ.obj x).fiber := by
   rw [pairObjFiber_snd'_eq]
   apply @HEq.trans _ _ _ _ ((objFiber'EqToHom hαβ x).obj (αβ.obj x).fiber) _ ?_ ?_
-  -- simp only [objFiber']
-  · congr 1
-    apply ι_fst'_forgetToGrpd_comp_dependent'
+  · apply obj_hext'
+    · apply ι_fst'_forgetToGrpd_comp_dependent'
+    · rfl
+    · rfl
   · simp [Grpd.eqToHom_obj, objFiber'EqToHom]
-  -- dsimp only [pairObjFiber]
-  -- simp only [fst', pairObjFiber, objFiber, objFiber']
-  -- simp only [fst', sigmaObj, Functor.comp_obj, Grothendieck.forget_obj,
-  --   pairObjFiber, objFiber, fst_obj_fiber, sec_obj_base, sec_obj_fiber, objFiber', sigma_obj,
-  --   eqToHom_refl, Grpd.id_eq_id, snd'_obj_fiber, Functor.id_obj]
-  -- apply @HEq.trans _ _ _ _ ((objFiber'EqToHom hαβ x).obj (αβ.obj x).fiber) _ ?_ ?_
-  -- · congr 1
-  --   apply ι_fst'_forgetToGrpd_comp_dependent'
-  --   -- simp [dependent', map_id_eq, Functor.id_comp]
-  --   -- generalize (eqToHom p).obj (αβ.obj x).fiber = k
-  --   -- have h := Grothendieck.Groupoidal.eta k
-  --   -- rw [← h]
-  --   -- simp [objMk]
-  --   -- congr
-  --   -- simp [dependent', map_id_eq, Functor.id_comp]
-  -- · simp [Grpd.eqToHom_obj, objFiber'EqToHom]
 
 theorem pairMapFiber_snd'_eq {x y} (f : x ⟶ y) :
     pairMapFiber (snd'_forgetToGrpd B αβ hαβ) f
@@ -750,69 +712,57 @@ theorem pairMapFiber_snd'_eq {x y} (f : x ⟶ y) :
   · simp
   · simp
 
+theorem pairMapFiber_snd'_heq_src_heq {x y} (f : x ⟶ y) :
+    HEq ((sigmaMap (dependent' B αβ hαβ) f).obj (pairObjFiber (snd'_forgetToGrpd _ _ hαβ) x))
+    ((objFiber'EqToHom hαβ y).obj ((αβ.map f).base.obj (αβ.obj x).fiber)) := by
+  have h : (αβ.map f).base.obj (αβ.obj x).fiber = _ :=
+    Functor.congr_obj (Functor.congr_hom hαβ f) (αβ.obj x).fiber
+  rw [objFiber'EqToHom, Grpd.eqToHom_obj, heq_cast_iff_heq, h]
+  simp only [Grpd.forgetToCat, dependent', eqToHom_refl, sigmaObj, Functor.comp_obj,
+    Grothendieck.forget_obj, fst'_obj_base, sigma_obj, sigma_map, Grpd.comp_eq_comp,
+    Grpd.eqToHom_obj, heq_cast_iff_heq]
+  rw! [map_id_eq]
+  congr
+  apply eq_of_heq
+  rw [heq_cast_iff_heq]
+  apply HEq.trans _ (pairObjFiber_snd'_heq B αβ hαβ x)
+  simp only [pairObjFiber, Functor.comp_obj, Grothendieck.forget_obj, fst'_obj_base, sigmaObj]
+  congr
+  simp [map_id_eq]
 
-set_option maxHeartbeats 0 in
+theorem pairMapFiber_snd'_heq_trg_heq {y} :
+    HEq (pairObjFiber (snd'_forgetToGrpd B αβ hαβ) y)
+    ((objFiber'EqToHom hαβ y).obj (αβ.obj y).fiber) := by
+  rw [objFiber'EqToHom, Grpd.eqToHom_obj, heq_cast_iff_heq]
+  exact pairObjFiber_snd'_heq B αβ hαβ y
+
+theorem sigmaMap_obj_objFiber' {x y} (f : x ⟶ y) : (sigmaMap B f).obj (objFiber' hαβ x) =
+    (objFiber'EqToHom hαβ y).obj ((αβ.map f).base.obj (αβ.obj x).fiber) := by
+  erw [Functor.congr_obj (Functor.congr_hom hαβ.symm f) (objFiber' hαβ x)]
+  simp [Grpd.eqToHom_obj, objFiber', objFiber'EqToHom, objFiber]
+
 theorem pairMapFiber_snd'_heq {x y} (f : x ⟶ y) : HEq (pairMapFiber (snd'_forgetToGrpd B αβ hαβ) f)
     (αβ.map f).fiber := by
   rw [pairMapFiber_snd'_eq]
   apply @HEq.trans _ _ _ _ ((objFiber'EqToHom hαβ y).map (αβ.map f).fiber) _ ?_ ?_
-  · congr 1
+  · apply hext'
     · apply ι_fst'_forgetToGrpd_comp_dependent'
-    · sorry
-    · sorry
-    · sorry
-    · sorry
+    · apply pairMapFiber_snd'_heq_src_heq
+    · rw [objFiber'EqToHom, Grpd.eqToHom_obj, heq_cast_iff_heq]
+      exact pairObjFiber_snd'_heq B αβ hαβ y
+    · rw [homMk_base, mapFiber, fst'_map_fiber]
+      congr!
+      · apply sigmaMap_obj_objFiber'
+      · apply HEq.trans (eqToHom_comp_heq _ _)
+        simp
+    · simp only [homMk_fiber, eqToHom_comp_heq_iff]
+      apply HEq.trans (mapFiber'_heq _ f)
+      simp only [snd'_map_fiber, Functor.comp_map, eqToHom_comp_heq_iff]
+      congr!
+      · apply sigmaMap_obj_objFiber'
+      · apply HEq.trans (eqToHom_comp_heq _ _)
+        simp
   · simp [Grpd.eqToHom_hom, objFiber'EqToHom]
-
-theorem asdflaksjdf {x y} (f : x ⟶ y) :
-    HEq ((sigmaMap (dependent' B αβ hαβ) f).obj (pairObjFiber (snd'_forgetToGrpd _ _ hαβ) x))
-    ((objFiber'EqToHom hαβ y).obj (((αβ.map f).base).obj (αβ.obj x).fiber)) := by
-  rw [objFiber'EqToHom, Grpd.eqToHom_obj]
-  simp [dependent', pairObjFiber, sigmaMap]
-  rw! [map_id_eq]
-  simp
-
-  sorry
-  -- dsimp only [pairMapFiber]
-  -- apply @HEq.trans _ _ _ _ ((objFiber'EqToHom hαβ y).map (αβ.map f).fiber) _ ?_ ?_
-  -- -- Hom.base ((eqToHom ⋯).map (αβ.map f).fiber)
-  -- · -- simp [mapFiber]
-  --   -- rw! [fst'_map_fiber]
-  --   -- simp only [sigma_obj, sigmaObj, Grpd.coe_of, sigma_map, mapFiber', Grpd.forgetToCat,
-  --   --   Functor.comp_obj, Grothendieck.forget_obj, Cat.of_α, id_eq, comp_base, sigmaMap_obj_base]
-  --   congr 1
-  --   · apply ι_fst'_forgetToGrpd_comp_dependent'
-  --   · apply obj_hext'
-  --     · apply ι_fst'_forgetToGrpd_comp_dependent'
-  --     · simp [pairObjFiber]
-  --       -- rw [Grpd.eqToHom_obj]
-  --       -- simp [pairObjFiber, objFiber, fst'_obj_fiber, -heq_eq_eq, objFiber'EqToHom, Grpd.eqToHom_obj]
-
-  --       -- rw [sigmaMap_obj_base, fst'_map_fiber]
-  --       -- simp
-  --       sorry
-  --     -- simp [dependent', sigma_obj, sigmaObj, Grpd.coe_of, sigma_map, mapFiber', Grpd.forgetToCat,
-  --     --  Functor.comp_obj, Grothendieck.forget_obj, Cat.of_α, id_eq, comp_base, sigmaMap_obj_base]
-  --     -- simp [dependent', Grpd.eqToHom_obj, pairObjFiber, fst']
-  --     -- simp [sigmaMap_obj]
-  --     -- rw! [map_id_eq]
-  --     -- simp [Functor.id_comp, sigmaMap]
-  --     · simp
-  --       sorry
-  --   · sorry
-  --   · simp [mapFiber]
-  --     rw [fst'_map_fiber]
-  --     simp [mapFiber']
-  --     sorry
-  --   · sorry
-  -- --   · apply ι_fst'_forgetToGrpd_comp_dependent'
-  -- --   · sorry
-  -- --   · sorry
-  -- --   · sorry
-  -- --   · rw [snd'_map_fiber]
-  -- --     simp
-  -- --     sorry
-  -- · simp [Grpd.eqToHom_hom, objFiber'EqToHom]
 
 theorem eta : pair (fst' B αβ hαβ) (snd' B αβ hαβ)
     (dependent' B αβ hαβ) (snd'_forgetToGrpd _ _ _) = αβ := by
@@ -903,87 +853,6 @@ open Limits
 
 section
 
--- JH: this seems kind of bad to me. See `comm_sq`
--- theorem lift_heq_id {Γ : Type*} [Category Γ] {A B : Γ ⥤ Grpd.{v,v}}
---     (h : A = B) : HEq ((lift (toPGrpd B)) forget
---     (h ▸ comm_sq A : toPGrpd B ⋙ forgetToGrpd = forget ⋙ A))
---     (Functor.id ∫(B)) := by
---   subst h
---   apply heq_of_eq
---   symm
---   apply lift_uniq
---   · rfl
---   · rfl
-
--- -- JH: this seems kind of bad to me. See `comm_sq`
--- theorem lift_heq_id_comp {Γ C : Type*} [Category Γ] [Category C]
---     {A B : Γ ⥤ Grpd.{v,v}}
---     (h : A = B) (F : ∫(A) ⥤ C) : HEq ((lift (toPGrpd B)) forget
---     (h ▸ comm_sq A : toPGrpd B ⋙ forgetToGrpd = forget ⋙ A) ⋙ F)
---     (Functor.id ∫(A) ⋙ F) := by
---   subst h
---   apply heq_of_eq
---   congr 1
---   symm
---   apply lift_uniq
---   · rfl
---   · rfl
--- end
-
--- lemma comm_sq_aux {Γ : Ctx} (ab : y(Γ) ⟶ smallU.uvPolyTp.compDom smallU.uvPolyTp)
---     : sigma ((smallUCompDomEquiv ab).fst ⋙ forgetToGrpd)
---     (smallUCompDomEquiv ab).snd.fst =
---     sigma (smallUPTpEquiv (ab ≫ (smallU.uvPolyTp.comp smallU.uvPolyTp).p)).fst
---     (smallUPTpEquiv (ab ≫ (smallU.uvPolyTp.comp smallU.uvPolyTp).p)).snd := by
---   congr 1
---   · rw [smallUCompDomEquiv_apply_fst_forgetToGrpd]
---   · rw [smallUCompDomEquiv_apply_snd_fst ab]
---     apply lift_heq_id_comp
---     · rw [smallUCompDomEquiv_apply_fst_forgetToGrpd]
-
--- /-
---   For the natural model `smallU`, a map `ab : y(Γ) ⟶ compDom tp`
---   is equivalent to the data of `(α,B,β,h)` due to `smallUCompDomEquiv`
---   ```
---   (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
---     × (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v,v})
---     × (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
---     ×' (h : β ⋙ PGrpd.forgetToGrpd = Grothendieck.Groupoidal.sec _ α rfl ⋙ B)
---   ```
---   The following lemma computes the base type
---   `α ⋙ forgetToGrpd : y(Γ) ⟶ Grpd` in two different ways.
---   LHS is via `smallUPTpEquiv`, the universal property of `P_tp Ty`.
---   RHS is via `smallUCompDomEquiv`
--- -/
--- theorem app_fst_comp_forgetToGrpd_eq (Γ : Ctx) (ab : y(Γ) ⟶ smallU.uvPolyTp.compDom smallU.uvPolyTp) :
---     (smallUCompDomEquiv ab).fst ⋙ forgetToGrpd
---     = (smallUPTpEquiv (ab ≫ (smallU.uvPolyTp.comp smallU.uvPolyTp).p)).fst := by
---   apply smallUCompDomEquiv_apply_fst_forgetToGrpd
-
-
--- set_option maxHeartbeats 0 in
--- theorem smallUComp_apply {Γ : Ctx} (ab : y(Γ) ⟶ smallU.uvPolyTp.compDom smallU.uvPolyTp) :
---     ab ≫ smallU.comp
---     = smallU.PtpEquiv.mk ⟨(smallUCompDomEquiv ab).1 ⋙ forgetToGrpd,
---       (smallUCompDomEquiv ab).2.1 ⟩ := by
---   rw [← smallUPTpEquiv.apply_eq_iff_eq_symm_apply]
---   ext
---   · exact (smallUCompDomEquiv_apply_fst_forgetToGrpd ab).symm
---   · simp only []
---     dsimp only [smallUPTpEquiv, Equiv.trans_apply, smallUCompDomEquiv]
---     conv => left; rw [Equiv.sigmaCongr_apply_snd]
---     conv => right; rw [Equiv.sigmaCongr_apply_snd]
---     -- rw [uvPolyTpCompDomEquiv_apply_snd_fst]
---     -- rw [(yonedaCategoryEquiv_naturality_left' _)]
--- --   rw [smallU_lift]
--- --   simp only [Ctx.equivalence_inverse, Ctx.equivalence_functor,
--- --     AsSmall.down_obj, AsSmall.up_obj_down, Functor.FullyFaithful.preimage_map,
--- --     AsSmall.down_map, AsSmall.up_map_down]
--- --   rw! [smallU_var]
--- --   rfl
-
---     sorry-- exact (smallUCompDomEquiv_apply_snd_fst ab).symm
-
 theorem smallUPair_tp : smallUPair.{v} ≫ smallU.{v}.tp =
     smallU.comp.{v} ≫ smallUSig.{v} := by
   apply hom_ext_yoneda
@@ -1033,105 +902,15 @@ theorem fac_right : lift.{v} AB αβ hαβ ≫ smallU.comp.{v} = AB := by
     simp [map_id_eq, Functor.id_comp]
     apply map_eqToHom_comp_heq
 
+theorem uniq (m : y(Γ) ⟶ smallU.uvPolyTp.compDom smallU.uvPolyTp)
+    (hmAB : m ≫ smallU.comp = AB) (hmαβ : m ≫ smallUPair = αβ) :
+    m = lift AB αβ hαβ :=
+  sorry
+
 variable (s : RepPullbackCone smallU.{v}.tp smallUSig.{v})
 abbrev A := smallU.PtpEquiv.fst s.snd
 
 abbrev B := smallU.PtpEquiv.snd s.snd
-
--- def lift' : y(Ctx.ofGrpd.obj $ Grpd.of ∫(sigma (A s) (B s))) ⟶
---     smallU.compDom.{v} :=
---   smallU.compDom.mk (fst (B s)) (dependent (B s)) (snd (B s)) (snd_forgetToGrpd _)
-
--- def lift : y(s.pt) ⟶ smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp :=
---   ym(smallU.{v}.sec (s.snd ≫ smallUSig) s.fst s.condition ≫ eqToHom (by
---     dsimp only [smallU_ext, U.ext, U.classifier, A, B]
---     have : yonedaCategoryEquiv (s.snd ≫ smallUSig) =
---         sigma (smallU.PtpEquiv.fst s.snd) (smallU.PtpEquiv.snd s.snd) := by
---       rw [smallUSig_app_eq, smallUSig_app, Equiv.apply_symm_apply]
---     rw [this]))
---   ≫ lift' s
-
--- theorem fac_right (s : Limits.RepPullbackCone smallU.tp smallUSig) :
---     lift s ≫ smallU.comp = s.snd := by
---   -- have h := UvPoly.compDomEquiv_symm_comp_p s.snd
---   -- apply smallUPTpEquiv.apply_eq_iff_eq.mp
---   -- ext
---   -- · rw [smallUPTpEquiv]
---   --   sorry
---   -- · sorry
---   sorry
-
--- theorem fac_left_aux_0 : yonedaCategoryEquiv s.fst ⋙ forgetToGrpd =
---     FunctorOperation.pair _ _ _ (smallU.compDom.snd_forgetToGrpd (lift s)) ⋙ forgetToGrpd := sorry
-
-
--- set_option maxHeartbeats 0 in
--- set_option trace.profiler true in
--- set_option trace.profiler.threshold 500 in
--- theorem fac_left_aux (x : Ctx.toGrpd.obj s.pt) :
---     (sec (pair (smallUCompDomEquiv.{v, max (u+1)} (lift s)).snd.snd.snd ⋙ forgetToGrpd)
---     (pair (smallUCompDomEquiv.{v, max (u+1)} (lift s)).snd.snd.snd) rfl).obj
---     x =
---     (Grothendieck.Groupoidal.sec (FunctorOperation.pair
---     (smallUCompDomEquiv (lift s)).snd.snd.snd ⋙ forgetToGrpd)
---     (yonedaCategoryEquiv s.fst) (fac_left_aux_0 s)).obj
---     x := by
-  -- apply Grothendieck.Groupoidal.obj_ext_hEq
-  -- · exact (sec_obj_base ..).trans (sec_obj_base ..).symm
-  -- · apply heq_of_eq_of_heq (sec_obj_fiber
-  --     (FunctorOperation.pair (smallUCompDomEquiv (lift s)).snd.snd.snd ⋙ forgetToGrpd)
-  --     (FunctorOperation.pair (smallUCompDomEquiv (lift s)).snd.snd.snd) rfl x)
-  --   apply heq_of_heq_of_eq _ (sec_obj_fiber
-  --           (FunctorOperation.pair (smallUCompDomEquiv (lift s)).snd.snd.snd ⋙ forgetToGrpd)
-  --           (yonedaCategoryEquiv s.fst) (fac_left_aux_0 s) x).symm
-  --   simp only [objPt', objPt, Grpd.eqToHom_obj, cast_heq_iff_heq, heq_cast_iff_heq]
-
-    -- unfold PointedGroupoid.pt
-    -- -- rw! (castMode := .all) [fac_left_aux_0 s]
-    -- -- rw! (castMode := .all) [fac_left_aux_0 s]
-    -- -- apply heq_of_eq
-    -- -- -- simp
-    -- -- congr 1
-    -- -- · rw [fac_left_aux_0 s]
-    -- -- --rw [Functor.congr_obj (fac_left_aux_0 s) x]
-    -- -- · rw! (castMode := .all) [fac_left_aux_0 s]
-    -- --  -- rw! [Functor.congr_obj (fac_left_aux_0 s) x]
-    -- sorry -- rfl
-
--- theorem fac_left_aux_1 (x : Ctx.toGrpd.obj s.pt) :
---     (FunctorOperation.pair (smallUCompDomEquiv (lift s)).snd.snd.snd).obj x =
---     (yonedaCategoryEquiv s.fst).obj x := by
---   simp only [FunctorOperation.pair, pairSection, Functor.comp_obj, toPGrpd]
---   -- congr 1
---   -- · sorry
---   -- · sorry
---   sorry
-
--- set_option pp.proofs true in
--- set_option maxHeartbeats 0 in
--- theorem fac_left (s : RepPullbackCone smallU.{v}.tp smallUSig.{v}) :
---     lift s ≫ smallUPair.{v} = s.fst := by
---   rw [smallUPair_app_eq, yonedaCategoryEquiv.symm_apply_eq]
---   apply PGrpd.Functor.hext
---   · exact (fac_left_aux_0 s).symm
---   · intro x
---     sorry
---   · intro x y f
---     sorry
---   -- · apply CategoryTheory.Functor.ext
---     -- · sorry
---     -- · intro x
---     --   apply Grothendieck.Groupoidal.obj_ext_hEq
---     --   · rw [sec_obj_base, sec_obj_base]
---     --   · rw [sec_obj_fiber, sec_obj_fiber]
---     --     -- unfold objPt'
---     --     -- simp [objPt']
---     --     sorry
-
--- theorem lift_uniq (s : Limits.RepPullbackCone smallU.tp smallUSig)
---     (m : y(s.pt) ⟶ smallU.compDom) :
---     m ≫ smallUPair = s.fst → m ≫ smallU.comp = s.snd → m = lift s :=
---   sorry
 
 end
 end
@@ -1146,17 +925,7 @@ theorem smallU_pb : IsPullback smallUPair.{v,u} smallU.comp.{v,u}
     (fun s => lift s.snd s.fst s.condition)
     (fun s => fac_left.{v,u} _ _ _)
     (fun s => fac_right.{v,u} _ _ s.condition)
-    sorry
-  -- smallU.IsPullback.of_existsUnique_liftExt_hom_ext
-  --   smallUPair.{v} smallU.comp.{v} smallUSig smallUPair_tp (by
-  --     intro Γ AB
-  --     fconstructor
-  --     · convert liftExt.{v} Γ AB -- FIXME why does lean timeout with exact?
-  --       -- I could also do let h := liftExt.{v} Γ AB; exact h
-  --     · dsimp only [eq_mpr_eq_cast, cast_eq]
-  --       sorry
-  --   )
-  --   sorry
+    (fun s => sorry)
 
 def smallUSigma : NaturalModelSigma smallU.{v} where
   Sig := smallUSig

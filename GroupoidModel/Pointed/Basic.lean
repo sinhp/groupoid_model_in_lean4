@@ -349,6 +349,9 @@ theorem mapFiber'_naturality {Δ : Type*} [Category Δ] (σ : Δ ⥤ Γ) {x y} (
     = mapFiber' h (σ.map f) := by
   simp [mapFiber', mapFiber'EqToHom, objFiber'EqToHom]
 
+@[simp] theorem mapFiber'_rfl {x y : Γ} (f : x ⟶ y) : mapFiber' rfl f = mapFiber α f := by
+  simp [mapFiber', mapFiber, mapFiber'EqToHom, objFiber'EqToHom]
+
 end
 
 theorem Functor.hext (F G : Γ ⥤ PGrpd)

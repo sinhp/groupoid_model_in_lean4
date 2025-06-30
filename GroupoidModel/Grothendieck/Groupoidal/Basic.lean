@@ -130,6 +130,14 @@ def homMk {X Y : ∫(F)} (fb : X.base ⟶ Y.base) (ff : (F.map fb).obj X.fiber �
 
 end
 
+@[simp] lemma Grothendieck.Groupoidal.eta {Γ : Type*} [Category Γ]
+  {A : Γ ⥤ Grpd} (x : ∫(A)) : objMk x.base x.fiber = x :=
+  rfl
+
+@[simp] lemma Grothendieck.Groupoidal.Hom.eta {Γ : Type*} [Category Γ]
+  {A : Γ ⥤ Grpd} {x y : ∫(A)} (f : x ⟶ y) : homMk f.base f.fiber = f :=
+  rfl
+
 section
 
 variable {C : Type u₁} [Groupoid.{v₁,u₁} C] {F : C ⥤ Grpd.{v₂,u₂}}
