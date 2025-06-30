@@ -20,7 +20,7 @@ noncomputable section
 namespace NaturalModelBase
 namespace UHomSeq
 
-variable {𝒞 : Type u} [SmallCategory 𝒞] [ChosenFiniteProducts 𝒞]
+variable {𝒞 : Type u} [SmallCategory 𝒞] [CartesianMonoidalCategory 𝒞]
 
 /-! ## Extension sequences -/
 
@@ -286,7 +286,7 @@ end UHomSeq
 
 namespace UHomSeqPiSigma
 
-variable {𝒞 : Type u} [SmallCategory 𝒞] [ChosenFiniteProducts 𝒞] {s : UHomSeqPiSigma 𝒞}
+variable {𝒞 : Type u} [SmallCategory 𝒞] [CartesianMonoidalCategory 𝒞] {s : UHomSeqPiSigma 𝒞}
 
 mutual
 
