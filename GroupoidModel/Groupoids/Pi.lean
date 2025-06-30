@@ -158,7 +158,7 @@ abbrev Section.grpd {A:Type u} [Category.{v ,u} A] {B : Type u₁}
     [Groupoid.{v₁} B] (F : B ⥤ A) : Grpd :=
   Grpd.of (Section F)
 
-open FunctorOperation
+open FunctorOperation.sigma
 
 -- TODO camelCase
 def Fiber_Grpd {Γ : Grpd.{v₂,u₂}} (A : Γ ⥤ Grpd.{v₁,u₁})
@@ -366,7 +366,7 @@ def pi {Γ : Grpd.{v,u}} {A : Γ ⥤ Grpd.{u₁,u₁}}
 def smallUPi_app {Γ : Ctx.{max u (v+1)}}
     (AB : y(Γ) ⟶ smallU.{v, max u (v+1)}.Ptp.obj smallU.{v, max u (v+1)}.Ty) :
     y(Γ) ⟶ smallU.{v, max u (v+1)}.Ty :=
-  yonedaCategoryEquiv.symm (pi (smallUPTpEquiv AB).2)
+  yonedaCategoryEquiv.symm (pi (smallU.PtpEquiv.snd AB))
 
 /-- The formation rule for Π-types for the natural model `smallU` -/
 def smallUPi.Pi : smallU.{v}.Ptp.obj smallU.{v}.Ty ⟶ smallU.{v}.Ty :=
