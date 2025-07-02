@@ -2,11 +2,10 @@ import GroupoidModel.Russell_PER_MS.Substitution
 
 /-! # Substitutions from lists of terms -/
 
-/-- The action of substitutions is determined by their action on bound variables.
-
-This has stronger assumptions than necessary:
+/-- The action of substitutions is determined by their action on bound variables. -/
+/- This has stronger assumptions than necessary:
 only well-scopedness or `i < maxBvar` is actually needed;
-but I can't be bothered defining that. -/
+but I can't be bothered defining either. -/
 theorem sb_irrel :
     (∀ {Γ l A}, Γ ⊢[l] A →
       ∀ (σ σ'), (∀ i < Γ.length, σ i = σ' i) → A.subst σ = A.subst σ') ∧
@@ -28,13 +27,13 @@ theorem sb_irrel :
 
 /-! ## Substitutions from lists of expressions -/
 
-/-- The substitution `Δ ⊢ sbOfTms ts 0 : Aₙ.….A₁` corresponding to a list of terms
+/-- The substitution `Δ ⊢ sbOfTms ts 0 : Aₙ.….A₁` corresponds to a list of terms
 `Δ ⊢ ts[ts.length - 1] : Aₙ`
 `Δ ⊢ ts[ts.length - 2] : Aₙ₋₁[ts[ts.length - 1]]`
 ⋮
 `Δ ⊢ ts[0] : A₁[…]`.
 
-The parameter `k` is just a formal device to obtain nicer lemmas. -/
+The shift parameter `k` is just a formal device to obtain nicer lemmas. -/
 def sbOfTms (ts : List Expr) (k := 0) : Nat → Expr :=
   fun i => ts[i]?.getD (Expr.bvar <| i + k)
 
@@ -73,5 +72,5 @@ theorem WfTp.sbOfTms_irrel {Γ l A ts} (wf : Γ ⊢[l] A) (le : Γ.length ≤ ts
 
 /-- When the list of terms covers all variables, the shift `k` is irrelevant. -/
 theorem WfTm.sbOfTms_irrel {Γ l A t ts} (wf : Γ ⊢[l] t : A) (le : Γ.length ≤ ts.length) (k) :
-     t.subst (sbOfTms ts k) = t.subst (sbOfTms ts 0) :=
+    t.subst (sbOfTms ts k) = t.subst (sbOfTms ts 0) :=
   sb_irrel.2 wf (sbOfTms ts k) (sbOfTms ts 0) fun i _ => sbOfTms_get_eq ts k i (by omega)

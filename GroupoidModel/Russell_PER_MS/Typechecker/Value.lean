@@ -19,12 +19,46 @@ The value type is obtained by:
 1. carving out normal (generally introduction) and neutral (generally elimination) forms
    as sublanguages of expressions
 2. replacing the bodies of binders in those languages by unevaluated closures
--/
+
+## Type annotations
+
+Some of the nested data are not values, but rather expressions.
+These are precisely the type annotations on terms.
+They are left unevaluated because we don't need them to decide equality:
+by uniqueness of typing, lemmas like the following can be proven
+```lean4
+  Γ ⊢[max l l'] p ≡ p' : .sigma l l' A B →
+  Γ ⊢[l] Expr.fst l l' A B p : A →
+  Γ ⊢[l] Expr.fst l l' A' B' p' : A →
+  Γ ⊢[l] Expr.fst l l' A B p ≡ Expr.fst l l' A' B' p' : A
+```
+and hence it suffices to compare the value parts (in this case `p`).
+
+Unfortunately, we must keep annotations on values
+in order to relate values to expressions via `toExpr`.
+
+This is an issue because as of now,
+we are _computing_ these annotations in the evaluator,
+sometimes of the form `A.subst (sbOfEnv ‖Γ‖ env)`.
+It could be solved without removing annotations
+by using `Q(Expr)` instead of `Expr`.
+We will never have to execute/WHNF the resulting `Lean.Expr`
+because the annotations are never inspected.
+
+Alternatively, we could replace the `toExpr` model
+by a family of judgments like `ValEqTp Γ l vT T`
+which would combine `WfValTm` with `v.toExpr ≡ t` (the postconditions of `eval*`.)
+See if this makes it possible to forget the annotations entirely.
+It may also simplify the proofs in `eval*`.
+Dropping annotations should not be an issue for `Expr` reconstruction during readback
+because readback is typed, so will have sufficient typing data available. -/
+
+-- Q: well-scope `Val`/`Neut`? a lot of `‖Γ‖` noise
 inductive Val where
   | pi (l l' : Nat) (A : Val) (B : Clos)
   | sigma (l l' : Nat) (A : Val) (B : Clos)
-  | lam (l l' : Nat) (A : Val) (b : Clos)
-  | pair (l l' : Nat) (B : Clos) (t u : Val)
+  | lam (l l' : Nat) (A : Expr) (b : Clos)
+  | pair (l l' : Nat) (B : Expr) (t u : Val)
   | univ (l : Nat)
   /- TODO: to make the theory usable,
   we'll need to treat `code` and `el` as eliminators,
@@ -41,13 +75,7 @@ i.e., contain no β-reducible subterm. -/
 inductive Neut where
   /-- A de Bruijn *level*. -/
   | bvar (i : Nat)
-  -- And maybe here?
-  | app (l l' : Nat) (A : Val) (B : Clos) (f : Neut) (a : Val)
-  /- 2025-06-24: there seems to be no issue with making `A B : Expr`;
-  we then don't have to evaluate these types.
-  To check equality, it hopefully suffices to check `p =?= p'`
-  (equality checks are typed and `A, B` are determined by the type of `p`).
-  TODO: also use `Expr` in `app`? What about intro forms: `lam`, `pair`? -/
+  | app (l l' : Nat) (A B : Expr) (f : Neut) (a : Val)
   | fst (l l' : Nat) (A B : Expr) (p : Neut)
   | snd (l l' : Nat) (A B : Expr) (p : Neut)
   deriving Lean.ToExpr
@@ -62,10 +90,11 @@ to fill in for `v₀` in `b`.
 In NbE, closures are the runtime values of binder bodies.
 
 In some NbE implementations, this would be an actual closure `Expr → Expr`;
-the present variant is a defunctionalization of that due to Abel. -/
+the present variant is a defunctionalization due to Abel. -/
 inductive Clos where
-  | mk_tp (Γ : Ctx) (A : Expr) (env : List Val) (b : Expr)
-  | mk_tm (Γ : Ctx) (l l' : Nat) (A B : Expr) (env : List Val) (b : Expr)
+  | mk_tp (Γ : Ctx) (A : Expr) (env : List Val) (B : Expr)
+  -- TODO: rm `l, l'`?
+  | mk_tm (Γ : Ctx) (l l' : Nat) (A : Expr) (env : List Val) (b : Expr)
   deriving Lean.ToExpr
 end
 
@@ -77,8 +106,8 @@ variable (d : Nat)
 def Val.toExpr : Val → Expr
   | .pi l l' A B => .pi l l' A.toExpr B.toExpr
   | .sigma l l' A B => .sigma l l' A.toExpr B.toExpr
-  | .lam l l' A b => .lam l l' A.toExpr b.toExpr
-  | .pair l l' B t u => .pair l l' B.toExpr t.toExpr u.toExpr
+  | .lam l l' A b => .lam l l' A b.toExpr
+  | .pair l l' B t u => .pair l l' B t.toExpr u.toExpr
   | .univ l => .univ l
   | .el a => .el a.toExpr
   | .code A => .code A.toExpr
@@ -88,7 +117,7 @@ def Val.toExpr : Val → Expr
 /-- The expression corresponding to a neutral form well-typed in a context of length `d`. -/
 def Neut.toExpr : Neut → Expr
   | .bvar l => .bvar (d - l - 1)
-  | .app l l' A B f a => .app l l' A.toExpr B.toExpr f.toExpr a.toExpr
+  | .app l l' A B f a => .app l l' A B f.toExpr a.toExpr
   | .fst l l' A B p => .fst l l' A B p.toExpr
   | .snd l l' A B p => .snd l l' A B p.toExpr
   termination_by n => sizeOf n
@@ -97,18 +126,19 @@ def Neut.toExpr : Neut → Expr
 whose _domain_ is a context of length `d`
 (i.e., `Δ ⊢ env : Γ` where `‖Δ‖ = d`).
 
-Remark: we need `WfClos` judgments because this function is not injective:
-it forgets the pre-substitution binder body `b/B`,
-the environment,
-and the additional type information.
-Thus, the well-typedness of `C.toExpr` is not enough to conclude that `C` is well-formed. -/
+Remark: closures are the only kind of value
+that is not fully described by its `Expr` embedding.
+More precisely, the well-typedness of `C.toExpr`
+does not imply that `C` is well-formed.
+This is the only reason why we need `WfVal/…` judgments. -/
 def Clos.toExpr : Clos → Expr
   | .mk_tp _ _ env B => B.subst (Expr.up <| sbOfEnv env)
-  | .mk_tm _ _ _ _ _ env b => b.subst (Expr.up <| sbOfEnv env)
+  | .mk_tm _ _ _ _ env b => b.subst (Expr.up <| sbOfEnv env)
   termination_by c => sizeOf c
 
 /-- The substitution corresponding to an evaluation environment
-whose _domain_ is a context of length `d`: `Δ ⊢ env : Γ` where `‖Δ‖ = d`.
+whose _domain_ is a context of length `d`
+(i.e., `Δ ⊢ env : Γ` where `‖Δ‖ = d`).
 
 See also `sbOfTms`. -/
 def sbOfEnv (env : List Val) (k := 0) : Nat → Expr :=
@@ -165,14 +195,13 @@ inductive WfValTp : Ctx → Nat → Val → Prop
 
 inductive WfValTm : Ctx → Nat → Val → Expr → Prop
   | lam {Γ A B b l l'} :
-    WfValTp Γ l A →
-    WfClosTm Γ l l' (A.toExpr ‖Γ‖) B b →
-    WfValTm Γ (max l l') (.lam l l' A b) (.pi l l' (A.toExpr ‖Γ‖) B)
+    WfClosTm Γ l l' A B b →
+    WfValTm Γ (max l l') (.lam l l' A b) (.pi l l' A B)
   | pair {Γ A B t u l l'} :
-    WfClosTp Γ l l' A B →
+    (A, l) :: Γ ⊢[l'] B →
     WfValTm Γ l t A →
-    WfValTm Γ l' u (B.toExpr ‖Γ‖ |>.subst (t.toExpr ‖Γ‖).toSb) →
-    WfValTm Γ (max l l') (.pair l l' B t u) (.sigma l l' A (B.toExpr ‖Γ‖))
+    WfValTm Γ l' u (B.subst (t.toExpr ‖Γ‖).toSb) →
+    WfValTm Γ (max l l') (.pair l l' B t u) (.sigma l l' A B)
   | code {Γ A l} :
     l < univMax →
     WfValTp Γ l A →
@@ -185,23 +214,19 @@ inductive WfValTm : Ctx → Nat → Val → Expr → Prop
     Γ ⊢[l] A ≡ A' →
     WfValTm Γ l v A'
 
--- Q: well-scope `Val`/`Neut`? a lot of `‖Γ‖` noise
 inductive WfNeutTm : Ctx → Nat → Neut → Expr → Prop
   | bvar {Γ A i l} :
     WfCtx Γ →
     Lookup Γ i A l →
     WfNeutTm Γ l (.bvar (‖Γ‖ - i - 1)) A
   | app {Γ A B f a l l'} :
-    WfClosTp Γ l l' (A.toExpr ‖Γ‖) B →
-    WfNeutTm Γ (max l l') f (.pi l l' (A.toExpr ‖Γ‖) (B.toExpr ‖Γ‖)) →
-    WfValTm Γ l a (A.toExpr ‖Γ‖) →
-    WfNeutTm Γ l' (.app l l' A B f a) ((B.toExpr ‖Γ‖).subst (a.toExpr ‖Γ‖).toSb)
+    WfNeutTm Γ (max l l') f (.pi l l' A B) →
+    WfValTm Γ l a A →
+    WfNeutTm Γ l' (.app l l' A B f a) (B.subst (a.toExpr ‖Γ‖).toSb)
   | fst {Γ A B p l l'} :
-    (A, l) :: Γ ⊢[l'] B →
     WfNeutTm Γ (max l l') p (.sigma l l' A B) →
     WfNeutTm Γ l (.fst l l' A B p) A
   | snd {Γ A B p l l'} :
-    (A, l) :: Γ ⊢[l'] B →
     WfNeutTm Γ (max l l') p (.sigma l l' A B) →
     WfNeutTm Γ l' (.snd l l' A B p) (B.subst (Expr.fst l l' A B (p.toExpr ‖Γ‖)).toSb)
   | conv_neut {Γ A A' n l} :
@@ -225,7 +250,7 @@ inductive WfClosTm : Ctx → Nat → Nat → Expr → Expr → Clos → Prop
     (Aenv, l) :: Δ ⊢[l'] (B.subst <| Expr.up (sbOfEnv ‖Δ‖ env)) ≡ Benv →
     WfEnv Δ env Γ →
     (A, l) :: Γ ⊢[l'] b : B →
-    WfClosTm Δ l l' Aenv Benv (.mk_tm Γ l l' A B env b)
+    WfClosTm Δ l l' Aenv Benv (.mk_tm Γ l l' A env b)
 
 inductive WfEnv : Ctx → List Val → Ctx → Prop
   /- Possible optimization: allow `WfEnv Γ [] Γ`
@@ -289,7 +314,7 @@ theorem mk : ∀ {Γ}, WfCtx Γ → ∀ {Δ} {E : List Val}, WfCtx Δ → (eq : 
   case snoc A ih _ _ E Δ eq h =>
     cases E
     . cases eq
-    . replace eq := Nat.succ_inj'.mp eq
+    . replace eq := Nat.succ_inj.mp eq
       apply WfEnv.snoc
       . refine ih Δ eq fun lk => ?_
         convert h (lk.succ ..) using 1; autosubst
@@ -303,7 +328,7 @@ end WfEnv
 /-! ## Values are well-typed as expressions -/
 
 attribute [local grind] Val.toExpr Neut.toExpr Clos.toExpr in
-theorem wf_toExpr {Γ : Ctx} :
+theorem wf_toExpr {Γ} :
     (∀ {l A}, WfValTp Γ l A → Γ ⊢[l] A.toExpr ‖Γ‖) ∧
     (∀ {l t A}, WfValTm Γ l t A → Γ ⊢[l] t.toExpr ‖Γ‖ : A) ∧
     (∀ {l t A}, WfNeutTm Γ l t A → Γ ⊢[l] t.toExpr ‖Γ‖ : A) ∧
@@ -335,9 +360,9 @@ theorem wf_toExpr {Γ : Ctx} :
     have := this.conv_binder Aenv
     convert this using 1
     rw [Clos.toExpr]
-  case clos_tm Aenv Benv env b sb =>
+  case clos_tm Aenv Benv _ b env =>
     unfold Clos.toExpr
-    have := b.subst (sb 0 |>.up b.wf_ctx.inv_snoc)
+    have := b.subst (env 0 |>.up b.wf_ctx.inv_snoc)
     have := this.conv_ctx (EqCtx.refl Aenv.wf_ctx |>.snoc Aenv)
     exact this.conv Benv
   case nil => apply WfSb.terminal; assumption
@@ -371,7 +396,7 @@ theorem WfEnv.wf_sbOfEnv {Δ E Γ} (h : WfEnv Δ E Γ) : WfSb Δ (sbOfEnv ‖Δ�
 /-! ## Values are closed under conversion -/
 
 attribute [local grind] EqCtx.length_eq in
-theorem conv_ctx {Γ : Ctx} :
+theorem conv_ctx {Γ} :
     (∀ {l A}, WfValTp Γ l A → ∀ {Γ'}, EqCtx Γ Γ' → WfValTp Γ' l A) ∧
     (∀ {l t A}, WfValTm Γ l t A → ∀ {Γ'}, EqCtx Γ Γ' → WfValTm Γ' l t A) ∧
     (∀ {l t A}, WfNeutTm Γ l t A → ∀ {Γ'}, EqCtx Γ Γ' → WfNeutTm Γ' l t A) ∧
@@ -384,12 +409,10 @@ theorem conv_ctx {Γ : Ctx} :
   case sigma => grind [WfValTp.sigma, EqTp.refl_tp]
   case univ => grind [WfValTp.univ, EqCtx.wf_right]
   case el => grind [WfValTp.el]
-  case lam eq =>
-    rw [eq.length_eq]
-    grind [WfValTm.lam, EqTp.refl_tp]
-  case pair eq =>
-    rw [eq.length_eq]
-    grind [WfValTm.pair]
+  case lam eq => grind [WfValTm.lam]
+  case pair B _ _ _ _ _ eq =>
+    apply WfValTm.pair (B.conv_ctx (eq.snoc <| EqTp.refl_tp B.wf_ctx.inv_snoc)) <;>
+      grind
   case code => grind [WfValTm.code]
   case neut_tm => grind [WfValTm.neut_tm]
   case conv_nf => grind [EqTp.conv_ctx, WfValTm.conv_nf]
@@ -402,18 +425,15 @@ theorem conv_ctx {Γ : Ctx} :
   case app eq =>
     rw [eq.length_eq]
     grind [WfNeutTm.app]
-  case fst B _ _ _ eq =>
-    apply WfNeutTm.fst (B.conv_ctx <| eq.snoc <| EqTp.refl_tp B.wf_ctx.inv_snoc)
-    grind
+  case fst => grind [WfNeutTm.fst]
   case snd B _ _ _ eq =>
     rw [eq.length_eq]
-    apply WfNeutTm.snd (B.conv_ctx <| eq.snoc <| EqTp.refl_tp B.wf_ctx.inv_snoc)
-    grind
+    grind [WfNeutTm.snd]
   case conv_neut => grind [EqTp.conv_ctx, WfNeutTm.conv_neut]
   case clos_tp Aeq env _ _ _ eq =>
     rw [eq.length_eq] at Aeq
     grind [WfClosTp.clos_tp, EqTp.conv_ctx]
-  case clos_tm Aeq Beq _ _ _ _ eq =>
+  case clos_tm Aeq Beq env b _ _ eq =>
     rw [eq.length_eq] at Aeq Beq
     apply WfClosTm.clos_tm _ (Beq.conv_ctx _)
     all_goals grind [EqTp.conv_ctx, EqCtx.snoc, EqTp.refl_tp, EqTp.wf_right]
@@ -479,45 +499,55 @@ theorem envOfLen_wf {Γ} : WfCtx Γ → WfEnv Γ (envOfLen ‖Γ‖) Γ := by
 
 /-! ## Inversion for well-formed values -/
 
+theorem WfValTp.inv_pi {Γ vA vB l k k'} : WfValTp Γ l (.pi k k' vA vB) →
+    l = max k k' ∧ WfValTp Γ k vA ∧ WfClosTp Γ k k' (vA.toExpr ‖Γ‖) vB := by
+  suffices ∀ {l t}, WfValTp Γ l t →
+      ∀ {vA vB k k'}, t = .pi k k' vA vB →
+        l = max k k' ∧ WfValTp Γ k vA ∧ WfClosTp Γ k k' (vA.toExpr ‖Γ‖) vB from
+    fun h => this h rfl
+  mutual_induction WfValTp
+  all_goals grind
+
+theorem WfValTp.inv_sigma {Γ vA vB l k k'} : WfValTp Γ l (.sigma k k' vA vB) →
+    l = max k k' ∧ WfValTp Γ k vA ∧ WfClosTp Γ k k' (vA.toExpr ‖Γ‖) vB := by
+  suffices ∀ {l t}, WfValTp Γ l t →
+      ∀ {vA vB k k'}, t = .sigma k k' vA vB →
+        l = max k k' ∧ WfValTp Γ k vA ∧ WfClosTp Γ k k' (vA.toExpr ‖Γ‖) vB from
+    fun h => this h rfl
+  mutual_induction WfValTp
+  all_goals grind
+
 theorem WfValTm.inv_lam {Γ A C b l₀ l l'} : WfValTm Γ l₀ (.lam l l' A b) C →
-    l₀ = max l l' ∧ (WfValTp Γ l A) ∧ ∃ B,
-      (WfClosTm Γ l l' (A.toExpr ‖Γ‖) B b) ∧ (Γ ⊢[max l l'] C ≡ .pi l l' (A.toExpr ‖Γ‖) B) := by
+    l₀ = max l l' ∧ ∃ B, (WfClosTm Γ l l' A B b) ∧ (Γ ⊢[max l l'] C ≡ .pi l l' A B) := by
   suffices
       ∀ {l₀ t C}, WfValTm Γ l₀ t C → ∀ {A b l l'}, t = .lam l l' A b →
-        l₀ = max l l' ∧ (WfValTp Γ l A) ∧
-          ∃ B, (WfClosTm Γ l l' (A.toExpr ‖Γ‖) B b) ∧
-            (Γ ⊢[max l l'] C ≡ .pi l l' (A.toExpr ‖Γ‖) B) from
+        l₀ = max l l' ∧ ∃ B, (WfClosTm Γ l l' A B b) ∧ (Γ ⊢[max l l'] C ≡ .pi l l' A B) from
     fun h => this h rfl
   mutual_induction WfValTm
   all_goals intros; try exact True.intro
   all_goals rename_i eq; cases eq
-  case lam =>
-    refine ⟨rfl, by assumption, _, by assumption, ?_⟩
-    apply EqTp.cong_pi
-    . grind [EqTp.refl_tp, WfValTp.wf_toExpr]
-    . rename_i C _ _
-      exact EqTp.refl_tp C.wf_toExpr.wf_tp
+  case lam b _ =>
+    refine ⟨rfl, _, by assumption, ?_⟩
+    rcases b with ⟨_, eq, _, _⟩
+    exact EqTp.refl_tp <| WfTp.pi eq.wf_right
   case conv_nf =>
     grind [EqTp.symm_tp, EqTp.trans_tp]
 
 theorem WfValTm.inv_pair {Γ B C t u l₀ l l'} : WfValTm Γ l₀ (.pair l l' B t u) C →
-    l₀ = max l l' ∧ ∃ A,
-      (WfClosTp Γ l l' A B) ∧ (WfValTm Γ l t A) ∧
-      (WfValTm Γ l' u (B.toExpr ‖Γ‖ |>.subst (t.toExpr ‖Γ‖).toSb)) ∧
-      (Γ ⊢[max l l'] C ≡ .sigma l l' A (B.toExpr ‖Γ‖)) := by
+    l₀ = max l l' ∧ ∃ A, (WfValTm Γ l t A) ∧ (WfValTm Γ l' u (B.subst (t.toExpr ‖Γ‖).toSb)) ∧
+      (Γ ⊢[max l l'] C ≡ .sigma l l' A B) := by
   suffices
       ∀ {l₀ t₀ C}, WfValTm Γ l₀ t₀ C → ∀ {B t u l l'}, t₀ = .pair l l' B t u →
         l₀ = max l l' ∧ ∃ A,
-          (WfClosTp Γ l l' A B) ∧
           (WfValTm Γ l t A) ∧
-          (WfValTm Γ l' u (B.toExpr ‖Γ‖ |>.subst (t.toExpr ‖Γ‖).toSb)) ∧
-          (Γ ⊢[max l l'] C ≡ .sigma l l' A (B.toExpr ‖Γ‖)) from
+          (WfValTm Γ l' u (B.subst (t.toExpr ‖Γ‖).toSb)) ∧
+          (Γ ⊢[max l l'] C ≡ .sigma l l' A B) from
     fun h => this h rfl
   mutual_induction WfValTm
   all_goals intros; try exact True.intro
   all_goals rename_i eq; cases eq
   case pair =>
-    refine ⟨rfl, _, by assumption, by assumption, by assumption, ?_⟩
+    refine ⟨rfl, _, by assumption, by assumption, ?_⟩
     grind [EqTp.refl_tp, WfTp.sigma, WfClosTp.wf_toExpr]
   case conv_nf =>
     grind [EqTp.symm_tp, EqTp.trans_tp]

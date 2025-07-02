@@ -34,8 +34,7 @@ When set to `0`, types cannot be quantified over at all. -/
 -- If only we had parameterized modules..
 def univMax : Nat := 3
 
-/-- `Lookup Γ i A l` means that `A = A'[↑ⁱ⁺¹]`
-where `(A', l)` is stored at index `i` in `Γ`.
+/-- `Lookup Γ i A l` means that `A = A'[↑ⁱ⁺¹]` where `Γ[i] = (A', l)`.
 Together with `⊢ Γ`, this implies `Γ ⊢[l] .bvar i : A`. -/
 inductive Lookup : Ctx → Nat → Expr → Nat → Prop where
   | zero (Γ A l) : Lookup ((A,l) :: Γ) 0 (A.subst Expr.wk) l
@@ -120,7 +119,9 @@ inductive EqTp : Ctx → Nat → Expr → Expr → Prop
     Γ ⊢[l] A' ≡ A'' →
     Γ ⊢[l] A ≡ A''
 
-/-- The term has the specified type at the specified universe level. -/
+/-- The term has the specified type at the specified universe level.
+
+Note: the type is the _first_ `Expr` argument. -/
 inductive WfTm : Ctx → Nat → Expr → Expr → Prop
   -- Term formers
   | bvar {Γ A i l} :
@@ -172,7 +173,7 @@ inductive WfTm : Ctx → Nat → Expr → Expr → Prop
 
 /-- The two terms are equal at the specified type and universe level.
 
-Note: the type is the _first_ argument in order to make `gcongr` work.
+Note: the type is the _first_ `Expr` argument in order to make `gcongr` work.
 We still pretty-print it last following convention. -/
 inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
   -- Congruences

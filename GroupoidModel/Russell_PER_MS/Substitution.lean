@@ -144,6 +144,9 @@ theorem rename_all :
 theorem Lookup.lt_length {Γ i A l} : Lookup Γ i A l → i < Γ.length := by
   intro lk; induction lk <;> (dsimp; omega)
 
+theorem Lookup.lvl_eq {Γ i A l} (lk : Lookup Γ i A l) : l = (Γ[i]'lk.lt_length).2 := by
+  induction lk <;> grind
+
 theorem Lookup.of_lt_length {Γ i} : i < Γ.length → ∃ A l, Lookup Γ i A l := by
   intro lt
   induction Γ generalizing i
@@ -223,6 +226,9 @@ theorem wf_right {Δ Γ σ σ'} : EqSb Δ σ σ' Γ → WfSb Δ σ' Γ := by
 end EqSb
 
 namespace WfSb
+
+theorem eq_self {Δ Γ σ} : WfSb Δ σ Γ → EqSb Δ σ σ Γ :=
+  fun h => .refl h
 
 theorem ofRen {Δ Γ ξ} : WfCtx Δ → WfCtx Γ → WfRen Δ ξ Γ → WfSb Δ (Expr.ofRen ξ) Γ := by
   unfold WfSb EqSb

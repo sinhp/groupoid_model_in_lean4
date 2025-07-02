@@ -5,9 +5,9 @@ import GroupoidModel.Russell_PER_MS.EqCtx
 /- This property, lifted from a system where it is _not_ true
 (https://github.com/TheoWinterhalter/formal-type-theory/blob/93ac197dfde912d77af9b0f4fd9f7d2422ba7dfc/src/concise_uniqueness.v#L159)
 is actually true of our system, but for stupid reasons:
-we have no type-level computation.
+we have no non-trivial type equalities.
 As soon as we add `el code A ≡ A`, it will break;
-however, injectivity of Π types stated below should remain true. -/
+however, injectivity of Π types as stated below should remain true. -/
 private theorem strong_piInj :
     ∀ {Γ l₀ C C'}, Γ ⊢[l₀] C ≡ C' →
       ∀ {A B l l'},
