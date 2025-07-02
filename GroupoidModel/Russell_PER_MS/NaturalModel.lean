@@ -385,4 +385,10 @@ structure NaturalModelSigma where
   pair : UvPoly.compDom (uvPolyTp M) (uvPolyTp M) ⟶ M.Tm
   Sig_pullback : IsPullback pair ((uvPolyTp M).comp (uvPolyTp M)).p M.tp Sig
 
+structure NaturalModelId_aux where
+  Id : pullback M.tp M.tp ⟶ M.Ty
+  Refl : M.Tm ⟶ M.Tm
+  Id_comm : (pullback.lift (𝟙 M.Tm) (𝟙 M.Tm) rfl) ≫ Id = Refl ≫ M.tp
+
+
 end NaturalModelBase
