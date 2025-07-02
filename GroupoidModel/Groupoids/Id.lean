@@ -4,9 +4,12 @@ import GroupoidModel.Grothendieck.Groupoidal.Basic
 import GroupoidModel.Grothendieck.Groupoidal.IsPullback
 import GroupoidModel.Grothendieck.IsPullback
 import GroupoidModel.ForMathlib.CategoryTheory.Functor.IsPullback
-import GroupoidModel.Pointed.Basic
 import GroupoidModel.Pointed.IsPullback
 import Mathlib.CategoryTheory.Groupoid.Discrete
+import Poly.UvPoly.Basic
+import GroupoidModel.Groupoids.Basic
+import GroupoidModel.Groupoids.IsPullback
+import GroupoidModel.Groupoids.Sigma
 
 universe w v u v₁ u₁ v₂ u₂
 
@@ -16,6 +19,12 @@ noncomputable
 
 section BiPointed
 
+def PGrpd.inc (G : Type) [Groupoid G] : G ⥤ PGrpd  where
+  obj x := {base := Grpd.of G,fiber := x}
+  map f := {base := Functor.id G, fiber := f}
+  map_comp {X Y Z} f g := by
+    simp[CategoryStruct.comp,Grothendieck.comp,Grpd.forgetToCat]
+    congr
 
 namespace GrothendieckPointedCategories
 
@@ -39,8 +48,10 @@ def SecondPointed : BPCat ⥤ PCat where
     intros x y z f g
     exact rfl
 
+/- This needs a better name but I cant come up with one now-/
 theorem Comutes : FirstPointed ⋙ PCat.forgetToCat = SecondPointed ⋙ PCat.forgetToCat := by
   simp[FirstPointed,SecondPointed,PCat.forgetToCat,Functor.comp]
+
 
 def isPullback : Functor.IsPullback SecondPointed.{u,v} FirstPointed.{u,v} PCat.forgetToCat.{u,v} PCat.forgetToCat.{u,v}
   := @CategoryTheory.Grothendieck.isPullback PCat _ (PCat.forgetToCat)
@@ -67,18 +78,44 @@ def SecondPointed : BPGrpd ⥤ PGrpd where
     intros x y z f g
     exact rfl
 
+/- Same thing with this name-/
 theorem Comutes : FirstPointed ⋙ PGrpd.forgetToGrpd = SecondPointed ⋙ PGrpd.forgetToGrpd := by
   simp[FirstPointed,SecondPointed,PGrpd.forgetToGrpd,Functor.comp]
   exact Prod.mk_inj.mp rfl
 
--- def isPullback : Functor.IsPullback SecondPointed.{u,v} FirstPointed.{u,v} PGrpd.forgetToGrpd.{u,v} PGrpd.forgetToGrpd.{u,v}
---   := sorry
+def isPullback : Functor.IsPullback SecondPointed.{u,v} FirstPointed.{u,v} PGrpd.forgetToGrpd.{u,v} PGrpd.forgetToGrpd.{u,v} := by
+  apply @CategoryTheory.Grothendieck.Groupoidal.isPullback PGrpd _ (PGrpd.forgetToGrpd)
+
+def inc (G : Type) [Groupoid G] : G ⥤ BPGrpd := by
+  fapply isPullback.lift
+  . exact PGrpd.inc G
+  . exact PGrpd.inc G
+  . simp
 
 end BPGrpd
 
 section Id
 
-def Id : BPGrpd ⥤ Grpd where
+/-
+In this section we build this diagram
+
+PGrpd-----Refl---->PGrpd
+  |                 |
+  |                 |
+  |                 |
+Diag                |
+  |                 |
+  |                 |
+  v                 v
+BPGrpd----Id----->Grpd
+
+This is NOT a pullback.
+
+Instead we use Diag and Refl to define a functor R : PGrpd ⥤ Grothendieck.Groupoidal Id
+-/
+
+
+def Id : BPGrpd.{u,u} ⥤ Grpd.{u,u} where
   obj x := Grpd.of (CategoryTheory.Discrete (x.base.fiber ⟶ x.fiber))
   map f := Discrete.functor (fun(a) => { as := inv f.base.fiber ≫ (f.base.base.map a) ≫ f.fiber})
   map_comp {X Y Z} f g := by
@@ -112,7 +149,6 @@ def Diag : PGrpd ⥤ BPGrpd where
   map f := {base := f, fiber := f.fiber}
   map_comp {X Y Z} f g:= by
     simp[CategoryStruct.comp,Grothendieck.Groupoidal.comp,Grothendieck.comp]
-
 
 def Refl : PGrpd ⥤ PGrpd where
   obj x := {base := Grpd.of (CategoryTheory.Discrete (x.fiber ⟶ x.fiber)), fiber := { as := 𝟙 x.fiber}}
@@ -157,15 +193,79 @@ theorem Comute : Diag ⋙ Id = Refl ⋙ PGrpd.forgetToGrpd := by
     simp[Diag,Id,Refl,PGrpd.forgetToGrpd]
     exact rfl
 
-def Rho : PGrpd ⥤ Grothendieck.Groupoidal Id := (Grothendieck.Groupoidal.isPullback Id).lift Refl Diag Comute.symm
+def R : PGrpd ⥤ Grothendieck.Groupoidal Id := (Grothendieck.Groupoidal.isPullback Id).lift Refl Diag Comute.symm
 
+def K : Grothendieck.Groupoidal Id ⥤ Grpd := Grothendieck.Groupoidal.forget ⋙  BPGrpd.forgetToGrpd
+
+theorem RKForget : R ⋙ K = PGrpd.forgetToGrpd := by
+  simp [K,R,<- Functor.assoc,CategoryTheory.Functor.IsPullback.fac_right,Diag]
+  fapply CategoryTheory.Functor.ext
+  . intro X
+    simp[Grothendieck.Groupoidal.base]
+  . intro X Y f
+    simp[Grothendieck.Groupoidal.base,Grothendieck.Groupoidal.Hom.base]
+    exact rfl
+
+
+/- Here I define the path groupoid and how it can be used to create identitys
+Note that this is not the same as Id.
+-/
+
+def Path : Type u := ULift.{u} Bool
+
+instance : Groupoid.{u,u} Path where
+  Hom x y := PUnit
+  id := fun _ => PUnit.unit
+  comp := by intros; fconstructor
+  inv := fun _ => PUnit.unit
+  id_comp := by intros; rfl
+  comp_id := by intros; rfl
+  assoc := by intros; rfl
+
+abbrev Paths (G : Type u) [Groupoid.{u,u} G] : Type u := (Path ⥤ G)
+
+/- This should be able to be made into a groupoid but I am having trouble with leans instances-/
+instance (G : Type u) [Groupoid G] : Category.{u,u} (Paths G) := by
+  exact Functor.category
+
+def Path_Refl (G : Type u) [Groupoid G] : G ⥤ (Paths G) where
+  obj x := by
+    fconstructor
+    fconstructor
+    . exact fun _ => x
+    . exact fun _ => 𝟙 x
+    . exact congrFun rfl
+    . simp
+  map f := by
+    fconstructor
+    . intro x
+      exact f
+    . simp
+
+def PreJ (G : Type u) [Groupoid G]  : Paths G ⥤ G := by
+  fconstructor
+  fconstructor
+  . intro p
+    refine p.obj { down := false }
+  . intros X Y f
+    refine f.app ?_
+  . exact congrFun rfl
+  . simp
+
+theorem PreJLift  (G : Type u) [Groupoid G] : (Path_Refl G) ⋙ (PreJ G) = 𝟭 G := by
+  simp [Path_Refl,PreJ,Functor.comp,Functor.id]
 
 end Id
 
 section Contract
-variable {C : Type} [Category C] (a b : C) (f : a ⟶ b) [iso : IsIso f]
+/-
+At some point I think we will need to contract groupoids along there isomorphisms. In this sections
+I define how to do that.
+-/
 
-inductive ContractBase : Type where
+variable {C : Type u} [Category C] (a b : C) (f : a ⟶ b) [iso : IsIso f]
+
+inductive ContractBase : Type u where
   | inc (x : {x : C // x ≠ a ∧ x ≠ b}) : ContractBase
   | p : ContractBase
 
@@ -190,7 +290,7 @@ def ContractHomComp {x y z : ContractBase a b} (g : ContractHom a b x y) (h : Co
   | ContractBase.p , ContractBase.p, ContractBase.inc _ => g ≫ f ≫ h
   | ContractBase.p , ContractBase.p, ContractBase.p => g ≫ f ≫ h
 
-instance (iso : IsIso f) : Category (ContractBase a b) where
+instance ic (iso : IsIso f) : Category (ContractBase a b) where
   Hom := ContractHom a b
   id := ContractHomId a b f
   comp := ContractHomComp a b f
@@ -204,3 +304,129 @@ instance (iso : IsIso f) : Category (ContractBase a b) where
     intros w x y z g h i
     cases w <;> cases x <;> cases y <;> cases z <;> simp [ContractHomId, ContractHomComp]
 end Contract
+section GrpdContract
+
+variable {G : Type u} [Groupoid G]
+
+def Grpd.Contract (a b : G) : Type u := ContractBase a b
+
+instance icc {a b : G} (f : a ⟶ b) : Category (Grpd.Contract a b) := ic a b f (isIso_of_op f)
+
+instance {a b : G} (f : a ⟶ b) : Groupoid (Grpd.Contract a b) where
+    Hom := ContractHom a b
+    id := ContractHomId a b f
+    comp := ContractHomComp a b f
+    id_comp := by
+      intros x y g
+      cases x <;> cases y <;> simp [ContractHomId, ContractHomComp]
+    comp_id := by
+      intros x y g
+      cases x <;> cases y <;> simp [ContractHomId, ContractHomComp]
+    assoc := by
+      intros w x y z g h i
+      cases w <;> cases x <;> cases y <;> cases z <;> simp [ContractHomId, ContractHomComp]
+    inv {a b} g := by
+      cases a <;> cases b
+      . dsimp[Quiver.Hom, ContractHom]
+        dsimp[ContractHom] at g
+        exact inv g
+      . dsimp[Quiver.Hom, ContractHom]
+        dsimp[ContractHom] at g
+        exact inv (g ≫ f)
+      . dsimp[Quiver.Hom, ContractHom]
+        dsimp[ContractHom] at g
+        exact inv (f ≫ g)
+      . dsimp[Quiver.Hom, ContractHom]
+        dsimp[ContractHom] at g
+        exact (inv f) ≫ (inv g) ≫ (inv f)
+    inv_comp {a b} g := sorry
+    comp_inv := by sorry
+
+def CTtoGrpd {a b : G} (f : a ⟶ b) : Grpd := by
+  refine @Grpd.of (Grpd.Contract a b) ?_
+  exact instGroupoidContractOfHom f
+
+end GrpdContract
+
+section ContractMap
+
+-- def PJ : Grothendieck.Groupoidal Id ⥤ PGrpd where
+--   obj x := by
+--     rcases x with ⟨base,fiber⟩
+--     rcases base with ⟨pg,p2⟩
+--     rcases pg with ⟨base,p1⟩
+--     simp[Grpd.forgetToCat] at p2 p1
+--     fconstructor
+--     . refine CTtoGrpd ?_ (G := base) (a := p1) (b := p2)
+--       simp[Grpd.forgetToCat,Id] at fiber
+--       rcases fiber with ⟨f⟩
+--       simp[Grothendieck.Groupoidal.base,Grothendieck.Groupoidal.fiber] at f
+--       exact f
+--     . simp[Grpd.forgetToCat,CTtoGrpd,Grpd.Contract]
+--       exact ContractBase.p
+--   map {x y} F := by
+--     simp[Quiver.Hom]
+--     rcases F with ⟨base,fiber⟩
+--     rcases base with ⟨pg,p2⟩
+--     rcases pg with ⟨base,p1⟩
+--     simp[Grpd.forgetToCat] at p2 p1
+--     fconstructor
+--     . fconstructor
+--       fconstructor
+--       . intro x
+--         cases x
+--         rename_i x'
+--         rcases x' with ⟨x',p⟩
+--         fconstructor
+--         fconstructor
+--         . refine base.obj x'
+--         . simp
+
+end ContractMap
+
+section Poly
+/-
+In this section I am trying to move the previous results about groupoids to the
+category of contexts
+-/
+
+
+/-
+This is the equivelant of Id above
+-/
+
+def Id' : GroupoidModel.U.ext (GroupoidModel.π.{u,u}) ⟶ GroupoidModel.U.{u,u} := by
+  dsimp[GroupoidModel.U.ext,GroupoidModel.U,GroupoidModel.Ctx.ofCategory]
+  refine AsSmall.up.map ?_
+  dsimp [Quiver.Hom]
+  refine Core.functorToCore ?_
+  refine ?_ ⋙ AsSmall.up
+  refine ?_ ⋙ Id
+  dsimp [BPGrpd]
+  let F : (GroupoidModel.Ctx.toGrpd.obj GroupoidModel.E) ⥤ PGrpd := by
+    dsimp[GroupoidModel.E,GroupoidModel.Ctx.ofCategory]
+    refine ?_ ⋙ Core.inclusion PGrpd
+    refine Core.map' ?_
+    exact AsSmall.down
+  let h : F ⋙ PGrpd.forgetToGrpd = (GroupoidModel.U.classifier GroupoidModel.π) := by
+    exact rfl
+  rw[<-h]
+  exact Grothendieck.Groupoidal.pre PGrpd.forgetToGrpd F
+
+
+def Refl' : GroupoidModel.E.{u,u} ⟶ GroupoidModel.E.{u,u} := by
+  dsimp[GroupoidModel.E, GroupoidModel.Ctx.ofCategory]
+  refine AsSmall.up.map ?_
+  dsimp[Quiver.Hom]
+  refine Core.map' ?_
+
+
+/- Lean is gas lighting me -/
+def Diag' : GroupoidModel.E.{u,u} ⟶ GroupoidModel.U.ext (GroupoidModel.π.{u,u}) := by
+  refine IsPullback.lift (GroupoidModel.IsPullback.SmallU.isPullback_disp_π.{u,u} (GroupoidModel.π.{u,u})) ?_ ?_ ?_
+  . refine eqToHom sorry
+  . refine eqToHom sorry
+  . simp
+
+
+-- theorem Comm : Refl'.{u} ≫ GroupoidModel.π.{u,u} = Diag'.{u} ≫ Id'.{u} := by sorry
