@@ -11,6 +11,7 @@ blueprint/web/
 blueprint/src/chapter/auto
 blueprint/lean_decls
 blueprint/print/
+*.pdf
 ## Docs
 docs/_includes/sorries.md
 ## TeX
