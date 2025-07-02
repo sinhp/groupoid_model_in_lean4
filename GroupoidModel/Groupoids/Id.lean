@@ -391,6 +391,11 @@ category of contexts
 -/
 
 
+
+/-
+yonedaCategoryEquiv
+-/
+#check GroupoidModel.yonedaCategoryEquiv
 /-
 This is the equivelant of Id above
 -/
@@ -413,13 +418,13 @@ def Id' : GroupoidModel.U.ext (GroupoidModel.π.{u,u}) ⟶ GroupoidModel.U.{u,u}
   rw[<-h]
   exact Grothendieck.Groupoidal.pre PGrpd.forgetToGrpd F
 
-
 def Refl' : GroupoidModel.E.{u,u} ⟶ GroupoidModel.E.{u,u} := by
   dsimp[GroupoidModel.E, GroupoidModel.Ctx.ofCategory]
   refine AsSmall.up.map ?_
   dsimp[Quiver.Hom]
   refine Core.map' ?_
-
+  refine AsSmall.down ⋙ ?_ ⋙ AsSmall.up
+  exact Refl
 
 /- Lean is gas lighting me -/
 def Diag' : GroupoidModel.E.{u,u} ⟶ GroupoidModel.U.ext (GroupoidModel.π.{u,u}) := by
@@ -428,5 +433,7 @@ def Diag' : GroupoidModel.E.{u,u} ⟶ GroupoidModel.U.ext (GroupoidModel.π.{u,u
   . refine eqToHom sorry
   . simp
 
-
 -- theorem Comm : Refl'.{u} ≫ GroupoidModel.π.{u,u} = Diag'.{u} ≫ Id'.{u} := by sorry
+
+-- def R' : GroupoidModel.E.{u,u} ⟶ GroupoidModel.U.ext.{u,u} Id' := by
+--   refine IsPullback.lift (GroupoidModel.IsPullback.SmallU.isPullback_disp_π.{u,u} Id'.{u} (Γ := GroupoidModel.U.ext GroupoidModel.π.{u,u}) ) ?_ ?_ ?_
