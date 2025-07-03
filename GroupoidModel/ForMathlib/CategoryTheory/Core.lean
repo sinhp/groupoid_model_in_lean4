@@ -1,4 +1,5 @@
 import GroupoidModel.ForMathlib.CategoryTheory.Functor.IsPullback
+import GroupoidModel.ForMathlib.CategoryTheory.Grpd
 
 universe w v u v₁ u₁ v₂ u₂ v₃ u₃
 

@@ -474,4 +474,80 @@ structure NaturalModelSigma where
   pair : UvPoly.compDom (uvPolyTp M) (uvPolyTp M) ⟶ M.Tm
   Sig_pullback : IsPullback pair ((uvPolyTp M).comp (uvPolyTp M)).p M.tp Sig
 
+namespace IsPullback
+
+variable {E B} (intr : E ⟶ M.Tm) (typ : E ⟶ B) (form : B ⟶ M.Ty)
+
+variable (intr_tp : intr ≫ M.tp = typ ≫ form)
+    (liftExt : Π {Γ : Ctx} (b : y(Γ) ⟶ B),
+      (f : y(M.ext (b ≫ form)) ⟶ E)
+      ×' f ≫ intr = M.var (b ≫ form)
+      ∧ f ≫ typ = ym(M.disp (b ≫ form)) ≫ b)
+
+def lift (s : RepPullbackCone M.tp form) : y(s.pt) ⟶ E :=
+  ym(M.sec (s.snd ≫ form) s.fst s.condition) ≫ (liftExt s.snd).1
+
+theorem fac_left (s : RepPullbackCone M.tp form) :
+    lift M intr typ form liftExt s ≫ intr = s.fst := by
+  rw [lift, Category.assoc, (liftExt s.snd).2.1, sec_var]
+
+theorem fac_right (s : RepPullbackCone M.tp form) :
+    lift M intr typ form liftExt s ≫ typ = s.snd := by
+  rw [lift, Category.assoc, (liftExt s.snd).2.2, ← Category.assoc,
+    ← Functor.map_comp, sec_disp, CategoryTheory.Functor.map_id, Category.id_comp]
+
+-- theorem lift_uniq
+--     (uniqExt : Π {Γ : Ctx} (b : y(Γ) ⟶ B) (f1 f2 : y(M.ext (b ≫ form)) ⟶ E),
+--       f1 ≫ intr = f2 ≫ intr ∧ f1 ≫ typ = f2 ≫ typ → f1 = f2)
+--     (s : RepPullbackCone M.tp form) (m : y(s.pt) ⟶ E)
+--     (hl : m ≫ intr = s.fst) (hr : m ≫ typ = s.snd) : m = lift M intr typ form liftExt s :=
+--   have : ym(M.disp (s.snd ≫ form)) ≫ m =
+--       ym(M.disp (s.snd ≫ form)) ≫ lift M intr typ form liftExt s := by
+--     apply uniqExt
+--     constructor
+--     · rw [Functor.assoc]
+--       sorry
+--     · sorry
+--   calc m
+--     _ = ym(M.sec (s.snd ≫ form) s.fst s.condition ≫ M.disp (s.snd ≫ form)) ≫ m := by simp
+--     _ = ym(M.sec (s.snd ≫ form) s.fst s.condition) ≫ (liftExt s.snd).1 := by
+--       sorry
+--       -- rw [Functor.map_comp, Category.assoc, this]
+
+include intr_tp liftExt in
+/-- To show that the square
+
+  E ----------> M.Tm
+  |               |
+  |               |
+  |               |
+  |               |
+  V               V
+  B ----------> M.Ty
+
+  is a pullback, it suffices to construct a unique lift from
+  every context extension.
+ y(ext) --------> E ----------> M.Tm
+  |               |              |
+  |               |              |
+  |               |              |
+  |               |              |
+  V               V              V
+ y(Γ) ----------> B ----------> M.Ty
+-/
+theorem of_existsUnique_liftExt_hom_ext
+  (hom_ext : Π {Γ : Ctx} (f1 f2 : y(Γ) ⟶ E),
+    f1 ≫ intr = f2 ≫ intr ∧ f1 ≫ typ = f2 ≫ typ → f1 = f2) :
+  IsPullback intr typ M.tp form :=
+  RepPullbackCone.is_pullback intr_tp (lift M intr typ form liftExt)
+    (fac_left _ _ _ _ _)
+    (fac_right _ _ _ _ _)
+    (by
+      intro s m hl hr
+      apply hom_ext _ _ ⟨ ?_ , ?_ ⟩
+      · rw [hl, fac_left]
+      · rw [hr, fac_right])
+
+end IsPullback
+
 end NaturalModelBase

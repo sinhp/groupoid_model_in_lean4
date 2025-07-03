@@ -285,7 +285,11 @@ section
 -/
 variable {A : Γ ⥤ Grpd.{v₁,u₁}} {α : Γ ⥤ PGrpd.{v₁,u₁}} (h : α ⋙ PGrpd.forgetToGrpd = A)
 
-def objFiber'EqToHom (x : Γ) : (α ⋙ forgetToGrpd).obj x ⥤ A.obj x :=
+/-- This definition ensures that we deal with the functor
+(α ⋙ forgetToGrpd).obj x ⥤ A.obj x
+as opposed to the
+-/
+@[simp] abbrev objFiber'EqToHom (x : Γ) : (α ⋙ forgetToGrpd).obj x ⥤ A.obj x :=
   eqToHom (Functor.congr_obj h x)
 
 -- formerly `objPt'`
@@ -295,7 +299,7 @@ def objFiber' (x : Γ) : A.obj x :=
 @[simp] lemma objFiber'_rfl (x : Γ) : objFiber' rfl x = objFiber α x := rfl
 
 @[simp] theorem objFiber'_heq {x} : HEq (PGrpd.objFiber' h x) (α.obj x).fiber := by
-  simp [PGrpd.objFiber', PGrpd.objFiber, Grpd.eqToHom_obj, objFiber'EqToHom]
+  simp [PGrpd.objFiber', PGrpd.objFiber, Grpd.eqToHom_obj]
 
 theorem objFiber'_naturality {Δ : Type*} [Category Δ] (σ : Δ ⥤ Γ) {A : Γ ⥤ Grpd.{v₁,u₁}}
     {α : Γ ⥤ PGrpd.{v₁,u₁}} (h : α ⋙ PGrpd.forgetToGrpd = A) (x : Δ) :
@@ -305,8 +309,8 @@ theorem objFiber'_naturality {Δ : Type*} [Category Δ] (σ : Δ ⥤ Γ) {A : Γ
 def mapFiber'EqToHom {x y : Γ} (f : x ⟶ y) : (A.map f).obj (objFiber' h x) ⟶
     (objFiber'EqToHom h y).obj (((α.map f).base).obj (α.obj x).fiber) :=
   eqToHom (by
-  simp [Functor.congr_hom h.symm f, Functor.comp_obj,
-    Grpd.comp_eq_comp, objFiber', Grpd.eqToHom_obj, cast_cast, objFiber'EqToHom]
+  simp [Functor.congr_hom h.symm f, Functor.comp_obj, Grpd.comp_eq_comp, objFiber',
+    Grpd.eqToHom_obj, cast_cast]
   rfl)
 
 -- formerly `mapPoint'`
@@ -319,7 +323,7 @@ def mapFiber' {x y : Γ} (f : x ⟶ y) :
   subst h
   simp only [mapFiber', map_id_fiber]
   apply eq_of_heq
-  simp [eqToHom_comp_heq_iff, mapFiber'EqToHom, objFiber'EqToHom]
+  simp [eqToHom_comp_heq_iff, mapFiber'EqToHom]
 
 @[simp] theorem mapFiber'_heq {x y} (f : x ⟶ y) :
     HEq (PGrpd.mapFiber' h f) (α.map f).fiber := by
@@ -342,15 +346,15 @@ theorem mapFiber'_comp {x y z} (f : x ⟶ y)
     = eqToHom (by rw [mapFiber'_comp_aux1 h f g]; simp [forgetToCat]) ≫
     (eqToHom (mapFiber'_comp_aux0 h)).map ((α.map g).base.map (α.map f).fiber)
     ≫ (eqToHom (mapFiber'_comp_aux0 h)).map (α.map g).fiber := by
-  simp [mapFiber', eqToHom_map, mapFiber'EqToHom, objFiber'EqToHom]
+  simp [mapFiber', eqToHom_map, mapFiber'EqToHom]
 
 theorem mapFiber'_naturality {Δ : Type*} [Category Δ] (σ : Δ ⥤ Γ) {x y} (f : x ⟶ y) :
     @mapFiber' _ _ (σ ⋙ A) (σ ⋙ α) (by rw [Functor.assoc, h]) _ _ f
     = mapFiber' h (σ.map f) := by
-  simp [mapFiber', mapFiber'EqToHom, objFiber'EqToHom]
+  simp [mapFiber', mapFiber'EqToHom]
 
 @[simp] theorem mapFiber'_rfl {x y : Γ} (f : x ⟶ y) : mapFiber' rfl f = mapFiber α f := by
-  simp [mapFiber', mapFiber, mapFiber'EqToHom, objFiber'EqToHom]
+  simp [mapFiber', mapFiber, mapFiber'EqToHom]
 
 end
 

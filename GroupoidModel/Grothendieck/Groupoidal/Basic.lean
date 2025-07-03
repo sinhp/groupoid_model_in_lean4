@@ -1,6 +1,7 @@
 import Mathlib.CategoryTheory.Grothendieck
 import Mathlib.CategoryTheory.Category.Grpd
 import GroupoidModel.ForMathlib
+import GroupoidModel.ForMathlib.CategoryTheory.Grpd
 
 /-!
 ## Main definitions
