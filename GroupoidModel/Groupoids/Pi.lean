@@ -8,15 +8,19 @@ noncomputable section
 section ForOther
 namespace CategoryTheory
 
+section
+variable {A B C D E: Type*} [Category A] [Category B] [Category C] [Category D] [Category E]
 -- NOTE is there a better way of doing this?
 -- NOTE associativity of functors is definitional, so we can always use `rfl`
-lemma func_middle_assoc {A B C D E: Type*} [Category A][Category B][Category C][Category D][Category E]
- (f1: A ⥤ B) (f2: B ⥤ C) (f3: C ⥤ D)(f4: D⥤ E):
- f1 ⋙ f2 ⋙ f3 ⋙ f4 = f1 ⋙ (f2 ⋙ f3) ⋙ f4 := rfl
+lemma func_middle_assoc
+    (f1: A ⥤ B) (f2: B ⥤ C) (f3: C ⥤ D) (f4: D ⥤ E):
+  f1 ⋙ f2 ⋙ f3 ⋙ f4 = f1 ⋙ (f2 ⋙ f3) ⋙ f4 := rfl
 
-lemma func_split_assoc {A B C D E: Type*} [Category A][Category B][Category C][Category D][Category E]
- (f1: A ⥤ B) (f2: B ⥤ C) (f3: C ⥤ D)(f4: D⥤ E):
- f1 ⋙ (f2 ⋙ f3) ⋙ f4 = (f1 ⋙ f2) ⋙ (f3 ⋙ f4) := rfl
+lemma func_split_assoc
+    (f1: A ⥤ B) (f2: B ⥤ C) (f3: C ⥤ D) (f4: D ⥤ E):
+  f1 ⋙ (f2 ⋙ f3) ⋙ f4 = (f1 ⋙ f2) ⋙ (f3 ⋙ f4) := rfl
+
+end
 
 lemma whiskeringLeft_Right_comm {A B C D: Type*} [Category A] [Category B]
     [Category C] [Category D] (F: A⥤ B)  (H: C ⥤ D):
@@ -42,6 +46,61 @@ def NatTrans.inv : G ⟶ F := h.iso.inv
 @[simp] lemma NatTrans.vcomp_inv : h.vcomp h.inv = NatTrans.id F := by
   ext a
   simp [NatTrans.inv]
+
+end
+
+namespace ObjectProperty
+lemma ι_mono {T C : Type u} [Category.{v} C] [Category.{v} T]
+    {Z : C → Prop} (f g : T ⥤ FullSubcategory Z)
+    (e: f ⋙ ι Z = g ⋙ ι Z) : f = g := by
+  apply CategoryTheory.Functor.ext_of_iso _ _ _
+  · exact Functor.fullyFaithfulCancelRight (ι Z) (eqToIso e)
+  · intro X
+    ext
+    exact Functor.congr_obj e X
+  · intro X
+    simp only [Functor.fullyFaithfulCancelRight_hom_app, Functor.preimage, ι_obj, ι_map,
+      eqToIso.hom, eqToHom_app, Functor.comp_obj, Classical.choose_eq]
+    rfl
+
+end ObjectProperty
+
+section
+
+variable {A B C D : Type*} [Category A] [Category B] [Category C] [Category D]
+  (F : C ⥤ A) (G : B ⥤ D)
+
+/--
+The functor that, on objects `H : A ⥤ B` acts by
+composing left and right with functors `F ⋙ H ⋙ G`
+         F
+   A <---------  C
+   |             .
+   |             |
+   |             .
+H  |             | whiskeringLeftObjWhiskeringRightObj.obj H
+   |             .
+   V             V
+   B ----------> D
+         G
+-/
+def whiskeringLeftObjWhiskeringRightObj : (A ⥤ B) ⥤ (C ⥤ D) :=
+  (whiskeringLeft C A B).obj F ⋙ (whiskeringRight C B D).obj G
+
+@[simp] lemma whiskeringLeftObjWhiskeringRightObj_obj (S : A ⥤ B) :
+    (whiskeringLeftObjWhiskeringRightObj F G).obj S
+    = F ⋙ S ⋙ G := by
+  simp [whiskeringLeftObjWhiskeringRightObj, Functor.assoc]
+
+@[simp] lemma whiskeringLeftObjWhiskeringRightObj_id_id :
+    whiskeringLeftObjWhiskeringRightObj (𝟭 A) (𝟭 B) = 𝟭 (A ⥤ B) :=
+  rfl
+
+@[simp] lemma whiskeringLeftObjWhiskeringRightObj_comp_comp {C' D' : Type*} [Category C']
+    [Category D'] (F' : C' ⥤ C) (G' : D ⥤ D') :
+    whiskeringLeftObjWhiskeringRightObj (F' ⋙ F) (G ⋙ G')
+    = whiskeringLeftObjWhiskeringRightObj F G ⋙ whiskeringLeftObjWhiskeringRightObj F' G' :=
+  rfl
 
 end
 end CategoryTheory
@@ -72,10 +131,25 @@ open CategoryTheory NaturalModelBase Opposite Grothendieck  Groupoid
      f3
 -/
 
--- NOTE Use {Γ : Type u} [Groupoid.{v} Γ] instead of (Γ : Grpd)
+instance functorToGroupoid_Groupoid {A : Type*} [Category A] {B : Type*} [Groupoid B] :
+    Groupoid (A ⥤ B) where
+  inv nt := nt.inv
+  inv_comp := NatTrans.inv_vcomp
+  comp_inv := NatTrans.vcomp_inv
+
+-- NOTE commented out until it is needed
+-- def Funcgrpd {A : Type u} [Category.{v,u} A] {B : Type u₁} [Groupoid.{v₁} B]  : Grpd :=
+--  Grpd.of (A ⥤ B)
+
+namespace FunctorOperation
+section
+
+variable {Γ : Type u} [Groupoid.{v} Γ] (A B : Γ ⥤ Grpd)
+
 /--
 The functor that, on objects `G : A.obj x ⥤ B.obj x` acts by
-creating the map on the right
+creating the map on the right,
+by taking the inverse of `f : x ⟶ y` in the groupoid
          A f
   A x --------> A y
    |             .
@@ -87,93 +161,80 @@ G  |             | conjugating A B f G
   B x --------> B y
          B f
 -/
-def conjugating {Γ : Type u} [Groupoid.{v} Γ] (A B : Γ ⥤ Cat)
-    {x y : Γ} (f : x ⟶ y) : (A.obj x ⥤ B.obj x) ⥤ (A.obj y ⥤ B.obj y) :=
-  (whiskeringLeft (A.obj y) (A.obj x) (B.obj x)).obj (A.map (Groupoid.inv f)) ⋙
-  (whiskeringRight (A.obj y) (B.obj x) (B.obj y)).obj (B.map f)
+def conjugating {x y : Γ} (f : x ⟶ y) : (A.obj x ⥤ B.obj x) ⥤ (A.obj y ⥤ B.obj y) :=
+  whiskeringLeftObjWhiskeringRightObj (A.map (Groupoid.inv f)) (B.map f)
 
-def conjugating_id {Γ : Type u} [Groupoid.{v} Γ] (A B : Γ ⥤ Cat)
-    (x : Γ ) : conjugating A B (𝟙 x) = Functor.id _ := by
-     simp only [conjugating, inv_eq_inv, IsIso.inv_id, CategoryTheory.Functor.map_id]
-     have e: (𝟙 (B.obj x)) = (𝟭 (B.obj x)) := rfl
-     simp only [e,CategoryTheory.whiskeringRight_obj_id,Functor.comp_id]
-     have e': (𝟙 (A.obj x)) = (𝟭 (A.obj x)) := rfl
-     simp only[e',CategoryTheory.whiskeringLeft_obj_id]
+@[simp] lemma conjugating_obj {x y : Γ} (f : x ⟶ y) (s : A.obj x ⥤ B.obj x) :
+    (conjugating A B f).obj s = CategoryTheory.inv (A.map f) ⋙ s ⋙ B.map f := by
+  simp [conjugating, Functor.assoc]
 
-def conjugating_comp {Γ : Grpd.{v,u}} (A B : Γ ⥤ Cat)
-    (x y z : Γ ) (f:x⟶ y) (g:y⟶ z) :
+@[simp] lemma conjugating_id (x : Γ) : conjugating A B (𝟙 x) = 𝟭 _ := by
+  simp [conjugating]
+
+@[simp] lemma conjugating_comp (x y z : Γ) (f : x ⟶ y) (g : y ⟶ z) :
     conjugating A B (f ≫ g) = conjugating A B f ⋙ conjugating A B g := by
-    simp only [conjugating, inv_eq_inv, IsIso.inv_comp, Functor.map_comp, Functor.map_inv]
-    have e : (whiskeringRight (A.obj y) (B.obj x) (B.obj y)).obj (B.map f) ⋙
-    (whiskeringLeft (A.obj z) (A.obj y) (B.obj y)).obj (CategoryTheory.inv (A.map g)) =
-    (whiskeringLeft _ _ _).obj (CategoryTheory.inv (A.map g)) ⋙
-    (whiskeringRight _ _ _).obj (B.map f) := by
-      apply whiskeringLeft_Right_comm
-    rw [Functor.assoc,func_middle_assoc,e,
-      func_split_assoc,whiskeringRight_obj_comp,← whiskeringLeft_obj_comp]
-    rfl
+  simp [conjugating]
 
-instance functorToGroupoid_Groupoid {A : Type*} [Category A] {B : Type*} [Groupoid B] :
-    Groupoid (A ⥤ B) where
-  inv nt := nt.inv
-  inv_comp := NatTrans.inv_vcomp
-  comp_inv := NatTrans.vcomp_inv
+end
 
--- NOTE commented out until it is needed
--- def Funcgrpd {A : Type u} [Category.{v,u} A] {B : Type u₁} [Groupoid.{v₁} B]  : Grpd :=
---  Grpd.of (A ⥤ B)
+section
+variable {A B : Type*} [Category A] [Category B] (F : B ⥤ A)
 
 -- NOTE to follow mathlib convention can use camelCase for definitions, and capitalised first letter when that definition is a Prop or Type
-def IsSec {A B : Type*} [Category A] [Category B] (F : B ⥤ A) (s : A ⥤ B) :=
- s ⋙ F = Functor.id A
+def IsSection (s : A ⥤ B) := s ⋙ F = Functor.id A
 
-abbrev Section {A B : Type*} [Category A] [Category B] (F : B ⥤ A) :=
-  ObjectProperty.FullSubcategory (IsSec F)
+abbrev Section := ObjectProperty.FullSubcategory (IsSection F)
 
-instance Section.category {A B : Type*} [Category A] [Category B] (F : B ⥤ A) :
-  Category (Section F) := ObjectProperty.FullSubcategory.category (IsSec F)
+instance Section.category : Category (Section F) :=
+  ObjectProperty.FullSubcategory.category (IsSection F)
 
-abbrev Section.inc {A B:Type*} [Category A] [Category B] (F:B ⥤ A) :
-  Section F ⥤ (A ⥤ B) := ObjectProperty.ι (IsSec F)
+abbrev Section.ι : Section F ⥤ (A ⥤ B) :=
+  ObjectProperty.ι (IsSection F)
 
-@[simp] lemma Section.inc_obj {A B:Type*} [Category A] [Category B] (F:B ⥤ A) (s: Section F):
-  (Section.inc F).obj s = s.obj := rfl
+-- since Section is an abbrev we don't actually need these
+-- three lemmas
+-- @[simp] lemma Section.ι_obj (s: Section F) :
+--   (Section.ι F).obj s = s.obj := rfl
+-- @[simp] lemma Section.inc_map (s1 s2: Section F) (η : s1 ⟶ s2) :
+--   (Section.ι F).map η = η := rfl
+-- lemma Section.ι_eq (s1 s2: Section F) (η₁ η₂ : s1 ⟶ s2) :
+--     (Section.ι F).map η₁ = (Section.ι F).map η₂ → η₁ = η₂ := by
+--   simp
 
-@[simp] lemma Section.inc_map {A B:Type*} [Category A] [Category B] (F:B ⥤ A)
-  (s1 s2: Section F) (η : s1 ⟶ s2):
-  (Section.inc F).map η = η := rfl
-
--- TODO refactor using `CategoryTheory.Functor.FullyFaithful.map_injective`
-lemma Section.inc_eq {A B:Type*} [Category A] [Category B] (F:B ⥤ A)
-  (s1 s2: Section F) (η₁ η₂ : s1 ⟶ s2):
-  (Section.inc F).map η₁ = (Section.inc F).map η₂ → η₁ = η₂ := by
-   aesop_cat
-
-instance Section.groupoid {A:Type u} [Category.{v} A] {B : Type u₁}
-    [Groupoid.{v₁} B] (F : B ⥤ A) : Groupoid (Section F) :=
+instance Section.groupoid {B : Type*} [Groupoid B] (F : B ⥤ A) :
+    Groupoid (Section F) :=
   InducedCategory.groupoid (A ⥤ B) (fun (f: Section F) ↦ f.obj)
 
---Q:Should this be def or abbrev? JH: abbrev I think?
-abbrev Section.grpd {A:Type u} [Category.{v ,u} A] {B : Type u₁}
-    [Groupoid.{v₁} B] (F : B ⥤ A) : Grpd :=
-  Grpd.of (Section F)
+end
+end FunctorOperation
+
+-- --Q:Should this be def or abbrev? JH: abbrev I think?
+-- abbrev Section.grpd {A:Type u} [Category.{v ,u} A] {B : Type u₁}
+--     [Groupoid.{v₁} B] (F : B ⥤ A) : Grpd :=
+--   Grpd.of (Section F)
 
 open FunctorOperation
 
--- TODO camelCase
-def Fiber_Grpd {Γ : Grpd.{v₂,u₂}} (A : Γ ⥤ Grpd.{v₁,u₁})
-    (B : Groupoidal A ⥤ Grpd.{v₁,u₁}) (x : Γ) : Grpd :=
-  Section.grpd ((fstAux B).app x)
+section
 
--- TODO lower case (and so on)
-lemma Fiber_Grpd.α {Γ : Grpd.{v₂,u₂}} (A : Γ ⥤ Grpd.{v₁,u₁})
-    (B : Groupoidal A ⥤ Grpd.{v₁,u₁}) (x : Γ) :
-    (Fiber_Grpd A B x).α = Section ((fstAux B).app x) := rfl
+variable {Γ : Type*} [Category Γ] {A : Γ ⥤ Grpd.{v₁,u₁}}
+  (B : ∫(A) ⥤ Grpd.{v₁,u₁}) (x : Γ)
+
+-- NOTE: JH changed this to be
+def piObj : Type _ := Section ((fstAux B).app x)
+
+instance piObj.groupoid : Groupoid (piObj B x) :=
+  inferInstanceAs (Groupoid (Section ((fstAux B).app x)))
+
+end
+
+-- lemma fiberGrpd.α {Γ : Type*} [Category Γ] (A : Γ ⥤ Grpd.{v₁,u₁})
+--     (B : ∫(A) ⥤ Grpd.{v₁,u₁}) (x : Γ) :
+--     (Grpd.of $ fiberGrpd A B x).α = Section ((fstAux B).app x) := rfl
 
 def conjugate {D: Type*} (C: Grpd.{v₁,u₁}) [Category D] (A B : C ⥤ D)
     {x y: C} (f: x ⟶ y) (s: A.obj x ⟶  B.obj x) :
      A.obj y ⟶  B.obj y := A.map (Groupoid.inv f) ≫ s ≫ B.map f
-
 
 lemma conjugate_id {D: Type*} (C: Grpd.{v₁,u₁}) [Category D] (A B : C ⥤ D)
     (x : C) (s: A.obj x ⟶  B.obj x)  : conjugate C A B (𝟙 x) s = s:= by
@@ -200,168 +261,106 @@ lemma conjugate_PreserveSection {D: Type*} (C: Grpd.{v₁,u₁}) [Category D] (A
      simp only [Category.assoc, NatTrans.naturality, IsIso.inv_comp_eq, Category.comp_id]
      simp only [← Category.assoc,ieq,Category.id_comp]
 
-def conjugate_Fiber {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
-    (B : Groupoidal A ⥤ Grpd.{u₁,u₁})
-    {x y: Γ} (f: x ⟶ y)
-    (s: A.obj x ⥤ (GroupoidModel.FunctorOperation.sigma A B).obj x) :
-    (A.obj y ⥤ (GroupoidModel.FunctorOperation.sigma A B).obj y) :=
-    conjugate Γ A (GroupoidModel.FunctorOperation.sigma A B) f s
+section
+variable {Γ : Grpd} (A : Γ ⥤ Grpd.{u₁,u₁}) (B : Groupoidal A ⥤ Grpd.{u₁,u₁})
+variable {x y: Γ} (f: x ⟶ y)
 
-def conjugate_FiberFunc {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
-    (B : Groupoidal A ⥤ Grpd.{u₁,u₁})
-    {x y: Γ} (f: x ⟶ y):
-    (A.obj x ⥤ (GroupoidModel.FunctorOperation.sigma A B).obj x) ⥤
-    (A.obj y ⥤ (GroupoidModel.FunctorOperation.sigma A B).obj y) :=
-     conjugating (A ⋙ Grpd.forgetToCat)
-      (GroupoidModel.FunctorOperation.sigma A B ⋙ Grpd.forgetToCat) f
+def conjugate_Fiber (s : A.obj x ⥤ (sigma A B).obj x) :
+    (A.obj y ⥤ (sigma A B).obj y) :=
+    conjugate Γ A (sigma A B) f s
 
-lemma conjugate_FiberFunc.obj {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
-    (B : Groupoidal A ⥤ Grpd.{u₁,u₁})
-    {x y: Γ} (f: x ⟶ y):
-     (conjugate_FiberFunc A B f).obj = conjugate _ A (FunctorOperation.sigma A B) f
-     := rfl
+-- def conjugate_FiberFunc :
+--     (A.obj x ⥤ (sigma A B).obj x) ⥤
+--     (A.obj y ⥤ (sigma A B).obj y) :=
+--      conjugating A (sigma A B) f
 
-lemma conjugate_FiberFunc.map {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
-    (B : Groupoidal A ⥤ Grpd.{u₁,u₁})
-    {x y: Γ} (f: x ⟶ y)
-    (s1 s2: A.obj x ⥤ (GroupoidModel.FunctorOperation.sigma A B).obj x)
-    (η: s1 ⟶ s2):
-     (conjugate_FiberFunc A B f).map η =
-     CategoryTheory.whiskerLeft (A.map (Groupoid.inv f))
-     (CategoryTheory.whiskerRight η
-         ((GroupoidModel.FunctorOperation.sigma A B).map f))
-     := rfl
+-- lemma conjugate_FiberFunc.obj :
+--      (conjugate_FiberFunc A B f).obj = conjugate _ A (sigma A B) f
+--      := rfl
 
-def conjugateLiftCond {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
-    (B : Groupoidal A ⥤ Grpd.{u₁,u₁})
-    {x y: Γ} (f: x ⟶ y):
-    ∀ (X : Section ((fstAux B).app x)),
-    IsSec ((fstAux B).app y)
-    ((Section.inc ((fstAux B).app x) ⋙ conjugate_FiberFunc A B f).obj X)
-    := by
-      intro s
-      simp only [IsSec, FunctorOperation.sigma_obj, Functor.comp_obj,
-        conjugate_FiberFunc.obj]
-      have a:= s.property
-      simp only [IsSec, FunctorOperation.sigma_obj, Grpd.coe_of] at a
-      have a':= conjugate_PreserveSection Γ A (FunctorOperation.sigma A B)
-                (fstAux B) f _ a
-      assumption
+-- lemma conjugate_FiberFunc.map
+--     (s1 s2: A.obj x ⥤ (sigma A B).obj x)
+--     (η: s1 ⟶ s2):
+--      (conjugate_FiberFunc A B f).map η =
+--      CategoryTheory.whiskerLeft (A.map (Groupoid.inv f))
+--      (CategoryTheory.whiskerRight η
+--          ((sigma A B).map f))
+--      := rfl
 
+lemma sigmaMap_fstAux_app : sigmaMap B f ⋙ (fstAux B).app y = (fstAux B).app x ⋙ A.map f := rfl
 
-def conjugateLiftFunc {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
-    (B : Groupoidal A ⥤ Grpd.{u₁,u₁})
-    {x y: Γ} (f: x ⟶ y):
-     Section ((fstAux B).app x) ⥤ Section ((fstAux B).app y) :=
-     CategoryTheory.ObjectProperty.lift (IsSec ((fstAux B).app y))
-            ((Section.inc ((fstAux B).app x) ⋙ conjugate_FiberFunc A B f))
-     (conjugateLiftCond A B f)
+/--
+If `s : piObj B x` then the underlying functor is of the form `s : A x ⥤ sigma A B x`
+and it is a section of the forgetful functor `sigma A B x ⥤ A x`.
+This theorem states that conjugating `A f⁻¹ ⋙ s ⋙ sigma A B f⁻¹ : A y ⥤ sigma A B y`
+using some `f : x ⟶ y` produces a section of the forgetful functor `sigma A B y ⥤ A y`.
+-/
+theorem isSection_conjugating_isSection (s : piObj B x) : IsSection ((fstAux B).app y)
+    ((Section.ι ((fstAux B).app x) ⋙ conjugating A (sigma A B) f).obj s) := by
+  simp only [IsSection, Functor.comp_obj, ObjectProperty.ι_obj,
+    conjugating_obj, Functor.assoc, sigmaMap_fstAux_app]
+  convert_to CategoryTheory.inv (A.map f) ⋙ (s.obj ⋙ (fstAux B).app x) ⋙ A.map f = _
+  rw [s.property]
+  simp only [Functor.id_comp, ← Grpd.comp_eq_comp, IsIso.inv_hom_id, Grpd.id_eq_id]
 
+/-- The functorial action of `pi` on a morphism `f : x ⟶ y` in `Γ`
+is given by "conjugation".
+Since `piObj B x` is a full subcategory of `sigma A B x ⥤ A x`,
+we obtain the action `piMap : piObj B x ⥤ piObj B y`
+as the induced map in the following diagram
+          the inclusion
+           Section.ι
+   piObj B x   ⥤   (A x ⥤ sigma A B x)
+     ⋮                     ||
+     ⋮                     || conjugating A (sigma A B) f
+     VV                     VV
+   piObj B y   ⥤   (A y ⥤ sigma A B y)
+-/
+def piMap : piObj B x ⥤ piObj B y :=
+  ObjectProperty.lift (IsSection ((fstAux B).app y))
+  ((Section.ι ((fstAux B).app x) ⋙ conjugating A (sigma A B) f))
+  (isSection_conjugating_isSection A B f)
 
-lemma conjugateLiftFunc.obj {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
-    (B : Groupoidal A ⥤ Grpd.{u₁,u₁})
-    {x y: Γ} (f: x ⟶ y) (s: Section ((fstAux B).app x)):
-    ((conjugateLiftFunc A B f).obj s).obj =
-    (conjugate_FiberFunc A B f).obj s.obj := rfl
+lemma piMap.obj (s: piObj B x) : ((piMap A B f).obj s).obj =
+    (conjugating A (sigma A B) f).obj s.obj := rfl
 
+lemma piMap.map (s1 s2: piObj B x) (η: s1 ⟶ s2) :
+    (Section.ι ((fstAux B).app y)).map ((piMap A B f).map η) =
+    (conjugating A (sigma A B) f).map η := rfl
 
+/--
+The square commutes
 
-lemma conjugateLiftFunc.map {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
-    (B : Groupoidal A ⥤ Grpd.{u₁,u₁})
-    {x y: Γ} (f: x ⟶ y) (s1 s2: Section ((fstAux B).app x))
-    (η: s1 ⟶ s2):
-    (Section.inc ((fstAux B).app y)).map
-     ((conjugateLiftFunc A B f).map η) =
-    (conjugate_FiberFunc A B f).map η := rfl
+   piObj B x   ⥤   (A x ⥤ sigma A B x)
+     ⋮                     ||
+piMap⋮                     || conjugating A (sigma A B) f
+     VV                     VV
+   piObj B y   ⥤   (A y ⥤ sigma A B y)
+-/
+lemma piMap_ι : piMap A B f ⋙ Section.ι ((fstAux B).app y)
+    = Section.ι ((fstAux B).app x) ⋙ conjugating A (sigma A B) f :=
+  rfl
 
+@[simp] lemma piMap_id (x : Γ) : piMap A B (𝟙 x) = 𝟭 (piObj B x) := by
+  simp only [piMap, conjugating_id]
+  rfl
 
-lemma conjugateLiftFunc_Inc {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
-    (B : Groupoidal A ⥤ Grpd.{u₁,u₁})
-    {x y: Γ} (f: x ⟶ y):
-    (conjugateLiftFunc A B f) ⋙ Section.inc ((fstAux B).app y)
-    = ((Section.inc ((fstAux B).app x) ⋙ conjugate_FiberFunc A B f))
-    := by
-      simp [FunctorOperation.sigma_obj, - fstAux_app, conjugateLiftFunc, ObjectProperty.liftCompιIso]
-      /- TODO: `sorry` introduced during bump to `4.21.0-rc3`.
-      We are planning to refactor this file; the proof will be fixed then. -/
-      sorry
+lemma piMap_comp {x y z : Γ} (f : x ⟶ y) (g : y ⟶ z) :
+    piMap A B (f ≫ g) = (piMap A B f) ⋙ (piMap A B g) := by
+  simp only [piMap, conjugating_comp]
+  rfl
 
-
-lemma idSection_Inc {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
-    (B : Groupoidal A ⥤ Grpd.{u₁,u₁})
-    (x : Γ) :
-    𝟙 (Fiber_Grpd A B x) ⋙ Section.inc ((fstAux B).app x)
-    = ((Section.inc ((fstAux B).app x) ⋙ conjugate_FiberFunc A B (𝟙 x))) :=
-     by
-     simp only [FunctorOperation.sigma_obj, Grpd.coe_of]
-     rw[conjugate_FiberFunc,conjugating_id]
-     rfl
-
-
-lemma fullSubcategoryInclusion_Mono_lemma {T C:Type u}
-   [Category.{v} C] [Category.{v} T]  (Z: C → Prop)
- (f g: T ⥤ ObjectProperty.FullSubcategory Z)
- (e: f ⋙ (ObjectProperty.ι Z) = g ⋙ (ObjectProperty.ι Z)) : f = g := by
-  let iso:= eqToIso e
-  let fgiso := CategoryTheory.Functor.fullyFaithfulCancelRight (ObjectProperty.ι Z) iso
-  have p : ∀ (X : T), f.obj X = g.obj X := by
-    intro X
-    have e1: (f ⋙ ObjectProperty.ι Z).obj X = (g ⋙ ObjectProperty.ι Z).obj X
-     := Functor.congr_obj e X
-    simp only [Functor.comp_obj, ObjectProperty.ι_obj] at e1
-    ext
-    exact e1
-  /- TODO: `sorry` introduced during bump to `4.21.0-rc3`.
-  We are planning to refactor this file; the proof will be fixed then. -/
-  sorry
-  -- fapply CategoryTheory.Functor.ext_of_iso fgiso
-  -- · exact p
-  -- intro X
-  -- simp only [Functor.fullyFaithfulCancelRight, NatIso.ofComponents_hom_app, Functor.preimageIso_hom,
-  --   fullSubcategoryInclusion.obj, Iso.app_hom, fgiso]
-  -- have e2: (fullSubcategoryInclusion Z).map (eqToHom (p X)) = (iso.hom.app X) := by
-  --   simp only [fullSubcategoryInclusion, inducedFunctor_obj, inducedFunctor_map, eqToIso.hom,
-  --     eqToHom_app, Functor.comp_obj, iso, fgiso]
-  --   rfl
-  -- simp only[← e2,Functor.preimage, fullSubcategoryInclusion.obj, fullSubcategoryInclusion.map,
-  --   Classical.choose_eq, fgiso, iso]
-
-lemma conjugateLiftFunc_id
-    {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
-    (B : Groupoidal A ⥤ Grpd.{u₁,u₁})
-    (x: Γ) : conjugateLiftFunc A B (𝟙 x) = 𝟙 (Fiber_Grpd A B x) :=
-     by
-      fapply fullSubcategoryInclusion_Mono_lemma
-      simp only [FunctorOperation.sigma_obj, Grpd.coe_of, conjugateLiftFunc_Inc A B (𝟙 x),
-        idSection_Inc A B x]
-
-lemma conjugateLiftFunc_comp
-    {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
-    (B : Groupoidal A ⥤ Grpd.{u₁,u₁})
-    {x y z: Γ} (f : x ⟶ y) (g : y ⟶ z):
-    conjugateLiftFunc A B (f ≫ g) =  (conjugateLiftFunc A B f) ⋙ (conjugateLiftFunc A B g) := by
-    fapply fullSubcategoryInclusion_Mono_lemma
-    simp only [FunctorOperation.sigma_obj, Grpd.coe_of, Functor.assoc]
-    have e: conjugateLiftFunc A B (f ≫ g) ⋙ Section.inc ((fstAux B).app z) =
-  conjugateLiftFunc A B f ⋙ conjugateLiftFunc A B g ⋙  Section.inc ((fstAux B).app z) :=
-    by
-     simp only [FunctorOperation.sigma_obj, Grpd.coe_of, conjugateLiftFunc_Inc A B g,
-                ← Functor.assoc,conjugateLiftFunc_Inc A B f, FunctorOperation.sigma_obj,
-                Grpd.coe_of, conjugate_FiberFunc]
-     simp only [Functor.assoc, ← conjugating_comp (A ⋙ Grpd.forgetToCat),
-                conjugateLiftFunc_Inc A B (f ≫ g),conjugate_FiberFunc]
-    refine e
+end
 
 /-- The formation rule for Σ-types for the ambient natural model `base`
   unfolded into operations between functors -/
 
-def pi {Γ : Grpd.{v,u}} {A : Γ ⥤ Grpd.{u₁,u₁}}
-    (B : Groupoidal A ⥤ Grpd.{u₁,u₁})
-    : Γ ⥤ Grpd.{u₁,u₁} where
-      obj x := Fiber_Grpd A B x
-      map f := conjugateLiftFunc A B f
-      map_id x:= conjugateLiftFunc_id A B x
-      map_comp := conjugateLiftFunc_comp A B
+def pi {Γ : Grpd} {A : Γ ⥤ Grpd.{u,u}} (B : Groupoidal A ⥤ Grpd.{u,u}) :
+    Γ ⥤ Grpd.{u,u} where
+  obj x := Grpd.of $ piObj B x
+  map := piMap A B
+  map_id := piMap_id A B
+  map_comp := piMap_comp A B
 
 def smallUPi_app {Γ : Ctx.{max u (v+1)}}
     (AB : y(Γ) ⟶ smallU.{v, max u (v+1)}.Ptp.obj smallU.{v, max u (v+1)}.Ty) :
