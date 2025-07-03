@@ -32,6 +32,8 @@ namespace CategoryTheory
 
 namespace Grothendieck
 
+attribute [local simp] Grpd.id_eq_id Functor.id_comp Grpd.comp_eq_comp Functor.assoc
+
 /--
   In Mathlib.CategoryTheory.Grothendieck we find the Grothendieck construction
   for the functors `F : C ⥤ Cat`. Given a functor `F : G ⥤ Grpd`, we show that
@@ -564,12 +566,12 @@ def ιNatIso {X Y : Γ} (f : X ⟶ Y) : ι A X ≅ A.map f ⋙ ι A Y where
   inv := whiskerLeft (A.map f) (ιNatTrans (Groupoid.inv f)) ≫ eqToHom (by
     convert_to A.map (f ≫ Groupoid.inv f) ⋙ ι A X = ι A X
     · simp only [Functor.map_comp, Grpd.comp_eq_comp, Functor.assoc]
-    · simp [Functor.id_comp])
+    · simp)
   hom_inv_id := by
     ext a
     apply Grothendieck.Groupoidal.hext
     · simp
-    · simp only [ι_obj_base, Grpd.comp_eq_comp, Grpd.id_eq_id, id_eq, eq_mpr_eq_cast,
+    · simp only [ι_obj_base, Grpd.comp_eq_comp, id_eq, eq_mpr_eq_cast,
         NatTrans.comp_app, Functor.comp_obj, whiskerLeft_app, comp_base, ιNatTrans_app_base,
         ι_obj_fiber, comp_fiber, ιNatTrans_app_fiber, Grpd.map_comp_map, Functor.map_id, eqToHom_app,
         eqToHom_base, eqToHom_refl, Groupoid.inv_eq_inv, Functor.map_inv, Functor.id_obj,
@@ -582,7 +584,7 @@ def ιNatIso {X Y : Γ} (f : X ⟶ Y) : ι A X ≅ A.map f ⋙ ι A Y where
     ext a
     apply Grothendieck.Groupoidal.hext
     · simp
-    · simp only [ι_obj_base, Grpd.comp_eq_comp, Grpd.id_eq_id, id_eq, eq_mpr_eq_cast,
+    · simp only [ι_obj_base, Grpd.comp_eq_comp, id_eq, eq_mpr_eq_cast,
         NatTrans.comp_app, Functor.comp_obj, whiskerLeft_app, comp_base, ιNatTrans_app_base,
         ι_obj_fiber, comp_fiber, ιNatTrans_app_fiber, Grpd.map_comp_map, Functor.map_id, eqToHom_app,
         eqToHom_base, eqToHom_refl, Groupoid.inv_eq_inv, Functor.map_inv, Functor.id_obj,
@@ -597,13 +599,13 @@ theorem ιNatIso_hom {x y : Γ} (f : x ⟶ y) :
   simp [ιNatIso]
 
 @[simp] theorem ιNatIso_id (x : Γ) :
-    ιNatIso A (𝟙 x) = eqToIso (by simp [Functor.id_comp]) := by
+    ιNatIso A (𝟙 x) = eqToIso (by simp) := by
   ext
   simp [ιNatIso]
 
 theorem ιNatIso_comp {x y z : Γ} (f : x ⟶ y) (g : y ⟶ z) :
     ιNatIso A (f ≫ g) = ιNatIso A f ≪≫ isoWhiskerLeft (A.map f) (ιNatIso A g)
-    ≪≫ eqToIso (by simp [Functor.assoc]) := by
+    ≪≫ eqToIso (by simp) := by
   ext
   simp [ιNatIso]
 

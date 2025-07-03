@@ -15,7 +15,7 @@ namespace GroupoidModel
 
 open CategoryTheory NaturalModelBase Opposite Grothendieck.Groupoidal PGrpd
 
-attribute [local simp] eqToHom_map
+attribute [local simp] eqToHom_map Grpd.id_eq_id Grpd.comp_eq_comp Functor.id_comp
 
 namespace FunctorOperation
 

@@ -13,6 +13,8 @@ noncomputable section
 
 namespace CategoryTheory
 
+attribute [local simp] eqToHom_map Grpd.id_eq_id Grpd.comp_eq_comp Functor.id_comp
+
 abbrev PCat := Grothendieck (Functor.id Cat.{v,u})
 
 namespace PCat

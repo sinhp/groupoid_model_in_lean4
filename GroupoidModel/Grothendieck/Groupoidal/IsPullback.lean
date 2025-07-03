@@ -28,6 +28,8 @@ universe v u v₁ u₁ v₂ u₂ v₃ u₃
 
 namespace CategoryTheory
 
+attribute [local simp] eqToHom_map Grpd.id_eq_id Grpd.comp_eq_comp Functor.id_comp
+
 namespace Grothendieck
 
 namespace Groupoidal
