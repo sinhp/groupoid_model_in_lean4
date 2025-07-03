@@ -442,8 +442,6 @@ variable {X} {Y : ∫(F)} (f : X ⟶ Y)
 @[simp] theorem map_map_base : ((Groupoidal.map α).map f).base = f.base
     := Grothendieck.map_map_base _ _
 
--- we explicitly write out the type of the eqToHom to avoid bleeding
--- `Grothendieck` API
 @[simp] theorem map_map_fiber :
   ((Groupoidal.map α).map f).fiber =
     eqToHom (Functor.congr_obj (α.naturality f.base).symm X.fiber)

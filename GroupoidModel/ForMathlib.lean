@@ -527,7 +527,7 @@ namespace Grpd
 abbrev homOf {C D : Type u} [Groupoid.{v} C] [Groupoid.{v} D] (F : C ⥤ D) :
     Grpd.of C ⟶ Grpd.of D := F
 
-lemma homOf_id {A : Type u} [Groupoid.{v} A] : Grpd.homOf (𝟭 A) = 𝟙 _ :=
+@[simp] lemma homOf_id {A : Type u} [Groupoid.{v} A] : Grpd.homOf (𝟭 A) = 𝟙 _ :=
   rfl
 
 lemma homOf_comp {A B C : Type u} [Groupoid.{v} A] [Groupoid.{v} B] [Groupoid.{v} C]
