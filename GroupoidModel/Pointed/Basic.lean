@@ -13,6 +13,8 @@ noncomputable section
 
 namespace CategoryTheory
 
+attribute [local simp] eqToHom_map Grpd.id_eq_id Grpd.comp_eq_comp Functor.id_comp
+
 abbrev PCat := Grothendieck (Functor.id Cat.{v,u})
 
 namespace PCat
@@ -285,9 +287,16 @@ section
 -/
 variable {A : Γ ⥤ Grpd.{v₁,u₁}} {α : Γ ⥤ PGrpd.{v₁,u₁}} (h : α ⋙ PGrpd.forgetToGrpd = A)
 
+/-- This definition ensures that we deal with the functor
+(α ⋙ forgetToGrpd).obj x ⥤ A.obj x
+as opposed to the
+-/
+@[simp] abbrev objFiber'EqToHom (x : Γ) : (α ⋙ forgetToGrpd).obj x ⥤ A.obj x :=
+  eqToHom (Functor.congr_obj h x)
+
 -- formerly `objPt'`
 def objFiber' (x : Γ) : A.obj x :=
-  (eqToHom (Functor.congr_obj h x)).obj (objFiber α x)
+  (objFiber'EqToHom h x).obj (objFiber α x)
 
 @[simp] lemma objFiber'_rfl (x : Γ) : objFiber' rfl x = objFiber α x := rfl
 
@@ -299,25 +308,28 @@ theorem objFiber'_naturality {Δ : Type*} [Category Δ] (σ : Δ ⥤ Γ) {A : Γ
     @objFiber' _ _ (σ ⋙ A) (σ ⋙ α) (by rw [← h]; rfl) x = objFiber' h (σ.obj x) :=
   rfl
 
+def mapFiber'EqToHom {x y : Γ} (f : x ⟶ y) : (A.map f).obj (objFiber' h x) ⟶
+    (objFiber'EqToHom h y).obj (((α.map f).base).obj (α.obj x).fiber) :=
+  eqToHom (by
+  simp [Functor.congr_hom h.symm f, Functor.comp_obj, Grpd.comp_eq_comp, objFiber',
+    Grpd.eqToHom_obj, cast_cast]
+  rfl)
+
 -- formerly `mapPoint'`
 def mapFiber' {x y : Γ} (f : x ⟶ y) :
     (A.map f).obj (objFiber' h x) ⟶ objFiber' h y :=
-  eqToHom (by
-    simp only [Functor.congr_hom h.symm f, Functor.comp_obj,
-      Grpd.comp_eq_comp, objFiber', Grpd.eqToHom_obj, cast_cast]
-    rfl)
-    ≫ (eqToHom (Functor.congr_obj h y)).map (α.map f).fiber
+  mapFiber'EqToHom h f ≫ (objFiber'EqToHom h y).map (α.map f).fiber
 
 @[simp] theorem mapFiber'_id {x} :
     mapFiber' h (𝟙 x) = eqToHom (by simp) := by
   subst h
   simp only [mapFiber', map_id_fiber]
   apply eq_of_heq
-  simp [eqToHom_comp_heq_iff]
+  simp [eqToHom_comp_heq_iff, mapFiber'EqToHom]
 
 @[simp] theorem mapFiber'_heq {x y} (f : x ⟶ y) :
     HEq (PGrpd.mapFiber' h f) (α.map f).fiber := by
-  simp only [PGrpd.mapFiber']
+  simp only [PGrpd.mapFiber', mapFiber'EqToHom]
   aesop_cat
 
 include h in
@@ -336,12 +348,15 @@ theorem mapFiber'_comp {x y z} (f : x ⟶ y)
     = eqToHom (by rw [mapFiber'_comp_aux1 h f g]; simp [forgetToCat]) ≫
     (eqToHom (mapFiber'_comp_aux0 h)).map ((α.map g).base.map (α.map f).fiber)
     ≫ (eqToHom (mapFiber'_comp_aux0 h)).map (α.map g).fiber := by
-  simp [mapFiber', eqToHom_map]
+  simp [mapFiber', eqToHom_map, mapFiber'EqToHom]
 
 theorem mapFiber'_naturality {Δ : Type*} [Category Δ] (σ : Δ ⥤ Γ) {x y} (f : x ⟶ y) :
     @mapFiber' _ _ (σ ⋙ A) (σ ⋙ α) (by rw [Functor.assoc, h]) _ _ f
     = mapFiber' h (σ.map f) := by
-  simp [mapFiber']
+  simp [mapFiber', mapFiber'EqToHom]
+
+@[simp] theorem mapFiber'_rfl {x y : Γ} (f : x ⟶ y) : mapFiber' rfl f = mapFiber α f := by
+  simp [mapFiber', mapFiber, mapFiber'EqToHom]
 
 end
 
@@ -433,69 +448,6 @@ variable {A} {fibObj} {fibMap} {map_id} {map_comp}
 
 end
 end
-
--- @[simp] theorem groupoidalAsSmallFunctorToPGrpd_obj_base (x) :
---     (groupoidalAsSmallFunctorToPGrpd.obj x).base = (Grothendieck.forget _).obj x := by
---   rfl
-
--- @[simp] theorem groupoidalAsSmallFunctorToPGrpd_obj_fiber (x) :
---     (groupoidalAsSmallFunctorToPGrpd.obj x).fiber =
---     AsSmall.down.obj.{v, v, max w (v + 1)} x.fiber :=
---   rfl
-
--- @[simp] theorem groupoidalAsSmallFunctorToPGrpd_map_base {x y} (f : x ⟶ y) :
---     (groupoidalAsSmallFunctorToPGrpd.map f).base = (Grothendieck.forget _).map f := by
---   rfl
-
--- @[simp] theorem groupoidalAsSmallFunctorToPGrpd_map_fiber {x y} (f : x ⟶ y) :
---     (groupoidalAsSmallFunctorToPGrpd.map f).fiber =
---     AsSmall.down.map.{v, v, max w (v + 1)} f.fiber :=
---   rfl
-
-/- @[simp] def asSmallFunctorObj (x : PGrpd) : (asSmallFunctor.obj x.base) :=
-    -- (((Grothendieck.forget forgetToCat ⋙ Grpd.asSmallFunctor) ⋙ forgetToCat).obj x) := by
-  AsSmall.up.{v,u,max w v u}.obj x.fiber
-
-@[simp] def asSmallFunctorMap {x y : PGrpd.{v,u}} (f : x ⟶ y) :
-    (Grpd.asSmallFunctor.map f.base).obj x.asSmallFunctorObj ⟶ y.asSmallFunctorObj :=
-  AsSmall.up.{v,u,max w v u}.map f.fiber
-
-theorem asSmallFunctor_map_id (x : PGrpd) : asSmallFunctorMap (𝟙 x) =
-    eqToHom (by rw! [Functor.map_id]; simp) :=
-  rfl
-
-theorem asSmallFunctor_map_comp {x y z : PGrpd} (f : x ⟶ y) (g : y ⟶ z) :
-    asSmallFunctorMap (f ≫ g) = eqToHom (functorTo_map_comp_aux _ _ _ _) ≫
-    ((Grothendieck.forget forgetToCat ⋙ Grpd.asSmallFunctor).map g).map
-      (asSmallFunctorMap f) ≫ (asSmallFunctorMap g) :=
-  rfl
-
-def asSmallFunctor : PGrpd.{v, u} ⥤ PGrpd.{max w v u, max w v u} :=
-  functorTo
-    (Grothendieck.forget Grpd.forgetToCat ⋙ Grpd.asSmallFunctor.{w,v,u})
-    asSmallFunctorObj
-    asSmallFunctorMap
-    asSmallFunctor_map_id
-    asSmallFunctor_map_comp
-
-@[simp] theorem asSmall_obj_base (x) :
-    (asSmallFunctor.obj x).base = Grpd.asSmallFunctor.obj x.base := by
-  simp [asSmallFunctor]
-
-@[simp] theorem asSmallFunctor_obj_fiber (x) : (asSmallFunctor.obj x).fiber
-    = AsSmall.up.{v,u,max w v u}.obj x.fiber := by
-  simp only [asSmallFunctor, functorTo_obj_fiber, asSmallFunctorObj]
-
-@[simp] theorem asSmallFunctor_map_base {x y} (f : x ⟶ y) :
-    (asSmallFunctor.map f).base = Grpd.asSmallFunctor.map f.base := by
-  simp [asSmallFunctor]
-
-@[simp] theorem asSmallFunctor_map_fiber {x y} (f : x ⟶ y) :
-    (asSmallFunctor.map f).fiber = AsSmall.up.{v,u,max w v u}.map f.fiber := by
-  simp [asSmallFunctor]
-
-theorem asSmallFunctor_forget : asSmallFunctor.{w,v,u} ⋙ Grothendieck.forget _
-  = Grothendieck.forget _ ⋙ Grpd.asSmallFunctor := rfl -/
 
 end
 
