@@ -158,7 +158,6 @@ variable {z : Γ} {f} {g : y ⟶ z}
     rw [Grpd.eqToHom_obj]
     simp
 
-
 @[simp] theorem sigmaMap_comp_map {A : Γ ⥤ Grpd.{v₁,u₁}}
     {B : ∫(A) ⥤ Grpd.{v₁,u₁}} {x y z : Γ} {f : x ⟶ y} {g : y ⟶ z}
     {p q : sigmaObj B x} (hpq : p ⟶ q)
@@ -191,6 +190,8 @@ theorem sigmaMap_comp : sigmaMap B (f ≫ g) = sigmaMap B f ⋙ sigmaMap B g := 
     simp
   · intro p
     simp
+
+lemma sigmaMap_forget : sigmaMap B f ⋙ forget = forget ⋙ A.map f := rfl
 
 /-- The formation rule for Σ-types for the ambient natural model `base`
   unfolded into operations between functors.
