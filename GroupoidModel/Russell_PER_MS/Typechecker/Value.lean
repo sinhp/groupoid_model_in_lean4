@@ -93,8 +93,7 @@ In some NbE implementations, this would be an actual closure `Expr → Expr`;
 the present variant is a defunctionalization due to Abel. -/
 inductive Clos where
   | mk_tp (Γ : Ctx) (A : Expr) (env : List Val) (B : Expr)
-  -- TODO: rm `l, l'`?
-  | mk_tm (Γ : Ctx) (l l' : Nat) (A : Expr) (env : List Val) (b : Expr)
+  | mk_tm (Γ : Ctx) (A : Expr) (env : List Val) (b : Expr)
   deriving Lean.ToExpr
 end
 
@@ -133,7 +132,7 @@ does not imply that `C` is well-formed.
 This is the only reason why we need `WfVal/…` judgments. -/
 def Clos.toExpr : Clos → Expr
   | .mk_tp _ _ env B => B.subst (Expr.up <| sbOfEnv env)
-  | .mk_tm _ _ _ _ env b => b.subst (Expr.up <| sbOfEnv env)
+  | .mk_tm _ _ env b => b.subst (Expr.up <| sbOfEnv env)
   termination_by c => sizeOf c
 
 /-- The substitution corresponding to an evaluation environment
@@ -250,7 +249,7 @@ inductive WfClosTm : Ctx → Nat → Nat → Expr → Expr → Clos → Prop
     (Aenv, l) :: Δ ⊢[l'] (B.subst <| Expr.up (sbOfEnv ‖Δ‖ env)) ≡ Benv →
     WfEnv Δ env Γ →
     (A, l) :: Γ ⊢[l'] b : B →
-    WfClosTm Δ l l' Aenv Benv (.mk_tm Γ l l' A env b)
+    WfClosTm Δ l l' Aenv Benv (.mk_tm Γ A env b)
 
 inductive WfEnv : Ctx → List Val → Ctx → Prop
   /- Possible optimization: allow `WfEnv Γ [] Γ`

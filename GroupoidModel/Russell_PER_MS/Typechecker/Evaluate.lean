@@ -108,7 +108,7 @@ partial def evalTm (Δ : Ctx) (env : List Val) (Γ : Ctx) (l : Nat) (t : Expr)
         exact ⟨iwf.conv_nf Δeq, EqTm.refl_tm <| iwf.wf_toExpr.conv Δeq⟩
       )⟩
   | .lam k k' C b => do
-    return ⟨.lam k k' (C.subst (sbOfEnv ‖Δ‖ env)) (.mk_tm Γ k k' C env b),
+    return ⟨.lam k k' (C.subst (sbOfEnv ‖Δ‖ env)) (.mk_tm Γ C env b),
       q(by as_aux_lemma =>
         obtain ⟨rfl, D, b, ACD⟩ := ($Γt).inv_lam
         simp only [synthTp, Expr.subst, Val.toExpr, Clos.toExpr] at ACD ⊢
@@ -280,8 +280,8 @@ partial def evalApp (Δ : Ctx) (l l' : Nat) (A B : Expr) (f a : Val)
           .app $l $l' $A $B (($f).toExpr ‖$Δ‖) (($a).toExpr ‖$Δ‖) :
           (($B).subst (($a).toExpr ‖$Δ‖).toSb)))) :=
   match f with
-  | .lam m m' _ (.mk_tm Γ k k' A' env b) => do
-    let ⟨v, vpfs⟩ ← evalTm Δ (a :: env) ((A', k) :: Γ) k' b
+  | .lam m m' _ (.mk_tm Γ A' env b) => do
+    let ⟨v, vpfs⟩ ← evalTm Δ (a :: env) ((A', m) :: Γ) m' b
       q(by as_aux_lemma =>
         have ⟨_, B, b, eq⟩ := ($Δf).inv_lam
         rcases b with ⟨A'env, _, env, b⟩
