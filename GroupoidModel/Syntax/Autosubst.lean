@@ -93,7 +93,7 @@ def ofRen (ξ : Nat → Nat) : Nat → Expr :=
   fun i => Expr.bvar (ξ i)
 
 @[simp]
-theorem ofRen_id : ofRen id = Expr.bvar := by rfl
+theorem ofRen_id : ofRen id = Expr.bvar := rfl
 
 theorem ofRen_upr (ξ) : ofRen (upr ξ) = up (ofRen ξ) := by
   ext i; cases i <;> simp [ofRen, upr, up, snoc, rename]
@@ -180,7 +180,7 @@ def wk : Nat → Expr :=
   ofRen Nat.succ
 
 @[simp]
-theorem ofRen_succ : ofRen Nat.succ = wk := by rfl
+theorem ofRen_succ : ofRen Nat.succ = wk := rfl
 
 theorem up_eq_snoc (σ : Nat → Expr) : up σ = snoc (comp wk σ) (.bvar 0) := by
   ext i; unfold up comp; congr 1; ext j

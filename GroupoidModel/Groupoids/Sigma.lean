@@ -50,8 +50,7 @@ def sigmaMap : sigmaObj B x ⥤ sigmaObj B y :=
   rfl
 
 @[simp] theorem sigmaMap_obj_fiber (a) :
-    ((sigmaMap B f).obj a).fiber = (B.map ((ιNatTrans f).app (base a))).obj (fiber a) := by
-  rfl
+    ((sigmaMap B f).obj a).fiber = (B.map ((ιNatTrans f).app (base a))).obj (fiber a) := rfl
 
 @[simp] theorem sigmaMap_map_base {a b : sigmaObj B x} {p : a ⟶ b} :
     ((sigmaMap B f).map p).base = (A.map f).map p.base := rfl
@@ -554,8 +553,7 @@ theorem snd_forgetToGrpd : snd B ⋙ forgetToGrpd = fstAux' B ⋙ B :=
     _ = assoc B ⋙ forget ⋙ B := rfl
     _ = fstAux' B ⋙ B := by rw [← assoc_forget]; rfl
 
-@[simp] theorem fst_obj_fiber {x} : ((fst B).obj x).fiber = x.fiber.base := by
-  rfl
+@[simp] theorem fst_obj_fiber {x} : ((fst B).obj x).fiber = x.fiber.base := rfl
 
 @[simp] theorem fst_map_fiber {x y} (f : x ⟶ y) : ((fst B).map f).fiber = f.fiber.base := by
   simp [fst, fstAux']
@@ -621,15 +619,13 @@ variable {Γ : Type*} [Groupoid Γ] {A : Γ ⥤ Grpd} (B : ∫(A) ⥤ Grpd)
 @[inherit_doc fst'] def snd' : Γ ⥤ PGrpd := sec (sigma A B) αβ hαβ ⋙ snd B
 
 @[simp] theorem fst'_obj_base {x} : ((fst' B αβ hαβ).obj x).base =
-    A.obj x := by
-  rfl
+    A.obj x := rfl
 
 theorem fst'_obj_fiber {x} : ((fst' B αβ hαβ).obj x).fiber = (objFiber' hαβ x).base := by
   simp [fst']
 
 @[simp] theorem fst'_map_base {x y} (f : x ⟶ y) : ((fst' B αβ hαβ).map f).base =
-    A.map f := by
-  rfl
+    A.map f := rfl
 
 theorem fst'_map_fiber {x y} (f : x ⟶ y) : ((fst' B αβ hαβ).map f).fiber =
     (mapFiber' hαβ f).base := by

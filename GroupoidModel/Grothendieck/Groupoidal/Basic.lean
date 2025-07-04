@@ -382,8 +382,7 @@ variable {E : Type*} [Category E] in
 lemma pre_comp (G : D ⥤ C) (H : E ⥤ D) : pre F (H ⋙ G) = pre (G ⋙ F) H ⋙ pre F G := rfl
 
 theorem pre_forget (α : D ⥤ C) (A : C ⥤ Grpd) :
-    pre A α ⋙ forget = forget ⋙ α := by
-  rfl
+    pre A α ⋙ forget = forget ⋙ α := rfl
 
 end
 
@@ -412,8 +411,7 @@ theorem eqToHom_fiber_aux {g1 g2 : ∫(F)}
 
 @[simp]
 theorem id_base (X : ∫(F)) :
-    Hom.base (𝟙 X) = 𝟙 X.base := by
-  rfl
+    Hom.base (𝟙 X) = 𝟙 X.base := rfl
 
 @[simp]
 theorem id_fiber (X : ∫(F)) :

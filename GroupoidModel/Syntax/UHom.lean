@@ -232,8 +232,7 @@ instance : GetElem (UHomSeqPiSigma Ctx) Nat (NaturalModelBase Ctx)
 variable (s : UHomSeqPiSigma Ctx)
 
 @[simp]
-theorem getElem_toUHomSeq (i : Nat) (ilen : i < s.length + 1) : s.toUHomSeq[i] = s[i] := by
-  rfl
+theorem getElem_toUHomSeq (i : Nat) (ilen : i < s.length + 1) : s.toUHomSeq[i] = s[i] := rfl
 
 -- Sadly, we have to spell out `ilen` and `jlen` due to
 -- https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/Optional.20implicit.20argument

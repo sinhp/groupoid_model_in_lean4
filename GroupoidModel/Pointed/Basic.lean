@@ -44,8 +44,7 @@ theorem id_map {C : PCat} {X Y : C.base} (f : X ⟶ Y) :
     (𝟙 C)⟱.map f = f :=
   rfl
 
-@[simp] lemma id_fiber {C : PCat} : Hom.fiber (𝟙 C) = 𝟙 _ := by
-  rfl
+@[simp] lemma id_fiber {C : PCat} : Hom.fiber (𝟙 C) = 𝟙 _ := rfl
 
 @[simp]
 theorem comp_obj {C D E : PCat} (F : C ⟶ D) (G : D ⟶ E) (X : C.base) :
@@ -174,8 +173,7 @@ theorem id_map {C : PGrpd} {X Y : C.base} (f : X ⟶ Y) :
     (𝟙 C)⟱.map f = f :=
   rfl
 
-@[simp] lemma id_fiber {C : PGrpd} : Hom.fiber (𝟙 C) = 𝟙 _ := by
-  rfl
+@[simp] lemma id_fiber {C : PGrpd} : Hom.fiber (𝟙 C) = 𝟙 _ := rfl
 
 @[simp]
 theorem comp_obj {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) (X : C.base) :

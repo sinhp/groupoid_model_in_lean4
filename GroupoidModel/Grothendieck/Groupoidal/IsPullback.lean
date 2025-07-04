@@ -56,20 +56,16 @@ def toPGrpd : ∫(A) ⥤ PGrpd.{v₁,u₁} :=
     (by simp) (by simp [forget_map, Hom.base])
 
 @[simp] theorem toPGrpd_obj_base (x) :
-    ((toPGrpd A).obj x).base = A.obj x.base := by
-  rfl
+    ((toPGrpd A).obj x).base = A.obj x.base := rfl
 
 @[simp] theorem toPGrpd_obj_fiber (x) :
-    ((toPGrpd A).obj x).fiber = x.fiber := by
-  rfl
+    ((toPGrpd A).obj x).fiber = x.fiber := rfl
 
 @[simp] theorem toPGrpd_map_base {x y} (f : x ⟶ y) :
-    ((toPGrpd A).map f).base = A.map f.base := by
-  rfl
+    ((toPGrpd A).map f).base = A.map f.base := rfl
 
 @[simp] theorem toPGrpd_map_fiber {x y} (f : x ⟶ y) :
-    ((toPGrpd A).map f).fiber = f.fiber := by
-  rfl
+    ((toPGrpd A).map f).fiber = f.fiber := rfl
 
 theorem toPGrpd_forgetToGrpd : toPGrpd A ⋙ PGrpd.forgetToGrpd = forget ⋙ A :=
   rfl
@@ -177,8 +173,7 @@ section naturality
 variable {Δ : Type u₃} [Category.{v₃} Δ] (σ : Δ ⥤ Γ)
 
 @[simp]
-theorem pre_toPGrpd (A : Γ ⥤ Grpd) : pre A σ ⋙ toPGrpd _ = toPGrpd _ := by
-  rfl
+theorem pre_toPGrpd (A : Γ ⥤ Grpd) : pre A σ ⋙ toPGrpd _ = toPGrpd _ := rfl
 
 theorem sec_naturality : σ ⋙ sec A α h = sec (σ ⋙ A) (σ ⋙ α) (by rw [← h]; rfl) ⋙ pre A σ := by
   apply (isPullback A).hom_ext
