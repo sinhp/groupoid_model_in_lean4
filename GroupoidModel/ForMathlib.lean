@@ -165,9 +165,10 @@ end
 
 namespace Grothendieck
 
-variable {Γ : Type u} [Category.{v} Γ] {A : Γ ⥤ Cat.{v₁,u₁}} {x y : Grothendieck A}
+variable {Γ : Type*} [Category Γ] {A : Γ ⥤ Cat}
+  {x y : Grothendieck A}
 
-theorem cast_eq {F G : Γ ⥤ Cat.{v₁,u₁}}
+theorem cast_eq {F G : Γ ⥤ Cat}
     (h : F = G) (p : Grothendieck F) :
     (cast (by subst h; rfl) p : Grothendieck G)
     = ⟨ p.base , cast (by subst h; rfl) p.fiber ⟩ := by
@@ -242,7 +243,7 @@ theorem map_forget {F G : Γ ⥤ Cat.{v,u}} (α : F ⟶ G) :
 
 open Iso
 
-variable {C : Type*} [Category C] {G : C ⥤ Cat.{v₂,u₂}}
+variable {C : Type*} [Category C] {G : C ⥤ Cat}
 
 /-- A morphism in the Grothendieck construction is an isomorphism if
 - the morphism in the base is an isomorphism; and
@@ -306,6 +307,20 @@ theorem hext_iff (x y : Grothendieck A) (f g : x ⟶ y) : f.base = g.base ∧ HE
     · exact h.1
   · aesop
 
+section
+variable {C : Type u} [Category.{v} C] {D : Type u₁} [Category.{v₁} D]
+   (F : C ⥤ Cat) {G H : D ⥤ C} (α : G ≅ H)
+
+@[simp] theorem preNatIso_hom_app_base (x) :
+    ((preNatIso F α).hom.app x).base = α.hom.app x.base := by
+  simp [Grothendieck.preNatIso]
+
+@[simp] theorem preNatIso_hom_app_fiber (x) :
+    ((preNatIso F α).hom.app x).fiber = 𝟙 _ := by
+  simp [Grothendieck.preNatIso]
+
+end
+
 end Grothendieck
 
 namespace IsPullback
@@ -323,134 +338,6 @@ end IsPullback
 end CategoryTheory
 
 namespace CategoryTheory
-
-namespace Grpd
-
-open Limits
-
-/-- The chosen terminal object in `Grpd`. -/
-abbrev chosenTerminal : Grpd.{u,u} := Grpd.of (Discrete.{u} PUnit)
-
-/-- The chosen terminal object in `Grpd` is terminal. -/
-def chosenTerminalIsTerminal : IsTerminal chosenTerminal :=
-  IsTerminal.ofUniqueHom (fun _ ↦ (Functor.const _).obj ⟨⟨⟩⟩) fun _ _ ↦ rfl
-
-/-- The chosen product of categories `C × D` yields a product cone in `Grpd`. -/
-def prodCone (C D : Grpd.{u,u}) : BinaryFan C D :=
-  .mk (P := .of (C × D)) (Prod.fst _ _) (Prod.snd _ _)
-
-/-- The product cone in `Grpd` is indeed a product. -/
-def isLimitProdCone (X Y : Grpd) : IsLimit (prodCone X Y) := BinaryFan.isLimitMk
-  (fun S => S.fst.prod' S.snd) (fun _ => rfl) (fun _ => rfl) (fun A B h1 h2 =>
-    Functor.hext
-      (fun x ↦ Prod.ext (by dsimp; rw [← h1]; rfl)
-      (by dsimp; rw [← h2]; rfl))
-      (fun _ _ _ ↦ by dsimp; rw [← h1, ← h2]; rfl))
-
-instance : CartesianMonoidalCategory Grpd :=
-  .ofChosenFiniteProducts
-    { cone := asEmptyCone chosenTerminal
-      isLimit := chosenTerminalIsTerminal }
-    (fun X Y => {
-      cone := prodCone X Y
-      isLimit := isLimitProdCone X Y })
-
-/-- The identity in the category of groupoids equals the identity functor.-/
-@[simp] theorem id_eq_id (X : Grpd) : 𝟙 X = 𝟭 X := rfl
-
--- NOTE this is currently called `Grpd.hom_to_functor` in mathlib,
--- but this naming is inconsistent with that of `Cat`
-/-- Composition in the category of groupoids equals functor composition.-/
-@[simp] theorem comp_eq_comp {X Y Z : Grpd} (F : X ⟶ Y) (G : Y ⟶ Z) : F ≫ G = F ⋙ G := rfl
-
-theorem eqToHom_obj
-  {C1 C2 : Grpd.{v,u}} (x : C1) (eq : C1 = C2) :
-    (eqToHom eq).obj x = cast (congrArg Bundled.α eq) x := by
-  cases eq
-  simp[CategoryStruct.id]
-
-section
-variable {Γ : Type u₂} [Category.{v₂} Γ] {A : Γ ⥤ Grpd.{v₁,u₁}}
-
-@[simp] theorem map_id_obj {x : Γ} {a : A.obj x} :
-    (A.map (𝟙 x)).obj a = a := by
-  have : A.map (𝟙 x) = 𝟙 (A.obj x) := by simp
-  exact Functor.congr_obj this a
-
-@[simp] theorem map_id_map
-    {x : Γ} {a b : A.obj x} {f : a ⟶ b} :
-    (A.map (𝟙 x)).map f = eqToHom Grpd.map_id_obj
-      ≫ f ≫ eqToHom Grpd.map_id_obj.symm := by
-  have : A.map (𝟙 x) = 𝟙 (A.obj x) := by simp
-  exact Functor.congr_hom this f
-
-@[simp] theorem map_comp_obj
-    {x y z : Γ} {f : x ⟶ y} {g : y ⟶ z} {a : A.obj x} :
-    (A.map (f ≫ g)).obj a = (A.map g).obj ((A.map f).obj a) := by
-  have : A.map (f ≫ g) = A.map f ⋙ A.map g := by
-    simp [Grpd.comp_eq_comp]
-  have h := Functor.congr_obj this a
-  simp only [Functor.comp_obj] at h
-  exact h
-
-@[simp] theorem map_comp_map
-    {x y z : Γ} {f : x ⟶ y} {g : y ⟶ z} {a b : A.obj x} {φ : a ⟶ b} :
-    (A.map (f ≫ g)).map φ
-    = eqToHom Grpd.map_comp_obj ≫ (A.map g).map ((A.map f).map φ)
-    ≫ eqToHom Grpd.map_comp_obj.symm := by
-  have : A.map (f ≫ g) = A.map f ≫ A.map g := by simp
-  exact Functor.congr_hom this φ
-
-theorem map_comp_map'
-    {x y z : Γ} {f : x ⟶ y} {g : y ⟶ z} {a b : A.obj x} {φ : a ⟶ b} :
-    (A.map g).map ((A.map f).map φ)
-    = eqToHom Grpd.map_comp_obj.symm ≫ (A.map (f ≫ g)).map φ ≫ eqToHom Grpd.map_comp_obj
-    := by
-  simp [Grpd.map_comp_map]
-end
-
-@[simp] theorem id_obj {C : Grpd} (X : C) :
-    (𝟙 C : C ⥤ C).obj X = X :=
-  rfl
-
-@[simp] theorem comp_obj {C D E : Grpd} (F : C ⟶ D) (G : D ⟶ E)
-    (X : C) : (F ≫ G).obj X = G.obj (F.obj X) :=
-  rfl
-
-variable {Γ : Type u} [Category.{v} Γ] (F : Γ ⥤ Grpd.{v₁,u₁})
-
-theorem map_eqToHom_obj {x y : Γ} (h : x = y) (t) :
-    (F.map (eqToHom h)).obj t = cast (by rw [h]) t := by
-  subst h
-  simp
-
-/-- This is the proof of equality used in the eqToHom in `Cat.eqToHom_hom` -/
-theorem eqToHom_hom_aux {C1 C2 : Grpd.{v,u}} (x y: C1) (eq : C1 = C2) :
-    (x ⟶ y) = ((eqToHom eq).obj x ⟶ (eqToHom eq).obj y) := by
-  cases eq
-  simp[CategoryStruct.id]
-
-/-- This is the turns the hom part of eqToHom functors into a cast-/
-theorem eqToHom_hom {C1 C2 : Grpd.{v,u}} {x y: C1} (f : x ⟶ y) (eq : C1 = C2) :
-    (eqToHom eq).map f = (cast (Grpd.eqToHom_hom_aux x y eq) f) := by
-  cases eq
-  simp only [eqToHom_refl, id_eq_id, Functor.id_map, cast_eq]
-
-@[simp] theorem map_eqToHom_map {x y : Γ} (h : x = y) {t s} (f : t ⟶ s) :
-    (F.map (eqToHom h)).map f =
-    eqToHom (Functor.congr_obj (eqToHom_map _ _) t)
-    ≫ cast (Grpd.eqToHom_hom_aux t s (by rw [h])) f
-    ≫ eqToHom (Eq.symm (Functor.congr_obj (eqToHom_map _ _) s)) := by
-  have h1 : F.map (eqToHom h) = eqToHom (by rw [h]) := eqToHom_map _ _
-  rw [Functor.congr_hom h1, Grpd.eqToHom_hom]
-
-@[simp] theorem eqToHom_app {C : Type u₁} [Category.{v₁} C]
-    {D : Type u₂} [Category.{v₂} D] (F G : C ⥤ D) (h : F = G) (X : C) :
-    (eqToHom h).app X = eqToHom (by subst h; rfl) := by
-  subst h
-  simp
-
-end Grpd
 
 namespace AsSmall
 
@@ -511,6 +398,13 @@ namespace Grpd
 
 abbrev homOf {C D : Type u} [Groupoid.{v} C] [Groupoid.{v} D] (F : C ⥤ D) :
     Grpd.of C ⟶ Grpd.of D := F
+
+lemma homOf_id {A : Type u} [Groupoid.{v} A] : Grpd.homOf (𝟭 A) = 𝟙 _ :=
+  rfl
+
+lemma homOf_comp {A B C : Type u} [Groupoid.{v} A] [Groupoid.{v} B] [Groupoid.{v} C]
+    (F : A ⥤ B) (G : B ⥤ C) : Grpd.homOf (F ⋙ G) = Grpd.homOf F ≫ Grpd.homOf G :=
+  rfl
 
 def asSmallFunctor : Grpd.{v, u} ⥤ Grpd.{max w v u, max w v u} where
   obj Γ := Grpd.of $ AsSmall.{max w v u} Γ
@@ -882,5 +776,26 @@ theorem NatTrans.yonedaMk_app {X : C} (α : yoneda.obj X ⟶ F) :
     α ≫ yonedaMk app naturality = app α := by
   rw [← yonedaEquiv.apply_eq_iff_eq, yonedaEquiv_comp]
   simp [yonedaMk, yonedaIso, yonedaIsoMap]
+
+namespace Functor
+
+theorem precomp_heq_of_heq_id {A B : Type u} {C : Type*} [Category.{v} A] [Category.{v} B] [Category C]
+    (hAB : A = B) (h0 : HEq (inferInstance : Category A) (inferInstance : Category B)) {F : A ⥤ B}
+    (h : HEq F (𝟭 B)) (G : B ⥤ C) : HEq (F ⋙ G) G := by
+  subst hAB
+  subst h0
+  subst h
+  rfl
+
+theorem comp_heq_of_heq_id {A B : Type u} {C : Type*} [Category.{v} A] [Category.{v} B] [Category C]
+    (hAB : A = B) (h0 : HEq (inferInstance : Category A) (inferInstance : Category B))
+    {F : B ⥤ A}
+    (h : HEq F (𝟭 B)) (G : C ⥤ B) : HEq (G ⋙ F) G := by
+  subst hAB
+  subst h0
+  subst h
+  rfl
+
+end Functor
 
 end CategoryTheory

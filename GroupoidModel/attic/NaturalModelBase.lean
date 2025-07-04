@@ -1,7 +1,7 @@
 import Mathlib.CategoryTheory.Limits.Preserves.FunctorCategory
 import Mathlib.CategoryTheory.Category.Cat.Limit
 
-import GroupoidModel.Syntax.UHom
+import GroupoidModel.Russell_PER_MS.UHom
 import GroupoidModel.Grothendieck.Groupoidal.IsPullback
 import GroupoidModel.Groupoids.IsPullback
 
@@ -397,6 +397,56 @@ theorem smallU.compDom.hext (ab1 ab2 : y(Γ) ⟶ smallU.compDom.{v}) (hfst : fst
   sorry
 
 end compDom
+
+namespace IsPullback
+
+variable {E B} (intr : E ⟶ smallU.{v}.Tm) (typ : E ⟶ B) (form : B ⟶ smallU.{v}.Ty)
+
+variable (intr_tp : intr ≫ smallU.tp = typ ≫ form)
+    (liftExt : Π {Γ : Ctx} (b : y(Γ) ⟶ B),
+      (f : y(smallU.ext (b ≫ form)) ⟶ E)
+      ×' f ≫ intr = smallU.var (b ≫ form)
+      ∧ f ≫ typ = ym(smallU.disp (b ≫ form)) ≫ b)
+
+def lift (s : RepPullbackCone smallU.tp form) : y(s.pt) ⟶ E :=
+  NaturalModelBase.IsPullback.lift smallU intr typ form liftExt s
+
+theorem fac_left (s : RepPullbackCone smallU.tp form) :
+    lift intr typ form liftExt s ≫ intr = s.fst :=
+  NaturalModelBase.IsPullback.fac_left smallU intr typ form liftExt s
+
+theorem fac_right (s : RepPullbackCone smallU.tp form) :
+    lift intr typ form liftExt s ≫ typ = s.snd :=
+  NaturalModelBase.IsPullback.fac_right smallU intr typ form liftExt s
+
+include intr_tp liftExt in
+/-- To show that the square
+
+  E ----------> smallU.Tm
+  |               |
+  |               |
+  |               |
+  |               |
+  V               V
+  B ----------> smallU.Ty
+
+  is a pullback, it suffices to construct a unique lift from
+  every context extension.
+ y(ext) --------> E ----------> smallU.Tm
+  |               |              |
+  |               |              |
+  |               |              |
+  |               |              |
+  V               V              V
+ y(Γ) ----------> B ----------> smallU.Ty
+-/
+theorem of_existsUnique_liftExt_hom_ext
+  (hom_ext : Π {Γ : Ctx} (f1 f2 : y(Γ) ⟶ E),
+    f1 ≫ intr = f2 ≫ intr ∧ f1 ≫ typ = f2 ≫ typ → f1 = f2) :
+    IsPullback intr typ smallU.{v}.tp form :=
+  NaturalModelBase.IsPullback.of_existsUnique_liftExt_hom_ext _ _ _ _ intr_tp liftExt hom_ext
+
+end IsPullback
 
 end smallU
 end

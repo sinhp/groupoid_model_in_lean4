@@ -64,11 +64,14 @@ and size u hom sets (functors).
 We want our context category to be a small category so we will use
 `AsSmall.{u}` for some large enough `u`
 -/
-abbrev Ctx := AsSmall.{u} Grpd.{u,u}
+def Ctx := AsSmall.{u} Grpd.{u,u}
+
+instance : SmallCategory Ctx :=
+  inferInstanceAs (SmallCategory (AsSmall.{u} Grpd.{u,u}))
 
 namespace Ctx
 
-@[simps] def equivalence : CategoryTheory.Equivalence Grpd.{u,u} Ctx.{u} where
+def equivalence : CategoryTheory.Equivalence Grpd.{u,u} Ctx.{u} where
   functor := AsSmall.up
   inverse := AsSmall.down
   unitIso := eqToIso rfl
@@ -108,7 +111,7 @@ variable (C D) [Category.{u} C] [Category.{u} D]
   takes a groupoid and forgets it to a category
   (with appropriate universe level adjustments)
 -/
-abbrev yonedaCat : Cat.{u,u+1} ⥤ Ctx.{u}ᵒᵖ ⥤ Type (u + 1) :=
+def yonedaCat : Cat.{u,u+1} ⥤ Ctx.{u}ᵒᵖ ⥤ Type (u + 1) :=
   yoneda ⋙ (whiskeringLeft _ _ _).obj
     (AsSmall.down ⋙ Grpd.forgetToCat ⋙ catLift).op
 
@@ -186,7 +189,7 @@ theorem toCoreAsSmallEquiv_naturality_left (A : Γ ⟶ Ctx.ofCategory C) :
   sorry
 
 /- The bijection y(Γ) → y[-,C]   ≃   Γ ⥤ C -/
-abbrev yonedaCategoryEquiv {Γ : Ctx} {C : Type (v+1)} [Category.{v} C] :
+def yonedaCategoryEquiv {Γ : Ctx} {C : Type (v+1)} [Category.{v} C] :
     (y(Γ) ⟶ y(Ctx.ofCategory C))
     ≃ Ctx.toGrpd.obj Γ ⥤ C :=
   Yoneda.fullyFaithful.homEquiv.symm.trans toCoreAsSmallEquiv
@@ -202,6 +205,10 @@ theorem yonedaCategoryEquiv_naturality_left' (A : y(Γ) ⟶ y(Ctx.ofCategory C))
   have h : σ = ym(Yoneda.fullyFaithful.preimage σ) := by simp
   rw [h, yonedaCategoryEquiv_naturality_left]
   rfl
+
+theorem yonedaCategoryEquiv_symm_naturality_left {A : Ctx.toGrpd.obj Γ ⥤ C} :
+    yonedaCategoryEquiv.symm (Ctx.toGrpd.map σ ⋙ A) = ym(σ) ≫ yonedaCategoryEquiv.symm A := by
+  rw [yonedaCategoryEquiv.symm_apply_eq, yonedaCategoryEquiv_naturality_left, Equiv.apply_symm_apply]
 
 theorem yonedaCategoryEquiv_naturality_right {D : Type (v+1)} [Category.{v} D]
     (A : y(Γ) ⟶ y(Ctx.ofCategory C)) (F : C ⥤ D) :
@@ -241,40 +248,40 @@ def asSmallUp_comp_yoneda_iso_forgetToCat_comp_catLift_comp_yonedaCat :
 /-- `U.{v}` is the object representing the
   universe of `v`-small types
   i.e. `y(U) = Ty` for the small natural models `smallU`. -/
-def U : Ctx.{max u (v+1)} :=
+def U : Ctx :=
   Ctx.ofCategory Grpd.{v,v}
 
 /-- `E.{v}` is the object representing `v`-small terms,
   living over `U.{v}`
   i.e. `y(E) = Tm` for the small natural models `smallU`. -/
-def E : Ctx.{max u (v + 1)} :=
+def E : Ctx :=
   Ctx.ofCategory PGrpd.{v,v}
 
 
 /-- `π.{v}` is the morphism representing `v`-small `tp`,
   for the small natural models `smallU`. -/
-abbrev π : E.{v,max u (v+1)} ⟶ U.{v, max u (v+1)} :=
+def π : E.{v} ⟶ U.{v} :=
   Ctx.homOfFunctor PGrpd.forgetToGrpd
 
 namespace U
 
-variable {Γ : Ctx.{max u (v + 1)}} (A : Γ ⟶ U.{v})
+variable {Γ : Ctx} (A : Γ ⟶ U.{v})
 
 def classifier : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v} :=
   Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd) ⋙ AsSmall.down
 
-abbrev ext : Ctx.{max u (v + 1)} :=
+def ext : Ctx :=
   Ctx.ofGrpd.obj (Grpd.of ∫(classifier A))
 
-abbrev disp : ext A ⟶ Γ :=
+def disp : ext A ⟶ Γ :=
   Ctx.ofGrpd.map forget
 
-abbrev var : ext A ⟶ E.{v} :=
+def var : ext A ⟶ E.{v} :=
   toCoreAsSmallEquiv.symm (toPGrpd (classifier A))
 
 section SmallUHom
 
-variable {Γ : Ctx.{max u (v + 1)}} (A : Γ ⟶ U.{v})
+variable {Γ : Ctx} (A : Γ ⟶ U.{v})
 
 -- TODO rename `U.toU` to `U.liftU` and rename `U.toE` to `U.liftE`
 /-- `toU` is the base map between two `v`-small universes
