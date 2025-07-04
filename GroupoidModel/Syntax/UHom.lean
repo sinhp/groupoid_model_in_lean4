@@ -1,4 +1,4 @@
-import GroupoidModel.Russell_PER_MS.NaturalModel
+import GroupoidModel.Syntax.NaturalModel
 import GroupoidModel.ForMathlib
 import Mathlib.CategoryTheory.Limits.Shapes.StrictInitial
 

@@ -1,5 +1,5 @@
-import GroupoidModel.Russell_PER_MS.Lemmas
-import GroupoidModel.Russell_PER_MS.UHom
+import GroupoidModel.Syntax.Lemmas
+import GroupoidModel.Syntax.UHom
 
 import GroupoidModel.ForMathlib
 

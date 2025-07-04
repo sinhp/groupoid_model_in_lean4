@@ -4,7 +4,7 @@ import Mathlib.CategoryTheory.Category.Cat.Limit
 import Mathlib.CategoryTheory.Monoidal.Cartesian.Cat
 
 import GroupoidModel.ForMathlib.CategoryTheory.Core
-import GroupoidModel.Russell_PER_MS.NaturalModel
+import GroupoidModel.Syntax.NaturalModel
 import GroupoidModel.Grothendieck.Groupoidal.IsPullback
 
 /-!
