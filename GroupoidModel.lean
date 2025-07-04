@@ -1,7 +1,8 @@
 -- This module serves as the root of the `GroupoidModelInLean4` library.
 -- Import modules here that should be built as part of the library.
 import GroupoidModel.Syntax.UHom
-import GroupoidModel.Syntax.Interpretation
+-- TODO: fix this module
+-- import GroupoidModel.Syntax.Interpretation
 import GroupoidModel.Groupoids.NaturalModelBase
 import GroupoidModel.Groupoids.Sigma
 import GroupoidModel.Groupoids.Pi
