@@ -8,7 +8,7 @@ without using any of the level annotations.
 Furthermore, the correctness proof `eq_synthLvl` needs zero metatheory.
 Does this imply we could omit level annotations from the syntax?
 In the interpretation function, we'd invoke `synthLvl.go` on `ExtSeq`.  -/
-noncomputable def synthLvl (Γ : Ctx) (e : Expr) : Nat :=
+/- noncomputable -/ def synthLvl (Γ : Ctx) (e : Expr) : Nat :=
   go (Γ.map (·.2)) e
 where
   go (Γ : List Nat) : Expr → Nat
@@ -19,7 +19,7 @@ where
   | .lam _ _ A b =>
     let l := go Γ A
     max l (go (l :: Γ) b)
-  | .app _ _ _ B _ a =>
+  | .app _ _ B _ a =>
     let l := go Γ a
     go (l :: Γ) B
   | .pair _ _ _ t u => max (go Γ t) (go Γ u)
@@ -51,11 +51,12 @@ This function is marked `noncomputable`
 because it is not supposed to be executed;
 it is only defined for mathematical modelling,
 in particular to prove unique typing. -/
-noncomputable def synthTp (Γ : Ctx) : Expr → Expr
+-- FIXME: not actually marked `noncomputable`; we compute it in the evaluator.
+/- noncomputable -/ def synthTp (Γ : Ctx) : Expr → Expr
   | .bvar 0 => Γ[0]? |>.getD default |>.1.subst Expr.wk
   | .bvar (i+1) => synthTp (Γ.drop 1) (.bvar i) |>.subst Expr.wk
   | .lam l l' A b => .pi l l' A (synthTp ((A, l) :: Γ) b)
-  | .app _ _ _ B _ a => B.subst a.toSb
+  | .app _ _ B _ a => B.subst a.toSb
   | .pair l l' B t _ => .sigma l l' (synthTp Γ t) B
   | .fst _ _ A _ _ => A
   | .snd l l' A B p => B.subst (Expr.fst l l' A B p).toSb

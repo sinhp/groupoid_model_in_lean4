@@ -379,6 +379,9 @@ theorem subst_all :
       grind [WfTp.sigma', EqTm.cong_pair', EqTm.cong_fst', EqTm.cong_snd']
   case symm_tm' => grind [EqTm.symm_tm', EqTm.conv_eq, EqSb.symm]
   case trans_tm' => grind [EqTm.trans_tm', EqTm.conv_eq, EqSb.symm]
+  case cong_app' ihA _ _ _ _ _ _ σ =>
+    rw [ih_subst]
+    apply EqTm.cong_app' (ihA.1 σ.wf_left) <;> grind
   case cong_snd' => rw [ih_subst]; apply EqTm.cong_snd' <;> grind
 
 end SubstProof

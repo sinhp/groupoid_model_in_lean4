@@ -69,38 +69,29 @@ theorem EqTm.cong_lam_body {Γ A B t t' l l'} :
 attribute [gcongr] EqTm.cong_app
 
 @[gcongr]
-theorem EqTm.cong_app_dom {Γ A A' B f a l l'} :
-    Γ ⊢[l] A ≡ A' →
-    Γ ⊢[max l l'] f : .pi l l' A B →
-    Γ ⊢[l] a : A →
-    Γ ⊢[l'] .app l l' A B f a ≡ .app l l' A' B f a : B.subst a.toSb :=
-  fun hAA' hf ha =>
-    EqTm.cong_app hAA' (EqTp.refl_tp hf.wf_tp.inv_pi.2) (EqTm.refl_tm hf) (EqTm.refl_tm ha)
-
-@[gcongr]
 theorem EqTm.cong_app_cod {Γ A B B' f a l l'} :
     (A, l) :: Γ ⊢[l'] B ≡ B' →
     Γ ⊢[max l l'] f : .pi l l' A B →
     Γ ⊢[l] a : A →
-    Γ ⊢[l'] .app l l' A B f a ≡ .app l l' A B' f a : B.subst a.toSb :=
+    Γ ⊢[l'] .app l l' B f a ≡ .app l l' B' f a : B.subst a.toSb :=
   fun hBB' hf ha =>
-    EqTm.cong_app (EqTp.refl_tp ha.wf_tp) hBB' (EqTm.refl_tm hf) (EqTm.refl_tm ha)
+    EqTm.cong_app hBB' (EqTm.refl_tm hf) (EqTm.refl_tm ha)
 
 @[gcongr]
 theorem EqTm.cong_app_fn {Γ A B f f' a l l'} :
     Γ ⊢[max l l'] f ≡ f' : .pi l l' A B →
     Γ ⊢[l] a : A →
-    Γ ⊢[l'] .app l l' A B f a ≡ .app l l' A B f' a : B.subst a.toSb :=
+    Γ ⊢[l'] .app l l' B f a ≡ .app l l' B f' a : B.subst a.toSb :=
   fun hff' ha =>
-    EqTm.cong_app (EqTp.refl_tp ha.wf_tp) (EqTp.refl_tp hff'.wf_tp.inv_pi.2) hff' (EqTm.refl_tm ha)
+    EqTm.cong_app (EqTp.refl_tp hff'.wf_tp.inv_pi.2) hff' (EqTm.refl_tm ha)
 
 @[gcongr]
 theorem EqTm.cong_app_arg {Γ A B f a a' l l'} :
     Γ ⊢[max l l'] f : .pi l l' A B →
     Γ ⊢[l] a ≡ a' : A →
-    Γ ⊢[l'] .app l l' A B f a ≡ .app l l' A B f a' : B.subst a.toSb :=
+    Γ ⊢[l'] .app l l' B f a ≡ .app l l' B f a' : B.subst a.toSb :=
   fun hf haa' =>
-    EqTm.cong_app (EqTp.refl_tp haa'.wf_tp) (EqTp.refl_tp hf.wf_tp.inv_pi.2) (EqTm.refl_tm hf) haa'
+    EqTm.cong_app (EqTp.refl_tp hf.wf_tp.inv_pi.2) (EqTm.refl_tm hf) haa'
 
 attribute [gcongr] EqTm.cong_pair
 

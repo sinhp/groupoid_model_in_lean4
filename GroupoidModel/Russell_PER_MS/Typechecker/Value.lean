@@ -75,7 +75,7 @@ i.e., contain no β-reducible subterm. -/
 inductive Neut where
   /-- A de Bruijn *level*. -/
   | bvar (i : Nat)
-  | app (l l' : Nat) (A B : Expr) (f : Neut) (a : Val)
+  | app (l l' : Nat) (B : Expr) (f : Neut) (a : Val)
   | fst (l l' : Nat) (A B : Expr) (p : Neut)
   | snd (l l' : Nat) (A B : Expr) (p : Neut)
   deriving Lean.ToExpr
@@ -116,7 +116,7 @@ def Val.toExpr : Val → Expr
 /-- The expression corresponding to a neutral form well-typed in a context of length `d`. -/
 def Neut.toExpr : Neut → Expr
   | .bvar l => .bvar (d - l - 1)
-  | .app l l' A B f a => .app l l' A B f.toExpr a.toExpr
+  | .app l l' B f a => .app l l' B f.toExpr a.toExpr
   | .fst l l' A B p => .fst l l' A B p.toExpr
   | .snd l l' A B p => .snd l l' A B p.toExpr
   termination_by n => sizeOf n
@@ -221,7 +221,7 @@ inductive WfNeutTm : Ctx → Nat → Neut → Expr → Prop
   | app {Γ A B f a l l'} :
     WfNeutTm Γ (max l l') f (.pi l l' A B) →
     WfValTm Γ l a A →
-    WfNeutTm Γ l' (.app l l' A B f a) (B.subst (a.toExpr ‖Γ‖).toSb)
+    WfNeutTm Γ l' (.app l l' B f a) (B.subst (a.toExpr ‖Γ‖).toSb)
   | fst {Γ A B p l l'} :
     WfNeutTm Γ (max l l') p (.sigma l l' A B) →
     WfNeutTm Γ l (.fst l l' A B p) A

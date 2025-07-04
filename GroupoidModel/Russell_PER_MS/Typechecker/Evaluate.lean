@@ -123,34 +123,38 @@ partial def evalTm (Δ : Ctx) (env : List Val) (Γ : Ctx) (l : Nat) (t : Expr)
         . apply EqTm.conv_eq (EqTm.refl_tm _) (ACD.subst ($Δenv).wf_sbOfEnv).symm_tp
           apply WfTm.lam Δb
       )⟩
-  -- FIXME: when removing `A` from the syntax, replace it by `synthTp Γ a`
-  | .app k k' A B f a => do
+  | .app k k' B f a => do
     let ⟨vf, vfpfs⟩ ← evalTm Δ env Γ (max k k') f
       q($Δenv)
       q(by as_aux_lemma =>
-        obtain ⟨_, f, _⟩ := ($Γt).inv_app
+        obtain ⟨_, _, f, _⟩ := ($Γt).inv_app
         apply f.conv f.tp_eq_synthTp
       )
     let ⟨va, vapfs⟩ ← evalTm Δ env Γ k a
       q($Δenv)
       q(by as_aux_lemma =>
-        obtain ⟨_, _, a, _⟩ := ($Γt).inv_app
+        obtain ⟨_, _, _, a, _⟩ := ($Γt).inv_app
         apply a.conv a.tp_eq_synthTp
       )
     let ⟨v, vpfs⟩ ←
-      evalApp Δ k k' (A.subst (sbOfEnv ‖Δ‖ env)) (B.subst (Expr.up (sbOfEnv ‖Δ‖ env))) vf va
-        q(by as_aux_lemma => exact ($vfpfs).1.conv_nf <|
-          ($Γt).inv_app.2.1.tp_eq_synthTp.symm_tp.subst ($Δenv).wf_sbOfEnv
+      evalApp Δ k k'
+        (synthTp Γ a |>.subst (sbOfEnv ‖Δ‖ env))
+        (B.subst (Expr.up (sbOfEnv ‖Δ‖ env)))
+        vf
+        va
+        q(by as_aux_lemma =>
+          obtain ⟨_, _, f, a, eq⟩ := ($Γt).inv_app
+          have := EqTp.cong_pi a.tp_eq_synthTp (EqTp.refl_tp f.wf_tp.inv_pi.2)
+            |>.symm_tp.trans_tp f.tp_eq_synthTp
+          apply ($vfpfs).1.conv_nf (this.subst ($Δenv).wf_sbOfEnv).symm_tp
         )
-        q(by as_aux_lemma => exact ($vapfs).1.conv_nf <|
-          ($Γt).inv_app.2.2.1.tp_eq_synthTp.symm_tp.subst ($Δenv).wf_sbOfEnv
-        )
+        q(($vapfs).1)
     return ⟨v,
       q(by as_aux_lemma =>
         have ⟨vfwf, vfeq⟩ := $vfpfs
         have ⟨vawf, vaeq⟩ := $vapfs
         have ⟨vwf, veq⟩ := $vpfs
-        obtain ⟨rfl, f, a, _⟩ := ($Γt).inv_app
+        obtain ⟨rfl, _, f, a, _⟩ := ($Γt).inv_app
         simp only [synthTp, Expr.subst]
         have BvaBa : $Δ ⊢[$l]
             (($B).subst (Expr.up (sbOfEnv ‖$Δ‖ $env))).subst (($va).toExpr ‖$Δ‖).toSb ≡
@@ -166,7 +170,6 @@ partial def evalTm (Δ : Ctx) (env : List Val) (Γ : Ctx) (l : Nat) (t : Expr)
           simp only [Expr.subst] at sfeq saeq
           have B := f.wf_tp.inv_pi.2
           apply EqTm.cong_app
-            (EqTp.refl_tp <| a.wf_tp.subst ($Δenv).wf_sbOfEnv)
             (EqTp.refl_tp <| B.subst <| ($Δenv).wf_sbOfEnv.up B.wf_ctx.inv_snoc)
             (vfeq.conv_eq sfeq.symm_tp)
             (vaeq.conv_eq saeq.symm_tp)
@@ -277,7 +280,7 @@ partial def evalApp (Δ : Ctx) (l l' : Nat) (A B : Expr) (f a : Val)
     Except String ((v : Val) ×
       Q(WfValTm $Δ $l' $v (($B).subst (($a).toExpr ‖$Δ‖).toSb) ∧
         ($Δ ⊢[$l'] ($v).toExpr ‖$Δ‖ ≡
-          .app $l $l' $A $B (($f).toExpr ‖$Δ‖) (($a).toExpr ‖$Δ‖) :
+          .app $l $l' $B (($f).toExpr ‖$Δ‖) (($a).toExpr ‖$Δ‖) :
           (($B).subst (($a).toExpr ‖$Δ‖).toSb)))) :=
   match f with
   | .lam m m' _ (.mk_tm Γ A' env b) => do
@@ -326,12 +329,10 @@ partial def evalApp (Δ : Ctx) (l l' : Nat) (A B : Expr) (f a : Val)
             cases i
             . simp
             . dsimp; apply sbOfEnv_get_eq; simpa [env.eq_length] using lt
-          gcongr
-          . exact WfTm.lam Δb
-          . exact Δa.wf_toExpr
+          apply EqTm.refl_tm <| WfTm.app (WfTm.lam Δb) Δa.wf_toExpr
       )⟩
   | .neut n => do
-    let n : Val := .neut <| .app l l' A B n a
+    let n : Val := .neut <| .app l l' B n a
     return ⟨n,
       q(by as_aux_lemma =>
         constructor

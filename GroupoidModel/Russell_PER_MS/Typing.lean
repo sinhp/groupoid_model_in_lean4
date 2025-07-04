@@ -139,7 +139,7 @@ inductive WfTm : Ctx → Nat → Expr → Expr → Prop
     (A,l) :: Γ ⊢[l'] B →
     Γ ⊢[max l l'] f : .pi l l' A B →
     Γ ⊢[l] a : A →
-    Γ ⊢[l'] .app l l' A B f a : B.subst a.toSb
+    Γ ⊢[l'] .app l l' B f a : B.subst a.toSb
 
   | pair' {Γ A B t u l l'} :
     Γ ⊢[l] A →
@@ -184,13 +184,12 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     (A,l) :: Γ ⊢[l'] t ≡ t' : B →
     Γ ⊢[max l l'] .lam l l' A t ≡ .lam l l' A' t' : .pi l l' A B
 
-  | cong_app' {Γ A A' B B' f f' a a' l l'} :
+  | cong_app' {Γ A B B' f f' a a' l l'} :
     Γ ⊢[l] A →
-    Γ ⊢[l] A ≡ A' →
     (A,l) :: Γ ⊢[l'] B ≡ B' →
     Γ ⊢[max l l'] f ≡ f' : .pi l l' A B →
     Γ ⊢[l] a ≡ a' : A →
-    Γ ⊢[l'] .app l l' A B f a ≡ .app l l' A' B' f' a' : B.subst a.toSb
+    Γ ⊢[l'] .app l l' B f a ≡ .app l l' B' f' a' : B.subst a.toSb
 
   | cong_pair' {Γ A B B' t t' u u' l l'} :
     Γ ⊢[l] A →
@@ -224,7 +223,7 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     (A,l) :: Γ ⊢[l'] B →
     (A,l) :: Γ ⊢[l'] t : B →
     Γ ⊢[l] u : A →
-    Γ ⊢[l'] .app l l' A B (.lam l l' A t) u ≡ t.subst u.toSb : B.subst u.toSb
+    Γ ⊢[l'] .app l l' B (.lam l l' A t) u ≡ t.subst u.toSb : B.subst u.toSb
 
   | fst_pair' {Γ} {A B t u : Expr} {l l'} :
     Γ ⊢[l] A →
@@ -245,7 +244,9 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     Γ ⊢[l] A →
     (A,l) :: Γ ⊢[l'] B →
     Γ ⊢[max l l'] f : .pi l l' A B →
-    Γ ⊢[max l l'] f ≡ .lam l l' A (.app l l' (A.subst Expr.wk) (B.subst (Expr.up Expr.wk)) (f.subst Expr.wk) (.bvar 0)) : .pi l l' A B
+    Γ ⊢[max l l'] f ≡
+      .lam l l' A (.app l l' (B.subst (Expr.up Expr.wk)) (f.subst Expr.wk) (.bvar 0)) :
+      .pi l l' A B
 
   | pair_fst_snd' {Γ A B p l l'} :
     Γ ⊢[l] A →
