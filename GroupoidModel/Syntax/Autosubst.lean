@@ -1,4 +1,4 @@
-import GroupoidModel.Russell_PER_MS.Basic
+import GroupoidModel.Syntax.Basic
 
 /-! Implementation of simultaneous substitutions
 following Schäfer/Tebbi/Smolka in

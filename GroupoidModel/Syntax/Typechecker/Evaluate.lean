@@ -1,9 +1,9 @@
 import Qq
 
-import GroupoidModel.Russell_PER_MS.GCongr
-import GroupoidModel.Russell_PER_MS.Synth
-import GroupoidModel.Russell_PER_MS.Injectivity
-import GroupoidModel.Russell_PER_MS.Typechecker.Value
+import GroupoidModel.Syntax.GCongr
+import GroupoidModel.Syntax.Synth
+import GroupoidModel.Syntax.Injectivity
+import GroupoidModel.Syntax.Typechecker.Value
 
 /-- Shorthand for `List.length` which is used a lot in this file. -/
 local notation "‖" l "‖" => List.length l

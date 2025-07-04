@@ -1,7 +1,7 @@
 -- This module serves as the root of the `GroupoidModelInLean4` library.
 -- Import modules here that should be built as part of the library.
-import GroupoidModel.Russell_PER_MS.UHom
-import GroupoidModel.Russell_PER_MS.Interpretation
+import GroupoidModel.Syntax.UHom
+import GroupoidModel.Syntax.Interpretation
 import GroupoidModel.Groupoids.NaturalModelBase
 import GroupoidModel.Groupoids.Sigma
 import GroupoidModel.Groupoids.Pi

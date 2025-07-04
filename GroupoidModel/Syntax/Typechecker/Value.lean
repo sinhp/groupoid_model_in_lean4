@@ -1,5 +1,5 @@
-import GroupoidModel.Russell_PER_MS.Injectivity
-import GroupoidModel.Russell_PER_MS.SubstList
+import GroupoidModel.Syntax.Injectivity
+import GroupoidModel.Syntax.SubstList
 
 /-! # Values, neutral forms, closures, and evaluation environments
 

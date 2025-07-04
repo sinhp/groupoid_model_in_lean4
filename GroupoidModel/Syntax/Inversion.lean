@@ -1,4 +1,4 @@
-import GroupoidModel.Russell_PER_MS.Substitution
+import GroupoidModel.Syntax.Substitution
 
 /-! ## Inversion of typing -/
 

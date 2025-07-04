@@ -1,5 +1,5 @@
 import Mathlib.Tactic.Convert
-import GroupoidModel.Russell_PER_MS.Typing
+import GroupoidModel.Syntax.Typing
 import GroupoidModel.Tactic.MutualInduction
 
 /-! # Admissibility of substitution -/

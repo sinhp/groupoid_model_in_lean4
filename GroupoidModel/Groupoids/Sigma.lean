@@ -1,5 +1,5 @@
 import GroupoidModel.Groupoids.NaturalModelBase
-import GroupoidModel.Russell_PER_MS.NaturalModel
+import GroupoidModel.Syntax.NaturalModel
 import GroupoidModel.ForMathlib.CategoryTheory.RepPullbackCone
 import SEq.Tactic.DepRewrite
 

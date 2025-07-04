@@ -1,4 +1,4 @@
-import GroupoidModel.Russell_PER_MS.EqCtx
+import GroupoidModel.Syntax.EqCtx
 import Mathlib.Tactic.GCongr
 
 /-! # `gcongr` lemmas

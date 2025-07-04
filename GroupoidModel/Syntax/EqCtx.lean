@@ -1,4 +1,4 @@
-import GroupoidModel.Russell_PER_MS.Inversion
+import GroupoidModel.Syntax.Inversion
 
 /-! ## Context equality -/
 

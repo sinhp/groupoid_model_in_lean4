@@ -1,4 +1,4 @@
-import GroupoidModel.Russell_PER_MS.Autosubst
+import GroupoidModel.Syntax.Autosubst
 
 /-! ## Typing rules
 
