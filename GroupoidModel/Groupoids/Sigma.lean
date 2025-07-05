@@ -43,15 +43,14 @@ The second functor is the action of precomposing
   ∫ ι A x ⋙ B ⥤ ∫ A.map f ⋙ ι A y ⋙ B ⥤ ∫ ι A y ⋙ B
 -/
 def sigmaMap : sigmaObj B x ⥤ sigmaObj B y :=
-  map (whiskerRight (ιNatTrans f) B) ⋙ pre (ι A y ⋙ B) (A.map f)
+  map (Functor.whiskerRight (ιNatTrans f) B) ⋙ pre (ι A y ⋙ B) (A.map f)
 
 @[simp] theorem sigmaMap_obj_base (a) :
     ((sigmaMap B f).obj a).base = (A.map f).obj a.base :=
   rfl
 
 @[simp] theorem sigmaMap_obj_fiber (a) :
-    ((sigmaMap B f).obj a).fiber = (B.map ((ιNatTrans f).app (base a))).obj (fiber a) := by
-  rfl
+    ((sigmaMap B f).obj a).fiber = (B.map ((ιNatTrans f).app (base a))).obj (fiber a) := rfl
 
 @[simp] theorem sigmaMap_map_base {a b : sigmaObj B x} {p : a ⟶ b} :
     ((sigmaMap B f).map p).base = (A.map f).map p.base := rfl
@@ -60,7 +59,7 @@ theorem sigmaMap_map_fiber_aux {a b : sigmaObj B x} {p : a ⟶ b} :
     (((ι A y ⋙ B)).map ((sigmaMap B f).map p).base).obj ((sigmaMap B f).obj a).fiber =
     (B.map ((ιNatTrans f).app (base b))).obj (((ι A x ⋙ B).map p.base).obj a.fiber) := by
   simp only [sigmaObj, sigmaMap, Functor.comp_obj, Functor.comp_map, pre_map_base, map_map_base,
-    pre_obj_fiber, map_obj_fiber, whiskerRight_app]
+    pre_obj_fiber, map_obj_fiber, Functor.whiskerRight_app]
   simp only [← Functor.comp_obj, ← Grpd.comp_eq_comp, ← Functor.map_comp]
   congr 3
   exact ((ιNatTrans f).naturality p.base).symm
@@ -68,8 +67,8 @@ theorem sigmaMap_map_fiber_aux {a b : sigmaObj B x} {p : a ⟶ b} :
 @[simp] theorem sigmaMap_map_fiber {a b : sigmaObj B x} {p : a ⟶ b} :
     ((sigmaMap B f).map p).fiber =
     eqToHom (sigmaMap_map_fiber_aux B f) ≫ (B.map ((ιNatTrans f).app (base b))).map p.fiber := by
-  simp only [sigmaObj, sigmaMap, Functor.comp_obj, Functor.comp_map, pre_map_base, map_map_base,
-    pre_map_fiber, map_map_fiber, whiskerRight_twice, whiskerRight_app, Cat.comp_obj]
+  simp only [sigmaObj, sigmaMap, Functor.comp_obj, Functor.comp_map,
+    pre_map_fiber, map_map_fiber, Functor.whiskerRight_app]
 
 variable {B}
 
@@ -83,18 +82,18 @@ variable {B}
     (sigmaMap B (𝟙 x)).map f =
     eqToHom (by simp) ≫ f ≫ eqToHom (by simp) := by
   have h (a : A.obj x) : B.map ((ιNatTrans (𝟙 x)).app a) =
-      eqToHom (by simp [Functor.map_id]) :=
+      eqToHom (by simp) :=
     calc
       B.map ((ιNatTrans (𝟙 x)).app a)
-      _ = B.map (eqToHom (by simp [Functor.map_id])) := by
+      _ = B.map (eqToHom (by simp)) := by
         rw [ιNatTrans_id_app]
-      _ = eqToHom (by simp [Functor.map_id]) := by
+      _ = eqToHom (by simp) := by
         simp
   have h1 : B.map ((ι A x).map (eqToHom hp2).base) = eqToHom (by simp) := by
     simp [eqToHom_base]
   fapply Grothendieck.Groupoidal.ext
   · simp [sigmaMap]
-  · simp [sigmaMap_map_fiber, Functor.congr_hom (h p2.base) f.fiber, eqToHom_base,
+  · simp [sigmaMap_map_fiber, Functor.congr_hom (h p2.base) f.fiber,
       Functor.congr_hom h1]
 
 theorem sigmaMap_id : sigmaMap B (𝟙 x) = 𝟭 _ := by
@@ -111,12 +110,9 @@ variable {z : Γ} {f} {g : y ⟶ z}
   dsimp only [sigmaMap]
   apply obj_hext
   · simp
-  · simp only [sigmaObj, Functor.comp_obj, pre_obj_base, map_obj_base, pre_obj_fiber,
-      map_obj_fiber, whiskerRight_app, ιNatTrans_comp_app, Functor.map_comp, eqToHom_map,
-      Grpd.comp_eq_comp]
-    rw [Grpd.eqToHom_obj]
-    simp
-
+  · simp only [sigmaObj, Functor.comp_obj, pre_obj_fiber, map_obj_fiber, Functor.whiskerRight_app,
+      ιNatTrans_comp_app, Functor.map_comp, eqToHom_map, Grpd.comp_eq_comp, Grpd.eqToHom_obj, cast_heq_iff_heq, heq_eq_eq]
+    aesop_cat
 
 @[simp] theorem sigmaMap_comp_map {A : Γ ⥤ Grpd.{v₁,u₁}}
     {B : ∫(A) ⥤ Grpd.{v₁,u₁}} {x y z : Γ} {f : x ⟶ y} {g : y ⟶ z}
@@ -141,7 +137,7 @@ variable {z : Γ} {f} {g : y ⟶ z}
       eqToHom_map, Functor.map_comp, Category.assoc, heq_eqToHom_comp_iff, heq_comp_eqToHom_iff,
       eqToHom_comp_heq_iff, comp_eqToHom_heq_iff]
     rw! [Functor.congr_hom h3]
-    simp only [sigmaObj, Functor.comp_obj, Functor.comp_map, id_eq, heq_eqToHom_comp_iff,
+    simp only [sigmaObj, Functor.comp_obj, Functor.comp_map, heq_eqToHom_comp_iff,
       heq_comp_eqToHom_iff, heq_eq_eq]
 
 theorem sigmaMap_comp : sigmaMap B (f ≫ g) = sigmaMap B f ⋙ sigmaMap B g := by
@@ -170,10 +166,10 @@ theorem sigma_naturality_aux (x) :
   rfl
 
 lemma whiskerRight_ιNatTrans_naturality {x y : Δ} (f : x ⟶ y) :
-  whiskerRight (ιNatTrans f) (pre A σ ⋙ B)
-= eqToHom (sigma_naturality_aux B σ x) ≫ whiskerRight (ιNatTrans (σ.map f)) B ≫
-  eqToHom (by simp[Functor.assoc, sigma_naturality_aux B σ y]) := by
-  simp[whiskerRight]
+  Functor.whiskerRight (ιNatTrans f) (pre A σ ⋙ B) =
+    eqToHom (sigma_naturality_aux B σ x) ≫ Functor.whiskerRight (ιNatTrans (σ.map f)) B ≫
+    eqToHom (by simp [Functor.assoc, sigma_naturality_aux B σ y]) := by
+  simp [Functor.whiskerRight]
   congr
   funext X
   rw [NatTrans.comp_app]
@@ -229,11 +225,11 @@ theorem pairSectionMap_aux_aux {x y} (f : x ⟶ y) :
     ≫ (ι _ y).map (mapFiber α f)
     = (sec _ α rfl).map f := by
   apply Grothendieck.Groupoidal.ext
-  · simp only [Grothendieck.Groupoidal.forget_obj,
+  · simp only [
       Grothendieck.Groupoidal.comp_fiber, ιNatTrans_app_fiber, ι_obj_fiber, ι_map_fiber,
       eqToHom_trans_assoc, sec_map_fiber, mapFiber', mapFiber]
     rw! [CategoryTheory.Functor.map_id]
-    simp only [Grothendieck.id_base, Grpd.id_eq_id, Functor.id_obj, eqToHom_refl, Functor.id_map,
+    simp only [Grpd.id_eq_id, Functor.id_obj, eqToHom_refl, Functor.id_map,
       Category.id_comp, objFiber'_rfl, mapFiber'EqToHom]
     apply Category.id_comp
   · simp
@@ -261,7 +257,7 @@ theorem pairMapFiber_aux {x y} (f : x ⟶ y) :
     ((ι _ y ⋙ B).map (mapFiber α f)).obj ((sigmaMap B f).obj (pairObjFiber h x)).fiber =
     ((sec _ α rfl ⋙ B).map f).obj (objFiber' h x) := by
   simp only [Grpd.forgetToCat.eq_1, Functor.comp_obj, Grothendieck.forget_obj, Functor.comp_map,
-    sigmaObj, sigmaMap, Grothendieck.Groupoidal.forget_map, pre_obj_fiber, map_obj_fiber, whiskerRight_app]
+    sigmaObj, sigmaMap, pre_obj_fiber, map_obj_fiber, Functor.whiskerRight_app]
   rw [← Grpd.map_comp_obj, pairSectionMap_aux_aux]
   rfl
 
@@ -327,9 +323,8 @@ theorem pairMapFiber_comp_aux {x y z} (f : x ⟶ y) (g : y ⟶ z) :
     = eqToHom (pairMapFiber_comp_aux_aux h f g)
     ≫ ((sec _ α rfl ⋙ B).map g).map (mapFiber' h f)
     ≫ eqToHom (by rw [← pairMapFiber_aux]) := by
-  simp only [Functor.comp_map, sigmaObj, sigmaMap_map_fiber, whiskerRight_app,
-    pre_map_fiber, map_map_fiber, Functor.map_comp,
-    eqToHom_map, Category.assoc, eqToHom_trans_assoc,
+  simp only [Functor.comp_map, sigmaObj, sigmaMap_map_fiber,
+    Functor.map_comp, eqToHom_map, Category.assoc, eqToHom_trans_assoc,
     Grpd.map_comp_map', eqToHom_trans_assoc, eqToHom_comp_iff, comp_eqToHom_iff,
     eqToHom_trans_assoc, Category.assoc, eqToHom_trans]
   rw! [pairSectionMap_aux_aux]
@@ -483,10 +478,10 @@ def assocIso {x y : Γ} (f : x ⟶ y) :
   simp [assocIso, preNatIso_congr B (ιNatIso_id A x), preNatIso_eqToIso]
 
 theorem assocIso_comp {x y z : Γ} (f : x ⟶ y) (g : y ⟶ z) : assocIso B (f ≫ g) =
-    assocIso B f ≪≫ isoWhiskerLeft (sigmaMap B f) (assocIso B g)
+    assocIso B f ≪≫ Functor.isoWhiskerLeft (sigmaMap B f) (assocIso B g)
     ≪≫ eqToIso (by simp [sigmaMap_comp, Functor.assoc]) := by
   simp [assocIso, preNatIso_congr B (ιNatIso_comp A f g), preNatIso_comp, assocIso,
-    sigmaMap, isoWhiskerLeft_trans]
+    sigmaMap, Functor.isoWhiskerLeft_trans]
   rfl
 
 def assocHom {x y : Γ} (f : x ⟶ y) :
@@ -498,11 +493,10 @@ def assocHom {x y : Γ} (f : x ⟶ y) :
   simp [assocHom, assocIso_id]
 
 theorem assocHom_comp {x y z : Γ} (f : x ⟶ y) (g : y ⟶ z) :
-    assocHom B (f ≫ g) = assocHom B f ≫ whiskerLeft (sigmaMap B f) (assocHom B g) ≫ eqToHom (by simp [sigmaMap_comp, Functor.assoc]) := by
+    assocHom B (f ≫ g) = assocHom B f ≫ Functor.whiskerLeft (sigmaMap B f) (assocHom B g) ≫
+      eqToHom (by simp [sigmaMap_comp, Functor.assoc]) := by
   simp [assocHom, assocIso_comp]
 
--- NOTE this used to be called `snd`, I thought maybe calling the maps
--- into PGrpd `fst` and `snd` might be a bit more consistent
 def assoc : ∫(sigma A B) ⥤ ∫(B) :=
   functorFrom (assocFib B) (assocHom B) (by simp) (by simp [assocHom_comp])
 
@@ -517,10 +511,9 @@ theorem ι_sigma_comp_map_fstAux (x) : ι (sigma A B) x ⋙ map (fstAux B)
   · intro x
     simp
   · intro x y f
-    simp only [sigma_obj, sigmaObj, Functor.comp_obj, map_obj_base, ι_obj_base,
-      Functor.comp_map, map_map_base, ι_map_base, map_obj_fiber, fstAux_app, ι_obj_fiber,
-      Grothendieck.Groupoidal.forget_obj, Grpd.forgetToCat, map_map_fiber,
-      whiskerRight_app, id_eq, Cat.comp_obj, sigma_map, eqToHom_refl, ι_map_fiber,
+    simp only [sigma_obj, sigmaObj, Functor.comp_obj, ι_obj_base,
+      Functor.comp_map, ι_map_base, fstAux_app, ι_obj_fiber,
+      Grothendieck.Groupoidal.forget_obj, map_map_fiber, sigma_map, eqToHom_refl, ι_map_fiber,
       Grothendieck.Groupoidal.forget_map, Category.id_comp, heq_eq_eq]
     convert comp_base (eqToHom _) f
     · rfl
@@ -554,36 +547,34 @@ theorem snd_forgetToGrpd : snd B ⋙ forgetToGrpd = fstAux' B ⋙ B :=
     _ = assoc B ⋙ forget ⋙ B := rfl
     _ = fstAux' B ⋙ B := by rw [← assoc_forget]; rfl
 
-@[simp] theorem fst_obj_fiber {x} : ((fst B).obj x).fiber = x.fiber.base := by
-  rfl
+@[simp] theorem fst_obj_fiber {x} : ((fst B).obj x).fiber = x.fiber.base := rfl
 
 @[simp] theorem fst_map_fiber {x y} (f : x ⟶ y) : ((fst B).map f).fiber = f.fiber.base := by
   simp [fst, fstAux']
 
 @[simp] theorem snd_obj_fiber {x} : ((snd B).obj x).fiber = x.fiber.fiber := by
-  simp [snd, assoc]
+  simp [snd, assoc]; rfl
 
 @[simp] theorem assoc_hom_app_fiber {x y : ∫(sigma A B)} (f : x ⟶ y) :
     (assocHom B (Hom.base f)).app x.fiber
     = homMk (homMk f.base (𝟙 _)) (𝟙 _) := by
   apply hext
   · apply hext
-    · simp [sigmaObj, assocFib, pre_obj_base, Functor.comp_obj, sigmaMap_obj_base, assocHom,
+    · simp [sigmaObj, assocFib, Functor.comp_obj, assocHom,
         assocIso, preNatIso_hom_app_base, ιNatIso_hom]
     · rw [assocHom, assocIso, preNatIso_hom_app_base, ιNatIso_hom]
       simp
+      rfl
   · simp [assocHom, assocIso]
     rfl
 
 -- FIXME: should probably make `snd_map_base` and use that to prove the `eqToHom`
 @[simp] theorem snd_map_fiber {x y} (f : x ⟶ y) : ((snd B).map f).fiber =
     eqToHom (by simp [snd, assoc]; rfl) ≫ Hom.fiber (Hom.fiber f) := by
-  simp only [snd, assoc, Functor.comp_obj, functorFrom_obj, sigma_obj, sigmaObj,
-    assocFib, toPGrpd_obj_base, pre_obj_base, Functor.comp_map,
-    functorFrom_map, sigma_map, toPGrpd_map_base, comp_base, sigmaMap_obj_base, pre_map_base, id_eq,
-    toPGrpd_obj_fiber, pre_obj_fiber, toPGrpd_map_fiber, Grothendieck.Groupoidal.comp_fiber,
-    sigmaMap_obj_fiber, pre_map_fiber]
-  rw! [assoc_hom_app_fiber]
+  simp only [snd, assoc, Functor.comp_map]
+  rw! [Grothendieck.Groupoidal.functorFrom_map, assoc_hom_app_fiber]
+  simp only [toPGrpd_map_fiber, Grothendieck.Groupoidal.comp_fiber]
+  rw! [CategoryTheory.Functor.map_id]
   simp
 
 end
@@ -621,15 +612,13 @@ variable {Γ : Type*} [Groupoid Γ] {A : Γ ⥤ Grpd} (B : ∫(A) ⥤ Grpd)
 @[inherit_doc fst'] def snd' : Γ ⥤ PGrpd := sec (sigma A B) αβ hαβ ⋙ snd B
 
 @[simp] theorem fst'_obj_base {x} : ((fst' B αβ hαβ).obj x).base =
-    A.obj x := by
-  rfl
+    A.obj x := rfl
 
 theorem fst'_obj_fiber {x} : ((fst' B αβ hαβ).obj x).fiber = (objFiber' hαβ x).base := by
   simp [fst']
 
 @[simp] theorem fst'_map_base {x y} (f : x ⟶ y) : ((fst' B αβ hαβ).map f).base =
-    A.map f := by
-  rfl
+    A.map f := rfl
 
 theorem fst'_map_fiber {x y} (f : x ⟶ y) : ((fst' B αβ hαβ).map f).fiber =
     (mapFiber' hαβ f).base := by

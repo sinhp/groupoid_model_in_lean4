@@ -72,7 +72,7 @@ variable {x y : C} (f : x ⟶ y)
   m2 ≫ m1
 
 theorem liftMapFiber_id (x : C) : liftMapFiber w (𝟙 x) = eqToHom (by simp) := by
-  simp [eqToHom_app, eqToHom_map]
+  simp [eqToHom_map]
 
 theorem liftMapFiber_comp {x y z} (f : x ⟶ y) (g : y ⟶ z) :
     liftMapFiber w (f ≫ g) =
@@ -122,13 +122,13 @@ def lift : C ⥤ Grothendieck A := functorTo snd
         Functor.congr_hom (eqToHom_app w y) (point fst f)]
     · have h := Functor.congr_hom w f
       simp only [PCat.forgetToCat_map, Functor.comp_map] at h
-      simp [h, ← Cat.comp_eq_comp]
+      simp [h]
   · intro x
     have h := (Functor.congr_obj w x).symm
-    simp only [Cat.comp_obj, Functor.comp_obj, forget_obj] at h
+    simp only [Functor.comp_obj, forget_obj] at h
     fapply obj_hext
     · simp [h]
-    · simp [h, Cat.eqToHom_obj]
+    · simp [Cat.eqToHom_obj]
 
 theorem lift_uniq (m : C ⥤ Grothendieck A)
     (hl : m ⋙ Grothendieck.toPCat A = fst)
@@ -144,7 +144,7 @@ theorem lift_uniq (m : C ⥤ Grothendieck A)
   · intro x y f
     have h := Functor.congr_hom hl f
     rw [← Grothendieck.hext_iff] at h
-    simp only [h.2, lift_map_fiber]
+    simp only [lift_map_fiber]
     aesop
 
 theorem hom_ext {m n : C ⥤ Grothendieck A}

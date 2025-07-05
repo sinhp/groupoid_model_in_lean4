@@ -223,14 +223,12 @@ def append {sΓ' : 𝒞} (Γ : s.CObj) (d : s.ExtSeq Γ.1 sΓ') : s.CObj :=
   ⟨sΓ', Γ.2.append d⟩
 
 @[simp]
-theorem append_nil (Γ : s.CObj) : Γ.append .nil = Γ := by
-  rfl
+theorem append_nil (Γ : s.CObj) : Γ.append .nil = Γ := rfl
 
 @[simp]
 theorem append_snoc {sΓ' : 𝒞} {l} (Γ : s.CObj) (d : s.ExtSeq Γ.1 sΓ')
     (llen : l < s.length + 1) (A : y(sΓ') ⟶ s[l].Ty) :
-    Γ.append (d.snoc llen A) = (Γ.append d).snoc llen A := by
-  rfl
+    Γ.append (d.snoc llen A) = (Γ.append d).snoc llen A := rfl
 
 def substWk {sΓ sΓ' : 𝒞} (Δ : s.CObj) (σ : Δ.1 ⟶ sΓ) (d : s.ExtSeq sΓ sΓ') :
     Σ (Δ' : s.CObj), Δ'.1 ⟶ sΓ' :=
@@ -239,15 +237,13 @@ def substWk {sΓ sΓ' : 𝒞} (Δ : s.CObj) (σ : Δ.1 ⟶ sΓ) (d : s.ExtSeq s�
 
 @[simp]
 theorem substWk_nil {sΓ : 𝒞} (Δ : s.CObj) (σ : Δ.1 ⟶ sΓ) :
-    Δ.substWk σ .nil = ⟨Δ, σ⟩ := by
-  rfl
+    Δ.substWk σ .nil = ⟨Δ, σ⟩ := rfl
 
 theorem substWk_snoc {sΓ sΓ' : 𝒞} {l} (Δ : s.CObj) (σ : Δ.1 ⟶ sΓ) (d : s.ExtSeq sΓ sΓ')
     (llen : l < s.length + 1) (A : y(sΓ') ⟶ s[l].Ty) :
     Δ.substWk σ (d.snoc llen A) =
       let ⟨Δ', σ'⟩ := Δ.substWk σ d
-     ⟨Δ'.snoc llen (ym(σ') ≫ A), s[l].substWk σ' A⟩ := by
-  rfl
+     ⟨Δ'.snoc llen (ym(σ') ≫ A), s[l].substWk σ' A⟩ := rfl
 
 protected def var {l : Nat} (Γ : s.CObj) (llen : l < s.length + 1) (i : ℕ) :
     Part (y(Γ.1) ⟶ s[l].Tm) :=

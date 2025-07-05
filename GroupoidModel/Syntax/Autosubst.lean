@@ -17,12 +17,10 @@ def snoc.{u} {X : Sort u} (σ : Nat → X) (x : X) : Nat → X
   | n+1 => σ n
 
 @[simp]
-theorem snoc_zero {X} (σ : Nat → X) (x : X) : snoc σ x 0 = x := by
-  dsimp [snoc]
+theorem snoc_zero {X} (σ : Nat → X) (x : X) : snoc σ x 0 = x := rfl
 
 @[simp]
-theorem snoc_succ {X} (σ : Nat → X) (x : X) (n) : snoc σ x (n + 1) = σ n := by
-  dsimp [snoc]
+theorem snoc_succ {X} (σ : Nat → X) (x : X) (n) : snoc σ x (n + 1) = σ n := rfl
 
 /-! ## Renaming -/
 
@@ -93,7 +91,7 @@ def ofRen (ξ : Nat → Nat) : Nat → Expr :=
   fun i => Expr.bvar (ξ i)
 
 @[simp]
-theorem ofRen_id : ofRen id = Expr.bvar := by rfl
+theorem ofRen_id : ofRen id = Expr.bvar := rfl
 
 theorem ofRen_upr (ξ) : ofRen (upr ξ) = up (ofRen ξ) := by
   ext i; cases i <;> simp [ofRen, upr, up, snoc, rename]
@@ -180,7 +178,7 @@ def wk : Nat → Expr :=
   ofRen Nat.succ
 
 @[simp]
-theorem ofRen_succ : ofRen Nat.succ = wk := by rfl
+theorem ofRen_succ : ofRen Nat.succ = wk := rfl
 
 theorem up_eq_snoc (σ : Nat → Expr) : up σ = snoc (comp wk σ) (.bvar 0) := by
   ext i; unfold up comp; congr 1; ext j
