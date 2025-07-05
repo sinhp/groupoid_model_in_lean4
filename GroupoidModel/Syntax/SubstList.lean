@@ -53,7 +53,7 @@ theorem sbOfTms_map_wk (ts k) :
     sbOfTms (ts.map (·.subst Expr.wk)) (k+1) = Expr.comp Expr.wk (sbOfTms ts k) := by
   ext i
   unfold sbOfTms
-  rw [show (Expr.bvar (i + (k + 1))) = (Expr.bvar (i + k)).subst Expr.wk rfl]
+  rw [show (Expr.bvar (i + (k + 1))) = (Expr.bvar (i + k)).subst Expr.wk from rfl]
   simp [Expr.comp]
 
 theorem up_sbOfTms (ts k) :

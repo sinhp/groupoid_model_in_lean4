@@ -231,7 +231,7 @@ theorem map_eqToHom_base_pf {G1 G2 : Grothendieck A} (eq : G1 = G2) :
 
 theorem map_eqToHom_base {G1 G2 : Grothendieck A} (eq : G1 = G2)
     : A.map (eqToHom eq).base = eqToHom (map_eqToHom_base_pf eq) := by
-  simp [eqToHom_base, eqToHom_map]
+  simp [eqToHom_map]
 
 theorem map_eqToHom_obj_base {F G : Γ ⥤ Cat.{v,u}} (h : F = G)
   (x) : ((Grothendieck.map (eqToHom h)).obj x).base = x.base := rfl
@@ -259,7 +259,7 @@ def mkIso {X Y : Grothendieck G}
   hom_inv_id := by
     apply ext
     erw [comp_fiber]
-    simp only [Cat.comp_obj, id_eq, map_hom_inv_id_assoc,
+    simp only [map_hom_inv_id_assoc,
       eqToHom_trans, id_fiber] at *
     erw [comp_base, id_base]
     dsimp
@@ -511,11 +511,8 @@ variable {C : Type u} [Category.{v} C]
 variable {F : C ⥤ Cat.{v₂, u₂}}
 
 theorem ιNatTrans_id_app {X : C} {a : F.obj X} :
-    (@ιNatTrans _ _ F _ _ (𝟙 X)).app a =
-    eqToHom (by simp) := by
-  apply ext
-  · simp
-  · simp [eqToHom_base]
+    (@ιNatTrans _ _ F _ _ (𝟙 X)).app a = eqToHom (by simp) := by
+  apply ext <;> simp
 
 theorem ιNatTrans_comp_app {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {a} :
     (@ιNatTrans _ _ F _ _ (f ≫ g)).app a =
@@ -560,8 +557,9 @@ theorem preNatIso_congr {G H : D ⥤ C} {α β : G ≅ H} (h : α = β) :
     rw! [eqToHom_app, eqToHom_fiber]
   · simp [preNatIso]
 
+open CategoryTheory.Functor in
 theorem preNatIso_comp {G1 G2 G3 : D ⥤ C} (α : G1 ≅ G2) (β : G2 ≅ G3) :
-    preNatIso F (α ≪≫ β) = preNatIso F α ≪≫ isoWhiskerLeft _ (preNatIso F β) ≪≫
+    preNatIso F (α ≪≫ β) = preNatIso F α ≪≫ Functor.isoWhiskerLeft _ (preNatIso F β) ≪≫
     eqToIso (by simp [map_comp_eq, Functor.assoc]) := by
   ext p
   apply Grothendieck.ext
@@ -570,8 +568,7 @@ theorem preNatIso_comp {G1 G2 G3 : D ⥤ C} (α : G1 ≅ G2) (β : G2 ≅ G3) :
       NatIso.ofComponents_hom_app, Iso.symm_hom, whiskerLeft_app,
       map_obj_fiber, transportIso_inv_base, pre_obj_fiber,
       transportIso_inv_fiber, Category.comp_id, comp_fiber, Functor.map_id,
-      Category.id_comp, eqToHom_app, base_eqToHom,
-      eqToHom_refl, Cat.id_obj, eqToHom_naturality_assoc, eqToHom_trans_assoc]
+      Category.id_comp, eqToHom_trans_assoc]
     rw! [eqToHom_app, eqToHom_fiber, eqToHom_trans]
   · simp [preNatIso]
 
@@ -617,7 +614,7 @@ def functorTo : D ⥤ Grothendieck F where
   map_comp f g := by
     fapply Grothendieck.ext
     · simp
-    · simp [eqToHom_comp_iff, map_comp]
+    · simp [map_comp]
 
 @[simp] theorem functorTo_obj_base (x) :
     ((functorTo A fibObj fibMap map_id map_comp).obj x).base = A.obj x :=
@@ -696,7 +693,7 @@ variable {C : Type u₁} [Category.{v₁} C]
 
 @[simp]
 theorem isoWhiskerLeft_eqToIso (F : C ⥤ D) {G H : D ⥤ E} (η : G = H) :
-    isoWhiskerLeft F (eqToIso η) = eqToIso (by subst η; rfl) := by
+    Functor.isoWhiskerLeft F (eqToIso η) = eqToIso (by subst η; rfl) := by
   subst η
   rfl
 end

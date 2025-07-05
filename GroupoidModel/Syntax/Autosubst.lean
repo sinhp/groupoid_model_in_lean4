@@ -17,12 +17,10 @@ def snoc.{u} {X : Sort u} (σ : Nat → X) (x : X) : Nat → X
   | n+1 => σ n
 
 @[simp]
-theorem snoc_zero {X} (σ : Nat → X) (x : X) : snoc σ x 0 = x := by
-  dsimp [snoc]
+theorem snoc_zero {X} (σ : Nat → X) (x : X) : snoc σ x 0 = x := rfl
 
 @[simp]
-theorem snoc_succ {X} (σ : Nat → X) (x : X) (n) : snoc σ x (n + 1) = σ n := by
-  dsimp [snoc]
+theorem snoc_succ {X} (σ : Nat → X) (x : X) (n) : snoc σ x (n + 1) = σ n := rfl
 
 /-! ## Renaming -/
 

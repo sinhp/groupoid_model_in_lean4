@@ -20,8 +20,8 @@ lemma func_split_assoc {A B C D E: Type*} [Category A][Category B][Category C][C
 
 lemma whiskeringLeft_Right_comm {A B C D: Type*} [Category A] [Category B]
     [Category C] [Category D] (F: A⥤ B)  (H: C ⥤ D):
-    (whiskeringRight _ _ _).obj H ⋙ (whiskeringLeft  _ _ _ ).obj F =
-    (whiskeringLeft _ _ _).obj F ⋙ (whiskeringRight _ _ _).obj H := by
+    (Functor.whiskeringRight _ _ _).obj H ⋙ (Functor.whiskeringLeft  _ _ _ ).obj F =
+    (Functor.whiskeringLeft _ _ _).obj F ⋙ (Functor.whiskeringRight _ _ _).obj H := by
   aesop_cat
 
 section
@@ -51,7 +51,7 @@ end ForOther
 -- NOTE content for this doc starts here
 namespace GroupoidModel
 
-open CategoryTheory NaturalModelBase Opposite Grothendieck  Groupoid
+open CategoryTheory NaturalModelBase Opposite Grothendieck  Groupoid CategoryTheory.Functor
 
 
 /-
@@ -96,9 +96,9 @@ def conjugating_id {Γ : Type u} [Groupoid.{v} Γ] (A B : Γ ⥤ Cat)
     (x : Γ ) : conjugating A B (𝟙 x) = Functor.id _ := by
      simp only [conjugating, inv_eq_inv, IsIso.inv_id, CategoryTheory.Functor.map_id]
      have e: (𝟙 (B.obj x)) = (𝟭 (B.obj x)) := rfl
-     simp only [e,CategoryTheory.whiskeringRight_obj_id,Functor.comp_id]
+     simp only [e,whiskeringRight_obj_id,Functor.comp_id]
      have e': (𝟙 (A.obj x)) = (𝟭 (A.obj x)) := rfl
-     simp only[e',CategoryTheory.whiskeringLeft_obj_id]
+     simp only[e',whiskeringLeft_obj_id]
 
 def conjugating_comp {Γ : Grpd.{v,u}} (A B : Γ ⥤ Cat)
     (x y z : Γ ) (f:x⟶ y) (g:y⟶ z) :
@@ -195,8 +195,7 @@ lemma conjugate_PreserveSection {D: Type*} (C: Grpd.{v₁,u₁}) [Category D] (A
     s ≫ η.app x = 𝟙 (A.obj x) → (conjugate C A B f s) ≫ η.app y = 𝟙 (A.obj y) :=
      by
      intro ieq
-     simp only [conjugate, inv_eq_inv, Functor.map_inv, ← Category.assoc, NatTrans.naturality,
-      IsIso.inv_comp_eq, Category.comp_id]
+     simp only [conjugate, inv_eq_inv, Functor.map_inv, ← Category.assoc]
      simp only [Category.assoc, NatTrans.naturality, IsIso.inv_comp_eq, Category.comp_id]
      simp only [← Category.assoc,ieq,Category.id_comp]
 
@@ -227,9 +226,8 @@ lemma conjugate_FiberFunc.map {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
     (s1 s2: A.obj x ⥤ (GroupoidModel.FunctorOperation.sigma A B).obj x)
     (η: s1 ⟶ s2):
      (conjugate_FiberFunc A B f).map η =
-     CategoryTheory.whiskerLeft (A.map (Groupoid.inv f))
-     (CategoryTheory.whiskerRight η
-         ((GroupoidModel.FunctorOperation.sigma A B).map f))
+     Functor.whiskerLeft (A.map (Groupoid.inv f))
+     (Functor.whiskerRight η ((GroupoidModel.FunctorOperation.sigma A B).map f))
      := rfl
 
 def conjugateLiftCond {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
@@ -281,7 +279,7 @@ lemma conjugateLiftFunc_Inc {Γ : Grpd.{v,u}} (A : Γ ⥤ Grpd.{u₁,u₁})
     (conjugateLiftFunc A B f) ⋙ Section.inc ((fstAux B).app y)
     = ((Section.inc ((fstAux B).app x) ⋙ conjugate_FiberFunc A B f))
     := by
-      simp [FunctorOperation.sigma_obj, - fstAux_app, conjugateLiftFunc, ObjectProperty.liftCompιIso]
+      simp [FunctorOperation.sigma_obj, - fstAux_app, conjugateLiftFunc]
       /- TODO: `sorry` introduced during bump to `4.21.0-rc3`.
       We are planning to refactor this file; the proof will be fixed then. -/
       sorry

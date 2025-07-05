@@ -284,13 +284,14 @@ theorem eqSb_up {Δ Γ A σ σ' l} : EqSb Δ σ σ' Γ →
   have ΔAσ := σσ'.1.snoc Aσ
   refine ⟨ΔAσ, σσ'.2.1.snoc A, fun lk => ?_⟩
   cases lk
-  . rw [Expr.up_eq_snoc σ, Expr.up_eq_snoc σ']; dsimp
+  . rw [Expr.up_eq_snoc σ, Expr.up_eq_snoc σ']
     repeat any_goals apply And.intro
     . convert rename_all.1 Aσ ΔAσ (WfRen.wk ..) using 1 <;> autosubst
     . convert rename_all.1 Aσ' ΔAσ (WfRen.wk ..) using 1 <;> autosubst
     . convert rename_all.2.1 Aσeq ΔAσ (WfRen.wk ..) using 1 <;> autosubst
     . convert WfTm.bvar ΔAσ (Lookup.zero ..) using 1 <;> autosubst
-    . convert WfTm.conv (WfTm.bvar ΔAσ (Lookup.zero ..)) ?_
+    . dsimp
+      convert WfTm.conv (WfTm.bvar ΔAσ (Lookup.zero ..)) ?_
       convert rename_all.2.1 Aσeq ΔAσ (WfRen.wk ..) using 1 <;> autosubst
     . convert EqTm.refl_tm (WfTm.bvar ΔAσ (Lookup.zero ..)) using 1 <;> autosubst
   next lk =>
@@ -379,9 +380,6 @@ theorem subst_all :
       grind [WfTp.sigma', EqTm.cong_pair', EqTm.cong_fst', EqTm.cong_snd']
   case symm_tm' => grind [EqTm.symm_tm', EqTm.conv_eq, EqSb.symm]
   case trans_tm' => grind [EqTm.trans_tm', EqTm.conv_eq, EqSb.symm]
-  case cong_app' ihA _ _ _ _ _ _ σ =>
-    rw [ih_subst]
-    apply EqTm.cong_app' (ihA.1 σ.wf_left) <;> grind
   case cong_snd' => rw [ih_subst]; apply EqTm.cong_snd' <;> grind
 
 end SubstProof

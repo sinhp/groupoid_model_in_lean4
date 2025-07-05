@@ -231,7 +231,7 @@ instance : forgetToGrpd.ReflectsIsomorphisms := by
     · simp [forgetToCat]
       have h := Functor.congr_hom hGF F.fiber
       simp [Grpd.id_eq_id, Grpd.comp_eq_comp, Functor.comp_map] at h
-      simp [h, eqToHom_map]
+      simp [h]
     · exact hGF
 
 section
@@ -323,7 +323,7 @@ def mapFiber' {x y : Γ} (f : x ⟶ y) :
   subst h
   simp only [mapFiber', map_id_fiber]
   apply eq_of_heq
-  simp [eqToHom_comp_heq_iff, mapFiber'EqToHom]
+  simp [mapFiber'EqToHom]
 
 @[simp] theorem mapFiber'_heq {x y} (f : x ⟶ y) :
     HEq (PGrpd.mapFiber' h f) (α.map f).fiber := by

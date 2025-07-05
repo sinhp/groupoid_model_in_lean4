@@ -141,9 +141,7 @@ theorem yonedaCatEquiv_naturality_left
     (A : yoneda.obj Γ ⟶ yonedaCat.obj C) (σ : Δ ⟶ Γ) :
     yonedaCatEquiv (yoneda.map σ ≫ A) =
     (Ctx.toGrpd.map σ) ⋙ yonedaCatEquiv A:= by
-  simp only [AsSmall.down_obj, AsSmall.down_map, yonedaCatEquiv,
-    Functor.op_obj, Functor.comp_obj, Cat.of_α,
-    Equiv.trans_apply, Equiv.coe_fn_mk, ← yonedaEquiv_naturality]
+  simp only [yonedaCatEquiv, Equiv.trans_apply, ← yonedaEquiv_naturality]
   rfl
 
 theorem yonedaCatEquiv_naturality_right
