@@ -519,8 +519,58 @@ theorem ι_sigma_comp_map_fstAux (x) : ι (sigma A B) x ⋙ map (fstAux B)
     · rfl
     · simp
 
--- TODO follow the advice of improving API for those two goals
+lemma asfunctorFrom_fib_map_fstAux {x : Γ }:
+ asfunctorFrom_fib (map (fstAux B)) x = ι (sigma A B) x ⋙ map (fstAux B) := by
+ simp only [sigma_obj, sigmaObj, Grpd.coe_of, asfunctorFrom_fib']
+
+
+lemma asfunctorFrom_hom_map_fstAux {c c' :Γ} (f: c ⟶ c') :
+ asfunctorFrom_hom (map (fstAux B)) f = Functor.whiskerRight (ιNatTrans f) (map (fstAux B)) := by
+ rfl
+
+
+theorem extend_fib_asfunctorFrom_fib:
+extend_fib (assocFib B) Grothendieck.Groupoidal.forget = asfunctorFrom_fib (map (fstAux B)) :=
+ by
+ ext x
+ unfold assocFib
+ convert_to pre B (ι A x) ⋙ forget = _
+ simp[CategoryTheory.Grothendieck.Groupoidal.pre_forget]
+ simp[Grothendieck.Groupoidal.asfunctorFrom_fib']
+ exact (ι_sigma_comp_map_fstAux B x).symm
+
+
+lemma ιNatTrans_app_base_fstAux_ιNatTrans {c₁ c₂ : Γ} (f: c₁ ⟶ c₂) (x : ((sigma A B).obj c₁)):
+ (ιNatTrans f).app (base x) = (map (fstAux B)).map ((ιNatTrans f).app x)
+ := by
+   apply Grothendieck.Groupoidal.hext
+   · rfl
+   simp?
+   rfl
+
+
 theorem assoc_forget : assoc B ⋙ forget = fstAux' B := by
+  dsimp [assoc, fstAux']
+  simp[CategoryTheory.Grothendieck.Groupoidal.extend_functorFrom]
+  have p := asfunctorFrom (map (fstAux B))
+  rw[← p]
+  fapply CategoryTheory.Grothendieck.functorFrom_ext'
+  · exact extend_fib_asfunctorFrom_fib B
+  · intro c₁ c₂ f
+    simp[asfunctorFrom_hom_map_fstAux]
+    rw[Grothendieck.Groupoidal.extend_hom1,comp_eqToHom_iff]
+    ext x
+    unfold assocHom assocIso
+    simp[ιNatIso]
+    apply ιNatTrans_app_base_fstAux_ιNatTrans
+
+
+
+
+
+
+-- TODO follow the advice of improving API for those two goals
+theorem assoc_forget' : assoc B ⋙ forget = fstAux' B := by
   apply Grothendieck.Groupoidal.Functor.hext
   · rw [Functor.assoc]
     sorry
