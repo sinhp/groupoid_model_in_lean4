@@ -67,7 +67,7 @@ instance : MorphismProperty.IsMultiplicative (morphismProperty east south) where
     simp [morphismProperty, ChosenObjects, ObjectProperty.FullSubcategory.id_def]
   comp_mem f g hf hg := by
     simp only [morphismProperty, ChosenObjects,
-      ObjectProperty.FullSubcategory.comp_def, comp_eqToHom_iff] at *
+      ObjectProperty.FullSubcategory.comp_def] at *
     simp [hg, hf]
 
 /--
@@ -318,23 +318,24 @@ variable {Libya : Type u} {Egypt : Type u₁} {Chad : Type u₂} {Sudan : Type u
   (east : Egypt ⥤ Sudan) (south : Chad ⥤ Sudan)
   (comm_sq : north ⋙ east = west ⋙ south)
 
-variable (lChosen : ∀ {C : Type (max u₁ u₂)} [Category.{max v₁ v₂} C]
-  (Cn : C ⥤ Egypt) (Cw : C ⥤ Chad)
-  (hC : Cn ⋙ east = Cw ⋙ south),
-  (lift : C ⥤ Libya) ×'
-  (lift ⋙ north = Cn) ∧
-  (lift ⋙ west = Cw) ∧
-  (∀ {l0 l1 : C ⥤ Libya}, l0 ⋙ north = l1 ⋙ north →
-    l0 ⋙ west = l1 ⋙ west → l0 = l1))
+variable (lChosen :
+  ∀ {C : Type (max u₁ u₂)} [Category.{max v₁ v₂} C]
+    (Cn : C ⥤ Egypt) (Cw : C ⥤ Chad),
+    Cn ⋙ east = Cw ⋙ south →
+    (lift : C ⥤ Libya) ×'
+    (lift ⋙ north = Cn) ∧
+    (lift ⋙ west = Cw) ∧
+    (∀ {l0 l1 : C ⥤ Libya}, l0 ⋙ north = l1 ⋙ north → l0 ⋙ west = l1 ⋙ west → l0 = l1))
 
-variable (lLibya : ∀ {C : Type u} [Category.{v} C]
-  (Cn : C ⥤ Egypt) (Cw : C ⥤ Chad)
-  (hC : Cn ⋙ east = Cw ⋙ south),
-  (lift : C ⥤ Libya) ×'
-  (lift ⋙ north = Cn) ∧
-  (lift ⋙ west = Cw) ∧
-  (∀ {l0 l1 : C ⥤ Libya}, l0 ⋙ north = l1 ⋙ north →
-    l0 ⋙ west = l1 ⋙ west → l0 = l1))
+variable (lLibya :
+  ∀ {C : Type u} [Category.{v} C]
+    (Cn : C ⥤ Egypt) (Cw : C ⥤ Chad),
+    Cn ⋙ east = Cw ⋙ south →
+    (lift : C ⥤ Libya) ×'
+    (lift ⋙ north = Cn) ∧
+    (lift ⋙ west = Cw) ∧
+    (∀ {l0 l1 : C ⥤ Libya}, l0 ⋙ north = l1 ⋙ north →
+      l0 ⋙ west = l1 ⋙ west → l0 = l1))
 /--
   To define a pullback structure on a category,
   rather than showing a category is isomorphic to the chosen pullback,

@@ -56,20 +56,16 @@ def toPGrpd : ∫(A) ⥤ PGrpd.{v₁,u₁} :=
     (by simp) (by simp [forget_map, Hom.base])
 
 @[simp] theorem toPGrpd_obj_base (x) :
-    ((toPGrpd A).obj x).base = A.obj x.base := by
-  rfl
+    ((toPGrpd A).obj x).base = A.obj x.base := rfl
 
 @[simp] theorem toPGrpd_obj_fiber (x) :
-    ((toPGrpd A).obj x).fiber = x.fiber := by
-  rfl
+    ((toPGrpd A).obj x).fiber = x.fiber := rfl
 
 @[simp] theorem toPGrpd_map_base {x y} (f : x ⟶ y) :
-    ((toPGrpd A).map f).base = A.map f.base := by
-  rfl
+    ((toPGrpd A).map f).base = A.map f.base := rfl
 
 @[simp] theorem toPGrpd_map_fiber {x y} (f : x ⟶ y) :
-    ((toPGrpd A).map f).fiber = f.fiber := by
-  rfl
+    ((toPGrpd A).map f).fiber = f.fiber := rfl
 
 theorem toPGrpd_forgetToGrpd : toPGrpd A ⋙ PGrpd.forgetToGrpd = forget ⋙ A :=
   rfl
@@ -136,7 +132,7 @@ def sec : Γ ⥤ ∫(A) :=
   Groupoidal.functorTo (𝟭 _) (fun x => PGrpd.objFiber' h x) (fun f => PGrpd.mapFiber' h f)
   (fun x => by simp) (fun f g => by
     subst h
-    simp [PGrpd.mapFiber', PGrpd.mapFiber'EqToHom, PGrpd.objFiber'EqToHom])
+    simp [PGrpd.mapFiber', PGrpd.mapFiber'EqToHom])
 
 @[simp] lemma sec_obj_base (x) : ((sec A α h).obj x).base = x :=
   rfl
@@ -158,7 +154,7 @@ def sec : Γ ⥤ ∫(A) :=
     rfl
   · intro x
     simp [toPGrpd_obj_fiber, PGrpd.objFiber', PGrpd.objFiber, Grpd.eqToHom_obj,
-      PGrpd.mapFiber'EqToHom, PGrpd.objFiber'EqToHom]
+      PGrpd.objFiber'EqToHom]
   · intro x y f
     simp only [Functor.comp_map, toPGrpd_map_fiber, sec_map_fiber, PGrpd.mapFiber',
       Grpd.eqToHom_hom, PGrpd.mapFiber'EqToHom, PGrpd.objFiber'EqToHom]
@@ -177,12 +173,11 @@ section naturality
 variable {Δ : Type u₃} [Category.{v₃} Δ] (σ : Δ ⥤ Γ)
 
 @[simp]
-theorem pre_toPGrpd (A : Γ ⥤ Grpd) : pre A σ ⋙ toPGrpd _ = toPGrpd _ := by
-  rfl
+theorem pre_toPGrpd (A : Γ ⥤ Grpd) : pre A σ ⋙ toPGrpd _ = toPGrpd _ := rfl
 
 theorem sec_naturality : σ ⋙ sec A α h = sec (σ ⋙ A) (σ ⋙ α) (by rw [← h]; rfl) ⋙ pre A σ := by
   apply (isPullback A).hom_ext
-  . simp [Functor.assoc, Functor.comp_id]
+  . simp [Functor.assoc]
   . conv_rhs => rw [Functor.assoc, pre_forget, ← Functor.assoc, sec_forget]
     simp [Functor.assoc, Functor.comp_id, Functor.id_comp]
 

@@ -1,7 +1,7 @@
 import Mathlib.CategoryTheory.Limits.Preserves.FunctorCategory
 import Mathlib.CategoryTheory.Category.Cat.Limit
 
-import GroupoidModel.Russell_PER_MS.UHom
+import GroupoidModel.Syntax.UHom
 import GroupoidModel.Grothendieck.Groupoidal.IsPullback
 import GroupoidModel.Groupoids.IsPullback
 
@@ -162,7 +162,7 @@ theorem smallU_lift {Γ Δ : Ctx} (A : y(Γ) ⟶ smallU.{v}.Ty)
       Equiv.apply_symm_apply]
     simp
   · simp only [smallU_ext, smallU_Tm, smallU_Ty, smallU_var, Grpd.coe_of,
-      Equiv.symm_trans_apply, Equiv.symm_symm, Functor.FullyFaithful.homEquiv_apply, smallU_disp,
+      smallU_disp,
       smallU_tp, IsPullback.lift_snd, ← Functor.map_comp, Grpd.comp_eq_comp,
       smallU.disp]
     erw [(isPullback (yonedaCategoryEquiv A)).fac_right, AsSmall.down_map_up_map]
@@ -216,7 +216,7 @@ theorem smallU_substWk (A : y(Γ) ⟶ smallU.{v}.Ty) : smallU.substWk σ A =
     rfl
   . rw [← Functor.map_comp, sec_disp]
     simp only [CategoryTheory.Functor.map_id, smallU_Tm, smallU_Ty, smallU_tp, smallU_ext,
-      smallU_disp, ← Functor.map_comp, Grpd.comp_eq_comp, Grpd.coe_of, sec_forget, ← Grpd.id_eq_id]
+      smallU_disp, ← Functor.map_comp]
     rfl
 
 namespace smallU

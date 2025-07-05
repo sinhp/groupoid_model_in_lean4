@@ -1,7 +1,7 @@
 import Mathlib.CategoryTheory.Limits.Preserves.FunctorCategory
 import Mathlib.CategoryTheory.Category.Cat.Limit
 
-import GroupoidModel.Russell_PER_MS.NaturalModel
+import GroupoidModel.Syntax.NaturalModel
 import GroupoidModel.Grothendieck.Groupoidal.IsPullback
 import GroupoidModel.Groupoids.Basic
 

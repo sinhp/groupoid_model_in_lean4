@@ -105,9 +105,9 @@ def adjunction : Grpd.forgetToCat ⊣ Core.map where
 theorem inclusion_comp_functorToCore : inclusion G ⋙ functorToCore (𝟭 G) = Functor.id (Core G) := by
     apply Functor.ext
     · intro x y f
-      simp only [Core.inclusion, Grpd.homOf, Core.functorToCore, Functor.id_map,
-        Grpd.comp_eq_comp, Functor.comp_map, Groupoid.inv_eq_inv, IsIso.Iso.inv_hom,
-        Grpd.id_eq_id, eqToHom_refl, Category.comp_id, Category.id_comp]
+      simp only [Core.inclusion, Core.functorToCore, Functor.id_map,
+        Functor.comp_map, Groupoid.inv_eq_inv, IsIso.Iso.inv_hom,
+        eqToHom_refl, Category.comp_id, Category.id_comp]
       rfl
     · intro
       rfl

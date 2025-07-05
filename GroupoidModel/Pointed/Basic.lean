@@ -44,8 +44,7 @@ theorem id_map {C : PCat} {X Y : C.base} (f : X ⟶ Y) :
     (𝟙 C)⟱.map f = f :=
   rfl
 
-@[simp] lemma id_fiber {C : PCat} : Hom.fiber (𝟙 C) = 𝟙 _ := by
-  rfl
+@[simp] lemma id_fiber {C : PCat} : Hom.fiber (𝟙 C) = 𝟙 _ := rfl
 
 @[simp]
 theorem comp_obj {C D E : PCat} (F : C ⟶ D) (G : D ⟶ E) (X : C.base) :
@@ -174,8 +173,7 @@ theorem id_map {C : PGrpd} {X Y : C.base} (f : X ⟶ Y) :
     (𝟙 C)⟱.map f = f :=
   rfl
 
-@[simp] lemma id_fiber {C : PGrpd} : Hom.fiber (𝟙 C) = 𝟙 _ := by
-  rfl
+@[simp] lemma id_fiber {C : PGrpd} : Hom.fiber (𝟙 C) = 𝟙 _ := rfl
 
 @[simp]
 theorem comp_obj {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) (X : C.base) :
@@ -233,7 +231,7 @@ instance : forgetToGrpd.ReflectsIsomorphisms := by
     · simp [forgetToCat]
       have h := Functor.congr_hom hGF F.fiber
       simp [Grpd.id_eq_id, Grpd.comp_eq_comp, Functor.comp_map] at h
-      simp [h, eqToHom_map]
+      simp [h]
     · exact hGF
 
 section
@@ -325,7 +323,7 @@ def mapFiber' {x y : Γ} (f : x ⟶ y) :
   subst h
   simp only [mapFiber', map_id_fiber]
   apply eq_of_heq
-  simp [eqToHom_comp_heq_iff, mapFiber'EqToHom]
+  simp [mapFiber'EqToHom]
 
 @[simp] theorem mapFiber'_heq {x y} (f : x ⟶ y) :
     HEq (PGrpd.mapFiber' h f) (α.map f).fiber := by

@@ -1,7 +1,7 @@
 import GroupoidModel.Groupoids.Sigma
-import GroupoidModel.Russell_PER_MS.NaturalModel
-import GroupoidModel.ForMathlib.CategoryTheory.NatTrans
+import GroupoidModel.Syntax.NaturalModel
 import GroupoidModel.ForMathlib.CategoryTheory.Whiskering
+import GroupoidModel.ForMathlib.CategoryTheory.NatTrans
 
 universe v u v₁ u₁ v₂ u₂
 
@@ -63,6 +63,8 @@ attribute [local simp] eqToHom_map Grpd.id_eq_id Grpd.comp_eq_comp Functor.id_co
 namespace FunctorOperation
 section
 
+open CategoryTheory.Functor
+
 variable {Γ : Type u} [Groupoid.{v} Γ] (A B : Γ ⥤ Grpd)
 
 /--
@@ -85,7 +87,7 @@ def conjugating {x y : Γ} (f : x ⟶ y) : (A.obj x ⥤ B.obj x) ⥤ (A.obj y �
 
 @[simp] lemma conjugating_obj {x y : Γ} (f : x ⟶ y) (s : A.obj x ⥤ B.obj x) :
     (conjugating A B f).obj s = CategoryTheory.inv (A.map f) ⋙ s ⋙ B.map f := by
-  simp [conjugating, Functor.assoc]
+  simp [conjugating]
 
 @[simp] lemma conjugating_id (x : Γ) : conjugating A B (𝟙 x) = 𝟭 _ := by
   simp [conjugating]

@@ -1,7 +1,8 @@
 import Mathlib.CategoryTheory.Whiskering
 
-namespace CategoryTheory
+namespace CategoryTheory.Functor
 section
+
 
 variable {A B C D : Type*} [Category A] [Category B] [Category C] [Category D]
   (F : C ⥤ A) (G : B ⥤ D)
@@ -40,4 +41,4 @@ def whiskeringLeftObjWhiskeringRightObj : (A ⥤ B) ⥤ (C ⥤ D) :=
 
 end
 
-end CategoryTheory
+end CategoryTheory.Functor
