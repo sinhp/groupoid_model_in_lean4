@@ -519,28 +519,36 @@ theorem ι_sigma_comp_map_fstAux (x) : ι (sigma A B) x ⋙ map (fstAux B)
     · rfl
     · simp
 
--- TODO follow the advice of improving API for those two goals
+lemma asFunctorFrom_fib_map_fstAux {x : Γ} :
+    asFunctorFrom_fib (map (fstAux B)) x = ι (sigma A B) x ⋙ map (fstAux B) :=
+  rfl
+
+lemma asFunctorFrom_hom_map_fstAux {c c' :Γ} (f: c ⟶ c') :
+    asFunctorFrom_hom (map (fstAux B)) f = Functor.whiskerRight (ιNatTrans f) (map (fstAux B)) := by
+  rfl
+
+theorem functorFrom_comp_fib_assocFib_forget :
+  functorFrom_comp_fib (assocFib B) forget = asFunctorFrom_fib (map (fstAux B)) := by
+  ext x
+  exact (ι_sigma_comp_map_fstAux B x).symm
+
+lemma ιNatTrans_app_base_eq {c₁ c₂ : Γ} (f: c₁ ⟶ c₂) (x : ((sigma A B).obj c₁)) :
+    (ιNatTrans f).app (base x) = (map (fstAux B)).map ((ιNatTrans f).app x) := by
+  apply Grothendieck.Groupoidal.hext
+  · rfl
+  · simp only [map_map_fiber, eqToHom_refl, Category.id_comp]
+    rfl
+
 theorem assoc_forget : assoc B ⋙ forget = fstAux' B := by
-  apply Grothendieck.Groupoidal.Functor.hext
-  · rw [Functor.assoc]
-    sorry
-  · sorry
-  · sorry
-  -- dsimp [assoc, fstAux']
-  -- fapply CategoryTheory.Functor.ext
-  -- · intro p
-  --   apply Grothendieck.Groupoidal.obj_hext
-  --   · simp
-  --   · simp [base]
-  -- · intro p q h
-  --   apply Grothendieck.Groupoidal.ext
-  --   · simp [eqToHom_map, assocHom, assocIso, preNatIso, Grothendieck.preNatIso, ιNatIso, Functor.map_id]
-  --     sorry
-  --   · sorry
-    -- apply Grothendieck.Groupoidal.ext
-    -- -- TODO improve API for these two goals
-    -- · simp [ι_map, assocHom, assocIso, preNatIso, ιNatIso, Grothendieck.preNatIso, Grpd.forgetToCat]
-    -- · simp [ι_map, assocHom, assocIso, preNatIso, ιNatIso, Grothendieck.preNatIso]
+  simp only [assoc, fstAux', functorFrom_comp]
+  rw [← asFunctorFrom (map (fstAux B))]
+  fapply CategoryTheory.Grothendieck.functorFrom_eq_of
+  · exact functorFrom_comp_fib_assocFib_forget B
+  · intro c₁ c₂ f
+    rw [comp_eqToHom_iff]
+    ext x
+    simp only [NatTrans.comp_app, eqToHom_app, eqToHom_refl, Category.comp_id, Category.id_comp]
+    apply ιNatTrans_app_base_eq
 
 theorem snd_forgetToGrpd : snd B ⋙ forgetToGrpd = fstAux' B ⋙ B :=
   calc

@@ -574,6 +574,124 @@ theorem preNatIso_comp {G1 G2 G3 : D ⥤ C} (α : G1 ≅ G2) (β : G2 ≅ G3) :
 
 end
 
+variable {C : Type u} [Category.{v} C]
+    {F : C ⥤ Cat.{v₁,u₁}}
+
+variable {E : Type*} [Category E]
+variable (fib : ∀ c, F.obj c ⥤ E) (hom : ∀ {c c' : C} (f : c ⟶ c'), fib c ⟶ F.map f ⋙ fib c')
+variable (hom_id : ∀ c, hom (𝟙 c) = eqToHom (by simp only [Functor.map_id]; rfl))
+variable (hom_comp : ∀ c₁ c₂ c₃ (f : c₁ ⟶ c₂) (g : c₂ ⟶ c₃), hom (f ≫ g) =
+  hom f ≫ Functor.whiskerLeft (F.map f) (hom g) ≫ eqToHom (by simp only [Functor.map_comp]; rfl))
+
+variable (K : Grothendieck F ⥤ E)
+
+def asFunctorFrom_fib (c : C) : (F.obj c) ⥤ E := ι F c ⋙ K
+
+def asFunctorFrom_hom {c c' : C} (f: c ⟶ c') :
+    asFunctorFrom_fib K c ⟶ F.map f ⋙ asFunctorFrom_fib K c' :=
+  Functor.whiskerRight (ιNatTrans f) K
+
+lemma asFunctorFrom_hom_app {c c' : C} (f: c ⟶ c') (p : F.obj c) :
+    (asFunctorFrom_hom K f).app p = K.map ((ιNatTrans f).app p) :=
+  rfl
+
+lemma asFunctorFrom_hom_id (c : C) : asFunctorFrom_hom K (𝟙 c) =
+    eqToHom (by simp only[Functor.map_id,Cat.id_eq_id,Functor.id_comp]) := by
+  ext p
+  simp [asFunctorFrom_hom_app, eqToHom_map, ιNatTrans_id_app]
+
+lemma asFunctorFrom_hom_comp (c₁ c₂ c₃ : C) (f : c₁ ⟶ c₂) (g: c₂ ⟶ c₃) :
+    asFunctorFrom_hom K (f ≫ g) =
+    asFunctorFrom_hom K f ≫ Functor.whiskerLeft (F.map f) (asFunctorFrom_hom K g) ≫ eqToHom
+    (by simp[← Functor.assoc]; congr) := by
+  ext p
+  simp [asFunctorFrom_hom, eqToHom_map, ιNatTrans_comp_app]
+
+theorem asFunctorFrom : Grothendieck.functorFrom (asFunctorFrom_fib K) (asFunctorFrom_hom K)
+    (asFunctorFrom_hom_id K) (asFunctorFrom_hom_comp K) = K := by
+  fapply CategoryTheory.Functor.ext
+  · intro X
+    rfl
+  · intro x y f
+    simp only [functorFrom_obj, asFunctorFrom_fib, Functor.comp_obj, ι_obj, functorFrom_map,
+      asFunctorFrom_hom, Functor.whiskerRight_app, Functor.comp_map, ι_map, ← Functor.map_comp,
+      eqToHom_refl, Category.comp_id, Category.id_comp]
+    congr
+    fapply Grothendieck.ext
+    · simp
+    · simp
+
+variable {D : Type*} [Category D] (G : E ⥤ D)
+
+def functorFrom_comp_fib (c : C) : F.obj c ⥤ D := fib c ⋙ G
+
+def functorFrom_comp_hom {c c' : C} (f : c ⟶ c') :
+    functorFrom_comp_fib fib G c ⟶ F.map f ⋙ functorFrom_comp_fib fib G c' :=
+  Functor.whiskerRight (hom f) G
+
+include hom_id in
+lemma functorFrom_comp_hom_id (c : C) : functorFrom_comp_hom fib hom G (𝟙 c)
+    = eqToHom (by simp [Cat.id_eq_id, Functor.id_comp]) := by
+  ext x
+  simp [hom_id, eqToHom_map, functorFrom_comp_hom]
+
+include hom_comp in
+lemma functorFrom_comp_hom_comp (c₁ c₂ c₃ : C) (f : c₁ ⟶ c₂) (g : c₂ ⟶ c₃):
+    functorFrom_comp_hom fib (fun {c c'} ↦ hom) G (f ≫ g)
+    = functorFrom_comp_hom fib (fun {c c'} ↦ hom) G f ≫
+    Functor.whiskerLeft (F.map f) (functorFrom_comp_hom fib hom G g) ≫
+    eqToHom (by simp[Cat.comp_eq_comp, Functor.map_comp, Functor.assoc]) := by
+  ext
+  simp [functorFrom_comp_hom, hom_comp, eqToHom_map]
+
+theorem functorFrom_comp : functorFrom fib hom hom_id hom_comp ⋙ G =
+    functorFrom (functorFrom_comp_fib fib G) (functorFrom_comp_hom fib hom G)
+  (functorFrom_comp_hom_id fib hom hom_id G)
+  (functorFrom_comp_hom_comp fib hom hom_comp G) := by
+  fapply CategoryTheory.Functor.ext
+  · intro X
+    simp [functorFrom_comp_fib]
+  · intro x y f
+    simp [functorFrom_comp_hom, functorFrom_comp_fib]
+
+variable (fib' : ∀ c, F.obj c ⥤ E) (hom' : ∀ {c c' : C} (f : c ⟶ c'), fib' c ⟶ F.map f ⋙ fib' c')
+variable (hom_id' : ∀ c, hom' (𝟙 c) = eqToHom (by simp only [Functor.map_id]; rfl))
+variable (hom_comp' : ∀ c₁ c₂ c₃ (f : c₁ ⟶ c₂) (g : c₂ ⟶ c₃), hom' (f ≫ g) =
+  hom' f ≫ Functor.whiskerLeft (F.map f) (hom' g) ≫ eqToHom (by simp only [Functor.map_comp]; rfl))
+
+theorem functorFrom_eq_of (ef : fib = fib')
+    (hhom : ∀ {c c' : C} (f : c ⟶ c'), hom f ≫ eqToHom (by rw[ef]) = eqToHom (by rw[ef]) ≫ hom' f) :
+    functorFrom fib hom hom_id hom_comp = functorFrom fib' hom' hom_id' hom_comp' := by
+  subst ef
+  congr!
+  · aesop_cat
+
+theorem functorFrom_ext {K K' : Grothendieck F ⥤ E}
+    (hfib : asFunctorFrom_fib K = asFunctorFrom_fib K')
+    (hhom : ∀ {c c' : C} (f : c ⟶ c'), asFunctorFrom_hom K f ≫ eqToHom (by rw [hfib])
+      = eqToHom (by rw[hfib]) ≫ asFunctorFrom_hom K' f)
+    : K = K' :=
+    calc K
+     _ = functorFrom (asFunctorFrom_fib K) (asFunctorFrom_hom K)
+         (asFunctorFrom_hom_id K) (asFunctorFrom_hom_comp K) :=
+         (CategoryTheory.Grothendieck.asFunctorFrom K).symm
+     _ = functorFrom (asFunctorFrom_fib K') (asFunctorFrom_hom K')
+         (asFunctorFrom_hom_id K') (asFunctorFrom_hom_comp K') := by
+         apply functorFrom_eq_of
+         · exact hhom
+         · exact hfib
+     _ = K' := CategoryTheory.Grothendieck.asFunctorFrom K'
+
+theorem functorFrom_hext {K K' : Grothendieck F ⥤ E}
+    (hfib : asFunctorFrom_fib K = asFunctorFrom_fib K')
+    (hhom : ∀ {c c' : C} (f : c ⟶ c'), asFunctorFrom_hom K f ≍ asFunctorFrom_hom K' f)
+    : K = K' := by
+  fapply functorFrom_ext
+  · assumption
+  · intros
+    apply eq_of_heq
+    simp only [heq_eqToHom_comp_iff, comp_eqToHom_heq_iff]
+    apply hhom
 
 theorem hext {X Y : Grothendieck F} (f g : Hom X Y) (w_base : f.base = g.base)
     (w_fiber : HEq f.fiber g.fiber) : f = g := by
@@ -680,7 +798,6 @@ variable {A} {fibObj} {fibMap} {map_id} {map_comp}
 @[simp] theorem functorTo'_forget :
     functorTo' _ _ _ map_id map_comp ⋙ Grothendieck.forget _ = A :=
   rfl
-
 end
 
 end Grothendieck
