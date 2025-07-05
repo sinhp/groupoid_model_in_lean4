@@ -110,13 +110,9 @@ variable {z : Γ} {f} {g : y ⟶ z}
   dsimp only [sigmaMap]
   apply obj_hext
   · simp
-  . sorry -- TODO: broken during bump to v4.22.0-rc3
-  -- · simp only [sigmaObj, Functor.comp_obj, map_obj_base, pre_obj_fiber,
-  --     map_obj_fiber, Functor.whiskerRight_app, ιNatTrans_comp_app, Functor.map_comp, eqToHom_map,
-  --     Grpd.comp_eq_comp]
-  --   rw [Grpd.eqToHom_obj]
-  --   simp
-
+  · simp only [sigmaObj, Functor.comp_obj, pre_obj_fiber, map_obj_fiber, Functor.whiskerRight_app,
+      ιNatTrans_comp_app, Functor.map_comp, eqToHom_map, Grpd.comp_eq_comp, Grpd.eqToHom_obj, cast_heq_iff_heq, heq_eq_eq]
+    aesop_cat
 
 @[simp] theorem sigmaMap_comp_map {A : Γ ⥤ Grpd.{v₁,u₁}}
     {B : ∫(A) ⥤ Grpd.{v₁,u₁}} {x y z : Γ} {f : x ⟶ y} {g : y ⟶ z}
@@ -501,8 +497,6 @@ theorem assocHom_comp {x y z : Γ} (f : x ⟶ y) (g : y ⟶ z) :
       eqToHom (by simp [sigmaMap_comp, Functor.assoc]) := by
   simp [assocHom, assocIso_comp]
 
--- NOTE this used to be called `snd`, I thought maybe calling the maps
--- into PGrpd `fst` and `snd` might be a bit more consistent
 def assoc : ∫(sigma A B) ⥤ ∫(B) :=
   functorFrom (assocFib B) (assocHom B) (by simp) (by simp [assocHom_comp])
 
@@ -577,14 +571,11 @@ theorem snd_forgetToGrpd : snd B ⋙ forgetToGrpd = fstAux' B ⋙ B :=
 -- FIXME: should probably make `snd_map_base` and use that to prove the `eqToHom`
 @[simp] theorem snd_map_fiber {x y} (f : x ⟶ y) : ((snd B).map f).fiber =
     eqToHom (by simp [snd, assoc]; rfl) ≫ Hom.fiber (Hom.fiber f) := by
-  . sorry -- TODO: broken during bump to v4.22.0-rc3
-  -- simp only [snd, assoc, Functor.comp_obj, functorFrom_obj, sigma_obj, sigmaObj,
-  --   assocFib, toPGrpd_obj_base, pre_obj_base, Functor.comp_map,
-  --   functorFrom_map, sigma_map, toPGrpd_map_base, comp_base, sigmaMap_obj_base, pre_map_base, id_eq,
-  --   toPGrpd_obj_fiber, pre_obj_fiber, toPGrpd_map_fiber, Grothendieck.Groupoidal.comp_fiber,
-  --   sigmaMap_obj_fiber, pre_map_fiber]
-  -- rw! [assoc_hom_app_fiber]
-  -- simp
+  simp only [snd, assoc, Functor.comp_map]
+  rw! [Grothendieck.Groupoidal.functorFrom_map, assoc_hom_app_fiber]
+  simp only [toPGrpd_map_fiber, Grothendieck.Groupoidal.comp_fiber]
+  rw! [CategoryTheory.Functor.map_id]
+  simp
 
 end
 

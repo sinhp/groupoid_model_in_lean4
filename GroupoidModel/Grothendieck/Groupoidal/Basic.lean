@@ -557,6 +557,10 @@ end
 section
 variable {Γ : Type u} [Groupoid.{v} Γ] (A : Γ ⥤ Grpd.{v₁,u₁})
 
+theorem map_eqToHom_base {G1 G2 : ∫(A)} (eq : G1 = G2)
+    : A.map (eqToHom eq).base = eqToHom (map_eqToHom_base_pf eq) := by
+  aesop_cat
+
 open CategoryTheory.Functor in
 /-- Every morphism `f : X ⟶ Y` in the base category induces a natural transformation from the fiber
 inclusion `ι F X` to the composition `F.map f ⋙ ι F Y`. -/
@@ -570,30 +574,25 @@ def ιNatIso {X Y : Γ} (f : X ⟶ Y) : ι A X ≅ A.map f ⋙ ι A Y where
     ext a
     apply Grothendieck.Groupoidal.hext
     · simp
-    . sorry -- TODO: broken during bump to v4.22.0-rc3
-    -- · simp only [ι_obj_base, Grpd.comp_eq_comp, id_eq, eq_mpr_eq_cast,
-    --     NatTrans.comp_app, Functor.comp_obj, whiskerLeft_app, comp_base, ιNatTrans_app_base,
-    --     ι_obj_fiber, comp_fiber, ιNatTrans_app_fiber, Grpd.map_comp_map, Functor.map_id, eqToHom_app,
-    --     eqToHom_base, eqToHom_refl, Groupoid.inv_eq_inv, Functor.map_inv, Functor.id_obj,
-    --     Category.comp_id, eqToHom_naturality, eqToHom_trans, Category.id_comp,
-    --     eqToHom_naturality_assoc, eqToHom_trans_assoc, NatTrans.id_app, id_base, id_fiber,
-    --     eqToHom_comp_heq_iff]
-    --   rw! [Grpd.eqToHom_app, eqToHom_fiber]
-    --   apply HEq.trans (eqToHom_heq_id_cod _ _ _) (eqToHom_heq_id_cod _ _ _).symm
+    . simp only [NatTrans.comp_app, whiskerLeft_app, comp_base,  comp_fiber, Grpd.map_comp_map,
+        Category.assoc, eqToHom_trans_assoc, eqToHom_refl, Category.id_comp,
+        NatTrans.id_app, id_fiber, eqToHom_comp_heq_iff]
+      rw! (castMode := .all) [eqToHom_app, map_eqToHom_base, Category.id_comp,
+      Functor.map_id, Category.id_comp]
+      simp only [eqToHom_refl, eqToHom_fiber, eqRec_heq_iff_heq]
+      -- these should be automated
+      apply HEq.trans (eqToHom_heq_id_cod _ _ _)
+      apply HEq.symm (eqToHom_heq_id_cod _ _ _)
   inv_hom_id := by
     ext a
     apply Grothendieck.Groupoidal.hext
     · simp
-    . sorry -- TODO: broken during bump to v4.22.0-rc3
-    -- · simp only [ι_obj_base, Grpd.comp_eq_comp, id_eq, eq_mpr_eq_cast,
-    --     NatTrans.comp_app, Functor.comp_obj, whiskerLeft_app, comp_base, ιNatTrans_app_base,
-    --     ι_obj_fiber, comp_fiber, ιNatTrans_app_fiber, Grpd.map_comp_map, Functor.map_id, eqToHom_app,
-    --     eqToHom_base, eqToHom_refl, Groupoid.inv_eq_inv, Functor.map_inv, Functor.id_obj,
-    --     Category.comp_id, eqToHom_naturality, eqToHom_trans, Category.id_comp,
-    --     eqToHom_naturality_assoc, eqToHom_trans_assoc, NatTrans.id_app, id_base, id_fiber,
-    --     eqToHom_comp_heq_iff]
-    --   rw! [Grpd.eqToHom_app, eqToHom_fiber, eqToHom_trans, eqToHom_map]
-    --   apply HEq.trans (eqToHom_heq_id_cod _ _ _) (eqToHom_heq_id_cod _ _ _).symm
+    . simp only [NatTrans.comp_app, whiskerLeft_app, comp_fiber, ιNatTrans_app_fiber,
+        map_comp, eqToHom_map, Category.assoc, eqToHom_trans_assoc, NatTrans.id_app,
+        id_fiber, eqToHom_comp_heq_iff]
+      rw! [Functor.map_id, Functor.map_id, eqToHom_app]
+      simp only [comp_obj, eqToHom_fiber, eqToHom_map, Category.id_comp, id_base, eqToHom_comp_heq_iff]
+      exact (eqToHom_heq_id_cod _ _ _).symm
 
 theorem ιNatIso_hom {x y : Γ} (f : x ⟶ y) :
     (ιNatIso A f).hom = ιNatTrans f := by
