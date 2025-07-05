@@ -147,6 +147,8 @@ theorem sigmaMap_comp : sigmaMap B (f ≫ g) = sigmaMap B f ⋙ sigmaMap B g := 
   · intro p
     simp
 
+lemma sigmaMap_forget : sigmaMap B f ⋙ forget = forget ⋙ A.map f := rfl
+
 /-- The formation rule for Σ-types for the ambient natural model `base`
   unfolded into operations between functors.
   See `sigmaObj` and `sigmaMap` for the actions of this functor.
