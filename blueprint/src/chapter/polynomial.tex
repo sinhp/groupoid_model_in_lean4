@@ -5,7 +5,8 @@ in the rest of the notes.
 \medskip
 
 \begin{defn}[Polynomial endofunctor]
-  \label{defn:UvPoly} \lean{UvPoly} \leanok
+  \label{defn:UvPoly}
+	% \lean{UvPoly} \leanok
   Let $\catC$ be a locally Cartesian closed category
   (in our case, presheaves on the category of contexts).
   This means for each morphism $t : B \to A$ we have an adjoint triple
@@ -40,7 +41,8 @@ in the rest of the notes.
 \medskip
 
 \begin{prop}[Characterising property of Polynomial Endofunctors]
-  \label{prop:UvPoly.equiv} \lean{UvPoly.equiv} \leanok
+  \label{prop:UvPoly.equiv}
+	% \lean{UvPoly.equiv} \leanok
   \uses{defn:UvPoly}
   The data of a map into the polynomial applied to an object in $\catC$
 % https://q.uiver.app/#q=WzAsMixbMCwwLCJcXEdhIl0sWzEsMCwiXFxQb2x5e3R9IFkiXSxbMCwxXV0=
@@ -101,7 +103,7 @@ this corresponds to
   \[ (\al, \be) : \Ga \to \Poly{t} Y\]
   for this map,
   since it is uniquely determined by this data.
-  
+
   This is natural in $\Ga$.
   Precomposition by $\si : \De \to \Ga$,
   acts on such a pair by
@@ -374,7 +376,7 @@ using \ref{prop:UvPoly.equiv}, \ref{lem:R}
 
 \begin{defn}[Polynomial composition]
   \label{defn:PolynomialComposition}
-  \lean{UvPoly.comp}
+  % \lean{UvPoly.comp}
   Let $f : B \to A$ and $g : D \to C$.
   Define the \emph{polynomial composition}
   $f \PolyComp g : Q \to \Poly{f}{C}$
