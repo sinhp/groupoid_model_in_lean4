@@ -149,7 +149,7 @@ using some `f : x ⟶ y` produces a section of the forgetful functor `sigma A B 
 theorem isSection_conjugating_isSection (s : piObj B x) : IsSection (fstAuxObj B y)
     ((Section.ι (fstAuxObj B x) ⋙ conjugating A (sigma A B) f).obj s) := by
   simp only [IsSection, Functor.comp_obj, ObjectProperty.ι_obj,
-    conjugating_obj, Functor.assoc, sigmaMap_forget]
+    conjugating_obj, Functor.assoc]
   convert_to CategoryTheory.inv (A.map f) ⋙ (s.obj ⋙ fstAuxObj B x) ⋙ A.map f = _
   rw [s.property]
   simp only [Functor.id_comp, ← Grpd.comp_eq_comp, IsIso.inv_hom_id, Grpd.id_eq_id]
