@@ -5,6 +5,7 @@ import GroupoidModel.ForPoly
 import GroupoidModel.ForMathlib.Tactic.CategoryTheory.FunctorMap
 import GroupoidModel.ForMathlib.CategoryTheory.Yoneda
 
+
 universe v u
 
 noncomputable section
@@ -385,10 +386,35 @@ structure NaturalModelSigma where
   pair : UvPoly.compDom (uvPolyTp M) (uvPolyTp M) ⟶ M.Tm
   Sig_pullback : IsPullback pair ((uvPolyTp M).comp (uvPolyTp M)).p M.tp Sig
 
-structure NaturalModelId_aux where
-  Id : pullback M.tp M.tp ⟶ M.Ty
+
+/-! ## Id types -/
+
+structure NaturalModelIdBase where
+  Tmm : Psh Ctx
+  p1 : Tmm ⟶ M.Tm
+  p2 : Tmm ⟶ M.Tm
+  Tm_Pullback : IsPullback p1 p2 M.tp M.tp
+  Id : Tmm ⟶ M.Ty
   Refl : M.Tm ⟶ M.Tm
-  Id_comm : (pullback.lift (𝟙 M.Tm) (𝟙 M.Tm) rfl) ≫ Id = Refl ≫ M.tp
+  Id_comm : (IsPullback.lift Tm_Pullback (𝟙 M.Tm) (𝟙 M.Tm) (by simp)) ≫ Id = Refl ≫ M.tp
 
+section
+variable (N : NaturalModelIdBase M)
+open NaturalModelIdBase
 
-end NaturalModelBase
+def I : Psh Ctx := pullback N.Id M.tp
+
+def q : (I M N) ⟶ M.Ty := pullback.fst _ _ ≫ N.p1 ≫ M.tp
+
+def ρ : M.Tm ⟶ (I M N) := pullback.lift (IsPullback.lift N.Tm_Pullback (𝟙 M.Tm) (𝟙 M.Tm) (by simp)) N.Refl N.Id_comm
+
+def ρs : UvPoly.functor (UvPoly.mk (q M N) (inferInstance)) ⟶ UvPoly.functor (UvPoly.mk M.tp (inferInstance)) := UvPoly.verticalNatTrans  (UvPoly.mk M.tp (inferInstance)) (UvPoly.mk (q M N) (inferInstance)) (ρ M N) (by simp [ρ, UvPoly, q])
+
+def pb2 : Psh Ctx := pullback ((ρs M N).app M.Ty) ((UvPoly.mk M.tp).functor.map M.tp)
+def ε : (UvPoly.mk (q M N) (inferInstance)).functor.obj M.Tm ⟶ (pb2 M N) := pullback.lift ((UvPoly.mk (q M N) (inferInstance)).functor.map M.tp) ((ρs M N).app M.Tm) (by aesop_cat)
+
+structure NaturalModelId extends NaturalModelIdBase M where
+  J : (pb2 M N) ⟶ ((UvPoly.mk (q M N) (inferInstance)).functor.obj M.Tm)
+  J_sec : J ≫ (ε M N) = 𝟙 _
+
+end

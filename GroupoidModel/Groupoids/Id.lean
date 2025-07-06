@@ -10,6 +10,7 @@ import Poly.UvPoly.Basic
 import GroupoidModel.Groupoids.Basic
 import GroupoidModel.Groupoids.IsPullback
 import GroupoidModel.Groupoids.Sigma
+import GroupoidModel.Russell_PER_MS.NaturalModel
 
 universe w v u v₁ u₁ v₂ u₂
 
@@ -427,8 +428,8 @@ def Refl' : GroupoidModel.E.{u,u} ⟶ GroupoidModel.E.{u,u} := by
   exact Refl
 
 /- Lean is gas lighting me -/
-def Diag' : GroupoidModel.E.{u,u} ⟶ GroupoidModel.U.ext (GroupoidModel.π.{u,u}) := by
-  refine IsPullback.lift (GroupoidModel.IsPullback.SmallU.isPullback_disp_π.{u,u} (GroupoidModel.π.{u,u})) ?_ ?_ ?_
+def Diag' : GroupoidModel.E.{v,u} ⟶ GroupoidModel.U.ext (GroupoidModel.π.{v,u}) := by
+  refine IsPullback.lift (GroupoidModel.IsPullback.SmallU.isPullback_disp_π.{v,u} (GroupoidModel.π.{v,u})) ?_ ?_ ?_
   . refine eqToHom sorry
   . refine eqToHom sorry
   . simp
@@ -437,3 +438,6 @@ def Diag' : GroupoidModel.E.{u,u} ⟶ GroupoidModel.U.ext (GroupoidModel.π.{u,u
 
 -- def R' : GroupoidModel.E.{u,u} ⟶ GroupoidModel.U.ext.{u,u} Id' := by
 --   refine IsPullback.lift (GroupoidModel.IsPullback.SmallU.isPullback_disp_π.{u,u} Id'.{u} (Γ := GroupoidModel.U.ext GroupoidModel.π.{u,u}) ) ?_ ?_ ?_
+
+
+set_option pp.universes true
