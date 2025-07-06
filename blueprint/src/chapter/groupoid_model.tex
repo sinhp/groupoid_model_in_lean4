@@ -30,7 +30,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
 
 \begin{defn}[Pointed]
   \label{defn:PCat}
-  \lean{CategoryTheory.PCat} \leanok
+  % \lean{CategoryTheory.PCat} \leanok
   We will take the category of pointed small categories $\ptcat$
   to have objects as pairs $(\catC \in \cat, c \in \catC)$
   and morphisms as pairs
@@ -43,7 +43,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
 
 \begin{defn}[The display map classifier]
   \label{defn:GroupoidNM}
-  \lean{GroupoidNM} \leanok %%This should probably just be GroupoidNM or GroupoidNM.Base
+  % \lean{GroupoidNM} \leanok %%This should probably just be GroupoidNM or GroupoidNM.Base
   We would like to define a natural transformation in
   $\Pshgrpd$
   \[ \tp : \Term \to \Type \]
@@ -122,7 +122,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
 
 \begin{defn}[Grothendieck construction for groupoids]
   \label{defn:GroupoidGrothendieck}
-  \lean{CategoryTheory.Grothendieck.Groupoidal} \leanok
+  % \lean{CategoryTheory.Grothendieck.Groupoidal} \leanok
   Let $\Ga$ be a groupoid and $A : \Ga \to \grpd$ a functor,
   we can compose $F$ with the inclusion $i : \grpd \hookrightarrow \Cat$
   and form the Grothendieck construction which we denote as
@@ -151,7 +151,7 @@ $\cat$ \cite{joyalnlabmodelstructuresoncat} to $\grpd$.
 
 \begin{cor}[The display map classifier is presentable]
   \label{prop:ContextExtension}
-  \lean{GroupoidNM} \leanok
+  % \lean{GroupoidNM} \leanok
   For any small groupoid $\Ga$ and $A : \yo \Ga \to \Type$,
   the pullback of $\tp$ along $A$ can be given by the representable
   map $\yo \disp{A}$.
@@ -723,7 +723,8 @@ and rebuild the required fibration by exponentiation in the slice.
 \begin{defn}[Interpretation of $\Pi$ types]\label{defn:GroupoidNMPi}
   We define the natural transformation
   $\Pi : \Poly{\tp} \Type \to \Type$
-  as that which is induced (\ref{lem:GroupoidBeckChevalleyIffNatural}) by the $\Pi$-former operation (\ref{defn:GroupoidPi}).
+  as that which is induced (\ref{lem:GroupoidBeckChevalleyIffNatural})
+  by the $\Pi$-former operation (\ref{defn:GroupoidPi}).
 
   Then we define the natural transformation
   $\la : \Poly{\tp} \Type \to \Type$
@@ -731,14 +732,16 @@ and rebuild the required fibration by exponentiation in the slice.
   given $A : \Ga \to \grpd$ and $\be : \Ga \cdot A \to \ptgrpd$,
   $\la_{A}\be : \Ga \to \ptgrpd$ will be the functor such that on objects
   $x \in \Ga$
-  \[ \la_{A}\be \, (x) := (\Pi_{A} B \, (x) , a \mapsto (a, b (x , a)))\]
+  \[ \la_{A}\be \, (x) := (\Pi_{A} B \, (x) , s_x : a \mapsto (a, b (x , a)))\]
   where $B := U \circ \be : \Ga \cdot A \to \grpd$
   and $b (x , a)$ is the point in $\be (x , a)$.
   On morphisms $f : x \to y$ in $\Ga$ we have
   \[ \la_{A}\be \, (f) := (\Pi_{A} B \, (f) , \eta )\]
   where $\eta : \Pi_{A} B \, f \, s_{x} \to s_{y}$ is a natural isomorphism
-  between functors $A_{y} \to \Si_{A} B y$ given on objects $a \in A_{y}$ by
-  \[ \eta_{a} := (\id_{a}, \id_{b (y , a)})\]
+  between functors $A_{y} \to (\Si_{A} B)_{y}$ defined on objects $a \in A_{y}$ by
+  \[ \eta_{a} := (\id_{A f a}, b(f, \id_{A f a}))\]
+  and where $b(f,\id_{A f a}) : B(f, \id_{A f a}) (b(x,a)) \to b(y,A f a)$ is the
+  morphism in $B(y, A f a)$ induced by the map between pointed groupoids $\be(f, \id_{A f a})$.
 
   These combine to give us a pullback square
 % https://q.uiver.app/#q=WzAsNCxbMCwwLCJcXFBvbHl7XFx0cH17XFxUZXJtfSJdLFswLDEsIlxcUG9seXtcXHRwfXtcXFR5cGV9Il0sWzEsMCwiXFxUZXJtIl0sWzEsMSwiXFxUeXBlIl0sWzAsMSwiXFxQb2x5e1xcdHB9e1xcdHB9IiwyXSxbMCwyLCJcXGxhIl0sWzIsMywiXFx0cCJdLFsxLDMsIlxcUGkiLDJdLFswLDMsIiIsMSx7InN0eWxlIjp7Im5hbWUiOiJjb3JuZXIifX1dXQ==
