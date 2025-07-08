@@ -540,9 +540,20 @@ Namely the second projection `B` agrees.
 -/
 theorem fibers_eq (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : fibers N ab =
     ym(eqToHom (by rw [fst_tp])) ≫ PtpEquiv.snd M (ab ≫ (M.uvPolyTp.comp _).p) := by
-  simp [PtpEquiv.snd, fibers, Ptp_equiv]
+  --simp [PtpEquiv.snd, fibers, Ptp_equiv, fst]
+  simp [fibers, UvPoly.comp, PtpEquiv.snd, Ptp_equiv, UvPoly.equiv]
 
   sorry
+  --lhs:
+  --pullback.snd N.tp (UvPoly.PartialProduct.ε M.uvPolyTp N.Ty ≫ prod.snd)  1
+  --pullback.fst (M.uvPolyTp.fstProj N.Ty) M.tp                             2
+
+  --rhs:
+  --pullback.snd N.tp (UvPoly.PartialProduct.ε M.uvPolyTp N.Ty ≫ prod.snd)  1
+  --pullback.fst (M.uvPolyTp.fstProj N.Ty) M.tp                             2
+  --pullback.snd N.tp (UvPoly.PartialProduct.ε M.uvPolyTp N.Ty ≫ prod.snd)  1
+  --pullback.fst (M.uvPolyTp.fstProj N.Ty) M.tp                             2
+
 
 def fst_naturality (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
     fst N (ym(σ) ≫ ab) = ym(σ) ≫ fst N ab := by
