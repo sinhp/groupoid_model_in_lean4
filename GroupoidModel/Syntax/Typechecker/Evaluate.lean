@@ -175,8 +175,14 @@ partial def evalTm (Δ : Ctx) (env : List Val) (Γ : Ctx) (l : Nat) (t : Expr)
             (vaeq.conv_eq saeq.symm_tp)
       )⟩
   | .pair k k' B t u => do
-    let ⟨vt, vtpfs⟩ ← evalTm Δ env Γ k t q($Δenv) q(($Γt).inv_pair.2.2.1.with_synthTp)
-    let ⟨vu, vupfs⟩ ← evalTm Δ env Γ k' u q($Δenv) q(($Γt).inv_pair.2.2.2.1.with_synthTp)
+    let ⟨vt, vtpfs⟩ ← evalTm Δ env Γ k t q($Δenv)
+      q(by as_aux_lemma =>
+        have ⟨_, _, t, _⟩ := ($Γt).inv_pair
+        exact t.with_synthTp)
+    let ⟨vu, vupfs⟩ ← evalTm Δ env Γ k' u q($Δenv)
+      q(by as_aux_lemma =>
+        have ⟨_, _, _, u, _⟩ := ($Γt).inv_pair
+        exact u.with_synthTp)
     return ⟨.pair k k' (B.subst <| Expr.up <| sbOfEnv ‖Δ‖ env) vt vu,
       q(by as_aux_lemma =>
         have ⟨vtwf, vteq⟩ := $vtpfs
