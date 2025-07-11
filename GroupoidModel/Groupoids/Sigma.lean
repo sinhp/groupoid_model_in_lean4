@@ -50,7 +50,24 @@ def sigmaMap : sigmaObj B x ⥤ sigmaObj B y :=
   rfl
 
 @[simp] theorem sigmaMap_obj_fiber (a) :
-    ((sigmaMap B f).obj a).fiber = (B.map ((ιNatTrans f).app (base a))).obj (fiber a) := rfl
+    ((sigmaMap B f).obj a).fiber = (B.map ((ιNatTrans f).app a.base)).obj (a.fiber) := rfl
+
+theorem ιNatTrans_app_base (a : sigmaObj B x) : ((ιNatTrans f).app a.base) = homMk f (𝟙 (A.map f).obj a.base) :=
+  rfl
+
+-- why do we need `eqToHom rfl`? Doesn't type check with `homMk f (𝟙 _)`
+theorem sigmaMap_obj (a) : (sigmaMap B f).obj a =
+    objMk ((A.map f).obj a.base)
+    ((B.map (homMk (f ≫ eqToHom rfl) (eqToHom (by simp)))).obj (a.fiber)) := by
+  apply obj_hext
+  · simp
+  · simp only [sigmaObj, sigmaMap_obj_base, Functor.comp_obj, sigmaMap_obj_fiber, ι_obj_base,
+      eqToHom_refl, ι_obj_fiber, objMk_base, objMk_fiber, heq_eq_eq]
+    congr
+    rw [ιNatTrans_app_base]
+    apply Grothendieck.Groupoidal.ext
+    · simp
+    · simp
 
 @[simp] theorem sigmaMap_map_base {a b : sigmaObj B x} {p : a ⟶ b} :
     ((sigmaMap B f).map p).base = (A.map f).map p.base := rfl
@@ -96,7 +113,7 @@ variable {B}
   · simp [sigmaMap_map_fiber, Functor.congr_hom (h p2.base) f.fiber,
       Functor.congr_hom h1]
 
-theorem sigmaMap_id : sigmaMap B (𝟙 x) = 𝟭 _ := by
+@[simp] theorem sigmaMap_id : sigmaMap B (𝟙 x) = 𝟭 _ := by
     apply CategoryTheory.Functor.ext
     · intro p1 p2 f
       simp
