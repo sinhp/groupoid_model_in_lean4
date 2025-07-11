@@ -282,7 +282,8 @@ def ιNatTrans {X Y : C} (f : X ⟶ Y) : ι F X ⟶ F.map f ⋙ ι F Y :=
 @[simp] theorem ιNatTrans_comp_app {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {a} :
     (@ιNatTrans _ _ F _ _ (f ≫ g)).app a =
     (@ιNatTrans _ _ F _ _ f).app a ≫
-    (@ιNatTrans _ _ F _ _ g).app ((F.map f).obj a) ≫ eqToHom (by simp) := Grothendieck.ιNatTrans_comp_app
+    (@ιNatTrans _ _ F _ _ g).app ((F.map f).obj a) ≫ eqToHom (by simp) :=
+  Grothendieck.ιNatTrans_comp_app
 
 @[simp] theorem ιNatTrans_app_base {X Y : C} (f : X ⟶ Y) (d : ↑(F.obj X)) :
     ((ιNatTrans f).app d).base = f :=
