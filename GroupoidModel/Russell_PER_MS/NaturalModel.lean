@@ -314,9 +314,61 @@ lemma fst_naturality_left' : ((M.uvPolyTp.equiv y(Δ) X) (ym(σ) ≫ AB)).fst =
 theorem fst_naturality_left : fst M (ym(σ) ≫ AB) = ym(σ) ≫ fst M AB := by
   rfl
 
-lemma snd_naturality_left' : (pullbackIsoExt.proof_2 M ((M.uvPolyTp.equiv y(Δ) X) (ym(σ) ≫ AB)).fst).isoPullback.hom ≫ ((M.uvPolyTp.equiv y(Δ) X) (ym(σ) ≫ AB)).snd =
-  ym(M.substWk σ ((M.uvPolyTp.equiv y(Γ) X) AB).fst) ≫ (pullbackIsoExt.proof_2 M ((M.uvPolyTp.equiv y(Γ) X) AB).fst).isoPullback.hom ≫ ((M.uvPolyTp.equiv y(Γ) X) AB).snd := by
-  sorry
+--set_option pp.proofs true
+#check (id (Eq.refl (M.var ((M.uvPolyTp.equiv y(Γ) X) AB).fst)) ▸ id (Eq.refl ym(M.disp ((M.uvPolyTp.equiv y(Γ) X) AB).fst)) ▸ M.disp_pullback ((M.uvPolyTp.equiv y(Γ) X) AB).fst).isoPullback.hom_inv_id
+lemma snd_naturality_left' :
+    (pullbackIsoExt.proof_2 M ((M.uvPolyTp.equiv y(Δ) X) (ym(σ) ≫ AB)).fst).isoPullback.hom ≫
+    ((M.uvPolyTp.equiv y(Δ) X) (ym(σ) ≫ AB)).snd =
+    ym(M.substWk σ ((M.uvPolyTp.equiv y(Γ) X) AB).fst) ≫
+    (pullbackIsoExt.proof_2 M ((M.uvPolyTp.equiv y(Γ) X) AB).fst).isoPullback.hom ≫
+    ((M.uvPolyTp.equiv y(Γ) X) AB).snd := by
+
+    simp only [PtpEquiv.fst, Ptp_equiv, UvPoly.equiv, Equiv.trans_apply, Equiv.sigmaCongrRight_apply,
+    UvPoly.proj_fst, UvPoly.proj_snd, Category.assoc]
+
+  -- Get the pullback isomorphisms
+    let isoΔ := (M.disp_pullback ((M.uvPolyTp.equiv y(Δ) X (ym(σ) ≫ AB)).fst)).isoPullback
+    let isoΓ := (M.disp_pullback ((M.uvPolyTp.equiv y(Γ) X AB).fst)).isoPullback
+
+  -- Show the naturality square commutes
+    have : isoΔ.hom ≫ (pullback.map _ _ _ _ σ (𝟙 _) (𝟙 _) (by simp) (by simp)) =
+         ym(M.substWk σ _) ≫ isoΓ.hom := by
+      apply (M.disp_pullback _).hom_ext
+      · simp [substWk, substCons, isoΔ, isoΓ, pullbackIsoExt]
+      · simp [substWk, substCons, isoΔ, isoΓ, pullbackIsoExt]
+
+      -- Rewrite using the naturality
+    rw [← this, Category.assoc]
+    congr 1
+
+    -- Simplify the remaining terms
+    simp only [pullbackIsoExt_inv, Iso.refl_hom, Category.comp_id, Category.id_comp,
+      pullback.lift_fst, pullback.lift_snd, UvPoly.proj_snd]
+
+    -- Final cleanup
+    simp [substWk, substCons]
+    rfl
+  --simp [substWk, substCons]
+
+  -- set f: IsPullback (M.var ((M.uvPolyTp.equiv y(Γ) X) AB).fst) ym(M.disp ((M.uvPolyTp.equiv y(Γ) X) AB).fst) M.tp
+  --   ((M.uvPolyTp.equiv y(Γ) X) AB).fst := (id (Eq.refl (M.var ((M.uvPolyTp.equiv y(Γ) X) AB).fst)) ▸
+  --   id (Eq.refl ym(M.disp ((M.uvPolyTp.equiv y(Γ) X) AB).fst)) ▸
+  --   M.disp_pullback ((M.uvPolyTp.equiv y(Γ) X) AB).fst)
+  -- set g:IsPullback ym(M.disp ((M.uvPolyTp.equiv y(Γ) X) AB).fst) (M.var ((M.uvPolyTp.equiv y(Γ) X) AB).fst)
+  --   ((M.uvPolyTp.equiv y(Γ) X) AB).fst M.tp := id (Eq.refl ym(M.disp ((M.uvPolyTp.equiv y(Γ) X) AB).fst)) ▸
+  --   id (Eq.refl (M.var ((M.uvPolyTp.equiv y(Γ) X) AB).fst)) ▸
+  --   pullbackIsoExt.proof_2 M ((M.uvPolyTp.equiv y(Γ) X) AB).fst
+
+  -- have h : f = (id (Eq.refl (M.var ((M.uvPolyTp.equiv y(Γ) X) AB).fst)) ▸
+  --   id (Eq.refl ym(M.disp ((M.uvPolyTp.equiv y(Γ) X) AB).fst)) ▸
+  --   M.disp_pullback ((M.uvPolyTp.equiv y(Γ) X) AB).fst) := rfl
+
+
+  -- IsPullback
+  --(M.var ((M.uvPolyTp.equiv y(Γ) X) AB).fst)
+  -- ym(M.disp ((M.uvPolyTp.equiv y(Γ) X) AB).fst) M.tp
+  -- ((M.uvPolyTp.equiv y(Γ) X) AB).fst
+    sorry
 
 theorem snd_naturality_left : snd M (ym(σ) ≫ AB) = ym(M.substWk σ _) ≫ snd M AB := by
   simp [snd, Ptp_equiv, fst]
@@ -542,7 +594,15 @@ theorem fibers_eq (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : fibers N ab =
     ym(eqToHom (by rw [fst_tp])) ≫ PtpEquiv.snd M (ab ≫ (M.uvPolyTp.comp _).p) := by
   --simp [PtpEquiv.snd, fibers, Ptp_equiv, fst]
   simp [fibers, UvPoly.comp, PtpEquiv.snd, Ptp_equiv, UvPoly.equiv]
-
+  set f1 := pullback.snd N.tp (UvPoly.PartialProduct.ε M.uvPolyTp N.Ty ≫ prod.snd)
+  set f2 := pullback.fst (M.uvPolyTp.fstProj N.Ty) M.tp
+  have h1 : f1 = pullback.snd N.tp (UvPoly.PartialProduct.ε M.uvPolyTp N.Ty ≫ prod.snd) := rfl
+  have h2 : f2 = pullback.fst (M.uvPolyTp.fstProj N.Ty) M.tp := rfl
+  rw! [← h1, ← h2]
+  -- suffices h : pullback.lift (M.var (fst N ab ≫ M.tp))
+  --   (ym(M.disp (fst N ab ≫ M.tp)) ≫ ab ≫ f1 ≫ f2) _ ≫
+  --   (pullbackSymmetry M.tp (M.uvPolyTp.fstProj N.Ty)).hom = ym(eqToHom _) ≫
+  --   ().isoPullback.hom ≫ pullback.map ((ab ≫ f1 ≫ f2) ≫ M.uvPolyTp.fstProj N.Ty) M.tp (M.uvPolyTp.fstProj N.Ty) M.tp (ab ≫ f1 ≫ f2) (𝟙 M.Tm) (𝟙 M.Ty) _ _  by sorry
   sorry
   --lhs:
   --pullback.snd N.tp (UvPoly.PartialProduct.ε M.uvPolyTp N.Ty ≫ prod.snd)  1
