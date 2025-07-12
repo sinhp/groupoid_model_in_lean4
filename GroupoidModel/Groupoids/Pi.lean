@@ -221,15 +221,34 @@ namespace pi
 variable {Γ : Type*} [Groupoid Γ] {A : Γ ⥤ Grpd} (B : ∫(A) ⥤ Grpd)
   (f : Γ ⥤ PGrpd) (hf : f ⋙ PGrpd.forgetToGrpd = pi A B)
 
-def sec : A ⟶ sigma A B where
-  app x := (PGrpd.objFiber' hf x).obj
-  naturality x y g := by
-    have h : (((pi A B).map g).obj (PGrpd.objFiber' hf x)).obj ⟶ (PGrpd.objFiber' hf y).obj :=
-      PGrpd.mapFiber' hf g
-    simp [piMap_obj_obj] at h
-    simp
+-- NOTE: it seems like we need a 2-categorical version of Grothendieck.map
+-- so the following should be replaced with something like
+-- `secAux : CategoryTheory.Oplax.OplaxTrans A (sigma A B)`
+-- def secAux : A ⟶ sigma A B where
+--   app x := (PGrpd.objFiber' hf x).obj
+--   naturality x y g := by
+--     have h : (((pi A B).map g).obj (PGrpd.objFiber' hf x)).obj ⟶ (PGrpd.objFiber' hf y).obj :=
+--       PGrpd.mapFiber' hf g
+--     simp [piMap_obj_obj] at h
+--     simp
 
-    sorry
+--     sorry
+
+-- def secFib (x) : A.obj x ⥤ ∫(sigma A B) := (PGrpd.objFiber' hf x).obj ⋙ ι (sigma A B) x
+
+-- def secHom {x y} (g : x ⟶ y) : secFib B f hf x ⟶ A.map g ⋙ secFib B f hf y := by
+--   have h : (((pi A B).map g).obj (PGrpd.objFiber' hf x)).obj ⟶ (PGrpd.objFiber' hf y).obj :=
+--       PGrpd.mapFiber' hf g
+--   simp [piMap_obj_obj] at h
+--   simp [secFib]
+--   sorry
+
+-- NOTE: this should be defined as something like `Grothendieck.Groupoidal.mapOplax secAux`
+def sec : ∫(A) ⥤ ∫(sigma A B) :=
+  sorry
+  -- have h (x) := (PGrpd.objFiber' hf x).obj
+  -- exact functorTo forget (fun x => (h x.base).obj x.fiber) sorry sorry sorry
+  -- exact functorFrom (secFib B f hf) (fun {x y} g => sorry) sorry sorry
 
 /--  Let `Γ` be a category.
 For any pair of functors `A : Γ ⥤ Grpd` and `B : ∫(A) ⥤ Grpd`,
@@ -237,7 +256,7 @@ and any "term of pi", meaning a functor `f : Γ ⥤ PGrpd`
 satisfying `f ⋙ forgetToGrpd = pi A B : Γ ⥤ Grpd`,
 there is a "term of `B`" `sec' : Γ ⥤ PGrpd` such that `sec' ⋙ forgetToGrpd = B`.
 -/
-def sec' : ∫(A) ⥤ PGrpd := map sorry ⋙ sigma.assoc B ⋙ toPGrpd B
+def sec' : ∫(A) ⥤ PGrpd := sorry ⋙ sigma.assoc B ⋙ toPGrpd B
 
 def sec_forgetToGrpd : sec' B ⋙ PGrpd.forgetToGrpd = B := sorry
 
