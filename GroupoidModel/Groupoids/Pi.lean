@@ -382,10 +382,11 @@ end
 
 
 
-lemma funcEqWhisker_conjugating1 {x y} (f: x⟶ y):
- funcEqWhisker A B Δ σ x ⋙ conjugating (σ ⋙ A) (sigma (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ B)) f =
-  conjugating A (sigma A B) (σ.map f) ⋙ funcEqWhisker A B Δ σ y := by
-  dsimp[sigmaMap,funcEqWhisker,conjugating_comp,Functor.assoc]
+lemma funcEqWhisker_conjugating1 {x y} (f : x ⟶ y) :
+    funcEqWhisker A B Δ σ x
+    ⋙ conjugating (σ ⋙ A) (sigma (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ B)) f
+    = conjugating A (sigma A B) (σ.map f) ⋙ funcEqWhisker A B Δ σ y := by
+  dsimp [funcEqWhisker]
   fapply CategoryTheory.Functor.ext
   · simp [sigma_naturality_map, Functor.assoc, ← map_comp_eq, map_id_eq]
   · sorry
