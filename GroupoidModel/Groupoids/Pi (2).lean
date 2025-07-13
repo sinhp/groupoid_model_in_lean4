@@ -214,11 +214,9 @@ lemma piMap_comp {x y z : Γ} (f : x ⟶ y) (g : y ⟶ z) :
   map_id := piMap_id A B
   map_comp := piMap_comp A B
 
+
+
 end
-
-
-
-
 section
 
 variable {Γ : Type*} [Groupoid Γ] (A : Γ ⥤ Grpd.{u₁,u₁}) (B : ∫(A) ⥤ Grpd.{u₁,u₁})
@@ -349,13 +347,13 @@ theorem pi_naturality : σ ⋙ pi A B = pi (σ ⋙ A) (pre A σ ⋙ B) := by
     apply ObjectProperty.ι_mono
     dsimp[piMap]
     simp only[Functor.assoc,Grpd.comp_eq_comp]
-    --rw[eqToHom_ι]
-    --simp[piMap]
-    --simp[← Grpd.comp_eq_comp]
-   -- dsimp[piMap]
+    rw[eqToHom_ι]
+    simp[piMap]
+    simp[← Grpd.comp_eq_comp]
+    dsimp[piMap]
     fapply CategoryTheory.Functor.ext
     · intro s
-      --ext
+      ext
       simp[]
       symm
 
@@ -387,53 +385,6 @@ theorem pi_naturality : σ ⋙ pi A B = pi (σ ⋙ A) (pre A σ ⋙ B) := by
    --sorry
 end
 
-
-
-namespace pi
-
-variable {Γ : Type*} [Groupoid Γ] {A : Γ ⥤ Grpd} (B : ∫(A) ⥤ Grpd)
-  (f : Γ ⥤ PGrpd) (hf : f ⋙ PGrpd.forgetToGrpd = pi A B)
-
--- NOTE: it seems like we need a 2-categorical version of Grothendieck.map
--- so the following should be replaced with something like
--- `secAux : CategoryTheory.Oplax.OplaxTrans A (sigma A B)`
--- def secAux : A ⟶ sigma A B where
---   app x := (PGrpd.objFiber' hf x).obj
---   naturality x y g := by
---     have h : (((pi A B).map g).obj (PGrpd.objFiber' hf x)).obj ⟶ (PGrpd.objFiber' hf y).obj :=
---       PGrpd.mapFiber' hf g
---     simp [piMap_obj_obj] at h
---     simp
-
---     sorry
-
--- def secFib (x) : A.obj x ⥤ ∫(sigma A B) := (PGrpd.objFiber' hf x).obj ⋙ ι (sigma A B) x
-
--- def secHom {x y} (g : x ⟶ y) : secFib B f hf x ⟶ A.map g ⋙ secFib B f hf y := by
---   have h : (((pi A B).map g).obj (PGrpd.objFiber' hf x)).obj ⟶ (PGrpd.objFiber' hf y).obj :=
---       PGrpd.mapFiber' hf g
---   simp [piMap_obj_obj] at h
---   simp [secFib]
---   sorry
-
--- NOTE: this should be defined as something like `Grothendieck.Groupoidal.mapOplax secAux`
-def sec : ∫(A) ⥤ ∫(sigma A B) :=
-  sorry
-  -- have h (x) := (PGrpd.objFiber' hf x).obj
-  -- exact functorTo forget (fun x => (h x.base).obj x.fiber) sorry sorry sorry
-  -- exact functorFrom (secFib B f hf) (fun {x y} g => sorry) sorry sorry
-
-/--  Let `Γ` be a category.
-For any pair of functors `A : Γ ⥤ Grpd` and `B : ∫(A) ⥤ Grpd`,
-and any "term of pi", meaning a functor `f : Γ ⥤ PGrpd`
-satisfying `f ⋙ forgetToGrpd = pi A B : Γ ⥤ Grpd`,
-there is a "term of `B`" `sec' : Γ ⥤ PGrpd` such that `sec' ⋙ forgetToGrpd = B`.
--/
-def sec' : ∫(A) ⥤ PGrpd := sorry ⋙ sigma.assoc B ⋙ toPGrpd B
-
-def sec_forgetToGrpd : sec' B ⋙ PGrpd.forgetToGrpd = B := sorry
-
-end pi
 
 section
 
@@ -652,167 +603,21 @@ def lam : Γ ⥤ PGrpd.{u₁,u₁} :=
   (lamFibMap_id A β)
   (lamFibMap_comp A β)
 
-lemma lam_comp_forgetToGrpd : lam A β ⋙ PGrpd.forgetToGrpd = pi A (β ⋙ PGrpd.forgetToGrpd) :=
-  rfl
-
 end
 end
 
-section
-variable {Γ : Ctx}
-
-namespace smallUPi
-
-def Pi_app (AB : y(Γ) ⟶ smallU.{v}.Ptp.obj smallU.{v}.Ty) :
-    y(Γ) ⟶ smallU.{v}.Ty :=
+def smallUPi_app {Γ : Ctx.{max u (v+1)}}
+    (AB : y(Γ) ⟶ smallU.{v, max u (v+1)}.Ptp.obj smallU.{v, max u (v+1)}.Ty) :
+    y(Γ) ⟶ smallU.{v, max u (v+1)}.Ty :=
   yonedaCategoryEquiv.symm (pi _ (smallU.PtpEquiv.snd AB))
 
-def Pi_naturality {Δ Γ} (f : Δ ⟶ Γ) (α : y(Γ) ⟶ smallU.Ptp.obj smallU.Ty) :
-    Pi_app (ym(f) ≫ α) = ym(f) ≫ Pi_app α := sorry
-
 /-- The formation rule for Π-types for the natural model `smallU` -/
-def Pi : smallU.{v}.Ptp.obj smallU.{v}.Ty ⟶ smallU.{v}.Ty :=
-  NatTrans.yonedaMk Pi_app Pi_naturality
-
-lemma Pi_app_eq {Γ : Ctx} (ab : y(Γ) ⟶ _) : ab ≫ Pi =
-    yonedaCategoryEquiv.symm (FunctorOperation.pi _ (smallU.PtpEquiv.snd ab)) := by
-  rw [Pi, NatTrans.yonedaMk_app, Pi_app]
-
-def lam_app (ab : y(Γ) ⟶ smallU.{v}.Ptp.obj smallU.{v}.Tm) :
-    y(Γ) ⟶ smallU.{v}.Tm :=
-  yonedaCategoryEquiv.symm (lam _ (smallU.PtpEquiv.snd ab))
-
-def lam_naturality {Δ Γ} (f : Δ ⟶ Γ) (α : y(Γ) ⟶ smallU.Ptp.obj smallU.Tm) :
-    lam_app (ym(f) ≫ α) = ym(f) ≫ lam_app α := sorry
+def smallUPi.Pi : smallU.{v}.Ptp.obj smallU.{v}.Ty ⟶ smallU.{v}.Ty :=
+  NatTrans.yonedaMk smallUPi_app sorry
 
 /-- The introduction rule for Π-types for the natural model `smallU` -/
-def lam : smallU.{v}.Ptp.obj smallU.{v}.Tm ⟶ smallU.{v}.Tm :=
-  NatTrans.yonedaMk lam_app lam_naturality
-
-lemma lam_app_eq {Γ : Ctx} (ab : y(Γ) ⟶ smallU.Ptp.obj smallU.Tm) : ab ≫ lam =
-    yonedaCategoryEquiv.symm (FunctorOperation.lam _ (smallU.PtpEquiv.snd ab)) := by
-  rw [lam, NatTrans.yonedaMk_app, lam_app]
-
-lemma smallU.PtpEquiv.fst_app_comp_map_tp {Γ : Ctx} (ab : y(Γ) ⟶ smallU.Ptp.obj smallU.Tm) :
-    smallU.PtpEquiv.fst (ab ≫ smallU.Ptp.map smallU.tp) = smallU.PtpEquiv.fst ab :=
-  sorry
-
-lemma smallU.PtpEquiv.snd_app_comp_map_tp {Γ : Ctx} (ab : y(Γ) ⟶ smallU.Ptp.obj smallU.Tm) :
-    smallU.PtpEquiv.snd (ab ≫ smallU.Ptp.map smallU.tp)
-    ≍ smallU.PtpEquiv.snd ab ⋙ PGrpd.forgetToGrpd :=
-  sorry
-
-theorem lam_tp : smallUPi.lam ≫ smallU.tp = smallU.Ptp.map smallU.tp ≫ Pi := by
-  apply hom_ext_yoneda
-  intros Γ ab
-  rw [← Category.assoc, ← Category.assoc, lam_app_eq, Pi_app_eq, smallU_tp, π,
-    ← yonedaCategoryEquiv_symm_naturality_right, lam_comp_forgetToGrpd]
-  symm; congr 2
-  · apply smallU.PtpEquiv.fst_app_comp_map_tp
-  · apply smallU.PtpEquiv.snd_app_comp_map_tp
-
-section
-variable {Γ : Ctx} (AB : y(Γ) ⟶ smallU.Ptp.obj.{v} y(U.{v}))
-  (αβ : y(Γ) ⟶ y(E.{v})) (hαβ : αβ ≫ ym(π) = AB ≫ smallUPi.Pi)
-
-include hαβ in
-theorem yonedaCategoryEquiv_forgetToGrpd : yonedaCategoryEquiv αβ ⋙ PGrpd.forgetToGrpd
-    = pi (smallU.PtpEquiv.fst AB) (smallU.PtpEquiv.snd AB) := by
-  erw [← yonedaCategoryEquiv_naturality_right, hαβ]
-  rw [smallUPi.Pi_app_eq, yonedaCategoryEquiv.apply_symm_apply]
-
-def lift : y(Γ) ⟶ smallU.Ptp.obj.{v} smallU.Tm.{v} :=
-  let αβ' := yonedaCategoryEquiv αβ
-  smallU.PtpEquiv.mk (smallU.PtpEquiv.fst AB) sorry
-
-  -- let β' := smallU.PtpEquiv.snd AB
-  -- let αβ' := yonedaCategoryEquiv αβ
-  -- let hαβ' : yonedaCategoryEquiv αβ ⋙ forgetToGrpd
-  --   = sigma (smallU.PtpEquiv.fst AB) (smallU.PtpEquiv.snd AB) :=
-  --   yonedaCategoryEquiv_forgetToGrpd _ _ hαβ
-  -- mk (sigma.fst' β' αβ' hαβ') (sigma.dependent' β' αβ' hαβ')
-  -- (sigma.snd' β' αβ' hαβ') (sigma.snd'_forgetToGrpd β' αβ' hαβ')
-
--- theorem fac_left : lift.{v} AB αβ hαβ ≫ smallUSigma.pair.{v} = αβ := by
---   rw [smallUSigma.pair_app_eq]
---   dsimp only [lift]
---   rw! [dependent_mk, snd_mk, fst_mk]
---   simp only [eqToHom_refl, map_id_eq, Cat.of_α, Functor.id_comp]
---   rw [yonedaCategoryEquiv.symm_apply_eq, sigma.eta]
-
--- theorem fac_right : lift.{v} AB αβ hαβ ≫ smallU.comp.{v} = AB := by
---   apply smallU.PtpEquiv.hext
---   · rw [← fst_forgetToGrpd]
---     dsimp only [lift]
---     rw [fst_mk, sigma.fst'_forgetToGrpd]
---   · apply HEq.trans (dependent_heq _).symm
---     rw [lift, dependent_mk]
---     dsimp [sigma.dependent']
---     simp [map_id_eq, Functor.id_comp]
---     apply map_eqToHom_comp_heq
-
--- theorem hom_ext (m n : y(Γ) ⟶ smallU.compDom.{v})
---     (hComp : m ≫ smallU.comp = n ≫ smallU.comp)
---     (hPair : m ≫ smallUSigma.pair = n ≫ smallUSigma.pair) : m = n := by
---   have h : (pair (fst m) (snd m) (dependent m)
---         (snd_forgetToGrpd m)) =
---       (pair (fst n) (snd n) (dependent n)
---         (snd_forgetToGrpd n)) :=
---       calc _
---         _ = yonedaCategoryEquiv (m ≫ smallUSigma.pair) := by
---           simp [smallUSigma.pair_app_eq m]
---         _ = yonedaCategoryEquiv (n ≫ smallUSigma.pair) := by rw [hPair]
---         _ = _ := by
---           simp [smallUSigma.pair_app_eq n]
---   have hdep : HEq (dependent m) (dependent n) := by
---     refine (dependent_heq _).trans
---       $ HEq.trans ?_ $ (dependent_heq _).symm
---     rw [hComp]
---   have : fst m ⋙ forgetToGrpd = fst n ⋙ forgetToGrpd := by
---     rw [fst_forgetToGrpd, fst_forgetToGrpd, hComp]
---   apply smallU.compDom.hext
---   · calc fst m
---       _ = sigma.fst' _ (FunctorOperation.pair (fst m) (snd m)
---         (dependent m) (snd_forgetToGrpd m)) _ :=
---           (sigma.fst'_pair _).symm
---       _ = sigma.fst' _ (FunctorOperation.pair (fst n) (snd n)
---         (dependent n) (snd_forgetToGrpd n)) _ := by
---           rw! [h]
---           congr!
---       _ = fst n := sigma.fst'_pair _
---   · exact hdep
---   · calc snd m
---       _ = sigma.snd' _ (FunctorOperation.pair (fst m) (snd m)
---         (dependent m) (snd_forgetToGrpd m)) _ :=
---           (sigma.snd'_pair _).symm
---       _ = sigma.snd' _ (FunctorOperation.pair (fst n) (snd n)
---         (dependent n) (snd_forgetToGrpd n)) _ := by
---           rw! [h]
---           congr!
---       _ = snd n := sigma.snd'_pair _
-
--- theorem uniq (m : y(Γ) ⟶ smallU.compDom)
---     (hmAB : m ≫ smallU.comp = AB) (hmαβ : m ≫ smallUSigma.pair = αβ) :
---     m = lift AB αβ hαβ := by
---   apply hom_ext
---   · rw [hmAB, fac_right]
---   · rw [hmαβ, fac_left]
-
-end
-theorem isPullback : IsPullback lam.{v,u} (smallU.Ptp.{v,u}.map smallU.tp)
-    smallU.{v, u}.tp Pi.{v, u} :=
-  Limits.RepPullbackCone.is_pullback lam_tp
-    (fun s => sorry)
-    (fun s => sorry)
-    (fun s => sorry)
-    (fun s m fac_left fac_right => sorry)
-  -- Limits.RepPullbackCone.is_pullback smallUSigma.lam_tp.{v,u}
-  --   (fun s => lift s.snd s.fst s.condition)
-  --   (fun s => fac_left.{v,u} _ _ s.condition)
-  --   (fun s => fac_right.{v,u} _ _ s.condition)
-  --   (fun s m fac_left fac_right => uniq.{v,u} _ _ s.condition m fac_right fac_left)
-
-end smallUPi
+def smallUPi.lam : smallU.{v}.Ptp.obj smallU.{v}.Tm ⟶ smallU.{v}.Tm :=
+  NatTrans.yonedaMk sorry sorry
 
 def smallUPi : NaturalModelPi smallU.{v} where
   Pi := smallUPi.Pi.{v}
@@ -831,8 +636,6 @@ def uHomSeqPis' (i : ℕ) (ilen : i < 4) :
 def uHomSeqPis : UHomSeqPiSigma Ctx := { uHomSeq with
   nmPi := uHomSeqPis'
   nmSigma := uHomSeqSigmas' }
-
-end
 
 end FunctorOperation
 
