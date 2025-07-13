@@ -363,14 +363,14 @@ theorem conj_eqToHom_iff_heq {W X Y Z : C} (f : W ⟶ X) (g : Y ⟶ Z) (h : W = 
 -/
 section
 
--- variable {C1 C2 C3 C4: Type u} [Category C1]  [Category C2] [Category C3] [Category C4]
---  (e: C1 = C2) (e' : C3 = C4) (G: C1 ⥤ C3) (F: C2 ⥤ C4)
+variable {C1 C2 C3 C4: Type u} [Category C1]  [Category C2] [Category C3] [Category C4]
+ (e: C1 = C2) (e' : C3 = C4) (G: C1 ⥤ C3) (F: C2 ⥤ C4)
 
 -- lemma map_eqToHom_conj: map (eqToHom e) ⋙ F = G ⋙ map (eqToHom e') ↔
 --   map (eqToHom e) ⋙ F ⋙ map (eqToHom e'.symm) = G := sorry
 
 
--- end
+end
 
 
 lemma sigma_naturality_conj' {x y :Δ} (f: x⟶ y):
@@ -382,7 +382,7 @@ sigmaMap B (σ.map f) =
 
 
 
-lemma funcEqWhisker_conjugating {x y} (f: x⟶ y):
+lemma funcEqWhisker_conjugating1 {x y} (f: x⟶ y):
  funcEqWhisker A B Δ σ x ⋙ conjugating (σ ⋙ A) (sigma (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ B)) f =
   conjugating A (sigma A B) (σ.map f) ⋙ funcEqWhisker A B Δ σ y := by
   dsimp[sigmaMap,funcEqWhisker,conjugating_comp,Functor.assoc]
@@ -397,6 +397,28 @@ lemma funcEqWhisker_conjugating {x y} (f: x⟶ y):
     simp[Grpd.homOf,← map_comp_eq,map_id_eq]
   · sorry
 
+lemma funcEqWhisker_conjugating {x y} (f: x⟶ y):
+ funcEqWhisker A B Δ σ x ⋙ conjugating (σ ⋙ A) (sigma (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ B)) f =
+  conjugating A (sigma A B) (σ.map f) ⋙ funcEqWhisker A B Δ σ y := by
+  --dsimp[sigmaMap,funcEqWhisker,conjugating_comp]
+  fapply CategoryTheory.Functor.ext
+  · intro s
+    dsimp[sigmaMap,funcEqWhisker]
+    simp[conjugating_obj,Functor.assoc]
+    congr 2
+    dsimp[sigmaMap]
+    fapply CategoryTheory.Functor.ext
+    · intro p
+      simp[←Functor.assoc,← Grothendieck.Groupoidal.map_comp_eq]
+      simp[map]
+
+
+      sorry
+    --simp only[← Functor.assoc,← Functor.map_comp,Functor.comp]
+    --simp[CategoryTheory.comp_eqToHom_iff]
+    #check conjugating_comp
+    sorry
+  · sorry
 
 theorem pi_naturality : σ ⋙ pi A B = pi (σ ⋙ A) (pre A σ ⋙ B) := by
   refine CategoryTheory.Functor.ext ?_ ?_
