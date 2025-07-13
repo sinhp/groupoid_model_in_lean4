@@ -197,39 +197,31 @@ lemma whiskerRight_ιNatTrans_naturality {x y : Δ} (f : x ⟶ y) :
   aesop
 
 theorem sigma_naturality_obj (x) :
-    (σ ⋙ sigma A B).obj x =
-    (sigma (σ ⋙ A) (pre A σ ⋙ B)).obj x := by
-  dsimp only [Functor.comp_obj, sigma, sigmaObj]
-  rw! [sigma_naturality_aux]
+    Grpd.of ∫(ι A (σ.obj x) ⋙ B)
+    = Grpd.of ∫(ι (σ ⋙ A) x ⋙ Grothendieck.Groupoidal.pre A σ ⋙ B) := by
+  rw [sigma_naturality_aux]
 
-
-lemma sigma_naturality_conj {x y :Δ} (f: x⟶ y):
-(σ ⋙ sigma A B).map f =
-  eqToHom (sigma_naturality_obj B σ x) ≫
-  (sigma (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ B)).map f ≫
-  Grpd.homOf (map (eqToHom (sigma_naturality_aux B σ y))) := by
-  rw [eqToHom_eq_homOf_map (sigma_naturality_aux B σ x).symm]
+lemma sigma_naturality_map {x y : Δ} (f : x ⟶ y) : sigmaMap B (σ.map f)
+    = Grpd.homOf (map (eqToHom (sigma_naturality_aux B σ x).symm)) ≫
+    (sigma (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ B)).map f ≫
+    Grpd.homOf (map (eqToHom (sigma_naturality_aux B σ y))) := by
+  have : pre (ι A (σ.obj y) ⋙ B) (A.map (σ.map f))
+      = map (eqToHom (by rw[← (sigma_naturality_aux B σ y)]))
+      ⋙ pre (ι (σ ⋙ A) y ⋙ pre A σ ⋙ B) (A.map (σ.map f))
+      ⋙ map (eqToHom (sigma_naturality_aux B σ y)) := by
+    rw [pre_congr_functor]
   dsimp [Grpd.homOf, sigmaMap, ← Functor.assoc]
-  erw [← Grothendieck.Groupoidal.map_comp_eq]
-  rw [whiskerRight_ιNatTrans_naturality]
-  simp only [Functor.comp_obj, Functor.comp_map, eqToHom_trans_assoc, eqToHom_refl, Category.id_comp]
-  erw [Grothendieck.Groupoidal.map_comp_eq]
-  dsimp [Functor.assoc]
-  have : pre (ι A (σ.obj y) ⋙ B) (A.map (σ.map f)) = map (eqToHom (by rw[← (sigma_naturality_aux B σ y)])) ⋙ pre (ι (σ ⋙ A) y ⋙ pre A σ ⋙ B) (A.map (σ.map f)) ⋙
-        map (eqToHom (sigma_naturality_aux B σ y))  := by
-            apply Eq.symm
-            apply pre_congr_functor
-  rw [this]
-
-
+  rw [← Grothendieck.Groupoidal.map_comp_eq, whiskerRight_ιNatTrans_naturality]
+  simp [Grothendieck.Groupoidal.map_comp_eq, this, Functor.assoc]
 
 -- NOTE formerly called `sigmaBeckChevalley`
 theorem sigma_naturality : σ ⋙ sigma A B = sigma (σ ⋙ A) (pre A σ ⋙ B) := by
-  refine CategoryTheory.Functor.ext ?_ ?_
+  fapply CategoryTheory.Functor.ext
   . apply sigma_naturality_obj
   . intros x y f
-    rw [eqToHom_eq_homOf_map (sigma_naturality_aux B σ y)]
-    apply sigma_naturality_conj
+    rw [eqToHom_eq_homOf_map (sigma_naturality_aux B σ x).symm,
+      eqToHom_eq_homOf_map (sigma_naturality_aux B σ y)]
+    apply sigma_naturality_map
 
 end
 

@@ -373,12 +373,12 @@ variable {C1 C2 C3 C4: Type u} [Category C1]  [Category C2] [Category C3] [Categ
 end
 
 
-lemma sigma_naturality_conj' {x y :Δ} (f: x⟶ y):
-sigmaMap B (σ.map f) =
-  eqToHom (sigma_naturality_obj B σ x) ≫
-  (sigma (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ B)).map f ≫
-  Grpd.homOf (map (eqToHom (sigma_naturality_aux B σ y))) := by
-  apply sigma_naturality_conj
+-- lemma sigma_naturality_conj' {x y :Δ} (f: x⟶ y):
+-- sigmaMap B (σ.map f) =
+--   eqToHom (sigma_naturality_obj B σ x) ≫
+--   (sigma (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ B)).map f ≫
+--   Grpd.homOf (map (eqToHom (sigma_naturality_aux B σ y))) := by
+--   apply sigma_naturality_conj
 
 
 
@@ -387,14 +387,7 @@ lemma funcEqWhisker_conjugating1 {x y} (f: x⟶ y):
   conjugating A (sigma A B) (σ.map f) ⋙ funcEqWhisker A B Δ σ y := by
   dsimp[sigmaMap,funcEqWhisker,conjugating_comp,Functor.assoc]
   fapply CategoryTheory.Functor.ext
-  · intro s
-    dsimp[sigmaMap,funcEqWhisker]
-    simp[conjugating_obj,Functor.assoc]
-    congr 2
-    simp[sigma_naturality_conj',Functor.assoc]
-    rw [eqToHom_eq_homOf_map (sigma_naturality_aux B σ x).symm]
-    congr
-    simp[Grpd.homOf,← map_comp_eq,map_id_eq]
+  · simp [sigma_naturality_map, Functor.assoc, ← map_comp_eq, map_id_eq]
   · sorry
 
 lemma funcEqWhisker_conjugating {x y} (f: x⟶ y):
@@ -421,7 +414,7 @@ lemma funcEqWhisker_conjugating {x y} (f: x⟶ y):
   · sorry
 
 theorem pi_naturality : σ ⋙ pi A B = pi (σ ⋙ A) (pre A σ ⋙ B) := by
-  refine CategoryTheory.Functor.ext ?_ ?_
+  fapply CategoryTheory.Functor.ext
   · apply pi_naturality_obj
   · intro x y f
     symm
