@@ -100,7 +100,6 @@ def conjugating {x y : Γ} (f : x ⟶ y) : (A.obj x ⥤ B.obj x) ⥤ (A.obj y �
 @[simp] lemma conjugating_comp (x y z : Γ) (f : x ⟶ y) (g : y ⟶ z) :
     conjugating A B (f ≫ g) = conjugating A B f ⋙ conjugating A B g := by
   simp [conjugating]
-
 end
 
 section
@@ -289,7 +288,12 @@ lemma cast_id (e: C) (h: C = E): HEq ((h ▸ 𝟙 E) e) (cast h e) := sorry
 
 -- theorem comp_eqToHom_iff {X Y Y' : C ⥤ E} (p : Y = Y') (f : X ⟶ Y) (g : X ⟶ Y') :
 --     f ⋙ eqToHom p = g ↔ f = g ≫  eqToHom p.symm := sorry
+
+
+
 end
+
+
 
 variable (x y : Δ )
 lemma comp_obj_eq (x): A.obj (σ.obj x) = (σ ⋙ A).obj x := rfl
@@ -316,12 +320,18 @@ lemma eqToHom_ι1 {x } :
 
  sorry
 
-def funcEqWhisker (x) :
-    (A.obj (σ.obj x)) ⥤ ∫(ι A (σ.obj x) ⋙ B) ⥤
-    ((σ ⋙ A).obj x) ⥤ ∫(ι (σ ⋙ A) x ⋙ Grothendieck.Groupoidal.pre A σ ⋙ B) :=
-    (CategoryTheory.Functor.whiskeringRight (A.obj (σ.obj x)) (∫(ι A (σ.obj x) ⋙ B))
-     (∫(ι (σ ⋙ A) x ⋙ Grothendieck.Groupoidal.pre A σ ⋙ B) ) ).obj
+def funcEqWhisker :
+    ((A.obj (σ.obj x)) ⥤ ∫(ι A (σ.obj x) ⋙ B)) -- parentheses here
+    ⥤ (A.obj (σ.obj x)) ⥤ ∫(ι (σ ⋙ A) x ⋙ pre A σ ⋙ B) :=
+    (Functor.whiskeringRight (A.obj (σ.obj x)) (∫(ι A (σ.obj x) ⋙ B)) ∫(ι (σ ⋙ A) x ⋙ pre A σ ⋙ B)).obj
      (map (eqToHom (sigma_naturality_aux B σ x).symm))
+
+-- def funcEqWhisker0 (x) :
+--     ((A.obj (σ.obj x)) ⥤ ∫(ι A (σ.obj x) ⋙ B)) ⥤
+--     (((σ ⋙ A).obj x) ⥤ ∫(ι (σ ⋙ A) x ⋙ Grothendieck.Groupoidal.pre A σ ⋙ B)) :=
+--     (CategoryTheory.Functor.whiskeringRight (A.obj (σ.obj x)) (∫(ι A (σ.obj x) ⋙ B))
+--      (∫(ι (σ ⋙ A) x ⋙ Grothendieck.Groupoidal.pre A σ ⋙ B) ) ).obj
+--      (map (eqToHom (sigma_naturality_aux B σ x).symm))
 
 lemma eqToHom_ι {x } :
  eqToHom (pi_naturality_obj A B Δ σ x) ⋙
@@ -332,6 +342,61 @@ lemma eqToHom_ι {x } :
 
 
  sorry
+
+section
+variable  {C : Type u} [Category.{v} C]{D : Type u} [Category.{v} D] (P Q : ObjectProperty D)
+  (F : C ⥤ D) (hF : ∀ X, P (F.obj X))
+
+theorem FullSubcategory.lift_comp_inclusion_eq :
+    P.lift F hF ⋙ P.ι = F :=
+  rfl
+
+end
+
+/-
+theorem conj_eqToHom_iff_heq {W X Y Z : C} (f : W ⟶ X) (g : Y ⟶ Z) (h : W = Y) (h' : X = Z) :
+    f = eqToHom h ≫ g ≫ eqToHom h'.symm ↔ HEq f g := by
+  cases h
+  cases h'
+  simp
+
+-/
+section
+
+-- variable {C1 C2 C3 C4: Type u} [Category C1]  [Category C2] [Category C3] [Category C4]
+--  (e: C1 = C2) (e' : C3 = C4) (G: C1 ⥤ C3) (F: C2 ⥤ C4)
+
+-- lemma map_eqToHom_conj: map (eqToHom e) ⋙ F = G ⋙ map (eqToHom e') ↔
+--   map (eqToHom e) ⋙ F ⋙ map (eqToHom e'.symm) = G := sorry
+
+
+-- end
+
+
+lemma sigma_naturality_conj' {x y :Δ} (f: x⟶ y):
+sigmaMap B (σ.map f) =
+  eqToHom (sigma_naturality_obj B σ x) ≫
+  (sigma (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ B)).map f ≫
+  Grpd.homOf (map (eqToHom (sigma_naturality_aux B σ y))) := by
+  apply sigma_naturality_conj
+
+
+
+lemma funcEqWhisker_conjugating {x y} (f: x⟶ y):
+ funcEqWhisker A B Δ σ x ⋙ conjugating (σ ⋙ A) (sigma (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ B)) f =
+  conjugating A (sigma A B) (σ.map f) ⋙ funcEqWhisker A B Δ σ y := by
+  dsimp[sigmaMap,funcEqWhisker,conjugating_comp,Functor.assoc]
+  fapply CategoryTheory.Functor.ext
+  · intro s
+    dsimp[sigmaMap,funcEqWhisker]
+    simp[conjugating_obj,Functor.assoc]
+    congr 2
+    simp[sigma_naturality_conj',Functor.assoc]
+    rw [eqToHom_eq_homOf_map (sigma_naturality_aux B σ x).symm]
+    congr
+    simp[Grpd.homOf,← map_comp_eq,map_id_eq]
+  · sorry
+
 
 theorem pi_naturality : σ ⋙ pi A B = pi (σ ⋙ A) (pre A σ ⋙ B) := by
   refine CategoryTheory.Functor.ext ?_ ?_
@@ -348,7 +413,20 @@ theorem pi_naturality : σ ⋙ pi A B = pi (σ ⋙ A) (pre A σ ⋙ B) := by
     --rw[CategoryTheory.eqToHom_comp_iff]
     apply ObjectProperty.ι_mono
     dsimp[piMap]
-    simp only[Functor.assoc,Grpd.comp_eq_comp]
+    simp only[Functor.assoc]
+    rw[eqToHom_ι]
+    simp[← Functor.assoc]
+    rw[FunctorOperation.FullSubcategory.lift_comp_inclusion_eq]
+    simp[Functor.assoc]
+    rw[FunctorOperation.FullSubcategory.lift_comp_inclusion_eq]
+    simp[← Functor.assoc]
+    rw[eqToHom_ι]
+    simp[Section.ι]
+    simp[Functor.assoc]
+    congr 1
+    --rw[CategoryTheory.ObjectProperty.liftCompιIso]
+    #check CategoryTheory.ObjectProperty.FullSubcategory.lift_comp_inclusion_eq
+
     --rw[eqToHom_ι]
     --simp[piMap]
     --simp[← Grpd.comp_eq_comp]
