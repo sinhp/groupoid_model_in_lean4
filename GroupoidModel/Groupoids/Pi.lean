@@ -941,11 +941,25 @@ lemma lam_comp_forgetToGrpd : lam A β ⋙ PGrpd.forgetToGrpd = pi A (β ⋙ PGr
 
 variable {Δ : Type u₁} [Groupoid.{v₁} Δ] (σ : Δ ⥤ Γ)
 #check lam (σ ⋙ A) (pre A σ ⋙ β)
+
+
+theorem lam_naturality_obj (x : Δ) : HEq (lamFibObj A β (σ.obj x) )
+    (lamFibObj (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ β) x) := by
+  dsimp[lamFibObj,lamFibObjObj,← Functor.assoc,← Grothendieck.Groupoidal.ι_pre]
+  congr!
+  any_goals simp[← Grothendieck.Groupoidal.ι_pre]
+  dsimp[sigma.fstAuxObj,← Functor.assoc]
+  congr
+  simp[← Grothendieck.Groupoidal.ι_pre]
+
+
+
 theorem lam_naturality : σ ⋙ lam A β = lam (σ ⋙ A) (pre A σ ⋙ β)
      := by
   apply PGrpd.Functor.hext
   · apply pi_naturality
   · intro x
+    simp[lam]
     --apply pair_naturality_obj
     sorry
   · intro x y f
