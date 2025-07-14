@@ -968,24 +968,36 @@ theorem lam_naturality_obj (x : Δ) : HEq (lamFibObj A β (σ.obj x) )
 -/
 
 
+lemma ι_pre_forget_aux (x) :
+ι A (σ.obj x) ⋙ β ⋙ PGrpd.forgetToGrpd = ι (σ ⋙ A) x ⋙ (Grothendieck.Groupoidal.pre A σ ⋙ β) ⋙ PGrpd.forgetToGrpd
+:= by
+ simp[← Functor.assoc,← Grothendieck.Groupoidal.ι_pre]
+
 
 lemma lamFibObjObj_aux (x):
  lamFibObjObj A β (σ.obj x) ≍ lamFibObjObj (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ β) x := by
   dsimp[lamFibObjObj]
   congr!
-  · simp[← Functor.assoc,← Grothendieck.Groupoidal.ι_pre]
+  · apply ι_pre_forget_aux
   simp[← Grothendieck.Groupoidal.ι_pre,Functor.assoc]
+
 
 
 lemma lamFibObjObjCompSigmaMap_aux {x y} (f: x⟶ y):
  lamFibObjObjCompSigmaMap A β (σ.map f) ≍
-  lamFibObjObjCompSigmaMap (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ β) f := sorry
+  lamFibObjObjCompSigmaMap (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ β) f := by
+  simp[lamFibObjObjCompSigmaMap]
+  congr!
+
+  sorry
 
 lemma sigmaMap_aux {x y} (f: x⟶ y):
 sigmaMap (β ⋙ PGrpd.forgetToGrpd) (σ.map f) ≍
 sigmaMap (Grothendieck.Groupoidal.pre A σ ⋙ β ⋙ PGrpd.forgetToGrpd) f := by
  dsimp[sigmaMap]
  congr!
+ any_goals apply ι_pre_forget_aux
+ any_goals (simp[Functor.assoc]; congr;apply ι_pre_forget_aux )
  sorry
 
 
