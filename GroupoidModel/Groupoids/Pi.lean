@@ -637,6 +637,8 @@ lemma comm_sq_of_comp_mono {C : Type*} [Category C]
     _  = h ≫ i ≫ mZ := by aesop
     _  = (h ≫ i) ≫ mZ := by aesop
 
+
+
 theorem pi_naturality_map {x y} (f : x ⟶ y) :
     Grpd.homOf (piMap A B (σ.map f)) ≫ eqToHom (pi_naturality_obj A B σ y)
     = eqToHom (pi_naturality_obj A B σ x) ≫ (Grpd.homOf (piMap (σ ⋙ A) (pre A σ ⋙ B) f)) := by
@@ -653,10 +655,10 @@ theorem pi_naturality_map {x y} (f : x ⟶ y) :
     (Grpd.homOf (ObjectProperty.ι _))
     (Grpd.homOf (ObjectProperty.ι _))
   · rw [eqToHom_conjugating]
-  · rfl
+  · apply FunctorOperation.FullSubcategory.lift_comp_inclusion_eq
   · apply eqToHom_ι
   · apply eqToHom_ι
-  · rfl
+  · apply FunctorOperation.FullSubcategory.lift_comp_inclusion_eq
 
 theorem pi_naturality : σ ⋙ pi A B = pi (σ ⋙ A) (pre A σ ⋙ B) := by
   fapply CategoryTheory.Functor.ext
