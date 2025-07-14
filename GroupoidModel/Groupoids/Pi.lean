@@ -988,6 +988,7 @@ sigmaMap (Grothendieck.Groupoidal.pre A σ ⋙ β ⋙ PGrpd.forgetToGrpd) f := b
  congr!
  any_goals apply ι_pre_forget_aux
  any_goals (simp[Functor.assoc]; congr;apply ι_pre_forget_aux )
+ --whisker subgoal here.
  sorry
 
 
