@@ -16,7 +16,7 @@ namespace ObjectProperty
 -- but it is still probably useful?
 lemma ι_mono {T C : Type u} [Category.{v} C] [Category.{v} T]
     {Z : C → Prop} (f g : T ⥤ FullSubcategory Z)
-    (e: f ⋙ ι Z = g ⋙ ι Z) : f = g := by
+    (e : f ⋙ ι Z = g ⋙ ι Z) : f = g := by
   apply CategoryTheory.Functor.ext_of_iso _ _ _
   · exact Functor.fullyFaithfulCancelRight (ι Z) (eqToIso e)
   · intro X
@@ -27,7 +27,15 @@ lemma ι_mono {T C : Type u} [Category.{v} C] [Category.{v} T]
       eqToIso.hom, eqToHom_app, Functor.comp_obj, Classical.choose_eq]
     rfl
 
+
 end ObjectProperty
+
+instance {C : Type*} [Groupoid C] (P : ObjectProperty C) :
+    Groupoid (P.FullSubcategory) :=
+  InducedCategory.groupoid C (ObjectProperty.ι _).obj
+
+instance Grpd.ι_mono (G : Grpd) (P : ObjectProperty G) : Mono (Grpd.homOf (ObjectProperty.ι P)) :=
+  ⟨ fun _ _ e => ObjectProperty.ι_mono _ _ e ⟩
 
 end CategoryTheory
 
@@ -100,6 +108,10 @@ def conjugating {x y : Γ} (f : x ⟶ y) : (A.obj x ⥤ B.obj x) ⥤ (A.obj y �
 @[simp] lemma conjugating_comp (x y z : Γ) (f : x ⟶ y) (g : y ⟶ z) :
     conjugating A B (f ≫ g) = conjugating A B f ⋙ conjugating A B g := by
   simp [conjugating]
+
+@[simp] lemma conjugating_naturality_map {Δ : Type u₁} [Groupoid.{v₁} Δ] (σ : Δ ⥤ Γ)
+    {x y} (f : x ⟶ y) : conjugating (σ ⋙ A) (σ ⋙ B) f = conjugating A B (σ.map f) := by
+  simp [conjugating]
 end
 
 section
@@ -115,10 +127,6 @@ instance Section.category : Category (Section F) :=
 
 abbrev Section.ι : Section F ⥤ (A ⥤ B) :=
   ObjectProperty.ι (IsSection F)
-
-instance Section.groupoid {B : Type*} [Groupoid B] (F : B ⥤ A) :
-    Groupoid (Section F) :=
-  InducedCategory.groupoid (A ⥤ B) (fun (f: Section F) ↦ f.obj)
 
 end
 
@@ -222,8 +230,12 @@ section
 
 variable {Γ : Type*} [Groupoid Γ] (A : Γ ⥤ Grpd.{u₁,u₁}) (B : ∫(A) ⥤ Grpd.{u₁,u₁})
 
-(Δ : Type*) [Groupoid Δ] (σ: Δ ⥤ Γ)
+{Δ : Type*} [Groupoid Δ] (σ : Δ ⥤ Γ)
 
+theorem IsSection_eq (x) : sigma.fstAuxObj B (σ.obj x)
+    ≍ sigma.fstAuxObj (Grothendieck.Groupoidal.pre A σ ⋙ B) x := by
+  dsimp [sigma.fstAuxObj]
+  rw [sigma_naturality_aux]
 
 theorem pi_naturality_obj (x) :
     (σ ⋙ pi A B).obj x = (pi (σ ⋙ A) (pre A σ ⋙ B)).obj x := by
@@ -265,11 +277,11 @@ section
 
 variables {C D E F: Type u} [Category.{v,u} C] [Category.{v,u} D] [Category.{v,u} E] [Category F]
 
-def eqToFuncHom (e1 : C = E) (e2 : D = F) : (C ⥤ D) = (E ⥤ F) := by
+-- def eqToFuncHom (e1 : C = E) (e2 : D = F) : (C ⥤ D) = (E ⥤ F) := by
 
-  sorry
+--   sorry
 
-lemma cast_id (e: C) (h: C = E): HEq ((h ▸ 𝟙 E) e) (cast h e) := sorry
+-- lemma cast_id (e: C) (h: C = E): HEq ((h ▸ 𝟙 E) e) (cast h e) := sorry
 
 
 -- def eqToFunc (e1 : C = E) : (C ⥤ E) where
@@ -310,15 +322,36 @@ def funcEqWhisker1 (x) : (((σ ⋙ A).obj x) ⥤ sigmaObj (Grothendieck.Groupoid
 
 
 
-lemma eqToHom_ι1 {x } :
- eqToHom (pi_naturality_obj A B Δ σ x).symm ⋙
- ObjectProperty.ι (IsSection (sigma.fstAuxObj B (σ.obj x))) =
- ObjectProperty.ι (IsSection (sigma.fstAuxObj (Grothendieck.Groupoidal.pre A σ ⋙ B) x)) ⋙
- funcEqWhisker1 A B Δ σ  (x) :=
+-- lemma eqToHom_ι1 {x } :
+--  eqToHom (pi_naturality_obj A B Δ σ x).symm ⋙
+--  ObjectProperty.ι (IsSection (sigma.fstAuxObj B (σ.obj x))) =
+--  ObjectProperty.ι (IsSection (sigma.fstAuxObj (Grothendieck.Groupoidal.pre A σ ⋙ B) x)) ⋙
+--  funcEqWhisker1 A B Δ σ  (x) :=
 
 
 
- sorry
+--  sorry
+
+lemma eqToHom_ι_aux :
+    Grpd.of ((A.obj (σ.obj x)) ⥤ ∫(ι A (σ.obj x) ⋙ B))
+    = Grpd.of (A.obj (σ.obj x) ⥤ ∫(ι (σ ⋙ A) x ⋙ pre A σ ⋙ B)) :=
+  by rw [sigma_naturality_aux]
+
+lemma ObjectProperty.eqToHom_comp_ι {C D : Grpd} (h : C = D) (P : ObjectProperty C)
+    (Q : ObjectProperty D) (hP : P ≍ Q) :
+    let h' : Grpd.of P.FullSubcategory = Grpd.of Q.FullSubcategory := by
+      subst h hP; rfl
+    eqToHom h' ⋙ (ObjectProperty.ι Q) = (ObjectProperty.ι P) ⋙ eqToHom h := by
+  subst h hP; rfl
+
+lemma eqToHom_ι (x) :
+    eqToHom (pi_naturality_obj A B σ x) ⋙
+    ObjectProperty.ι (IsSection (sigma.fstAuxObj (pre A σ ⋙ B) x)) =
+    ObjectProperty.ι (IsSection (sigma.fstAuxObj B (σ.obj x))) ⋙
+    eqToHom (eqToHom_ι_aux A B σ x) := by
+  apply ObjectProperty.eqToHom_comp_ι (eqToHom_ι_aux A B σ x)
+  dsimp [sigma.fstAuxObj, piObj.groupoid]
+  rw [sigma_naturality_aux]
 
 def funcEqWhisker :
     ((A.obj (σ.obj x)) ⥤ ∫(ι A (σ.obj x) ⋙ B)) -- parentheses here
@@ -333,32 +366,33 @@ def funcEqWhisker :
 --      (∫(ι (σ ⋙ A) x ⋙ Grothendieck.Groupoidal.pre A σ ⋙ B) ) ).obj
 --      (map (eqToHom (sigma_naturality_aux B σ x).symm))
 
-lemma eqToHom_ι {x } :
- eqToHom (pi_naturality_obj A B Δ σ x) ⋙
- ObjectProperty.ι (IsSection (sigma.fstAuxObj (Grothendieck.Groupoidal.pre A σ ⋙ B) x)) =
- ObjectProperty.ι (IsSection (sigma.fstAuxObj B (σ.obj x))) ⋙
- funcEqWhisker A B Δ σ  (x) := by
- fapply CategoryTheory.Functor.ext
- · intro s
-   simp[funcEqWhisker,sigma_naturality_aux]
-   fapply CategoryTheory.Functor.ext
-   · intro a
-     rw! (castMode := .all) [(sigma_naturality_aux B σ x)]
-     simp[map_id_eq]
-     congr!
-     · sorry
-     simp[Cat.eqToHom_obj]
+-- lemma eqToHom_ι11 {x } :
+--  eqToHom (pi_naturality_obj A B Δ σ x) ⋙
+--  ObjectProperty.ι (IsSection (sigma.fstAuxObj (Grothendieck.Groupoidal.pre A σ ⋙ B) x)) =
+--  ObjectProperty.ι (IsSection (sigma.fstAuxObj B (σ.obj x))) ⋙
+--  funcEqWhisker A B Δ σ  (x) := by
+--  fapply CategoryTheory.Functor.ext
+--  · intro s
+--    simp [funcEqWhisker, ← eqToHom_eq_homOf_map]
 
-     sorry
-   sorry
+--    -- rw! [sigma_naturality_aux]
+--   --  fapply CategoryTheory.Functor.ext
+--   --  · intro a
+--   --    rw! (castMode := .all) [(sigma_naturality_aux B σ x)]
+--   --    simp[map_id_eq]
+--   --    congr!
+--   --    · sorry
+--   --    simp[Cat.eqToHom_obj]
 
-
- · intro s1 s2 h
-   simp
+--    sorry
 
 
+--  · intro s1 s2 h
+--    simp
 
-   sorry
+
+
+--    sorry
 
 section
 variable  {C : Type u} [Category.{v} C]{D : Type u} [Category.{v} D] (P Q : ObjectProperty D)
@@ -468,41 +502,84 @@ lemma funcEqWhisker_conjugating1 {x y} (f : x ⟶ y) :
 --       · simp
 --     simp [sigma_naturality_map, Functor.assoc, ← map_comp_eq, map_id_eq]
 
+lemma eqToHom_conjugating {x y} (f : x ⟶ y):
+    eqToHom (eqToHom_ι_aux A B σ x) ≫ conjugating (σ ⋙ A) (sigma (σ ⋙ A) (pre A σ ⋙ B)) f =
+    conjugating A (sigma A B) (σ.map f) ≫ eqToHom (eqToHom_ι_aux A B σ y) := by
+  conv => left; right; rw! (castMode := .all) [← sigma_naturality]
+  simp only [Functor.comp_obj, conjugating_naturality_map]
+  apply eq_of_heq
+  rw [heq_comp_eqToHom_iff] -- HEq tactic please
+  apply HEq.trans (eqToHom_comp_heq _ _)
+  simp
 
 
+-- lemma funcEqWhisker_conjugating {x y} (f: x⟶ y):
+--  funcEqWhisker A B Δ σ x ⋙ conjugating (σ ⋙ A) (sigma (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ B)) f =
+--   conjugating A (sigma A B) (σ.map f) ⋙ funcEqWhisker A B Δ σ y := by
+--   dsimp[sigmaMap,funcEqWhisker,conjugating_comp,Functor.assoc]
+--   fapply CategoryTheory.Functor.ext
+--   · simp only [Functor.comp_obj, Functor.whiskeringRight_obj_obj, conjugating_obj, sigma_obj,
+--       sigmaObj, Grpd.coe_of, Functor.comp_map, sigma_map, Functor.assoc, sigma_naturality_map,
+--       Grpd.comp_eq_comp, ← map_comp_eq, eqToHom_trans, eqToHom_refl, map_id_eq, Cat.of_α,
+--       Functor.comp_id, implies_true]
+--   · intro s1 s2 h
+--     -- rw[CategoryTheory.conj_eqToHom_iff_heq]
+--     ·
+--       -- simp?[Functor.whiskerRight,Functor.whiskerLeft]
+--       sorry
+--       -- congr!
+--       -- · simp[Functor.assoc]
+--       --   congr!
+--       --   simp[sigma_naturality_map,Functor.assoc,← map_comp_eq, map_id_eq]
+--       -- · simp[sigma_naturality_map,Functor.assoc,← map_comp_eq, map_id_eq]
+--       -- --rw![sigma_naturality_map,Functor.assoc,← map_comp_eq, map_id_eq]
+
+--       -- simp only[← Functor.comp_map]
+--       -- rw! (castMode := .all) [sigma_naturality_map]
+--       -- simp
+--       -- simp only[← Functor.comp_map]
+--       -- congr!
+--       -- · simp[Functor.assoc]
+--       --   congr!
+--       --   simp[Grpd.homOf]
+--       --   simp[ ← map_comp_eq,map_id_eq]
+--       -- · simp
+--       -- · simp
+--       -- · simp
+--     -- · simp [sigma_naturality_map, Functor.assoc, ← map_comp_eq, map_id_eq]
 
 
-lemma funcEqWhisker_conjugating {x y} (f: x⟶ y):
- funcEqWhisker A B Δ σ x ⋙ conjugating (σ ⋙ A) (sigma (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ B)) f =
-  conjugating A (sigma A B) (σ.map f) ⋙ funcEqWhisker A B Δ σ y := by
-  dsimp[sigmaMap,funcEqWhisker,conjugating_comp,Functor.assoc]
-  fapply CategoryTheory.Functor.ext
-  · simp? [sigma_naturality_map, Functor.assoc, ← map_comp_eq, map_id_eq]
-  · intro s1 s2 h
-    rw[CategoryTheory.conj_eqToHom_iff_heq]
-    ·
-      simp?[Functor.whiskerRight,Functor.whiskerLeft]
+-- lemma funcEqWhisker_conjugating {x y} (f: x⟶ y):
+--  funcEqWhisker A B Δ σ x ⋙ conjugating (σ ⋙ A) (sigma (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ B)) f =
+--   conjugating A (sigma A B) (σ.map f) ⋙ funcEqWhisker A B Δ σ y := by
+--   dsimp[sigmaMap,funcEqWhisker,conjugating_comp,Functor.assoc]
+--   fapply CategoryTheory.Functor.ext
+--   · simp? [sigma_naturality_map, Functor.assoc, ← map_comp_eq, map_id_eq]
+--   · intro s1 s2 h
+--     rw[CategoryTheory.conj_eqToHom_iff_heq]
+--     ·
+--       simp?[Functor.whiskerRight,Functor.whiskerLeft]
 
-      congr!
-      · simp[Functor.assoc]
-        congr!
-        simp[sigma_naturality_map,Functor.assoc,← map_comp_eq, map_id_eq]
-      · simp[sigma_naturality_map,Functor.assoc,← map_comp_eq, map_id_eq]
-      --rw![sigma_naturality_map,Functor.assoc,← map_comp_eq, map_id_eq]
+--       congr!
+--       · simp[Functor.assoc]
+--         congr!
+--         simp[sigma_naturality_map,Functor.assoc,← map_comp_eq, map_id_eq]
+--       · simp[sigma_naturality_map,Functor.assoc,← map_comp_eq, map_id_eq]
+--       --rw![sigma_naturality_map,Functor.assoc,← map_comp_eq, map_id_eq]
 
-      simp only[← Functor.comp_map]
-      rw! (castMode := .all) [sigma_naturality_map]
-      simp
-      simp only[← Functor.comp_map]
-      congr!
-      · simp[Functor.assoc]
-        congr!
-        simp[Grpd.homOf]
-        simp[ ← map_comp_eq,map_id_eq]
-      · simp
-      · simp
-      · simp
-    simp [sigma_naturality_map, Functor.assoc, ← map_comp_eq, map_id_eq]
+--       simp only[← Functor.comp_map]
+--       rw! (castMode := .all) [sigma_naturality_map]
+--       simp
+--       simp only[← Functor.comp_map]
+--       congr!
+--       · simp[Functor.assoc]
+--         congr!
+--         simp[Grpd.homOf]
+--         simp[ ← map_comp_eq,map_id_eq]
+--       · simp
+--       · simp
+--       · simp
+--     simp [sigma_naturality_map, Functor.assoc, ← map_comp_eq, map_id_eq]
 
 
 
@@ -534,33 +611,59 @@ lemma funcEqWhisker_conjugating {x y} (f: x⟶ y):
 --       sorry
 --     simp [sigma_naturality_map, Functor.assoc, ← map_comp_eq, map_id_eq]
 
+lemma comm_sq_of_comp_mono {C : Type*} [Category C]
+    {X Y Z W X' Y' Z' W' : C}
+    (f : X ⟶ Y) (h : X ⟶ W) (g : Y ⟶ Z) (i : W ⟶ Z)
+    (f' : X' ⟶ Y') (h' : X' ⟶ W') (g' : Y' ⟶ Z') (i' : W' ⟶ Z')
+    (mX : X ⟶ X') (mY : Y ⟶ Y') (mW : W ⟶ W') (mZ : Z ⟶ Z')
+    (hbot : f' ≫ g' = h' ≫ i')
+    (hf : f ≫ mY = mX ≫ f')
+    (hh : h ≫ mW = mX ≫ h')
+    (hg : g ≫ mZ = mY ≫ g')
+    (hi : i ≫ mZ = mW ≫ i')
+    [e : Mono mZ]
+    : f ≫ g = h ≫ i := by
+  apply e.right_cancellation
+  calc (f ≫ g) ≫ mZ
+    _ = f ≫ g ≫ mZ := by aesop
+    _ = f ≫ mY ≫ g' := by aesop
+    _ = (f ≫ mY) ≫ g' := by simp
+    _  = (mX ≫ f') ≫ g' := by aesop
+    _  = mX ≫ f' ≫ g' := by simp
+    _  = mX ≫ h' ≫ i' := by aesop
+    _  = (mX ≫ h') ≫ i' := by simp
+    _  = (h ≫ mW) ≫ i' := by aesop
+    _  = h ≫ mW ≫ i' := by simp
+    _  = h ≫ i ≫ mZ := by aesop
+    _  = (h ≫ i) ≫ mZ := by aesop
 
+theorem pi_naturality_map {x y} (f : x ⟶ y) :
+    Grpd.homOf (piMap A B (σ.map f)) ≫ eqToHom (pi_naturality_obj A B σ y)
+    = eqToHom (pi_naturality_obj A B σ x) ≫ (Grpd.homOf (piMap (σ ⋙ A) (pre A σ ⋙ B) f)) := by
+  apply comm_sq_of_comp_mono (e := Grpd.ι_mono (Grpd.of (_ ⥤ _))
+      (IsSection (sigma.fstAuxObj (Grothendieck.Groupoidal.pre A σ ⋙ B) y)))
+    (Grpd.homOf (piMap A B (σ.map f)))
+    (eqToHom (pi_naturality_obj A B σ x))
+    (eqToHom (pi_naturality_obj A B σ y)) (Grpd.homOf (piMap (σ ⋙ A) (pre A σ ⋙ B) f))
+    (Grpd.homOf (conjugating A (sigma A B) (σ.map f)))
+    (eqToHom (eqToHom_ι_aux A B σ x)) (eqToHom (eqToHom_ι_aux A B σ y))
+    (Grpd.homOf (conjugating (σ ⋙ A) (sigma (σ ⋙ A) (pre A σ ⋙ B)) f))
+    (Grpd.homOf (ObjectProperty.ι _))
+    (Grpd.homOf (ObjectProperty.ι _))
+    (Grpd.homOf (ObjectProperty.ι _))
+    (Grpd.homOf (ObjectProperty.ι _))
+  · rw [eqToHom_conjugating]
+  · rfl
+  · apply eqToHom_ι
+  · apply eqToHom_ι
+  · rfl
 
 theorem pi_naturality : σ ⋙ pi A B = pi (σ ⋙ A) (pre A σ ⋙ B) := by
   fapply CategoryTheory.Functor.ext
   · apply pi_naturality_obj
   · intro x y f
-    symm
-    simp[← Functor.assoc]
-    convert_to
-     (eqToHom (pi_naturality_obj A B Δ σ x) ≫  piMap (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ B) f) ≫
-      eqToHom (pi_naturality_obj A B Δ σ y).symm =
-      piMap A B (σ.map f)
-    rw[CategoryTheory.comp_eqToHom_iff]
-    apply ObjectProperty.ι_mono
-    dsimp[piMap]
-    simp only[Functor.assoc]
-    rw[eqToHom_ι]
-    simp[← Functor.assoc]
-    rw[FunctorOperation.FullSubcategory.lift_comp_inclusion_eq]
-    simp[Functor.assoc]
-    rw[FunctorOperation.FullSubcategory.lift_comp_inclusion_eq]
-    simp[← Functor.assoc]
-    rw[eqToHom_ι]
-    simp[Section.ι]
-    simp[Functor.assoc]
-    congr 1
-    apply funcEqWhisker_conjugating
+    erw [← Category.assoc, ← pi_naturality_map]
+    simp [- Grpd.comp_eq_comp, - Grpd.id_eq_id]
 
 end
 
@@ -574,15 +677,15 @@ variable {Γ : Type*} [Groupoid Γ] {A : Γ ⥤ Grpd} (B : ∫(A) ⥤ Grpd)
 -- NOTE: it seems like we need a 2-categorical version of Grothendieck.map
 -- so the following should be replaced with something like
 -- `secAux : CategoryTheory.Oplax.OplaxTrans A (sigma A B)`
--- def secAux : A ⟶ sigma A B where
---   app x := (PGrpd.objFiber' hf x).obj
---   naturality x y g := by
---     have h : (((pi A B).map g).obj (PGrpd.objFiber' hf x)).obj ⟶ (PGrpd.objFiber' hf y).obj :=
---       PGrpd.mapFiber' hf g
---     simp [piMap_obj_obj] at h
---     simp
+def secAux : A ⟶ sigma A B where
+  app x := (PGrpd.objFiber' hf x).obj
+  naturality x y g := by
+    have h : (((pi A B).map g).obj (PGrpd.objFiber' hf x)).obj ⟶ (PGrpd.objFiber' hf y).obj :=
+      PGrpd.mapFiber' hf g
+    simp [piMap_obj_obj] at h
+    simp
 
---     sorry
+    sorry
 
 -- def secFib (x) : A.obj x ⥤ ∫(sigma A B) := (PGrpd.objFiber' hf x).obj ⋙ ι (sigma A B) x
 
@@ -595,7 +698,7 @@ variable {Γ : Type*} [Groupoid Γ] {A : Γ ⥤ Grpd} (B : ∫(A) ⥤ Grpd)
 
 -- NOTE: this should be defined as something like `Grothendieck.Groupoidal.mapOplax secAux`
 def sec : ∫(A) ⥤ ∫(sigma A B) :=
-  sorry
+  map sorry
   -- have h (x) := (PGrpd.objFiber' hf x).obj
   -- exact functorTo forget (fun x => (h x.base).obj x.fiber) sorry sorry sorry
   -- exact functorFrom (secFib B f hf) (fun {x y} g => sorry) sorry sorry
