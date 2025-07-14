@@ -374,8 +374,6 @@ theorem dependent_eq (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : dependent 
     ym(eqToHom (by rw [fst_tp])) ≫ PtpEquiv.snd M (ab ≫ (M.uvPolyTp.comp _).p) := by
   simp[dependent]
 
-variable (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp)
-#check PtpEquiv.fst M (ab ≫ (M.uvPolyTp.comp _).p)
 /-- Universal property of `compDom`, decomposition (part 3).
 
 A map `ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp` is equivalently three maps
@@ -400,25 +398,15 @@ theorem snd_tp (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : snd N ab ≫ N.t
 /-- Universal property of `compDom`, constructing a map into `compDom`. -/
 def mk (α : y(Γ) ⟶ M.Tm) (B : y(M.ext (α ≫ M.tp)) ⟶ N.Ty) (β : y(Γ) ⟶ N.Tm)
     (h : β ≫ N.tp = ym(M.sec _ α rfl) ≫ B) : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp :=
-  let AB := M.Ptp_equiv.symm ⟨α ≫ M.tp, B⟩
-  pullback.lift
-    β                     -- snd component
-    (pullback.lift
-      AB                  -- first part of dependent pair
-      α                   -- fst component
-      (by simp [AB]; simp [Ptp_equiv_symm_naturality_right]
-
-
-          sorry))  -- proof they agree
-    (by sorry
-
-      -- rw [← h]
-      -- apply M.Ptp_equiv_symm_naturality_right
-      -- simp [AB, sec_var]
-      )
-
-
-
+  sorry
+  -- let AB := M.Ptp_equiv.symm ⟨α ≫ M.tp, B⟩
+  -- pullback.lift
+  --   β                     -- snd component
+  --   (pullback.lift
+  --     AB                  -- first part of dependent pair
+  --     α                   -- fst component
+  --     (by sorry))  -- proof they agree
+  --   (by sorry)
 
 def fst_naturality (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
     fst N (ym(σ) ≫ ab) = ym(σ) ≫ fst N ab := by
