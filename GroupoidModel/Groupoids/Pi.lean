@@ -981,16 +981,6 @@ lemma lamFibObjObj_aux (x):
   · apply ι_pre_forget_aux
   simp[← Grothendieck.Groupoidal.ι_pre,Functor.assoc]
 
-
-
-lemma lamFibObjObjCompSigmaMap_aux {x y} (f: x⟶ y):
- lamFibObjObjCompSigmaMap A β (σ.map f) ≍
-  lamFibObjObjCompSigmaMap (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ β) f := by
-  simp[lamFibObjObjCompSigmaMap]
-  congr!
-
-  sorry
-
 lemma sigmaMap_aux {x y} (f: x⟶ y):
 sigmaMap (β ⋙ PGrpd.forgetToGrpd) (σ.map f) ≍
 sigmaMap (Grothendieck.Groupoidal.pre A σ ⋙ β ⋙ PGrpd.forgetToGrpd) f := by
@@ -999,6 +989,20 @@ sigmaMap (Grothendieck.Groupoidal.pre A σ ⋙ β ⋙ PGrpd.forgetToGrpd) f := b
  any_goals apply ι_pre_forget_aux
  any_goals (simp[Functor.assoc]; congr;apply ι_pre_forget_aux )
  sorry
+
+
+
+lemma lamFibObjObjCompSigmaMap_aux {x y} (f: x⟶ y):
+ lamFibObjObjCompSigmaMap A β (σ.map f) ≍
+  lamFibObjObjCompSigmaMap (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ β) f := by
+  simp[lamFibObjObjCompSigmaMap]
+  congr!
+  any_goals apply ι_pre_forget_aux
+  any_goals apply lamFibObjObj_aux
+  apply sigmaMap_aux
+  sorry
+
+
 
 
 theorem lam_naturality : σ ⋙ lam A β = lam (σ ⋙ A) (pre A σ ⋙ β)
