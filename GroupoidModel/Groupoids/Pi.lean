@@ -275,36 +275,6 @@ lemma eqToHom_eq_homOf_map' {Γ : Type*} [Groupoid Γ] {F G : Γ ⥤ Grpd} (h : 
     -/
 section
 
-variables {C D E F: Type u} [Category.{v,u} C] [Category.{v,u} D] [Category.{v,u} E] [Category F]
-
--- def eqToFuncHom (e1 : C = E) (e2 : D = F) : (C ⥤ D) = (E ⥤ F) := by
-
---   sorry
-
--- lemma cast_id (e: C) (h: C = E): HEq ((h ▸ 𝟙 E) e) (cast h e) := sorry
-
-
--- def eqToFunc (e1 : C = E) : (C ⥤ E) where
---   obj := by
---     simp[e1]
---     exact 𝟙 E
---   map {x y} f:= by
---     simp[cast, CategoryTheory.congrArg_cast_hom_left]
---     apply f
---     sorry
---   map_id := sorry
---   map_comp := sorry
-
--- def eqToFuncHom' (e1 : C = E) (e2 : D = F) : (C ⥤ D) ⥤  (E ⥤ F) :=
---   eqToHom (eqToFuncHom e1 e2)
-
--- theorem comp_eqToHom_iff {X Y Y' : C ⥤ E} (p : Y = Y') (f : X ⟶ Y) (g : X ⟶ Y') :
---     f ⋙ eqToHom p = g ↔ f = g ≫  eqToHom p.symm := sorry
-
-
-
-end
-
 
 
 variable (x y : Δ )
