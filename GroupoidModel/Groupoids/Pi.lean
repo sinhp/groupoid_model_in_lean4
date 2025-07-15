@@ -981,6 +981,9 @@ lemma lamFibObjObj_aux (x):
   · apply ι_pre_forget_aux
   simp[← Grothendieck.Groupoidal.ι_pre,Functor.assoc]
 
+
+#check whiskerRight_ιNatTrans_naturality
+
 lemma sigmaMap_aux {x y} (f: x⟶ y):
 sigmaMap (β ⋙ PGrpd.forgetToGrpd) (σ.map f) ≍
 sigmaMap (Grothendieck.Groupoidal.pre A σ ⋙ β ⋙ PGrpd.forgetToGrpd) f := by
@@ -988,8 +991,15 @@ sigmaMap (Grothendieck.Groupoidal.pre A σ ⋙ β ⋙ PGrpd.forgetToGrpd) f := b
  congr!
  any_goals apply ι_pre_forget_aux
  any_goals (simp[Functor.assoc]; congr;apply ι_pre_forget_aux )
+ rw[whiskerRight_ιNatTrans_naturality]
+ simp
  --whisker subgoal here.
- sorry
+
+lemma lamFibObjObjCompSigmaMap_app {x y} (f: x⟶ y):
+lamFibObjObjCompSigmaMap.app A β (σ.map f) ≍
+  lamFibObjObjCompSigmaMap.app (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ β) f:=
+
+  sorry
 
 
 
@@ -1000,8 +1010,8 @@ lemma lamFibObjObjCompSigmaMap_aux {x y} (f: x⟶ y):
   congr!
   any_goals apply ι_pre_forget_aux
   any_goals apply lamFibObjObj_aux
-  apply sigmaMap_aux
-  sorry
+  · apply sigmaMap_aux
+  · apply lamFibObjObjCompSigmaMap_app
 
 
 
