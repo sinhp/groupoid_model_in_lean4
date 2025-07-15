@@ -696,32 +696,16 @@ lemma lam_comp_forgetToGrpd : lam A β ⋙ PGrpd.forgetToGrpd = pi A (β ⋙ PGr
 --I add here
 
 variable {Δ : Type u₁} [Groupoid.{v₁} Δ] (σ : Δ ⥤ Γ)
-#check lam (σ ⋙ A) (pre A σ ⋙ β)
+
 
 
 theorem lam_naturality_obj (x : Δ) : HEq (lamFibObj A β (σ.obj x) )
     (lamFibObj (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ β) x) := by
-  dsimp[lamFibObj,lamFibObjObj,← Functor.assoc,← Grothendieck.Groupoidal.ι_pre]
-  congr!
-  any_goals simp[← Grothendieck.Groupoidal.ι_pre]
-  dsimp[sigma.fstAuxObj,← Functor.assoc]
-  congr
-  simp[← Grothendieck.Groupoidal.ι_pre]
-
-/-
-
-3 *
-ι A (σ.obj y) ⋙ β ⋙ PGrpd.forgetToGrpd = ι (σ ⋙ A) y ⋙ (Grothendieck.Groupoidal.pre A σ ⋙ β) ⋙ PGrpd.forgetToGrpd
-
-27-8-3 *
-
- (ι (σ ⋙ A) y ⋙ Grothendieck.Groupoidal.pre A σ) ⋙ β ⋙ PGrpd.forgetToGrpd =
-  ι (σ ⋙ A) y ⋙ (Grothendieck.Groupoidal.pre A σ ⋙ β) ⋙ PGrpd.forgetToGrpd
+  simp[lamFibObj,lamFibObjObj,← Functor.assoc,← Grothendieck.Groupoidal.ι_pre,sigma.fstAuxObj]
+  congr!--7
+  all_goals simp[← Grothendieck.Groupoidal.ι_pre]
 
 
-5* lamFibObjObj_aux
-
--/
 
 
 lemma ι_pre_forget_aux (x) :
@@ -732,41 +716,43 @@ lemma ι_pre_forget_aux (x) :
 
 lemma lamFibObjObj_aux (x):
  lamFibObjObj A β (σ.obj x) ≍ lamFibObjObj (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ β) x := by
-  dsimp[lamFibObjObj]
+  simp[lamFibObjObj,← Grothendieck.Groupoidal.ι_pre,Functor.assoc]
   congr!
-  · apply ι_pre_forget_aux
-  simp[← Grothendieck.Groupoidal.ι_pre,Functor.assoc]
 
 
-#check whiskerRight_ιNatTrans_naturality
+
 
 lemma sigmaMap_aux {x y} (f: x⟶ y):
 sigmaMap (β ⋙ PGrpd.forgetToGrpd) (σ.map f) ≍
 sigmaMap (Grothendieck.Groupoidal.pre A σ ⋙ β ⋙ PGrpd.forgetToGrpd) f := by
  dsimp[sigmaMap]
+ rw[whiskerRight_ιNatTrans_naturality]
  congr!
  any_goals apply ι_pre_forget_aux
  any_goals (simp[Functor.assoc]; congr;apply ι_pre_forget_aux )
- rw[whiskerRight_ιNatTrans_naturality]
  simp
 
 
+lemma lamFibObjObjCompSigmaMap_app1 {x y} (f: x⟶ y):
+lamFibObjObjCompSigmaMap.app A β (σ.map f) ≍
+  lamFibObjObjCompSigmaMap.app (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ β) f:= by
+  apply Function.hfunext
+  ·  rfl
+  intro a a' h
+  simp[heq_eq_eq] at h
+  rw[h]
+  dsimp[lamFibObjObjCompSigmaMap.app]
+  congr! --14
+  any_goals apply ι_pre_forget_aux --6
+  any_goals apply lamFibObjObj_aux --2
+  · apply sigmaMap_aux
+  · simp
+    rfl
 
-
--- lemma lamFibObjObjCompSigmaMap_app_eqToHom {x y} (f: x⟶ y):
--- lamFibObjObjCompSigmaMap.app A β (σ.map f) =
---   eqToHom sorry ≫
---   lamFibObjObjCompSigmaMap.app (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ β) f ≫
---   eqToHom sorry
-
---   := by
---   sorry
 
 lemma lamFibObjObjCompSigmaMap_app {x y} (f: x⟶ y):
 lamFibObjObjCompSigmaMap.app A β (σ.map f) ≍
   lamFibObjObjCompSigmaMap.app (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ β) f:= by
-  #check lamFibObjObjCompSigmaMap.app A β (σ.map f)
-  #check lamFibObjObjCompSigmaMap.app (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ β) f
   apply Function.hfunext
   ·  rfl
   intro a a' h
@@ -781,8 +767,6 @@ lamFibObjObjCompSigmaMap.app A β (σ.map f) ≍
     rfl
 
 
-
-
 lemma lamFibObjObjCompSigmaMap_aux {x y} (f: x⟶ y):
  lamFibObjObjCompSigmaMap A β (σ.map f) ≍
   lamFibObjObjCompSigmaMap (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ β) f := by
@@ -791,10 +775,7 @@ lemma lamFibObjObjCompSigmaMap_aux {x y} (f: x⟶ y):
   any_goals apply ι_pre_forget_aux
   any_goals apply lamFibObjObj_aux
   · apply sigmaMap_aux
-  ·
-    apply lamFibObjObjCompSigmaMap_app
-
-
+  · apply lamFibObjObjCompSigmaMap_app
 
 
 
@@ -806,8 +787,7 @@ theorem lam_naturality : σ ⋙ lam A β = lam (σ ⋙ A) (pre A σ ⋙ β)
     simp[lam]
     apply lam_naturality_obj
   · intro x y f
-    simp[lam,lamFibMap]
-    simp[lamFibObj,whiskerLeftInvLamObjObjSigmaMap]
+    simp[lam,lamFibMap,lamFibObj,whiskerLeftInvLamObjObjSigmaMap]
     congr!
     any_goals simp[← Grothendieck.Groupoidal.ι_pre]
     any_goals simp[Functor.assoc]
@@ -816,7 +796,7 @@ theorem lam_naturality : σ ⋙ lam A β = lam (σ ⋙ A) (pre A σ ⋙ β)
     apply lamFibObjObjCompSigmaMap_aux
 
 
---add end here
+
 end
 end
 
