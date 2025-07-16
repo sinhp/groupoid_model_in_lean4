@@ -27,7 +27,7 @@ For a point `x : Γ`, `(sigma A B).obj x` is the groupoidal Grothendieck
   construction on the composition
   `ι _ x ⋙ B : A.obj x ⥤ Groupoidal A ⥤ Grpd`
 -/
-@[simp, reducible] def sigmaObj := ∫(ι A x ⋙ B)
+def sigmaObj : Grpd := Grpd.of ∫(ι A x ⋙ B)
 
 variable {x} {y : Γ} (f : x ⟶ y)
 /--
@@ -107,10 +107,10 @@ variable {B}
       _ = eqToHom (by simp) := by
         simp
   have h1 : B.map ((ι A x).map (eqToHom hp2).base) = eqToHom (by simp) := by
-    simp [eqToHom_base]
+    simp [sigmaObj, eqToHom_base]
   fapply Grothendieck.Groupoidal.ext
-  · simp [sigmaMap]
-  · simp [sigmaMap_map_fiber, Functor.congr_hom (h p2.base) f.fiber,
+  · simp [sigmaObj, sigmaMap]
+  · simp [sigmaObj, sigmaMap_map_fiber, Functor.congr_hom (h p2.base) f.fiber,
       Functor.congr_hom h1]
 
 @[simp] theorem sigmaMap_id : sigmaMap B (𝟙 x) = 𝟭 _ := by
@@ -144,15 +144,16 @@ variable {z : Γ} {f} {g : y ⟶ z}
     ≫ eqToHom (by simp) := by simp
   -- dsimp only [sigmaMap]
   fapply Grothendieck.Groupoidal.hext
-  · simp only [sigmaObj, sigmaMap_map_base, Grpd.map_comp_map, comp_base, eqToHom_base]
+  · simp only [sigmaObj, Grpd.coe_of, sigmaMap_obj_base, sigmaMap_map_base, Grpd.map_comp_map,
+      comp_base, eqToHom_base]
   · have h3 : (ι A z ⋙ B).map (eqToHom h2).base
         = eqToHom (by simp only [sigmaMap, Functor.comp_obj]; congr 3) := by
       rw [eqToHom_base, eqToHom_map]
-    simp only [sigmaObj, Functor.comp_obj, sigmaMap_map_base, Functor.comp_map, sigmaMap_map_fiber,
-      sigmaMap_obj_fiber, Functor.congr_hom h, Grpd.comp_eq_comp, eqToHom_trans_assoc, comp_base,
-      Grothendieck.Groupoidal.comp_fiber, Grothendieck.Groupoidal.eqToHom_fiber, sigmaMap_obj_base,
-      eqToHom_map, Functor.map_comp, Category.assoc, heq_eqToHom_comp_iff, heq_comp_eqToHom_iff,
-      eqToHom_comp_heq_iff, comp_eqToHom_heq_iff]
+    simp only [sigmaObj, Grpd.coe_of, sigmaMap_obj_base, Functor.comp_obj, sigmaMap_map_base,
+      Functor.comp_map, sigmaMap_obj_fiber, sigmaMap_map_fiber, Functor.congr_hom h,
+      Grpd.comp_eq_comp, eqToHom_trans_assoc, comp_base, Grothendieck.Groupoidal.comp_fiber,
+      Grothendieck.Groupoidal.eqToHom_fiber, eqToHom_map, Functor.map_comp, Category.assoc,
+      heq_eqToHom_comp_iff, heq_comp_eqToHom_iff, eqToHom_comp_heq_iff, comp_eqToHom_heq_iff]
     rw! [Functor.congr_hom h3]
     simp only [sigmaObj, Functor.comp_obj, Functor.comp_map, heq_eqToHom_comp_iff,
       heq_comp_eqToHom_iff, heq_eq_eq]
@@ -173,7 +174,7 @@ lemma sigmaMap_forget : sigmaMap B f ⋙ forget = forget ⋙ A.map f := rfl
 @[simps] def sigma (A : Γ ⥤ Grpd.{v₁,u₁})
     (B : ∫(A) ⥤ Grpd.{v₁,u₁}) : Γ ⥤ Grpd.{v₁,u₁} where
   -- NOTE using Grpd.of here instead of earlier speeds things up
-  obj x := Grpd.of $ sigmaObj B x
+  obj x := sigmaObj B x
   map := sigmaMap B
   map_id _ := sigmaMap_id
   map_comp _ _ := sigmaMap_comp
@@ -196,14 +197,18 @@ lemma whiskerRight_ιNatTrans_naturality {x y : Δ} (f : x ⟶ y) :
   dsimp[ιNatTrans, Grothendieck.ιNatTrans, Grothendieck.Groupoidal.pre]
   aesop
 
-theorem sigma_naturality_obj (x) :
+lemma sigma_naturality_obj (x) :
     Grpd.of ∫(ι A (σ.obj x) ⋙ B)
     = Grpd.of ∫(ι (σ ⋙ A) x ⋙ Grothendieck.Groupoidal.pre A σ ⋙ B) := by
   rw [sigma_naturality_aux]
 
-lemma sigma_naturality_map {x y : Δ} (f : x ⟶ y) : sigmaMap B (σ.map f)
+lemma sigmaObj_naturality (x) :
+    sigmaObj B (σ.obj x) = sigmaObj (pre A σ ⋙ B) x :=
+  sigma_naturality_obj _ _ _
+
+lemma sigmaMap_naturality {x y : Δ} (f : x ⟶ y) : sigmaMap B (σ.map f)
     = Grpd.homOf (map (eqToHom (sigma_naturality_aux B σ x).symm)) ≫
-    (sigma (σ ⋙ A) (Grothendieck.Groupoidal.pre A σ ⋙ B)).map f ≫
+    sigmaMap (pre A σ ⋙ B) f ≫
     Grpd.homOf (map (eqToHom (sigma_naturality_aux B σ y))) := by
   have : pre (ι A (σ.obj y) ⋙ B) (A.map (σ.map f))
       = map (eqToHom (by rw[← (sigma_naturality_aux B σ y)]))
@@ -214,14 +219,21 @@ lemma sigma_naturality_map {x y : Δ} (f : x ⟶ y) : sigmaMap B (σ.map f)
   rw [← Grothendieck.Groupoidal.map_comp_eq, whiskerRight_ιNatTrans_naturality]
   simp [Grothendieck.Groupoidal.map_comp_eq, this, Functor.assoc]
 
+lemma sigmaMap_naturality_heq {x y : Δ} (f : x ⟶ y) : sigmaMap B (σ.map f)
+    ≍ sigmaMap (pre A σ ⋙ B) f := by
+  rw [sigmaMap_naturality]
+  simp only [sigmaObj, Functor.comp_obj, Grpd.homOf,
+    ← eqToHom_eq_homOf_map (sigma_naturality_aux B σ x).symm,
+    ← eqToHom_eq_homOf_map (sigma_naturality_aux B σ y)]
+  apply HEq.trans (eqToHom_comp_heq _ _)
+  apply HEq.trans (comp_eqToHom_heq _ _)
+  rfl
+
 -- NOTE formerly called `sigmaBeckChevalley`
 theorem sigma_naturality : σ ⋙ sigma A B = sigma (σ ⋙ A) (pre A σ ⋙ B) := by
-  fapply CategoryTheory.Functor.ext
-  . apply sigma_naturality_obj
-  . intros x y f
-    rw [eqToHom_eq_homOf_map (sigma_naturality_aux B σ x).symm,
-      eqToHom_eq_homOf_map (sigma_naturality_aux B σ y)]
-    apply sigma_naturality_map
+  fapply CategoryTheory.Functor.hext
+  . apply sigmaObj_naturality
+  . apply sigmaMap_naturality_heq
 
 end
 
@@ -246,8 +258,7 @@ theorem pairSectionMap_aux_aux {x y} (f : x ⟶ y) :
     ≫ (ι _ y).map (mapFiber α f)
     = (sec _ α rfl).map f := by
   apply Grothendieck.Groupoidal.ext
-  · simp only [
-      Grothendieck.Groupoidal.comp_fiber, ιNatTrans_app_fiber, ι_obj_fiber, ι_map_fiber,
+  · simp only [Grothendieck.Groupoidal.comp_fiber, ιNatTrans_app_fiber, ι_obj_fiber, ι_map_fiber,
       eqToHom_trans_assoc, sec_map_fiber, mapFiber', mapFiber]
     rw! [CategoryTheory.Functor.map_id]
     simp only [Grpd.id_eq_id, Functor.id_obj, eqToHom_refl, Functor.id_map,
@@ -318,7 +329,7 @@ def pairMapFiber {x y : Γ} (f : x ⟶ y) : (sigmaMap B f).obj (pairObjFiber h x
   rfl
 
 theorem pairMapFiber_id (x : Γ) : pairMapFiber h (𝟙 x) = eqToHom (by simp) := by
-  apply Grothendieck.Groupoidal.ext <;> simp
+  apply Grothendieck.Groupoidal.ext <;> simp [sigmaObj]
 
 theorem pairMapFiber_comp_aux_aux {x y z} (f : x ⟶ y) (g : y ⟶ z) :
     ((ι _ z ⋙ B).map (mapFiber α g)).obj
@@ -357,7 +368,7 @@ theorem pairMapFiber_comp {x y z : Γ} (f : x ⟶ y) (g : y ⟶ z) :
     (pairMapFiber h (f ≫ g)) = eqToHom (by simp)
     ≫ (((sigma (α ⋙ forgetToGrpd) B).map g).map (pairMapFiber h f) ≫ pairMapFiber h g) := by
   fapply Grothendieck.Groupoidal.ext
-  · simp [- Functor.comp_obj, mapFiber] -- FIXME
+  · simp [sigmaObj, - Functor.comp_obj, mapFiber] -- FIXME
   · rw! [pairMapFiber_fiber, Grothendieck.Groupoidal.comp_fiber, Grothendieck.Groupoidal.comp_fiber,
       Grothendieck.Groupoidal.eqToHom_fiber, eqToHom_map, pairMapFiber_comp_aux,
       Functor.congr_hom (Functor.congr_hom h.symm g) (mapFiber' h f), mapFiber'_comp]
@@ -610,8 +621,8 @@ end
 
 section
 
-variable {Γ : Type*} [Category Γ] {A : Γ ⥤ Grpd} (B : ∫(A) ⥤ Grpd)
-  (αβ : Γ ⥤ PGrpd) (hαβ : αβ ⋙ forgetToGrpd = sigma A B)
+variable {Γ : Type u₂} [Category.{v₂} Γ] {A : Γ ⥤ Grpd.{v₁,u₁}} (B : ∫(A) ⥤ Grpd.{v₁,u₁})
+  (αβ : Γ ⥤ PGrpd.{v₁,u₁}) (hαβ : αβ ⋙ forgetToGrpd = sigma A B)
 
 /--  Let `Γ` be a category.
 For any pair of functors `A : Γ ⥤ Grpd` and `B : ∫(A) ⥤ Grpd`,
@@ -635,8 +646,8 @@ def fst' : Γ ⥤ PGrpd := sec (sigma A B) αβ hαβ ⋙ fst B
 end
 
 section
-variable {Γ : Type*} [Groupoid Γ] {A : Γ ⥤ Grpd} (B : ∫(A) ⥤ Grpd)
-  (αβ : Γ ⥤ PGrpd) (hαβ : αβ ⋙ forgetToGrpd = sigma A B)
+variable {Γ : Type u₂} [Groupoid.{v₂} Γ] {A : Γ ⥤ Grpd.{v₁,u₁}} (B : ∫(A) ⥤ Grpd.{v₁,u₁})
+  (αβ : Γ ⥤ PGrpd.{v₁,u₁}) (hαβ : αβ ⋙ forgetToGrpd = sigma A B)
 
 @[inherit_doc fst'] def snd' : Γ ⥤ PGrpd := sec (sigma A B) αβ hαβ ⋙ snd B
 
@@ -774,7 +785,7 @@ theorem eta : pair (fst' B αβ hαβ) (snd' B αβ hαβ)
 end
 
 section
-variable {Γ : Type*} [Groupoid Γ] {α β : Γ ⥤ PGrpd.{v₁,u₁}}
+variable {Γ : Type u₂} [Groupoid.{v₂} Γ] {α β : Γ ⥤ PGrpd.{v₁,u₁}}
   {B : ∫(α ⋙ forgetToGrpd) ⥤ Grpd.{v₁,u₁}} (h : β ⋙ forgetToGrpd = sec _ α rfl ⋙ B)
 
 @[simp] theorem fst'_pair : fst' B (pair α β B h) (pair_comp_forgetToGrpd _) = α := by
@@ -798,7 +809,7 @@ variable {Γ : Type*} [Groupoid Γ] {α β : Γ ⥤ PGrpd.{v₁,u₁}}
   · intro x y f
     simp only [snd'_map_fiber]
     apply (eqToHom_comp_heq _ _).trans
-    simp only [objFiber'_rfl, sigma_obj, Grpd.coe_of, mapFiber', eqToHom_refl,
+    simp only [sigmaObj, objFiber'_rfl, sigma_obj, Grpd.coe_of, mapFiber', eqToHom_refl,
       Grpd.id_eq_id, mapFiber'EqToHom, pair_map_fiber, Functor.id_map,
       Grothendieck.Groupoidal.comp_fiber, Grothendieck.Groupoidal.id_fiber, eqToHom_map]
     apply (eqToHom_comp_heq _ _).trans
