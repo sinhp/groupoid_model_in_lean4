@@ -358,21 +358,6 @@ def dependent (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
     y(M.ext (fst N ab ≫ M.tp)) ⟶ N.Ty :=
   ym(eqToHom (by rw [fst_tp])) ≫ PtpEquiv.snd M (ab ≫ (M.uvPolyTp.comp _).p)
 
-/-- Computation of `comp` (part 2).
-
-`dependent_eq` is (part 2) of the computation that
-      (α, B, β, h)
-     Γ ⟶ compDom
-      \        |
-       \       | comp
-(α ≫ tp, B)    |
-         \     V
-           >  P_tp Ty
-Namely the second projection `B` agrees.
--/
-theorem dependent_eq (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : dependent N ab =
-    ym(eqToHom (by rw [fst_tp])) ≫ PtpEquiv.snd M (ab ≫ (M.uvPolyTp.comp _).p) := by
-  simp[dependent]
 
 /-- Universal property of `compDom`, decomposition (part 3).
 
