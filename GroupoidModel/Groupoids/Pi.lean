@@ -813,6 +813,9 @@ namespace smallUPi
 
 def Pi_app (AB : y(Γ) ⟶ smallU.{v}.Ptp.obj smallU.{v}.Ty) :
     y(Γ) ⟶ smallU.{v}.Ty :=
+  --by
+  --#check (smallU.PtpEquiv.fst AB)
+ -- #check (smallU.PtpEquiv.snd AB)
   yonedaCategoryEquiv.symm (pi _ (smallU.PtpEquiv.snd AB))
 
 def Pi_naturality {Δ Γ} (f : Δ ⟶ Γ) (α : y(Γ) ⟶ smallU.Ptp.obj smallU.Ty) :
@@ -852,8 +855,34 @@ lemma lam_app_eq {Γ : Ctx} (ab : y(Γ) ⟶ smallU.Ptp.obj smallU.Tm) : ab ≫ l
     yonedaCategoryEquiv.symm (FunctorOperation.lam _ (smallU.PtpEquiv.snd ab)) := by
   rw [lam, NatTrans.yonedaMk_app, lam_app]
 
+
+/-lemma smallUSigma.pair_app_eq {Γ : Ctx} (ab : y(Γ) ⟶ _) : ab ≫ smallUSigma.pair =
+    yonedaCategoryEquiv.symm (FunctorOperation.pair _ _ _ (snd_forgetToGrpd ab)) := by
+  simp only [smallUSigma.pair, smallUSigma.pair_app, NatTrans.yonedaMk_app]
+
+namespace SigmaPullback
+
+open Limits
+
+section
+
+theorem smallUSigma.pair_tp : smallUSigma.pair.{v} ≫ smallU.{v}.tp =
+    smallU.comp.{v} ≫ smallUSigma.Sig.{v} := by
+  apply hom_ext_yoneda
+  intros Γ ab
+  rw [← Category.assoc, ← Category.assoc, smallUSigma.pair_app_eq,
+    smallUSigma.Sig_app_eq, smallU_tp, π,
+    ← yonedaCategoryEquiv_symm_naturality_right,
+    pair_comp_forgetToGrpd, smallUSigma.Sig_app]
+  congr 2
+  · rw [fst_forgetToGrpd]
+  · exact dependent_heq.{v} ab
+-/
+
 lemma smallU.PtpEquiv.fst_app_comp_map_tp {Γ : Ctx} (ab : y(Γ) ⟶ smallU.Ptp.obj smallU.Tm) :
-    smallU.PtpEquiv.fst (ab ≫ smallU.Ptp.map smallU.tp) = smallU.PtpEquiv.fst ab :=
+    smallU.PtpEquiv.fst (ab ≫ smallU.Ptp.map smallU.tp) = smallU.PtpEquiv.fst ab := by
+  dsimp[fst]
+  --erw[fst_naturality]
   sorry
 
 lemma smallU.PtpEquiv.snd_app_comp_map_tp {Γ : Ctx} (ab : y(Γ) ⟶ smallU.Ptp.obj smallU.Tm) :
@@ -922,6 +951,66 @@ def lift : y(Γ) ⟶ smallU.Ptp.obj.{v} smallU.Tm.{v} :=
 --   · rw [hmαβ, fac_left]
 
 end
+
+
+
+theorem hom_ext (m n : y(Γ) ⟶ smallU.Ptp.obj smallU.Tm)
+    (hMap : m ≫ smallU.Ptp.map smallU.tp = n ≫ smallU.Ptp.map smallU.tp)
+    (hLam : m ≫ lam = n ≫ lam) : m = n := by
+    sorry
+  -- have h : (pair (fst m) (snd m) (dependent m)
+  --       (snd_forgetToGrpd m)) =
+  --     (pair (fst n) (snd n) (dependent n)
+  --       (snd_forgetToGrpd n)) :=
+  --     calc _
+  --       _ = yonedaCategoryEquiv (m ≫ smallUSigma.pair) := by
+  --         simp [smallUSigma.pair_app_eq m]
+  --       _ = yonedaCategoryEquiv (n ≫ smallUSigma.pair) := by rw [hPair]
+  --       _ = _ := by
+  --         simp [smallUSigma.pair_app_eq n]
+  -- have hdep : HEq (dependent m) (dependent n) := by
+  --   refine (dependent_heq _).trans
+  --     $ HEq.trans ?_ $ (dependent_heq _).symm
+  --   rw [hComp]
+  -- have : fst m ⋙ forgetToGrpd = fst n ⋙ forgetToGrpd := by
+  --   rw [fst_forgetToGrpd, fst_forgetToGrpd, hComp]
+  -- apply smallU.compDom.hext
+  -- · calc fst m
+  --     _ = sigma.fst' _ (FunctorOperation.pair (fst m) (snd m)
+  --       (dependent m) (snd_forgetToGrpd m)) _ :=
+  --         (sigma.fst'_pair _).symm
+  --     _ = sigma.fst' _ (FunctorOperation.pair (fst n) (snd n)
+  --       (dependent n) (snd_forgetToGrpd n)) _ := by
+  --         rw! [h]
+  --         congr!
+  --     _ = fst n := sigma.fst'_pair _
+  -- · exact hdep
+  -- · calc snd m
+  --     _ = sigma.snd' _ (FunctorOperation.pair (fst m) (snd m)
+  --       (dependent m) (snd_forgetToGrpd m)) _ :=
+  --         (sigma.snd'_pair _).symm
+  --     _ = sigma.snd' _ (FunctorOperation.pair (fst n) (snd n)
+  --       (dependent n) (snd_forgetToGrpd n)) _ := by
+  --         rw! [h]
+  --         congr!
+  --     _ = snd n := sigma.snd'_pair _
+
+-- theorem uniq (m : y(Γ) ⟶ smallU.compDom)
+--     (hmAB : m ≫ smallU.comp = AB) (hmαβ : m ≫ smallUSigma.pair = αβ) :
+--     m = lift AB αβ hαβ := by
+--   apply hom_ext
+--   · rw [hmAB, fac_right]
+--   · rw [hmαβ, fac_left]
+
+theorem isPullback_unique
+ (s : Limits.RepPullbackCone smallU.tp Pi)
+ (m1 m2 : y(s.pt) ⟶ smallU.Ptp.obj smallU.Tm)
+ (lm1 : m1 ≫ lam = s.fst) (mm1: m1 ≫ smallU.Ptp.map smallU.tp = s.snd)
+ (lm2 : m2 ≫ lam = s.fst) (mm2: m2 ≫ smallU.Ptp.map smallU.tp = s.snd)
+ : m1 = m2:= by
+
+  sorry
+
 theorem isPullback : IsPullback lam.{v,u} (smallU.Ptp.{v,u}.map smallU.tp)
     smallU.{v, u}.tp Pi.{v, u} :=
   Limits.RepPullbackCone.is_pullback lam_tp
