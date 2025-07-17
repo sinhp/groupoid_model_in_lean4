@@ -334,8 +334,8 @@ theorem fst_forgetToGrpd : fst ab ⋙ PGrpd.forgetToGrpd =
 
 theorem dependent_eq : dependent ab =
     map (eqToHom (fst_forgetToGrpd ab)) ⋙ smallU.PtpEquiv.snd (ab ≫ comp.{v}) := by
-  dsimp only [dependent, smallU.PtpEquiv.snd]
-  rw [NaturalModelBase.compDomEquiv.dependent_eq smallU ab, yonedaCategoryEquiv_naturality_left,
+  dsimp only [dependent, smallU.PtpEquiv.snd, NaturalModelBase.compDomEquiv.dependent]
+  rw [yonedaCategoryEquiv_naturality_left,
     eqToHom_map, eqToHom_eq_homOf_map]
   rfl
 
