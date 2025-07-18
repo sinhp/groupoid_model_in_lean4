@@ -698,7 +698,7 @@ theorem hext {X Y : Grothendieck F} (f g : Hom X Y) (w_base : f.base = g.base)
   cases f; cases g
   congr
 
-section
+section functorTo
 variable {C : Type u} [Category.{v} C] {D : Type u₁} [Category.{v₁} D]
 variable {F : C ⥤ Cat.{v₂, u₂}} (A : D ⥤ C) (fibObj : Π (x : D), (A ⋙ F).obj x)
     (fibMap : Π {x y : D} (f : x ⟶ y),
@@ -798,7 +798,7 @@ variable {A} {fibObj} {fibMap} {map_id} {map_comp}
 @[simp] theorem functorTo'_forget :
     functorTo' _ _ _ map_id map_comp ⋙ Grothendieck.forget _ = A :=
   rfl
-end
+end functorTo
 
 end Grothendieck
 
