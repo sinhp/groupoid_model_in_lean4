@@ -672,7 +672,7 @@ theorem ι_fst'_forgetToGrpd_comp_dependent' (x) :
 
 theorem pairObjFiber_snd'_eq (x : Γ) : pairObjFiber (snd'_forgetToGrpd B αβ hαβ) x =
     objMk (objFiber' hαβ x).base (objFiber' (snd'_forgetToGrpd B αβ hαβ) x) := by
-  apply obj_hext
+  apply hext
   · rw [pairObjFiber_base]
     simp [objFiber, fst'_obj_fiber]
   · rw [pairObjFiber_fiber]
@@ -682,7 +682,7 @@ theorem pairObjFiber_snd'_heq (x : Γ) : HEq (pairObjFiber (snd'_forgetToGrpd B 
     (αβ.obj x).fiber := by
   rw [pairObjFiber_snd'_eq]
   apply @HEq.trans _ _ _ _ ((objFiber'EqToHom hαβ x).obj (αβ.obj x).fiber) _ ?_ ?_
-  · apply obj_hext'
+  · apply hext'
     · apply ι_fst'_forgetToGrpd_comp_dependent'
     · rfl
     · rfl
@@ -693,7 +693,7 @@ theorem pairMapFiber_snd'_eq {x y} (f : x ⟶ y) :
     = homMk (mapFiber (fst' B αβ hαβ) f)
       (eqToHom (pairMapFiber_aux (snd'_forgetToGrpd B αβ hαβ) f)
         ≫ mapFiber' (snd'_forgetToGrpd B αβ hαβ) f) := by
-  apply hext
+  apply Hom.hext
   · simp
   · simp
 
@@ -730,7 +730,7 @@ theorem pairMapFiber_snd'_heq {x y} (f : x ⟶ y) : HEq (pairMapFiber (snd'_forg
     (αβ.map f).fiber := by
   rw [pairMapFiber_snd'_eq]
   apply @HEq.trans _ _ _ _ ((objFiber'EqToHom hαβ y).map (αβ.map f).fiber) _ ?_ ?_
-  · apply hext'
+  · apply Hom.hext'
     · apply ι_fst'_forgetToGrpd_comp_dependent'
     · apply pairMapFiber_snd'_heq_src_heq
     · rw [Grpd.eqToHom_obj, heq_cast_iff_heq]

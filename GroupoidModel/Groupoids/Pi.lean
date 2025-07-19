@@ -36,29 +36,9 @@ end ForOther
 -- NOTE content for this doc starts here
 namespace GroupoidModel
 
-open CategoryTheory NaturalModelBase Opposite Grothendieck.Groupoidal  Groupoid
+open CategoryTheory NaturalModelBase Opposite Functor.Groupoidal
 
 attribute [local simp] eqToHom_map Grpd.id_eq_id Grpd.comp_eq_comp Functor.id_comp Functor.comp_id
-
-
--- @yiming can we remove this?
-/-
-   Uncomment this to see the the flow of organizing Conjugation into the Conjugating functor.
-   def Conjugating0 {Γ : Grpd.{v,u}} (A B : Γ ⥤ Grpd.{u₁,u₁})
-    {x y: Γ } (f: x ⟶ y) : (A.obj x⥤ B.obj x) ⥤ (A.obj y⥤ B.obj y) :=
-     let wr : B.obj x ⥤ B.obj y := B.map f
-     let wl : A.obj y ⥤ A.obj x := A.map (Groupoid.inv f)
-     let f1_ty : (A.obj y ⥤ A.obj x) ⥤ ((A.obj x) ⥤ (B.obj x)) ⥤ (A.obj y) ⥤  (B.obj x) :=
-       whiskeringLeft (A.obj y) (A.obj x) (B.obj x)
-     let f1 : ((A.obj x) ⥤ (B.obj x)) ⥤ (A.obj y) ⥤  (B.obj x) :=
-       (whiskeringLeft (A.obj y) (A.obj x) (B.obj x)).obj (A.map (Groupoid.inv f))
-     let f2_ty :  ((B.obj x) ⥤ (B.obj y)) ⥤ (A.obj y ⥤ B.obj x) ⥤ (A.obj y) ⥤  (B.obj y) :=
-       whiskeringRight (A.obj y) (B.obj x) (B.obj y)
-     let f2 : (A.obj y ⥤ B.obj x) ⥤ (A.obj y) ⥤  (B.obj y) :=
-       (whiskeringRight (A.obj y) (B.obj x) (B.obj y)).obj (B.map f)
-     let f3 := f1 ⋙ f2
-     f3
--/
 
 namespace FunctorOperation
 section
@@ -277,7 +257,7 @@ lemma lamFibObjObjCompSigmaMap.naturality {x y : Γ} (f : x ⟶ y) {a1 a2 : A.ob
     ≫ lamFibObjObjCompSigmaMap.app A β f a2 =
     lamFibObjObjCompSigmaMap.app A β f a1
     ≫ (A.map f ⋙ lamFibObjObj A β y).map h := by
-  apply Grothendieck.Groupoidal.hext
+  apply Hom.hext
   · simp
   · have β_ιNatTrans_naturality : β.map ((ι A x).map h) ≫ β.map ((ιNatTrans f).app a2)
         = β.map ((ιNatTrans f).app a1) ≫ β.map ((A.map f ⋙ ι A y).map h) := by
@@ -286,7 +266,7 @@ lemma lamFibObjObjCompSigmaMap.naturality {x y : Γ} (f : x ⟶ y) {a1 a2 : A.ob
         ≫ (β.map ((ιNatTrans f).app a2)).fiber ≍
         (β.map ((ι A y).map ((A.map f).map h))).base.map (β.map ((ιNatTrans f).app a1)).fiber
         ≫ (β.map ((ι A y).map ((A.map f).map h))).fiber := by
-      simpa [← heq_eq_eq] using Grothendieck.congr β_ιNatTrans_naturality
+      simpa [← heq_eq_eq] using Grothendieck.Hom.congr β_ιNatTrans_naturality
     simp only [Functor.comp_obj, sigmaMap_obj_base, Functor.comp_map, comp_base, sigmaMap_map_base,
       comp_fiber, sigmaMap_map_fiber, lamFibObjObj_map_fiber, Functor.map_comp, eqToHom_map,
       app_fiber_eq, Category.assoc, heq_eqToHom_comp_iff, eqToHom_comp_heq_iff]
@@ -300,33 +280,36 @@ lemma lamFibObjObjCompSigmaMap.naturality {x y : Γ} (f : x ⟶ y) {a1 a2 : A.ob
 
 @[simp] lemma lamFibObjObjCompSigmaMap.app_id (a) : lamFibObjObjCompSigmaMap.app A β (𝟙 x) a
     = eqToHom (by simp) := by
-  apply Grothendieck.Groupoidal.hext
+  apply Hom.hext
   · simp
   · simp [app]
     rw! (castMode := .all) [ιNatTrans_id_app]
-    simp only [Grothendieck.congr (eqToHom_map β _), Grothendieck.fiber_eqToHom, eqToHom_trans]
+    simp [Grothendieck.Hom.congr (eqToHom_map β _), Functor.Grothendieck.fiber_eqToHom,
+      eqToHom_trans]
     apply (eqToHom_heq_id_cod _ _ _).trans (eqToHom_heq_id_cod _ _ _).symm
 
 lemma lamFibObjObjCompSigmaMap.app_comp {x y z : Γ} (f : x ⟶ y) (g : y ⟶ z) (a) :
-    lamFibObjObjCompSigmaMap.app A β (f ≫ g) a
+    app A β (f ≫ g) a
     = eqToHom (by simp)
     ≫ (sigmaMap (β ⋙ PGrpd.forgetToGrpd) g).map (app A β f a)
     ≫ app A β g ((A.map f).obj a) ≫ eqToHom (by simp) := by
-  fapply Grothendieck.Groupoidal.ext
+  fapply Hom.ext
   · simp
   · have h : (β.map ((ιNatTrans (f ≫ g)).app a)) = β.map ((ιNatTrans f).app a)
       ≫ β.map ((ιNatTrans g).app ((A.map f).obj a))
       ≫ eqToHom (by simp) := by
       simp [ιNatTrans_comp_app]
-    simp only [Grpd.forgetToCat.eq_1, comp_obj, Grothendieck.forget_obj, sigmaObj,
-      sigmaMap_obj_base, app, Functor.comp_map, Grothendieck.forget_map, sigmaMap_obj_fiber,
-      Cat.of_α, id_eq, comp_base, sigmaMap_map_base, homMk_base, homMk_fiber, Grothendieck.congr h,
-      Grothendieck.comp_base, Grpd.comp_eq_comp, Grothendieck.comp_fiber, eqToHom_refl,
-      Grothendieck.fiber_eqToHom, Category.id_comp, eqToHom_trans_assoc, comp_fiber, eqToHom_fiber,
-      eqToHom_map, sigmaMap_map_fiber, map_comp, Category.assoc]
-    rw! [Grothendieck.eqToHom_base, Category.id_comp, eqToHom_base, eqToHom_base, eqToHom_map,
-      eqToHom_map, eqToHom_map, Grothendieck.eqToHom_base]
-    aesop_cat
+    simp only [Grpd.forgetToCat.eq_1, comp_obj, sigmaObj, sigmaMap_obj_base, app, Functor.comp_map,
+      sigmaMap_obj_fiber, Cat.of_α, id_eq, homMk_base, homMk_fiber, Grothendieck.Hom.congr h,
+      Grothendieck.Hom.comp_base, Grpd.comp_eq_comp, Grothendieck.Hom.comp_fiber, eqToHom_refl,
+      Functor.Grothendieck.fiber_eqToHom, Category.id_comp, eqToHom_trans_assoc, comp_base,
+      sigmaMap_map_base, comp_fiber, fiber_eqToHom, eqToHom_map, sigmaMap_map_fiber, map_comp,
+      Category.assoc]
+    -- rw! [Functor.Grothendieck.base_eqToHom, Category.id_comp, base_eqToHom,
+    --   eqToHom_map, eqToHom_map, eqToHom_map, eqToHom_map, eqToHom_map]
+    -- simp
+    -- aesop_cat
+    sorry-- FIXME: broken in Pseudofunctor.Grothendieck refactor
 
 /-
 a ---h---> a' in A.obj x
@@ -393,21 +376,22 @@ lemma whiskerLeftInvLamObjObjSigmaMap_comp {x y z} (f : x ⟶ y) (g : y ⟶ z) :
     ≫ whiskerRight (whiskerLeft (A.map (CategoryTheory.inv g)) (whiskerLeftInvLamObjObjSigmaMap A β f))
       (sigmaMap (β ⋙ PGrpd.forgetToGrpd) g)
     ≫ whiskerLeftInvLamObjObjSigmaMap A β g := by
-  simp only [whiskerLeftInvLamObjObjSigmaMap, lamFibObjObjCompSigmaMap_comp]
-  rw! [Functor.map_inv, Functor.map_inv, Functor.map_inv,
-    Functor.map_comp, IsIso.inv_comp]
-  ext
-  simp only [Grpd.forgetToCat.eq_1, sigmaObj, Grpd.comp_eq_comp, comp_obj, eqToHom_refl,
-    Category.comp_id, whiskerLeft_comp, whiskerLeft_eqToHom, whiskerLeft_twice, Category.assoc,
-    NatTrans.comp_app, eqToHom_app, whiskerLeft_app, whiskerRight_app, associator_inv_app,
-    associator_hom_app, Category.id_comp, whiskerRight_comp, eqToHom_whiskerRight, map_id]
-  congr 2
-  simp only [← comp_obj, Functor.assoc]
-  simp only [← Grpd.comp_eq_comp]
-  rw! (castMode := .all) [IsIso.inv_hom_id]
-  apply eq_of_heq
-  simp [- heq_eq_eq]
-  rfl
+  sorry --FIXME broken in Pseudofunctor.Grothendieck refactor
+  -- simp only [whiskerLeftInvLamObjObjSigmaMap, lamFibObjObjCompSigmaMap_comp]
+  -- rw! [Functor.map_inv, Functor.map_inv, Functor.map_inv,
+  --   Functor.map_comp, IsIso.inv_comp]
+  -- ext
+  -- simp only [Grpd.forgetToCat.eq_1, sigmaObj, Grpd.comp_eq_comp, comp_obj, eqToHom_refl,
+  --   Category.comp_id, whiskerLeft_comp, whiskerLeft_eqToHom, whiskerLeft_twice, Category.assoc,
+  --   NatTrans.comp_app, eqToHom_app, whiskerLeft_app, whiskerRight_app, associator_inv_app,
+  --   associator_hom_app, Category.id_comp, whiskerRight_comp, eqToHom_whiskerRight, map_id]
+  -- congr 2
+  -- simp only [← comp_obj, Functor.assoc]
+  -- simp only [← Grpd.comp_eq_comp]
+  -- rw! (castMode := .all) [IsIso.inv_hom_id]
+  -- apply eq_of_heq
+  -- simp [- heq_eq_eq]
+  -- rfl
 
 def lamFibMap :
     ((pi A (β ⋙ PGrpd.forgetToGrpd)).map f).obj (lamFibObj A β x) ⟶ lamFibObj A β y :=
