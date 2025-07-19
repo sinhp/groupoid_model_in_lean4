@@ -10,7 +10,7 @@ universe v u v₁ u₁ v₂ u₂ v₃ u₃
 
 namespace CategoryTheory
 
-namespace Grothendieck
+namespace Functor.Grothendieck
 
 open Functor.IsPullback
 
@@ -21,29 +21,30 @@ variable {Γ : Type u} [Category.{v} Γ] {A : Γ ⥤ Cat.{v₁,u₁}}
 
 variable (A)
 
-def toPCat : Grothendieck A ⥤ PCat.{v₁,u₁} :=
+def toPCat : ∫ A ⥤ PCat.{v₁,u₁} :=
   functorTo (forget _ ⋙ A) (fun x => x.fiber) (fun f => f.fiber)
-    (by simp) (by simp)
+    (by simp) (by intros; simp; rfl)
 
 @[simp] theorem toPCat_obj_base (x) :
     ((toPCat A).obj x).base = A.obj x.base := by
-  simp [toPCat]
+  rfl
 
 @[simp] theorem toPCat_obj_fiber (x) :
     ((toPCat A).obj x).fiber = x.fiber := by
-  simp [toPCat]
+  rfl
 
 @[simp] theorem toPCat_map_base {x y} (f : x ⟶ y) :
     ((toPCat A).map f).base = A.map f.base := by
-  simp [toPCat]
+  rfl
 
 @[simp] theorem toPCat_map_fiber {x y} (f : x ⟶ y) :
     ((toPCat A).map f).fiber = f.fiber := by
-  simp [toPCat]
+  rfl
 
 -- formerly duplicated as `toPCat_comp_forgetPoint` and `comm_sq`
 theorem toPCat_forgetToCat : toPCat A ⋙ PCat.forgetToCat
-  = Grothendieck.forget A ⋙ A := rfl
+  = Grothendieck.forget A ⋙ A :=
+  rfl
 
 namespace IsPullback
 
@@ -117,8 +118,8 @@ def lift : C ⥤ Grothendieck A := functorTo snd
 @[simp] theorem fac_left : lift fst snd w ⋙ Grothendieck.toPCat A = fst := by
   apply CategoryTheory.Functor.ext
   · intro x y f
-    apply Grothendieck.ext
-    · simp [forget_map, eqToHom_map, PCat.eqToHom_base_map,
+    apply Grothendieck.Hom.ext
+    · simp [eqToHom_map, PCat.eqToHom_base_map,
         Functor.congr_hom (eqToHom_app w y) (point fst f)]
     · have h := Functor.congr_hom w f
       simp only [PCat.forgetToCat_map, Functor.comp_map] at h
@@ -126,7 +127,7 @@ def lift : C ⥤ Grothendieck A := functorTo snd
   · intro x
     have h := (Functor.congr_obj w x).symm
     simp only [Functor.comp_obj, forget_obj] at h
-    fapply obj_hext
+    fapply hext
     · simp [h]
     · simp [Cat.eqToHom_obj]
 
@@ -134,18 +135,10 @@ theorem lift_uniq (m : C ⥤ Grothendieck A)
     (hl : m ⋙ Grothendieck.toPCat A = fst)
     (hr : m ⋙ Grothendieck.forget A = snd) :
     m = lift _ _ w := by
-  apply Grothendieck.Functor.hext
+  apply Grothendieck.FunctorTo.hext
   · rw [hr, fac_right]
-  · intro x
-    have h := Functor.congr_obj hl x
-    simp only [Functor.comp_obj, ← obj_hext_iff, toPCat_obj_base,
-      Functor.id_obj, toPCat_obj_fiber] at h
-    simp [Cat.eqToHom_obj, h, pt]
-  · intro x y f
-    have h := Functor.congr_hom hl f
-    rw [← Grothendieck.hext_iff] at h
-    simp only [lift_map_fiber]
-    aesop
+  · aesop
+  · aesop
 
 theorem hom_ext {m n : C ⥤ Grothendieck A}
     (hl : m ⋙ Grothendieck.toPCat A = n ⋙ Grothendieck.toPCat A)
@@ -348,6 +341,6 @@ end
 --       (uLiftA A) :=
 --   IsPullback.of_isLimit (isLimit A)
 
-end Grothendieck
+end Functor.Grothendieck
 
 end CategoryTheory

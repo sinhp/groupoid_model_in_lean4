@@ -30,7 +30,7 @@ namespace CategoryTheory
 
 attribute [local simp] eqToHom_map Grpd.id_eq_id Grpd.comp_eq_comp Functor.id_comp
 
-namespace Grothendieck
+namespace Functor
 
 namespace Groupoidal
 
@@ -79,7 +79,7 @@ of the pullback `PGrpd`.
 -/
 def toPGrpd' : ∫(A) ⥤ PGrpd.{v₁,u₁} :=
   PGrpd.isPullback.lift (Grothendieck.toPCat (A ⋙ Grpd.forgetToCat)) (forget ⋙ A) (by
-    rw [toPCat_forgetToCat]
+    rw [Grothendieck.toPCat_forgetToCat]
     rfl)
 
 /--
@@ -149,7 +149,7 @@ def sec : Γ ⥤ ∫(A) :=
   rfl
 
 @[simp] def sec_toPGrpd : sec A α h ⋙ toPGrpd _ = α := by
-  apply Grothendieck.Functor.hext
+  apply Grothendieck.FunctorTo.hext
   · rw [Functor.assoc, toPGrpd_forgetToGrpd, sec, ← Functor.assoc, h]
     rfl
   · intro x
@@ -165,7 +165,7 @@ def sec : Γ ⥤ ∫(A) :=
   rfl
 
 theorem sec_eq_lift : sec A α h = (isPullback A).lift α (𝟭 _) (by simp [h, Functor.id_comp]) := by
-  apply (Grothendieck.Groupoidal.isPullback _).lift_uniq
+  apply (Groupoidal.isPullback _).lift_uniq
   · simp
   · simp
 
@@ -178,7 +178,7 @@ theorem pre_toPGrpd (A : Γ ⥤ Grpd) : pre A σ ⋙ toPGrpd _ = toPGrpd _ := rf
 theorem sec_naturality : σ ⋙ sec A α h = sec (σ ⋙ A) (σ ⋙ α) (by rw [← h]; rfl) ⋙ pre A σ := by
   apply (isPullback A).hom_ext
   . simp [Functor.assoc]
-  . conv_rhs => rw [Functor.assoc, pre_forget, ← Functor.assoc, sec_forget]
+  . conv_rhs => rw [Functor.assoc, pre_comp_forget, ← Functor.assoc, sec_forget]
     simp [Functor.assoc, Functor.comp_id, Functor.id_comp]
 
 end naturality
@@ -190,10 +190,10 @@ section ι
 variable {C : Type u} [Category.{v} C] (F : C ⥤ Grpd.{v₁,u₁})
 
 theorem ι_eq_lift (c : C) : ι F c =
-    (Grothendieck.Groupoidal.isPullback F).lift
+    (Groupoidal.isPullback F).lift
     (ι F c ⋙ toPGrpd F)
     (ι F c ⋙ forget) rfl := by
-  apply (Grothendieck.Groupoidal.isPullback F).lift_uniq
+  apply (Groupoidal.isPullback F).lift_uniq
   · simp
   · simp
 
@@ -214,5 +214,5 @@ variable {C : Type u} [Category.{v} C] {D : Type u₁} [Category.{v₁} D]
 end
 
 end Groupoidal
-end Grothendieck
+end Functor
 end CategoryTheory

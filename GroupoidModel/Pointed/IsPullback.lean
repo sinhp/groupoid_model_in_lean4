@@ -43,7 +43,7 @@ The following square is a (meta-theoretic) pullback
 -/
 def isPullback : Functor.IsPullback forgetToPCat.{v,u} forgetToGrpd.{v,u}
       PCat.forgetToCat Grpd.forgetToCat :=
-  Grothendieck.isPullback _
+  Functor.Grothendieck.isPullback _
 
 /--
 The following square is a pullback in `Cat`

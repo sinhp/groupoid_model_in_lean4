@@ -16,7 +16,7 @@ open CategoryTheory
   Limits NaturalModelBase
   GroupoidModel.IsPullback.SmallU
   GroupoidModel.IsPullback.SmallUHom
-  Grothendieck.Groupoidal
+  Functor.Groupoidal
 
 namespace GroupoidModel
 
@@ -24,7 +24,7 @@ section
 variable {Γ : Ctx} (A : y(Γ) ⟶ y(U.{v}))
 
 def smallU.ext : Ctx :=
-  Ctx.ofGrpd.obj (Grpd.of ∫(yonedaCategoryEquiv A))
+  Ctx.ofGrpd.obj (Grpd.of (∫ yonedaCategoryEquiv A))
 
 def smallU.disp : smallU.ext.{v} A ⟶ Γ :=
   Ctx.ofGrpd.map forget
@@ -150,7 +150,7 @@ theorem smallU_lift {Γ Δ : Ctx} (A : y(Γ) ⟶ smallU.{v}.Ty)
     (fst : y(Δ) ⟶ smallU.{v}.Tm) (snd : Δ ⟶ Γ)
     (w : fst ≫ smallU.{v}.tp = ym(snd) ≫ A) :
     (smallU.{v}.disp_pullback A).lift fst ym(snd) w =
-    ym(Ctx.ofGrpd.map ((Grothendieck.Groupoidal.isPullback _).lift
+    ym(Ctx.ofGrpd.map ((Functor.Groupoidal.isPullback _).lift
       (yonedaCategoryEquiv fst)
       (Ctx.toGrpd.map snd)
       (by erw [← yonedaCategoryEquiv_naturality_right, w,
@@ -158,7 +158,7 @@ theorem smallU_lift {Γ Δ : Ctx} (A : y(Γ) ⟶ smallU.{v}.Ty)
   apply (smallU.{v}.disp_pullback A).hom_ext
   · dsimp only [smallU_var]
     erw [← yonedaCategoryEquiv_symm_naturality_left,
-      (Grothendieck.Groupoidal.isPullback (yonedaCategoryEquiv A)).fac_left,
+      (Functor.Groupoidal.isPullback (yonedaCategoryEquiv A)).fac_left,
       Equiv.apply_symm_apply]
     simp
   · simp only [smallU_ext, smallU_Tm, smallU_Ty, smallU_var, Grpd.coe_of,
@@ -204,7 +204,7 @@ theorem smallU_substWk (A : y(Γ) ⟶ smallU.{v}.Ty) : smallU.substWk σ A =
   · conv => left; rw [← Functor.map_comp, substWk_disp]
     simp only [smallU_disp, ← Functor.map_comp, Grpd.homOf, yonedaCategoryEquivPre,
       Grpd.comp_eq_comp, Functor.assoc, smallU.disp]
-    rw [pre_forget, ← Functor.assoc, map_forget]
+    rw [pre_comp_forget, ← Functor.assoc, map_forget]
     rfl
 
 @[simp] theorem smallU_sec {Γ : Ctx} (α : y(Γ) ⟶ smallU.{v}.Tm) :
