@@ -490,6 +490,7 @@ def strongTrans.naturality {x y : Γ} (g : x ⟶ y) :
       (PGrpd.objFiber' hf y).obj := PGrpd.mapFiber' hf g
   ((conjugatingObjNatTransEquiv₁ _ _ _ _ _).toFun fib).symm
 
+@[simps]
 def strongTrans : (A ⋙ Grpd.forgetToCat).toPseudoFunctor'.StrongTrans
   (sigma A B ⋙ Grpd.forgetToCat).toPseudoFunctor' where
     app x := (PGrpd.objFiber' hf x.as).obj
@@ -505,20 +506,25 @@ def mapStrongTrans : ∫ A ⥤ ∫ sigma A B :=
 For any pair of functors `A : Γ ⥤ Grpd` and `B : ∫(A) ⥤ Grpd`,
 and any "term of pi", meaning a functor `f : Γ ⥤ PGrpd`
 satisfying `f ⋙ forgetToGrpd = pi A B : Γ ⥤ Grpd`,
-there is a "term of `B`" `sec' : Γ ⥤ PGrpd` such that `sec' ⋙ forgetToGrpd = B`.
+there is a "term of `B`" `inversion : Γ ⥤ PGrpd` such that `inversion ⋙ forgetToGrpd = B`.
 -/
-def sec' : ∫(A) ⥤ PGrpd := mapStrongTrans B f hf ⋙ sigma.assoc B ⋙ toPGrpd B
+def inversion : ∫(A) ⥤ PGrpd := mapStrongTrans B f hf ⋙ sigma.assoc B ⋙ toPGrpd B
 
 lemma mapStrongTrans_comp_fstAux' : mapStrongTrans B f hf ⋙ sigma.fstAux' B = 𝟭 _ := by
-  -- dsimp only [mapStrongTrans, sigma.fstAux', map, Functor.Grothendieck.map]
-  apply Functor.hext
-  -- rw [← Pseudofunctor.Grothendieck.map_comp]
-  · intro xa
-    simp
-    sorry
+  apply Functor.Groupoidal.FunctorTo.hext
+  · simp only [mapStrongTrans, Grpd.forgetToCat.eq_1, sigma.fstAux', Functor.assoc, map_forget,
+      Functor.id_comp]
+    dsimp only [Functor.Groupoidal.forget, Functor.Grothendieck.forget, Grpd.forgetToCat.eq_1]
+    rw [Pseudofunctor.Grothendieck.map_comp_forget]
+  · intro x
+    simp only [sigma.fstAux', Functor.comp_obj, map_obj_fiber, sigma_obj, sigma.fstAux_app,
+      Functor.Groupoidal.forget_obj, Functor.id_obj, heq_eq_eq]
+    simp only [mapStrongTrans, fiber, Functor.Grothendieck.fiber, sigma_obj, strongTrans_app,
+      Pseudofunctor.Grothendieck.map_obj_fiber, Functor.toPseudoFunctor'_obj, Functor.comp_obj]
+    exact Functor.congr_obj (PGrpd.objFiber' hf x.base).property x.fiber
   · sorry
 
-lemma sec'_forgetToGrpd : sec' B f hf ⋙ PGrpd.forgetToGrpd = B :=
+lemma inversion_comp_forgetToGrpd : inversion B f hf ⋙ PGrpd.forgetToGrpd = B :=
   calc mapStrongTrans B f hf ⋙ sigma.assoc B ⋙ toPGrpd B ⋙ PGrpd.forgetToGrpd
   _ = mapStrongTrans B f hf ⋙ (sigma.assoc B ⋙ forget) ⋙ B := by
     simp [toPGrpd_forgetToGrpd, Functor.assoc]
