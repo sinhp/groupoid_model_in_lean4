@@ -10,6 +10,21 @@ noncomputable section
 section ForOther
 namespace CategoryTheory
 
+variable {Γ : Type u} [Groupoid Γ]
+
+def Grpd.Functor.iso (A : Γ ⥤ Grpd) {x y : Γ} (f : x ⟶ y) : A.obj x ≅≅ A.obj y where
+  hom := A.map f
+  inv := A.map (inv f)
+  hom_inv_id := by simp [← Grpd.comp_eq_comp, ← Grpd.id_eq_id,
+    ← Functor.map_comp, - Functor.map_inv]
+  inv_hom_id := by simp [← Grpd.comp_eq_comp, ← Grpd.id_eq_id,
+    ← Functor.map_comp, - Functor.map_inv]
+
+lemma Grpd.Functor.iso_hom (A : Γ ⥤ Grpd) {x y : Γ} (f : x ⟶ y) :
+  (Grpd.Functor.iso A f).hom = A.map f := rfl
+
+lemma Grpd.Functor.iso_inv (A : Γ ⥤ Grpd) {x y : Γ} (f : x ⟶ y) :
+  (Grpd.Functor.iso A f).inv = A.map (inv f) := rfl
 namespace ObjectProperty
 
 -- JH: after the golfs, we don't acuse this lemma anymore,
@@ -86,7 +101,6 @@ end
 section
 variable {A B : Type*} [Category A] [Category B] (F : B ⥤ A)
 
--- NOTE to follow mathlib convention can use camelCase for definitions, and capitalised first letter when that definition is a Prop or Type
 def IsSection (s : A ⥤ B) := s ⋙ F = Functor.id A
 
 abbrev Section := ObjectProperty.FullSubcategory (IsSection F)
@@ -364,6 +378,7 @@ lemma Functor.associator_eq {C D E E' : Type*} [Category C] [Category D] [Catego
     (F : C ⥤ D) (G : D ⥤ E) (H : E ⥤ E') : associator F G H = CategoryTheory.Iso.refl _ :=
   rfl
 
+attribute [local simp] Functor.assoc in
 lemma whiskerLeftInvLamObjObjSimgaMap_comp_aux {A A' B B' C C' : Type*}
     [Category A] [Category A'] [Category B] [Category B'] [Category C] [Category C']
     (F : Functor.Iso A B) (G : Functor.Iso B C) (lamA : A ⥤ A') (lamB : B ⥤ B') (lamC : C ⥤ C')
@@ -372,21 +387,35 @@ lemma whiskerLeftInvLamObjObjSimgaMap_comp_aux {A A' B B' C C' : Type*}
     (H1 : A ⥤ C') (e1 : H1 = _) (H2 : A ⥤ C') (e2 : F.hom ⋙ G.hom ⋙ lamC = H2) :
     whiskerLeft (G.inv ⋙ F.inv)
       (eqToHom e1 ≫ whiskerRight lamF G' ≫ whiskerLeft F.hom lamG ≫ eqToHom e2) =
-      whiskerLeft (G.inv ⋙ F.inv) (eqToHom e1) ≫
+    eqToHom (by aesop) ≫
+      whiskerRight (whiskerLeft G.inv (whiskerLeft F.inv lamF ≫ eqToHom (by simp))) G' ≫
+      whiskerLeft G.inv lamG ≫
+      eqToHom (by aesop) :=
+  calc _
+    _ = whiskerLeft (G.inv ⋙ F.inv) (eqToHom e1) ≫
       whiskerLeft (G.inv ⋙ F.inv) (whiskerRight lamF G') ≫
-      eqToHom sorry ≫
-      whiskerLeft (G.inv) (lamG) ≫
-      eqToHom (by subst e1 e2; rw [Functor.assoc, F.inv_hom_id_assoc]; sorry)
+      whiskerLeft (G.inv ⋙ F.inv) (whiskerLeft F.hom lamG) ≫
+      whiskerLeft (G.inv ⋙ F.inv) (eqToHom e2)
+      := rfl
+    _ = eqToHom (by aesop) ≫
+      (G.inv ⋙ F.inv).whiskerLeft (whiskerRight lamF G') ≫
+      (G.inv ⋙ F.inv ⋙ F.hom).whiskerLeft lamG ≫
+      eqToHom (by aesop) := by aesop
+    _ = (eqToHom (by aesop)) ≫
+      whiskerLeft (G.inv ⋙ F.inv) (whiskerRight lamF G') ≫
+      eqToHom (by simp) ≫
+      whiskerLeft G.inv lamG ≫
+      eqToHom (by aesop) := by
+        congr 2
+        simp only [Functor.assoc, ← heq_eq_eq, heq_eqToHom_comp_iff, heq_comp_eqToHom_iff,
+          comp_eqToHom_heq_iff]
+        rw! (castMode := .all) [F.inv_hom_id, Functor.comp_id]
+        simp
+    _ = eqToHom (by aesop) ≫
+      whiskerRight (whiskerLeft G.inv (whiskerLeft F.inv lamF ≫ eqToHom (by simp))) G' ≫
+      whiskerLeft G.inv lamG ≫
+      eqToHom (by aesop) := by aesop_cat
 
-       := sorry
-
-      -- whiskerLeft (G.inv ⋙ F.inv) (eqToHom e1) ≫
-      -- whiskerLeft (G.inv ⋙ F.inv) (whiskerRight lamF G') ≫
-      -- whiskerLeft (G.inv ⋙ F.inv) (whiskerLeft F.hom lamG) ≫
-      -- whiskerLeft (G.inv ⋙ F.inv) (eqToHom e2)
-#exit
--- TODO find a better proof. This should not need `ext`,
--- instead should be by manipulating whiskerLeft and whiskerRight lemmas
 lemma whiskerLeftInvLamObjObjSigmaMap_comp {x y z} (f : x ⟶ y) (g : y ⟶ z) :
     whiskerLeftInvLamObjObjSigmaMap A β (f ≫ g)
     = eqToHom (by simp [Functor.assoc, sigmaMap_comp])
@@ -394,52 +423,14 @@ lemma whiskerLeftInvLamObjObjSigmaMap_comp {x y z} (f : x ⟶ y) (g : y ⟶ z) :
       (sigmaMap (β ⋙ PGrpd.forgetToGrpd) g)
     ≫ whiskerLeftInvLamObjObjSigmaMap A β g := by
   simp only [whiskerLeftInvLamObjObjSigmaMap, lamFibObjObjCompSigmaMap_comp]
-  generalize (lamFibObjObjCompSigmaMap A β f) = lamf
-  generalize (lamFibObjObjCompSigmaMap A β g) = lamg
-  -- generalize (sigmaMap (β ⋙ PGrpd.forgetToGrpd) g) = sigma
-  -- generalize (lamFibObjObj A β z) = lamx
-  have hAfg : A.map (CategoryTheory.inv (f ≫ g)) = A.map (CategoryTheory.inv g) ≫
-    A.map (CategoryTheory.inv f) := by aesop_cat
-  rw! [hAfg]
-  -- have h := Functor.whiskerLeft_comp_whiskerRight_assoc
-  --   (whiskerLeft (A.map (CategoryTheory.inv g))
-  --   (whiskerLeft (A.map (CategoryTheory.inv f)) lamf ≫ eqToHom (whiskerLeftInvLamObjObjSigmaMap._proof_1 A β f)))
-  --   (A.map (CategoryTheory.inv g))
-  --   (eqToHom (whiskerLeftInvLamObjObjSigmaMap._proof_1 A β g))
+  have hAfg : A.map (CategoryTheory.inv (f ≫ g)) = (Grpd.Functor.iso A g).inv ≫
+    (Grpd.Functor.iso A f).inv := by simp [Grpd.Functor.iso]
+  rw! (castMode := .all) [hAfg, ← Grpd.Functor.iso_inv A f, ← Grpd.Functor.iso_inv A g,
+    ← Grpd.Functor.iso_hom A f]
+  erw [whiskerLeftInvLamObjObjSimgaMap_comp_aux (Grpd.Functor.iso A f) (Grpd.Functor.iso A g)
+    _ _ _ (sigmaMap (β ⋙ PGrpd.forgetToGrpd) f) (sigmaMap (β ⋙ PGrpd.forgetToGrpd) g)]
+  simp only [Category.assoc, eqToHom_trans]
 
-  -- simp only [Grpd.comp_eq_comp, whiskerLeft_comp,
-  --   whiskerLeft_eqToHom, Category.assoc, eqToHom_trans, whiskerRight_comp,
-  --   eqToHom_whiskerRight]
-  -- congr 1
-  -- dsimp only [← Functor.assoc]-- simp [Functor.associator_eq]
-  -- congr 1
-  -- simp only [whiskerLeft_twice]
-  -- `simp
-  -- generalize A.map (CategoryTheory.inv f) = Af
-  -- erw [whiskerRight_id']
-  -- rw! [Functor.map_inv, Functor.map_inv, Functor.map_inv, Functor.map_comp, IsIso.inv_comp]
-  -- simp only [whiskerLeft_comp, whiskerLeft_twice, Grpd.comp_eq_comp]
-  -- simp only [whiskerLeft_comp, whiskerLeft_eqToHom, whiskerLeft_twice, Category.assoc,
-  --   eqToHom_trans, whiskerRight_comp, eqToHom_whiskerRight]
-  -- rw! [Functor.map_inv, Functor.map_comp, IsIso.inv_comp]
-  -- simp
-  sorry --FIXME broken in Pseudofunctor.Grothendieck refactor
-  -- simp only [whiskerLeftInvLamObjObjSigmaMap, lamFibObjObjCompSigmaMap_comp]
-  -- rw! [Functor.map_inv, Functor.map_inv, Functor.map_inv,
-  --   Functor.map_comp, IsIso.inv_comp]
-  -- ext
-  -- simp only [Grpd.forgetToCat.eq_1, sigmaObj, Grpd.comp_eq_comp, comp_obj, eqToHom_refl,
-  --   Category.comp_id, whiskerLeft_comp, whiskerLeft_eqToHom, whiskerLeft_twice, Category.assoc,
-  --   NatTrans.comp_app, eqToHom_app, whiskerLeft_app, whiskerRight_app, associator_inv_app,
-  --   associator_hom_app, Category.id_comp, whiskerRight_comp, eqToHom_whiskerRight, map_id]
-  -- congr 2
-  -- simp only [← comp_obj, Functor.assoc]
-  -- simp only [← Grpd.comp_eq_comp]
-  -- rw! (castMode := .all) [IsIso.inv_hom_id]
-  -- apply eq_of_heq
-  -- simp [- heq_eq_eq]
-  -- rfl
-#check whiskerRight_id
 def lamFibMap :
     ((pi A (β ⋙ PGrpd.forgetToGrpd)).map f).obj (lamFibObj A β x) ⟶ lamFibObj A β y :=
   whiskerLeftInvLamObjObjSigmaMap A β f
