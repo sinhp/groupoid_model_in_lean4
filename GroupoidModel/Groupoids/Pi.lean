@@ -947,25 +947,20 @@ theorem lam_tp : smallUPi.lam ≫ smallU.tp = smallU.Ptp.map smallU.tp ≫ Pi :=
 
 section
 variable {Γ : Ctx} (AB : y(Γ) ⟶ smallU.Ptp.obj.{v} y(U.{v}))
-  (αβ : y(Γ) ⟶ y(E.{v})) (hαβ : αβ ≫ ym(π) = AB ≫ smallUPi.Pi)
+  (f : y(Γ) ⟶ y(E.{v})) (hf : f ≫ ym(π) = AB ≫ smallUPi.Pi)
 
-include hαβ in
-theorem yonedaCategoryEquiv_forgetToGrpd : yonedaCategoryEquiv αβ ⋙ PGrpd.forgetToGrpd
+include hf in
+theorem yonedaCategoryEquiv_forgetToGrpd : yonedaCategoryEquiv f ⋙ PGrpd.forgetToGrpd
     = pi (smallU.PtpEquiv.fst AB) (smallU.PtpEquiv.snd AB) := by
-  erw [← yonedaCategoryEquiv_naturality_right, hαβ]
+  erw [← yonedaCategoryEquiv_naturality_right, hf]
   rw [smallUPi.Pi_app_eq, yonedaCategoryEquiv.apply_symm_apply]
 
 def lift : y(Γ) ⟶ smallU.Ptp.obj.{v} smallU.Tm.{v} :=
-  let αβ' := yonedaCategoryEquiv αβ
-  smallU.PtpEquiv.mk (smallU.PtpEquiv.fst AB) sorry
-
-  -- let β' := smallU.PtpEquiv.snd AB
-  -- let αβ' := yonedaCategoryEquiv αβ
-  -- let hαβ' : yonedaCategoryEquiv αβ ⋙ forgetToGrpd
-  --   = sigma (smallU.PtpEquiv.fst AB) (smallU.PtpEquiv.snd AB) :=
-  --   yonedaCategoryEquiv_forgetToGrpd _ _ hαβ
-  -- mk (sigma.fst' β' αβ' hαβ') (sigma.dependent' β' αβ' hαβ')
-  -- (sigma.snd' β' αβ' hαβ') (sigma.snd'_forgetToGrpd β' αβ' hαβ')
+  have hf' : yonedaCategoryEquiv f ⋙ PGrpd.forgetToGrpd = pi (fst AB) (snd AB) := by
+    erw [← yonedaCategoryEquiv_naturality_right, hf]
+    rw [Pi_app_eq, yonedaCategoryEquiv.apply_symm_apply]
+  smallU.PtpEquiv.mk (smallU.PtpEquiv.fst AB)
+  (pi.inversion (snd AB) (yonedaCategoryEquiv f) hf')
 
 -- theorem fac_left : lift.{v} AB αβ hαβ ≫ smallUSigma.pair.{v} = αβ := by
 --   rw [smallUSigma.pair_app_eq]
