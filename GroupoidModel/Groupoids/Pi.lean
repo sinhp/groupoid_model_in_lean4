@@ -392,11 +392,6 @@ lemma whiskerLeftInvLamObjObjSimgaMap_comp_aux {A A' B B' C C' : Type*}
       whiskerLeft G.inv lamG ≫
       eqToHom (by aesop) :=
   calc _
-    _ = whiskerLeft (G.inv ⋙ F.inv) (eqToHom e1) ≫
-      whiskerLeft (G.inv ⋙ F.inv) (whiskerRight lamF G') ≫
-      whiskerLeft (G.inv ⋙ F.inv) (whiskerLeft F.hom lamG) ≫
-      whiskerLeft (G.inv ⋙ F.inv) (eqToHom e2)
-      := rfl
     _ = eqToHom (by aesop) ≫
       (G.inv ⋙ F.inv).whiskerLeft (whiskerRight lamF G') ≫
       (G.inv ⋙ F.inv ⋙ F.hom).whiskerLeft lamG ≫
