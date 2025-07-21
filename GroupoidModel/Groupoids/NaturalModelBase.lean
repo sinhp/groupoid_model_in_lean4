@@ -267,6 +267,28 @@ theorem hext (AB1 AB2 : y(Γ) ⟶ smallU.{v}.Ptp.obj y(U.{v})) (hfst : fst AB1 =
   -- apply NaturalModelBase.PtpEquiv.ext
   sorry
 
+lemma fst_mk (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v}) (B : ∫(A) ⥤ C) :
+    fst (mk A B) = A := by
+  simp [fst, mk, NaturalModelBase.PtpEquiv.fst_mk]
+
+lemma Grpd.eqToHom_comp_heq {A B : Grpd} {C : Type*} [Category C]
+    (h : A = B) (F : B ⥤ C) : eqToHom h ⋙ F ≍ F := by
+  subst h
+  simp [Grpd.id_eq_id, Functor.id_comp]
+
+lemma snd_mk_heq (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v}) (B : ∫(A) ⥤ C) :
+    snd (mk A B) ≍ B := by
+  simp only [mk, snd, PtpEquiv.snd_mk, yonedaCategoryEquiv_naturality_left,
+    Equiv.apply_symm_apply]
+  rw [eqToHom_map]
+  apply Grpd.eqToHom_comp_heq
+
+lemma snd_mk (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v}) (B : ∫(A) ⥤ C) :
+    snd (mk A B) = map (eqToHom (fst_mk A B)) ⋙ B := by
+  have : _ = map (eqToHom (fst_mk A B)) := eqToHom_eq_homOf_map (fst_mk A B)
+  rw [← this]
+  apply eq_of_heq; apply (snd_mk_heq A B).trans; symm; apply Grpd.eqToHom_comp_heq
+
 end PtpEquiv
 
 def compDom := smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp

@@ -962,12 +962,12 @@ def lift : y(Γ) ⟶ smallU.Ptp.obj.{v} smallU.Tm.{v} :=
   smallU.PtpEquiv.mk (smallU.PtpEquiv.fst AB)
   (pi.inversion (snd AB) (yonedaCategoryEquiv f) hf')
 
--- theorem fac_left : lift.{v} AB αβ hαβ ≫ smallUSigma.pair.{v} = αβ := by
---   rw [smallUSigma.pair_app_eq]
---   dsimp only [lift]
---   rw! [dependent_mk, snd_mk, fst_mk]
---   simp only [eqToHom_refl, map_id_eq, Cat.of_α, Functor.id_comp]
---   rw [yonedaCategoryEquiv.symm_apply_eq, sigma.eta]
+theorem fac_left : lift.{v} AB f hf ≫ lam.{v} = f := by
+  rw [lam_app_eq]
+  dsimp only [lift]
+  rw! [smallU.PtpEquiv.mk, snd_mk, fst_mk]
+  simp only [eqToHom_refl, map_id_eq, Cat.of_α, Functor.id_comp]
+  rw [yonedaCategoryEquiv.symm_apply_eq, sigma.eta]
 
 -- theorem fac_right : lift.{v} AB αβ hαβ ≫ smallU.comp.{v} = AB := by
 --   apply smallU.PtpEquiv.hext
