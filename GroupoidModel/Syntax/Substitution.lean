@@ -147,6 +147,9 @@ theorem Lookup.lt_length {Γ i A l} : Lookup Γ i A l → i < Γ.length := by
 theorem Lookup.lvl_eq {Γ i A l} (lk : Lookup Γ i A l) : l = (Γ[i]'lk.lt_length).2 := by
   induction lk <;> grind
 
+theorem Lookup.tp_uniq {Γ i A A' l} (lk : Lookup Γ i A l) (lk' : Lookup Γ i A' l) : A = A' := by
+  induction lk generalizing A' <;> grind [cases Lookup]
+
 theorem Lookup.of_lt_length {Γ i} : i < Γ.length → ∃ A l, Lookup Γ i A l := by
   intro lt
   induction Γ generalizing i
