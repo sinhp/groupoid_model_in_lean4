@@ -349,7 +349,7 @@ theorem fst_tp (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
 /-- Universal property of `compDom`, decomposition (part 2).
 
 A map `ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp` is equivalently three maps
-`fst, dependent, snd` such that `snd_tp`A
+`fst, dependent, snd` such that `snd_tp`.
 The map `dependent : y(M.ext (fst N ab ≫ M.tp)) ⟶ M.Ty`
 is the `B : A ⟶ Type` in `(a : A) × (b : B a)`.
 Here `A` is implicit, derived by the typing of `fst`, or `(a : A)`.
