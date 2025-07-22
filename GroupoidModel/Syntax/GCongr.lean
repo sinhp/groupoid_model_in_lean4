@@ -30,7 +30,7 @@ theorem EqTp.cong_pi_dom {Γ A A' B l l'} :
 theorem EqTp.cong_pi_cod {Γ A B B' l l'} :
     (A, l) :: Γ ⊢[l'] B ≡ B' →
     Γ ⊢[max l l'] .pi l l' A B ≡ .pi l l' A B' :=
-  fun h => EqTp.cong_pi (EqTp.refl_tp h.wf_ctx.inv_snoc) h
+  fun h => EqTp.cong_pi (EqTp.refl_tp h.wf_binder) h
 
 attribute [gcongr] EqTp.cong_sigma
 
@@ -45,7 +45,7 @@ theorem EqTp.cong_sigma_dom {Γ A A' B l l'} :
 theorem EqTp.cong_sigma_cod {Γ A B B' l l'} :
     (A, l) :: Γ ⊢[l'] B ≡ B' →
     Γ ⊢[max l l'] .sigma l l' A B ≡ .sigma l l' A B' :=
-  fun h => EqTp.cong_sigma (EqTp.refl_tp h.wf_ctx.inv_snoc) h
+  fun h => EqTp.cong_sigma (EqTp.refl_tp h.wf_binder) h
 
 attribute [gcongr] EqTp.cong_el
 
@@ -64,7 +64,7 @@ theorem EqTm.cong_lam_dom {Γ A A' B t l l'} :
 theorem EqTm.cong_lam_body {Γ A B t t' l l'} :
     (A, l) :: Γ ⊢[l'] t ≡ t' : B →
     Γ ⊢[max l l'] .lam l l' A t ≡ .lam l l' A t' : .pi l l' A B :=
-  fun htt' => EqTm.cong_lam (EqTp.refl_tp htt'.wf_ctx.inv_snoc) htt'
+  fun htt' => EqTm.cong_lam (EqTp.refl_tp htt'.wf_binder) htt'
 
 attribute [gcongr] EqTm.cong_app
 
@@ -133,7 +133,7 @@ theorem EqTm.cong_fst_cod {Γ A B B' p l l'} :
     (A, l) :: Γ ⊢[l'] B ≡ B' →
     Γ ⊢[max l l'] p : .sigma l l' A B →
     Γ ⊢[l] .fst l l' A B p ≡ .fst l l' A B' p : A :=
-  fun BB' p => .cong_fst (EqTp.refl_tp BB'.wf_ctx.inv_snoc) BB' (EqTm.refl_tm p)
+  fun BB' p => .cong_fst (EqTp.refl_tp BB'.wf_binder) BB' (EqTm.refl_tm p)
 
 @[gcongr]
 theorem EqTm.cong_fst_pair {Γ A B p p' l l'} :
@@ -141,7 +141,7 @@ theorem EqTm.cong_fst_pair {Γ A B p p' l l'} :
     Γ ⊢[l] .fst l l' A B p ≡ .fst l l' A B p' : A :=
   fun pp' =>
     have ⟨_, B⟩ := pp'.wf_tp.inv_sigma
-    .cong_fst (EqTp.refl_tp B.wf_ctx.inv_snoc) (EqTp.refl_tp B) pp'
+    .cong_fst (EqTp.refl_tp B.wf_binder) (EqTp.refl_tp B) pp'
 
 attribute [gcongr] EqTm.cong_snd
 
@@ -157,7 +157,7 @@ theorem EqTm.cong_snd_cod {Γ A B B' p l l'} :
     (A, l) :: Γ ⊢[l'] B ≡ B' →
     Γ ⊢[max l l'] p : .sigma l l' A B →
     Γ ⊢[l'] .snd l l' A B p ≡ .snd l l' A B' p : B.subst (Expr.fst l l' A B p).toSb :=
-  fun BB' p => .cong_snd (EqTp.refl_tp BB'.wf_ctx.inv_snoc) BB' (EqTm.refl_tm p)
+  fun BB' p => .cong_snd (EqTp.refl_tp BB'.wf_binder) BB' (EqTm.refl_tm p)
 
 @[gcongr]
 theorem EqTm.cong_snd_pair {Γ A B p p' l l'} :
@@ -165,7 +165,7 @@ theorem EqTm.cong_snd_pair {Γ A B p p' l l'} :
     Γ ⊢[l'] .snd l l' A B p ≡ .snd l l' A B p' : B.subst (Expr.fst l l' A B p).toSb :=
   fun pp' =>
     have ⟨_, B⟩ := pp'.wf_tp.inv_sigma
-    .cong_snd (EqTp.refl_tp B.wf_ctx.inv_snoc) (EqTp.refl_tp B) pp'
+    .cong_snd (EqTp.refl_tp B.wf_binder) (EqTp.refl_tp B) pp'
 
 /-! ## Lemmas for substitution -/
 

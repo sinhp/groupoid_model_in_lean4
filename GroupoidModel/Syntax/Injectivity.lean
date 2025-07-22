@@ -29,10 +29,10 @@ private theorem strong_piInj :
     exact ⟨_, _, rfl, rfl, EqTp.symm_tp ‹_›, Beq.symm_tp.conv_ctx (Aeq.wf_ctx.eq_self.snoc Aeq)⟩
   . rename_i pi
     have := pi.inv_pi
-    exact ⟨_, _, this.1, rfl, EqTp.refl_tp this.2.wf_ctx.inv_snoc, EqTp.refl_tp this.2⟩
+    exact ⟨_, _, this.1, rfl, EqTp.refl_tp this.2.wf_binder, EqTp.refl_tp this.2⟩
   . rename_i pi
     have := pi.inv_pi
-    exact ⟨_, _, this.1, rfl, EqTp.refl_tp this.2.wf_ctx.inv_snoc, EqTp.refl_tp this.2⟩
+    exact ⟨_, _, this.1, rfl, EqTp.refl_tp this.2.wf_binder, EqTp.refl_tp this.2⟩
   . grind
   . grind
   . rename_i ih _ _ _ _ _ ih'
@@ -76,10 +76,10 @@ private theorem strong_sigmaInj :
     exact ⟨_, _, rfl, rfl, EqTp.symm_tp ‹_›, Beq.symm_tp.conv_ctx (Aeq.wf_ctx.eq_self.snoc Aeq)⟩
   . rename_i s
     have := s.inv_sigma
-    exact ⟨_, _, this.1, rfl, EqTp.refl_tp this.2.wf_ctx.inv_snoc, EqTp.refl_tp this.2⟩
+    exact ⟨_, _, this.1, rfl, EqTp.refl_tp this.2.wf_binder, EqTp.refl_tp this.2⟩
   . rename_i s
     have := s.inv_sigma
-    exact ⟨_, _, this.1, rfl, EqTp.refl_tp this.2.wf_ctx.inv_snoc, EqTp.refl_tp this.2⟩
+    exact ⟨_, _, this.1, rfl, EqTp.refl_tp this.2.wf_binder, EqTp.refl_tp this.2⟩
   . grind
   . grind
   . rename_i ih _ _ _ _ _ ih'
