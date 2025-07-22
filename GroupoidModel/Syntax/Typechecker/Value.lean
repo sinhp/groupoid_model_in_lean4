@@ -9,9 +9,6 @@ as well as well-formedness judgments `WfVal/WfNeut/WfClos/WfEnv` for those.
 We relate them to the core syntax with `Val.toExpr/Neut.toExpr/Clos.toExpr/sbOfEnv`.
 -/
 
-/-- Shorthand for `List.length` which is used a lot in this file. -/
-local notation "‖" l "‖" => List.length l
-
 attribute [local grind]
   EqTp.refl_tp EqTp.symm_tp EqTp.trans_tp
   EqTm.refl_tm EqTm.symm_tm EqTm.trans_tm
@@ -26,9 +23,13 @@ The value type is obtained by:
 
 ## Type annotations
 
-Some of the nested data are not values, but rather expressions.
-These are precisely the type annotations on terms.
-They are left unevaluated because we don't need them to decide equality:
+Unlike expressions, values contain no type annotations.
+This is essential for performance:
+- if we were to store type annotations as unevaluated `Expr`s,
+  weakening would not be free for values; and
+- if we we stored them as `Val`ues, we'd have to evaluate them.
+
+Note that we don't need annotations to decide equality:
 by uniqueness of typing, lemmas like the following can be proven
 ```lean4
   Γ ⊢[max l l'] p ≡ p' : .sigma l l' A B →
@@ -36,28 +37,8 @@ by uniqueness of typing, lemmas like the following can be proven
   Γ ⊢[l] Expr.fst l l' A' B' p' : A →
   Γ ⊢[l] Expr.fst l l' A B p ≡ Expr.fst l l' A' B' p' : A
 ```
-and hence it suffices to compare the value parts (in this case `p`).
+and hence it suffices to compare the value parts (in this case `p`). -/
 
-Unfortunately, we must keep annotations on values
-in order to relate values to expressions via `toExpr`.
-
-This is an issue because as of now,
-we are _computing_ these annotations in the evaluator,
-sometimes of the form `A.subst (sbOfEnv ‖Γ‖ env)`.
-It could be solved without removing annotations
-by using `Q(Expr)` instead of `Expr`.
-We will never have to execute/WHNF the resulting `Lean.Expr`
-because the annotations are never inspected.
-
-Alternatively, we could replace the `toExpr` model
-by a family of judgments like `ValEqTp Γ l vT T`
-which would combine `WfValTm` with `v.toExpr ≡ t` (the postconditions of `eval*`.)
-See if this makes it possible to forget the annotations entirely.
-It may also simplify the proofs in `eval*`.
-Dropping annotations should not be an issue for `Expr` reconstruction during readback
-because readback is typed, so will have sufficient typing data available. -/
-
--- Q: well-scope `Val`/`Neut`? a lot of `‖Γ‖` noise
 inductive Val where
   | pi (l l' : Nat) (A : Val) (B : Clos)
   | sigma (l l' : Nat) (A : Val) (B : Clos)
@@ -153,7 +134,7 @@ inductive NeutEqTm : Ctx → Nat → Neut → Expr → Expr → Prop
   | bvar {Γ A i l} :
     WfCtx Γ →
     Lookup Γ i A l →
-    NeutEqTm Γ l (.bvar (‖Γ‖ - i - 1)) (.bvar i) A
+    NeutEqTm Γ l (.bvar (Γ.length - i - 1)) (.bvar i) A
   | app {Γ A B vf f va a l l'} :
     NeutEqTm Γ (max l l') vf f (.pi l l' A B) →
     ValEqTm Γ l va a A →
@@ -211,12 +192,12 @@ theorem wf_cod {Δ} : ∀ {E σ Γ}, EnvEqSb Δ E σ Γ → WfCtx Γ := by
   mutual_induction EnvEqSb
   all_goals grind [WfCtx.nil, WfCtx.snoc]
 
-theorem eq_length {Δ} : ∀ {E σ Γ}, EnvEqSb Δ E σ Γ → ‖E‖ = ‖Γ‖ := by
+theorem eq_length {Δ} : ∀ {E σ Γ}, EnvEqSb Δ E σ Γ → E.length = Γ.length := by
   mutual_induction EnvEqSb
   all_goals intros; try exact True.intro
   all_goals simp; try grind
 
-theorem lookup_lt {Δ Γ E σ i A l} : EnvEqSb Δ E σ Γ → Lookup Γ i A l → i < ‖E‖ :=
+theorem lookup_lt {Δ Γ E σ i A l} : EnvEqSb Δ E σ Γ → Lookup Γ i A l → i < E.length :=
   fun env lk => env.eq_length ▸ lk.lt_length
 
 theorem lookup_eq {Δ} : ∀ {E σ Γ}, (env : EnvEqSb Δ E σ Γ) →
@@ -233,7 +214,7 @@ theorem lookup_eq {Δ} : ∀ {E σ Γ}, (env : EnvEqSb Δ E σ Γ) →
 lemma Expr.eq_snoc_self (σ : Nat → Expr) : σ = Expr.snoc (Expr.comp σ Expr.wk) (σ 0) := by
   ext i; cases i <;> rfl
 
-theorem mk : ∀ {Γ}, WfCtx Γ → ∀ {Δ} {E : List Val} {σ}, WfCtx Δ → (eq : ‖Γ‖ = ‖E‖) →
+theorem mk : ∀ {Γ}, WfCtx Γ → ∀ {Δ} {E : List Val} {σ}, WfCtx Δ → (eq : Γ.length = E.length) →
     (∀ {i A l}, (lk : Lookup Γ i A l) →
       ValEqTm Δ l (E[i]'(eq ▸ lk.lt_length)) (σ i) (A.subst σ)) →
     EnvEqSb Δ E σ Γ := by
@@ -394,7 +375,7 @@ def envOfLen (n : Nat) : List Val :=
   List.ofFn (n := n) (.neut <| .bvar <| n - · - 1)
 
 @[simp]
-theorem length_envOfLen (n : Nat) : ‖envOfLen n‖ = n := by
+theorem length_envOfLen (n : Nat) : (envOfLen n).length = n := by
   simp [envOfLen]
 
 @[simp]
@@ -406,7 +387,7 @@ theorem envOfLen_succ (n : Nat) : envOfLen (n + 1) = (.neut <| .bvar n) :: envOf
   dsimp
   omega
 
-theorem envOfLen_wf {Γ} : WfCtx Γ → EnvEqSb Γ (envOfLen ‖Γ‖) Expr.bvar Γ := by
+theorem envOfLen_wf {Γ} : WfCtx Γ → EnvEqSb Γ (envOfLen Γ.length) Expr.bvar Γ := by
   intro Γ
   refine EnvEqSb.mk Γ Γ (length_envOfLen _).symm fun lk => ?_
   simp only [envOfLen, List.getElem_ofFn]
@@ -562,18 +543,18 @@ theorem ValEqTm.inv_neut {Γ A vt t l} : ValEqTm Γ l (.neut vt) t A → NeutEqT
   all_goals grind [NeutEqTm.conv_neut]
 
 theorem NeutEqTm.inv_bvar {Γ A t i l} : NeutEqTm Γ l (.bvar i) t A →
-    ∃ A', Lookup Γ (‖Γ‖ - i - 1) A' l ∧
-      (Γ ⊢[l] t ≡ .bvar (‖Γ‖ - i - 1) : A) ∧ (Γ ⊢[l] A ≡ A') := by
+    ∃ A', Lookup Γ (Γ.length - i - 1) A' l ∧
+      (Γ ⊢[l] t ≡ .bvar (Γ.length - i - 1) : A) ∧ (Γ ⊢[l] A ≡ A') := by
   suffices ∀ {l vn n A}, NeutEqTm Γ l vn n A → ∀ {i}, vn = .bvar i →
-      ∃ A', Lookup Γ (‖Γ‖ - i - 1) A' l ∧
-        (Γ ⊢[l] n ≡ .bvar (‖Γ‖ - i - 1) : A) ∧ (Γ ⊢[l] A ≡ A') from
+      ∃ A', Lookup Γ (Γ.length - i - 1) A' l ∧
+        (Γ ⊢[l] n ≡ .bvar (Γ.length - i - 1) : A) ∧ (Γ ⊢[l] A ≡ A') from
     fun h => this h rfl
   mutual_induction NeutEqTm
   all_goals intros; try exact True.intro
   all_goals rename_i eq; cases eq
   case bvar i _ Γwf lk =>
     have := lk.lt_length
-    rw [show ‖Γ‖ - (‖Γ‖ - i - 1) - 1 = i by omega]
+    rw [show Γ.length - (Γ.length - i - 1) - 1 = i by omega]
     exact ⟨_, lk, EqTm.refl_tm (WfTm.bvar (by omega) lk), EqTp.refl_tp (Γwf.lookup_wf lk)⟩
   case conv_neut => grind [EqTm.conv_eq]
 

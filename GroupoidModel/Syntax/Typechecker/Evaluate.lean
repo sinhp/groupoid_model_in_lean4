@@ -1,12 +1,7 @@
 import Qq
 
-import GroupoidModel.Syntax.GCongr
 import GroupoidModel.Syntax.Synth
-import GroupoidModel.Syntax.Injectivity
-import GroupoidModel.Syntax.Typechecker.ValueButItsARelationAndAnnotationsGone
-
-/-- Shorthand for `List.length` which is used a lot in this file. -/
-local notation "‖" l "‖" => List.length l
+import GroupoidModel.Syntax.Typechecker.Value
 
 -- /-- Hacks to use during development:
 -- `as_aux_lemma` blocks are not elaborated and kernel typechecking is off,
