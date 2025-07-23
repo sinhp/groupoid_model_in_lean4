@@ -16,6 +16,14 @@ variable {X Y Z : Type*} [Category X] [Category Y] [Category Z]
 
 namespace Iso
 
+@[simp]
+lemma hom_inv_id_assoc (I : X ≅≅ Y) (H : X ⥤ Z) : I.hom ⋙ I.inv ⋙ H = H := by
+  rw [← Functor.assoc, hom_inv_id, Functor.id_comp]
+
+@[simp]
+lemma inv_hom_id_assoc (I : X ≅≅ Y) (H : Y ⥤ Z) : I.inv ⋙ I.hom ⋙ H = H := by
+  rw [← Functor.assoc, inv_hom_id, Functor.id_comp]
+
 @[simp] lemma hom_inv_id' (I : X ≅≅ Y) : I.hom ⋙ I.inv = 𝟭 _ := I.hom_inv_id
 
 @[simp] lemma inv_hom_id' (I : X ≅≅ Y) : I.inv ⋙ I.hom = 𝟭 _ := I.inv_hom_id
