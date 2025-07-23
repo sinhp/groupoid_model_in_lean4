@@ -487,9 +487,30 @@ structure NaturalModelSigma where
   pair : UvPoly.compDom (uvPolyTp M) (uvPolyTp M) ⟶ M.Tm
   Sig_pullback : IsPullback pair ((uvPolyTp M).comp (uvPolyTp M)).p M.tp Sig
 
+/--
+`pb` is a chosen pullback for the square
+       p1
+ pb ---------> Tm
+ |             |
+ |             |
+ p2            | tp
+ |             |
+ V             V
+Tm ----------> Ty
+        tp
+In a presheaf category, we always have a pullback,
+but when we construct a natural model, this is not
+definitionally equal to the pullbacks we might be able to construct,
+for example using context extension.
+-/
 structure NaturalModelIdBase where
-  Id : pullback M.tp M.tp ⟶ M.Ty
-  Refl : M.Tm ⟶ M.Tm
-  Id_comm : (pullback.lift (𝟙 M.Tm) (𝟙 M.Tm) rfl) ≫ Id = Refl ≫ M.tp
+  pb : Psh Ctx
+  p1 : pb ⟶ M.Tm
+  p2 : pb ⟶ M.Tm
+  pb_isPullback : IsPullback p1 p2 M.tp M.tp
+  Id : pb ⟶ M.Ty
+  refl : M.Tm ⟶ M.Tm
+  Id_comm : (IsPullback.lift pb_isPullback (𝟙 M.Tm) (𝟙 M.Tm) (by simp)) ≫
+  Id = refl ≫ M.tp
 
 end NaturalModelBase
