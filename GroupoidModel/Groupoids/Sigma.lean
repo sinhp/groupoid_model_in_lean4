@@ -51,18 +51,18 @@ def sigmaMap : sigmaObj B x ⥤ sigmaObj B y :=
 theorem ιNatTrans_app_base (a : sigmaObj B x) : ((ιNatTrans f).app a.base) = homMk f (𝟙 (A.map f).obj a.base) :=
   rfl
 
-theorem sigmaMap_obj (a) : (sigmaMap B f).obj a =
-    objMk ((A.map f).obj a.base)
-      ((B.map
-        (homMk
-          (X := (ι A x).obj (base a))
-          (Y := (ι A y).obj ((A.map f).obj (base a))) f
-          (𝟙 _))).obj (a.fiber)) := by
-  apply hext
-  · simp
-  · simp only [sigmaObj, sigmaMap_obj_base, Functor.comp_obj, sigmaMap_obj_fiber, ι_obj_base,
-       ι_obj_fiber, objMk_base, objMk_fiber, heq_eq_eq]
-    congr
+-- theorem sigmaMap_obj (a) : (sigmaMap B f).obj a =
+--     objMk ((A.map f).obj a.base)
+--       ((B.map
+--         (homMk
+--           (X := (ι A x).obj (base a))
+--           (Y := (ι A y).obj ((A.map f).obj (base a))) f
+--           (𝟙 _))).obj (a.fiber)) := by
+--   apply hext
+--   · simp
+--   · simp only [sigmaObj, sigmaMap_obj_base, Functor.comp_obj, sigmaMap_obj_fiber, ι_obj_base,
+--        ι_obj_fiber, objMk_base, objMk_fiber, heq_eq_eq]
+--     congr
 
 @[simp] theorem sigmaMap_map_base {a b : sigmaObj B x} {p : a ⟶ b} :
     ((sigmaMap B f).map p).base = (A.map f).map p.base := rfl
