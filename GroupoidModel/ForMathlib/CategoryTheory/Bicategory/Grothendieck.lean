@@ -860,24 +860,24 @@ def functorTo : D ⥤ Grothendieck F where
   map_comp f g := Hom.ext _ _ (by simp) (by simp [map_comp])
 
 @[simp] theorem functorTo_obj_base (x) :
-    ((functorTo A fibObj fibMap map_id map_comp).obj x).base = A.obj x :=
+    ((functorTo A fibObj @fibMap map_id @map_comp).obj x).base = A.obj x :=
   rfl
 
 @[simp] theorem functorTo_obj_fiber (x) :
-    ((functorTo A fibObj fibMap map_id map_comp).obj x).fiber = fibObj x :=
+    ((functorTo A fibObj @fibMap map_id @map_comp).obj x).fiber = fibObj x :=
   rfl
 
 @[simp] theorem functorTo_map_base {x y} (f : x ⟶ y) :
-    ((functorTo A fibObj fibMap map_id map_comp).map f).base = A.map f :=
+    ((functorTo A fibObj @fibMap map_id @map_comp).map f).base = A.map f :=
   rfl
 
 @[simp] theorem functorTo_map_fiber {x y} (f : x ⟶ y) :
-    ((functorTo A fibObj fibMap map_id map_comp).map f).fiber = fibMap f :=
+    ((functorTo A fibObj @fibMap map_id @map_comp).map f).fiber = fibMap f :=
   rfl
 
 variable {A} {fibObj} {fibMap} {map_id} {map_comp}
 @[simp] theorem functorTo_forget :
-    functorTo _ _ _ map_id map_comp ⋙ Grothendieck.forget _ = A :=
+    functorTo _ _ _ map_id @map_comp ⋙ Grothendieck.forget _ = A :=
   rfl
 
 end
@@ -896,11 +896,7 @@ def pre (F) (G : D ⥤ C) : ∫ (G ⋙ F) ⥤ ∫ F :=
 
 @[simp]
 lemma pre_obj_base (x) : ((pre F G).obj x).base = G.obj x.base := by
-  aesop
-  -- simp [pre] -- FIXME: functorTo_obj_base does not fire
-  -- rw [functorTo_obj_base] -- fires but creates an extra (already proven) goal
-  -- · simp
-  -- · aesop_cat
+  simp [pre]
 
 @[simp]
 lemma pre_obj_fiber (x) : ((pre F G).obj x).fiber = x.fiber := by
