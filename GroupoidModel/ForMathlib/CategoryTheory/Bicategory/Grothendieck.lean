@@ -678,7 +678,7 @@ lemma transportIso_hom_fiber (x : ∫ F) {c : C} (α : x.base ≅ c) :
     (x.transportIso α).hom.fiber =
     eqToHom (by simp [transportIso, ← Functor.comp_obj, ← Cat.comp_eq_comp]) := by
   simp only [transportIso, Iso.symm_hom, isoMk_inv_fiber, Iso.refl_inv]
-  erw [Functor.map_id] -- FIXME: does not fire in simp
+  erw [Functor.map_id]
   simp
 
 @[simp]
@@ -895,20 +895,20 @@ def pre (F) (G : D ⥤ C) : ∫ (G ⋙ F) ⥤ ∫ F :=
   (Hom.id_fiber) (Hom.comp_fiber)
 
 @[simp]
-lemma pre_obj_base (x) : ((pre F G).obj x).base = G.obj x.base := by
-  simp [pre]
+lemma pre_obj_base (x) : ((pre F G).obj x).base = G.obj x.base :=
+  rfl
 
 @[simp]
-lemma pre_obj_fiber (x) : ((pre F G).obj x).fiber = x.fiber := by
-  aesop_cat
+lemma pre_obj_fiber (x) : ((pre F G).obj x).fiber = x.fiber :=
+  rfl
 
 @[simp]
-lemma pre_map_base {x y} (f : x ⟶ y) : ((pre F G).map f).base = G.map f.base := by
-  aesop_cat
+lemma pre_map_base {x y} (f : x ⟶ y) : ((pre F G).map f).base = G.map f.base :=
+  rfl
 
 @[simp]
-lemma pre_map_fiber {x y} (f : x ⟶ y) : ((pre F G).map f).fiber = f.fiber := by
-  aesop_cat
+lemma pre_map_fiber {x y} (f : x ⟶ y) : ((pre F G).map f).fiber = f.fiber :=
+  rfl
 
 @[simp]
 theorem pre_id : pre F (𝟭 C) = 𝟭 _ := rfl
@@ -930,25 +930,24 @@ def preNatIso : pre F G ≅ map (whiskerRight α.hom F) ⋙ (pre F H) :=
     (fun X => (transportIso (mk (G.obj X.base) X.fiber) (α.app X.base)).symm)
     (fun {X Y} f => by
       fapply Hom.ext
-      · simp only [comp_obj, mk_base, Iso.app_hom, Iso.symm_hom, Hom.comp_base, pre_map_base,
-          comp_map, map_obj_base, map_map_base]
-        erw [transportIso_inv_base, transportIso_inv_base] -- FIXME
-        simp
-      · simp
-        erw [transportIso_inv_fiber, transportIso_inv_fiber, Category.comp_id, Functor.map_id,
-          Functor.congr_hom (F.congr_map (transportIso_inv_base (mk (G.obj Y.base) Y.fiber)
-          (α.app Y.base)))] -- FIXME
+      · simp [transportIso_inv_base (mk (G.obj X.base) X.fiber),
+          transportIso_inv_base (mk (G.obj Y.base) Y.fiber)]
+      · simp only [Iso.symm_hom, Hom.comp_fiber, Functor.congr_hom
+          (F.congr_map (transportIso_inv_base (mk (G.obj Y.base) Y.fiber) (α.app Y.base))),
+          transportIso_inv_base, eqToHom_refl, Category.comp_id, Category.id_comp,
+          transportIso_inv_fiber (mk (G.obj Y.base) Y.fiber),
+          transportIso_inv_fiber (mk (G.obj X.base) X.fiber)]
+        erw [Category.comp_id, Functor.map_id]
         simp)
 
 @[simp] theorem preNatIso_hom_app_base (x) :
     ((preNatIso F α).hom.app x).base = α.hom.app x.base := by
   simp [preNatIso, transportIso_inv_base (mk (G.obj x.base) x.fiber)]
-  --FIXME: why does variable have to be explicit?
 
 @[simp] theorem preNatIso_hom_app_fiber (x) :
     ((preNatIso F α).hom.app x).fiber = 𝟙 _ := by
-  simp [preNatIso, transportIso_inv_fiber (mk (G.obj x.base) x.fiber)]
-  rfl --FIXME
+  simp [preNatIso, transportIso_inv_fiber (mk (G.obj x.base) x.fiber),
+    transportIso_inv_base (mk (G.obj x.base) x.fiber) (α.app x.base)]
 
 theorem preNatIso_congr {G H : D ⥤ C} {α β : G ≅ H} (h : α = β) :
     preNatIso F α = preNatIso F β ≪≫ eqToIso (by subst h; simp) := by
@@ -962,7 +961,6 @@ theorem preNatIso_congr {G H : D ⥤ C} {α β : G ≅ H} (h : α = β) :
   ext
   fapply Hom.ext
   · simp
-    rfl
   · simp only [eqToIso_refl, Iso.refl_hom, comp_obj, eqToIso.hom, preNatIso_hom_app_fiber,
       Category.comp_id]
     rw! [eqToHom_app, fiber_eqToHom]
@@ -1029,12 +1027,14 @@ def preEquivalence (G : D ≌ C) : ∫ (G.functor ⋙ F) ≌ ∫ F where
       Equivalence.counitInv_functor_comp]
   counitIso := preNatIso F G.counitIso.symm |>.symm
   functor_unitIso_comp X := by
-    simp [preNatIso, transportIso, Grothendieck.preUnitIso]
+    simp only [id_obj, comp_obj, pre_comp, Grothendieck.preUnitIso, Iso.symm_hom, pre_id, preNatIso,
+      mk_base, Iso.app_hom, transportIso, comp_map, mk_fiber, Iso.symm_symm_eq, eqToIso_refl,
+      Iso.trans_refl, Iso.trans_hom, eqToIso.hom, isoWhiskerLeft_hom, NatTrans.comp_app,
+      eqToHom_app, whiskerLeft_app, NatIso.ofComponents_inv_app, map_obj_base, map_obj_fiber,
+      whiskerRight_app, map_comp, eqToHom_map, Category.assoc]
     rw! (castMode := .all) [pre_obj_base, pre_obj_base, pre_obj_base]
-      -- FIXME: pre_obj_base not firing. motive not type correct
     fapply Hom.ext
     · simp
-      rfl
     · simp only [Hom.id_base, Hom.comp_base, Hom.comp_fiber, fiber_eqToHom, eqToHom_map,
       pre_map_fiber, isoMk_inv_fiber, comp_obj, map_obj_base, Iso.app_inv, Iso.symm_inv, comp_map,
       map_obj_fiber, whiskerRight_app, id_obj, whiskerLeft_app, Iso.app_hom, Iso.symm_hom,
@@ -1074,20 +1074,21 @@ def ι : F.obj c ⥤ ∫ F :=
 variable {F} {c}
 
 @[simp]
-lemma ι_obj_base (x) : ((ι F c).obj x).base = c := by
-  dsimp [ι]
+lemma ι_obj_base (x) : ((ι F c).obj x).base = c :=
+  rfl
 
 @[simp]
-lemma ι_obj_fiber (x) : ((ι F c).obj x).fiber = x := by
-  dsimp [ι]
+lemma ι_obj_fiber (x) : ((ι F c).obj x).fiber = x :=
+  rfl
 
 @[simp]
-lemma ι_map_base {x y} (f : x ⟶ y) : ((ι F c).map f).base = 𝟙 _ := by
-  dsimp [ι]
+lemma ι_map_base {x y} (f : x ⟶ y) : ((ι F c).map f).base = 𝟙 _ :=
+  rfl
 
 @[simp]
-lemma ι_map_fiber {x y} (f : x ⟶ y) : ((ι F c).map f).fiber = eqToHom (by simp) ≫ f := by
-  dsimp [ι]
+lemma ι_map_fiber {x y} (f : x ⟶ y) : ((ι F c).map f).fiber
+    = eqToHom (by simp) ≫ f :=
+  rfl
 
 instance faithful_ι (c : C) : (ι F c).Faithful where
   map_injective f := by
@@ -1126,7 +1127,7 @@ lemma ιNatTrans_app_fiber (x : F.obj X) : ((ιNatTrans f).app x).fiber = 𝟙 _
 @[simp]
 theorem ιNatTrans_id_app {X : C} {a : F.obj X} :
     (@ιNatTrans _ _ F _ _ (𝟙 X)).app a = eqToHom (by simp) :=
-  Hom.ext _ _ (by simp; rfl) (by simp)
+  Hom.ext _ _ (by simp) (by simp)
 
 lemma ιNatTrans_comp_app {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {a} :
     (@ιNatTrans _ _ F _ _ (f ≫ g)).app a =
@@ -1137,9 +1138,11 @@ lemma ιNatTrans_comp_app {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {a} :
 end ιNatTrans
 
 variable (fib : ∀ c, F.obj c ⥤ E) (hom : ∀ {c c' : C} (f : c ⟶ c'), fib c ⟶ F.map f ⋙ fib c')
-variable (hom_id : ∀ c, hom (𝟙 c) = eqToHom (by simp only [Functor.map_id]; rfl))
+variable (hom_id : ∀ c, hom (𝟙 c) =
+  eqToHom (by simp [Functor.map_id, Cat.id_eq_id, Functor.id_comp]))
 variable (hom_comp : ∀ c₁ c₂ c₃ (f : c₁ ⟶ c₂) (g : c₂ ⟶ c₃), hom (f ≫ g) =
-  hom f ≫ whiskerLeft (F.map f) (hom g) ≫ eqToHom (by simp only [Functor.map_comp]; rfl))
+  hom f ≫ whiskerLeft (F.map f) (hom g) ≫
+  eqToHom (by simp only [Functor.map_comp, Cat.comp_eq_comp, Functor.assoc]))
 
 /-- Construct a functor from `∫ F` to another category `E` by providing a family of
 functors on the fibers of `∫ F`, a family of natural transformations on morphisms in the
@@ -1158,22 +1161,22 @@ def ιCompFunctorFrom (c : C) : ι F c ⋙ (functorFrom fib hom hom_id hom_comp)
     simp only [comp_obj, functorFrom_obj, comp_map, functorFrom_map, ι_map_fiber, map_comp,
       eqToHom_map, Iso.refl_hom, Category.comp_id, Category.id_comp]
     rw! [ι_map_base]
-    simp [hom_id]
-    rfl)
+    simp [hom_id])
 
 end FunctorFrom
 
 /-- The fiber inclusion `ι F c` composed with `map α` is isomorphic to `α.app c ⋙ ι F' c`. -/
 @[simps!]
 def ιCompMap {F' : C ⥤ Cat} (α : F ⟶ F') (c : C) : ι F c ⋙ map α ≅ α.app c ⋙ ι F' c :=
-  NatIso.ofComponents (fun X => Iso.refl _) (fun f => by
+  NatIso.ofComponents (fun X => Iso.refl _) (fun {x y} f => by
     apply Hom.ext
-    · simp
-      rw! [Functor.map_id]
+    · simp only [comp_obj, map_obj_base, Iso.refl_hom, comp_map, Hom.comp_base, Hom.id_base,
+      map_obj_fiber, map_map_base, eqToHom_refl, Hom.comp_fiber, map_map_fiber, Cat.comp_obj,
+      ι_map_fiber, map_comp, eqToHom_map, eqToHom_trans_assoc, Hom.id_fiber, Category.assoc,
+      Category.id_comp]
+      rw! [Functor.map_id, (NatTrans.congr α (ι_obj_base y))]
       simp
-      rfl -- FIXME
     · simp
-      rfl
   )
 
 section AsSmall
