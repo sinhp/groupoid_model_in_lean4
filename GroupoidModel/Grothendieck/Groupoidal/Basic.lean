@@ -39,7 +39,20 @@ def Groupoidal {C : Type u₁} [Category.{v₁,u₁} C] (F : C ⥤ Grpd.{v₂,u�
 
 namespace Groupoidal
 
-attribute [local simp] Grpd.id_eq_id Functor.id_comp Grpd.comp_eq_comp Functor.assoc
+attribute [local simp] Grpd.id_eq_id Grpd.comp_eq_comp Functor.assoc
+
+-- FIXME: maybe move the dsimprocs up into an earlier module so that more files can use them.
+/-- A `dsimp` rule that reduces `𝟭 _ ⋙ F` to `F`
+even if the domain categories are not syntactically equal. -/
+dsimproc Functor.simpIdComp (@Functor.comp _ _ _ _ _ _ (@Functor.id _ _) _) := fun e => do
+  let_expr Functor.comp _ _ _ _ _ _ _ F ← e | return .continue
+  return .done F
+
+/-- A `dsimp` rule that reduces `F ⋙ 𝟭 _` to `F`
+even if the codomain categories are not syntactically equal. -/
+dsimproc Functor.simpCompId (@Functor.comp _ _ _ _ _ _ _ (@Functor.id _ _)) := fun e => do
+  let_expr Functor.comp _ _ _ _ _ _ F _ ← e | return .continue
+  return .done F
 
 scoped prefix:75 "∫ " => Functor.Groupoidal
 
@@ -664,7 +677,7 @@ theorem preNatIso_congr {G H : D ⥤ C} {α β : G ≅ H} (h : α = β) :
 @[simp] theorem preNatIso_eqToIso {G H : D ⥤ C} {h : G = H} :
     preNatIso F (eqToIso h) = eqToIso (by
       subst h
-      simp [Groupoidal.map_id_eq, Functor.id_comp]) :=
+      simp [Groupoidal.map_id_eq]) :=
   Grothendieck.preNatIso_eqToIso _
 
 theorem preNatIso_comp {G1 G2 G3 : D ⥤ C} (α : G1 ≅ G2) (β : G2 ≅ G3) :

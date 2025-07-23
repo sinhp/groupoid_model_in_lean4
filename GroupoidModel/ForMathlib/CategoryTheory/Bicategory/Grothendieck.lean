@@ -1075,30 +1075,19 @@ variable {F} {c}
 
 @[simp]
 lemma ι_obj_base (x) : ((ι F c).obj x).base = c := by
-  rw [ι, functorTo_obj_base] -- FIXME: `functorTo_obj_base` creates extra (already proven) goal
-  · simp
-  · simp [Functor.congr_hom (F.map_id _)]
+  dsimp [ι]
 
 @[simp]
 lemma ι_obj_fiber (x) : ((ι F c).obj x).fiber = x := by
   dsimp [ι]
-  rw [functorTo_obj_fiber] -- FIXME: `functorTo_obj_base` creates extra (already proven) goal
-  · simp
-  · simp [Functor.congr_hom (F.map_id _)]
 
 @[simp]
 lemma ι_map_base {x y} (f : x ⟶ y) : ((ι F c).map f).base = 𝟙 _ := by
   dsimp [ι]
-  rw [functorTo_map_base] -- FIXME: `functorTo_obj_base` creates extra (already proven) goal
-  · simp
-    rfl
-  · simp [Functor.congr_hom (F.map_id _)]
 
 @[simp]
 lemma ι_map_fiber {x y} (f : x ⟶ y) : ((ι F c).map f).fiber = eqToHom (by simp) ≫ f := by
   dsimp [ι]
-  rw [functorTo_map_fiber] -- FIXME: `functorTo_obj_base` creates extra (already proven) goal
-  simp [Functor.congr_hom (F.map_id _)]
 
 instance faithful_ι (c : C) : (ι F c).Faithful where
   map_injective f := by
@@ -1282,22 +1271,12 @@ def mapWhiskerRightAsSmallFunctor (α : F ⟶ G) :
         compAsSmallFunctorEquivalenceInverse, Cat.of_α, Iso.refl_hom, Category.comp_id,
         Category.id_comp]
       fapply Hom.ext
-      · simp only [map_obj_base, map_map_base]
-        rw [functorTo_map_base] -- FIXME: doesn't fire in simp, generates extra goal
-        · simp only [forget_map, map_map_base]
-          rw [functorTo_map_base]
-          · simp
-          · sorry -- should be automatic
-        · sorry -- should be automatic
+      · simp only [map_obj_base, map_map_base, functorTo_map_base, forget_map]
       · simp only [map_obj_base, comp_obj, Cat.asSmallFunctor_obj, Cat.of_α, comp_map,
         Cat.asSmallFunctor_map, map_obj_fiber, whiskerRight_app, map_map_base, eqToHom_refl,
-        map_map_fiber, Cat.comp_obj, Category.id_comp]
-        rw! [functorTo_map_fiber] -- FIXME: doesn't fire in simp, generates extra goal
-        · simp only [map_obj_fiber, map_map_fiber, Cat.comp_obj, map_comp, eqToHom_map]
-          rw! [functorTo_map_fiber] -- FIXME: doesn't fire in simp, generates extra goal
-          · rfl -- FIXME: heavy rfl?
-          · sorry -- should be automatic
-        · sorry -- should be automatic
+        map_map_fiber, Cat.comp_obj, Category.id_comp,
+        functorTo_map_fiber, map_comp, eqToHom_map]
+        rfl -- FIXME: heavy rfl?
       )
 
 -- /-- Mapping a Grothendieck construction along the whiskering of any natural transformation

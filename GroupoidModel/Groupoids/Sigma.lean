@@ -7,10 +7,6 @@ universe v u v₁ u₁ v₂ u₂ v₃ u₃
 
 noncomputable section
 
--- NOTE these simp lemmas from mathlib should maybe be removed
--- Grpd.forgetToCat...?
--- Some `AsSmall` related lemmas
-
 namespace GroupoidModel
 
 open CategoryTheory NaturalModelBase Opposite Functor.Groupoidal PGrpd
@@ -55,19 +51,18 @@ def sigmaMap : sigmaObj B x ⥤ sigmaObj B y :=
 theorem ιNatTrans_app_base (a : sigmaObj B x) : ((ιNatTrans f).app a.base) = homMk f (𝟙 (A.map f).obj a.base) :=
   rfl
 
--- TODO: why do we need `eqToHom rfl`? Doesn't type check with `homMk f (𝟙 _)`
 theorem sigmaMap_obj (a) : (sigmaMap B f).obj a =
     objMk ((A.map f).obj a.base)
-    ((B.map (homMk (f ≫ eqToHom rfl) (eqToHom (by simp)))).obj (a.fiber)) := by
+      ((B.map
+        (homMk
+          (X := (ι A x).obj (base a))
+          (Y := (ι A y).obj ((A.map f).obj (base a))) f
+          (𝟙 _))).obj (a.fiber)) := by
   apply hext
   · simp
   · simp only [sigmaObj, sigmaMap_obj_base, Functor.comp_obj, sigmaMap_obj_fiber, ι_obj_base,
-      eqToHom_refl, ι_obj_fiber, objMk_base, objMk_fiber, heq_eq_eq]
+       ι_obj_fiber, objMk_base, objMk_fiber, heq_eq_eq]
     congr
-    rw [ιNatTrans_app_base]
-    apply Functor.Groupoidal.Hom.ext
-    · simp
-    · simp
 
 @[simp] theorem sigmaMap_map_base {a b : sigmaObj B x} {p : a ⟶ b} :
     ((sigmaMap B f).map p).base = (A.map f).map p.base := rfl

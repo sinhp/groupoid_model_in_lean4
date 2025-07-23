@@ -230,12 +230,12 @@ instance : forgetToGrpd.ReflectsIsomorphisms := by
     ≫ eqToHom (Functor.congr_obj hFG A.fiber))
   constructor
   · apply Grothendieck.Hom.ext
-    · simp
+    · simp [Grpd.forgetToCat]
     · exact hFG
   · apply Grothendieck.Hom.ext
     · have := Functor.congr_hom hGF F.fiber
       simp only [Grpd.comp_eq_comp, Functor.comp_map, forgetToGrpd_map] at this
-      simp [this]
+      simp [this, Grpd.forgetToCat]
     · exact hGF
 
 section
