@@ -1,5 +1,6 @@
 import GroupoidModel.Syntax.GCongr
 import GroupoidModel.Syntax.Injectivity
+import GroupoidModel.Syntax.Synth
 
 /-! # Values, neutral forms, closures, and evaluation environments
 
@@ -450,6 +451,31 @@ theorem wk_all {Γ} :
     simp only [autosubst] at *
     grind [EnvEqSb.snoc]
 
+theorem ValEqTp.wk {Γ l vA A} (h : ValEqTp Γ l vA A) {C k} (hC : Γ ⊢[k] C) :
+    ValEqTp ((C,k) :: Γ) l vA (A.subst Expr.wk) :=
+  wk_all.1 h hC
+
+theorem ValEqTm.wk {Γ l vt t A} (h : ValEqTm Γ l vt t A) {C k} (hC : Γ ⊢[k] C) :
+    ValEqTm ((C,k) :: Γ) l vt (t.subst Expr.wk) (A.subst Expr.wk) :=
+  wk_all.2.1 h hC
+
+theorem NeutEqTm.wk {Γ l vn n A} (h : NeutEqTm Γ l vn n A) {C k} (hC : Γ ⊢[k] C) :
+    NeutEqTm ((C,k) :: Γ) l vn (n.subst Expr.wk) (A.subst Expr.wk) :=
+  wk_all.2.2.1 h hC
+
+theorem ClosEqTp.wk {Γ l l' A vB B} (h : ClosEqTp Γ l l' A vB B) {C k} (hC : Γ ⊢[k] C) :
+    ClosEqTp ((C,k) :: Γ) l l' (A.subst Expr.wk) vB (B.subst (Expr.up Expr.wk)) :=
+  wk_all.2.2.2.1 h hC
+
+theorem ClosEqTm.wk {Γ l l' A B vb b} (h : ClosEqTm Γ l l' A B vb b) {C k} (hC : Γ ⊢[k] C) :
+    ClosEqTm ((C,k) :: Γ) l l' (A.subst Expr.wk) (B.subst (Expr.up Expr.wk))
+      vb (b.subst (Expr.up Expr.wk)) :=
+  wk_all.2.2.2.2.1 h hC
+
+theorem EnvEqSb.wk {Δ E σ Γ} (h : EnvEqSb Δ E σ Γ) {C k} (hC : Δ ⊢[k] C) :
+    EnvEqSb ((C,k) :: Δ) E (Expr.comp Expr.wk σ) Γ :=
+  wk_all.2.2.2.2.2 h hC
+
 /-! ## Inversion for value relations -/
 
 theorem ValEqTp.inv_pi {Γ C vA vB l k k'} : ValEqTp Γ l (.pi k k' vA vB) C →
@@ -608,14 +634,12 @@ theorem uniq_all {Γ} :
     /- Technicality: `ValEqTm` does not need the generalization to `A'`
     because the only terms that 'forget' type information
     are elimination forms which must be neutral as values. -/
-    (∀ {l vt t A}, NeutEqTm Γ l vt t A → ∀ {t' A'}, NeutEqTm Γ l vt t' A' →
-      (Γ ⊢[l] A ≡ A') ∧ (Γ ⊢[l] t ≡ t' : A)) ∧
+    (∀ {l vt t A}, NeutEqTm Γ l vt t A → ∀ {t' A'}, NeutEqTm Γ l vt t' A' → (Γ ⊢[l] t ≡ t' : A)) ∧
     (∀ {l l' A vB B}, ClosEqTp Γ l l' A vB B → ∀ {B'}, ClosEqTp Γ l l' A vB B' →
       (A, l) :: Γ ⊢[l'] B ≡ B') ∧
     (∀ {l l' A B vb b}, ClosEqTm Γ l l' A B vb b → ∀ {b'}, ClosEqTm Γ l l' A B vb b' →
       (A, l) :: Γ ⊢[l'] b ≡ b' : B) ∧
-    (∀ {E σ Γ'}, EnvEqSb Γ E σ Γ' → ∀ {σ'}, EnvEqSb Γ E σ' Γ' →
-      EqSb Γ σ σ' Γ') := by
+    (∀ {E σ Γ'}, EnvEqSb Γ E σ Γ' → ∀ {σ'}, EnvEqSb Γ E σ' Γ' → EqSb Γ σ σ' Γ') := by
   /- 2025-07-20: I think this could go by induction on `Val`,
   but my `mutual_induction` tactic doesn't support that. -/
   mutual_induction ValEqTp
@@ -656,33 +680,31 @@ theorem uniq_all {Γ} :
     grind [EqTm.conv_eq, Lookup.tp_uniq, NeutEqTm.inv_bvar]
   case app ihf iha _ _ vn =>
     have ⟨_, _, _, _, _, vf, va, eqt, eq⟩ := vn.inv_app
-    have ⟨peq, feq⟩ := ihf vf
+    have feq := ihf vf
+    have peq := feq.wf_right.uniq_tp vf.wf_tm
     have ⟨_, _, _, Aeq, Beq⟩ := peq.inv_pi
     have aeq := iha <| va.conv_tp Aeq.symm_tp
-    refine ⟨?teq, (fun teq => ?_) ?teq⟩
-    . apply EqTp.trans_tp _ eq.symm_tp
-      exact Beq.subst_eq (EqSb.toSb aeq)
-    . apply EqTm.trans_tm _ <| eqt.symm_tm.conv_eq (by grind)
-      gcongr
+    have teq := EqTp.trans_tp (Beq.subst_eq (EqSb.toSb aeq)) eq.symm_tp
+    apply EqTm.trans_tm _ <| eqt.symm_tm.conv_eq (by grind)
+    gcongr
   case fst ih _ _ vn =>
     have ⟨_, _, _, _, vp, eqt, eq⟩ := vn.inv_fst
-    have ⟨seq, peq⟩ := ih vp
+    have peq := ih vp
+    have seq := peq.wf_right.uniq_tp vp.wf_tm
     have ⟨_, _, _, Aeq, Beq⟩ := seq.inv_sigma
-    constructor
-    . grind
-    . apply EqTm.trans_tm _ <| eqt.symm_tm.conv_eq (by grind)
-      gcongr
+    apply EqTm.trans_tm _ <| eqt.symm_tm.conv_eq (by grind)
+    gcongr
   case snd ih _ _ vn =>
     have ⟨_, _, _, _, vp, eqt, eq⟩ := vn.inv_snd
-    have ⟨seq, peq⟩ := ih vp
+    have peq := ih vp
+    have seq := peq.wf_right.uniq_tp vp.wf_tm
     have ⟨_, _, _, Aeq, Beq⟩ := seq.inv_sigma
-    refine ⟨?teq2, (fun teq => ?_) ?teq2⟩
-    . apply EqTp.trans_tp _ eq.symm_tp
+    apply EqTm.trans_tm _ <| eqt.symm_tm.conv_eq _
+    . gcongr
+    . apply eq.trans_tp
       gcongr
       apply EqSb.toSb
-      gcongr
-    . apply EqTm.trans_tm _ <| eqt.symm_tm.conv_eq (by grind)
-      gcongr
+      symm; gcongr
   case conv_neut => grind [EqTm.conv_eq]
   case clos_tp ih _ c =>
     rcases c with ⟨env, Aeq, B⟩
@@ -701,21 +723,60 @@ theorem uniq_all {Γ} :
 theorem ValEqTp.tp_uniq {Γ l vA A A'} : ValEqTp Γ l vA A → ValEqTp Γ l vA A' → Γ ⊢[l] A ≡ A' :=
   fun h h' => uniq_all.1 h h'
 
+-- NOTE: `A` is fixed, and we don't have a `tp_uniq` lemma.
 theorem ValEqTm.tm_uniq {Γ l vt t t' A} : ValEqTm Γ l vt t A → ValEqTm Γ l vt t' A →
     Γ ⊢[l] t ≡ t' : A :=
   fun h h' => uniq_all.2.1 h h'
 
 theorem NeutEqTm.tm_uniq {Γ l vn n A n' A'} : NeutEqTm Γ l vn n A → NeutEqTm Γ l vn n' A' →
     Γ ⊢[l] n ≡ n' : A :=
-  fun h h' => uniq_all.2.2.1 h h' |>.2
+  fun h h' => uniq_all.2.2.1 h h'
 
-theorem ClosEqTp.tp_uniq {Γ l l' A vB B B'} : ClosEqTp Γ l l' A vB B → ClosEqTp Γ l l' A vB B' →
-    (A, l) :: Γ ⊢[l'] B ≡ B' :=
-  fun h h' => uniq_all.2.2.2.1 h h'
-
-theorem ClosEqTm.tm_uniq {Γ l l' A B vb b b'} : ClosEqTm Γ l l' A B vb b →
-    ClosEqTm Γ l l' A B vb b' → (A, l) :: Γ ⊢[l'] b ≡ b' : B :=
-  fun h h' => uniq_all.2.2.2.2.1 h h'
+theorem NeutEqTm.tp_uniq {Γ l vn n A n' A'} : NeutEqTm Γ l vn n A → NeutEqTm Γ l vn n' A' →
+    Γ ⊢[l] A ≡ A' :=
+  fun h h' => (h.tm_uniq h').wf_right.uniq_tp h'.wf_tm
 
 theorem EnvEqSb.sb_uniq {Δ E σ σ' Γ} : EnvEqSb Δ E σ Γ → EnvEqSb Δ E σ' Γ → EqSb Δ σ σ' Γ :=
   fun h h' => uniq_all.2.2.2.2.2 h h'
+
+theorem ClosEqTp.uniq_all {Γ l l' A A' vB B B'} :
+    ClosEqTp Γ l l' A vB B → ClosEqTp Γ l l' A' vB B' →
+    (Γ ⊢[l] A ≡ A') ∧ ((A, l) :: Γ ⊢[l'] B ≡ B') := by
+  rintro ⟨env, Aeq, B⟩ ⟨env', Aeq', _⟩
+  have sbeq := env.sb_uniq env'
+  have := B.wf_binder.subst_eq sbeq
+  constructor
+  . apply Aeq.symm_tp.trans_tp this |>.trans_tp Aeq'
+  . have := B.subst_eq (sbeq.up B.wf_binder)
+    exact this.conv_binder Aeq
+
+theorem ClosEqTm.uniq_all {Γ l l' A A' B B' vb b b'} :
+    ClosEqTm Γ l l' A B vb b → ClosEqTm Γ l l' A' B' vb b' →
+    (Γ ⊢[l] A ≡ A') ∧ ((A, l) :: Γ ⊢[l'] b ≡ b' : B) := by
+  rintro ⟨env, Aeq, Beq, b⟩ ⟨env', Aeq', Beq', _⟩
+  have sbeq := env.sb_uniq env'
+  have := b.wf_binder.subst_eq sbeq
+  constructor
+  . exact Aeq.symm_tp.trans_tp this |>.trans_tp Aeq'
+  . have := b.subst_eq (sbeq.up b.wf_binder)
+    exact this.conv_binder Aeq |>.conv_eq Beq
+
+theorem ClosEqTp.binder_uniq {Γ l l' A A' vB B B'} :
+    ClosEqTp Γ l l' A vB B → ClosEqTp Γ l l' A' vB B' → Γ ⊢[l] A ≡ A' :=
+  fun h h' => h.uniq_all h' |>.1
+
+theorem ClosEqTp.tp_uniq {Γ l l' A A' vB B B'} :
+    ClosEqTp Γ l l' A vB B → ClosEqTp Γ l l' A' vB B' → (A, l) :: Γ ⊢[l'] B ≡ B' :=
+  fun h h' => h.uniq_all h' |>.2
+
+theorem ClosEqTm.binder_uniq {Γ l l' A A' B B' vb b b'} :
+    ClosEqTm Γ l l' A B vb b → ClosEqTm Γ l l' A' B' vb b' → Γ ⊢[l] A ≡ A' :=
+  fun h h' => h.uniq_all h' |>.1
+
+theorem ClosEqTm.tp_uniq {Γ l l' A A' B B' vb b b'} :
+    ClosEqTm Γ l l' A B vb b → ClosEqTm Γ l l' A' B' vb b' → (A, l) :: Γ ⊢[l'] B ≡ B' :=
+  fun h h' => h.uniq_all h' |>.2.wf_right.uniq_tp <| h'.wf_tm.conv_binder <| h'.binder_uniq h
+
+theorem ClosEqTm.tm_uniq {Γ l l' A A' B B' vb b b'} :
+    ClosEqTm Γ l l' A B vb b → ClosEqTm Γ l l' A' B' vb b' → (A, l) :: Γ ⊢[l'] b ≡ b' : B :=
+  fun h h' => h.uniq_all h' |>.2
