@@ -293,9 +293,17 @@ theorem ClosEqTm.wf_tm {Γ l l' A B vb b} (h : ClosEqTm Γ l l' A B vb b) :
 theorem EnvEqSb.wf_sb {Δ E σ Γ} (h : EnvEqSb Δ E σ Γ) : WfSb Δ σ Γ :=
   _root_.wf_expr.2.2.2.2.2 h
 
+theorem ValEqTm.conv_tm {Γ A vt t t' l} :
+    ValEqTm Γ l vt t A → Γ ⊢[l] t ≡ t' : A → ValEqTm Γ l vt t' A :=
+  fun h eq => h.conv_nf eq (EqTp.refl_tp eq.wf_tp)
+
 theorem ValEqTm.conv_tp {Γ A A' vt t l} :
     ValEqTm Γ l vt t A → Γ ⊢[l] A ≡ A' → ValEqTm Γ l vt t A' :=
   fun h eq => h.conv_nf (EqTm.refl_tm h.wf_tm) eq
+
+theorem NeutEqTm.conv_tm {Γ A vt t t' l} :
+    NeutEqTm Γ l vt t A → Γ ⊢[l] t ≡ t' : A → NeutEqTm Γ l vt t' A :=
+  fun h eq => h.conv_neut eq (EqTp.refl_tp eq.wf_tp)
 
 theorem NeutEqTm.conv_tp {Γ A A' vt t l} :
     NeutEqTm Γ l vt t A → Γ ⊢[l] A ≡ A' → NeutEqTm Γ l vt t A' :=

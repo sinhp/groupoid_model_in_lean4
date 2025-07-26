@@ -247,15 +247,15 @@ partial def evalApp (Δ : Q(Ctx)) (l l' : Q(Nat)) (A B : Q(Expr))
         exact ⟨_, env⟩
       )
     let ⟨v, veq⟩ ← evalTm Δ q($va :: $env)
-      q(Expr.snoc (Classical.choose $ex) $a) q(($A', $k) :: $Γ) k' b
+      q(Expr.snoc ($ex).choose $a) q(($A', $k) :: $Γ) k' b
       q(by as_aux_lemma =>
         have ⟨_, _, _, _, c, eqt, eq⟩ := ($Δf).inv_lam
         rcases c with ⟨env, Aeq', _, b⟩
         obtain ⟨_, rfl, rfl, Aeq, Beq⟩ := eq.inv_pi
         have A' := b.wf_binder
-        apply EnvEqSb.snoc (Classical.choose_spec $ex) A'
+        apply EnvEqSb.snoc ($ex).choose_spec A'
         apply ($Δa).conv_tp <| Aeq.trans_tp <| Aeq'.symm_tp.trans_tp <| A'.subst_eq _
-        exact env.sb_uniq (Classical.choose_spec $ex)
+        exact env.sb_uniq ($ex).choose_spec
       )
       q(by as_aux_lemma =>
         have ⟨_, _, _, _, c, eqt, eq⟩ := ($Δf).inv_lam
@@ -268,7 +268,7 @@ partial def evalApp (Δ : Q(Ctx)) (l l' : Q(Nat)) (A B : Q(Expr))
         rcases c with ⟨env, Aeq', Beq', b⟩
         obtain ⟨_, rfl, rfl, Aeq, Beq⟩ := eq.inv_pi
         clear eq
-        have sbeq := env.sb_uniq (Classical.choose_spec $ex)
+        have sbeq := env.sb_uniq ($ex).choose_spec
 
         replace sbeq := sbeq.snoc b.wf_binder <| EqTm.refl_tm <| ($Δa).wf_tm.conv <|
           Aeq.trans_tp Aeq'.symm_tp
