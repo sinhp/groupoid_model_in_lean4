@@ -2,16 +2,7 @@ import Qq
 
 import GroupoidModel.Syntax.Synth
 import GroupoidModel.Syntax.Typechecker.Value
-
--- /-- Hacks to use during development:
--- `as_aux_lemma` blocks are not elaborated and kernel typechecking is off,
--- speeding up interactive feedback. -/
--- -- FIXME: make `as_aux_lemma` or general `by` elaboration async for lower interaction latency.
--- macro_rules
---   | `(tactic| as_aux_lemma => $s:tacticSeq) => `(tactic| sorry)
--- set_option linter.unusedTactic false
--- set_option linter.unreachableTactic false
--- set_option debug.skipKernelTC true
+import GroupoidModel.Syntax.Typechecker.Util
 
 open Qq
 
@@ -23,53 +14,62 @@ mutual
 Note: Inferring implicits from `Q(...)` is pretty flaky,
 so all the arguments are explicit.
 
-Note: we use `as_aux_lemma` pervasively to minimize the size of produced proof terms. -/
+Note: we use `as_aux_lemma` pervasively to minimize the size of produced proof terms.
+See also `withHave`. -/
 -- FIXME: by using `synthLvl`, we could also get rid of the `l` args in `eval*`.
 partial def evalTp (Δ : Q(Ctx)) (env : Q(List Val)) (σ : Q(Nat → Expr)) (Γ : Q(Ctx))
-    (l : Q(Nat)) (T : Q(Expr))
+    (l : Q(Nat)) (T' : Q(Expr))
     (Δenv : Q(EnvEqSb $Δ $env $σ $Γ))
-    (ΓT : Q($Γ ⊢[$l] ($T))) :
-    Lean.MetaM ((v : Q(Val)) × Q(ValEqTp $Δ $l $v <| ($T).subst $σ)) :=
+    (ΓT : Q($Γ ⊢[$l] ($T'))) :
+    Lean.MetaM ((v : Q(Val)) × Q(ValEqTp $Δ $l $v <| ($T').subst $σ)) := do
+  /- TODO: establish a convention for when inputs are supposed to be in WHNF.
+  Should `evalTp` reject types not in WHNF?
+  Then we'd need to evaluate them in `lookup`,
+  and other places where compound quotations are produced.
+  On the other hand, lazy evaluation may be more efficient. -/
+  let T : Q(Expr) ← Lean.Meta.whnf T'
+  have _ : $T =Q $T' := .unsafeIntro
   match T with
   | ~q(.pi $l $l' $A $B) => do
-    let ⟨vA, vAeq⟩ ← evalTp Δ env σ Γ l A
+    let ⟨vA, vAeq_⟩ ← evalTp Δ env σ Γ l A
       q($Δenv)
       q(by as_aux_lemma => exact ($ΓT).inv_pi.2.wf_binder)
-    return ⟨q(.pi $l $l' $vA (.mk_tp $Γ $A $env $B)),
-      q(by as_aux_lemma =>
-        simp +zetaDelta only [Expr.subst]
-        obtain ⟨rfl, B⟩ := ($ΓT).inv_pi
-        apply ValEqTp.pi $vAeq
-        apply ClosEqTp.clos_tp $Δenv (EqTp.refl_tp ($vAeq).wf_tp) B
-      )⟩
+    withHave vAeq_ fun vAeq => do
+    let vT : Q(Val) := q(.pi $l $l' $vA (.mk_tp $Γ $A $env $B))
+    return ⟨vT, ← mkHaves #[vAeq] q(by as_aux_lemma =>
+      obtain ⟨rfl, B⟩ := ($ΓT).inv_pi
+      apply ValEqTp.pi $vAeq
+      apply ClosEqTp.clos_tp $Δenv (EqTp.refl_tp ($vAeq).wf_tp) B
+    )⟩
   | ~q(.sigma $l $l' $A $B) => do
-    let ⟨vA, vAeq⟩ ← evalTp Δ env σ Γ l A
+    let ⟨vA, vAeq_⟩ ← evalTp Δ env σ Γ l A
       q($Δenv)
       q(by as_aux_lemma => exact ($ΓT).inv_sigma.2.wf_binder)
-    return ⟨q(.sigma $l $l' $vA (.mk_tp $Γ $A $env $B)),
-      q(by as_aux_lemma =>
-        simp +zetaDelta only [Expr.subst]
-        obtain ⟨rfl, B⟩ := ($ΓT).inv_sigma
-        apply ValEqTp.sigma $vAeq
-        apply ClosEqTp.clos_tp $Δenv (EqTp.refl_tp ($vAeq).wf_tp) B
-      )⟩
+    withHave vAeq_ fun vAeq => do
+    let vT : Q(Val) := q(.sigma $l $l' $vA (.mk_tp $Γ $A $env $B))
+    return ⟨vT, ← mkHaves #[vAeq] q(by as_aux_lemma =>
+      obtain ⟨rfl, B⟩ := ($ΓT).inv_sigma
+      apply ValEqTp.sigma $vAeq
+      apply ClosEqTp.clos_tp $Δenv (EqTp.refl_tp ($vAeq).wf_tp) B
+    )⟩
   | ~q(.el $a) => do
-    let ⟨va, vaeq⟩ ← evalTm Δ env σ Γ q($l + 1) a
+    let ⟨va, vaeq_⟩ ← evalTm Δ env σ Γ q($l + 1) a
       q($Δenv)
       q(by as_aux_lemma => exact ($ΓT).inv_el.with_synthTp)
-    return ⟨q(.el $va),
-      q(by as_aux_lemma =>
-        simp +zetaDelta only [Expr.subst]
-        apply ValEqTp.el <| ($vaeq).conv_tp _
-        exact ($ΓT).inv_el.tp_eq_synthTp.symm_tp.subst ($Δenv).wf_sb
-      )⟩
-  | ~q(.univ $l) => return ⟨q(.univ $l),
-      q(by as_aux_lemma =>
-        cases ($ΓT).inv_univ
-        apply ValEqTp.univ ($Δenv).wf_dom
-        have := ($ΓT).le_univMax
-        omega
-      )⟩
+    withHave vaeq_ fun vaeq => do
+    let vT : Q(Val) := q(.el $va)
+    return ⟨vT, ← mkHaves #[vaeq] q(by as_aux_lemma =>
+      apply ValEqTp.el <| ($vaeq).conv_tp _
+      exact ($ΓT).inv_el.tp_eq_synthTp.symm_tp.subst ($Δenv).wf_sb
+    )⟩
+  | ~q(.univ $l) =>
+    let vT : Q(Val) := q(.univ $l)
+    return ⟨vT, q(by as_aux_lemma =>
+      cases ($ΓT).inv_univ
+      apply ValEqTp.univ ($Δenv).wf_dom
+      have := ($ΓT).le_univMax
+      omega
+    )⟩
   | A => throwError "{A} is not a type"
 
 /-- Evaluate a term in an environment of values. -/
@@ -88,18 +88,17 @@ partial def evalTm (Δ : Q(Ctx)) (env : Q(List Val)) (σ : Q(Nat → Expr)) (Γ 
     let v : Q(Option Val) ← Lean.Meta.whnf v
     have pf : $v =Q $env[$i]? := .unsafeIntro -- FIXME: `whnfQ`?
     let ~q(some $v') := v | throwError "expected 'some _', got{Lean.indentExpr v}"
-    return ⟨v',
-      q(by as_aux_lemma =>
-        simp +zetaDelta only [Expr.subst]
-        have ⟨_, lk, eq⟩ := ($Γt).inv_bvar
-        apply ValEqTm.conv_tp _ (eq.subst ($Δenv).wf_sb).symm_tp
-        . convert ($Δenv).lookup_eq lk using 1
-          -- grind -- solves this, but results in `unknown metavariable`
-          subst $v
-          rename_i h
-          have ⟨_, h⟩ := List.getElem?_eq_some_iff.mp h
-          rw [h]
-      )⟩
+    return ⟨v', q(by as_aux_lemma =>
+      simp +zetaDelta only [Expr.subst]
+      have ⟨_, lk, eq⟩ := ($Γt).inv_bvar
+      apply ValEqTm.conv_tp _ (eq.subst ($Δenv).wf_sb).symm_tp
+      . convert ($Δenv).lookup_eq lk using 1
+        -- grind -- solves this, but results in `unknown metavariable`
+        subst $v
+        rename_i h
+        have ⟨_, h⟩ := List.getElem?_eq_some_iff.mp h
+        rw [h]
+    )⟩
   | ~q(.lam $k $k' $C $b) => do
     return ⟨q(.lam $k $k' (.mk_tm $Γ $C $env $b)),
       q(by as_aux_lemma =>
@@ -111,19 +110,21 @@ partial def evalTm (Δ : Q(Ctx)) (env : Q(List Val)) (σ : Q(Nat → Expr)) (Γ 
         . exact b.tp_eq_synthTp.subst (($Δenv).wf_sb.up C)
       )⟩
   | ~q(.app $k $k' $B $f $a) => do
-    let ⟨vf, vfeq⟩ ← evalTm Δ env σ Γ q(max $k $k') f
+    let ⟨vf, vfeq_⟩ ← evalTm Δ env σ Γ q(max $k $k') f
       q($Δenv)
       q(by as_aux_lemma =>
         have ⟨_, _, f, _⟩ := ($Γt).inv_app
         exact f.with_synthTp
       )
-    let ⟨va, vaeq⟩ ← evalTm Δ env σ Γ k a
+    withHave vfeq_ fun vfeq => do
+    let ⟨va, vaeq_⟩ ← evalTm Δ env σ Γ k a
       q($Δenv)
       q(by as_aux_lemma =>
         have ⟨_, _, _, a, _⟩ := ($Γt).inv_app
         exact a.with_synthTp
       )
-    let ⟨v, veq⟩ ←
+    withHave vaeq_ fun vaeq => do
+    let ⟨v, veq_⟩ ←
       evalApp Δ k k'
         q((synthTp $Γ $a).subst $σ)
         q(($B).subst (Expr.up $σ))
@@ -139,40 +140,43 @@ partial def evalTm (Δ : Q(Ctx)) (env : Q(List Val)) (σ : Q(Nat → Expr)) (Γ 
           exact B.subst (($Δenv).wf_sb.up B.wf_binder)
         )
         q($vaeq)
-    return ⟨v,
-      q(by as_aux_lemma =>
-        obtain ⟨rfl, _, _, _, eq⟩ := ($Γt).inv_app
-        replace eq := eq.subst ($Δenv).wf_sb
-        simp +zetaDelta only [Expr.subst] at eq ⊢
-        apply ($veq).conv_tp
-        convert eq.symm_tp using 1
-        autosubst
-      )⟩
+    withHave veq_ fun veq => do
+    return ⟨v, ← mkHaves #[vfeq, vaeq, veq] q(by as_aux_lemma =>
+      obtain ⟨rfl, _, _, _, eq⟩ := ($Γt).inv_app
+      replace eq := eq.subst ($Δenv).wf_sb
+      simp +zetaDelta only [Expr.subst] at eq ⊢
+      apply ($veq).conv_tp
+      convert eq.symm_tp using 1
+      autosubst
+    )⟩
   | ~q(.pair $k $k' $B $t $u) => do
-    let ⟨vt, vteq⟩ ← evalTm Δ env σ Γ k t q($Δenv)
+    let ⟨vt, vteq_⟩ ← evalTm Δ env σ Γ k t q($Δenv)
       q(by as_aux_lemma =>
         have ⟨_, _, t, _⟩ := ($Γt).inv_pair
         exact t.with_synthTp)
-    let ⟨vu, vueq⟩ ← evalTm Δ env σ Γ k' u q($Δenv)
+    withHave vteq_ fun vteq => do
+    let ⟨vu, vueq_⟩ ← evalTm Δ env σ Γ k' u q($Δenv)
       q(by as_aux_lemma =>
         have ⟨_, _, _, u, _⟩ := ($Γt).inv_pair
         exact u.with_synthTp)
-    return ⟨q(.pair $k $k' $vt $vu),
-      q(by as_aux_lemma =>
-        simp +zetaDelta only [synthTp, Expr.subst] at ($Γt) ⊢
-        obtain ⟨rfl, _, _, u, _⟩ := ($Γt).inv_pair
-        have ⟨_, B⟩ := ($Γt).wf_tp.inv_sigma
-        have := B.subst (($Δenv).wf_sb.up B.wf_binder)
-        apply ValEqTm.pair this $vteq
-        apply ($vueq).conv_tp
-        have := u.tp_eq_synthTp.subst ($Δenv).wf_sb
-        convert this.symm_tp using 1; autosubst
-      )⟩
+    withHave vueq_ fun vueq => do
+    let vp := q(.pair $k $k' $vt $vu)
+    return ⟨vp, ← mkHaves #[vteq, vueq] q(by as_aux_lemma =>
+      simp +zetaDelta only [synthTp, Expr.subst] at ($Γt) ⊢
+      obtain ⟨rfl, _, _, u, _⟩ := ($Γt).inv_pair
+      have ⟨_, B⟩ := ($Γt).wf_tp.inv_sigma
+      have := B.subst (($Δenv).wf_sb.up B.wf_binder)
+      apply ValEqTm.pair this $vteq
+      apply ($vueq).conv_tp
+      have := u.tp_eq_synthTp.subst ($Δenv).wf_sb
+      convert this.symm_tp using 1; autosubst
+    )⟩
   | ~q(.fst $k $k' $A $B $p) => do
-    let ⟨vp, vpeq⟩ ← evalTm Δ env σ Γ q(max $k $k') p
+    let ⟨vp, vpeq_⟩ ← evalTm Δ env σ Γ q(max $k $k') p
       q($Δenv)
       q(by as_aux_lemma => exact ($Γt).inv_fst.2.1.with_synthTp)
-    let ⟨v, veq⟩ ←
+    withHave vpeq_ fun vpeq => do
+    let ⟨v, veq_⟩ ←
       evalFst Δ k k' q(($A).subst $σ) q(($B).subst (Expr.up $σ)) vp q(($p).subst $σ)
         q(by as_aux_lemma =>
           apply ($vpeq).conv_tp
@@ -180,17 +184,18 @@ partial def evalTm (Δ : Q(Ctx)) (env : Q(List Val)) (σ : Q(Nat → Expr)) (Γ 
           have := p.tp_eq_synthTp.subst ($Δenv).wf_sb
           apply this.symm_tp
         )
-    return ⟨v,
-      q(by as_aux_lemma =>
-        simp +zetaDelta only [Expr.subst]
-        obtain ⟨rfl, p, eq⟩ := ($Γt).inv_fst
-        apply ($veq).conv_tp (eq.subst ($Δenv).wf_sb).symm_tp
-      )⟩
+    withHave veq_ fun veq => do
+    return ⟨v, ← mkHaves #[vpeq, veq] q(by as_aux_lemma =>
+      simp +zetaDelta only [Expr.subst]
+      obtain ⟨rfl, p, eq⟩ := ($Γt).inv_fst
+      apply ($veq).conv_tp (eq.subst ($Δenv).wf_sb).symm_tp
+    )⟩
   | ~q(.snd $k $k' $A $B $p) => do
-    let ⟨vp, vpeq⟩ ← evalTm Δ env σ Γ q(max $k $k') p
+    let ⟨vp, vpeq_⟩ ← evalTm Δ env σ Γ q(max $k $k') p
       q($Δenv)
       q(by as_aux_lemma => exact ($Γt).inv_snd.2.1.with_synthTp)
-    let ⟨v, veq⟩ ←
+    withHave vpeq_ fun vpeq => do
+    let ⟨v, veq_⟩ ←
       evalSnd Δ k k' q(($A).subst $σ) q(($B).subst (Expr.up $σ)) vp q(($p).subst $σ)
         q(by as_aux_lemma =>
           apply ($vpeq).conv_tp
@@ -198,27 +203,28 @@ partial def evalTm (Δ : Q(Ctx)) (env : Q(List Val)) (σ : Q(Nat → Expr)) (Γ 
           have := p.tp_eq_synthTp.subst ($Δenv).wf_sb
           apply this.symm_tp
         )
-    return ⟨v,
-      q(by as_aux_lemma =>
-        simp +zetaDelta only [Expr.subst]
-        obtain ⟨rfl, p, eq⟩ := ($Γt).inv_snd
-        apply ($veq).conv_tp
-        convert eq.subst ($Δenv).wf_sb |>.symm_tp using 1
-        autosubst
-      )⟩
+    withHave veq_ fun veq => do
+    return ⟨v, ← mkHaves #[vpeq, veq] q(by as_aux_lemma =>
+      simp +zetaDelta only [Expr.subst]
+      obtain ⟨rfl, p, eq⟩ := ($Γt).inv_snd
+      apply ($veq).conv_tp
+      convert eq.subst ($Δenv).wf_sb |>.symm_tp using 1
+      autosubst
+    )⟩
   | ~q(.code $A) => do
-    let ⟨vA, vAeq⟩ ← evalTp Δ env σ Γ q($l - 1) A
+    let ⟨vA, vAeq_⟩ ← evalTp Δ env σ Γ q($l - 1) A
       q($Δenv)
       q(by as_aux_lemma => obtain ⟨_, rfl, h, _⟩ := ($Γt).inv_code; exact h)
-    return ⟨q(.code $vA),
-      q(by as_aux_lemma =>
-        simp +zetaDelta only [Expr.subst]
-        obtain ⟨l, rfl, _, Teq⟩ := ($Γt).inv_code
-        have := ($Γt).le_univMax
-        have := Teq.subst ($Δenv).wf_sb
-        apply ValEqTm.conv_tp _ this.symm_tp
-        apply ValEqTm.code (by omega) $vAeq
-      )⟩
+    withHave vAeq_ fun vAeq => do
+    let vc : Q(Val) := q(.code $vA)
+    return ⟨vc, ← mkHaves #[vAeq] q(by as_aux_lemma =>
+      simp +zetaDelta only [Expr.subst]
+      obtain ⟨l, rfl, _, Teq⟩ := ($Γt).inv_code
+      have := ($Γt).le_univMax
+      have := Teq.subst ($Δenv).wf_sb
+      apply ValEqTm.conv_tp _ this.symm_tp
+      apply ValEqTm.code (by omega) $vAeq
+    )⟩
   | t => throwError "{t} is not a term"
 
 -- FIXME: `A` could be replaced by `synthTp Δ a`
@@ -240,13 +246,14 @@ partial def evalApp (Δ : Q(Ctx)) (l l' : Q(Nat)) (A B : Q(Expr))
     Instead, we obtain one using AC;
     the choice is unique (up to `EqSb`)
     since `EnvEqSb` is functional. -/
-    let ex : Q(∃ σ, EnvEqSb $Δ $env σ $Γ) :=
+    let ex_ : Q(∃ σ, EnvEqSb $Δ $env σ $Γ) :=
       q(by as_aux_lemma =>
         have ⟨_, _, _, _, c, _⟩ := ($Δf).inv_lam
         rcases c with ⟨env, _⟩
         exact ⟨_, env⟩
       )
-    let ⟨v, veq⟩ ← evalTm Δ q($va :: $env)
+    withHave ex_ fun ex => do
+    let ⟨v, veq_⟩ ← evalTm Δ q($va :: $env)
       q(Expr.snoc ($ex).choose $a) q(($A', $k) :: $Γ) k' b
       q(by as_aux_lemma =>
         have ⟨_, _, _, _, c, eqt, eq⟩ := ($Δf).inv_lam
@@ -262,41 +269,39 @@ partial def evalApp (Δ : Q(Ctx)) (l l' : Q(Nat)) (A B : Q(Expr))
         rcases c with ⟨_, _, _, b⟩
         exact b.with_synthTp
       )
-    return ⟨v,
-      q(by as_aux_lemma =>
-        have ⟨_, _, _, _, c, eqt, eq⟩ := ($Δf).inv_lam
-        rcases c with ⟨env, Aeq', Beq', b⟩
-        obtain ⟨_, rfl, rfl, Aeq, Beq⟩ := eq.inv_pi
-        clear eq
-        have sbeq := env.sb_uniq ($ex).choose_spec
-
-        replace sbeq := sbeq.snoc b.wf_binder <| EqTm.refl_tm <| ($Δa).wf_tm.conv <|
-          Aeq.trans_tp Aeq'.symm_tp
-        have := b.tp_eq_synthTp.subst_eq sbeq
-        replace ($veq) := ($veq).conv_nf ((b.subst_eq sbeq).conv_eq this).symm_tm this.symm_tp
-        replace Beq' := Beq'.conv_binder Aeq.symm_tp
-        have := Beq'.trans_tp Beq.symm_tp |>.subst (WfSb.toSb ($Δa).wf_tm)
-        simp only [autosubst] at ($veq) this ⊢
-        apply ($veq).conv_nf _ this
-        apply EqTm.conv_eq _ this.symm_tp
-        replace b := b.subst (env.wf_sb.up b.wf_binder)
-          |>.conv_binder (Aeq'.trans_tp Aeq.symm_tp)
-          |>.conv (Beq'.trans_tp Beq.symm_tp)
-        have := EqTm.app_lam b ($Δa).wf_tm |>.symm_tm
-        simp only [autosubst] at this
-        apply this.trans_tm
-        apply EqTm.cong_app (EqTp.refl_tp Beq.wf_left) _ (EqTm.refl_tm ($Δa).wf_tm)
-        apply EqTm.trans_tm _ eqt.symm_tm
-        gcongr
-        autosubst
-        convert EqTm.refl_tm b using 1 <;> autosubst
-      )⟩
+    withHave veq_ fun veq => do
+    return ⟨v, ← mkHaves #[ex, veq] q(by as_aux_lemma =>
+      have ⟨_, _, _, _, c, eqt, eq⟩ := ($Δf).inv_lam
+      rcases c with ⟨env, Aeq', Beq', b⟩
+      obtain ⟨_, rfl, rfl, Aeq, Beq⟩ := eq.inv_pi
+      clear eq
+      have sbeq := env.sb_uniq ($ex).choose_spec
+      replace sbeq := sbeq.snoc b.wf_binder <| EqTm.refl_tm <| ($Δa).wf_tm.conv <|
+        Aeq.trans_tp Aeq'.symm_tp
+      have := b.tp_eq_synthTp.subst_eq sbeq
+      replace ($veq) := ($veq).conv_nf ((b.subst_eq sbeq).conv_eq this).symm_tm this.symm_tp
+      replace Beq' := Beq'.conv_binder Aeq.symm_tp
+      have := Beq'.trans_tp Beq.symm_tp |>.subst (WfSb.toSb ($Δa).wf_tm)
+      simp only [autosubst] at ($veq) this ⊢
+      apply ($veq).conv_nf _ this
+      apply EqTm.conv_eq _ this.symm_tp
+      replace b := b.subst (env.wf_sb.up b.wf_binder)
+        |>.conv_binder (Aeq'.trans_tp Aeq.symm_tp)
+        |>.conv (Beq'.trans_tp Beq.symm_tp)
+      have := EqTm.app_lam b ($Δa).wf_tm |>.symm_tm
+      simp only [autosubst] at this
+      apply this.trans_tm
+      apply EqTm.cong_app (EqTp.refl_tp Beq.wf_left) _ (EqTm.refl_tm ($Δa).wf_tm)
+      apply EqTm.trans_tm _ eqt.symm_tm
+      gcongr
+      autosubst
+      convert EqTm.refl_tm b using 1 <;> autosubst
+    )⟩
   | ~q(.neut $n) => do
     let na : Q(Val) := q(.neut <| .app $l $l' $n $va)
-    return ⟨na,
-      q(by as_aux_lemma =>
-        exact ValEqTm.neut_tm <| NeutEqTm.app ($Δf).inv_neut $Δa
-      )⟩
+    return ⟨na, q(by as_aux_lemma =>
+      exact ValEqTm.neut_tm <| NeutEqTm.app ($Δf).inv_neut $Δa
+    )⟩
   | _ => throwError "unexpected normal form {f} at type Π"
 
 partial def evalFst (Δ : Q(Ctx)) (l l' : Q(Nat)) (A B : Q(Expr))
@@ -305,26 +310,24 @@ partial def evalFst (Δ : Q(Ctx)) (l l' : Q(Nat)) (A B : Q(Expr))
     Lean.MetaM ((v : Q(Val)) × Q(ValEqTm $Δ $l $v (.fst $l $l' $A $B $p) $A)) :=
   match vp with
   | ~q(.pair _ _ $v _) =>
-    return ⟨v,
-      q(by as_aux_lemma =>
-        have ⟨_, A', B', f, s, v, _, eqt, eq⟩ := ($Δp).inv_pair
-        obtain ⟨_, rfl, rfl, Aeq, Beq⟩ := eq.inv_sigma
-        have : $Δ ⊢[$l] f ≡ Expr.fst $l $l' $A $B $p : $A := by
-          have ⟨_, A'', t, u, eq'⟩ := eqt.wf_right.inv_pair
-          have ⟨_, _, _, Aeq', Beq'⟩ := eq'.inv_sigma
-          replace t := t.conv Aeq'.symm_tp
-          replace u := u.conv <| Beq'.symm_tp.subst (WfSb.toSb t)
-          apply EqTm.fst_pair Beq.wf_left t u |>.symm_tm.trans_tm
-          gcongr
-          apply EqTm.trans_tm _ eqt.symm_tm
-          gcongr <;> assumption
-        apply v.conv_nf (this.conv_eq Aeq) Aeq.symm_tp
-      )⟩
+    return ⟨v, q(by as_aux_lemma =>
+      have ⟨_, A', B', f, s, v, _, eqt, eq⟩ := ($Δp).inv_pair
+      obtain ⟨_, rfl, rfl, Aeq, Beq⟩ := eq.inv_sigma
+      have : $Δ ⊢[$l] f ≡ Expr.fst $l $l' $A $B $p : $A := by
+        have ⟨_, A'', t, u, eq'⟩ := eqt.wf_right.inv_pair
+        have ⟨_, _, _, Aeq', Beq'⟩ := eq'.inv_sigma
+        replace t := t.conv Aeq'.symm_tp
+        replace u := u.conv <| Beq'.symm_tp.subst (WfSb.toSb t)
+        apply EqTm.fst_pair Beq.wf_left t u |>.symm_tm.trans_tm
+        gcongr
+        apply EqTm.trans_tm _ eqt.symm_tm
+        gcongr <;> assumption
+      apply v.conv_nf (this.conv_eq Aeq) Aeq.symm_tp
+    )⟩
   | ~q(.neut $n) =>
-    return ⟨q(.neut (.fst $l $l' $n)),
-      q(by as_aux_lemma =>
-        exact ValEqTm.neut_tm <| NeutEqTm.fst ($Δp).inv_neut
-      )⟩
+    return ⟨q(.neut (.fst $l $l' $n)), q(by as_aux_lemma =>
+      exact ValEqTm.neut_tm <| NeutEqTm.fst ($Δp).inv_neut
+    )⟩
   | _ => throwError "unexpected normal form {p} at type Σ"
 
 partial def evalSnd (Δ : Q(Ctx)) (l l' : Q(Nat)) (A B : Q(Expr))
@@ -334,32 +337,30 @@ partial def evalSnd (Δ : Q(Ctx)) (l l' : Q(Nat)) (A B : Q(Expr))
       Q(ValEqTm $Δ $l' $v (.snd $l $l' $A $B $p) <| ($B).subst (Expr.fst $l $l' $A $B $p).toSb)) :=
   match vp with
   | ~q(.pair _ _ _ $w) =>
-    return ⟨w,
-      q(by as_aux_lemma =>
-        have ⟨_, A', B', f, s, _, w, eqt, eq⟩ := ($Δp).inv_pair
-        obtain ⟨_, rfl, rfl, Aeq, Beq⟩ := eq.inv_sigma
-        have ⟨_, A'', t, u, eq'⟩ := eqt.wf_right.inv_pair
-        have ⟨_, _, _, Aeq', Beq'⟩ := eq'.inv_sigma
-        replace t := t.conv Aeq'.symm_tp
-        replace u := u.conv <| Beq'.symm_tp.subst (WfSb.toSb t)
-        have feq : $Δ ⊢[$l] f ≡ Expr.fst $l $l' $A $B $p : $A := by
-          apply EqTm.fst_pair Beq.wf_left t u |>.symm_tm.trans_tm
-          gcongr
-          apply EqTm.trans_tm _ eqt.symm_tm
-          gcongr <;> assumption
-        replace w := w.conv_tp <| Beq.symm_tp.subst_eq (EqSb.toSb feq)
-        apply w.conv_nf _ (EqTp.refl_tp w.wf_tm.wf_tp)
-        apply EqTm.snd_pair Beq.wf_left t u |>.symm_tm.conv_eq
-          (Beq'.wf_left.subst_eq (EqSb.toSb feq)) |>.trans_tm _
-        symm; gcongr
-        apply eqt.trans_tm
-        symm; gcongr <;> assumption
-      )⟩
+    return ⟨w, q(by as_aux_lemma =>
+      have ⟨_, A', B', f, s, _, w, eqt, eq⟩ := ($Δp).inv_pair
+      obtain ⟨_, rfl, rfl, Aeq, Beq⟩ := eq.inv_sigma
+      have ⟨_, A'', t, u, eq'⟩ := eqt.wf_right.inv_pair
+      have ⟨_, _, _, Aeq', Beq'⟩ := eq'.inv_sigma
+      replace t := t.conv Aeq'.symm_tp
+      replace u := u.conv <| Beq'.symm_tp.subst (WfSb.toSb t)
+      have feq : $Δ ⊢[$l] f ≡ Expr.fst $l $l' $A $B $p : $A := by
+        apply EqTm.fst_pair Beq.wf_left t u |>.symm_tm.trans_tm
+        gcongr
+        apply EqTm.trans_tm _ eqt.symm_tm
+        gcongr <;> assumption
+      replace w := w.conv_tp <| Beq.symm_tp.subst_eq (EqSb.toSb feq)
+      apply w.conv_nf _ (EqTp.refl_tp w.wf_tm.wf_tp)
+      apply EqTm.snd_pair Beq.wf_left t u |>.symm_tm.conv_eq
+        (Beq'.wf_left.subst_eq (EqSb.toSb feq)) |>.trans_tm _
+      symm; gcongr
+      apply eqt.trans_tm
+      symm; gcongr <;> assumption
+    )⟩
   | ~q(.neut $n) =>
-    return ⟨q(.neut (.snd $l $l' $n)),
-      q(by as_aux_lemma =>
-        exact ValEqTm.neut_tm <| NeutEqTm.snd ($Δp).inv_neut
-      )⟩
+    return ⟨q(.neut (.snd $l $l' $n)), q(by as_aux_lemma =>
+      exact ValEqTm.neut_tm <| NeutEqTm.snd ($Δp).inv_neut
+    )⟩
   | _ => throwError "unexpected normal form {p} at type Σ"
 
 end
