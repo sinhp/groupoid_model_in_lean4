@@ -249,7 +249,11 @@ partial def evalApp (Δ : Q(Ctx)) (l l' : Q(Nat)) (A B : Q(Expr))
     because that would make weakening non-free on values.
     Instead, we obtain one using AC;
     the choice is unique (up to `EqSb`)
-    since `EnvEqSb` is functional. -/
+    since `EnvEqSb` is functional.
+    Noncomputability is not a problem
+    because the evaluator never destructs substitutions
+    (only environments). -/
+    -- TODO: document convention on which args must be computable.
     let ex_ : Q(∃ σ, EnvEqSb $Δ $env σ $Γ) :=
       q(by as_aux_lemma =>
         have ⟨_, _, _, _, c, _⟩ := ($Δf).inv_lam
@@ -301,12 +305,17 @@ partial def evalApp (Δ : Q(Ctx)) (l l' : Q(Nat)) (A B : Q(Expr))
       autosubst
       convert EqTm.refl_tm b using 1 <;> autosubst
     )⟩
-  | ~q(.neut $n) => do
-    let na : Q(Val) := q(.neut <| .app $l $l' $n $va)
-    return ⟨na, q(by as_aux_lemma =>
-      exact ValEqTm.neut_tm <| NeutEqTm.app ($Δf).inv_neut $Δa
+  | ~q(.neut $n (.pi $k $k' $vA (.mk_tp $Γ $A $env $B))) => do
+    let ⟨vBa, vBaeq_⟩ ← evalTp Δ q($va :: $env) q(sorry) q(($A, $k) :: $Γ) k' B
+      q(sorry)
+      q(sorry)
+    withHave vBaeq_ fun vBaeq => do
+    let na : Q(Val) := q(.neut (.app $l $l' $vA $n $va) $vBa)
+    return ⟨na, ← mkHaves #[vBaeq] q(by as_aux_lemma =>
+      sorry
+      -- exact ValEqTm.neut_tm <| NeutEqTm.app sorry ($Δf).inv_neut $Δa
     )⟩
-  | _ => throwError "unexpected normal form {f} at type Π"
+  | _ => throwError "unexpected normal form {vf} at type Π"
 
 partial def evalFst (Δ : Q(Ctx)) (l l' : Q(Nat)) (A B : Q(Expr))
     (vp : Q(Val)) (p : Q(Expr))
@@ -328,11 +337,12 @@ partial def evalFst (Δ : Q(Ctx)) (l l' : Q(Nat)) (A B : Q(Expr))
         gcongr <;> assumption
       apply v.conv_nf (this.conv_eq Aeq) Aeq.symm_tp
     )⟩
-  | ~q(.neut $n) =>
-    return ⟨q(.neut (.fst $l $l' $n)), q(by as_aux_lemma =>
-      exact ValEqTm.neut_tm <| NeutEqTm.fst ($Δp).inv_neut
+  | ~q(.neut $n (.sigma $k $k' $vA $vB)) =>
+    return ⟨q(.neut (.fst $l $l' $n) $vA), q(by as_aux_lemma =>
+      sorry
+      -- exact ValEqTm.neut_tm <| NeutEqTm.fst ($Δp).inv_neut
     )⟩
-  | _ => throwError "unexpected normal form {p} at type Σ"
+  | _ => throwError "unexpected normal form {vp} at type Σ"
 
 partial def evalSnd (Δ : Q(Ctx)) (l l' : Q(Nat)) (A B : Q(Expr))
     (vp : Q(Val)) (p : Q(Expr))
@@ -361,10 +371,18 @@ partial def evalSnd (Δ : Q(Ctx)) (l l' : Q(Nat)) (A B : Q(Expr))
       apply eqt.trans_tm
       symm; gcongr <;> assumption
     )⟩
-  | ~q(.neut $n) =>
-    return ⟨q(.neut (.snd $l $l' $n)), q(by as_aux_lemma =>
-      exact ValEqTm.neut_tm <| NeutEqTm.snd ($Δp).inv_neut
+  | ~q(.neut $n (.sigma $k $k' $vA (.mk_tp $Γ $A $env $B))) => do
+    let ⟨vf, vfeq_⟩ ← evalFst Δ l l' A B vp p Δp
+    withHave vfeq_ fun vfeq => do
+    let ⟨vBfst, vBfsteq_⟩ ← evalTp Δ q($vf :: $env) q(sorry) q(($A, $k) :: $Γ) k' B
+      q(sorry)
+      q(sorry)
+    withHave vBfsteq_ fun vBfsteq => do
+    let n : Q(Val) := q(.neut (.snd $l $l' $n) $vBfst)
+    return ⟨n, ← mkHaves #[vfeq, vBfsteq] q(by as_aux_lemma =>
+      sorry
+      -- exact ValEqTm.neut_tm <| NeutEqTm.snd ($Δp).inv_neut
     )⟩
-  | _ => throwError "unexpected normal form {p} at type Σ"
+  | _ => throwError "unexpected normal form {vp} at type Σ"
 
 end

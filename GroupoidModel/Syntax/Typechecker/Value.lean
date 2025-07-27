@@ -52,8 +52,8 @@ inductive Val where
   For now, we treat them as introductions. -/
   | el (a : Val)
   | code (A : Val)
-  /-- A neutral form. -/
-  | neut (n : Neut)
+  /-- A neutral form at the given type. -/
+  | neut (n : Neut) (A : Val)
   deriving Inhabited
 
 /-- Neutral forms are elimination forms that are 'stuck',
@@ -61,7 +61,8 @@ i.e., contain no β-reducible subterm. -/
 inductive Neut where
   /-- A de Bruijn *level*. -/
   | bvar (i : Nat)
-  | app (l l' : Nat) (f : Neut) (a : Val)
+  /-- Application at the specified argument type. -/
+  | app (l l' : Nat) (A : Val) (f : Neut) (a : Val)
   | fst (l l' : Nat) (p : Neut)
   | snd (l l' : Nat) (p : Neut)
   deriving Inhabited
@@ -122,9 +123,10 @@ inductive ValEqTm : Ctx → Nat → Val → Expr → Expr → Prop
     l < univMax →
     ValEqTp Γ l vA A →
     ValEqTm Γ (l + 1) (.code vA) (.code A) (.univ l)
-  | neut_tm {Γ A vn n l} :
+  | neut_tm {Γ vA A vn n l} :
+    ValEqTp Γ l vA A →
     NeutEqTm Γ l vn n A →
-    ValEqTm Γ l (.neut vn) n A
+    ValEqTm Γ l (.neut vn vA) n A
   | conv_nf {Γ A A' vt t t' l} :
     ValEqTm Γ l vt t A →
     Γ ⊢[l] t ≡ t' : A →
@@ -136,10 +138,11 @@ inductive NeutEqTm : Ctx → Nat → Neut → Expr → Expr → Prop
     WfCtx Γ →
     Lookup Γ i A l →
     NeutEqTm Γ l (.bvar (Γ.length - i - 1)) (.bvar i) A
-  | app {Γ A B vf f va a l l'} :
+  | app {Γ vA A B vf f va a l l'} :
+    ValEqTp Γ l vA A →
     NeutEqTm Γ (max l l') vf f (.pi l l' A B) →
     ValEqTm Γ l va a A →
-    NeutEqTm Γ l' (.app l l' vf va) (.app l l' B f a) (B.subst a.toSb)
+    NeutEqTm Γ l' (.app l l' vA vf va) (.app l l' B f a) (B.subst a.toSb)
   | fst {Γ A B vp p l l'} :
     NeutEqTm Γ (max l l') vp p (.sigma l l' A B) →
     NeutEqTm Γ l (.fst l l' vp) (.fst l l' A B p) A
@@ -374,36 +377,6 @@ theorem ClosEqTm.conv_ctx {Γ Γ' l l' A B vb b} :
 theorem EnvEqSb.conv_dom {Δ Δ' E σ Γ} : EnvEqSb Δ E σ Γ → EqCtx Δ Δ' → EnvEqSb Δ' E σ Γ :=
   fun h eq => _root_.conv_ctx.2.2.2.2.2 h eq
 
-/-! ## Environments from contexts -/
-
-/-- An identity evaluation environment (i.e., bvars remain themselves)
-for contexts of the given length. -/
-def envOfLen (n : Nat) : List Val :=
-  /- Recall: we use de Bruijn levels in `Val`,
-  so `‖Γ‖ - 1` is the innermost binder. -/
-  List.ofFn (n := n) (.neut <| .bvar <| n - · - 1)
-
-@[simp]
-theorem length_envOfLen (n : Nat) : (envOfLen n).length = n := by
-  simp [envOfLen]
-
-@[simp]
-theorem envOfLen_succ (n : Nat) : envOfLen (n + 1) = (.neut <| .bvar n) :: envOfLen n := by
-  rw [envOfLen, List.ofFn_succ]
-  congr 2
-  ext i
-  congr 2
-  dsimp
-  omega
-
-theorem envOfLen_wf {Γ} : WfCtx Γ → EnvEqSb Γ (envOfLen Γ.length) Expr.bvar Γ := by
-  intro Γ
-  refine EnvEqSb.mk Γ Γ (length_envOfLen _).symm fun lk => ?_
-  simp only [envOfLen, List.getElem_ofFn]
-  apply ValEqTm.neut_tm
-  apply NeutEqTm.bvar Γ
-  convert lk using 1; autosubst
-
 /-! ## Weakening is free -/
 
 theorem wk_all {Γ} :
@@ -436,8 +409,8 @@ theorem wk_all {Γ} :
   case conv_nf => grind [ValEqTm.conv_nf, EqTp.subst, EqTm.subst, WfSb.wk]
   case bvar Γ lk _ _ C =>
     convert NeutEqTm.bvar (Γ.snoc C) (.succ _ _ lk) using 1; grind
-  case app ihf iha _ _ C =>
-    convert NeutEqTm.app (ihf C) (iha C) using 1; autosubst
+  case app ihA ihf iha _ _ C =>
+    convert NeutEqTm.app (ihA C) (ihf C) (iha C) using 1; autosubst
   case fst => grind [NeutEqTm.fst]
   case snd ih _ _ C =>
     convert NeutEqTm.snd (ih C) using 1; autosubst
@@ -483,6 +456,59 @@ theorem ClosEqTm.wk {Γ l l' A B vb b} (h : ClosEqTm Γ l l' A B vb b) {C k} (hC
 theorem EnvEqSb.wk {Δ E σ Γ} (h : EnvEqSb Δ E σ Γ) {C k} (hC : Δ ⊢[k] C) :
     EnvEqSb ((C,k) :: Δ) E (Expr.comp Expr.wk σ) Γ :=
   wk_all.2.2.2.2.2 h hC
+
+/-! ## Type environments -/
+
+inductive TpEnvEqCtx : List Val → Ctx → Prop
+  | nil : TpEnvEqCtx [] []
+  | snoc {vΓ Γ l vA A} :
+    TpEnvEqCtx vΓ Γ →
+    ValEqTp Γ l vA A →
+    TpEnvEqCtx (vA :: vΓ) ((A, l) :: Γ)
+
+theorem TpEnvEqCtx.wf_ctx {vΓ Γ} : TpEnvEqCtx vΓ Γ → WfCtx Γ := by
+  intro vΓ; induction vΓ <;> grind [WfCtx.nil, WfCtx.snoc, ValEqTp.wf_tp]
+
+theorem TpEnvEqCtx.length_eq {vΓ Γ} : TpEnvEqCtx vΓ Γ → vΓ.length = Γ.length := by
+  intro vΓ; induction vΓ <;> simp [*]
+
+theorem TpEnvEqCtx.lt_length {vΓ Γ i A l} : TpEnvEqCtx vΓ Γ → Lookup Γ i A l → i < vΓ.length :=
+  fun vΓ lk => vΓ.length_eq ▸ lk.lt_length
+
+theorem TpEnvEqCtx.lookup_wf {vΓ Γ i A l} : (h : TpEnvEqCtx vΓ Γ) → (lk : Lookup Γ i A l) →
+    ValEqTp Γ l (vΓ[i]'(h.lt_length lk)) A := by
+  intro h lk
+  induction h generalizing i A <;> cases lk
+  case zero vA => exact vA.wk vA.wf_tp
+  case snoc vA ih _ _ lk => exact (ih lk).wk vA.wf_tp
+
+/-! ## Type environments from contexts -/
+
+/-- An identity evaluation environment (i.e., bvars remain themselves)
+for the given type environment. -/
+def envOfTpEnv (vΓ : List Val) : List Val :=
+  vΓ.mapIdx fun i vA => .neut (.bvar <| vΓ.length - i - 1) vA
+
+@[simp]
+theorem length_envOfTpEnv (vΓ : List Val) : (envOfTpEnv vΓ).length = vΓ.length := by
+  simp [envOfTpEnv]
+
+@[simp]
+theorem envOfTpEnv_cons (vA : Val) (vΓ : List Val) :
+  envOfTpEnv (vA :: vΓ) = .neut (.bvar vΓ.length) vA :: envOfTpEnv vΓ := by
+  simp [envOfTpEnv, List.mapIdx_cons]
+
+theorem envOfTpEnv_wf {vΓ Γ} : TpEnvEqCtx vΓ Γ → EnvEqSb Γ (envOfTpEnv vΓ) Expr.bvar Γ := by
+  intro vΓ
+  have Γ := vΓ.wf_ctx
+  refine EnvEqSb.mk Γ Γ ?_ fun lk => ?_
+  . rw [length_envOfTpEnv, vΓ.length_eq]
+  . simp only [envOfTpEnv, List.getElem_mapIdx]
+    apply ValEqTm.neut_tm
+    . convert vΓ.lookup_wf lk using 1; autosubst
+    . rw [vΓ.length_eq]
+      apply NeutEqTm.bvar Γ
+      convert lk using 1; autosubst
 
 /-! ## Inversion for value relations -/
 
@@ -570,11 +596,13 @@ theorem ValEqTm.inv_code {Γ C vA c l₀} : ValEqTm Γ l₀ (.code vA) c C →
   case conv_nf => grind [EqTm.conv_eq]
   case code => grind [WfTp.univ, WfTm.code, ValEqTp.wf_tp, WfTp.wf_ctx]
 
-theorem ValEqTm.inv_neut {Γ A vt t l} : ValEqTm Γ l (.neut vt) t A → NeutEqTm Γ l vt t A := by
-  suffices ∀ {l vt t A}, ValEqTm Γ l vt t A → ∀ {n}, vt = .neut n → (NeutEqTm Γ l n t A) from
+theorem ValEqTm.inv_neut {Γ vA A vt t l} : ValEqTm Γ l (.neut vt vA) t A →
+    ValEqTp Γ l vA A ∧ NeutEqTm Γ l vt t A := by
+  suffices ∀ {l vt t A}, ValEqTm Γ l vt t A → ∀ {n vA}, vt = .neut n vA →
+      ValEqTp Γ l vA A ∧ NeutEqTm Γ l n t A from
     fun h => this h rfl
   mutual_induction ValEqTm
-  all_goals grind [NeutEqTm.conv_neut]
+  all_goals grind [NeutEqTm.conv_neut, ValEqTp.conv_tp]
 
 theorem NeutEqTm.inv_bvar {Γ A t i l} : NeutEqTm Γ l (.bvar i) t A →
     ∃ A', Lookup Γ (Γ.length - i - 1) A' l ∧
@@ -592,11 +620,13 @@ theorem NeutEqTm.inv_bvar {Γ A t i l} : NeutEqTm Γ l (.bvar i) t A →
     exact ⟨_, lk, EqTm.refl_tm (WfTm.bvar (by omega) lk), EqTp.refl_tp (Γwf.lookup_wf lk)⟩
   case conv_neut => grind [EqTm.conv_eq]
 
-theorem NeutEqTm.inv_app {Γ C vf va t l₀ l l'} : NeutEqTm Γ l₀ (.app l l' vf va) t C →
-    l₀ = l' ∧ ∃ A B f a, NeutEqTm Γ (max l l') vf f (.pi l l' A B) ∧ ValEqTm Γ l va a A ∧
+theorem NeutEqTm.inv_app {Γ vA C vf va t l₀ l l'} : NeutEqTm Γ l₀ (.app l l' vA vf va) t C →
+    l₀ = l' ∧ ∃ A B f a,
+      ValEqTp Γ l vA A ∧ NeutEqTm Γ (max l l') vf f (.pi l l' A B) ∧ ValEqTm Γ l va a A ∧
       (Γ ⊢[l'] t ≡ .app l l' B f a : C) ∧ (Γ ⊢[l'] C ≡ B.subst a.toSb) := by
-  suffices ∀ {l₀ vn n C}, NeutEqTm Γ l₀ vn n C → ∀ {vf va l l'}, vn = .app l l' vf va →
-      l₀ = l' ∧ ∃ A B f a, NeutEqTm Γ (max l l') vf f (.pi l l' A B) ∧ ValEqTm Γ l va a A ∧
+  suffices ∀ {l₀ vn n C}, NeutEqTm Γ l₀ vn n C → ∀ {vA vf va l l'}, vn = .app l l' vA vf va →
+      l₀ = l' ∧ ∃ A B f a,
+        ValEqTp Γ l vA A ∧ NeutEqTm Γ (max l l') vf f (.pi l l' A B) ∧ ValEqTm Γ l va a A ∧
         (Γ ⊢[l'] n ≡ .app l l' B f a : C) ∧ (Γ ⊢[l'] C ≡ B.subst a.toSb) from
     fun h => this h rfl
   mutual_induction NeutEqTm
@@ -691,7 +721,7 @@ theorem uniq_all {Γ} :
     have := lk.lt_length
     grind [EqTm.conv_eq, Lookup.tp_uniq, NeutEqTm.inv_bvar]
   case app ihf iha _ _ vn =>
-    have ⟨_, _, _, _, _, vf, va, eqt, eq⟩ := vn.inv_app
+    have ⟨_, _, _, _, _, _, vf, va, eqt, eq⟩ := vn.inv_app
     have feq := ihf vf
     have peq := feq.wf_right.uniq_tp vf.wf_tm
     have ⟨_, _, _, Aeq, Beq⟩ := peq.inv_pi

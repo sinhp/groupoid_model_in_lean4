@@ -36,11 +36,12 @@ theorem NeutEqNeutTm.tm_uniq {Γ l nt nu t u T U} : NeutEqNeutTm Γ l nt nu →
     nu.tm_uniq nu' |>.conv_eq <| nt.tp_uniq nt'
 
 /-- Evaluate a type closure on a fresh variable. -/
-def evalClosTp (Γ : Q(Ctx)) (l l' : Q(Nat)) (A B : Q(Expr)) (vB : Q(Clos))
+def evalClosTp (Γ : Q(Ctx)) (l l' : Q(Nat)) (vA : Q(Val)) (vB : Q(Clos)) (A B : Q(Expr))
+    (ΓA : Q(ValEqTp $Γ $l $vA $A))
     (ΓB : Q(ClosEqTp $Γ $l $l' $A $vB $B)) :
     Lean.MetaM ((v : Q(Val)) × Q(ValEqTp (($A, $l) :: $Γ) $l' $v $B)) := do
   let ~q(.mk_tp $Δ $C $env $B') := vB | throwError "invalid type closure: {vB}"
-  let x : Q(Val) := q(.neut (.bvar ($Γ).length))
+  let x : Q(Val) := q(.neut (.bvar ($Γ).length) $vA)
   let ex_ : Q(∃ σ, EnvEqSb $Γ $env σ $Δ) :=
     q(by as_aux_lemma =>
       dsimp +zetaDelta only at ($ΓB)
@@ -52,16 +53,17 @@ def evalClosTp (Γ : Q(Ctx)) (l l' : Q(Nat)) (A B : Q(Expr)) (vB : Q(Clos))
     q(($A, $l) :: $Γ) q($x :: $env) q(Expr.up ($ex).choose) q(($C, $l) :: $Δ)
     l' B'
     q(by as_aux_lemma =>
-      simp +zetaDelta only [Expr.up_eq_snoc] at ($ΓB) ⊢
-      have ⟨env, Ceq, B'⟩ := $ΓB
-      have sbeq := env.sb_uniq ($ex).choose_spec
-      apply EnvEqSb.snoc (($ex).choose_spec.wk Ceq.wf_right) B'.wf_binder
-      apply ValEqTm.neut_tm
-      have := NeutEqTm.bvar (Ceq.wf_ctx.snoc Ceq.wf_right) (Lookup.zero ..)
-      apply this.conv_tp
-      have := Ceq.symm_tp.trans_tp <| B'.wf_binder.subst_eq sbeq
-      convert this.subst (WfSb.wk Ceq.wf_right) using 1
-      autosubst
+      sorry
+      -- simp +zetaDelta only [Expr.up_eq_snoc] at ($ΓB) ⊢
+      -- have ⟨env, Ceq, B'⟩ := $ΓB
+      -- have sbeq := env.sb_uniq ($ex).choose_spec
+      -- apply EnvEqSb.snoc (($ex).choose_spec.wk Ceq.wf_right) B'.wf_binder
+      -- apply ValEqTm.neut_tm
+      -- have := NeutEqTm.bvar (Ceq.wf_ctx.snoc Ceq.wf_right) (Lookup.zero ..)
+      -- apply this.conv_tp
+      -- have := Ceq.symm_tp.trans_tp <| B'.wf_binder.subst_eq sbeq
+      -- convert this.subst (WfSb.wk Ceq.wf_right) using 1
+      -- autosubst
     )
     q(by as_aux_lemma =>
       simp +zetaDelta only at ($ΓB)
@@ -121,12 +123,15 @@ partial def equateTp (Γ : Q(Ctx)) (l : Q(Nat)) (vT vU : Q(Val))
     let A := q(($ex).choose)
     let B := q(($ex).choose_spec.choose)
     let B' := q(($ex).choose_spec.choose_spec.choose)
-    let ⟨Bx, Bxeq_⟩ ← evalClosTp Γ k k' A B vB q(($ex).choose_spec.choose_spec.choose_spec.1)
+    let ⟨Bx, Bxeq_⟩ ← evalClosTp Γ k k' vA vB A B
+      q(sorry) q(($ex).choose_spec.choose_spec.choose_spec.1)
     withHave Bxeq_ fun Bxeq => do
-    let ⟨Bx', Bxeq'_⟩ ← evalClosTp Γ k k' A B' vB' q(($ex).choose_spec.choose_spec.choose_spec.2)
+    let ⟨Bx', Bxeq'_⟩ ← evalClosTp Γ k k' vA vB' A B'
+      q(sorry) q(($ex).choose_spec.choose_spec.choose_spec.2)
     withHave Bxeq'_ fun Bxeq' => do
-    let Beq ← equateTp q((($ex).choose, $k) :: $Γ) k' Bx Bx' q(⟨_, $Bxeq⟩) q(⟨_, $Bxeq'⟩)
-    mkHaves #[keq, keq', Aeq, ex, Bxeq, Bxeq'] q(by as_aux_lemma =>
+    let Beq_ ← equateTp q((($ex).choose, $k) :: $Γ) k' Bx Bx' q(⟨_, $Bxeq⟩) q(⟨_, $Bxeq'⟩)
+    withHave Beq_ fun Beq => do
+    mkHaves #[keq, keq', Aeq, ex, Bxeq, Bxeq', Beq] q(by as_aux_lemma =>
       /- It's not ideal that most of this proof is getting rid of `Exists.choose`s.
       On the other hand, that way we use less runtime data. -/
       have ΓT := ($ΓT).choose_spec
@@ -184,12 +189,15 @@ partial def equateTp (Γ : Q(Ctx)) (l : Q(Nat)) (vT vU : Q(Val))
     let A := q(($ex).choose)
     let B := q(($ex).choose_spec.choose)
     let B' := q(($ex).choose_spec.choose_spec.choose)
-    let ⟨Bx, Bxeq_⟩ ← evalClosTp Γ k k' A B vB q(($ex).choose_spec.choose_spec.choose_spec.1)
+    let ⟨Bx, Bxeq_⟩ ← evalClosTp Γ k k' vA vB A B
+      q(sorry) q(($ex).choose_spec.choose_spec.choose_spec.1)
     withHave Bxeq_ fun Bxeq => do
-    let ⟨Bx', Bxeq'_⟩ ← evalClosTp Γ k k' A B' vB' q(($ex).choose_spec.choose_spec.choose_spec.2)
+    let ⟨Bx', Bxeq'_⟩ ← evalClosTp Γ k k' vA vB' A B'
+      q(sorry) q(($ex).choose_spec.choose_spec.choose_spec.2)
     withHave Bxeq'_ fun Bxeq' => do
-    let Beq ← equateTp q((($ex).choose, $k) :: $Γ) k' Bx Bx' q(⟨_, $Bxeq⟩) q(⟨_, $Bxeq'⟩)
-    mkHaves #[keq, keq', Aeq, ex, Bxeq, Bxeq'] q(by as_aux_lemma =>
+    let Beq_ ← equateTp q((($ex).choose, $k) :: $Γ) k' Bx Bx' q(⟨_, $Bxeq⟩) q(⟨_, $Bxeq'⟩)
+    withHave Beq_ fun Beq => do
+    mkHaves #[keq, keq', Aeq, ex, Bxeq, Bxeq', Beq] q(by as_aux_lemma =>
       /- It's not ideal that most of this proof is getting rid of `Exists.choose`s.
       On the other hand, that way we use less runtime data. -/
       have ΓT := ($ΓT).choose_spec
@@ -259,7 +267,7 @@ partial def equateTm (Γ : Q(Ctx)) (l : Q(Nat)) (vt vu vT : Q(Val)) (T : Q(Expr)
     Lean.MetaM Q(ValEqValTm $Γ $l $vt $vu $T) :=
   match vT with
   | ~q(.pi $k $k' $vA $vB) => do
-    let x : Q(Val) := q(.neut (.bvar ($Γ).length))
+    let x : Q(Val) := q(.neut (.bvar ($Γ).length) $vA)
     let ex_ : Q(∃ A B, ClosEqTp $Γ $k $k' A $vB B) :=
       q(by as_aux_lemma =>
         have ⟨_, _, _, _, h, _⟩ := ($ΓT).inv_pi
@@ -271,9 +279,10 @@ partial def equateTm (Γ : Q(Ctx)) (l : Q(Nat)) (vt vu vT : Q(Val)) (T : Q(Expr)
     let B : Q(Expr) := q(($ex).choose_spec.choose)
     let AΓ : Q(Ctx) := q(($A, $k) :: $Γ)
     let xwf_ : Q(ValEqTm $AΓ $k $x (.bvar 0) (($A).subst Expr.wk)) := q(by as_aux_lemma =>
-      apply ValEqTm.neut_tm
-      have A := ($ex).choose_spec.choose_spec.wf_tp.wf_binder
-      exact NeutEqTm.bvar (A.wf_ctx.snoc A) (Lookup.zero ..)
+      sorry
+      -- apply ValEqTm.neut_tm
+      -- have A := ($ex).choose_spec.choose_spec.wf_tp.wf_binder
+      -- exact NeutEqTm.bvar (A.wf_ctx.snoc A) (Lookup.zero ..)
     )
     withHave xwf_ fun xwf => do
     let ⟨tx, txeq_⟩ ← evalApp AΓ k k'
@@ -314,7 +323,8 @@ partial def equateTm (Γ : Q(Ctx)) (l : Q(Nat)) (vt vu vT : Q(Val)) (T : Q(Expr)
       )
       q($xwf)
     withHave uxeq_ fun uxeq => do
-    let ⟨Bx, Bxeq_⟩ ← evalClosTp Γ k k' A B vB
+    let ⟨Bx, Bxeq_⟩ ← evalClosTp Γ k k' vA vB A B
+      q(sorry)
       q(by as_aux_lemma => exact ($ex).choose_spec.choose_spec)
     withHave Bxeq_ fun Bxeq => do
     let tueq_ ← equateTm AΓ k' tx ux Bx B q($Bxeq)
@@ -351,17 +361,20 @@ partial def equateTm (Γ : Q(Ctx)) (l : Q(Nat)) (vt vu vT : Q(Val)) (T : Q(Expr)
     | ~q(.code $vT), ~q(.code $vU) =>
       -- TODO: add the defeq that makes these neutral.
       throwError "TODO code equality"
-    | ~q(.neut $nt), ~q(.neut $nu) => do
+    | ~q(.neut $nt _), ~q(.neut $nu _) => do
       let eq_ ← equateNeut Γ l nt nu
-        q(⟨_, _, ($Γt).choose_spec.inv_neut⟩)
-        q(⟨_, _, ($Γu).choose_spec.inv_neut⟩)
+        q(sorry)
+        -- q(⟨_, _, ($Γt).choose_spec.inv_neut⟩)
+        q(sorry)
+        -- q(⟨_, _, ($Γu).choose_spec.inv_neut⟩)
       withHave eq_ fun eq => do
       mkHaves #[eq] q(by as_aux_lemma =>
-        have Γt := ($Γt).choose_spec
-        have Γu := ($Γu).choose_spec
-        refine ⟨_, Γt, Γu.conv_tm ?_⟩
-        symm
-        exact ($eq).tm_uniq Γt.inv_neut Γu.inv_neut
+        sorry
+        -- have Γt := ($Γt).choose_spec
+        -- have Γu := ($Γu).choose_spec
+        -- refine ⟨_, Γt, Γu.conv_tm ?_⟩
+        -- symm
+        -- exact ($eq).tm_uniq Γt.inv_neut Γu.inv_neut
       )
     | _, _ =>
       throwError "unexpected inputs to {Γ} ⊢[{l}] {vt} ≡?≡ {vu} : {vT}"
@@ -385,11 +398,34 @@ partial def equateNeut (Γ : Q(Ctx)) (l : Q(Nat)) (nt nu : Q(Neut))
       refine ⟨_, _, nt, nu.conv_neut ?_ Aeq⟩
       apply eqt'.trans_tm (eqt.symm_tm.conv_eq Aeq.symm_tp)
     )
-  | ~q(.app $k $k' $f $a), ~q(.app $m $m' $f' $a') => do
-    -- equateNeut f f'
-    -- don't know the type of `a`.. might have to store it.
-    -- equateTm a a'
-    throwError "TODO neutral app eq"
+  | ~q(.app $k $k' $vA $nf $va), ~q(.app $m $m' $vA' $nf' $va') => do
+    let km_ ← equateNat k m
+    withHave km_ fun km => do
+    let km'_ ← equateNat k' m'
+    withHave km'_ fun km' => do
+    let Aeq_ ← equateTp Γ k vA vA' q(sorry) q(sorry)
+    withHave Aeq_ fun Aeq => do
+    let feq_ ← equateNeut Γ q(max $k $k') nf nf'
+      q(by as_aux_lemma =>
+        sorry
+        -- have ⟨_, _, nf⟩ := $Γt
+        -- have ⟨_, _, _, _, _, h, _⟩ := nf.inv_app
+        -- exact ⟨_, _, h⟩
+      )
+      q(by as_aux_lemma =>
+        sorry
+        -- have ⟨_, _, nf⟩ := $Γu
+        -- have ⟨_, _, _, _, _, h, _⟩ := nf.inv_app
+        -- cases ($km)
+        -- cases ($km')
+        -- exact ⟨_, _, h⟩
+      )
+    withHave feq_ fun feq => do
+    let aeq_ ← equateTm Γ k va va' vA q(($Aeq).choose) q(($Aeq).choose_spec.1)
+      q(sorry)
+      q(sorry)
+    withHave aeq_ fun aeq => do
+    mkHaves #[km, km', Aeq, feq, aeq] q(sorry)
   | ~q(.fst ..), ~q(.fst ..) =>
     throwError "TODO neutral fst eq"
   | ~q(.snd ..), ~q(.snd ..) =>

@@ -2,10 +2,11 @@ import GroupoidModel.Syntax.Typechecker.Equate
 
 open Qq
 
-partial def evalTp' (Γ : Q(Ctx)) (l : Q(Nat)) (T : Q(Expr)) (Γwf : Q(WfCtx $Γ))
-    (ΓT : Q($Γ ⊢[$l] ($T))) :
+partial def evalTp' (vΓ : Q(List Val)) (Γ : Q(Ctx)) (l : Q(Nat)) (T : Q(Expr))
+    (vΓwf : Q(TpEnvEqCtx $vΓ $Γ)) (ΓT : Q($Γ ⊢[$l] ($T))) :
     Lean.MetaM ((v : Q(Val)) × Q(ValEqTp $Γ $l $v $T)) := do
-  let ⟨vT, vTeq_⟩ ← evalTp Γ q(envOfLen ($Γ).length) q(Expr.bvar) Γ l T q(envOfLen_wf $Γwf) q($ΓT)
+  -- TODO: WHNF `envOfTpEnv`?
+  let ⟨vT, vTeq_⟩ ← evalTp Γ q(envOfTpEnv $vΓ) q(Expr.bvar) Γ l T q(envOfTpEnv_wf $vΓwf) q($ΓT)
   withHave vTeq_ fun vTeq => do
   return ⟨vT, ← mkHaves #[vTeq] q(by as_aux_lemma =>
     convert ($vTeq) using 1; autosubst
@@ -24,28 +25,33 @@ partial def lookup (Γ : Q(Ctx)) (i : Q(Nat)) :
 
 mutual
 -- TODO: infer rather than check universe level?
-partial def checkTp (Γ : Q(Ctx)) (l : Q(Nat)) (T : Q(Expr)) (Γwf : Q(WfCtx $Γ)) :
+partial def checkTp (vΓ : Q(List Val)) (Γ : Q(Ctx)) (l : Q(Nat)) (T : Q(Expr))
+    (vΓwf : Q(TpEnvEqCtx $vΓ $Γ)) :
     Lean.MetaM Q($Γ ⊢[$l] ($T)) :=
   match T with
   | ~q(.pi $k $k' $A $B) => do
     let leq_ ← equateNat l q(max $k $k')
     withHave leq_ fun leq => do
-    let Awf_ ← checkTp Γ k A Γwf
+    let Awf_ ← checkTp vΓ Γ k A vΓwf
     withHave Awf_ fun Awf => do
-    let Bwf_ ← checkTp q(($A, $k) :: $Γ) k' B q(($Γwf).snoc $Awf)
+    let ⟨vA, vAeq_⟩ ← evalTp' vΓ Γ k A vΓwf Awf
+    withHave vAeq_ fun vAeq => do
+    let Bwf_ ← checkTp q($vA :: $vΓ) q(($A, $k) :: $Γ) k' B q(sorry)
     withHave Bwf_ fun Bwf => do
-    mkHaves #[leq, Awf, Bwf] q(by as_aux_lemma =>
+    mkHaves #[leq, Awf, vAeq, Bwf] q(by as_aux_lemma =>
       cases ($leq)
       exact WfTp.pi $Bwf
     )
   | ~q(.sigma $k $k' $A $B) => do
     let leq_ ← equateNat l q(max $k $k')
     withHave leq_ fun leq => do
-    let Awf_ ← checkTp Γ k A Γwf
+    let Awf_ ← checkTp vΓ Γ k A vΓwf
     withHave Awf_ fun Awf => do
-    let Bwf_ ← checkTp q(($A, $k) :: $Γ) k' B q(($Γwf).snoc $Awf)
+    let ⟨vA, vAeq_⟩ ← evalTp' vΓ Γ k A vΓwf Awf
+    withHave vAeq_ fun vAeq => do
+    let Bwf_ ← checkTp q($vA :: $vΓ) q(($A, $k) :: $Γ) k' B q(sorry)
     withHave Bwf_ fun Bwf => do
-    mkHaves #[leq, Awf, Bwf] q(by as_aux_lemma =>
+    mkHaves #[leq, Awf, vAeq, Bwf] q(by as_aux_lemma =>
       cases ($leq)
       exact WfTp.sigma $Bwf
     )
@@ -56,63 +62,73 @@ partial def checkTp (Γ : Q(Ctx)) (l : Q(Nat)) (T : Q(Expr)) (Γwf : Q(WfCtx $Γ
     withHave nmax_ fun nmax => do
     mkHaves #[ln, nmax] q(by as_aux_lemma =>
       cases ($ln)
-      exact WfTp.univ $Γwf $nmax
+      exact WfTp.univ ($vΓwf).wf_ctx $nmax
     )
   | ~q(.el $a) => do
     let lmax_ ← ltNat l q(univMax)
     withHave lmax_ fun lmax => do
-    let awf_ ← checkTm Γ q($l + 1) a q(.univ $l) q(.univ $Γwf $lmax)
+    let awf_ ← checkTm vΓ Γ q($l + 1) a q(.univ $l) vΓwf q(.univ ($vΓwf).wf_ctx $lmax)
     withHave awf_ fun awf => do
     mkHaves #[lmax, awf] q(WfTp.el $awf)
   | _ =>
     throwError "not implemented: {Γ} ⊢[{l}]? {T}"
 
-partial def checkTm (Γ : Q(Ctx)) (l : Q(Nat)) (t T : Q(Expr)) (Twf : Q($Γ ⊢[$l] ($T))) :
+partial def checkTm
+    (vΓ : Q(List Val)) (Γ : Q(Ctx)) (l : Q(Nat)) (t T : Q(Expr))
+    (vΓwf : Q(TpEnvEqCtx $vΓ $Γ)) (Twf : Q($Γ ⊢[$l] ($T))) :
     Lean.MetaM Q(($Γ ⊢[$l] ($t) : $T)) := do
   /- We could do something more bidirectional,
   but all terms synthesize (thanks to extensive annotations). -/
   withHave q(($Twf).wf_ctx) fun Γwf => do
-  let ⟨U, tU_⟩ ← synthTm Γ l t q($Γwf)
+  let ⟨U, tU_⟩ ← synthTm vΓ Γ l t vΓwf
   withHave tU_ fun tU => do
-  let ⟨vT, vTeq_⟩ ← evalTp' Γ l T q($Γwf) q($Twf)
+  let ⟨vT, vTeq_⟩ ← evalTp' vΓ Γ l T vΓwf q($Twf)
   withHave vTeq_ fun vTeq => do
-  let ⟨vU, vUeq_⟩ ← evalTp' Γ l U q($Γwf) q(($tU).wf_tp)
+  let ⟨vU, vUeq_⟩ ← evalTp' vΓ Γ l U vΓwf q(($tU).wf_tp)
   withHave vUeq_ fun vUeq => do
   let eq ← equateTp Γ l vU vT q(⟨_, $vUeq⟩) q(⟨_, $vTeq⟩)
   mkHaves #[Γwf, tU, vTeq, vUeq] q(by as_aux_lemma =>
     exact ($tU).conv <| ($eq).tp_uniq $vUeq $vTeq
   )
 
-partial def synthTm (Γ : Q(Ctx)) (l : Q(Nat)) (t : Q(Expr)) (Γwf : Q(WfCtx $Γ)) :
+partial def synthTm (vΓ : Q(List Val)) (Γ : Q(Ctx)) (l : Q(Nat)) (t : Q(Expr))
+    (vΓwf : Q(TpEnvEqCtx $vΓ $Γ)) :
     Lean.MetaM ((T : Q(Expr)) × Q($Γ ⊢[$l] ($t) : $T)) :=
   match t with
   | ~q(.bvar $i) => do
+    -- TODO: lookup in `vΓ` instead?
     let ⟨A, m, lk_⟩ ← lookup Γ i
     withHave lk_ fun lk => do
     let lm_ ← equateNat l m
     withHave lm_ fun lm => do
     return ⟨A, ← mkHaves #[lk, lm] q(by as_aux_lemma =>
-      cases ($lm); exact WfTm.bvar $Γwf $lk
+      cases ($lm); exact WfTm.bvar ($vΓwf).wf_ctx $lk
     )⟩
   | ~q(.lam $k $k' $A $b) => do
-    let Awf_ ← checkTp Γ k A Γwf
+    let Awf_ ← checkTp vΓ Γ k A vΓwf
     withHave Awf_ fun Awf => do
-    let ⟨B, bB_⟩ ← synthTm q(($A, $k) :: $Γ) k' b q(($Γwf).snoc $Awf)
+    let ⟨vA, vAeq_⟩ ← evalTp' vΓ Γ k A vΓwf Awf
+    withHave vAeq_ fun vAeq => do
+    let ⟨B, bB_⟩ ← synthTm q($vA :: $vΓ) q(($A, $k) :: $Γ) k' b q(sorry)
     withHave bB_ fun bB => do
     let lmax_ ← equateNat l q(max $k $k')
     withHave lmax_ fun lmax => do
-    return ⟨q(.pi $k $k' $A $B), ← mkHaves #[Awf, bB, lmax] q(by as_aux_lemma =>
+    return ⟨q(.pi $k $k' $A $B), ← mkHaves #[Awf, vAeq, bB, lmax] q(by as_aux_lemma =>
       cases ($lmax)
       exact WfTm.lam $bB
     )⟩
   | ~q(.app $k $k' $B $f $a) => do
     let lk'_ ← equateNat l k'
     withHave lk'_ fun lk' => do
-    let ⟨A, aA_⟩ ← synthTm Γ k a Γwf
+    let ⟨A, aA_⟩ ← synthTm vΓ Γ k a q($vΓwf)
     withHave aA_ fun aA => do
-    let Bwf_ ← checkTp q(($A, $k) :: $Γ) k' B q(($Γwf).snoc ($aA).wf_tp)
+    -- TODO: if we synthesized NF types, then no need to eval here.
+    -- may need to do that to avoid WHNFing `subst` below.
+    let ⟨vA, vAeq_⟩ ← evalTp' vΓ Γ k A vΓwf q(sorry)
+    withHave vAeq_ fun vAeq => do
+    let Bwf_ ← checkTp q($vA :: $vΓ) q(($A, $k) :: $Γ) k' B q(sorry)
     withHave Bwf_ fun Bwf => do
-    let fp_ ← checkTm Γ q(max $k $k') f q(.pi $k $k' $A $B) q(.pi $Bwf)
+    let fp_ ← checkTm vΓ Γ q(max $k $k') f q(.pi $k $k' $A $B) vΓwf q(.pi $Bwf)
     withHave fp_ fun fp => do
     let Ba : Q(Expr) := q(($B).subst ($a).toSb)
     /- FIXME: computing a substitution here! should `eval`.
@@ -122,7 +138,7 @@ partial def synthTm (Γ : Q(Ctx)) (l : Q(Nat)) (t : Q(Expr)) (Γwf : Q(WfCtx $Γ
       which requires a lot more calls to `eval`. -/
     let Ba' : Q(Expr) ← Lean.Meta.whnf Ba
     have _ : $Ba' =Q $Ba := .unsafeIntro
-    return ⟨Ba', ← mkHaves #[lk', aA, Bwf, fp] q(by as_aux_lemma =>
+    return ⟨Ba', ← mkHaves #[lk', aA, vAeq, Bwf, fp] q(by as_aux_lemma =>
       cases ($lk')
       apply WfTm.app $fp $aA
     )⟩
@@ -133,7 +149,7 @@ partial def synthTm (Γ : Q(Ctx)) (l : Q(Nat)) (t : Q(Expr)) (Γwf : Q(WfCtx $Γ
     let ~q(.succ $k) := l | throwError "abcd"
     let lmax_ ← ltNat k q(univMax)
     withHave lmax_ fun lmax => do
-    let Awf_ ← checkTp Γ k A Γwf
+    let Awf_ ← checkTp vΓ Γ k A vΓwf
     withHave Awf_ fun Awf => do
     return ⟨q(.univ $k), ← mkHaves #[lmax, Awf] q(WfTm.code $lmax $Awf)⟩
   | _ =>
