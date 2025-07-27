@@ -371,5 +371,29 @@ partial def equateNeut (Γ : Q(Ctx)) (l : Q(Nat)) (nt nu : Q(Neut))
     (Γu : Q(∃ u U, NeutEqTm $Γ $l $nu u U)) :
     Lean.MetaM Q(NeutEqNeutTm $Γ $l $nt $nu) :=
   match nt, nu with
-  | _, _ => throwError "TODO neutral equality"
+  | ~q(.bvar $i), ~q(.bvar $j) => do
+    let eq_ ← equateNat i j
+    withHave eq_ fun eq => do
+    mkHaves #[eq] q(by as_aux_lemma =>
+      have ⟨_, _, nt⟩ := $Γt
+      have ⟨_, _, nu⟩ := $Γu
+      have ⟨_, lk, eqt, eq⟩ := nt.inv_bvar
+      have ⟨_, lk', eqt', eq'⟩ := nu.inv_bvar
+      cases ($eq)
+      cases lk.tp_uniq lk'
+      have Aeq := eq'.trans_tp eq.symm_tp
+      refine ⟨_, _, nt, nu.conv_neut ?_ Aeq⟩
+      apply eqt'.trans_tm (eqt.symm_tm.conv_eq Aeq.symm_tp)
+    )
+  | ~q(.app $k $k' $f $a), ~q(.app $m $m' $f' $a') => do
+    -- equateNeut f f'
+    -- don't know the type of `a`.. might have to store it.
+    -- equateTm a a'
+    throwError "TODO neutral app eq"
+  | ~q(.fst ..), ~q(.fst ..) =>
+    throwError "TODO neutral fst eq"
+  | ~q(.snd ..), ~q(.snd ..) =>
+    throwError "TODO neutral snd eq"
+  | _, _ =>
+    throwError "neutral forms are not equal{Lean.indentD ""}{Γ} ⊢[{l}] {nu} ≢ {nt}"
 end

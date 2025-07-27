@@ -74,10 +74,14 @@ partial def evalTp (Δ : Q(Ctx)) (env : Q(List Val)) (σ : Q(Nat → Expr)) (Γ 
 
 /-- Evaluate a term in an environment of values. -/
 partial def evalTm (Δ : Q(Ctx)) (env : Q(List Val)) (σ : Q(Nat → Expr)) (Γ : Q(Ctx))
-    (l : Q(Nat)) (t : Q(Expr))
+    (l : Q(Nat)) (t' : Q(Expr))
     (Δenv : Q(EnvEqSb $Δ $env $σ $Γ))
-    (Γt : Q($Γ ⊢[$l] ($t) : synthTp $Γ $t)) :
-    Lean.MetaM ((v : Q(Val)) × Q(ValEqTm $Δ $l $v (($t).subst $σ) ((synthTp $Γ $t).subst $σ))) :=
+    (Γt : Q($Γ ⊢[$l] ($t') : synthTp $Γ $t')) :
+    Lean.MetaM ((v : Q(Val)) ×
+      Q(ValEqTm $Δ $l $v (($t').subst $σ) ((synthTp $Γ $t').subst $σ))) := do
+  -- TODO: see comment at `evalTp`.
+  let t : Q(Expr) ← Lean.Meta.whnf t'
+  have _ : $t =Q $t' := .unsafeIntro
   match t with
   | ~q(.bvar $i) => do
     let v : Q(Option Val) := q($env[$i]?)

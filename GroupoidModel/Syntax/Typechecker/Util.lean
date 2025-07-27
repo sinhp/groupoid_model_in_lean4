@@ -20,14 +20,18 @@ end Qq
 open Qq
 
 def equateNat (n m : Q(Nat)) : Lean.MetaM Q($n = $m) := do
-  let some vn ← Lean.Meta.evalNat n | throwError "cannot evaluate{Lean.indentExpr n}"
-  let some vm ← Lean.Meta.evalNat m | throwError "cannot evaluate{Lean.indentExpr m}"
+  let some vn ← Lean.Meta.evalNat (← Lean.Meta.whnf n)
+    | throwError "cannot evaluate Nat{Lean.indentExpr n}"
+  let some vm ← Lean.Meta.evalNat (← Lean.Meta.whnf m)
+    | throwError "cannot evaluate Nat{Lean.indentExpr m}"
   if vm != vn then throwError "equality does not hold{Lean.indentD ""}{n} = {m}"
   Lean.Meta.mkEqRefl n
 
 def ltNat (n m : Q(Nat)) : Lean.MetaM Q($n < $m) := do
-  let some vn ← Lean.Meta.evalNat n | throwError "cannot evaluate{Lean.indentExpr n}"
-  let some vm ← Lean.Meta.evalNat m | throwError "cannot evaluate{Lean.indentExpr m}"
+  let some vn ← Lean.Meta.evalNat (← Lean.Meta.whnf n)
+    | throwError "cannot evaluate Nat{Lean.indentExpr n}"
+  let some vm ← Lean.Meta.evalNat (← Lean.Meta.whnf m)
+    | throwError "cannot evaluate Nat{Lean.indentExpr m}"
   if vm <= vn then throwError "inequality does not hold{Lean.indentD ""}{n} < {m}"
   let pf ← Lean.Meta.mkEqRefl q(decide ($n < $m))
   Lean.Meta.mkAppM ``of_decide_eq_true #[pf]
