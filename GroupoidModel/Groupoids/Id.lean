@@ -59,15 +59,11 @@ abbrev BPGrpd := Grothendieck.Groupoidal (PGrpd.forgetToGrpd)
 
 namespace BPGrpd
 
--- FIXME: this should probably be removed in favour of FirstPointed ⋙ PGrpd.forgetToGrpd
-abbrev forgetToGrpd : BPGrpd ⥤ Grpd where
-  obj x := x.base.base
-  map f := f.base.base
-  map_comp := by
-    intros x y z f g
-    exact rfl
 
 abbrev FirstPointed  : BPGrpd ⥤ PGrpd := @Grothendieck.Groupoidal.forget _ _ (PGrpd.forgetToGrpd)
+
+abbrev forgetToGrpd : BPGrpd ⥤ Grpd := FirstPointed ⋙ PGrpd.forgetToGrpd
+
 
 def SecondPointed : BPGrpd ⥤ PGrpd where
   obj x := {base := x.base.base, fiber := x.fiber}
@@ -113,36 +109,33 @@ This is NOT a pullback.
 Instead we use Diag and Refl to define a functor R : PGrpd ⥤ Grothendieck.Groupoidal Id
 -/
 
-
-def Id : BPGrpd.{u,u} ⥤ Grpd.{u,u} := sorry
--- where
---   obj x := Grpd.of (CategoryTheory.Discrete (x.base.fiber ⟶ x.fiber))
---   map f := Discrete.functor (fun(a) => { as := inv f.base.fiber ≫ (f.base.base.map a) ≫ f.fiber})
---   map_comp {X Y Z} f g := by
---     simp
---     fapply CategoryTheory.Functor.ext
---     . intros a
---       rcases a with ⟨a⟩
---       simp
---       exact
---         IsIso.hom_inv_id_assoc
---           ((Grothendieck.Groupoidal.Hom.base g).base.map (Grothendieck.Groupoidal.Hom.base f).fiber)
---           ((Grothendieck.Groupoidal.Hom.base g).base.map
---               ((Grothendieck.Groupoidal.Hom.base f).base.map a) ≫
---             (Grothendieck.Groupoidal.Hom.base g).base.map (Grothendieck.Groupoidal.Hom.fiber f) ≫
---               Grothendieck.Groupoidal.Hom.fiber g)
---     . intro x y t
---       simp[Discrete.functor]
---       exact Eq.symm (eq_of_comp_right_eq fun {X_1} ↦ congrFun rfl)
---   map_id X := by
---     simp[Discrete.functor]
---     apply CategoryTheory.Functor.ext
---     . intro a b f
---       refine eq_of_comp_right_eq fun {X_1} h ↦ rfl
---     . intro x
---       simp[Discrete.functor]
---       congr
---       simp[Functor.id,Grpd.forgetToCat]
+def Id: BPGrpd.{u,u} ⥤ Grpd.{u,u} where
+  obj (x: BPGrpd) := Grpd.of (CategoryTheory.Discrete (x.base.fiber ⟶ x.fiber))
+  map f := Discrete.functor (fun(a) => { as := inv f.base.fiber ≫ (f.base.base.map a) ≫ f.fiber})
+  map_comp {X Y Z} f g := by
+    simp
+    fapply CategoryTheory.Functor.ext
+    . intros a
+      rcases a with ⟨a⟩
+      simp
+      exact
+        IsIso.hom_inv_id_assoc
+          ((Grothendieck.Groupoidal.Hom.base g).base.map (Grothendieck.Groupoidal.Hom.base f).fiber)
+          ((Grothendieck.Groupoidal.Hom.base g).base.map
+              ((Grothendieck.Groupoidal.Hom.base f).base.map a) ≫
+            (Grothendieck.Groupoidal.Hom.base g).base.map (Grothendieck.Groupoidal.Hom.fiber f) ≫
+              Grothendieck.Groupoidal.Hom.fiber g)
+    . intro x y t
+      simp[Discrete.functor]
+      exact Eq.symm (eq_of_comp_right_eq fun {X_1} ↦ congrFun rfl)
+  map_id X := by
+    simp[Discrete.functor]
+    apply CategoryTheory.Functor.ext
+    . intro a b f
+      refine eq_of_comp_right_eq fun {X_1} h ↦ rfl
+    . intro x
+      simp[Grpd.forgetToCat]
+      exact rfl
 
 /-
 JH: This should be given automatically by the pullback universal property of BPGrpd.
@@ -159,37 +152,35 @@ JH: maybe use `PGrpd.functorTo` or even `Grothendieck.map`?
 -/
 def Refl : PGrpd ⥤ PGrpd where
   obj x := {base := Grpd.of (CategoryTheory.Discrete (x.fiber ⟶ x.fiber)), fiber := { as := 𝟙 x.fiber}}
-  map {X Y} f := by
-    fconstructor
-    . exact Discrete.functor (fun g => {as := (inv f.fiber ≫ f.base.map g ≫ f.fiber)})
-    . refine eqToHom ?_
-      simp[Grpd.forgetToCat]
+  map {X Y} f := { base := Discrete.functor fun g ↦ { as := inv f.fiber ≫ f.base.map g ≫ f.fiber },
+                   fiber := eqToHom sorry }
   map_id X := by
     simp[Discrete.functor,CategoryStruct.id,Grothendieck.id]
     congr 1
     . apply CategoryTheory.Functor.ext
       . intro x y f
-        simp
         refine eq_of_comp_right_eq fun {X_1} h ↦ rfl
       . intro x
         simp[Grpd.forgetToCat]
     . simp [Grpd.forgetToCat]
-      set eq := of_eq_true ..
-      rw! [eq]
-      simp
-      refine eq_true ?_
-      congr
-      simp
-  map_comp {X Y Z} f g := by sorry
-    -- simp[Discrete.functor,CategoryStruct.id,Grothendieck.id]
-    -- congr 1
-    -- . apply CategoryTheory.Functor.ext
-    --   . intros a b w
-    --     sorry
-    --   . intro w
-    --     simp[Grpd.forgetToCat]
-    -- . simp[eqToHom_map]
-    --   sorry
+      sorry
+      -- set eq := of_eq_true ..
+      -- rw! [eq]
+      -- simp
+      -- refine eq_true ?_
+      -- congr
+      -- simp
+  map_comp {X Y Z} f g := by
+    simp[Discrete.functor]
+    congr 1
+    . apply CategoryTheory.Functor.ext
+      . intros a b w
+        sorry
+      . intro w
+        simp[Grpd.forgetToCat]
+        exact rfl
+    . simp[eqToHom_map]
+      sorry
 
 theorem Comute : Diag ⋙ Id = Refl ⋙ PGrpd.forgetToGrpd := sorry
 -- by
@@ -255,7 +246,6 @@ theorem RKForget : R ⋙ Grothendieck.Groupoidal.forget ⋙ BPGrpd.forgetToGrpd 
     simp[Grothendieck.Groupoidal.base]
   . intro X Y f
     simp[Grothendieck.Groupoidal.base,Grothendieck.Groupoidal.Hom.base]
-    -- exact rfl
 
 
 -- /- Here I define the path groupoid and how it can be used to create identities
