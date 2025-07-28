@@ -534,21 +534,21 @@ theorem map_forget (α : F ⟶ G) : map α ⋙ forget = forget :=
   rfl
 
 @[simp] theorem map_obj_base (X) : ((map α).obj X).base = X.base :=
-  Grothendieck.map_obj_base _
+  Grothendieck.map_obj_base _ _
 
 @[simp] theorem map_obj_fiber (X) :
     ((map α).obj X).fiber = (α.app X.base).obj X.fiber :=
-  Grothendieck.map_obj_fiber _
+  Grothendieck.map_obj_fiber _ _
 
 variable {X} {Y : ∫(F)} (f : X ⟶ Y)
 
 @[simp] theorem map_map_base : ((Groupoidal.map α).map f).base = f.base
-    := Grothendieck.map_map_base _
+    := Grothendieck.map_map_base _ _
 
 @[simp] theorem map_map_fiber :
   ((Groupoidal.map α).map f).fiber =
     eqToHom (Functor.congr_obj (α.naturality f.base).symm X.fiber)
-    ≫ (α.app Y.base).map f.fiber := Grothendieck.map_map_fiber _
+    ≫ (α.app Y.base).map f.fiber := Grothendieck.map_map_fiber _ _
 
 end
 

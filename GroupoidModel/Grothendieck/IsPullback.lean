@@ -23,7 +23,7 @@ variable (A)
 
 def toPCat : ∫ A ⥤ PCat.{v₁,u₁} :=
   functorTo (forget _ ⋙ A) (fun x => x.fiber) (fun f => f.fiber)
-    (by simp) (by intros; simp; rfl)
+    (by simp) (by intros; simp)
 
 @[simp] theorem toPCat_obj_base (x) :
     ((toPCat A).obj x).base = A.obj x.base := by

@@ -532,7 +532,9 @@ def strongTrans : (A ⋙ Grpd.forgetToCat).toPseudoFunctor'.StrongTrans
     naturality_comp := sorry
 
 def mapStrongTrans : ∫ A ⥤ ∫ sigma A B :=
-  Pseudofunctor.Grothendieck.map (strongTrans B s hs)
+  Functor.Grothendieck.toPseudoFunctor'Iso.hom _ ⋙
+  Pseudofunctor.Grothendieck.map (strongTrans B s hs) ⋙
+  Functor.Grothendieck.toPseudoFunctor'Iso.inv _
 
 /--  Let `Γ` be a category.
 For any pair of functors `A : Γ ⥤ Grpd` and `B : ∫(A) ⥤ Grpd`,
@@ -542,18 +544,17 @@ there is a "term of `B`" `inversion : Γ ⥤ PGrpd` such that `inversion ⋙ for
 -/
 def inversion : ∫(A) ⥤ PGrpd := mapStrongTrans B s hs ⋙ sigma.assoc B ⋙ toPGrpd B
 
--- TODO: maybe make a lemma for `map (α ≫ β)` for composition of strong transformations?
 lemma mapStrongTrans_comp_fstAux' : mapStrongTrans B s hs ⋙ sigma.fstAux' B = 𝟭 _ := by
   apply Functor.Groupoidal.FunctorTo.hext
-  · simp only [mapStrongTrans, Grpd.forgetToCat.eq_1, sigma.fstAux', Functor.assoc, map_forget,
-      Functor.id_comp]
-    dsimp only [Functor.Groupoidal.forget, Functor.Grothendieck.forget, Grpd.forgetToCat.eq_1]
-    rw [Pseudofunctor.Grothendieck.map_comp_forget]
+  · rw [Functor.assoc, sigma.fstAux', map_forget, mapStrongTrans, Functor.assoc,
+      Functor.assoc, Functor.Groupoidal.forget,
+      Functor.Grothendieck.toPseudoFunctor'Iso.inv_comp_forget,
+      Pseudofunctor.Grothendieck.map_comp_forget, Functor.id_comp,
+      Functor.Grothendieck.toPseudoFunctor'Iso.hom_comp_forget,
+      Functor.Groupoidal.forget]
   · intro x
     simp only [sigma.fstAux', Functor.comp_obj, map_obj_fiber, sigma_obj, sigma.fstAux_app,
       Functor.Groupoidal.forget_obj, Functor.id_obj, heq_eq_eq]
-    simp only [mapStrongTrans, fiber, Functor.Grothendieck.fiber, sigma_obj, strongTrans_app,
-      Pseudofunctor.Grothendieck.map_obj_fiber, Functor.toPseudoFunctor'_obj, Functor.comp_obj]
     exact Functor.congr_obj (PGrpd.objFiber' hs x.base).property x.fiber
   · sorry
 
