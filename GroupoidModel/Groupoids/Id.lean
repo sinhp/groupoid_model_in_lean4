@@ -8,13 +8,12 @@ import SEq.Tactic.DepRewrite
 
 universe w v u v₁ u₁ v₂ u₂
 
+noncomputable section
+
 namespace CategoryTheory
 
-open GroupoidModel
+open Grothendieck.Groupoidal
 
-noncomputable
-
-section BiPointed
 
 def PGrpd.inc (G : Type) [Groupoid G] : G ⥤ PGrpd  where
   obj x := {base := Grpd.of G,fiber := x}
@@ -23,64 +22,65 @@ def PGrpd.inc (G : Type) [Groupoid G] : G ⥤ PGrpd  where
     simp[CategoryStruct.comp,Grothendieck.comp,Grpd.forgetToCat]
     congr
 
-namespace GrothendieckPointedCategories
+-- namespace GrothendieckPointedCategories
 
-abbrev BPCat := Grothendieck (PCat.forgetToCat)
+-- abbrev BPCat := Grothendieck (PCat.forgetToCat)
 
-namespace BPCat
+-- namespace BPCat
 
-abbrev forgetToCat : BPCat ⥤ Cat where
-  obj x := x.base.base
-  map f := f.base.base
-  map_comp := by
-    intros x y z f g
-    exact rfl
+-- abbrev forgetToCat : BPCat ⥤ Cat where
+--   obj x := x.base.base
+--   map f := f.base.base
+--   map_comp := by
+--     intros x y z f g
+--     exact rfl
 
-abbrev FirstPointed  : BPCat ⥤ PCat := Grothendieck.forget _
+-- abbrev FirstPointed  : BPCat ⥤ PCat := Grothendieck.forget _
 
-def SecondPointed : BPCat ⥤ PCat where
-  obj x := {base := x.base.base, fiber := x.fiber}
-  map f := {base := f.base.base, fiber := f.fiber}
-  map_comp := by
-    intros x y z f g
-    exact rfl
+-- def SecondPointed : BPCat ⥤ PCat where
+--   obj x := {base := x.base.base, fiber := x.fiber}
+--   map f := {base := f.base.base, fiber := f.fiber}
+--   map_comp := by
+--     intros x y z f g
+--     exact rfl
 
-/- This needs a better name but I cant come up with one now-/
-theorem Comutes : FirstPointed ⋙ PCat.forgetToCat = SecondPointed ⋙ PCat.forgetToCat := by
-  simp[FirstPointed,SecondPointed,PCat.forgetToCat,Functor.comp]
+-- /- This needs a better name but I cant come up with one now-/
+-- theorem Comutes : FirstPointed ⋙ PCat.forgetToCat = SecondPointed ⋙ PCat.forgetToCat := by
+--   simp[FirstPointed,SecondPointed,PCat.forgetToCat,Functor.comp]
 
 
-def isPullback : Functor.IsPullback SecondPointed.{u,v} FirstPointed.{u,v} PCat.forgetToCat.{u,v} PCat.forgetToCat.{u,v}
-  := @CategoryTheory.Grothendieck.isPullback PCat _ (PCat.forgetToCat)
+-- def isPullback : Functor.IsPullback SecondPointed.{u,v} FirstPointed.{u,v} PCat.forgetToCat.{u,v} PCat.forgetToCat.{u,v}
+--   := @CategoryTheory.Grothendieck.isPullback PCat _ (PCat.forgetToCat)
 
-end BPCat
+-- end BPCat
 
 abbrev BPGrpd := Grothendieck.Groupoidal (PGrpd.forgetToGrpd)
 
 namespace BPGrpd
 
+abbrev fst : BPGrpd ⥤ PGrpd := Grothendieck.Groupoidal.forget
 
-abbrev FirstPointed  : BPGrpd ⥤ PGrpd := @Grothendieck.Groupoidal.forget _ _ (PGrpd.forgetToGrpd)
+abbrev forgetToGrpd : BPGrpd ⥤ Grpd := fst ⋙ PGrpd.forgetToGrpd
 
-abbrev forgetToGrpd : BPGrpd ⥤ Grpd := FirstPointed ⋙ PGrpd.forgetToGrpd
+def snd : BPGrpd ⥤ PGrpd := Grothendieck.Groupoidal.toPGrpd _
 
-
-def SecondPointed : BPGrpd ⥤ PGrpd where
-  obj x := {base := x.base.base, fiber := x.fiber}
-  map f := {base := f.base.base, fiber := f.fiber}
-  map_comp := by
-    intros x y z f g
-    exact rfl
-
-/- Same thing with this name-/
-theorem Comutes : FirstPointed ⋙ PGrpd.forgetToGrpd = SecondPointed ⋙ PGrpd.forgetToGrpd := by
-  simp[FirstPointed,SecondPointed,PGrpd.forgetToGrpd,Functor.comp]
-  -- exact Prod.mk_inj.mp rfl
+/-- The commutative square
+  BPGrpd ----> PGrpd
+    |            |
+    |            |
+    |            |
+    |            |
+    V            V
+   PGrpd ----> Grpd
+-/
+theorem fst_forgetToGrpd : fst ⋙ PGrpd.forgetToGrpd = snd ⋙ PGrpd.forgetToGrpd := by
+  simp [fst, snd, Grothendieck.Groupoidal.toPGrpd_forgetToGrpd]
 
 /- BPGrpd is the pullback of PGrpd.forgetToGrpd with itself -/
-def isPullback : Functor.IsPullback SecondPointed.{u,v} FirstPointed.{u,v} PGrpd.forgetToGrpd.{u,v} PGrpd.forgetToGrpd.{u,v} := by
+def isPullback : Functor.IsPullback snd.{u,v} fst.{u,v} PGrpd.forgetToGrpd.{u,v} PGrpd.forgetToGrpd.{u,v} := by
   apply @CategoryTheory.Grothendieck.Groupoidal.isPullback PGrpd _ (PGrpd.forgetToGrpd)
 
+-- TODO: docstring + why is it called `inc`?
 def inc (G : Type) [Groupoid G] : G ⥤ BPGrpd := by
   fapply isPullback.lift
   . exact PGrpd.inc G
@@ -88,6 +88,14 @@ def inc (G : Type) [Groupoid G] : G ⥤ BPGrpd := by
   . simp
 
 end BPGrpd
+
+end CategoryTheory
+
+namespace GroupoidModel
+
+open CategoryTheory
+
+namespace FunctorOperation
 
 section Id
 
@@ -109,80 +117,113 @@ This is NOT a pullback.
 Instead we use Diag and Refl to define a functor R : PGrpd ⥤ Grothendieck.Groupoidal Id
 -/
 
-def Id: BPGrpd.{u,u} ⥤ Grpd.{u,u} where
-  obj (x: BPGrpd) := Grpd.of (CategoryTheory.Discrete (x.base.fiber ⟶ x.fiber))
-  map f := Discrete.functor (fun(a) => { as := inv f.base.fiber ≫ (f.base.base.map a) ≫ f.fiber})
-  map_comp {X Y Z} f g := by
+/-- The identity type former takes a bipointed groupoid `((A,a0),a1)` to the set of isomorphisms
+between its two given points `A(a0,a1)`.
+Here `A = x.base.base`, `a0 = x.base.fiber` and `a1 = x.fiber`. -/
+def idObj (x : BPGrpd) : Grpd := Grpd.of (CategoryTheory.Discrete (x.base.fiber ⟶ x.fiber))
+
+/-- The identity type former takes a morphism of bipointed groupoids
+`((F,f0),f1) : ((A,a0),a1) ⟶ ((B,b0),b1)`
+to the function `A(a0,a1) → B(b0,b1)` taking `g : a0 ≅ a1` to `f0⁻¹ ⋙ F g ⋙ f1` where
+`f0⁻¹ : b0 ⟶ F a0`, `F g : F a0 ⟶ F a1` and `f1 : F a1 ⟶ b1`. -/
+def idMap {x y : BPGrpd} (f : x ⟶ y) : idObj x ⥤ idObj y :=
+  Discrete.functor (fun g => ⟨ inv f.base.fiber ≫ (f.base.base.map g) ≫ f.fiber ⟩)
+
+lemma Discrete.functor_ext' {X C : Type*} [Category C] {F G : X → C} (h : ∀ x : X, F x = G x) :
+    Discrete.functor F = Discrete.functor G := by
+  have : F = G := by aesop
+  subst this
+  rfl
+
+lemma Discrete.functor_eq {X C : Type*} [Category C] {F : Discrete X ⥤ C} :
+    F = Discrete.functor fun x ↦ F.obj ⟨x⟩ := by
+  fapply CategoryTheory.Functor.ext
+  · aesop
+  · intro x y f
+    cases x ; rcases f with ⟨⟨h⟩⟩
+    cases h
     simp
-    fapply CategoryTheory.Functor.ext
-    . intros a
-      rcases a with ⟨a⟩
-      simp
-      exact
-        IsIso.hom_inv_id_assoc
-          ((Grothendieck.Groupoidal.Hom.base g).base.map (Grothendieck.Groupoidal.Hom.base f).fiber)
-          ((Grothendieck.Groupoidal.Hom.base g).base.map
-              ((Grothendieck.Groupoidal.Hom.base f).base.map a) ≫
-            (Grothendieck.Groupoidal.Hom.base g).base.map (Grothendieck.Groupoidal.Hom.fiber f) ≫
-              Grothendieck.Groupoidal.Hom.fiber g)
-    . intro x y t
-      simp[Discrete.functor]
-      exact Eq.symm (eq_of_comp_right_eq fun {X_1} ↦ congrFun rfl)
+
+lemma Discrete.functor_ext {X C : Type*} [Category C] (F G : Discrete X ⥤ C)
+    (h : ∀ x : X, F.obj ⟨x⟩ = G.obj ⟨x⟩) :
+    F = G :=
+  calc F
+    _ = Discrete.functor (fun x => F.obj ⟨x⟩) := Discrete.functor_eq
+    _ = Discrete.functor (fun x => G.obj ⟨x⟩) := Discrete.functor_ext' h
+    _ = G := Discrete.functor_eq.symm
+
+lemma Discrete.ext {X : Type*} {x y : Discrete X} (h : x.as = y.as) : x = y := by
+  cases x; cases h
+  rfl
+
+/-- The identity type formation rule, equivalently viewed as a functor. -/
+@[simps]
+def id : BPGrpd.{u,u} ⥤ Grpd.{u,u} where
+  obj := idObj
+  map := idMap
   map_id X := by
-    simp[Discrete.functor]
-    apply CategoryTheory.Functor.ext
-    . intro a b f
-      refine eq_of_comp_right_eq fun {X_1} h ↦ rfl
-    . intro x
-      simp[Grpd.forgetToCat]
-      exact rfl
+    apply Discrete.functor_ext
+    intro x
+    apply Discrete.ext
+    dsimp only [idMap, Grpd.forgetToCat]
+    aesop
+  map_comp {X Y Z} f g := by
+    apply Discrete.functor_ext
+    intro a
+    apply Discrete.ext
+    dsimp only [idMap, Grpd.forgetToCat]
+    aesop
 
 /-
 JH: This should be given automatically by the pullback universal property of BPGrpd.
 But I think this should be automatically produced from the spec `NaturalModelIdBase.pb_isPullback`
 -/
-def Diag : PGrpd ⥤ BPGrpd where
+def diag : PGrpd ⥤ BPGrpd where
   obj x := {base := x, fiber := x.fiber}
   map f := {base := f, fiber := f.fiber}
   map_comp {X Y Z} f g:= by
     simp[CategoryStruct.comp,Grothendieck.Groupoidal.comp,Grothendieck.comp]
 
+def reflObjFiber (x : PGrpd) : Discrete (x.fiber ⟶ x.fiber) := ⟨𝟙 x.fiber⟩
+
 /-
 JH: maybe use `PGrpd.functorTo` or even `Grothendieck.map`?
 -/
-def Refl : PGrpd ⥤ PGrpd where
-  obj x := {base := Grpd.of (CategoryTheory.Discrete (x.fiber ⟶ x.fiber)), fiber := { as := 𝟙 x.fiber}}
-  map {X Y} f := { base := Discrete.functor fun g ↦ { as := inv f.fiber ≫ f.base.map g ≫ f.fiber },
-                   fiber := eqToHom sorry }
-  map_id X := by
-    simp[Discrete.functor,CategoryStruct.id,Grothendieck.id]
-    congr 1
-    . apply CategoryTheory.Functor.ext
-      . intro x y f
-        refine eq_of_comp_right_eq fun {X_1} h ↦ rfl
-      . intro x
-        simp[Grpd.forgetToCat]
-    . simp [Grpd.forgetToCat]
-      sorry
-      -- set eq := of_eq_true ..
-      -- rw! [eq]
-      -- simp
-      -- refine eq_true ?_
-      -- congr
-      -- simp
-  map_comp {X Y Z} f g := by
-    simp[Discrete.functor]
-    congr 1
-    . apply CategoryTheory.Functor.ext
-      . intros a b w
-        sorry
-      . intro w
-        simp[Grpd.forgetToCat]
-        exact rfl
-    . simp[eqToHom_map]
-      sorry
+def refl : PGrpd ⥤ PGrpd :=
+  PGrpd.functorTo (diag ⋙ id) reflObjFiber sorry sorry sorry
+-- where
+  -- obj x := Grothendieck.mk (Grpd.of (Discrete (x.fiber ⟶ x.fiber))) ⟨𝟙 x.fiber⟩
+  -- map {X Y} f := Grothendieck.Hom.mk (Discrete.functor fun g ↦ ⟨inv f.fiber ≫ f.base.map g ≫ f.fiber⟩)
+  --                  (eqToHom sorry)
+  -- map_id X := by
+  --   simp[Discrete.functor,CategoryStruct.id,Grothendieck.id]
+  --   congr 1
+  --   . apply CategoryTheory.Functor.ext
+  --     . intro x y f
+  --       refine eq_of_comp_right_eq fun {X_1} h ↦ rfl
+  --     . intro x
+  --       simp[Grpd.forgetToCat]
+  --   . simp [Grpd.forgetToCat]
+  --     sorry
+  --     -- set eq := of_eq_true ..
+  --     -- rw! [eq]
+  --     -- simp
+  --     -- refine eq_true ?_
+  --     -- congr
+  --     -- simp
+  -- map_comp {X Y Z} f g := by
+  --   simp[Discrete.functor]
+  --   congr 1
+  --   . apply CategoryTheory.Functor.ext
+  --     . intros a b w
+  --       sorry
+  --     . intro w
+  --       simp[Grpd.forgetToCat]
+  --       exact rfl
+  --   . simp[eqToHom_map]
+  --     sorry
 
-theorem Comute : Diag ⋙ Id = Refl ⋙ PGrpd.forgetToGrpd := sorry
+theorem Comute : diag ⋙ id = refl ⋙ PGrpd.forgetToGrpd := sorry
 -- by
   -- fapply CategoryTheory.Functor.ext
   -- . intro X
@@ -204,7 +245,8 @@ PGrpd ------------>
  ---> BPGrpd -----> Grpd
               Id
 -/
-def R : PGrpd ⥤ Grothendieck.Groupoidal Id := (Grothendieck.Groupoidal.isPullback Id).lift Refl Diag Comute.symm
+def R : PGrpd ⥤ Grothendieck.Groupoidal id :=
+  (Grothendieck.Groupoidal.isPullback id).lift refl diag Comute.symm
 
 /- This is the composition
 
@@ -240,7 +282,7 @@ PGrpd ------------>
 -/
 theorem RKForget : R ⋙ Grothendieck.Groupoidal.forget ⋙ BPGrpd.forgetToGrpd =
     PGrpd.forgetToGrpd := by
-  simp [R,<- Functor.assoc,CategoryTheory.Functor.IsPullback.fac_right,Diag]
+  simp [R,<- Functor.assoc,CategoryTheory.Functor.IsPullback.fac_right,diag]
   fapply CategoryTheory.Functor.ext
   . intro X
     simp[Grothendieck.Groupoidal.base]
@@ -297,6 +339,7 @@ theorem RKForget : R ⋙ Grothendieck.Groupoidal.forget ⋙ BPGrpd.forgetToGrpd 
 --   simp [Path_Refl,PreJ,Functor.comp,Functor.id]
 
 end Id
+end FunctorOperation
 
 -- section Contract
 -- /-
@@ -425,7 +468,6 @@ end Id
 
 -- end ContractMap
 
-section Poly
 /-
 In this section I am trying to move the previous results about groupoids to the
 category of contexts
@@ -493,3 +535,7 @@ def smallUIdBase : NaturalModelBase.NaturalModelIdBase smallU.{u,u} where
   Id := Id'
   refl := sorry
   Id_comm := sorry
+
+end smallUId
+
+end GroupoidModel
