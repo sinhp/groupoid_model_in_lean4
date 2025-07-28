@@ -62,7 +62,7 @@ abbrev fst : BPGrpd ⥤ PGrpd := Grothendieck.Groupoidal.forget
 
 abbrev forgetToGrpd : BPGrpd ⥤ Grpd := fst ⋙ PGrpd.forgetToGrpd
 
-def snd : BPGrpd ⥤ PGrpd := Grothendieck.Groupoidal.toPGrpd _
+def snd : BPGrpd ⥤ PGrpd := toPGrpd _
 
 /-- The commutative square
   BPGrpd ----> PGrpd
@@ -74,7 +74,7 @@ def snd : BPGrpd ⥤ PGrpd := Grothendieck.Groupoidal.toPGrpd _
    PGrpd ----> Grpd
 -/
 theorem fst_forgetToGrpd : fst ⋙ PGrpd.forgetToGrpd = snd ⋙ PGrpd.forgetToGrpd := by
-  simp [fst, snd, Grothendieck.Groupoidal.toPGrpd_forgetToGrpd]
+  simp [fst, snd, toPGrpd_forgetToGrpd]
 
 /- BPGrpd is the pullback of PGrpd.forgetToGrpd with itself -/
 def isPullback : Functor.IsPullback snd.{u,v} fst.{u,v} PGrpd.forgetToGrpd.{u,v} PGrpd.forgetToGrpd.{u,v} := by
@@ -93,7 +93,7 @@ end CategoryTheory
 
 namespace GroupoidModel
 
-open CategoryTheory
+open CategoryTheory Grothendieck.Groupoidal
 
 namespace FunctorOperation
 
@@ -174,64 +174,38 @@ def id : BPGrpd.{u,u} ⥤ Grpd.{u,u} where
     dsimp only [idMap, Grpd.forgetToCat]
     aesop
 
-/-
-JH: This should be given automatically by the pullback universal property of BPGrpd.
-But I think this should be automatically produced from the spec `NaturalModelIdBase.pb_isPullback`
+/--
+The diagonal functor into the pullback.
+It creates a second copy of the point from the input pointed groupoid.
+
+This version of `diag` is used for better definitional reduction.
 -/
 def diag : PGrpd ⥤ BPGrpd where
-  obj x := {base := x, fiber := x.fiber}
-  map f := {base := f, fiber := f.fiber}
+  obj x := objMk x x.fiber
+  map f := homMk f f.fiber
   map_comp {X Y Z} f g:= by
-    simp[CategoryStruct.comp,Grothendieck.Groupoidal.comp,Grothendieck.comp]
+    fapply Grothendieck.Groupoidal.ext
+    · simp
+    · simp [Grpd.forgetToCat]
+
+/--
+This version of `diag` is used for functor equational reasoning.
+-/
+def diag' : PGrpd ⥤ BPGrpd :=
+  BPGrpd.isPullback.lift (𝟭 _) (𝟭 _) rfl
+
+lemma diag_eq_diag' : diag = diag' :=
+  BPGrpd.isPullback.lift_uniq _ _ _ rfl rfl
 
 def reflObjFiber (x : PGrpd) : Discrete (x.fiber ⟶ x.fiber) := ⟨𝟙 x.fiber⟩
 
-/-
-JH: maybe use `PGrpd.functorTo` or even `Grothendieck.map`?
--/
 def refl : PGrpd ⥤ PGrpd :=
-  PGrpd.functorTo (diag ⋙ id) reflObjFiber sorry sorry sorry
--- where
-  -- obj x := Grothendieck.mk (Grpd.of (Discrete (x.fiber ⟶ x.fiber))) ⟨𝟙 x.fiber⟩
-  -- map {X Y} f := Grothendieck.Hom.mk (Discrete.functor fun g ↦ ⟨inv f.fiber ≫ f.base.map g ≫ f.fiber⟩)
-  --                  (eqToHom sorry)
-  -- map_id X := by
-  --   simp[Discrete.functor,CategoryStruct.id,Grothendieck.id]
-  --   congr 1
-  --   . apply CategoryTheory.Functor.ext
-  --     . intro x y f
-  --       refine eq_of_comp_right_eq fun {X_1} h ↦ rfl
-  --     . intro x
-  --       simp[Grpd.forgetToCat]
-  --   . simp [Grpd.forgetToCat]
-  --     sorry
-  --     -- set eq := of_eq_true ..
-  --     -- rw! [eq]
-  --     -- simp
-  --     -- refine eq_true ?_
-  --     -- congr
-  --     -- simp
-  -- map_comp {X Y Z} f g := by
-  --   simp[Discrete.functor]
-  --   congr 1
-  --   . apply CategoryTheory.Functor.ext
-  --     . intros a b w
-  --       sorry
-  --     . intro w
-  --       simp[Grpd.forgetToCat]
-  --       exact rfl
-  --   . simp[eqToHom_map]
-  --     sorry
+  PGrpd.functorTo (diag ⋙ id) reflObjFiber (fun f => Discrete.eqToHom (by
+    simp [idMap, diag, reflObjFiber, Grpd.forgetToCat]))
+    (by simp)
+    (by intros; simp [Discrete.eqToHom, eqToHom_map])
 
-theorem Comute : diag ⋙ id = refl ⋙ PGrpd.forgetToGrpd := sorry
--- by
-  -- fapply CategoryTheory.Functor.ext
-  -- . intro X
-  --   simp[Diag,Id,Refl,PGrpd.forgetToGrpd,Grpd.of,Bundled.of]
-  --   congr
-  -- . intro X Y f
-  --   simp[Diag,Id,Refl,PGrpd.forgetToGrpd]
-  --   exact rfl
+theorem refl_forgetToGrpd : refl ⋙ PGrpd.forgetToGrpd = diag ⋙ id := rfl
 
 /- This is the universal lift
             Refl
@@ -246,7 +220,7 @@ PGrpd ------------>
               Id
 -/
 def R : PGrpd ⥤ Grothendieck.Groupoidal id :=
-  (Grothendieck.Groupoidal.isPullback id).lift refl diag Comute.symm
+  (Grothendieck.Groupoidal.isPullback id).lift refl diag refl_forgetToGrpd
 
 /- This is the composition
 
@@ -285,9 +259,9 @@ theorem RKForget : R ⋙ Grothendieck.Groupoidal.forget ⋙ BPGrpd.forgetToGrpd 
   simp [R,<- Functor.assoc,CategoryTheory.Functor.IsPullback.fac_right,diag]
   fapply CategoryTheory.Functor.ext
   . intro X
-    simp[Grothendieck.Groupoidal.base]
+    simp
   . intro X Y f
-    simp[Grothendieck.Groupoidal.base,Grothendieck.Groupoidal.Hom.base]
+    simp
 
 
 -- /- Here I define the path groupoid and how it can be used to create identities
