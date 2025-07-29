@@ -389,6 +389,8 @@ structure NaturalModelSigma where
 
 /-! ## Id types -/
 
+
+/- It may be worth making this a class on the NM structure-/
 structure NaturalModelIdBase where
   Tmm : Psh Ctx
   p1 : Tmm ⟶ M.Tm

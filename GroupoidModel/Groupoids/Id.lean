@@ -61,6 +61,9 @@ end BPCat
 
 abbrev BPGrpd := Grothendieck.Groupoidal (PGrpd.forgetToGrpd)
 
+instance : Groupoid BPGrpd := sorry
+
+
 namespace BPGrpd
 
 abbrev forgetToGrpd : BPGrpd ⥤ Grpd where
@@ -441,3 +444,24 @@ def Diag' : GroupoidModel.E.{v,u} ⟶ GroupoidModel.U.ext (GroupoidModel.π.{v,u
 
 
 set_option pp.universes true
+
+-- #check GroupoidModel.smallU.Tm
+-- #check Core.functorToCore
+-- #check BPGrpd.FirstPointed
+-- #check GroupoidModel.smallU.ext
+
+def GroupoidModel.smallU.IdBase : NaturalModelBase.NaturalModelIdBase GroupoidModel.smallU.{u,u} where
+  Tmm := by
+    refine yoneda.obj ?_
+    apply GroupoidModel.smallU.ext.{u,u}
+    apply (GroupoidModel.smallU.tp.{u,u})
+  p1 := by
+    apply GroupoidModel.smallU.var.{u,u}
+  p2 := by
+    refine yoneda.map ?_
+    apply GroupoidModel.smallU.disp.{u,u} (GroupoidModel.smallU.tp.{u,u})
+  Tm_Pullback := by
+    apply GroupoidModel.smallU.disp_pullback.{u,u}
+  Id := sorry
+  Refl := sorry
+  Id_comm := sorry
