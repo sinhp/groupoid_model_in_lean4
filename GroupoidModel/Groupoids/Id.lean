@@ -477,10 +477,7 @@ def Refl' : GroupoidModel.E.{u,u} ⟶ GroupoidModel.E.{u,u} := by
   dsimp[GroupoidModel.E, GroupoidModel.Ctx.ofCategory]
   refine AsSmall.up.map ?_
   dsimp[Quiver.Hom]
-  sorry
-  -- refine Core.map' ?_
-  -- refine AsSmall.down ⋙ ?_ ⋙ AsSmall.up
-  -- exact Refl
+  exact 𝟭 (Core (AsSmall PGrpd))
 
 /- Lean is gas lighting me -/
 def Diag' : GroupoidModel.E.{v,u} ⟶ GroupoidModel.U.ext (GroupoidModel.π.{v,u}) := by
