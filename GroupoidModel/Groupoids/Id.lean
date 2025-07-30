@@ -503,3 +503,4 @@ def GroupoidModel.smallU.IdBase : NaturalModelBase.NaturalModelIdBase GroupoidMo
     refine ?_ ⋙ Id
     sorry -- I think some how the functor itself is in the wrong universe
   Refl := sorry
+  Id_comm := sorry
