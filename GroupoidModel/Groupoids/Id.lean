@@ -444,17 +444,48 @@ def Diag' : GroupoidModel.E.{v,u} ⟶ GroupoidModel.U.ext (GroupoidModel.π.{v,u
 
 
 set_option pp.universes true
+#check Quiver.comp
+
 
 -- #check GroupoidModel.smallU.Tm
 -- #check Core.functorToCore
 -- #check BPGrpd.FirstPointed
 -- #check GroupoidModel.smallU.ext
 
-def GroupoidModel.smallU.IdBase : NaturalModelBase.NaturalModelIdBase GroupoidModel.smallU.{u,u} where
-  Tmm := by
+def Tmm : Psh.{u + 2, u + 2} GroupoidModel.Ctx.{u + 1} := by
     refine yoneda.obj ?_
     apply GroupoidModel.smallU.ext.{u,u}
     apply (GroupoidModel.smallU.tp.{u,u})
+
+#check GroupoidModel.yonedaCategoryEquiv
+#check Functor.FullyFaithful.preimage
+
+
+def Tmm_is_BPGrpd : Tmm.{u} ⟶ yoneda.obj (GroupoidModel.Ctx.ofGrpd.obj (Grpd.of (BPGrpd.{u}))) := by
+    dsimp [Tmm]
+    refine yoneda.map (AsSmall.up.map ?_)
+    dsimp [BPGrpd]
+    refine Grpd.homOf ?_
+    dsimp [GroupoidModel.π,GroupoidModel.yonedaCategoryEquiv,GroupoidModel.Ctx.homOfFunctor]
+    rw [Yoneda.fullyFaithful.preimage_map]
+    let F : (GroupoidModel.Ctx.toGrpd.obj GroupoidModel.E.{u, u+1}) ⥤ PGrpd.{u,u} := by
+      dsimp[GroupoidModel.E,GroupoidModel.Ctx.ofCategory]
+      refine ?_ ⋙ Core.inclusion PGrpd
+      refine Core.map' ?_
+      exact AsSmall.down
+    let h : (GroupoidModel.toCoreAsSmallEquiv (AsSmall.up.map (Grpd.homOf (Core.map' (AsSmall.down.{u, u+1, u+1} ⋙ PGrpd.forgetToGrpd ⋙ AsSmall.up.{u, u+1, u+1}))))) = F ⋙ PGrpd.forgetToGrpd.{u,u} := by
+       exact rfl
+    rw! [h]
+    refine ?_ ⋙ Grothendieck.Groupoidal.pre PGrpd.forgetToGrpd.{u,u} F ⋙ ?_
+    . exact
+      Functor.id.{u + 1, u + 1}
+        (Grothendieck.Groupoidal.{u + 1, u + 1, u, u}
+          (Functor.comp.{u + 1, u, u, u + 1, u + 1, u + 1} F PGrpd.forgetToGrpd.{u, u}))
+    . sorry -- Even with universes I can not see how this is not ID
+
+
+def GroupoidModel.smallU.IdBase : NaturalModelBase.NaturalModelIdBase GroupoidModel.smallU.{u,u} where
+  Tmm := Tmm
   p1 := by
     apply GroupoidModel.smallU.var.{u,u}
   p2 := by
@@ -462,6 +493,13 @@ def GroupoidModel.smallU.IdBase : NaturalModelBase.NaturalModelIdBase GroupoidMo
     apply GroupoidModel.smallU.disp.{u,u} (GroupoidModel.smallU.tp.{u,u})
   Tm_Pullback := by
     apply GroupoidModel.smallU.disp_pullback.{u,u}
-  Id := sorry
+  Id := by
+    refine Tmm_is_BPGrpd.{u} ≫ ?_
+    refine yoneda.map ?_
+    fconstructor
+    dsimp[GroupoidModel.U.ext,GroupoidModel.U,GroupoidModel.Ctx.ofCategory,Quiver.Hom]
+    refine Core.functorToCore ?_
+    refine ?_ ⋙ AsSmall.up
+    refine ?_ ⋙ Id
+    sorry -- I think some how the functor itself is in the wrong universe
   Refl := sorry
-  Id_comm := sorry
