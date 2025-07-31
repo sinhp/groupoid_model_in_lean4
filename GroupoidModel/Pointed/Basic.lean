@@ -61,7 +61,6 @@ theorem comp_map {C D E : PCat} (F : C ⟶ D) (G : D ⟶ E) {X Y : C.base}
 @[simp] lemma comp_fiber {C D E : PCat} (F : C ⟶ D) (G : D ⟶ E) :
     (F ≫ G).fiber = G⟱.map F.fiber ≫ G.fiber := by
   simp
-  rfl
 
 -- formerly `map_id_point`
 @[simp] theorem map_id_fiber {C : Type u} [Category.{v} C] {F : C ⥤ PCat}
@@ -76,7 +75,6 @@ theorem comp_map {C D E : PCat} (F : C ⟶ D) (G : D ⟶ E) {X Y : C.base}
     eqToHom (by simp) ≫ (F.map g)⟱.map (F.map f).fiber ≫ (F.map g).fiber := by
   rw! [Functor.map_comp]
   simp
-  rfl
 
 /-- This is the proof of equality used in the eqToHom in `PCat.eqToHom_point` -/
 theorem eqToHom_point_aux {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
@@ -193,7 +191,6 @@ theorem comp_map {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) {X Y : C.base}
 @[simp] lemma comp_fiber {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) :
     (F ≫ G).fiber = G⟱.map F.fiber ≫ G.fiber := by
   simp [forgetToCat]
-  rfl
 
 -- formerly `map_id_point`
 @[simp] theorem map_id_fiber {C : Type u} [Category.{v} C] {F : C ⥤ PGrpd}
@@ -351,7 +348,6 @@ theorem mapFiber'_comp {x y z} (f : x ⟶ y)
     (eqToHom (mapFiber'_comp_aux0 h)).map ((α.map g).base.map (α.map f).fiber)
     ≫ (eqToHom (mapFiber'_comp_aux0 h)).map (α.map g).fiber := by
   simp [mapFiber', eqToHom_map, mapFiber'EqToHom]
-  rfl
 
 theorem mapFiber'_naturality {Δ : Type*} [Category Δ] (σ : Δ ⥤ Γ) {x y} (f : x ⟶ y) :
     @mapFiber' _ _ (σ ⋙ A) (σ ⋙ α) (by rw [Functor.assoc, h]) _ _ f

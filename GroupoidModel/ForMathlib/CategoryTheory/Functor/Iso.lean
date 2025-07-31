@@ -1,5 +1,6 @@
-import GroupoidModel.ForMathlib
-
+import Mathlib.CategoryTheory.Functor.Category
+import SEq.Tactic.DepRewrite
+import Mathlib.CategoryTheory.Category.ULift
 
 namespace CategoryTheory.Functor
 
@@ -245,7 +246,6 @@ theorem cancel_iso_hom_left (f : X ≅≅ Y) (g g' : Y ⥤ Z) :
   . intro h
     rw[h]
 
-
 @[simp]
 theorem cancel_iso_inv_left (f : Y ≅≅ X) (g g' : Y ⥤ Z) :
     f.inv ⋙ g = f.inv ⋙ g' ↔ g = g' := by
@@ -314,6 +314,13 @@ theorem cancel_iso_inv_right_assoc (f : W ⥤ X) (g : X ⥤ Y) (f' : W ⥤ X')
   . intro hy
     simp only [← Functor.assoc, cancel_iso_inv_right]
     exact hy
+
+def toEquivalence (h : X ≅≅ Y) : X ≌ Y where
+  functor := h.hom
+  inverse := h.inv
+  unitIso := eqToIso h.hom_inv_id.symm
+  counitIso := eqToIso h.inv_hom_id
+  functor_unitIso_comp x := by simp [eqToHom_map]
 
 end Iso
 
