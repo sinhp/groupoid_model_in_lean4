@@ -63,9 +63,6 @@ def withHave {α : Type} {P : Q(Prop)} (pf : Q($P)) (k : Q($P) → Lean.MetaM α
 def mkHaves {P : Q(Prop)} (xs : Array Lean.Expr) (e : Q($P)) : Lean.MetaM Q($P) :=
   mkLetFVarsQ xs e (generalizeNondepLet := false)
 
-/-- An expression that must compute under WHNF. -/
-abbrev Computable {u : Lean.Level} (α : Q(Sort u)) : Type := Q($α)
-
 -- /-- Hacks to use during development:
 -- `as_aux_lemma` blocks are not elaborated and kernel typechecking is off,
 -- speeding up interactive feedback. -/
