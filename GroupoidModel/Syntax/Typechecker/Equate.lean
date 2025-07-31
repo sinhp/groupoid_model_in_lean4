@@ -35,50 +35,6 @@ theorem NeutEqNeutTm.tm_uniq {Γ l nt nu t u T U} : NeutEqNeutTm Γ l nt nu →
   fun ⟨_, _, nt, nu⟩ nt' nu' => nt'.tm_uniq nt |>.trans_tm <|
     nu.tm_uniq nu' |>.conv_eq <| nt.tp_uniq nt'
 
-/-- Evaluate a type closure on a fresh variable. -/
-def evalClosTp (Γ : Q(Ctx)) (l l' : Q(Nat)) (vA : Q(Val)) (vB : Q(Clos)) (A B : Q(Expr))
-    (ΓA : Q(ValEqTp $Γ $l $vA $A))
-    (ΓB : Q(ClosEqTp $Γ $l $l' $A $vB $B)) :
-    Lean.MetaM ((v : Q(Val)) × Q(ValEqTp (($A, $l) :: $Γ) $l' $v $B)) := do
-  let ~q(.mk_tp $Δ $C $env $B') := vB | throwError "invalid type closure: {vB}"
-  let x : Q(Val) := q(.neut (.bvar ($Γ).length) $vA)
-  let ex_ : Q(∃ σ, EnvEqSb $Γ $env σ $Δ) :=
-    q(by as_aux_lemma =>
-      dsimp +zetaDelta only at ($ΓB)
-      have ⟨env, _, _⟩ := $ΓB
-      exact ⟨_, env⟩
-    )
-  withHave ex_ fun ex => do
-  let ⟨v, veq_⟩ ← evalTp
-    q(($A, $l) :: $Γ) q($x :: $env) q(Expr.up ($ex).choose) q(($C, $l) :: $Δ)
-    l' B'
-    q(by as_aux_lemma =>
-      sorry
-      -- simp +zetaDelta only [Expr.up_eq_snoc] at ($ΓB) ⊢
-      -- have ⟨env, Ceq, B'⟩ := $ΓB
-      -- have sbeq := env.sb_uniq ($ex).choose_spec
-      -- apply EnvEqSb.snoc (($ex).choose_spec.wk Ceq.wf_right) B'.wf_binder
-      -- apply ValEqTm.neut_tm
-      -- have := NeutEqTm.bvar (Ceq.wf_ctx.snoc Ceq.wf_right) (Lookup.zero ..)
-      -- apply this.conv_tp
-      -- have := Ceq.symm_tp.trans_tp <| B'.wf_binder.subst_eq sbeq
-      -- convert this.subst (WfSb.wk Ceq.wf_right) using 1
-      -- autosubst
-    )
-    q(by as_aux_lemma =>
-      simp +zetaDelta only at ($ΓB)
-      have ⟨_, _, B'⟩ := $ΓB
-      exact B'
-    )
-  withHave veq_ fun veq => do
-  return ⟨v, ← mkHaves #[ex, veq] q(by as_aux_lemma =>
-    simp +zetaDelta only at ($ΓB)
-    have ⟨env, Ceq, B'⟩ := $ΓB
-    have sbeq := env.sb_uniq ($ex).choose_spec
-    have := (B'.subst_eq <| sbeq.up B'.wf_binder).conv_binder Ceq
-    apply ($veq).conv_tp this.symm_tp
-  )⟩
-
 mutual
 partial def equateTp (Γ : Q(Ctx)) (l : Q(Nat)) (vT vU : Q(Val))
     (ΓT : Q(∃ T, ValEqTp $Γ $l $vT T))
@@ -426,10 +382,26 @@ partial def equateNeut (Γ : Q(Ctx)) (l : Q(Nat)) (nt nu : Q(Neut))
       q(sorry)
     withHave aeq_ fun aeq => do
     mkHaves #[km, km', Aeq, feq, aeq] q(sorry)
-  | ~q(.fst ..), ~q(.fst ..) =>
-    throwError "TODO neutral fst eq"
-  | ~q(.snd ..), ~q(.snd ..) =>
-    throwError "TODO neutral snd eq"
+  | ~q(.fst $k $k' $p), ~q(.fst $m $m' $p') => do
+    let km_ ← equateNat k m
+    withHave km_ fun km => do
+    let km'_ ← equateNat k' m'
+    withHave km'_ fun km' => do
+    let peq_ ← equateNeut Γ l p p'
+      q(sorry)
+      q(sorry)
+    withHave peq_ fun peq => do
+    return q(sorry)
+  | ~q(.snd $k $k' $p), ~q(.snd $m $m' $p') => do
+    let km_ ← equateNat k m
+    withHave km_ fun km => do
+    let km'_ ← equateNat k' m'
+    withHave km'_ fun km' => do
+    let peq_ ← equateNeut Γ l p p'
+      q(sorry)
+      q(sorry)
+    withHave peq_ fun peq => do
+    return q(sorry)
   | _, _ =>
     throwError "neutral forms are not equal{Lean.indentD ""}{Γ} ⊢[{l}] {nu} ≢ {nt}"
 end

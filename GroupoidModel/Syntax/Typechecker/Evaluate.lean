@@ -386,3 +386,70 @@ partial def evalSnd (Δ : Q(Ctx)) (l l' : Q(Nat)) (A B : Q(Expr))
   | _ => throwError "unexpected normal form {vp} at type Σ"
 
 end
+
+/-- Evaluate a type closure on a fresh variable. -/
+def evalClosTp (Γ : Q(Ctx)) (l l' : Q(Nat)) (vA : Q(Val)) (vB : Q(Clos)) (A B : Q(Expr))
+    (ΓA : Q(ValEqTp $Γ $l $vA $A))
+    (ΓB : Q(ClosEqTp $Γ $l $l' $A $vB $B)) :
+    Lean.MetaM ((v : Q(Val)) × Q(ValEqTp (($A, $l) :: $Γ) $l' $v $B)) := do
+  let ~q(.mk_tp $Δ _ $env $B') := vB | throwError "invalid type closure: {vB}"
+  let x : Q(Val) := q(.neut (.bvar ($Γ).length) $vA)
+  let ex_ : Q(∃ σ, EnvEqSb $Γ $env σ $Δ) :=
+    q(by as_aux_lemma =>
+      dsimp +zetaDelta only at ($ΓB)
+      have ⟨env, _, _⟩ := $ΓB
+      exact ⟨_, env⟩
+    )
+  withHave ex_ fun ex => do
+  let ⟨v, veq_⟩ ← evalTp
+    -- 2027-07-30: Noncomputational use of `C`, can remove using inversion :)
+    q(($A, $l) :: $Γ) q($x :: $env) q(Expr.up ($ex).choose) q((sorry, $l) :: $Δ)
+    l' B'
+    q(by as_aux_lemma =>
+      sorry
+      -- simp +zetaDelta only [Expr.up_eq_snoc] at ($ΓB) ⊢
+      -- have ⟨env, Ceq, B'⟩ := $ΓB
+      -- have sbeq := env.sb_uniq ($ex).choose_spec
+      -- apply EnvEqSb.snoc (($ex).choose_spec.wk Ceq.wf_right) B'.wf_binder
+      -- apply ValEqTm.neut_tm
+      -- have := NeutEqTm.bvar (Ceq.wf_ctx.snoc Ceq.wf_right) (Lookup.zero ..)
+      -- apply this.conv_tp
+      -- have := Ceq.symm_tp.trans_tp <| B'.wf_binder.subst_eq sbeq
+      -- convert this.subst (WfSb.wk Ceq.wf_right) using 1
+      -- autosubst
+    )
+    q(by as_aux_lemma =>
+      simp +zetaDelta only at ($ΓB)
+      have ⟨_, _, B'⟩ := $ΓB
+      sorry
+      --exact B'
+    )
+  withHave veq_ fun veq => do
+  return ⟨v, ← mkHaves #[ex, veq] q(by as_aux_lemma =>
+    simp +zetaDelta only at ($ΓB)
+    have ⟨env, Ceq, B'⟩ := $ΓB
+    have sbeq := env.sb_uniq ($ex).choose_spec
+    have := (B'.subst_eq <| sbeq.up B'.wf_binder).conv_binder Ceq
+    apply ($veq).conv_tp this.symm_tp
+  )⟩
+
+def evalTp' (vΓ : Q(TpEnv)) (Γ : Q(Ctx)) (l : Q(Nat)) (T : Q(Expr))
+    (vΓwf : Q(TpEnvEqCtx $vΓ $Γ)) (ΓT : Q($Γ ⊢[$l] ($T))) :
+    Lean.MetaM ((v : Q(Val)) × Q(ValEqTp $Γ $l $v $T)) := do
+  -- TODO: WHNF `envOfTpEnv`? I think not; it will need WHNFing later anyway
+  -- (WHNF doesn't eval the args). Lean essentially forces us to lazily WHNF.
+  let ⟨vT, vTeq_⟩ ← evalTp Γ q(envOfTpEnv $vΓ) q(Expr.bvar) Γ l T q(envOfTpEnv_wf $vΓwf) q($ΓT)
+  withHave vTeq_ fun vTeq => do
+  return ⟨vT, ← mkHaves #[vTeq] q(by as_aux_lemma =>
+    convert ($vTeq) using 1; autosubst
+  )⟩
+
+def evalTm' (vΓ : Q(TpEnv)) (Γ : Q(Ctx)) (l : Q(Nat)) (t : Q(Expr))
+    (vΓwf : Q(TpEnvEqCtx $vΓ $Γ)) (Γt : Q($Γ ⊢[$l] ($t) : synthTp $Γ $t)) :
+    Lean.MetaM ((v : Q(Val)) × Q(ValEqTm $Γ $l $v $t (synthTp $Γ $t))) := do
+  -- TODO: WHNF `envOfTpEnv`?
+  let ⟨vt, vteq_⟩ ← evalTm Γ q(envOfTpEnv $vΓ) q(Expr.bvar) Γ l t q(envOfTpEnv_wf $vΓwf) q($Γt)
+  withHave vteq_ fun vteq => do
+  return ⟨vt, ← mkHaves #[vteq] q(by as_aux_lemma =>
+    convert ($vteq) using 1 <;> autosubst
+  )⟩

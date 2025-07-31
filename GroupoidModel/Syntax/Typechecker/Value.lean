@@ -459,12 +459,15 @@ theorem EnvEqSb.wk {Δ E σ Γ} (h : EnvEqSb Δ E σ Γ) {C k} (hC : Δ ⊢[k] C
 
 /-! ## Type environments -/
 
-inductive TpEnvEqCtx : List Val → Ctx → Prop
+/-- A type environment is a context where all types are in NF. -/
+abbrev TpEnv := List (Val × Nat)
+
+inductive TpEnvEqCtx : TpEnv → Ctx → Prop
   | nil : TpEnvEqCtx [] []
   | snoc {vΓ Γ l vA A} :
     TpEnvEqCtx vΓ Γ →
     ValEqTp Γ l vA A →
-    TpEnvEqCtx (vA :: vΓ) ((A, l) :: Γ)
+    TpEnvEqCtx ((vA, l) :: vΓ) ((A, l) :: Γ)
 
 theorem TpEnvEqCtx.wf_ctx {vΓ Γ} : TpEnvEqCtx vΓ Γ → WfCtx Γ := by
   intro vΓ; induction vΓ <;> grind [WfCtx.nil, WfCtx.snoc, ValEqTp.wf_tp]
@@ -475,8 +478,13 @@ theorem TpEnvEqCtx.length_eq {vΓ Γ} : TpEnvEqCtx vΓ Γ → vΓ.length = Γ.le
 theorem TpEnvEqCtx.lt_length {vΓ Γ i A l} : TpEnvEqCtx vΓ Γ → Lookup Γ i A l → i < vΓ.length :=
   fun vΓ lk => vΓ.length_eq ▸ lk.lt_length
 
+theorem TpEnvEqCtx.lvl_eq {vΓ Γ i A l} : (h : TpEnvEqCtx vΓ Γ) → (lk : Lookup Γ i A l) →
+    (vΓ[i]'(h.lt_length lk)).2 = l := by
+  intro h lk
+  induction h generalizing i A <;> cases lk <;> grind
+
 theorem TpEnvEqCtx.lookup_wf {vΓ Γ i A l} : (h : TpEnvEqCtx vΓ Γ) → (lk : Lookup Γ i A l) →
-    ValEqTp Γ l (vΓ[i]'(h.lt_length lk)) A := by
+    ValEqTp Γ l (vΓ[i]'(h.lt_length lk)).1 A := by
   intro h lk
   induction h generalizing i A <;> cases lk
   case zero vA => exact vA.wk vA.wf_tp
@@ -486,16 +494,16 @@ theorem TpEnvEqCtx.lookup_wf {vΓ Γ i A l} : (h : TpEnvEqCtx vΓ Γ) → (lk : 
 
 /-- An identity evaluation environment (i.e., bvars remain themselves)
 for the given type environment. -/
-def envOfTpEnv (vΓ : List Val) : List Val :=
-  vΓ.mapIdx fun i vA => .neut (.bvar <| vΓ.length - i - 1) vA
+def envOfTpEnv (vΓ : TpEnv) : List Val :=
+  vΓ.mapIdx fun i (vA, _) => .neut (.bvar <| vΓ.length - i - 1) vA
 
 @[simp]
-theorem length_envOfTpEnv (vΓ : List Val) : (envOfTpEnv vΓ).length = vΓ.length := by
+theorem length_envOfTpEnv (vΓ : TpEnv) : (envOfTpEnv vΓ).length = vΓ.length := by
   simp [envOfTpEnv]
 
 @[simp]
-theorem envOfTpEnv_cons (vA : Val) (vΓ : List Val) :
-  envOfTpEnv (vA :: vΓ) = .neut (.bvar vΓ.length) vA :: envOfTpEnv vΓ := by
+theorem envOfTpEnv_cons (vA : Val) (l : Nat) (vΓ : TpEnv) :
+  envOfTpEnv ((vA, l) :: vΓ) = .neut (.bvar vΓ.length) vA :: envOfTpEnv vΓ := by
   simp [envOfTpEnv, List.mapIdx_cons]
 
 theorem envOfTpEnv_wf {vΓ Γ} : TpEnvEqCtx vΓ Γ → EnvEqSb Γ (envOfTpEnv vΓ) Expr.bvar Γ := by
