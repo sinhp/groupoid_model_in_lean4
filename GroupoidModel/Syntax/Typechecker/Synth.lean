@@ -185,8 +185,62 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
       simp +zetaDelta only [autosubst]
       apply WfTm.pair B f s
     )⟩
-  | ~q(.fst ..) | ~q(.snd ..) =>
-    throwError "TODO: fst and snd"
+  | ~q(.fst $k $k' $A $B $p) => do
+    let leq_ ← equateNat q($l) q($k)
+    withHave leq_ fun leq => do
+    let Awf_ ← checkTp q($vΓ) q($k) q($A)
+    withHave Awf_ fun Awf => do
+    let ⟨vA, vApost_⟩ ← evalTpId q($vΓ) q($A)
+    withHave vApost_ fun vApost => do
+    let Bwf_ ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
+    withHave Bwf_ fun Bwf => do
+    let pwf_ ← checkTm q($vΓ) q(max $k $k') q(.sigma $k $k' $vA (.mk_tp (envOfTpEnv $vΓ) $B)) q($p)
+    withHave pwf_ fun pwf => do
+    return ⟨vA, ← mkHaves #[leq, Awf, vApost, Bwf, pwf] q(by as_aux_lemma =>
+      introv vΓ
+      subst_vars
+      have A := $Awf vΓ
+      have vA := $vApost vΓ A
+      have B := $Bwf <| vΓ.snoc vA
+      have p := $pwf vΓ <| ValEqTp.sigma vA <|
+        ClosEqTp.clos_tp (envOfTpEnv_wf vΓ) (by convert EqTp.refl_tp vA.wf_tp using 1; autosubst) B
+      refine ⟨_, vA, ?_⟩
+      simp +zetaDelta only [autosubst] at p ⊢
+      apply WfTm.fst p
+    )⟩
+  | ~q(.snd $k $k' $A $B $p) => do
+    let leq_ ← equateNat q($l) q($k')
+    withHave leq_ fun leq => do
+    let Awf_ ← checkTp q($vΓ) q($k) q($A)
+    withHave Awf_ fun Awf => do
+    let ⟨vA, vApost_⟩ ← evalTpId q($vΓ) q($A)
+    withHave vApost_ fun vApost => do
+    let Bwf_ ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
+    withHave Bwf_ fun Bwf => do
+    let pwf_ ← checkTm q($vΓ) q(max $k $k') q(.sigma $k $k' $vA (.mk_tp (envOfTpEnv $vΓ) $B)) q($p)
+    withHave pwf_ fun pwf => do
+    let ⟨vp, vppost_⟩ ← evalTmId q($vΓ) q($p)
+    withHave vppost_ fun vppost => do
+    let ⟨vf, vfpost_⟩ ← evalFst q($vp)
+    withHave vfpost_ fun vfpost => do
+    let ⟨vBf, vBfpost_⟩ ← evalTp q($vf :: envOfTpEnv $vΓ) q($B)
+    withHave vBfpost_ fun vBfpost => do
+    return ⟨vBf, ← mkHaves #[leq, Awf, vApost, Bwf, pwf] q(by as_aux_lemma =>
+      introv vΓ
+      subst_vars
+      have A := $Awf vΓ
+      have vA := $vApost vΓ A
+      have B := $Bwf <| vΓ.snoc vA
+      have p := $pwf vΓ <| ValEqTp.sigma vA <|
+        ClosEqTp.clos_tp (envOfTpEnv_wf vΓ) (by convert EqTp.refl_tp vA.wf_tp using 1; autosubst) B
+      have vp := $vppost vΓ p
+      have vf := $vfpost vp
+      have vBf :=
+        $vBfpost ((envOfTpEnv_wf vΓ).snoc vf.wf_tm.wf_tp (by convert vf using 1; autosubst)) B
+      refine ⟨_, vBf, ?_⟩
+      simp +zetaDelta only [autosubst] at p ⊢
+      apply WfTm.snd p
+    )⟩
   | ~q(.code $A) => do
     -- TODO: WHNF `l`? See comment at `evalTp`.
     let ~q(.succ $k) := l | throwError "expected _+1, got{Lean.indentExpr l}"
