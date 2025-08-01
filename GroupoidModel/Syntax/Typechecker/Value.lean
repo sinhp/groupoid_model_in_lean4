@@ -25,7 +25,8 @@ The value type is obtained by:
 ## Type annotations
 
 Unlike expressions, values contain no type annotations
-except when necessary to implement η laws (`Val.neut` and `Neut.app`).
+except when necessary to implement η laws (`Val.neut` and `Neut.app`)
+and to implement `evalValTm` (`Val.lam`).
 This is essential for performance:
 - if we were to store type annotations as unevaluated `Expr`s,
   weakening would not be free for values; and
@@ -43,7 +44,7 @@ and hence it suffices to compare the value parts (in this case `p`). -/
 inductive Val where
   | pi (l l' : Nat) (A : Val) (B : Clos)
   | sigma (l l' : Nat) (A : Val) (B : Clos)
-  | lam (l l' : Nat) (b : Clos)
+  | lam (l l' : Nat) (vA : Val) (b : Clos)
   | pair (l l' : Nat) (t u : Val)
   | univ (l : Nat)
   /- TODO: to make the theory usable,
@@ -69,18 +70,18 @@ inductive Neut where
 
 /-- Recall that given `Γ.A ⊢ b : B` and a substitution `Δ ⊢ env : Γ`,
 we get `Δ.A[env] ⊢ b[(env∘↑).v₀] : B[(env∘↑).v₀]`.
-A term closure stores the term `b` together with the substitution `env`.
-We may view it as a term which is *almost* well-typed in `Δ`,
+A closure stores the term `b` or type `B` together with the substitution `env`.
+We may view it as *almost* well-typed in `Δ`,
 except that we are missing one more argument `Δ ⊢ a : A`
-to fill in for `v₀` in `b`.
+to fill in for `v₀` in `b`/`B`.
 
 In NbE, closures are the runtime values of binder bodies.
 
 In some NbE implementations, this would be a meta-level closure `Expr → Expr`;
 the present variant is a defunctionalization due to Abel. -/
 inductive Clos where
-  | mk_tp (env : List Val) (B : Expr)
-  | mk_tm (env : List Val) (b : Expr)
+  | of_val (env : List Val) (v : Val)
+  | of_expr (env : List Val) (t : Expr)
   deriving Inhabited
 end
 
@@ -111,9 +112,10 @@ inductive ValEqTp : Ctx → Nat → Val → Expr → Prop
 -- Note: no neutral types atm.
 
 inductive ValEqTm : Ctx → Nat → Val → Expr → Expr → Prop
-  | lam {Γ A B vb b l l'} :
+  | lam {Γ A B vA vb b l l'} :
+    ValEqTp Γ l vA A →
     ClosEqTm Γ l l' A B vb b →
-    ValEqTm Γ (max l l') (.lam l l' vb) (.lam l l' A b) (.pi l l' A B)
+    ValEqTm Γ (max l l') (.lam l l' vA vb) (.lam l l' A b) (.pi l l' A B)
   | pair {Γ A B vt t vu u l l'} :
     (A, l) :: Γ ⊢[l'] B →
     ValEqTm Γ l vt t A →
@@ -162,7 +164,12 @@ inductive ClosEqTp : Ctx → Nat → Nat → Expr → Clos → Expr → Prop
     -- The equality argument builds in conversion.
     Δ ⊢[l] A.subst σ ≡ Aenv →
     (A, l) :: Γ ⊢[l'] B →
-    ClosEqTp Δ l l' Aenv (.mk_tp env B) (B.subst <| Expr.up σ)
+    ClosEqTp Δ l l' Aenv (.of_expr env B) (B.subst <| Expr.up σ)
+  | clos_val_tp {Δ Γ A B Aenv vB env σ l l'} :
+    EnvEqSb Δ env σ Γ →
+    Δ ⊢[l] A.subst σ ≡ Aenv →
+    ValEqTp ((A, l) :: Γ) l' vB B →
+    ClosEqTp Δ l l' Aenv (.of_val env vB) (B.subst <| Expr.up σ)
 
 /-- `ClosEqTm Δ l l' A B vb b` -/
 inductive ClosEqTm : Ctx → Nat → Nat → Expr → Expr → Clos → Expr → Prop
@@ -171,7 +178,13 @@ inductive ClosEqTm : Ctx → Nat → Nat → Expr → Expr → Clos → Expr →
     Δ ⊢[l] A.subst σ ≡ Aenv →
     (Aenv, l) :: Δ ⊢[l'] (B.subst <| Expr.up σ) ≡ Benv →
     (A, l) :: Γ ⊢[l'] b : B →
-    ClosEqTm Δ l l' Aenv Benv (.mk_tm env b) (b.subst <| Expr.up σ)
+    ClosEqTm Δ l l' Aenv Benv (.of_expr env b) (b.subst <| Expr.up σ)
+  | clos_val_tm {Δ Γ A B Aenv Benv b vb env σ l l'} :
+    EnvEqSb Δ env σ Γ →
+    Δ ⊢[l] A.subst σ ≡ Aenv →
+    (Aenv, l) :: Δ ⊢[l'] (B.subst <| Expr.up σ) ≡ Benv →
+    ValEqTm ((A, l) :: Γ) l' vb b B →
+    ClosEqTm Δ l l' Aenv Benv (.of_val env vb) (b.subst <| Expr.up σ)
 
 inductive EnvEqSb : Ctx → List Val → (Nat → Expr) → Ctx → Prop
   /- Possible optimization: allow `EnvEqSb Γ [] Expr.bvar Γ`
@@ -188,15 +201,15 @@ end
 
 namespace EnvEqSb
 
-theorem wf_dom {Δ} : ∀ {E σ Γ}, EnvEqSb Δ E σ Γ → WfCtx Δ := by
+theorem wf_dom : ∀ {Δ E σ Γ}, EnvEqSb Δ E σ Γ → WfCtx Δ := by
   mutual_induction EnvEqSb
   all_goals grind
 
-theorem wf_cod {Δ} : ∀ {E σ Γ}, EnvEqSb Δ E σ Γ → WfCtx Γ := by
+theorem wf_cod : ∀ {Δ E σ Γ}, EnvEqSb Δ E σ Γ → WfCtx Γ := by
   mutual_induction EnvEqSb
   all_goals grind [WfCtx.nil, WfCtx.snoc]
 
-theorem eq_length {Δ} : ∀ {E σ Γ}, EnvEqSb Δ E σ Γ → E.length = Γ.length := by
+theorem eq_length : ∀ {Δ E σ Γ}, EnvEqSb Δ E σ Γ → E.length = Γ.length := by
   mutual_induction EnvEqSb
   all_goals intros; try exact True.intro
   all_goals simp; try grind
@@ -204,7 +217,7 @@ theorem eq_length {Δ} : ∀ {E σ Γ}, EnvEqSb Δ E σ Γ → E.length = Γ.len
 theorem lookup_lt {Δ Γ E σ i A l} : EnvEqSb Δ E σ Γ → Lookup Γ i A l → i < E.length :=
   fun env lk => env.eq_length ▸ lk.lt_length
 
-theorem lookup_eq {Δ} : ∀ {E σ Γ}, (env : EnvEqSb Δ E σ Γ) →
+theorem lookup_eq : ∀ {Δ E σ Γ}, (env : EnvEqSb Δ E σ Γ) →
     ∀ {A i l}, (lk : Lookup Γ i A l) →
     ValEqTm Δ l (E[i]'(env.lookup_lt lk)) (σ i) (A.subst σ) := by
   mutual_induction EnvEqSb
@@ -242,13 +255,13 @@ end EnvEqSb
 
 /-! ## Values are well-typed as expressions -/
 
-theorem wf_expr {Γ} :
-    (∀ {l vA A}, ValEqTp Γ l vA A → Γ ⊢[l] A) ∧
-    (∀ {l vt t A}, ValEqTm Γ l vt t A → Γ ⊢[l] t : A) ∧
-    (∀ {l vt t A}, NeutEqTm Γ l vt t A → Γ ⊢[l] t : A) ∧
-    (∀ {l l' A vB B}, ClosEqTp Γ l l' A vB B → (A, l) :: Γ ⊢[l'] B) ∧
-    (∀ {l l' A B vb b}, ClosEqTm Γ l l' A B vb b → (A, l) :: Γ ⊢[l'] b : B) ∧
-    (∀ {E σ Γ'}, EnvEqSb Γ E σ Γ' → WfSb Γ σ Γ') := by
+theorem wf_expr :
+    (∀ {Γ l vA A}, ValEqTp Γ l vA A → Γ ⊢[l] A) ∧
+    (∀ {Γ l vt t A}, ValEqTm Γ l vt t A → Γ ⊢[l] t : A) ∧
+    (∀ {Γ l vt t A}, NeutEqTm Γ l vt t A → Γ ⊢[l] t : A) ∧
+    (∀ {Γ l l' A vB B}, ClosEqTp Γ l l' A vB B → (A, l) :: Γ ⊢[l'] B) ∧
+    (∀ {Γ l l' A B vb b}, ClosEqTm Γ l l' A B vb b → (A, l) :: Γ ⊢[l'] b : B) ∧
+    (∀ {Γ E σ Γ'}, EnvEqSb Γ E σ Γ' → WfSb Γ σ Γ') := by
   mutual_induction ValEqTp
   all_goals dsimp; intros
   case pi => grind [WfTp.pi]
@@ -269,7 +282,14 @@ theorem wf_expr {Γ} :
   case clos_tp Aenv B σ =>
     have := B.subst (σ.up B.wf_binder)
     exact this.conv_binder Aenv
+  case clos_val_tp Aenv _ σ B =>
+    have := B.subst (σ.up B.wf_binder)
+    exact this.conv_binder Aenv
   case clos_tm Aenv Benv b σ =>
+    have := b.subst (σ.up b.wf_binder)
+    have := this.conv_ctx (EqCtx.refl Aenv.wf_ctx |>.snoc Aenv)
+    exact this.conv Benv
+  case clos_val_tm Aenv Benv _ σ b =>
     have := b.subst (σ.up b.wf_binder)
     have := this.conv_ctx (EqCtx.refl Aenv.wf_ctx |>.snoc Aenv)
     exact this.conv Benv
@@ -315,14 +335,14 @@ theorem NeutEqTm.conv_tp {Γ A A' vt t l} :
 /-! ## Values are closed under context conversion -/
 
 attribute [local grind] EqCtx.length_eq in
-theorem conv_ctx {Γ} :
-    (∀ {l vA A}, ValEqTp Γ l vA A → ∀ {Γ'}, EqCtx Γ Γ' → ValEqTp Γ' l vA A) ∧
-    (∀ {l vt t A}, ValEqTm Γ l vt t A → ∀ {Γ'}, EqCtx Γ Γ' → ValEqTm Γ' l vt t A) ∧
-    (∀ {l vt t A}, NeutEqTm Γ l vt t A → ∀ {Γ'}, EqCtx Γ Γ' → NeutEqTm Γ' l vt t A) ∧
-    (∀ {l l' A vB B}, ClosEqTp Γ l l' A vB B → ∀ {Γ'}, EqCtx Γ Γ' → ClosEqTp Γ' l l' A vB B) ∧
-    (∀ {l l' A B vb b}, ClosEqTm Γ l l' A B vb b → ∀ {Γ'}, EqCtx Γ Γ' →
+theorem conv_ctx :
+    (∀ {Γ l vA A}, ValEqTp Γ l vA A → ∀ {Γ'}, EqCtx Γ Γ' → ValEqTp Γ' l vA A) ∧
+    (∀ {Γ l vt t A}, ValEqTm Γ l vt t A → ∀ {Γ'}, EqCtx Γ Γ' → ValEqTm Γ' l vt t A) ∧
+    (∀ {Γ l vt t A}, NeutEqTm Γ l vt t A → ∀ {Γ'}, EqCtx Γ Γ' → NeutEqTm Γ' l vt t A) ∧
+    (∀ {Γ l l' A vB B}, ClosEqTp Γ l l' A vB B → ∀ {Γ'}, EqCtx Γ Γ' → ClosEqTp Γ' l l' A vB B) ∧
+    (∀ {Γ l l' A B vb b}, ClosEqTm Γ l l' A B vb b → ∀ {Γ'}, EqCtx Γ Γ' →
       ClosEqTm Γ' l l' A B vb b) ∧
-    (∀ {E σ Δ}, EnvEqSb Γ E σ Δ → ∀ {Γ'}, EqCtx Γ Γ' → EnvEqSb Γ' E σ Δ) := by
+    (∀ {Γ E σ Δ}, EnvEqSb Γ E σ Δ → ∀ {Γ'}, EqCtx Γ Γ' → EnvEqSb Γ' E σ Δ) := by
   mutual_induction ValEqTp
   all_goals intros
   case pi => grind [ValEqTp.pi]
@@ -348,10 +368,14 @@ theorem conv_ctx {Γ} :
   case snd => grind [NeutEqTm.snd]
   case conv_neut => grind [EqTm.conv_ctx, EqTp.conv_ctx, NeutEqTm.conv_neut]
   case clos_tp => grind [ClosEqTp.clos_tp, EqTp.conv_ctx]
+  case clos_val_tp => grind [ClosEqTp.clos_val_tp, EqTp.conv_ctx]
   case clos_tm Aeq Beq b env _ eq =>
     exact ClosEqTm.clos_tm (env eq) (Aeq.conv_ctx eq)
       (Beq.conv_ctx <| eq.snoc <| EqTp.refl_tp Aeq.wf_right)
       (b.conv_ctx b.wf_ctx.eq_self)
+  case clos_val_tm Aeq Beq vb env _ _ eq =>
+    exact ClosEqTm.clos_val_tm (env eq) (Aeq.conv_ctx eq)
+      (Beq.conv_ctx <| eq.snoc <| EqTp.refl_tp Aeq.wf_right) vb
   case nil eq => exact .nil _ eq.wf_right
   case snoc => grind [EnvEqSb.snoc]
 
@@ -379,19 +403,19 @@ theorem EnvEqSb.conv_dom {Δ Δ' E σ Γ} : EnvEqSb Δ E σ Γ → EqCtx Δ Δ' 
 
 /-! ## Weakening is free -/
 
-theorem wk_all {Γ} :
-    (∀ {l vA A}, ValEqTp Γ l vA A → ∀ {C k}, Γ ⊢[k] C →
+theorem wk_all :
+    (∀ {Γ l vA A}, ValEqTp Γ l vA A → ∀ {C k}, Γ ⊢[k] C →
       ValEqTp ((C,k) :: Γ) l vA (A.subst Expr.wk)) ∧
-    (∀ {l vt t A}, ValEqTm Γ l vt t A → ∀ {C k}, Γ ⊢[k] C →
+    (∀ {Γ l vt t A}, ValEqTm Γ l vt t A → ∀ {C k}, Γ ⊢[k] C →
       ValEqTm ((C,k) :: Γ) l vt (t.subst Expr.wk) (A.subst Expr.wk)) ∧
-    (∀ {l vt t A}, NeutEqTm Γ l vt t A → ∀ {C k}, Γ ⊢[k] C →
+    (∀ {Γ l vt t A}, NeutEqTm Γ l vt t A → ∀ {C k}, Γ ⊢[k] C →
       NeutEqTm ((C,k) :: Γ) l vt (t.subst Expr.wk) (A.subst Expr.wk)) ∧
-    (∀ {l l' A vB B}, ClosEqTp Γ l l' A vB B → ∀ {C k}, Γ ⊢[k] C →
+    (∀ {Γ l l' A vB B}, ClosEqTp Γ l l' A vB B → ∀ {C k}, Γ ⊢[k] C →
       ClosEqTp ((C,k) :: Γ) l l' (A.subst Expr.wk) vB (B.subst (Expr.up Expr.wk))) ∧
-    (∀ {l l' A B vb b}, ClosEqTm Γ l l' A B vb b → ∀ {C k}, Γ ⊢[k] C →
+    (∀ {Γ l l' A B vb b}, ClosEqTm Γ l l' A B vb b → ∀ {C k}, Γ ⊢[k] C →
       ClosEqTm ((C,k) :: Γ) l l' (A.subst Expr.wk) (B.subst (Expr.up Expr.wk))
         vb (b.subst (Expr.up Expr.wk))) ∧
-    (∀ {E σ Δ}, EnvEqSb Γ E σ Δ → ∀ {C k}, Γ ⊢[k] C →
+    (∀ {Γ E σ Δ}, EnvEqSb Γ E σ Δ → ∀ {C k}, Γ ⊢[k] C →
       EnvEqSb ((C,k) :: Γ) E (Expr.comp Expr.wk σ) Δ) := by
   mutual_induction ValEqTp
   all_goals intros; try dsimp [Expr.subst] at *
@@ -419,13 +443,25 @@ theorem wk_all {Γ} :
     have := Aeq.subst (WfSb.wk C)
     convert ClosEqTp.clos_tp (ih C) (by convert this using 1; autosubst) B using 1
     autosubst
-  case clos_tm Aeq Beq b ih _ _ C =>
+  case clos_val_tp Aeq vB ihE _ _ _ C =>
+    convert ClosEqTp.clos_val_tp (ihE C)
+      (by convert Aeq.subst (WfSb.wk C) using 1; autosubst) vB using 1
+    autosubst
+  case clos_tm Aeq Beq b ihE _ _ C =>
     have CAeq := Aeq.subst <| WfSb.wk C
     have CBeq := Beq.subst <| (WfSb.wk C).up Aeq.wf_right
-    have := ClosEqTm.clos_tm (ih C)
+    have := ClosEqTm.clos_tm (ihE C)
       (by convert CAeq using 1; autosubst)
       (by convert CBeq using 1; autosubst)
       b
+    convert this using 1; autosubst
+  case clos_val_tm Aeq Beq vb ihE _ _ _ C =>
+    have CAeq := Aeq.subst <| WfSb.wk C
+    have CBeq := Beq.subst <| (WfSb.wk C).up Aeq.wf_right
+    have := ClosEqTm.clos_val_tm (ihE C)
+      (by convert CAeq using 1; autosubst)
+      (by convert CBeq using 1; autosubst)
+      vb
     convert this using 1; autosubst
   case nil C => apply EnvEqSb.nil _ (C.wf_ctx.snoc C)
   case snoc =>
@@ -523,7 +559,7 @@ theorem envOfTpEnv_wf {vΓ Γ} : TpEnvEqCtx vΓ Γ → EnvEqSb Γ (envOfTpEnv v�
 theorem ValEqTp.inv_pi {Γ C vA vB l k k'} : ValEqTp Γ l (.pi k k' vA vB) C →
     l = max k k' ∧ ∃ A B, ValEqTp Γ k vA A ∧ ClosEqTp Γ k k' A vB B ∧
       (Γ ⊢[max k k'] C ≡ .pi k k' A B) := by
-  suffices ∀ {l vC C}, ValEqTp Γ l vC C →
+  suffices ∀ {Γ l vC C}, ValEqTp Γ l vC C →
       ∀ {vA vB k k'}, vC = .pi k k' vA vB →
         l = max k k' ∧ ∃ A B, ValEqTp Γ k vA A ∧ ClosEqTp Γ k k' A vB B ∧
         (Γ ⊢[max k k'] C ≡ .pi k k' A B) from
@@ -534,7 +570,7 @@ theorem ValEqTp.inv_pi {Γ C vA vB l k k'} : ValEqTp Γ l (.pi k k' vA vB) C →
 theorem ValEqTp.inv_sigma {Γ C vA vB l k k'} : ValEqTp Γ l (.sigma k k' vA vB) C →
     l = max k k' ∧ ∃ A B, ValEqTp Γ k vA A ∧ ClosEqTp Γ k k' A vB B ∧
       (Γ ⊢[max k k'] C ≡ .sigma k k' A B) := by
-  suffices ∀ {l vC C}, ValEqTp Γ l vC C →
+  suffices ∀ {Γ l vC C}, ValEqTp Γ l vC C →
       ∀ {vA vB k k'}, vC = .sigma k k' vA vB →
         l = max k k' ∧ ∃ A B, ValEqTp Γ k vA A ∧ ClosEqTp Γ k k' A vB B ∧
         (Γ ⊢[max k k'] C ≡ .sigma k k' A B) from
@@ -544,7 +580,7 @@ theorem ValEqTp.inv_sigma {Γ C vA vB l k k'} : ValEqTp Γ l (.sigma k k' vA vB)
 
 theorem ValEqTp.inv_univ {Γ l k t} : ValEqTp Γ l (.univ k) t → l = k + 1 ∧
     (Γ ⊢[k + 1] t ≡ .univ k) := by
-  suffices ∀ {l vt t}, ValEqTp Γ l vt t → ∀ {k}, vt = .univ k → l = k + 1 ∧
+  suffices ∀ {Γ l vt t}, ValEqTp Γ l vt t → ∀ {k}, vt = .univ k → l = k + 1 ∧
       (Γ ⊢[k + 1] t ≡ .univ k) from
     fun h => this h rfl
   mutual_induction ValEqTp
@@ -552,19 +588,22 @@ theorem ValEqTp.inv_univ {Γ l k t} : ValEqTp Γ l (.univ k) t → l = k + 1 ∧
 
 theorem ValEqTp.inv_el {Γ l va A} : ValEqTp Γ l (.el va) A →
     ∃ a, ValEqTm Γ (l + 1) va a (.univ l) ∧ (Γ ⊢[l] A ≡ .el a) := by
-  suffices ∀ {l vA A}, ValEqTp Γ l vA A → ∀ {va}, vA = .el va →
+  suffices ∀ {Γ l vA A}, ValEqTp Γ l vA A → ∀ {va}, vA = .el va →
       ∃ a, ValEqTm Γ (l + 1) va a (.univ l) ∧ (Γ ⊢[l] A ≡ .el a) from
     fun h => this h rfl
   mutual_induction ValEqTp
   all_goals grind [WfTp.el, ValEqTm.wf_tm]
 
-theorem ValEqTm.inv_lam {Γ C vb t l₀ l l'} : ValEqTm Γ l₀ (.lam l l' vb) t C →
-    l₀ = max l l' ∧ ∃ A B b, (ClosEqTm Γ l l' A B vb b) ∧
+theorem ValEqTm.inv_lam {Γ C vA vb t l₀ l l'} : ValEqTm Γ l₀ (.lam l l' vA vb) t C →
+    l₀ = max l l' ∧ ∃ A B b,
+      (ValEqTp Γ l vA A) ∧
+      (ClosEqTm Γ l l' A B vb b) ∧
       (Γ ⊢[max l l'] t ≡ .lam l l' A b : C) ∧
       (Γ ⊢[max l l'] C ≡ .pi l l' A B) := by
   suffices
-      ∀ {l₀ vt t C}, ValEqTm Γ l₀ vt t C → ∀ {l l'}, vt = .lam l l' vb →
-        l₀ = max l l' ∧ ∃ A B b, (ClosEqTm Γ l l' A B vb b) ∧
+      ∀ {Γ l₀ vt t C}, ValEqTm Γ l₀ vt t C → ∀ {l l' vA vb}, vt = .lam l l' vA vb →
+        l₀ = max l l' ∧ ∃ A B b, (ValEqTp Γ l vA A) ∧
+          (ClosEqTm Γ l l' A B vb b) ∧
           (Γ ⊢[max l l'] t ≡ .lam l l' A b : C) ∧
           (Γ ⊢[max l l'] C ≡ .pi l l' A B) from
     fun h => this h rfl
@@ -579,7 +618,7 @@ theorem ValEqTm.inv_pair {Γ C vt vu p l₀ l l'} : ValEqTm Γ l₀ (.pair l l' 
       (Γ ⊢[max l l'] p ≡ .pair l l' B t u : C) ∧
       (Γ ⊢[max l l'] C ≡ .sigma l l' A B) := by
   suffices
-      ∀ {l₀ vp p C}, ValEqTm Γ l₀ vp p C → ∀ {vt vu l l'}, vp = .pair l l' vt vu →
+      ∀ {Γ l₀ vp p C}, ValEqTm Γ l₀ vp p C → ∀ {vt vu l l'}, vp = .pair l l' vt vu →
         l₀ = max l l' ∧ ∃ A B t u,
           (ValEqTm Γ l vt t A) ∧
           (ValEqTm Γ l' vu u (B.subst t.toSb)) ∧
@@ -595,7 +634,7 @@ theorem ValEqTm.inv_pair {Γ C vt vu p l₀ l l'} : ValEqTm Γ l₀ (.pair l l' 
 theorem ValEqTm.inv_code {Γ C vA c l₀} : ValEqTm Γ l₀ (.code vA) c C →
     ∃ l A, l₀ = l + 1 ∧ (ValEqTp Γ l vA A) ∧ (Γ ⊢[l₀] c ≡ .code A : C) ∧ (Γ ⊢[l₀] C ≡ .univ l) := by
   suffices
-      ∀ {l₀ vc c C}, ValEqTm Γ l₀ vc c C → ∀ {vA}, vc = .code vA →
+      ∀ {Γ l₀ vc c C}, ValEqTm Γ l₀ vc c C → ∀ {vA}, vc = .code vA →
         ∃ l A, l₀ = l + 1 ∧ (ValEqTp Γ l vA A) ∧ (Γ ⊢[l₀] c ≡ .code A : C) ∧ (Γ ⊢[l₀] C ≡ .univ l) from
     fun h => this h rfl
   mutual_induction ValEqTm
@@ -606,7 +645,7 @@ theorem ValEqTm.inv_code {Γ C vA c l₀} : ValEqTm Γ l₀ (.code vA) c C →
 
 theorem ValEqTm.inv_neut {Γ vA A vt t l} : ValEqTm Γ l (.neut vt vA) t A →
     ValEqTp Γ l vA A ∧ NeutEqTm Γ l vt t A := by
-  suffices ∀ {l vt t A}, ValEqTm Γ l vt t A → ∀ {n vA}, vt = .neut n vA →
+  suffices ∀ {Γ l vt t A}, ValEqTm Γ l vt t A → ∀ {n vA}, vt = .neut n vA →
       ValEqTp Γ l vA A ∧ NeutEqTm Γ l n t A from
     fun h => this h rfl
   mutual_induction ValEqTm
@@ -615,14 +654,14 @@ theorem ValEqTm.inv_neut {Γ vA A vt t l} : ValEqTm Γ l (.neut vt vA) t A →
 theorem NeutEqTm.inv_bvar {Γ A t i l} : NeutEqTm Γ l (.bvar i) t A →
     ∃ A', Lookup Γ (Γ.length - i - 1) A' l ∧
       (Γ ⊢[l] t ≡ .bvar (Γ.length - i - 1) : A) ∧ (Γ ⊢[l] A ≡ A') := by
-  suffices ∀ {l vn n A}, NeutEqTm Γ l vn n A → ∀ {i}, vn = .bvar i →
+  suffices ∀ {Γ l vn n A}, NeutEqTm Γ l vn n A → ∀ {i}, vn = .bvar i →
       ∃ A', Lookup Γ (Γ.length - i - 1) A' l ∧
         (Γ ⊢[l] n ≡ .bvar (Γ.length - i - 1) : A) ∧ (Γ ⊢[l] A ≡ A') from
     fun h => this h rfl
   mutual_induction NeutEqTm
   all_goals intros; try exact True.intro
   all_goals rename_i eq; cases eq
-  case bvar i _ Γwf lk =>
+  case bvar Γ _ i _ Γwf lk =>
     have := lk.lt_length
     rw [show Γ.length - (Γ.length - i - 1) - 1 = i by omega]
     exact ⟨_, lk, EqTm.refl_tm (WfTm.bvar (by omega) lk), EqTp.refl_tp (Γwf.lookup_wf lk)⟩
@@ -632,7 +671,7 @@ theorem NeutEqTm.inv_app {Γ vA C vf va t l₀ l l'} : NeutEqTm Γ l₀ (.app l 
     l₀ = l' ∧ ∃ A B f a,
       ValEqTp Γ l vA A ∧ NeutEqTm Γ (max l l') vf f (.pi l l' A B) ∧ ValEqTm Γ l va a A ∧
       (Γ ⊢[l'] t ≡ .app l l' B f a : C) ∧ (Γ ⊢[l'] C ≡ B.subst a.toSb) := by
-  suffices ∀ {l₀ vn n C}, NeutEqTm Γ l₀ vn n C → ∀ {vA vf va l l'}, vn = .app l l' vA vf va →
+  suffices ∀ {Γ l₀ vn n C}, NeutEqTm Γ l₀ vn n C → ∀ {vA vf va l l'}, vn = .app l l' vA vf va →
       l₀ = l' ∧ ∃ A B f a,
         ValEqTp Γ l vA A ∧ NeutEqTm Γ (max l l') vf f (.pi l l' A B) ∧ ValEqTm Γ l va a A ∧
         (Γ ⊢[l'] n ≡ .app l l' B f a : C) ∧ (Γ ⊢[l'] C ≡ B.subst a.toSb) from
@@ -647,7 +686,7 @@ theorem NeutEqTm.inv_app {Γ vA C vf va t l₀ l l'} : NeutEqTm Γ l₀ (.app l 
 theorem NeutEqTm.inv_fst {Γ C vp f l₀ l l'} : NeutEqTm Γ l₀ (.fst l l' vp) f C →
     l₀ = l ∧ ∃ A B p, NeutEqTm Γ (max l l') vp p (.sigma l l' A B) ∧
       (Γ ⊢[l] f ≡ .fst l l' A B p : C) ∧ (Γ ⊢[l] C ≡ A) := by
-  suffices ∀ {l₀ vn n C}, NeutEqTm Γ l₀ vn n C → ∀ {vp l l'}, vn = .fst l l' vp →
+  suffices ∀ {Γ l₀ vn n C}, NeutEqTm Γ l₀ vn n C → ∀ {vp l l'}, vn = .fst l l' vp →
       l₀ = l ∧ ∃ A B p, NeutEqTm Γ (max l l') vp p (.sigma l l' A B) ∧
       (Γ ⊢[l] n ≡ .fst l l' A B p : C) ∧ (Γ ⊢[l] C ≡ A) from
     fun h => this h rfl
@@ -661,7 +700,7 @@ theorem NeutEqTm.inv_fst {Γ C vp f l₀ l l'} : NeutEqTm Γ l₀ (.fst l l' vp)
 theorem NeutEqTm.inv_snd {Γ C vp s l₀ l l'} : NeutEqTm Γ l₀ (.snd l l' vp) s C →
     l₀ = l' ∧ ∃ A B p, NeutEqTm Γ (max l l') vp p (.sigma l l' A B) ∧
       (Γ ⊢[l'] s ≡ .snd l l' A B p : C) ∧ (Γ ⊢[l'] C ≡ B.subst (Expr.fst l l' A B p).toSb) := by
-  suffices ∀ {l₀ vn n C}, NeutEqTm Γ l₀ vn n C → ∀ {vp l l'}, vn = .snd l l' vp →
+  suffices ∀ {Γ l₀ vn n C}, NeutEqTm Γ l₀ vn n C → ∀ {vp l l'}, vn = .snd l l' vp →
       l₀ = l' ∧ ∃ A B p, NeutEqTm Γ (max l l') vp p (.sigma l l' A B) ∧
       (Γ ⊢[l'] n ≡ .snd l l' A B p : C) ∧ (Γ ⊢[l'] C ≡ B.subst (Expr.fst l l' A B p).toSb) from
     fun h => this h rfl

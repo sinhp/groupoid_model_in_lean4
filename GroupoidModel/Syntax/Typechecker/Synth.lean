@@ -112,11 +112,7 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
     withHave bB_ fun bB => do
     let lmax_ ← equateNat q($l) q(max $k $k')
     withHave lmax_ fun lmax => do
-    /- TODO: we currently cannot synthesize the type of a lambda because we don't know `B`. options:
-    1. readback from `vB`
-    2. store the codomain in `Expr.lam`
-    3. add bidirectional-style `coe` to `Expr` -/
-    let vP : Q(Val) := q(.pi $k $k' $vA (.mk_tp (envOfTpEnv $vΓ) sorry))
+    let vP : Q(Val) := q(.pi $k $k' $vA (.of_val (envOfTpEnv $vΓ) $vB))
     let pf : Q(∀ {Γ}, TpEnvEqCtx $vΓ Γ → ∃ T, ValEqTp Γ $l $vP T ∧ (Γ ⊢[$l] ($t) : T)) :=
       q(by as_aux_lemma =>
         introv vΓ
@@ -126,10 +122,9 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
         have ⟨B, vB, b⟩ := $bB (vΓ.snoc vA)
         refine ⟨.pi $k $k' $A B, ?_, WfTm.lam b⟩
         apply ValEqTp.pi vA
-        convert ClosEqTp.clos_tp (envOfTpEnv_wf vΓ) _ b.wf_tp using 1
-        . congr 1; sorry
+        convert ClosEqTp.clos_val_tp (envOfTpEnv_wf vΓ) _ vB using 1
         . autosubst
-        . convert EqTp.refl_tp A using 1; autosubst
+        . autosubst; apply EqTp.refl_tp A
       )
     return ⟨vP, ← mkHaves #[Awf, vAeq, bB, lmax] pf⟩
   | ~q(.app $k $k' $B $f $a) => do
@@ -139,7 +134,7 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
     withHave vApost_ fun vApost => do
     let Bwf_ ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
     withHave Bwf_ fun Bwf => do
-    let fwf_ ← checkTm q($vΓ) q(max $k $k') q(.pi $k $k' $vA (.mk_tp (envOfTpEnv $vΓ) $B)) q($f)
+    let fwf_ ← checkTm q($vΓ) q(max $k $k') q(.pi $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B)) q($f)
     withHave fwf_ fun fwf => do
     let ⟨va, vaeq_⟩ ← evalTmId q($vΓ) q($a)
     withHave vaeq_ fun vaeq => do
@@ -170,7 +165,7 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
     withHave vBfpost_ fun vBfpost => do
     let swf_ ← checkTm q($vΓ) q($k') q($vBf) q($s)
     withHave swf_ fun swf => do
-    let vT : Q(Val) := q(.sigma $k $k' $vA (.mk_tp (envOfTpEnv $vΓ) $B))
+    let vT : Q(Val) := q(.sigma $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B))
     return ⟨vT, ← mkHaves #[lmax, fA, Bwf, vfpost, vBfpost, swf] q(by as_aux_lemma =>
       introv vΓ
       subst_vars
@@ -194,7 +189,7 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
     withHave vApost_ fun vApost => do
     let Bwf_ ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
     withHave Bwf_ fun Bwf => do
-    let pwf_ ← checkTm q($vΓ) q(max $k $k') q(.sigma $k $k' $vA (.mk_tp (envOfTpEnv $vΓ) $B)) q($p)
+    let pwf_ ← checkTm q($vΓ) q(max $k $k') q(.sigma $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B)) q($p)
     withHave pwf_ fun pwf => do
     return ⟨vA, ← mkHaves #[leq, Awf, vApost, Bwf, pwf] q(by as_aux_lemma =>
       introv vΓ
@@ -217,7 +212,7 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
     withHave vApost_ fun vApost => do
     let Bwf_ ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
     withHave Bwf_ fun Bwf => do
-    let pwf_ ← checkTm q($vΓ) q(max $k $k') q(.sigma $k $k' $vA (.mk_tp (envOfTpEnv $vΓ) $B)) q($p)
+    let pwf_ ← checkTm q($vΓ) q(max $k $k') q(.sigma $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B)) q($p)
     withHave pwf_ fun pwf => do
     let ⟨vp, vppost_⟩ ← evalTmId q($vΓ) q($p)
     withHave vppost_ fun vppost => do

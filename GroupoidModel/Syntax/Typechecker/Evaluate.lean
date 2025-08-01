@@ -32,7 +32,7 @@ partial def evalTp (env : Q(List Val)) (T' : Q(Expr)) : Lean.MetaM ((v : Q(Val))
   | ~q(.pi $l $l' $A $B) => do
     let ⟨vA, vApost_⟩ ← evalTp q($env) q($A)
     withHave vApost_ fun vApost => do
-    let vT : Q(Val) := q(.pi $l $l' $vA (.mk_tp $env $B))
+    let vT : Q(Val) := q(.pi $l $l' $vA (.of_expr $env $B))
     -- HACK: without the explicit annotation,
     -- `← mkHaves #[..] q(by _)` has an mvar for the goal at `_`.
     let pf : Q(∀ Γ Δ σ l, EnvEqSb Δ $env σ Γ → (Γ ⊢[l] ($T')) →
@@ -47,7 +47,7 @@ partial def evalTp (env : Q(List Val)) (T' : Q(Expr)) : Lean.MetaM ((v : Q(Val))
   | ~q(.sigma $l $l' $A $B) => do
     let ⟨vA, vApost_⟩ ← evalTp q($env) q($A)
     withHave vApost_ fun vApost => do
-    let vT : Q(Val) := q(.sigma $l $l' $vA (.mk_tp $env $B))
+    let vT : Q(Val) := q(.sigma $l $l' $vA (.of_expr $env $B))
     -- HACK: without the explicit annotation,
     -- `← mkHaves #[..] q(by _)` has an mvar for the goal at `_`.
     let pf : Q(∀ Γ Δ σ l, EnvEqSb Δ $env σ Γ → (Γ ⊢[l] ($T')) →
@@ -105,13 +105,14 @@ partial def evalTm (env : Q(List Val)) (t' : Q(Expr)) : Lean.MetaM ((v : Q(Val))
       rw [h]
     )⟩
   | ~q(.lam $k $k' $C $b) => do
-    return ⟨q(.lam $k $k' (.mk_tm $env $b)),
+    let ⟨vC, vCpost⟩ ← evalTp q($env) q($C)
+    return ⟨q(.lam $k $k' $vC (.of_expr $env $b)),
       q(by as_aux_lemma =>
         introv env t
         obtain ⟨rfl, B, b, eq⟩ := t.inv_lam
         have C := b.wf_binder
         apply ValEqTm.conv_tp _ (eq.subst env.wf_sb).symm_tp
-        apply ValEqTm.lam <| ClosEqTm.clos_tm env _ _ b
+        apply ValEqTm.lam ($vCpost env C) <| ClosEqTm.clos_tm env _ _ b
         . exact EqTp.refl_tp <| C.subst env.wf_sb
         . exact EqTp.refl_tp <| b.wf_tp.subst (env.wf_sb.up C)
       )⟩
@@ -180,42 +181,316 @@ partial def evalTm (env : Q(List Val)) (t' : Q(Expr)) : Lean.MetaM ((v : Q(Val))
     )⟩
   | t => throwError "expected a term, got{Lean.indentExpr t}"
 
+/-- Evaluate a type value in a new environment.
+
+This operation is not commonly implemented in NbE variants.
+We need it as an alternative to readback:
+when having to produce a type closure from a type value,
+instead of reading back and storing `Clos.of_expr`,
+we store `Clos.of_val`.
+However, that means we may later need to evaluate the stored value in a new environment,
+and `evalValTp` does that. -/
+partial def evalValTp (env : Q(List Val)) (vT : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
+    Q(∀ {Γ Δ A σ l}, EnvEqSb Δ $env σ Γ → ValEqTp Γ l $vT A → ValEqTp Δ l $v (A.subst σ))) := do
+  match vT with
+  | ~q(.pi $k $k' $vA $vB) =>
+    let ⟨vB, vBpost_⟩ ← forceClosTp q(($env).length) q($vA) q($vB)
+    withHave vBpost_ fun vBpost => do
+    let ⟨vA, vApost_⟩ ← evalValTp q($env) q($vA)
+    withHave vApost_ fun vApost => do
+    let v : Q(Val) := q(.pi $k $k' $vA (.of_val $env $vB))
+    return ⟨v, ← mkHaves #[vBpost, vApost] q(by as_aux_lemma =>
+      introv env vT
+      have ⟨_, _, _, vA, vB, eq⟩ := vT.inv_pi
+      subst_vars
+      apply ValEqTp.conv_tp _ (eq.subst env.wf_sb).symm_tp
+      have vAσ := $vApost env vA
+      apply ValEqTp.pi vAσ
+      apply ClosEqTp.clos_val_tp env (EqTp.refl_tp vAσ.wf_tp) <|
+        $vBpost env.eq_length vA vB
+    )⟩
+  | ~q(.sigma $k $k' $vA $vB) =>
+    let ⟨vB, vBpost_⟩ ← forceClosTp q(($env).length) q($vA) q($vB)
+    withHave vBpost_ fun vBpost => do
+    let ⟨vA, vApost_⟩ ← evalValTp q($env) q($vA)
+    withHave vApost_ fun vApost => do
+    let v : Q(Val) := q(.sigma $k $k' $vA (.of_val $env $vB))
+    return ⟨v, ← mkHaves #[vBpost, vApost] q(by as_aux_lemma =>
+      introv env vT
+      have ⟨_, _, _, vA, vB, eq⟩ := vT.inv_sigma
+      subst_vars
+      apply ValEqTp.conv_tp _ (eq.subst env.wf_sb).symm_tp
+      have vAσ := $vApost env vA
+      apply ValEqTp.sigma vAσ
+      apply ClosEqTp.clos_val_tp env (EqTp.refl_tp vAσ.wf_tp) <|
+        $vBpost env.eq_length vA vB
+    )⟩
+  | ~q(.univ $l) => return ⟨q(.univ $l), q(by as_aux_lemma =>
+      introv env vT
+      have ⟨_, eq⟩ := vT.inv_univ
+      have := eq.le_univMax
+      subst_vars
+      apply ValEqTp.conv_tp _ (eq.subst env.wf_sb).symm_tp
+      apply ValEqTp.univ env.wf_dom (by omega)
+    )⟩
+  | ~q(.el $va) =>
+    let ⟨va, vapost_⟩ ← evalValTm q($env) q($va)
+    withHave vapost_ fun vapost => do
+    let v : Q(Val) := q(.el $va)
+    return ⟨v, ← mkHaves #[vapost] q(by as_aux_lemma =>
+      introv env vT
+      have ⟨_, va, eq⟩ := vT.inv_el
+      apply ValEqTp.conv_tp _ (eq.subst env.wf_sb).symm_tp
+      apply ValEqTp.el ($vapost env va)
+    )⟩
+  | vT => throwError "expected a normal type, got{Lean.indentExpr vT}"
+
+/-- Evaluate a term value in a new environment. -/
+partial def evalValTm (env : Q(List Val)) (vt : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
+    Q(∀ {Γ Δ A t σ l}, EnvEqSb Δ $env σ Γ → ValEqTm Γ l $vt t A →
+      ValEqTm Δ l $v (t.subst σ) (A.subst σ))) := do
+  match vt with
+  | ~q(.lam $k $k' $vA $b) =>
+    -- NOTE: the binder type argument to `forceClosTm` is the only reason we annotate `Val.lam`.
+    let ⟨vb, vbpost⟩ ← forceClosTm q(($env).length) q($vA) q($b)
+    let ⟨vA, vApost⟩ ← evalValTp q($env) q($vA)
+    return ⟨q(.lam $k $k' $vA (.of_val $env $vb)), q(by as_aux_lemma =>
+      introv env vt
+      have ⟨_, _, _, _, vA, vb, eqt, eq⟩ := vt.inv_lam
+      subst_vars
+      apply ValEqTm.conv_tm _ (eqt.subst env.wf_sb).symm_tm
+      apply ValEqTm.conv_tp _ (eq.subst env.wf_sb).symm_tp
+      have vAσ := $vApost env vA
+      apply ValEqTm.lam vAσ
+      apply ClosEqTm.clos_val_tm env (EqTp.refl_tp vAσ.wf_tp)
+        (EqTp.refl_tp <| vb.wf_tm.wf_tp.subst (env.wf_sb.up vA.wf_tp))
+        ($vbpost env.eq_length vA vb)
+    )⟩
+  | ~q(.pair $k $k' $vf $vs) =>
+    let ⟨vf, vfpost⟩ ← evalValTm q($env) q($vf)
+    let ⟨vs, vspost⟩ ← evalValTm q($env) q($vs)
+    return ⟨q(.pair $k $k' $vf $vs), q(by as_aux_lemma =>
+      introv env vt
+      have ⟨_, _, _, _, _, vf, vs, eqt, eq⟩ := vt.inv_pair
+      subst_vars
+      apply ValEqTm.conv_tm _ (eqt.subst env.wf_sb).symm_tm
+      apply ValEqTm.conv_tp _ (eq.subst env.wf_sb).symm_tp
+      have ⟨_, B⟩ := eq.wf_right.inv_sigma
+      apply ValEqTm.pair (B.subst (env.wf_sb.up B.wf_binder)) ($vfpost env vf)
+      convert ($vspost env vs) using 1; autosubst
+    )⟩
+  | ~q(.code $vA) =>
+    let ⟨vA, vApost_⟩ ← evalValTp q($env) q($vA)
+    withHave vApost_ fun vApost => do
+    let v : Q(Val) := q(.code $vA)
+    return ⟨v, ← mkHaves #[vApost] q(by as_aux_lemma =>
+      introv env vt
+      have ⟨_, _, _, vA, eqt, eq⟩ := vt.inv_code
+      subst_vars
+      apply ValEqTm.conv_tm _ (eqt.subst env.wf_sb).symm_tm
+      apply ValEqTm.conv_tp _ (eq.subst env.wf_sb).symm_tp
+      have := eq.le_univMax
+      apply ValEqTm.code (by omega) ($vApost env vA)
+    )⟩
+  | ~q(.neut $n _) =>
+    let ⟨v, vpost⟩ ← evalNeutTm q($env) q($n)
+    return ⟨v, q(by as_aux_lemma =>
+      introv env vt
+      have ⟨_, n⟩ := vt.inv_neut
+      exact $vpost env n
+    )⟩
+  | vt => throwError "expected a normal term, got{Lean.indentExpr vt}"
+
+/-- Evaluate a neutral term in a new environment. -/
+partial def evalNeutTm (env : Q(List Val)) (nt : Q(Neut)) : Lean.MetaM ((v : Q(Val)) ×
+    Q(∀ {Γ Δ A t σ l}, EnvEqSb Δ $env σ Γ → NeutEqTm Γ l $nt t A →
+      ValEqTm Δ l $v (t.subst σ) (A.subst σ))) := do
+  match nt with
+  | ~q(.bvar $i) =>
+    let v : Q(Option Val) ← Lean.Meta.whnf q($env[($env).length - $i - 1]?)
+    let ~q(some $v') := v
+      | throwError "bvar {i} may be out of range in evaluation environment{Lean.indentExpr env}\n\
+        note: expected 'some _', got{Lean.indentExpr v}"
+    have : $v =Q $env[($env).length - $i - 1]? := .unsafeIntro -- FIXME: `whnfQ`?
+    return ⟨v', q(by as_aux_lemma =>
+      introv env nt
+      have ⟨_, lk, eqt, eq⟩ := nt.inv_bvar
+      apply ValEqTm.conv_tm _ (eqt.subst env.wf_sb).symm_tm
+      apply ValEqTm.conv_tp _ (eq.subst env.wf_sb).symm_tp
+      convert env.lookup_eq lk using 1
+      subst $v
+      obtain ⟨_, rfl⟩ := List.getElem?_eq_some_iff.mp ($this).symm
+      congr 3
+      exact env.eq_length
+    )⟩
+  | ~q(.app _ _ _ $nf $va) =>
+    let ⟨vf, vfpost_⟩ ← evalNeutTm q($env) q($nf)
+    withHave vfpost_ fun vfpost => do
+    let ⟨va, vapost_⟩ ← evalValTm q($env) q($va)
+    withHave vapost_ fun vapost => do
+    let ⟨v, vpost⟩ ← evalApp q($vf) q($va)
+    return ⟨v, ← mkHaves #[vfpost, vapost] q(by as_aux_lemma =>
+      introv env nt
+      have ⟨_, _, _, _, _, _, nf, va, eqt, eq⟩ := nt.inv_app
+      subst_vars
+      apply ValEqTm.conv_tm _ (eqt.subst env.wf_sb).symm_tm
+      apply ValEqTm.conv_tp _ (eq.subst env.wf_sb).symm_tp
+      convert ($vpost ($vfpost env nf) ($vapost env va)) using 1
+      autosubst
+    )⟩
+  | ~q(.fst $k $k' $np) =>
+    let ⟨vp, vppost_⟩ ← evalNeutTm q($env) q($np)
+    withHave vppost_ fun vppost => do
+    let ⟨v, vpost⟩ ← evalFst q($vp)
+    return ⟨v, ← mkHaves #[vppost, vpost] q(by as_aux_lemma =>
+      introv env nt
+      have ⟨_, _, _, _, np_eq, eqt, eq⟩ := nt.inv_fst
+      subst_vars
+      apply ValEqTm.conv_tm _ (eqt.subst env.wf_sb).symm_tm
+      apply ValEqTm.conv_tp _ (eq.subst env.wf_sb).symm_tp
+      exact $vpost ($vppost env np_eq)
+    )⟩
+  | ~q(.snd $k $k' $np) =>
+    let ⟨vp, vppost_⟩ ← evalNeutTm q($env) q($np)
+    withHave vppost_ fun vppost => do
+    let ⟨v, vpost⟩ ← evalSnd q($vp)
+    return ⟨v, ← mkHaves #[vppost, vpost] q(by as_aux_lemma =>
+      introv env nt
+      have ⟨_, _, _, _, np_eq, eqt, eq⟩ := nt.inv_snd
+      subst_vars
+      apply ValEqTm.conv_tm _ (eqt.subst env.wf_sb).symm_tm
+      apply ValEqTm.conv_tp _ (eq.subst env.wf_sb).symm_tp
+      convert ($vpost ($vppost env np_eq)) using 1
+      autosubst
+    )⟩
+  | vt => throwError "expected a normal term, got{Lean.indentExpr vt}"
+
+/-- Evaluate a type closure on an argument. -/
+partial def evalClosTp (vB : Q(Clos)) (vt : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
+    Q(∀ {Γ A B t l l'}, ClosEqTp Γ l l' A $vB B → ValEqTm Γ l $vt t A →
+      ValEqTp Γ l' $v (B.subst t.toSb))) := do
+  match vB with
+  | ~q(.of_expr $env $B) => do
+    let ⟨v, vpost_⟩ ← evalTp q($vt :: $env) q($B)
+    withHave vpost_ fun vpost => do
+    let pf : Q(∀ {Γ A B t l l'}, ClosEqTp Γ l l' A $vB B → ValEqTm Γ l $vt t A →
+          ValEqTp Γ l' $v (B.subst t.toSb)) := q(by as_aux_lemma =>
+        introv vB vt
+        simp +zetaDelta only at vB
+        rcases vB with ⟨env, Aeq, B⟩
+        convert ($vpost (env.snoc B.wf_binder (vt.conv_tp Aeq.symm_tp)) B) using 1
+        autosubst
+      )
+    return ⟨v, ← mkHaves #[vpost] pf⟩
+  | ~q(.of_val $env $vB') => do
+    let ⟨v, vpost_⟩ ← evalValTp q($vt :: $env) q($vB')
+    withHave vpost_ fun vpost => do
+    return ⟨v, ← mkHaves #[vpost] q(by as_aux_lemma =>
+      introv vB vt
+      simp +zetaDelta only at vB
+      rcases vB with _ | ⟨env, Aeq, B⟩
+      have := env.snoc B.wf_tp.wf_binder (vt.conv_tp Aeq.symm_tp)
+      convert ($vpost this B) using 1
+      autosubst
+    )⟩
+  | vB => throwError "expected a type closure, got{Lean.indentExpr vB}"
+
+/-- Evaluate a type closure on a fresh variable. -/
+partial def forceClosTp (d : Q(Nat)) (vA : Q(Val)) (vB : Q(Clos)) : Lean.MetaM ((v : Q(Val)) ×
+    Q(∀ {Γ A B l l'}, $d = Γ.length → ValEqTp Γ l $vA A → ClosEqTp Γ l l' A $vB B →
+      ValEqTp ((A, l) :: Γ) l' $v B)) := do
+  let ⟨v, vpost_⟩ ← evalClosTp q($vB) q(.neut (.bvar $d) $vA)
+  withHave vpost_ fun vpost => do
+  let pf : Q(∀ {Γ A B l l'}, $d = Γ.length → ValEqTp Γ l $vA A → ClosEqTp Γ l l' A $vB B →
+        ValEqTp ((A, l) :: Γ) l' $v B) := q(by as_aux_lemma =>
+      introv deq vA vB
+      replace vB := vB.wk vA.wf_tp
+      replace vA := vA.wk vA.wf_tp
+      have := NeutEqTm.bvar vA.wf_tp.wf_ctx (Lookup.zero ..)
+      simp only [List.length_cons, ← deq, Nat.sub_zero, Nat.add_one_sub_one] at this
+      have := ValEqTm.neut_tm vA this
+      convert ($vpost vB this) using 1
+      autosubst
+    )
+  return ⟨v, ← mkHaves #[vpost] pf⟩
+
+/-- Evaluate a term closure on an argument. -/
+partial def evalClosTm (vb : Q(Clos)) (vt : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
+    Q(∀ {Γ A B b t l l'}, ClosEqTm Γ l l' A B $vb b → ValEqTm Γ l $vt t A →
+      ValEqTm Γ l' $v (b.subst t.toSb) (B.subst t.toSb))) := do
+  match vb with
+  | ~q(.of_expr $env $b) => do
+    let ⟨v, vpost_⟩ ← evalTm q($vt :: $env) q($b)
+    withHave vpost_ fun vpost => do
+    let pf : Q(∀ {Γ A B b t l l'}, ClosEqTm Γ l l' A B $vb b → ValEqTm Γ l $vt t A →
+          ValEqTm Γ l' $v (b.subst t.toSb) (B.subst t.toSb)) := q(by as_aux_lemma =>
+        introv vb vt
+        simp +zetaDelta only at vb
+        rcases vb with ⟨env, Aeq, Beq, b⟩
+        have := env.snoc b.wf_binder (vt.conv_tp Aeq.symm_tp)
+        have Beq := Beq.subst <| WfSb.toSb vt.wf_tm
+        convert ($vpost this b |>.conv_tp (by convert Beq using 1; autosubst)) using 1
+        autosubst
+      )
+    return ⟨v, ← mkHaves #[vpost] pf⟩
+  | ~q(.of_val $env $vb') => do
+    let ⟨v, vpost_⟩ ← evalValTm q($vt :: $env) q($vb')
+    withHave vpost_ fun vpost => do
+    return ⟨v, ← mkHaves #[vpost] q(by as_aux_lemma =>
+      introv vb vt
+      simp +zetaDelta only at vb
+      rcases vb with _ | ⟨env, Aeq, Beq, b⟩
+      have := env.snoc b.wf_tm.wf_binder (vt.conv_tp Aeq.symm_tp)
+      have Beq := Beq.subst <| WfSb.toSb vt.wf_tm
+      convert ($vpost this b |>.conv_tp (by convert Beq using 1; autosubst)) using 1
+      autosubst
+    )⟩
+  | vB => throwError "expected a type closure, got{Lean.indentExpr vB}"
+
+/-- Evaluate a term closure on a fresh variable. -/
+partial def forceClosTm (d : Q(Nat)) (vA : Q(Val)) (vb : Q(Clos)) : Lean.MetaM ((v : Q(Val)) ×
+    Q(∀ {Γ A B b l l'}, $d = Γ.length → ValEqTp Γ l $vA A → ClosEqTm Γ l l' A B $vb b →
+      ValEqTm ((A, l) :: Γ) l' $v b B)) := do
+  let ⟨v, vpost_⟩ ← evalClosTm q($vb) q(.neut (.bvar $d) $vA)
+  withHave vpost_ fun vpost => do
+  let pf : Q(∀ {Γ A B b l l'}, $d = Γ.length → ValEqTp Γ l $vA A → ClosEqTm Γ l l' A B $vb b →
+        ValEqTm ((A, l) :: Γ) l' $v b B) := q(by as_aux_lemma =>
+      introv deq vA vb
+      replace vb := vb.wk vA.wf_tp
+      replace vA := vA.wk vA.wf_tp
+      have := NeutEqTm.bvar vA.wf_tp.wf_ctx (Lookup.zero ..)
+      simp only [List.length_cons, ← deq, Nat.sub_zero, Nat.add_one_sub_one] at this
+      have := ValEqTm.neut_tm vA this
+      convert ($vpost vb this) using 1 <;> autosubst
+    )
+  return ⟨v, ← mkHaves #[vpost] pf⟩
+
 partial def evalApp (vf va : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
     Q(∀ {Δ A B f a l l'}, ValEqTm Δ (max l l') $vf f (.pi l l' A B) → ValEqTm Δ l $va a A →
       ValEqTm Δ l' $v (.app l l' B f a) (B.subst a.toSb))) :=
   match vf with
-  | ~q(.lam $k $k' (.mk_tm $env $b)) => do
-    let ⟨v, vpost_⟩ ← evalTm q($va :: $env) q($b)
+  | ~q(.lam $k $k' _ $vb) => do
+    let ⟨v, vpost_⟩ ← evalClosTm q($vb) q($va)
     withHave vpost_ fun vpost => do
     let pf : Q(∀ {Δ A B f a l l'},
           ValEqTm Δ (max l l') $vf f (.pi l l' A B) → ValEqTm Δ l $va a A →
           ValEqTm Δ l' $v (.app l l' B f a) (B.subst a.toSb)) := q(by as_aux_lemma =>
         introv vf va
-        have ⟨_, _, _, _, ⟨env, Aeq', Beq', b⟩, eqt, eq⟩ := vf.inv_lam
-        obtain ⟨_, rfl, rfl, Aeq, Beq⟩ := eq.inv_pi
-        -- normalize to A, B
-        replace Beq' := Beq'.conv_binder Aeq.symm_tp
-        replace Aeq := Aeq.trans_tp Aeq'.symm_tp
-        replace Beq := Beq.trans_tp Beq'.symm_tp
-        -- apply postcondition
-        have := env.snoc b.wf_binder (va.conv_tp Aeq)
-        have veq := $vpost this b |>.conv_tp
-          (by convert Beq.subst (WfSb.toSb va.wf_tm) |>.symm_tp using 1; autosubst)
-        apply veq.conv_tm
-        -- convert term
-        replace b := b.subst (env.wf_sb.up b.wf_binder) |>.conv_binder Aeq.symm_tp
-          |>.conv Beq.symm_tp
-        convert (EqTm.app_lam b va.wf_tm).symm_tm.trans_tm _ using 1
-        . autosubst
-        apply EqTm.cong_app (EqTp.refl_tp Beq.wf_left) _ (EqTm.refl_tm va.wf_tm)
+        have ⟨_, _, _, _, _, vb, eqt, eq⟩ := vf.inv_lam
+        have ⟨_, _, _, Aeq, Beq⟩ := eq.inv_pi
+        subst_vars
+        have := $vpost vb (va.conv_tp Aeq) |>.conv_tp (Beq.subst <| WfSb.toSb va.wf_tm).symm_tp
+        apply this.conv_tm
+        have b := vb.wf_tm |>.conv_binder Aeq.symm_tp |>.conv Beq.symm_tp
+        apply (EqTm.app_lam b va.wf_tm).symm_tm.trans_tm
+        apply EqTm.cong_app (EqTp.refl_tp b.wf_tp) _ (EqTm.refl_tm va.wf_tm)
         symm; apply eqt.trans_tm
         symm; gcongr
-        . assumption
-        . exact Aeq.trans_tp Aeq'
+        assumption
       )
     return ⟨v, ← mkHaves #[vpost] pf⟩
-  | ~q(.neut $n (.pi $k $k' $vA (.mk_tp $env $B))) => do
-    let ⟨vBa, vBpost_⟩ ← evalTp q($va :: $env) q($B)
+  | ~q(.neut $n (.pi $k $k' $vA $vB)) => do
+    let ⟨vBa, vBpost_⟩ ← evalClosTp q($vB) q($va)
     withHave vBpost_ fun vBpost => do
     let v : Q(Val) := q(.neut (.app $k $k' $vA $n $va) $vBa)
     let pf : Q(∀ {Δ A B f a l l'},
@@ -223,19 +498,15 @@ partial def evalApp (vf va : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
           ValEqTm Δ l' $v (.app l l' B f a) (B.subst a.toSb)) := q(by as_aux_lemma =>
         introv vf va
         have ⟨P, n⟩ := vf.inv_neut
-        have ⟨_, _, _, vA, ⟨env, Aeq', B⟩, eq⟩ := P.inv_pi
-        obtain ⟨_, rfl, rfl, Aeq, Beq⟩ := eq.inv_pi
-
-        replace vA := vA.conv_tp Aeq.symm_tp
-        replace Aeq := Aeq.trans_tp Aeq'.symm_tp
-        have := env.snoc B.wf_binder (va.conv_tp Aeq)
-        have := $vBpost this B |>.conv_tp
-          (by convert Beq.subst (WfSb.toSb va.wf_tm) |>.symm_tp using 1; autosubst)
+        have ⟨_, _, _, vA, vB, eq⟩ := P.inv_pi
+        have ⟨_, _, _, Aeq, Beq⟩ := eq.inv_pi
+        subst_vars
+        have := $vBpost vB (va.conv_tp Aeq) |>.conv_tp (Beq.subst <| WfSb.toSb va.wf_tm).symm_tp
         apply ValEqTm.neut_tm this
-        apply NeutEqTm.app vA n va
+        apply NeutEqTm.app (vA.conv_tp Aeq.symm_tp) n va
       )
     return ⟨v, ← mkHaves #[vBpost] pf⟩
-  | vf => throwError "expected normal form at type Π, got{Lean.indentExpr vf}"
+  | vf => throwError "expected a normal form at type Π, got{Lean.indentExpr vf}"
 
 partial def evalFst (vp : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
     Q(∀ {Δ A B p l l'}, ValEqTm Δ (max l l') $vp p (.sigma l l' A B) →
@@ -265,7 +536,7 @@ partial def evalFst (vp : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
       obtain ⟨_, rfl, rfl, Aeq, _⟩ := eq.inv_sigma
       apply ValEqTm.neut_tm (vA.conv_tp Aeq.symm_tp) (NeutEqTm.fst p)
     )⟩
-  | vp => throwError "expected normal form at type Σ, got{Lean.indentExpr vp}"
+  | vp => throwError "expected a normal form at type Σ, got{Lean.indentExpr vp}"
 
 partial def evalSnd (vp : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
     Q(∀ {Δ A B p l l'}, ValEqTm Δ (max l l') $vp p (.sigma l l' A B) →
@@ -293,51 +564,25 @@ partial def evalSnd (vp : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
       apply eqt.trans_tm
       symm; gcongr <;> assumption
     )⟩
-  | ~q(.neut $n (.sigma $k $k' $vA (.mk_tp $env $B))) => do
+  | ~q(.neut $n (.sigma $k $k' $vA $vB)) => do
     let ⟨vf, vfpost_⟩ ← evalFst q($vp)
     withHave vfpost_ fun vfpost => do
-    let ⟨vBfst, vBpost_⟩ ← evalTp q($vf :: $env) q($B)
+    let ⟨vBfst, vBpost_⟩ ← evalClosTp q($vB) q($vf)
     withHave vBpost_ fun vBpost => do
     let n : Q(Val) := q(.neut (.snd $k $k' $n) $vBfst)
     return ⟨n, ← mkHaves #[vfpost, vBpost] q(by as_aux_lemma =>
       introv vp
       have ⟨S, p⟩ := vp.inv_neut
-      have ⟨_, _, _, vA, ⟨env, Aeq', B⟩, eq⟩ := S.inv_sigma
-      obtain ⟨_, rfl, rfl, Aeq, Beq⟩ := eq.inv_sigma
+      have ⟨_, _, _, vA, vB, eq⟩ := S.inv_sigma
+      have ⟨_, _, _, Aeq, Beq⟩ := eq.inv_sigma
+      subst_vars
       apply ValEqTm.neut_tm
       . have vf := $vfpost vp
-        have := $vBpost (env.snoc B.wf_binder (vf.conv_tp <| Aeq.trans_tp Aeq'.symm_tp)) B
-        apply this.conv_tp
-        convert Beq.symm_tp.subst (WfSb.toSb vf.wf_tm) using 1
-        autosubst
+        exact $vBpost vB (vf.conv_tp Aeq) |>.conv_tp (Beq.subst <| WfSb.toSb vf.wf_tm).symm_tp
       . apply NeutEqTm.snd p
     )⟩
-  | vp => throwError "expected normal form at type Σ, got{Lean.indentExpr vp}"
+  | vp => throwError "expected a normal form at type Σ, got{Lean.indentExpr vp}"
 end
-
-/-- Evaluate a type closure on a fresh variable. -/
-def evalClosTp (d : Q(Nat)) (vA : Q(Val)) (vB : Q(Clos)) : Lean.MetaM ((v : Q(Val)) ×
-    Q(∀ {Γ A B l l'}, $d = Γ.length → ValEqTp Γ l $vA A → ClosEqTp Γ l l' A $vB B →
-      ValEqTp ((A, l) :: Γ) l' $v B)) := do
-  let ~q(.mk_tp $env $B) := vB | throwError "expected a type closure, got{Lean.indentExpr vB}"
-  let x : Q(Val) := q(.neut (.bvar $d) $vA)
-  let ⟨v, vpost_⟩ ← evalTp q($x :: $env) q($B)
-  withHave vpost_ fun vpost => do
-  let pf : Q(∀ {Γ A B l l'}, $d = Γ.length → ValEqTp Γ l $vA A → ClosEqTp Γ l l' A $vB B →
-        ValEqTp ((A, l) :: Γ) l' $v B) := q(by as_aux_lemma =>
-      introv deq vA
-      simp +zetaDelta only
-      rintro ⟨env, Aeq, B⟩
-      replace env := env.wk vA.wf_tp
-      have := NeutEqTm.bvar env.wf_dom (Lookup.zero ..)
-      simp only [List.length_cons, ← deq, Nat.sub_zero, Nat.add_one_sub_one] at this
-      have := ValEqTm.neut_tm (vA.wk vA.wf_tp) this
-      have := env.snoc B.wf_binder <|
-        by convert this.conv_tp <| Aeq.symm_tp.subst (WfSb.wk vA.wf_tp) using 1; autosubst
-      convert ($vpost this B) using 1
-      autosubst
-    )
-  return ⟨v, ← mkHaves #[vpost] pf⟩
 
 /-- Evaluate a type in the identity evaluation environment. -/
 def evalTpId (vΓ : Q(TpEnv)) (T : Q(Expr)) : Lean.MetaM ((v : Q(Val)) ×
