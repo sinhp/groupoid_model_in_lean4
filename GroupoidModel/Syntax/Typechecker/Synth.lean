@@ -95,21 +95,19 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
     let ⟨vA, vAeq⟩ ← evalTpId q($vΓ) q($A)
     let ⟨vB, bB⟩ ← synthTm q(($vA, $k) :: $vΓ) q($k') q($b)
     let lmax ← equateNat q($l) q(max $k $k')
-    let vP : Q(Val) := q(.pi $k $k' $vA (.of_val (envOfTpEnv $vΓ) $vB))
-    let pf : Q(∀ {Γ}, TpEnvEqCtx $vΓ Γ → ∃ T, ValEqTp Γ $l $vP T ∧ (Γ ⊢[$l] (.lam $k $k' $A $b) : T)) :=
-      q(by as_aux_lemma =>
-        introv vΓ
-        subst_vars
-        have A := $Awf vΓ
-        have vA := $vAeq vΓ A
-        have ⟨B, vB, b⟩ := $bB (vΓ.snoc vA)
-        refine ⟨.pi $k $k' $A B, ?_, WfTm.lam b⟩
-        apply ValEqTp.pi vA
-        convert ClosEqTp.clos_val_tp (envOfTpEnv_wf vΓ) _ vB using 1
-        . autosubst
-        . autosubst; apply EqTp.refl_tp A
-      )
-    return ⟨vP, pf⟩
+    return ⟨q(.pi $k $k' $vA (.of_val (envOfTpEnv $vΓ) $vB)), q(by as_aux_lemma =>
+      introv vΓ
+      subst_vars
+      have A := $Awf vΓ
+      have vA := $vAeq vΓ A
+      have ⟨B, vB, b⟩ := $bB (vΓ.snoc vA)
+      refine ⟨.pi $k $k' $A B, ?_, WfTm.lam b⟩
+      apply ValEqTp.pi vA
+      convert ClosEqTp.clos_val_tp (envOfTpEnv_wf vΓ) _ vB using 1
+      . autosubst
+      . autosubst; apply EqTp.refl_tp A
+    )
+⟩
   | ~q(.app $k $k' $B $f $a) => do
     let lk' ← equateNat q($l) q($k')
     let ⟨vA, vApost⟩ ← synthTm q($vΓ) q($k) q($a)
@@ -136,8 +134,7 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
     let ⟨vf, vfpost⟩ ← evalTmId q($vΓ) q($f)
     let ⟨vBf, vBfpost⟩ ← evalTp q($vf :: envOfTpEnv $vΓ) q($B)
     let swf ← checkTm q($vΓ) q($k') q($vBf) q($s)
-    let vT : Q(Val) := q(.sigma $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B))
-    return ⟨vT, q(by as_aux_lemma =>
+    return ⟨q(.sigma $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B)), q(by as_aux_lemma =>
       introv vΓ
       subst_vars
       have ⟨_, vA, f⟩ := $fA vΓ
@@ -199,8 +196,7 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
     let ~q(.succ $k) := l | throwError "expected _+1, got{Lean.indentExpr l}"
     let lmax ← ltNat q($k) q(univMax)
     let Awf ← checkTp q($vΓ) q($k) q($A)
-    let vU : Q(Val) := q(.univ $k)
-    return ⟨vU, q(by as_aux_lemma =>
+    return ⟨q(.univ $k), q(by as_aux_lemma =>
       introv vΓ
       exact ⟨_, ValEqTp.univ vΓ.wf_ctx $lmax, WfTm.code $lmax ($Awf vΓ)⟩
     )⟩
