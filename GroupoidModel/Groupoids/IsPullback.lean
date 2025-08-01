@@ -12,7 +12,7 @@ Here we construct universes for the groupoid natural model.
 universe w v u v₁ u₁ v₂ u₂ v₃ u₃
 
 noncomputable section
-open CategoryTheory ULift Grothendieck.Groupoidal
+open CategoryTheory ULift Functor.Groupoidal
   Limits NaturalModelBase
 
 namespace GroupoidModel
@@ -133,16 +133,16 @@ section
 variable {Γ : Ctx.{max u (v+1)}} (A : Γ ⟶ U.{v})
 
 abbrev ext' : Grpd.{max u (v+1), max u (v+1)}:=
-  Grpd.of ∫(classifier A)
+  Grpd.of (∫ classifier A)
 
 abbrev disp' : ext' A ⟶ Ctx.toGrpd.obj Γ :=
   forget
 
 abbrev coreExt' : Grpd.{max u (v+1), max u (v+1)}:=
-  Core.map.obj (Cat.of ∫(classifier A))
+  Core.map.obj (Cat.of (∫ classifier A))
 
 abbrev coreDisp' : coreExt' A ⟶ coreΓ.{v,u} Γ :=
-  Core.map.map $ Cat.homOf $ Grothendieck.forget _
+  Core.map.map $ Cat.homOf $ forget
 
 abbrev coreVar' : coreExt' A ⟶
     Core.map.obj.{max u (v+1), max u (v+1)}
@@ -156,7 +156,7 @@ abbrev coreA : coreΓ.{v,max u (v+1)} Γ ⟶ Core.map.obj.{max u (v+1), max u (v
 def isPullback_disp'_asSmallForgetToGrpd_comm_sq :
     Cat.homOf (toPGrpd (classifier A) ⋙ AsSmall.up)
     ≫ Cat.homOf (Cat.asSmallFunctor.map (Cat.homOf forgetToGrpd))
-    = Cat.homOf (Grothendieck.forget (classifier A ⋙ Grpd.forgetToCat))
+    = Cat.homOf (Functor.Grothendieck.forget (classifier A ⋙ Grpd.forgetToCat))
     ≫ Cat.homOf (Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd)) := rfl
 end
 
@@ -195,31 +195,29 @@ variable {Γ : Ctx.{max u (v+1)}} (A : Γ ⟶ U.{v, max u (v+1)})
 theorem isPullback_disp'_asSmallForgetToGrpd :
     IsPullback
       (Cat.homOf (toPGrpd (classifier A) ⋙ AsSmall.up))
-      (Cat.homOf (Grothendieck.forget
+      (Cat.homOf (Functor.Grothendieck.forget
         (classifier A ⋙ Grpd.forgetToCat)))
       (Cat.homOf $ AsSmall.down ⋙ forgetToGrpd ⋙ AsSmall.up)
       (Cat.homOf (Ctx.toGrpd.map A ⋙
         Core.inclusion (AsSmall Grpd))) :=
   Cat.isPullback rfl $ Functor.IsPullback.ofIso'
-      (toPGrpd (classifier A)) (Grothendieck.forget (classifier A ⋙ Grpd.forgetToCat))
-      forgetToGrpd (classifier A) (Grothendieck.Groupoidal.isPullback (classifier A))
-      (toPGrpd (classifier A) ⋙ AsSmall.up)
-      (Grothendieck.forget (classifier A ⋙ Grpd.forgetToCat))
-      (AsSmall.down ⋙ forgetToGrpd ⋙ AsSmall.up)
-      (Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd))
-      (Functor.Iso.refl _) AsSmall.downIso (Functor.Iso.refl _) AsSmall.downIso
-      rfl rfl rfl rfl
-
-  --Functor.IsPullback.ofUniversal
-    -- (toPGrpd (classifier A) ⋙ AsSmall.up)
-    -- (Grothendieck.forget (classifier A ⋙ Grpd.forgetToCat))
-    -- (AsSmall.down ⋙ forgetToGrpd ⋙ AsSmall.up)
-    -- (Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd))
-    -- rfl
-    -- (fun Cn Cw hC => isPullback_disp'_asSmallForgetToGrpd.universal A Cn Cw hC)
-    -- (fun Cn Cw hC => isPullback_disp'_asSmallForgetToGrpd.universal A Cn Cw hC)
-
--- end IsPullback
+    (toPGrpd (classifier A))
+    (Functor.Grothendieck.forget (classifier A ⋙ Grpd.forgetToCat))
+    forgetToGrpd
+    (classifier A)
+    (Functor.Groupoidal.isPullback (classifier A))
+    (toPGrpd (classifier A) ⋙ AsSmall.up)
+    (Functor.Grothendieck.forget (classifier A ⋙ Grpd.forgetToCat))
+    (AsSmall.down ⋙ forgetToGrpd ⋙ AsSmall.up)
+    (Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd))
+    (Functor.Iso.refl _)
+    AsSmall.downIso
+    (Functor.Iso.refl _)
+    AsSmall.downIso
+    rfl
+    rfl
+    rfl
+    rfl
 
 open SmallUHom
 

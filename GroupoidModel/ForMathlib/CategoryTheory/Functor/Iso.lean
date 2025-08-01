@@ -1,5 +1,6 @@
-import GroupoidModel.ForMathlib
-
+import Mathlib.CategoryTheory.Functor.Category
+import SEq.Tactic.DepRewrite
+import Mathlib.CategoryTheory.Category.ULift
 
 namespace CategoryTheory.Functor
 
@@ -15,6 +16,14 @@ infixr:10 " ≅≅ " => Iso -- type as \cong or \iso
 variable {X Y Z : Type*} [Category X] [Category Y] [Category Z]
 
 namespace Iso
+
+@[simp]
+lemma hom_inv_id_assoc (I : X ≅≅ Y) (H : X ⥤ Z) : I.hom ⋙ I.inv ⋙ H = H := by
+  rw [← Functor.assoc, hom_inv_id, Functor.id_comp]
+
+@[simp]
+lemma inv_hom_id_assoc (I : X ≅≅ Y) (H : Y ⥤ Z) : I.inv ⋙ I.hom ⋙ H = H := by
+  rw [← Functor.assoc, inv_hom_id, Functor.id_comp]
 
 @[simp] lemma hom_inv_id' (I : X ≅≅ Y) : I.hom ⋙ I.inv = 𝟭 _ := I.hom_inv_id
 
@@ -237,7 +246,6 @@ theorem cancel_iso_hom_left (f : X ≅≅ Y) (g g' : Y ⥤ Z) :
   . intro h
     rw[h]
 
-
 @[simp]
 theorem cancel_iso_inv_left (f : Y ≅≅ X) (g g' : Y ⥤ Z) :
     f.inv ⋙ g = f.inv ⋙ g' ↔ g = g' := by
@@ -306,6 +314,13 @@ theorem cancel_iso_inv_right_assoc (f : W ⥤ X) (g : X ⥤ Y) (f' : W ⥤ X')
   . intro hy
     simp only [← Functor.assoc, cancel_iso_inv_right]
     exact hy
+
+def toEquivalence (h : X ≅≅ Y) : X ≌ Y where
+  functor := h.hom
+  inverse := h.inv
+  unitIso := eqToIso h.hom_inv_id.symm
+  counitIso := eqToIso h.inv_hom_id
+  functor_unitIso_comp x := by simp [eqToHom_map]
 
 end Iso
 
