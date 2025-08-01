@@ -8,19 +8,13 @@ partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT vU : Q(Val)) :
       $d = Γ.length → ValEqTp Γ $l $vT T → ValEqTp Γ $l $vU U → Γ ⊢[$l] T ≡ U) := do
   match vT, vU with
   | ~q(.pi $k $k' $vA $vB), ~q(.pi $m $m' $vA' $vB') => do
-    let keq_ ← equateNat q($k) q($m)
-    withHave keq_ fun keq => do
-    let keq'_ ← equateNat q($k') q($m')
-    withHave keq'_ fun keq' => do
-    let Aeq_ ← equateTp q($d) q($k) q($vA) q($vA')
-    withHave Aeq_ fun Aeq => do
-    let ⟨Bx, Bxpost_⟩ ← forceClosTp q($d) q($vA) q($vB)
-    withHave Bxpost_ fun Bxpost => do
-    let ⟨Bx', Bxpost'_⟩ ← forceClosTp q($d) q($vA') q($vB')
-    withHave Bxpost'_ fun Bxpost' => do
-    let Beq_ ← equateTp q($d + 1) q($k') q($Bx) q($Bx')
-    withHave Beq_ fun Beq => do
-    mkHaves #[keq, keq', Aeq, Bxpost, Bxpost', Beq] q(by as_aux_lemma =>
+    let keq ← equateNat q($k) q($m)
+    let keq' ← equateNat q($k') q($m')
+    let Aeq ← equateTp q($d) q($k) q($vA) q($vA')
+    let ⟨Bx, Bxpost⟩ ← forceClosTp q($d) q($vA) q($vB)
+    let ⟨Bx', Bxpost'⟩ ← forceClosTp q($d) q($vA') q($vB')
+    let Beq ← equateTp q($d + 1) q($k') q($Bx) q($Bx')
+    return q(by as_aux_lemma =>
       introv _ vT vU
       have ⟨_, _, _, vA, vB, eq⟩ := vT.inv_pi
       have ⟨_, _, _, vA', vB', eq'⟩ := vU.inv_pi
@@ -33,19 +27,13 @@ partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT vU : Q(Val)) :
       gcongr
     )
   | ~q(.sigma $k $k' $vA $vB), ~q(.sigma $m $m' $vA' $vB') => do
-    let keq_ ← equateNat q($k) q($m)
-    withHave keq_ fun keq => do
-    let keq'_ ← equateNat q($k') q($m')
-    withHave keq'_ fun keq' => do
-    let Aeq_ ← equateTp q($d) q($k) q($vA) q($vA')
-    withHave Aeq_ fun Aeq => do
-    let ⟨Bx, Bxpost_⟩ ← forceClosTp q($d) q($vA) q($vB)
-    withHave Bxpost_ fun Bxpost => do
-    let ⟨Bx', Bxpost'_⟩ ← forceClosTp q($d) q($vA') q($vB')
-    withHave Bxpost'_ fun Bxpost' => do
-    let Beq_ ← equateTp q($d + 1) q($k') q($Bx) q($Bx')
-    withHave Beq_ fun Beq => do
-    mkHaves #[keq, keq', Aeq, Bxpost, Bxpost', Beq] q(by as_aux_lemma =>
+    let keq ← equateNat q($k) q($m)
+    let keq' ← equateNat q($k') q($m')
+    let Aeq ← equateTp q($d) q($k) q($vA) q($vA')
+    let ⟨Bx, Bxpost⟩ ← forceClosTp q($d) q($vA) q($vB)
+    let ⟨Bx', Bxpost'⟩ ← forceClosTp q($d) q($vA') q($vB')
+    let Beq ← equateTp q($d + 1) q($k') q($Bx) q($Bx')
+    return q(by as_aux_lemma =>
       introv _ vT vU
       have ⟨_, _, _, vA, vB, eq⟩ := vT.inv_sigma
       have ⟨_, _, _, vA', vB', eq'⟩ := vU.inv_sigma
@@ -68,9 +56,8 @@ partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT vU : Q(Val)) :
       apply EqTp.refl_tp <| WfTp.univ eq.wf_ctx (by omega)
     )
   | ~q(.el $va), ~q(.el $va') => do
-    let aeq_ ← equateTm q($d) q($l + 1) q(.univ $l) q($va) q($va')
-    withHave aeq_ fun aeq => do
-    mkHaves #[aeq] q(by as_aux_lemma =>
+    let aeq ← equateTm q($d) q($l + 1) q(.univ $l) q($va) q($va')
+    return q(by as_aux_lemma =>
       introv deq vT vU
       have ⟨_, va, eq⟩ := vT.inv_el
       have ⟨_, va', eq'⟩ := vU.inv_el
@@ -88,15 +75,11 @@ partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val)) : Lean.MetaM 
   match vT with
   | ~q(.pi _ $k' $vA $vB) => do
     let x : Q(Val) := q(.neut (.bvar $d) $vA)
-    let ⟨tx, txpost_⟩ ← evalApp q($vt) q($x)
-    withHave txpost_ fun txpost => do
-    let ⟨ux, uxpost_⟩ ← evalApp q($vu) q($x)
-    withHave uxpost_ fun uxpost => do
-    let ⟨Bx, Bxpost_⟩ ← forceClosTp q($d) q($vA) q($vB)
-    withHave Bxpost_ fun Bxpost => do
-    let tueq_ ← equateTm q($d + 1) q($k') q($Bx) q($tx) q($ux)
-    withHave tueq_ fun tueq => do
-    mkHaves #[txpost, uxpost, Bxpost, tueq] q(by as_aux_lemma =>
+    let ⟨tx, txpost⟩ ← evalApp q($vt) q($x)
+    let ⟨ux, uxpost⟩ ← evalApp q($vu) q($x)
+    let ⟨Bx, Bxpost⟩ ← forceClosTp q($d) q($vA) q($vB)
+    let tueq ← equateTm q($d + 1) q($k') q($Bx) q($tx) q($ux)
+    return q(by as_aux_lemma =>
       introv _ vT vt vu
       have ⟨_, _, _, vA, vB, eq⟩ := vT.inv_pi
       subst_vars
@@ -119,7 +102,6 @@ partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val)) : Lean.MetaM 
       convert ($tueq (by simp) Bx tx ux) using 1 <;> autosubst
     )
   | ~q(.sigma $k $k' $vA $vB) => do
-    -- NOTE: not using `withHave` here temporarily
     let ⟨tf, tfpost⟩ ← evalFst q($vt)
     let ⟨uf, ufpost⟩ ← evalFst q($vu)
     let feq ← equateTm q($d) q($k) q($vA) q($tf) q($uf)
@@ -168,9 +150,8 @@ partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val)) : Lean.MetaM 
         apply EqTm.cong_code (by omega) <| $Teq rfl vT vU
       )
     | ~q(.neut $nt _), ~q(.neut $nu _) => do
-      let eq_ ← equateNeutTm q($d) q($nt) q($nu)
-      withHave eq_ fun eq => do
-      mkHaves #[eq] q(by as_aux_lemma =>
+      let eq ← equateNeutTm q($d) q($nt) q($nu)
+      return q(by as_aux_lemma =>
         introv deq vT vt vu
         have ⟨_, nt⟩ := vt.inv_neut
         have ⟨_, nu⟩ := vu.inv_neut
@@ -184,9 +165,8 @@ partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut)) : Lean.MetaM Q(∀ {Γ T
       (Γ ⊢[l] T ≡ U) ∧ (Γ ⊢[l] t ≡ u : T)) :=
   match nt, nu with
   | ~q(.bvar $i), ~q(.bvar $j) => do
-    let ij_ ← equateNat q($i) q($j)
-    withHave ij_ fun ij => do
-    mkHaves #[ij] q(by as_aux_lemma =>
+    let ij ← equateNat q($i) q($j)
+    return q(by as_aux_lemma =>
       introv deq nt nu
       have ⟨_, lk, eqt, eq⟩ := nt.inv_bvar
       have ⟨_, lk', eqt', eq'⟩ := nu.inv_bvar
@@ -197,13 +177,10 @@ partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut)) : Lean.MetaM Q(∀ {Γ T
       apply EqTm.refl_tm eqt.wf_right
     )
   | ~q(.app $k _ $vA $nf $va), ~q(.app $m _ _ $nf' $va') => do
-    let km_ ← equateNat k m
-    withHave km_ fun km => do
-    let feq_ ← equateNeutTm q($d) q($nf) q($nf')
-    withHave feq_ fun feq => do
-    let aeq_ ← equateTm q($d) q($k) q($vA) q($va) q($va')
-    withHave aeq_ fun aeq => do
-    mkHaves #[km, feq, aeq] q(by as_aux_lemma =>
+    let km ← equateNat k m
+    let feq ← equateNeutTm q($d) q($nf) q($nf')
+    let aeq ← equateTm q($d) q($k) q($vA) q($va) q($va')
+    return q(by as_aux_lemma =>
       introv _ nt nu
       have ⟨_, _, _, _, _, vA, nf, va, eqt, eq⟩ := nt.inv_app
       have ⟨_, _, _, _, _, vA', nf', va', eqt', eq'⟩ := nu.inv_app
@@ -219,11 +196,9 @@ partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut)) : Lean.MetaM Q(∀ {Γ T
       gcongr
     )
   | ~q(.fst _ $k' $p), ~q(.fst _ $m' $p') => do
-    let km'_ ← equateNat q($k') q($m')
-    withHave km'_ fun km' => do
-    let peq_ ← equateNeutTm q($d) q($p) q($p')
-    withHave peq_ fun peq => do
-    mkHaves #[km', peq] q(by as_aux_lemma =>
+    let km' ← equateNat q($k') q($m')
+    let peq ← equateNeutTm q($d) q($p) q($p')
+    return q(by as_aux_lemma =>
       introv deq nt nu
       have ⟨_, _, _, _, p, eqt, eq⟩ := nt.inv_fst
       have ⟨_, _, _, _, p', eqt', eq'⟩ := nu.inv_fst
@@ -237,11 +212,9 @@ partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut)) : Lean.MetaM Q(∀ {Γ T
       gcongr
     )
   | ~q(.snd $k _ $p), ~q(.snd $m _ $p') => do
-    let km_ ← equateNat q($k) q($m)
-    withHave km_ fun km => do
-    let peq_ ← equateNeutTm q($d) q($p) q($p')
-    withHave peq_ fun peq => do
-    mkHaves #[km, peq] q(by as_aux_lemma =>
+    let km ← equateNat q($k) q($m)
+    let peq ← equateNeutTm q($d) q($p) q($p')
+    return q(by as_aux_lemma =>
       introv deq nt nu
       have ⟨_, _, _, _, p, eqt, eq⟩ := nt.inv_snd
       have ⟨_, _, _, _, p', eqt', eq'⟩ := nu.inv_snd

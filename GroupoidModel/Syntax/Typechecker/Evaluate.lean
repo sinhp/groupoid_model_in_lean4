@@ -11,14 +11,7 @@ open Qq
 mutual
 /-- Evaluate a type in an environment of values.
 
-Note: we use `as_aux_lemma` pervasively to minimize the size of produced proof terms.
-See also `withHave`. -/
-/- TODO: is `withHave` still relevant with postcondition-only formulation?
-If it is, because the proofs are not passed to subcalls anymore,
-we can use `withHaves` instead.
-
-But then we'd be calling `withHaves #[....] fun fs => mkHaves fs (mkAppM .. fs)`
-which is obviously not doing anything! -/
+Note: we use `as_aux_lemma` pervasively to minimize the size of produced proof terms. -/
 partial def evalTp (env : Q(List Val)) (T' : Q(Expr)) : Lean.MetaM ((v : Q(Val)) ×
     Q(∀ {Γ Δ σ l}, EnvEqSb Δ $env σ Γ → (Γ ⊢[l] ($T')) → ValEqTp Δ l $v (($T').subst σ))) := do
   /- TODO: establish a convention for when inputs are supposed to be in WHNF.
@@ -30,8 +23,7 @@ partial def evalTp (env : Q(List Val)) (T' : Q(Expr)) : Lean.MetaM ((v : Q(Val))
   have _ : $T =Q $T' := .unsafeIntro
   match T with
   | ~q(.pi $l $l' $A $B) => do
-    let ⟨vA, vApost_⟩ ← evalTp q($env) q($A)
-    withHave vApost_ fun vApost => do
+    let ⟨vA, vApost⟩ ← evalTp q($env) q($A)
     let vT : Q(Val) := q(.pi $l $l' $vA (.of_expr $env $B))
     -- HACK: without the explicit annotation,
     -- `← mkHaves #[..] q(by _)` has an mvar for the goal at `_`.
@@ -43,10 +35,9 @@ partial def evalTp (env : Q(List Val)) (T' : Q(Expr)) : Lean.MetaM ((v : Q(Val))
         apply ValEqTp.pi vAeq
         apply ClosEqTp.clos_tp env (EqTp.refl_tp vAeq.wf_tp) B
       )
-    return ⟨vT, ← mkHaves #[vApost] pf⟩
+    return ⟨vT, pf⟩
   | ~q(.sigma $l $l' $A $B) => do
-    let ⟨vA, vApost_⟩ ← evalTp q($env) q($A)
-    withHave vApost_ fun vApost => do
+    let ⟨vA, vApost⟩ ← evalTp q($env) q($A)
     let vT : Q(Val) := q(.sigma $l $l' $vA (.of_expr $env $B))
     -- HACK: without the explicit annotation,
     -- `← mkHaves #[..] q(by _)` has an mvar for the goal at `_`.
@@ -58,12 +49,11 @@ partial def evalTp (env : Q(List Val)) (T' : Q(Expr)) : Lean.MetaM ((v : Q(Val))
         apply ValEqTp.sigma vAeq
         apply ClosEqTp.clos_tp env (EqTp.refl_tp vAeq.wf_tp) B
       )
-    return ⟨vT, ← mkHaves #[vApost] pf⟩
+    return ⟨vT, pf⟩
   | ~q(.el $a) => do
-    let ⟨va, vapost_⟩ ← evalTm q($env) q($a)
-    withHave vapost_ fun vapost => do
+    let ⟨va, vapost⟩ ← evalTm q($env) q($a)
     let vT : Q(Val) := q(.el $va)
-    return ⟨vT, ← mkHaves #[vapost] q(by as_aux_lemma =>
+    return ⟨vT, q(by as_aux_lemma =>
       introv env T
       have := $vapost env T.inv_el
       exact ValEqTp.el this
@@ -117,13 +107,10 @@ partial def evalTm (env : Q(List Val)) (t' : Q(Expr)) : Lean.MetaM ((v : Q(Val))
         . exact EqTp.refl_tp <| b.wf_tp.subst (env.wf_sb.up C)
       )⟩
   | ~q(.app $k $k' $B $f $a) => do
-    let ⟨vf, vfpost_⟩ ← evalTm q($env) q($f)
-    withHave vfpost_ fun vfpost => do
-    let ⟨va, vapost_⟩ ← evalTm q($env) q($a)
-    withHave vapost_ fun vapost => do
-    let ⟨v, vpost_⟩ ← evalApp q($vf) q($va)
-    withHave vpost_ fun vpost => do
-    return ⟨v, ← mkHaves #[vfpost, vapost, vpost] q(by as_aux_lemma =>
+    let ⟨vf, vfpost⟩ ← evalTm q($env) q($f)
+    let ⟨va, vapost⟩ ← evalTm q($env) q($a)
+    let ⟨v, vpost⟩ ← evalApp q($vf) q($va)
+    return ⟨v, q(by as_aux_lemma =>
       introv env t
       obtain ⟨rfl, _, f, a, eq⟩ := t.inv_app
       apply $vpost ($vfpost env f) ($vapost env a) |>.conv_tp
@@ -131,12 +118,10 @@ partial def evalTm (env : Q(List Val)) (t' : Q(Expr)) : Lean.MetaM ((v : Q(Val))
       autosubst
     )⟩
   | ~q(.pair $k $k' $B $f $s) => do
-    let ⟨vf, vfpost_⟩ ← evalTm q($env) q($f)
-    withHave vfpost_ fun vfpost => do
-    let ⟨vs, vspost_⟩ ← evalTm q($env) q($s)
-    withHave vspost_ fun vspost => do
+    let ⟨vf, vfpost⟩ ← evalTm q($env) q($f)
+    let ⟨vs, vspost⟩ ← evalTm q($env) q($s)
     let vp : Q(Val) := q(.pair $k $k' $vf $vs)
-    return ⟨vp, ← mkHaves #[vfpost, vspost] q(by as_aux_lemma =>
+    return ⟨vp, q(by as_aux_lemma =>
       introv env t
       obtain ⟨rfl, _, t, u, eq⟩ := t.inv_pair
       have ⟨_, B⟩ := eq.wf_right.inv_sigma
@@ -146,22 +131,18 @@ partial def evalTm (env : Q(List Val)) (t' : Q(Expr)) : Lean.MetaM ((v : Q(Val))
       autosubst
     )⟩
   | ~q(.fst $k $k' $A $B $p) => do
-    let ⟨vp, vppost_⟩ ← evalTm q($env) q($p)
-    withHave vppost_ fun vppost => do
-    let ⟨v, vpost_⟩ ← evalFst q($vp)
-    withHave vpost_ fun vpost => do
-    return ⟨v, ← mkHaves #[vppost, vpost] q(by as_aux_lemma =>
+    let ⟨vp, vppost⟩ ← evalTm q($env) q($p)
+    let ⟨v, vpost⟩ ← evalFst q($vp)
+    return ⟨v, q(by as_aux_lemma =>
       introv env t
       obtain ⟨rfl, p, eq⟩ := t.inv_fst
       apply ValEqTm.conv_tp _ (eq.subst env.wf_sb).symm_tp
       exact $vpost ($vppost env p)
     )⟩
   | ~q(.snd $k $k' $A $B $p) => do
-    let ⟨vp, vppost_⟩ ← evalTm q($env) q($p)
-    withHave vppost_ fun vppost => do
-    let ⟨v, vpost_⟩ ← evalSnd q($vp)
-    withHave vpost_ fun vpost => do
-    return ⟨v, ← mkHaves #[vppost, vpost] q(by as_aux_lemma =>
+    let ⟨vp, vppost⟩ ← evalTm q($env) q($p)
+    let ⟨v, vpost⟩ ← evalSnd q($vp)
+    return ⟨v, q(by as_aux_lemma =>
       introv env t
       obtain ⟨rfl, p, eq⟩ := t.inv_snd
       apply ValEqTm.conv_tp _ (eq.subst env.wf_sb).symm_tp
@@ -169,10 +150,9 @@ partial def evalTm (env : Q(List Val)) (t' : Q(Expr)) : Lean.MetaM ((v : Q(Val))
       autosubst
     )⟩
   | ~q(.code $A) => do
-    let ⟨vA, vApost_⟩ ← evalTp q($env) q($A)
-    withHave vApost_ fun vApost => do
+    let ⟨vA, vApost⟩ ← evalTp q($env) q($A)
     let vc : Q(Val) := q(.code $vA)
-    return ⟨vc, ← mkHaves #[vApost] q(by as_aux_lemma =>
+    return ⟨vc, q(by as_aux_lemma =>
       introv env t
       obtain ⟨_, rfl, A, eq⟩ := t.inv_code
       apply ValEqTm.conv_tp _ (eq.subst env.wf_sb).symm_tp
@@ -194,12 +174,10 @@ partial def evalValTp (env : Q(List Val)) (vT : Q(Val)) : Lean.MetaM ((v : Q(Val
     Q(∀ {Γ Δ A σ l}, EnvEqSb Δ $env σ Γ → ValEqTp Γ l $vT A → ValEqTp Δ l $v (A.subst σ))) := do
   match vT with
   | ~q(.pi $k $k' $vA $vB) =>
-    let ⟨vB, vBpost_⟩ ← forceClosTp q(($env).length) q($vA) q($vB)
-    withHave vBpost_ fun vBpost => do
-    let ⟨vA, vApost_⟩ ← evalValTp q($env) q($vA)
-    withHave vApost_ fun vApost => do
+    let ⟨vB, vBpost⟩ ← forceClosTp q(($env).length) q($vA) q($vB)
+    let ⟨vA, vApost⟩ ← evalValTp q($env) q($vA)
     let v : Q(Val) := q(.pi $k $k' $vA (.of_val $env $vB))
-    return ⟨v, ← mkHaves #[vBpost, vApost] q(by as_aux_lemma =>
+    return ⟨v, q(by as_aux_lemma =>
       introv env vT
       have ⟨_, _, _, vA, vB, eq⟩ := vT.inv_pi
       subst_vars
@@ -210,12 +188,10 @@ partial def evalValTp (env : Q(List Val)) (vT : Q(Val)) : Lean.MetaM ((v : Q(Val
         $vBpost env.eq_length vA vB
     )⟩
   | ~q(.sigma $k $k' $vA $vB) =>
-    let ⟨vB, vBpost_⟩ ← forceClosTp q(($env).length) q($vA) q($vB)
-    withHave vBpost_ fun vBpost => do
-    let ⟨vA, vApost_⟩ ← evalValTp q($env) q($vA)
-    withHave vApost_ fun vApost => do
+    let ⟨vB, vBpost⟩ ← forceClosTp q(($env).length) q($vA) q($vB)
+    let ⟨vA, vApost⟩ ← evalValTp q($env) q($vA)
     let v : Q(Val) := q(.sigma $k $k' $vA (.of_val $env $vB))
-    return ⟨v, ← mkHaves #[vBpost, vApost] q(by as_aux_lemma =>
+    return ⟨v, q(by as_aux_lemma =>
       introv env vT
       have ⟨_, _, _, vA, vB, eq⟩ := vT.inv_sigma
       subst_vars
@@ -234,10 +210,9 @@ partial def evalValTp (env : Q(List Val)) (vT : Q(Val)) : Lean.MetaM ((v : Q(Val
       apply ValEqTp.univ env.wf_dom (by omega)
     )⟩
   | ~q(.el $va) =>
-    let ⟨va, vapost_⟩ ← evalValTm q($env) q($va)
-    withHave vapost_ fun vapost => do
+    let ⟨va, vapost⟩ ← evalValTm q($env) q($va)
     let v : Q(Val) := q(.el $va)
-    return ⟨v, ← mkHaves #[vapost] q(by as_aux_lemma =>
+    return ⟨v, q(by as_aux_lemma =>
       introv env vT
       have ⟨_, va, eq⟩ := vT.inv_el
       apply ValEqTp.conv_tp _ (eq.subst env.wf_sb).symm_tp
@@ -280,10 +255,9 @@ partial def evalValTm (env : Q(List Val)) (vt : Q(Val)) : Lean.MetaM ((v : Q(Val
       convert ($vspost env vs) using 1; autosubst
     )⟩
   | ~q(.code $vA) =>
-    let ⟨vA, vApost_⟩ ← evalValTp q($env) q($vA)
-    withHave vApost_ fun vApost => do
+    let ⟨vA, vApost⟩ ← evalValTp q($env) q($vA)
     let v : Q(Val) := q(.code $vA)
-    return ⟨v, ← mkHaves #[vApost] q(by as_aux_lemma =>
+    return ⟨v, q(by as_aux_lemma =>
       introv env vt
       have ⟨_, _, _, vA, eqt, eq⟩ := vt.inv_code
       subst_vars
@@ -324,12 +298,10 @@ partial def evalNeutTm (env : Q(List Val)) (nt : Q(Neut)) : Lean.MetaM ((v : Q(V
       exact env.eq_length
     )⟩
   | ~q(.app _ _ _ $nf $va) =>
-    let ⟨vf, vfpost_⟩ ← evalNeutTm q($env) q($nf)
-    withHave vfpost_ fun vfpost => do
-    let ⟨va, vapost_⟩ ← evalValTm q($env) q($va)
-    withHave vapost_ fun vapost => do
+    let ⟨vf, vfpost⟩ ← evalNeutTm q($env) q($nf)
+    let ⟨va, vapost⟩ ← evalValTm q($env) q($va)
     let ⟨v, vpost⟩ ← evalApp q($vf) q($va)
-    return ⟨v, ← mkHaves #[vfpost, vapost] q(by as_aux_lemma =>
+    return ⟨v, q(by as_aux_lemma =>
       introv env nt
       have ⟨_, _, _, _, _, _, nf, va, eqt, eq⟩ := nt.inv_app
       subst_vars
@@ -339,10 +311,9 @@ partial def evalNeutTm (env : Q(List Val)) (nt : Q(Neut)) : Lean.MetaM ((v : Q(V
       autosubst
     )⟩
   | ~q(.fst $k $k' $np) =>
-    let ⟨vp, vppost_⟩ ← evalNeutTm q($env) q($np)
-    withHave vppost_ fun vppost => do
+    let ⟨vp, vppost⟩ ← evalNeutTm q($env) q($np)
     let ⟨v, vpost⟩ ← evalFst q($vp)
-    return ⟨v, ← mkHaves #[vppost, vpost] q(by as_aux_lemma =>
+    return ⟨v, q(by as_aux_lemma =>
       introv env nt
       have ⟨_, _, _, _, np_eq, eqt, eq⟩ := nt.inv_fst
       subst_vars
@@ -351,10 +322,9 @@ partial def evalNeutTm (env : Q(List Val)) (nt : Q(Neut)) : Lean.MetaM ((v : Q(V
       exact $vpost ($vppost env np_eq)
     )⟩
   | ~q(.snd $k $k' $np) =>
-    let ⟨vp, vppost_⟩ ← evalNeutTm q($env) q($np)
-    withHave vppost_ fun vppost => do
+    let ⟨vp, vppost⟩ ← evalNeutTm q($env) q($np)
     let ⟨v, vpost⟩ ← evalSnd q($vp)
-    return ⟨v, ← mkHaves #[vppost, vpost] q(by as_aux_lemma =>
+    return ⟨v, q(by as_aux_lemma =>
       introv env nt
       have ⟨_, _, _, _, np_eq, eqt, eq⟩ := nt.inv_snd
       subst_vars
@@ -371,8 +341,7 @@ partial def evalClosTp (vB : Q(Clos)) (vt : Q(Val)) : Lean.MetaM ((v : Q(Val)) �
       ValEqTp Γ l' $v (B.subst t.toSb))) := do
   match vB with
   | ~q(.of_expr $env $B) => do
-    let ⟨v, vpost_⟩ ← evalTp q($vt :: $env) q($B)
-    withHave vpost_ fun vpost => do
+    let ⟨v, vpost⟩ ← evalTp q($vt :: $env) q($B)
     let pf : Q(∀ {Γ A B t l l'}, ClosEqTp Γ l l' A $vB B → ValEqTm Γ l $vt t A →
           ValEqTp Γ l' $v (B.subst t.toSb)) := q(by as_aux_lemma =>
         introv vB vt
@@ -381,11 +350,10 @@ partial def evalClosTp (vB : Q(Clos)) (vt : Q(Val)) : Lean.MetaM ((v : Q(Val)) �
         convert ($vpost (env.snoc B.wf_binder (vt.conv_tp Aeq.symm_tp)) B) using 1
         autosubst
       )
-    return ⟨v, ← mkHaves #[vpost] pf⟩
+    return ⟨v, pf⟩
   | ~q(.of_val $env $vB') => do
-    let ⟨v, vpost_⟩ ← evalValTp q($vt :: $env) q($vB')
-    withHave vpost_ fun vpost => do
-    return ⟨v, ← mkHaves #[vpost] q(by as_aux_lemma =>
+    let ⟨v, vpost⟩ ← evalValTp q($vt :: $env) q($vB')
+    return ⟨v, q(by as_aux_lemma =>
       introv vB vt
       simp +zetaDelta only at vB
       rcases vB with _ | ⟨env, Aeq, B⟩
@@ -399,8 +367,7 @@ partial def evalClosTp (vB : Q(Clos)) (vt : Q(Val)) : Lean.MetaM ((v : Q(Val)) �
 partial def forceClosTp (d : Q(Nat)) (vA : Q(Val)) (vB : Q(Clos)) : Lean.MetaM ((v : Q(Val)) ×
     Q(∀ {Γ A B l l'}, $d = Γ.length → ValEqTp Γ l $vA A → ClosEqTp Γ l l' A $vB B →
       ValEqTp ((A, l) :: Γ) l' $v B)) := do
-  let ⟨v, vpost_⟩ ← evalClosTp q($vB) q(.neut (.bvar $d) $vA)
-  withHave vpost_ fun vpost => do
+  let ⟨v, vpost⟩ ← evalClosTp q($vB) q(.neut (.bvar $d) $vA)
   let pf : Q(∀ {Γ A B l l'}, $d = Γ.length → ValEqTp Γ l $vA A → ClosEqTp Γ l l' A $vB B →
         ValEqTp ((A, l) :: Γ) l' $v B) := q(by as_aux_lemma =>
       introv deq vA vB
@@ -412,7 +379,7 @@ partial def forceClosTp (d : Q(Nat)) (vA : Q(Val)) (vB : Q(Clos)) : Lean.MetaM (
       convert ($vpost vB this) using 1
       autosubst
     )
-  return ⟨v, ← mkHaves #[vpost] pf⟩
+  return ⟨v, pf⟩
 
 /-- Evaluate a term closure on an argument. -/
 partial def evalClosTm (vb : Q(Clos)) (vt : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
@@ -420,8 +387,7 @@ partial def evalClosTm (vb : Q(Clos)) (vt : Q(Val)) : Lean.MetaM ((v : Q(Val)) �
       ValEqTm Γ l' $v (b.subst t.toSb) (B.subst t.toSb))) := do
   match vb with
   | ~q(.of_expr $env $b) => do
-    let ⟨v, vpost_⟩ ← evalTm q($vt :: $env) q($b)
-    withHave vpost_ fun vpost => do
+    let ⟨v, vpost⟩ ← evalTm q($vt :: $env) q($b)
     let pf : Q(∀ {Γ A B b t l l'}, ClosEqTm Γ l l' A B $vb b → ValEqTm Γ l $vt t A →
           ValEqTm Γ l' $v (b.subst t.toSb) (B.subst t.toSb)) := q(by as_aux_lemma =>
         introv vb vt
@@ -432,11 +398,10 @@ partial def evalClosTm (vb : Q(Clos)) (vt : Q(Val)) : Lean.MetaM ((v : Q(Val)) �
         convert ($vpost this b |>.conv_tp (by convert Beq using 1; autosubst)) using 1
         autosubst
       )
-    return ⟨v, ← mkHaves #[vpost] pf⟩
+    return ⟨v, pf⟩
   | ~q(.of_val $env $vb') => do
-    let ⟨v, vpost_⟩ ← evalValTm q($vt :: $env) q($vb')
-    withHave vpost_ fun vpost => do
-    return ⟨v, ← mkHaves #[vpost] q(by as_aux_lemma =>
+    let ⟨v, vpost⟩ ← evalValTm q($vt :: $env) q($vb')
+    return ⟨v, q(by as_aux_lemma =>
       introv vb vt
       simp +zetaDelta only at vb
       rcases vb with _ | ⟨env, Aeq, Beq, b⟩
@@ -451,8 +416,7 @@ partial def evalClosTm (vb : Q(Clos)) (vt : Q(Val)) : Lean.MetaM ((v : Q(Val)) �
 partial def forceClosTm (d : Q(Nat)) (vA : Q(Val)) (vb : Q(Clos)) : Lean.MetaM ((v : Q(Val)) ×
     Q(∀ {Γ A B b l l'}, $d = Γ.length → ValEqTp Γ l $vA A → ClosEqTm Γ l l' A B $vb b →
       ValEqTm ((A, l) :: Γ) l' $v b B)) := do
-  let ⟨v, vpost_⟩ ← evalClosTm q($vb) q(.neut (.bvar $d) $vA)
-  withHave vpost_ fun vpost => do
+  let ⟨v, vpost⟩ ← evalClosTm q($vb) q(.neut (.bvar $d) $vA)
   let pf : Q(∀ {Γ A B b l l'}, $d = Γ.length → ValEqTp Γ l $vA A → ClosEqTm Γ l l' A B $vb b →
         ValEqTm ((A, l) :: Γ) l' $v b B) := q(by as_aux_lemma =>
       introv deq vA vb
@@ -463,15 +427,14 @@ partial def forceClosTm (d : Q(Nat)) (vA : Q(Val)) (vb : Q(Clos)) : Lean.MetaM (
       have := ValEqTm.neut_tm vA this
       convert ($vpost vb this) using 1 <;> autosubst
     )
-  return ⟨v, ← mkHaves #[vpost] pf⟩
+  return ⟨v, pf⟩
 
 partial def evalApp (vf va : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
     Q(∀ {Δ A B f a l l'}, ValEqTm Δ (max l l') $vf f (.pi l l' A B) → ValEqTm Δ l $va a A →
       ValEqTm Δ l' $v (.app l l' B f a) (B.subst a.toSb))) :=
   match vf with
   | ~q(.lam $k $k' _ $vb) => do
-    let ⟨v, vpost_⟩ ← evalClosTm q($vb) q($va)
-    withHave vpost_ fun vpost => do
+    let ⟨v, vpost⟩ ← evalClosTm q($vb) q($va)
     let pf : Q(∀ {Δ A B f a l l'},
           ValEqTm Δ (max l l') $vf f (.pi l l' A B) → ValEqTm Δ l $va a A →
           ValEqTm Δ l' $v (.app l l' B f a) (B.subst a.toSb)) := q(by as_aux_lemma =>
@@ -488,10 +451,9 @@ partial def evalApp (vf va : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
         symm; gcongr
         assumption
       )
-    return ⟨v, ← mkHaves #[vpost] pf⟩
+    return ⟨v, pf⟩
   | ~q(.neut $n (.pi $k $k' $vA $vB)) => do
-    let ⟨vBa, vBpost_⟩ ← evalClosTp q($vB) q($va)
-    withHave vBpost_ fun vBpost => do
+    let ⟨vBa, vBpost⟩ ← evalClosTp q($vB) q($va)
     let v : Q(Val) := q(.neut (.app $k $k' $vA $n $va) $vBa)
     let pf : Q(∀ {Δ A B f a l l'},
           ValEqTm Δ (max l l') $vf f (.pi l l' A B) → ValEqTm Δ l $va a A →
@@ -505,7 +467,7 @@ partial def evalApp (vf va : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
         apply ValEqTm.neut_tm this
         apply NeutEqTm.app (vA.conv_tp Aeq.symm_tp) n va
       )
-    return ⟨v, ← mkHaves #[vBpost] pf⟩
+    return ⟨v, pf⟩
   | vf => throwError "expected a normal form at type Π, got{Lean.indentExpr vf}"
 
 partial def evalFst (vp : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
@@ -565,12 +527,10 @@ partial def evalSnd (vp : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
       symm; gcongr <;> assumption
     )⟩
   | ~q(.neut $n (.sigma $k $k' $vA $vB)) => do
-    let ⟨vf, vfpost_⟩ ← evalFst q($vp)
-    withHave vfpost_ fun vfpost => do
-    let ⟨vBfst, vBpost_⟩ ← evalClosTp q($vB) q($vf)
-    withHave vBpost_ fun vBpost => do
+    let ⟨vf, vfpost⟩ ← evalFst q($vp)
+    let ⟨vBfst, vBpost⟩ ← evalClosTp q($vB) q($vf)
     let n : Q(Val) := q(.neut (.snd $k $k' $n) $vBfst)
-    return ⟨n, ← mkHaves #[vfpost, vBpost] q(by as_aux_lemma =>
+    return ⟨n, q(by as_aux_lemma =>
       introv vp
       have ⟨S, p⟩ := vp.inv_neut
       have ⟨_, _, _, vA, vB, eq⟩ := S.inv_sigma
@@ -589,9 +549,8 @@ def evalTpId (vΓ : Q(TpEnv)) (T : Q(Expr)) : Lean.MetaM ((v : Q(Val)) ×
     Q(∀ {Γ l}, TpEnvEqCtx $vΓ Γ → (Γ ⊢[l] ($T)) → ValEqTp Γ l $v $T)) := do
   -- TODO: WHNF `envOfTpEnv`? I think not; it will need WHNFing later anyway
   -- (WHNF doesn't eval the args). Lean essentially forces us to lazily WHNF.
-  let ⟨vT, vTpost_⟩ ← evalTp q(envOfTpEnv $vΓ) q($T)
-  withHave vTpost_ fun vTpost => do
-  return ⟨vT, ← mkHaves #[vTpost] q(by as_aux_lemma =>
+  let ⟨vT, vTpost⟩ ← evalTp q(envOfTpEnv $vΓ) q($T)
+  return ⟨vT, q(by as_aux_lemma =>
     introv vΓ T
     convert ($vTpost (envOfTpEnv_wf vΓ) T) using 1; autosubst
   )⟩
@@ -599,9 +558,8 @@ def evalTpId (vΓ : Q(TpEnv)) (T : Q(Expr)) : Lean.MetaM ((v : Q(Val)) ×
 /-- Evaluate a term in the identity evaluation environment. -/
 def evalTmId (vΓ : Q(TpEnv)) (t : Q(Expr)) : Lean.MetaM ((v : Q(Val)) ×
     Q(∀ {Γ A l}, TpEnvEqCtx $vΓ Γ → (Γ ⊢[l] ($t) : A) → ValEqTm Γ l $v $t A)) := do
-  let ⟨vt, vtpost_⟩ ← evalTm q(envOfTpEnv $vΓ) q($t)
-  withHave vtpost_ fun vtpost => do
-  return ⟨vt, ← mkHaves #[vtpost] q(by as_aux_lemma =>
+  let ⟨vt, vtpost⟩ ← evalTm q(envOfTpEnv $vΓ) q($t)
+  return ⟨vt, q(by as_aux_lemma =>
     introv vΓ t
     convert ($vtpost (envOfTpEnv_wf vΓ) t) using 1 <;> autosubst
   )⟩

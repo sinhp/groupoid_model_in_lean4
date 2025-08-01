@@ -28,49 +28,37 @@ partial def checkTp (vΓ : Q(TpEnv)) (l : Q(Nat)) (T : Q(Expr)) :
     Lean.MetaM Q(∀ {Γ}, TpEnvEqCtx $vΓ Γ → Γ ⊢[$l] ($T)) :=
   match T with
   | ~q(.pi $k $k' $A $B) => do
-    let leq_ ← equateNat q($l) q(max $k $k')
-    withHave leq_ fun leq => do
-    let Awf_ ← checkTp q($vΓ) q($k) A
-    withHave Awf_ fun Awf => do
-    let ⟨vA, vAeq_⟩ ← evalTpId q($vΓ) q($A)
-    withHave vAeq_ fun vAeq => do
-    let Bwf_ ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
-    withHave Bwf_ fun Bwf => do
-    mkHaves #[leq, Awf, vAeq, Bwf] q(by as_aux_lemma =>
+    let leq ← equateNat q($l) q(max $k $k')
+    let Awf ← checkTp q($vΓ) q($k) A
+    let ⟨vA, vAeq⟩ ← evalTpId q($vΓ) q($A)
+    let Bwf ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
+    return q(by as_aux_lemma =>
       introv vΓ
       subst_vars
       apply WfTp.pi <| $Bwf <| vΓ.snoc <| $vAeq vΓ <| $Awf vΓ
     )
   | ~q(.sigma $k $k' $A $B) => do
-    let leq_ ← equateNat q($l) q(max $k $k')
-    withHave leq_ fun leq => do
-    let Awf_ ← checkTp q($vΓ) q($k) A
-    withHave Awf_ fun Awf => do
-    let ⟨vA, vAeq_⟩ ← evalTpId q($vΓ) q($A)
-    withHave vAeq_ fun vAeq => do
-    let Bwf_ ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
-    withHave Bwf_ fun Bwf => do
-    mkHaves #[leq, Awf, vAeq, Bwf] q(by as_aux_lemma =>
+    let leq ← equateNat q($l) q(max $k $k')
+    let Awf ← checkTp q($vΓ) q($k) A
+    let ⟨vA, vAeq⟩ ← evalTpId q($vΓ) q($A)
+    let Bwf ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
+    return q(by as_aux_lemma =>
       introv vΓ
       subst_vars
       apply WfTp.sigma <| $Bwf <| vΓ.snoc <| $vAeq vΓ <| $Awf vΓ
     )
   | ~q(.univ $n) => do
-    let ln_ ← equateNat q($l) q($n + 1)
-    withHave ln_ fun ln => do
-    let nmax_ ← ltNat q($n) q(univMax)
-    withHave nmax_ fun nmax => do
-    mkHaves #[ln, nmax] q(by as_aux_lemma =>
+    let ln ← equateNat q($l) q($n + 1)
+    let nmax ← ltNat q($n) q(univMax)
+    return q(by as_aux_lemma =>
       introv vΓ
       subst_vars
       apply WfTp.univ vΓ.wf_ctx $nmax
     )
   | ~q(.el $a) => do
-    let lmax_ ← ltNat q($l) q(univMax)
-    withHave lmax_ fun lmax => do
-    let awf_ ← checkTm q($vΓ) q($l + 1) q(.univ $l) q($a)
-    withHave awf_ fun awf => do
-    mkHaves #[lmax, awf] q(by as_aux_lemma =>
+    let lmax ← ltNat q($l) q(univMax)
+    let awf ← checkTm q($vΓ) q($l + 1) q(.univ $l) q($a)
+    return q(by as_aux_lemma =>
       introv vΓ
       simp +zetaDelta only
       apply WfTp.el <| $awf vΓ (ValEqTp.univ vΓ.wf_ctx $lmax)
@@ -81,10 +69,9 @@ partial def checkTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (vT : Q(Val)) (t : Q(Expr)) :
     Lean.MetaM Q(∀ {Γ T}, TpEnvEqCtx $vΓ Γ → ValEqTp Γ $l $vT T → Γ ⊢[$l] ($t) : T) := do
   /- We could do something more bidirectional,
   but all terms synthesize (thanks to extensive annotations). -/
-  let ⟨vU, tU_⟩ ← synthTm q($vΓ) q($l) q($t)
-  withHave tU_ fun tU => do
+  let ⟨vU, tU⟩ ← synthTm q($vΓ) q($l) q($t)
   let eq ← equateTp q(($vΓ).length) q($l) q($vU) q($vT)
-  mkHaves #[tU] q(by as_aux_lemma =>
+  return q(by as_aux_lemma =>
     introv vΓ vT
     have ⟨_, vU, t⟩ := $tU vΓ
     apply t.conv <| $eq vΓ.length_eq vU vT
@@ -104,16 +91,12 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
       exact ⟨_, vA, WfTm.bvar vΓ.wf_ctx lk⟩
     )⟩
   | ~q(.lam $k $k' $A $b) => do
-    let Awf_ ← checkTp q($vΓ) q($k) q($A)
-    withHave Awf_ fun Awf => do
-    let ⟨vA, vAeq_⟩ ← evalTpId q($vΓ) q($A)
-    withHave vAeq_ fun vAeq => do
-    let ⟨vB, bB_⟩ ← synthTm q(($vA, $k) :: $vΓ) q($k') q($b)
-    withHave bB_ fun bB => do
-    let lmax_ ← equateNat q($l) q(max $k $k')
-    withHave lmax_ fun lmax => do
+    let Awf ← checkTp q($vΓ) q($k) q($A)
+    let ⟨vA, vAeq⟩ ← evalTpId q($vΓ) q($A)
+    let ⟨vB, bB⟩ ← synthTm q(($vA, $k) :: $vΓ) q($k') q($b)
+    let lmax ← equateNat q($l) q(max $k $k')
     let vP : Q(Val) := q(.pi $k $k' $vA (.of_val (envOfTpEnv $vΓ) $vB))
-    let pf : Q(∀ {Γ}, TpEnvEqCtx $vΓ Γ → ∃ T, ValEqTp Γ $l $vP T ∧ (Γ ⊢[$l] ($t) : T)) :=
+    let pf : Q(∀ {Γ}, TpEnvEqCtx $vΓ Γ → ∃ T, ValEqTp Γ $l $vP T ∧ (Γ ⊢[$l] (.lam $k $k' $A $b) : T)) :=
       q(by as_aux_lemma =>
         introv vΓ
         subst_vars
@@ -126,21 +109,15 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
         . autosubst
         . autosubst; apply EqTp.refl_tp A
       )
-    return ⟨vP, ← mkHaves #[Awf, vAeq, bB, lmax] pf⟩
+    return ⟨vP, pf⟩
   | ~q(.app $k $k' $B $f $a) => do
-    let lk'_ ← equateNat q($l) q($k')
-    withHave lk'_ fun lk' => do
-    let ⟨vA, vApost_⟩ ← synthTm q($vΓ) q($k) q($a)
-    withHave vApost_ fun vApost => do
-    let Bwf_ ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
-    withHave Bwf_ fun Bwf => do
-    let fwf_ ← checkTm q($vΓ) q(max $k $k') q(.pi $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B)) q($f)
-    withHave fwf_ fun fwf => do
-    let ⟨va, vaeq_⟩ ← evalTmId q($vΓ) q($a)
-    withHave vaeq_ fun vaeq => do
-    let ⟨vBa, vBaeq_⟩ ← evalTp q($va :: envOfTpEnv $vΓ) q($B)
-    withHave vBaeq_ fun vBaeq => do
-    return ⟨vBa, ← mkHaves #[lk', vApost, Bwf, fwf, vaeq, vBaeq] q(by as_aux_lemma =>
+    let lk' ← equateNat q($l) q($k')
+    let ⟨vA, vApost⟩ ← synthTm q($vΓ) q($k) q($a)
+    let Bwf ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
+    let fwf ← checkTm q($vΓ) q(max $k $k') q(.pi $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B)) q($f)
+    let ⟨va, vaeq⟩ ← evalTmId q($vΓ) q($a)
+    let ⟨vBa, vBaeq⟩ ← evalTp q($va :: envOfTpEnv $vΓ) q($B)
+    return ⟨vBa, q(by as_aux_lemma =>
       introv vΓ
       have ⟨_, vA, a⟩ := $vApost vΓ
       have B := $Bwf <| vΓ.snoc vA
@@ -153,20 +130,14 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
       convert WfTm.app f a using 1 <;> simp +zetaDelta only [autosubst]
     )⟩
   | ~q(.pair $k $k' $B $f $s) => do
-    let lmax_ ← equateNat q($l) q(max $k $k')
-    withHave lmax_ fun lmax => do
-    let ⟨vA, fA_⟩ ← synthTm q($vΓ) q($k) q($f)
-    withHave fA_ fun fA => do
-    let Bwf_ ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
-    withHave Bwf_ fun Bwf => do
-    let ⟨vf, vfpost_⟩ ← evalTmId q($vΓ) q($f)
-    withHave vfpost_ fun vfpost => do
-    let ⟨vBf, vBfpost_⟩ ← evalTp q($vf :: envOfTpEnv $vΓ) q($B)
-    withHave vBfpost_ fun vBfpost => do
-    let swf_ ← checkTm q($vΓ) q($k') q($vBf) q($s)
-    withHave swf_ fun swf => do
+    let lmax ← equateNat q($l) q(max $k $k')
+    let ⟨vA, fA⟩ ← synthTm q($vΓ) q($k) q($f)
+    let Bwf ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
+    let ⟨vf, vfpost⟩ ← evalTmId q($vΓ) q($f)
+    let ⟨vBf, vBfpost⟩ ← evalTp q($vf :: envOfTpEnv $vΓ) q($B)
+    let swf ← checkTm q($vΓ) q($k') q($vBf) q($s)
     let vT : Q(Val) := q(.sigma $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B))
-    return ⟨vT, ← mkHaves #[lmax, fA, Bwf, vfpost, vBfpost, swf] q(by as_aux_lemma =>
+    return ⟨vT, q(by as_aux_lemma =>
       introv vΓ
       subst_vars
       have ⟨_, vA, f⟩ := $fA vΓ
@@ -181,17 +152,12 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
       apply WfTm.pair B f s
     )⟩
   | ~q(.fst $k $k' $A $B $p) => do
-    let leq_ ← equateNat q($l) q($k)
-    withHave leq_ fun leq => do
-    let Awf_ ← checkTp q($vΓ) q($k) q($A)
-    withHave Awf_ fun Awf => do
-    let ⟨vA, vApost_⟩ ← evalTpId q($vΓ) q($A)
-    withHave vApost_ fun vApost => do
-    let Bwf_ ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
-    withHave Bwf_ fun Bwf => do
-    let pwf_ ← checkTm q($vΓ) q(max $k $k') q(.sigma $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B)) q($p)
-    withHave pwf_ fun pwf => do
-    return ⟨vA, ← mkHaves #[leq, Awf, vApost, Bwf, pwf] q(by as_aux_lemma =>
+    let leq ← equateNat q($l) q($k)
+    let Awf ← checkTp q($vΓ) q($k) q($A)
+    let ⟨vA, vApost⟩ ← evalTpId q($vΓ) q($A)
+    let Bwf ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
+    let pwf ← checkTm q($vΓ) q(max $k $k') q(.sigma $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B)) q($p)
+    return ⟨vA, q(by as_aux_lemma =>
       introv vΓ
       subst_vars
       have A := $Awf vΓ
@@ -204,23 +170,15 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
       apply WfTm.fst p
     )⟩
   | ~q(.snd $k $k' $A $B $p) => do
-    let leq_ ← equateNat q($l) q($k')
-    withHave leq_ fun leq => do
-    let Awf_ ← checkTp q($vΓ) q($k) q($A)
-    withHave Awf_ fun Awf => do
-    let ⟨vA, vApost_⟩ ← evalTpId q($vΓ) q($A)
-    withHave vApost_ fun vApost => do
-    let Bwf_ ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
-    withHave Bwf_ fun Bwf => do
-    let pwf_ ← checkTm q($vΓ) q(max $k $k') q(.sigma $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B)) q($p)
-    withHave pwf_ fun pwf => do
-    let ⟨vp, vppost_⟩ ← evalTmId q($vΓ) q($p)
-    withHave vppost_ fun vppost => do
-    let ⟨vf, vfpost_⟩ ← evalFst q($vp)
-    withHave vfpost_ fun vfpost => do
-    let ⟨vBf, vBfpost_⟩ ← evalTp q($vf :: envOfTpEnv $vΓ) q($B)
-    withHave vBfpost_ fun vBfpost => do
-    return ⟨vBf, ← mkHaves #[leq, Awf, vApost, Bwf, pwf] q(by as_aux_lemma =>
+    let leq ← equateNat q($l) q($k')
+    let Awf ← checkTp q($vΓ) q($k) q($A)
+    let ⟨vA, vApost⟩ ← evalTpId q($vΓ) q($A)
+    let Bwf ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
+    let pwf ← checkTm q($vΓ) q(max $k $k') q(.sigma $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B)) q($p)
+    let ⟨vp, vppost⟩ ← evalTmId q($vΓ) q($p)
+    let ⟨vf, vfpost⟩ ← evalFst q($vp)
+    let ⟨vBf, vBfpost⟩ ← evalTp q($vf :: envOfTpEnv $vΓ) q($B)
+    return ⟨vBf, q(by as_aux_lemma =>
       introv vΓ
       subst_vars
       have A := $Awf vΓ
@@ -239,12 +197,10 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
   | ~q(.code $A) => do
     -- TODO: WHNF `l`? See comment at `evalTp`.
     let ~q(.succ $k) := l | throwError "expected _+1, got{Lean.indentExpr l}"
-    let lmax_ ← ltNat q($k) q(univMax)
-    withHave lmax_ fun lmax => do
-    let Awf_ ← checkTp q($vΓ) q($k) q($A)
-    withHave Awf_ fun Awf => do
+    let lmax ← ltNat q($k) q(univMax)
+    let Awf ← checkTp q($vΓ) q($k) q($A)
     let vU : Q(Val) := q(.univ $k)
-    return ⟨vU, ← mkHaves #[lmax, Awf] q(by as_aux_lemma =>
+    return ⟨vU, q(by as_aux_lemma =>
       introv vΓ
       exact ⟨_, ValEqTp.univ vΓ.wf_ctx $lmax, WfTm.code $lmax ($Awf vΓ)⟩
     )⟩

@@ -36,33 +36,6 @@ def ltNat (n m : Q(Nat)) : Lean.MetaM Q($n < $m) := do
   let pf ← Lean.Meta.mkEqRefl q(decide ($n < $m))
   Lean.Meta.mkAppM ``of_decide_eq_true #[pf]
 
-/-- Continue with a `have` declaration in the local context.
-
-Introducing `have`s is crucial for obtaining proofs
-whose size is linear rather than exponential
-in the length of the computation trace.
-
-For example,
-```lean
-let p : Q(P) := q(..)
-let q : Q(Q) := q(..[$p])
-let r : Q(R) := q(..[$p])
-let s : Q(S) := q(..[$q, $r])
-```
-will have the full proof term `p` occur in `s`
-as many times as the sum of its occurrences in `q` and `r`.
-
-IDEA: `withHave` is syntactically heavy.
-Instead, we could write the typechecker in CPS style,
-e.g. `withEvalTp` instead of `evalTp`.
-Also, `withEvalTp` could then introduce `let`-bindings
-that would be bound by the _caller_ (but this might not be useful). -/
-def withHave {α : Type} {P : Q(Prop)} (pf : Q($P)) (k : Q($P) → Lean.MetaM α) : Lean.MetaM α :=
-  withLetDeclQ `pf _ pf (fun x _ => k x) (nondep := true)
-
-def mkHaves {P : Q(Prop)} (xs : Array Lean.Expr) (e : Q($P)) : Lean.MetaM Q($P) :=
-  mkLetFVarsQ xs e (generalizeNondepLet := false)
-
 -- /-- Hacks to use during development:
 -- `as_aux_lemma` blocks are not elaborated and kernel typechecking is off,
 -- speeding up interactive feedback. -/
