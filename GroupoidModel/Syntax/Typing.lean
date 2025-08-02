@@ -105,6 +105,12 @@ inductive EqTp : Ctx → Nat → Expr → Expr → Prop
     Γ ⊢[l+1] A ≡ A' : .univ l →
     Γ ⊢[l] .el A ≡ .el A'
 
+  -- Reductions
+  | el_code {Γ A l} :
+    l < univMax →
+    Γ ⊢[l] A →
+    Γ ⊢[l] .el (.code A) ≡ A
+
   -- Reflexive-symmetric-transitive closure
   | refl_tp {Γ A l} :
     Γ ⊢[l] A →
@@ -253,6 +259,10 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     (A,l) :: Γ ⊢[l'] B →
     Γ ⊢[max l l'] p : .sigma l l' A B →
     Γ ⊢[max l l'] p ≡ .pair l l' B (.fst l l' A B p) (.snd l l' A B p) : .sigma l l' A B
+
+  | code_el {Γ a l} :
+    Γ ⊢[l+1] a : .univ l →
+    Γ ⊢[l+1] a ≡ .code (.el a) : .univ l
 
   -- Conversion
   | conv_eq {Γ A A' t t' l} :

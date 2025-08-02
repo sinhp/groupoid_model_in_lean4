@@ -55,15 +55,15 @@ partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT vU : Q(Val)) :
       have := eq.le_univMax
       apply EqTp.refl_tp <| WfTp.univ eq.wf_ctx (by omega)
     )
-  | ~q(.el $va), ~q(.el $va') => do
-    let aeq ← equateTm q($d) q($l + 1) q(.univ $l) q($va) q($va')
+  | ~q(.el $na), ~q(.el $na') => do
+    let aeq ← equateNeutTm q($d) q($na) q($na')
     return q(by as_aux_lemma =>
       introv deq vT vU
-      have ⟨_, va, eq⟩ := vT.inv_el
-      have ⟨_, va', eq'⟩ := vU.inv_el
+      have ⟨_, na, eq⟩ := vT.inv_el
+      have ⟨_, na', eq'⟩ := vU.inv_el
       apply eq.trans_tp _ |>.trans_tp eq'.symm_tp
-      have := va.wf_tm.le_univMax
-      have := $aeq deq (ValEqTp.univ eq.wf_ctx <| by omega) va va'
+      have := na.wf_tm.le_univMax
+      have ⟨_, _⟩ := $aeq deq na na'
       gcongr
     )
   | vT, vU =>
@@ -131,6 +131,25 @@ partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val)) : Lean.MetaM 
         . apply $tspost vt
         . apply ($uspost vu).conv_tp
           exact vB.wf_tp.subst_eq (EqSb.toSb feq.symm_tm)
+    )
+  | ~q(.univ $k) => do
+    let ⟨vA, vApost⟩ ← evalEl q($vt)
+    let ⟨vA', vApost'⟩ ← evalEl q($vu)
+    let Aeq ← equateTp q($d) q($k) q($vA) q($vA')
+    return q(by as_aux_lemma =>
+      introv deq vT vt vu
+      have ⟨_, eq⟩ := vT.inv_univ
+      subst_vars
+
+      -- Apply η law
+      apply EqTm.conv_eq _ eq.symm_tp
+      replace vt := vt.conv_tp eq
+      replace vu := vu.conv_tp eq
+      apply EqTm.code_el vt.wf_tm |>.trans_tm _ |>.trans_tm
+        (EqTm.code_el vu.wf_tm).symm_tm
+
+      apply EqTm.cong_code eq.le_univMax
+      exact $Aeq rfl ($vApost vt) ($vApost' vu)
     )
   | _ =>
     match vt, vu with

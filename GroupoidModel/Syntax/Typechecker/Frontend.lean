@@ -163,13 +163,7 @@ end HoTT0.Dsl
 
 /-! ## Tests -/
 
--- This test exhibits the issue with not having `El (code A) ≡ A`.
-/--
-error: cannot prove normal types are equal
-  (Val.univ 0).code.el
-≡?≡
-  Val.univ 0
--/
+-- This test ensures that `El (code A) ≡ A`.
 #guard_msgs in
 hott def el_code {A : Type} (a : A) : A :=
   (fun (α : Type) (x : α) => x) ((fun (α : Type 1) (x : α) => x) Type A) a

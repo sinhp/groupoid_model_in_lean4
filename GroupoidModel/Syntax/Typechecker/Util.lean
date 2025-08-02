@@ -11,7 +11,7 @@ def withLetDeclQ {n : Type → Type} {u : Level} {α : Type} [Monad n] [MonadCon
 
 def mkLetFVarsQ {u : Level} {T : Q(Sort u)} (xs : Array Lean.Expr) (e : Q($T))
     (usedLetOnly := true) (generalizeNondepLet := true)
-    (binderInfoForMVars := BinderInfo.implicit) : MetaM Lean.Expr :=
+    (binderInfoForMVars := BinderInfo.implicit) : MetaM Q($T) :=
   mkLetFVars xs e (usedLetOnly := usedLetOnly) (generalizeNondepLet := generalizeNondepLet)
     (binderInfoForMVars := binderInfoForMVars)
 
