@@ -1,7 +1,10 @@
-import Batteries.Util.ProofWanted
 import GroupoidModel.Syntax.EqCtx
 
-/-! ## Injectivity of type formers -/
+/-! ## Injectivity of type formers
+
+We conjecture that the axioms below are provable.
+Proofs of these properties for very similar systems exist in the literature.
+-/
 
 /-- Injectivity of Π types. -/
 axiom EqTp.inv_pi {Γ A B A' B' l₀ l₁ l₂ l₁' l₂'} : Γ ⊢[l₀] .pi l₁ l₂ A B ≡ .pi l₁' l₂' A' B' →
