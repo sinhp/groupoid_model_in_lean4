@@ -153,21 +153,6 @@ partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val)) : Lean.MetaM 
     )
   | _ =>
     match vt, vu with
-    -- FIXME: add the defeq that makes these neutral.
-    | ~q(.code $vT), ~q(.code $vU) =>
-      let ~q(.succ $k) := l | throwError "expected _+1, got{Lean.indentExpr l}"
-      let Teq ← equateTp q($d) q($k) q($vT) q($vU)
-      return q(by as_aux_lemma =>
-        introv deq vT vt vu
-        have ⟨_, _, h, vT, eqt, eq⟩ := vt.inv_code
-        have ⟨_, _, h', vU, eqt', eq'⟩ := vu.inv_code
-        simp +zetaDelta only at h h'
-        cases deq; cases h; cases h'
-        apply eqt.trans_tm _ |>.trans_tm eqt'.symm_tm
-        apply EqTm.conv_eq _ eq.symm_tp
-        have := eq.le_univMax
-        apply EqTm.cong_code (by omega) <| $Teq rfl vT vU
-      )
     | ~q(.neut $nt _), ~q(.neut $nu _) => do
       let eq ← equateNeutTm q($d) q($nt) q($nu)
       return q(by as_aux_lemma =>
