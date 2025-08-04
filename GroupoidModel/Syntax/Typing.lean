@@ -32,7 +32,7 @@ When set to `0`, types cannot be quantified over at all. -/
 -- TODO: this should be a parameter,
 -- but adding an `optParam` to all judgments is super noisy.
 -- If only we had parameterized modules..
-def univMax : Nat := 3
+def univMax : Nat := 4
 
 /-- `Lookup Γ i A l` means that `A = A'[↑ⁱ⁺¹]` where `Γ[i] = (A', l)`.
 Together with `⊢ Γ`, this implies `Γ ⊢[l] .bvar i : A`. -/
