@@ -12,15 +12,16 @@ noncomputable section
 
 namespace CategoryTheory
 
-open Grothendieck.Groupoidal
+open Functor.Groupoidal
 
 
 def PGrpd.inc (G : Type) [Groupoid G] : G ⥤ PGrpd  where
   obj x := {base := Grpd.of G,fiber := x}
   map f := {base := Functor.id G, fiber := f}
   map_comp {X Y Z} f g := by
-    simp[CategoryStruct.comp,Grothendieck.comp,Grpd.forgetToCat]
-    congr
+    fapply Functor.Grothendieck.Hom.ext
+    · simp [Grpd.comp_eq_comp]
+    · simp [Grpd.forgetToCat]
 
 -- namespace GrothendieckPointedCategories
 
@@ -54,11 +55,11 @@ def PGrpd.inc (G : Type) [Groupoid G] : G ⥤ PGrpd  where
 
 -- end BPCat
 
-abbrev BPGrpd := Grothendieck.Groupoidal (PGrpd.forgetToGrpd)
+abbrev BPGrpd := ∫ PGrpd.forgetToGrpd
 
 namespace BPGrpd
 
-abbrev fst : BPGrpd ⥤ PGrpd := Grothendieck.Groupoidal.forget
+abbrev fst : BPGrpd ⥤ PGrpd := Functor.Groupoidal.forget
 
 abbrev forgetToGrpd : BPGrpd ⥤ Grpd := fst ⋙ PGrpd.forgetToGrpd
 
@@ -77,8 +78,9 @@ theorem fst_forgetToGrpd : fst ⋙ PGrpd.forgetToGrpd = snd ⋙ PGrpd.forgetToGr
   simp [fst, snd, toPGrpd_forgetToGrpd]
 
 /- BPGrpd is the pullback of PGrpd.forgetToGrpd with itself -/
-def isPullback : Functor.IsPullback snd.{u,v} fst.{u,v} PGrpd.forgetToGrpd.{u,v} PGrpd.forgetToGrpd.{u,v} := by
-  apply @CategoryTheory.Grothendieck.Groupoidal.isPullback PGrpd _ (PGrpd.forgetToGrpd)
+def isPullback : Functor.IsPullback snd.{u,v} fst.{u,v} PGrpd.forgetToGrpd.{u,v}
+    PGrpd.forgetToGrpd.{u,v} := by
+  apply @Functor.Groupoidal.isPullback PGrpd _ (PGrpd.forgetToGrpd)
 
 -- TODO: docstring + why is it called `inc`?
 def inc (G : Type) [Groupoid G] : G ⥤ BPGrpd := by
@@ -93,7 +95,8 @@ end CategoryTheory
 
 namespace GroupoidModel
 
-open CategoryTheory Grothendieck.Groupoidal
+open CategoryTheory Functor.Groupoidal
+
 
 namespace FunctorOperation
 
@@ -184,7 +187,7 @@ def diag : PGrpd ⥤ BPGrpd where
   obj x := objMk x x.fiber
   map f := homMk f f.fiber
   map_comp {X Y Z} f g:= by
-    fapply Grothendieck.Groupoidal.ext
+    fapply Hom.ext
     · simp
     · simp [Grpd.forgetToCat]
 
@@ -219,8 +222,8 @@ PGrpd ------------>
  ---> BPGrpd -----> Grpd
               Id
 -/
-def R : PGrpd ⥤ Grothendieck.Groupoidal id :=
-  (Grothendieck.Groupoidal.isPullback id).lift refl diag refl_forgetToGrpd
+def R : PGrpd ⥤ ∫ id :=
+  (isPullback id).lift refl diag refl_forgetToGrpd
 
 /- This is the composition
 
@@ -254,7 +257,7 @@ PGrpd ------------>
  ---> BPGrpd -----> Grpd
               Id
 -/
-theorem RKForget : R ⋙ Grothendieck.Groupoidal.forget ⋙ BPGrpd.forgetToGrpd =
+theorem RKForget : R ⋙ forget ⋙ BPGrpd.forgetToGrpd =
     PGrpd.forgetToGrpd := by
   simp [R,<- Functor.assoc,CategoryTheory.Functor.IsPullback.fac_right,diag]
   fapply CategoryTheory.Functor.ext
