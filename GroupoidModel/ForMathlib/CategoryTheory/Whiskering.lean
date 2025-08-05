@@ -1,6 +1,28 @@
 import Mathlib.CategoryTheory.Whiskering
+import Mathlib.CategoryTheory.EqToHom
+
+universe v₁ u₁ v₂ u₂ v₃ u₃
 
 namespace CategoryTheory.Functor
+
+section
+variable {C : Type u₁} [Category.{v₁} C] {D : Type u₂} [Category.{v₂} D] {E : Type u₃}
+  [Category.{v₃} E]
+
+@[simp]
+theorem whiskerLeft_eqToHom (F : C ⥤ D) {G H : D ⥤ E} (η : G = H) :
+    whiskerLeft F (eqToHom η) = eqToHom (by cases η; rfl) := by
+  cases η
+  simp only [whiskerLeft_id', eqToHom_refl]
+
+@[simp]
+theorem eqToHom_whiskerRight {F G : C ⥤ D} (η : F = G) (H : D ⥤ E) :
+    whiskerRight (eqToHom η) H = eqToHom (by cases η; rfl) := by
+  cases η
+  simp only [whiskerRight_id', eqToHom_refl]
+
+end
+
 section
 
 
@@ -28,6 +50,11 @@ def whiskeringLeftObjWhiskeringRightObj : (A ⥤ B) ⥤ (C ⥤ D) :=
     (whiskeringLeftObjWhiskeringRightObj F G).obj S
     = F ⋙ S ⋙ G := by
   simp [whiskeringLeftObjWhiskeringRightObj, Functor.assoc]
+
+@[simp] lemma whiskeringLeftObjWhiskeringRightObj_map {S1 S2 : A ⥤ B} (η : S1 ⟶ S2) :
+    (whiskeringLeftObjWhiskeringRightObj F G).map η
+    = whiskerRight (F.whiskerLeft η) G := by
+  simp [whiskeringLeftObjWhiskeringRightObj]
 
 @[simp] lemma whiskeringLeftObjWhiskeringRightObj_id_id :
     whiskeringLeftObjWhiskeringRightObj (𝟭 A) (𝟭 B) = 𝟭 (A ⥤ B) :=

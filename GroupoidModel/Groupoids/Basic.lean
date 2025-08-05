@@ -14,13 +14,13 @@ Here we construct universes for the groupoid natural model.
 universe w v u v₁ u₁ v₂ u₂ v₃ u₃
 
 noncomputable section
-open CategoryTheory ULift Grothendieck.Groupoidal
+open CategoryTheory ULift Functor Groupoidal
   Limits NaturalModelBase CategoryTheory.Functor
 
 namespace CategoryTheory.PGrpd
 def pGrpdToGroupoidalAsSmallFunctor : PGrpd.{v, v} ⥤
     ∫(Grpd.asSmallFunctor.{max w (v+1), v, v}) :=
-  Grothendieck.functorTo (Grothendieck.forget _)
+  Grothendieck.functorTo PGrpd.forgetToGrpd
   (fun x => AsSmall.up.obj.{v, v, max w (v + 1)} x.fiber)
   (fun f => AsSmall.up.map f.fiber)
   (by aesop_cat)
@@ -28,7 +28,7 @@ def pGrpdToGroupoidalAsSmallFunctor : PGrpd.{v, v} ⥤
 
 def groupoidalAsSmallFunctorToPGrpd :
     ∫(Grpd.asSmallFunctor.{max w (v+1), v, v}) ⥤ PGrpd.{v,v} :=
-  PGrpd.functorTo (Grothendieck.forget _)
+  PGrpd.functorTo Groupoidal.forget
   (fun x => AsSmall.down.obj.{v, v, max w (v + 1)} x.fiber)
   (fun f => AsSmall.down.map f.fiber)
   (by aesop_cat)
@@ -43,12 +43,12 @@ def groupoidalAsSmallFunctorToPGrpd :
   rfl
 
 @[simp] def pGrpdToGroupoidalAsSmallFunctor_forget : pGrpdToGroupoidalAsSmallFunctor
-    ⋙ Grothendieck.Groupoidal.forget = Grothendieck.forget _ :=
+    ⋙ Groupoidal.forget = PGrpd.forgetToGrpd :=
   rfl
 
 def asSmallFunctor : PGrpd.{v, v} ⥤ PGrpd.{max w (v+1), max w (v+1)} :=
   pGrpdToGroupoidalAsSmallFunctor ⋙
-  Grothendieck.Groupoidal.toPGrpd Grpd.asSmallFunctor.{max w (v+1), v, v}
+  toPGrpd Grpd.asSmallFunctor.{max w (v+1), v, v}
 
 end CategoryTheory.PGrpd
 
@@ -269,7 +269,7 @@ def classifier : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v} :=
   Ctx.toGrpd.map A ⋙ Core.inclusion (AsSmall Grpd) ⋙ AsSmall.down
 
 def ext : Ctx :=
-  Ctx.ofGrpd.obj (Grpd.of ∫(classifier A))
+  Ctx.ofGrpd.obj (Grpd.of (∫ classifier A))
 
 def disp : ext A ⟶ Γ :=
   Ctx.ofGrpd.map forget

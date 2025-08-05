@@ -273,6 +273,18 @@ thought of as a dependent pair `A : Type` and `B : A ⟶ Type`
 def mk (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) : y(Γ) ⟶ M.Ptp.obj X :=
   (M.Ptp_equiv).symm ⟨ A , B ⟩
 
+lemma fst_mk (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
+    fst M (mk M A B) = A :=
+  sorry
+
+lemma snd_mk_heq (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
+    snd M (mk M A B) ≍ B :=
+  sorry
+
+lemma snd_mk (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
+    snd M (mk M A B) = ym(eqToHom (by rw [fst_mk M A B])) ≫ B :=
+  sorry
+
 section
 variable {Δ : Ctx} {σ : Δ ⟶ Γ} {AB : y(Γ) ⟶ M.Ptp.obj X}
 

@@ -1,6 +1,6 @@
 import GroupoidModel.Syntax.Inversion
 
-/-! ## Level and type synthesis -/
+/-! ## Level synthesis and uniqueness -/
 
 /-- Synthesize the universe level of a type or term. -/
 /- NOTE(2025-07-02): levels can be synthesized
@@ -8,7 +8,7 @@ without using any of the level annotations.
 Furthermore, the correctness proof `eq_synthLvl` needs zero metatheory.
 Does this imply we could omit level annotations from the syntax?
 In the interpretation function, we'd invoke `synthLvl.go` on `ExtSeq`.  -/
-/- noncomputable -/ def synthLvl (Γ : Ctx) (e : Expr) : Nat :=
+noncomputable def synthLvl (Γ : Ctx) (e : Expr) : Nat :=
   go (Γ.map (·.2)) e
 where
   go (Γ : List Nat) : Expr → Nat
@@ -45,14 +45,20 @@ theorem WfTp.lvl_eq_synthLvl {Γ A l} : Γ ⊢[l] A → l = synthLvl Γ A :=
 theorem WfTm.lvl_eq_synthLvl {Γ A t l} : Γ ⊢[l] t : A → l = synthLvl Γ t :=
   fun t => _root_.eq_synthLvl.2 t
 
+/-- A type's universe level is unique. -/
+theorem WfTp.uniq_lvl {Γ A l l'} : Γ ⊢[l] A → Γ ⊢[l'] A → l = l' :=
+  fun h h' => h.lvl_eq_synthLvl.trans h'.lvl_eq_synthLvl.symm
+
+/-! ## Type synthesis and uniqueness -/
+
 /-- Synthesize the type of a term.
 
 This function is marked `noncomputable`
 because it is not supposed to be executed;
 it is only defined for mathematical modelling,
-in particular to prove unique typing. -/
--- FIXME: not actually marked `noncomputable`; we compute it in the evaluator.
-/- noncomputable -/ def synthTp (Γ : Ctx) : Expr → Expr
+in particular to prove unique typing.
+For executable type synthesis, see `Typechecker.Synth`. -/
+noncomputable def synthTp (Γ : Ctx) : Expr → Expr
   | .bvar 0 => Γ[0]? |>.getD default |>.1.subst Expr.wk
   | .bvar (i+1) => synthTp (Γ.drop 1) (.bvar i) |>.subst Expr.wk
   | .lam l l' A b => .pi l l' A (synthTp ((A, l) :: Γ) b)
@@ -86,8 +92,10 @@ theorem WfTm.tp_eq_synthTp : ∀ {Γ l A t}, Γ ⊢[l] t : A → Γ ⊢[l] A ≡
 theorem WfTm.with_synthTp {Γ l A t} : Γ ⊢[l] t : A → Γ ⊢[l] t : synthTp Γ t :=
   fun t => t.conv t.tp_eq_synthTp
 
-/-! ## Unique typing -/
+/-- A term's universe level is unique. -/
+theorem WfTm.uniq_lvl {Γ A B t l l'} : Γ ⊢[l] t : A → Γ ⊢[l'] t : B → l = l' :=
+  fun h h' => h.lvl_eq_synthLvl.trans h'.lvl_eq_synthLvl.symm
 
 /-- A term's type is unique up to conversion. -/
-theorem WfTm.uniq_tp {Γ A B t l} : Γ ⊢[l] t : A → Γ ⊢[l] t : B → Γ ⊢[l] A ≡ B :=
-  fun tA tB => tA.tp_eq_synthTp.trans_tp tB.tp_eq_synthTp.symm_tp
+theorem WfTm.uniq_tp {Γ A B t l l'} : Γ ⊢[l] t : A → Γ ⊢[l'] t : B → Γ ⊢[l] A ≡ B :=
+  fun tA tB => tA.tp_eq_synthTp.trans_tp (tA.uniq_lvl tB ▸ tB).tp_eq_synthTp.symm_tp

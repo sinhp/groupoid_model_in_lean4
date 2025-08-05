@@ -16,7 +16,7 @@ open CategoryTheory
   Limits NaturalModelBase
   GroupoidModel.IsPullback.SmallU
   GroupoidModel.IsPullback.SmallUHom
-  Grothendieck.Groupoidal
+  Functor.Groupoidal
 
 namespace GroupoidModel
 
@@ -24,7 +24,7 @@ section
 variable {Γ : Ctx} (A : y(Γ) ⟶ y(U.{v}))
 
 def smallU.ext : Ctx :=
-  Ctx.ofGrpd.obj (Grpd.of ∫(yonedaCategoryEquiv A))
+  Ctx.ofGrpd.obj (Grpd.of (∫ yonedaCategoryEquiv A))
 
 def smallU.disp : smallU.ext.{v} A ⟶ Γ :=
   Ctx.ofGrpd.map forget
@@ -150,7 +150,7 @@ theorem smallU_lift {Γ Δ : Ctx} (A : y(Γ) ⟶ smallU.{v}.Ty)
     (fst : y(Δ) ⟶ smallU.{v}.Tm) (snd : Δ ⟶ Γ)
     (w : fst ≫ smallU.{v}.tp = ym(snd) ≫ A) :
     (smallU.{v}.disp_pullback A).lift fst ym(snd) w =
-    ym(Ctx.ofGrpd.map ((Grothendieck.Groupoidal.isPullback _).lift
+    ym(Ctx.ofGrpd.map ((Functor.Groupoidal.isPullback _).lift
       (yonedaCategoryEquiv fst)
       (Ctx.toGrpd.map snd)
       (by erw [← yonedaCategoryEquiv_naturality_right, w,
@@ -158,7 +158,7 @@ theorem smallU_lift {Γ Δ : Ctx} (A : y(Γ) ⟶ smallU.{v}.Ty)
   apply (smallU.{v}.disp_pullback A).hom_ext
   · dsimp only [smallU_var]
     erw [← yonedaCategoryEquiv_symm_naturality_left,
-      (Grothendieck.Groupoidal.isPullback (yonedaCategoryEquiv A)).fac_left,
+      (Functor.Groupoidal.isPullback (yonedaCategoryEquiv A)).fac_left,
       Equiv.apply_symm_apply]
     simp
   · simp only [smallU_ext, smallU_Tm, smallU_Ty, smallU_var, Grpd.coe_of,
@@ -204,7 +204,7 @@ theorem smallU_substWk (A : y(Γ) ⟶ smallU.{v}.Ty) : smallU.substWk σ A =
   · conv => left; rw [← Functor.map_comp, substWk_disp]
     simp only [smallU_disp, ← Functor.map_comp, Grpd.homOf, yonedaCategoryEquivPre,
       Grpd.comp_eq_comp, Functor.assoc, smallU.disp]
-    rw [pre_forget, ← Functor.assoc, map_forget]
+    rw [pre_comp_forget, ← Functor.assoc, map_forget]
     rfl
 
 @[simp] theorem smallU_sec {Γ : Ctx} (α : y(Γ) ⟶ smallU.{v}.Tm) :
@@ -266,6 +266,28 @@ theorem hext (AB1 AB2 : y(Γ) ⟶ smallU.{v}.Ptp.obj y(U.{v})) (hfst : fst AB1 =
     (hsnd : HEq (snd AB1) (snd AB2)) : AB1 = AB2 := by
   -- apply NaturalModelBase.PtpEquiv.ext
   sorry
+
+lemma fst_mk (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v}) (B : ∫(A) ⥤ C) :
+    fst (mk A B) = A := by
+  simp [fst, mk, NaturalModelBase.PtpEquiv.fst_mk]
+
+lemma Grpd.eqToHom_comp_heq {A B : Grpd} {C : Type*} [Category C]
+    (h : A = B) (F : B ⥤ C) : eqToHom h ⋙ F ≍ F := by
+  subst h
+  simp [Grpd.id_eq_id, Functor.id_comp]
+
+lemma snd_mk_heq (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v}) (B : ∫(A) ⥤ C) :
+    snd (mk A B) ≍ B := by
+  simp only [mk, snd, PtpEquiv.snd_mk, yonedaCategoryEquiv_naturality_left,
+    Equiv.apply_symm_apply]
+  rw [eqToHom_map]
+  apply Grpd.eqToHom_comp_heq
+
+lemma snd_mk (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v}) (B : ∫(A) ⥤ C) :
+    snd (mk A B) = map (eqToHom (fst_mk A B)) ⋙ B := by
+  have : _ = map (eqToHom (fst_mk A B)) := eqToHom_eq_homOf_map (fst_mk A B)
+  rw [← this]
+  apply eq_of_heq; apply (snd_mk_heq A B).trans; symm; apply Grpd.eqToHom_comp_heq
 
 end PtpEquiv
 
