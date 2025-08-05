@@ -476,11 +476,8 @@ def Id' : y(GroupoidModel.U.ext (GroupoidModel.π.{u,u})) ⟶ smallU.Ty.{u,u} :=
   -- rw[<-h]
   -- exact Grothendieck.Groupoidal.pre PGrpd.forgetToGrpd F
 
-def Refl' : GroupoidModel.E.{u,u} ⟶ GroupoidModel.E.{u,u} := by
-  dsimp[GroupoidModel.E, GroupoidModel.Ctx.ofCategory]
-  refine AsSmall.up.map ?_
-  dsimp[Quiver.Hom]
-  exact 𝟭 (Core (AsSmall PGrpd))
+def Refl' : GroupoidModel.E.{u,u} ⟶ GroupoidModel.E.{u,u} :=
+  AsSmall.up.map (𝟭 (Core (AsSmall PGrpd)))
 
 /- Lean is gas lighting me -/
 def Diag' : GroupoidModel.E.{v,u} ⟶ GroupoidModel.U.ext (GroupoidModel.π.{v,u}) := by
@@ -502,9 +499,9 @@ def comm: Limits.pullback.lift (𝟙 smallU.Tm) (𝟙 smallU.Tm) rfl ≫ id = re
 -- TODO: make sure universe levels are most general
 -- TODO: make namespaces consistent with Sigma file
 def smallUIdBase : NaturalModelBase.NaturalModelIdBase smallU.{u,u} where
-  pb := y(GroupoidModel.U.ext GroupoidModel.π.{u,u})
-  p1 := sorry -- smallU.{u,u}.var GroupoidModel.π.{u,u}
-  p2 := sorry -- ym(smallU.{u,u}.disp GroupoidModel.π.{u,u})
+  K := y(GroupoidModel.U.ext GroupoidModel.π.{u,u})
+  k1 := sorry -- smallU.{u,u}.var GroupoidModel.π.{u,u}
+  k2 := sorry -- ym(smallU.{u,u}.disp GroupoidModel.π.{u,u})
   pb_isPullback := sorry
   Id := Id'
   refl := sorry

@@ -1,6 +1,8 @@
 import SEq.Tactic.DepRewrite
 import Poly.ForMathlib.CategoryTheory.LocallyCartesianClosed.Presheaf
 import Poly.UvPoly.UPFan
+import Mathlib.CategoryTheory.Limits.Shapes.KernelPair
+
 import GroupoidModel.ForPoly
 import GroupoidModel.ForMathlib.Tactic.CategoryTheory.FunctorMap
 import GroupoidModel.ForMathlib.CategoryTheory.Yoneda
@@ -500,29 +502,164 @@ structure NaturalModelSigma where
   Sig_pullback : IsPullback pair ((uvPolyTp M).comp (uvPolyTp M)).p M.tp Sig
 
 /--
-`pb` is a chosen pullback for the square
-       p1
- pb ---------> Tm
+NaturalModelBase.IdBase consists of the following commutative square
+       refl
+M.Tm ------> M.Tm
+ |            |
+ |            |
+diag         M.tp
+ |            |
+ |            |
+ V            V
+ k --------> M.Ty
+      Id
+
+where `K` (for "Kernel" of `tp`) is a chosen pullback for the square
+       k1
+ k ---------> Tm
  |             |
  |             |
- p2            | tp
+ k2            | tp
  |             |
  V             V
 Tm ----------> Ty
         tp
-In a presheaf category, we always have a pullback,
-but when we construct a natural model, this is not
-definitionally equal to the pullbacks we might be able to construct,
+and `diag` denotes the diagonal into the pullback `K`.
+In a presheaf category we always have a pullback,
+but when we construct a natural model,
+this may not be definitionally equal to the pullbacks we construct,
 for example using context extension.
 -/
-structure NaturalModelIdBase where
-  pb : Psh Ctx
-  p1 : pb ⟶ M.Tm
-  p2 : pb ⟶ M.Tm
-  pb_isPullback : IsPullback p1 p2 M.tp M.tp
-  Id : pb ⟶ M.Ty
+structure IdBase where
+  k : Psh Ctx
+  k1 : k ⟶ M.Tm
+  k2 : k ⟶ M.Tm
+  isKernelPair : IsKernelPair M.tp k1 k2
+  Id : k ⟶ M.Ty
   refl : M.Tm ⟶ M.Tm
-  Id_comm : (IsPullback.lift pb_isPullback (𝟙 M.Tm) (𝟙 M.Tm) (by simp)) ≫
-  Id = refl ≫ M.tp
+  refl_comm_tp : refl ≫ M.tp =
+    (IsPullback.lift isKernelPair (𝟙 M.Tm) (𝟙 M.Tm) (by simp)) ≫ Id
+
+/--
+`NaturalModelBase.IdBaseComparison` exntends the structure `NaturalModelBase.IdBase`
+with a chosen pullback of `Id`
+       i1
+ i --------> M.Tm
+ |            |
+ |            |
+i2           M.tp
+ |            |
+ V            V
+ K --------> M.Ty
+      Id
+
+Again, we always have a pullback,
+but when we construct a natural model,
+this may not be definitionally equal to the pullbacks we construct,
+for example using context extension.
+-/
+structure IdBaseComparison extends IdBase M where
+  i : Psh Ctx
+  i1 : i ⟶ M.Tm
+  i2 : i ⟶ k
+  I_isPullback : IsPullback i1 i2 M.tp Id
+
+namespace IdBaseComparison
+variable (idBaseComparison : IdBaseComparison M)
+
+/-- The comparison map `M.tm ⟶ i` induced by the pullback universal property of `i`.
+
+          refl
+ M.Tm --------->
+           i1
+ |   i --------> M.Tm
+ |   |            |
+diag |            |
+ |  i2           M.tp
+ |   |            |
+ |   V            V
+ V   K --------> M.Ty
+          Id
+-/
+def comparison : M.Tm ⟶ idBaseComparison.i :=
+  idBaseComparison.I_isPullback.lift idBaseComparison.refl
+  (IsPullback.lift idBaseComparison.isKernelPair (𝟙 M.Tm) (𝟙 M.Tm) (by simp))
+  idBaseComparison.refl_comm_tp
+
+/-- `iOver` can be informally thought of as the context extension
+`(A : Ty).(a b : A).(p : Id(a,b)) ->> (A : Ty)`
+which is defined by the composition of (maps informally thought of as) context extensions
+`(A : Ty).(a b : A).(p : Id(a,b)) ->> (A : Ty).(a b : A) ->> (A : Ty).(a : A) ->> (A : Ty)`
+
+`iOver` will be treated as an object in the slice over `M.Ty = (A : Ty)` -/
+def iOver : idBaseComparison.i ⟶ M.Ty :=
+  idBaseComparison.i2 ≫ idBaseComparison.k2 ≫ M.tp
+
+/-- `iOver` can be viewed as an object in the slice over `M.Ty`.
+This is the signature for a polynomial functor `iOverUvPoly` on the presheaf category `Psh Ctx`.
+-/
+def iOverUvPoly : UvPoly idBaseComparison.i M.Ty := ⟨idBaseComparison.iOver, inferInstance⟩
+
+/-- `iOver` can be viewed as an object in the slice over `M.Ty`.
+This is the signature for a polynomial functor `iOverUvPoly` on the presheaf category `Psh Ctx`.
+-/
+def iOverFunctor : Psh Ctx ⥤ Psh Ctx := idBaseComparison.iOverUvPoly.functor
+
+/-- The comparison map `comparison : Tm ⟶ i` can be viewed as a map
+`tp ⟶ iOver` in the slice over `Ty`.
+Then the contravariant action `UVPoly.verticalNatTrans` of taking `UvPoly` on a slice
+results in a natural transformation `P_iOver ⟶ P_tp`
+between the polynomial endofunctors respectively indexed by `iOver` and `tp` respectively.
+-/
+def verticalNatTrans : idBaseComparison.iOverFunctor ⟶ M.Ptp :=
+    UvPoly.verticalNatTrans M.uvPolyTp idBaseComparison.iOverUvPoly
+  idBaseComparison.comparison (by simp [iOverUvPoly, comparison, iOver])
+
+end IdBaseComparison
+
+structure WeakPullback {C : Type*} [Category C]
+    {P X Y Z : C} (fst : P ⟶ X) (snd : P ⟶ Y) (f : X ⟶ Z) (g : Y ⟶ Z)
+    extends CommSq fst snd f g where
+  lift (t : PullbackCone f g) : t.pt ⟶ P
+  fac_left (t : PullbackCone f g) : lift t ≫ fst = t.fst
+  fac_right (t : PullbackCone f g) : lift t ≫ snd = t.snd
+
+/-- The full structure interpreting the natural model semantics for identity types
+requires an `IdBase`, (and `IdBaseComparison` which can be generated by pullback in the presheaf
+category,) and that the following commutative square generated by
+`IdBaseComparison.verticalNatTrans` is a weak pullback.
+```
+
+P_iOver Tm --------> P_tp Tm
+  |                    |
+  |                    |
+  |                    |
+  |                    |
+  V                    V
+P_iOver Ty --------> P_tp Ty
+
+```
+
+This can be thought of as saying the following.
+Fix `A : Ty` since we are working in the slice over `M.Ty`.
+For any context `Γ`, maps `(A, C_refl, c_refl) : Γ → P_tp Tm`
+and `(A, C) : Γ ⟶ P_iOver Ty` such that `C[x/y, refl_x/p] = C_refl`,
+there is a map `(A,C,c) : Γ ⟶ P_iOver Tm` such that `c[x/y, refl_x/p] = c_refl`.
+Here we are thinking
+  `(x : A) ⊢ C_refl : Ty`
+  `(x : A) ⊢ c_refl : C_refl : Ty`
+  `(x y : A) (p : A) ⊢ C : Ty`
+  `(x y : A) (p : A) ⊢ c : Ty`
+This witnesses the elimination principle for identity types.
+We can then define `J (x.y.p.C;x.c_refl) := c`.
+-/
+structure Id extends IdBaseComparison M where
+  weakPullback : WeakPullback
+    (toIdBaseComparison.verticalNatTrans.app M.Tm)
+    (toIdBaseComparison.iOverFunctor.map M.tp)
+    (M.Ptp.map M.tp)
+    (toIdBaseComparison.verticalNatTrans.app M.Ty)
+
+
 
 end NaturalModelBase
