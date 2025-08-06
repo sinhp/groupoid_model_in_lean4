@@ -1,4 +1,4 @@
-import GroupoidModel.Syntax.Lemmas
+import GroupoidModel.Syntax.Inversion
 import GroupoidModel.Syntax.UHom
 
 import GroupoidModel.ForMathlib
