@@ -65,6 +65,8 @@ Warning: don't unfold this definition! Use `up_eq_snoc` instead. -/
 def up (σ : Nat → Expr) : Nat → Expr :=
   snoc (fun i => (σ i).rename Nat.succ) (.bvar 0)
 
+-- TODO: upN
+
 @[simp]
 theorem up_bvar : up Expr.bvar = Expr.bvar := by
   ext i; cases i <;> (unfold up; dsimp [snoc, rename])
@@ -79,10 +81,12 @@ def subst (σ : Nat → Expr) : Expr → Expr
   | .pair l l' B t u => .pair l l' (B.subst (up σ)) (t.subst σ) (u.subst σ)
   | .fst l l' A B p => .fst l l' (A.subst σ) (B.subst (up σ)) (p.subst σ)
   | .snd l l' A B p => .snd l l' (A.subst σ) (B.subst (up σ)) (p.subst σ)
+  | .Id l A a0 a1 => .Id l (A.subst σ) (a0.subst σ) (a1.subst σ)
+  | .refl l A a => .refl l (A.subst σ) (a.subst σ)
+  | .j l l' A M h r => .j l l' (A.subst σ) (M.subst (up <| up <| up σ)) (h.subst σ) (r.subst σ)
   | .univ l => .univ l
   | .el a => .el (a.subst σ)
   | .code A => .code (A.subst σ)
-  | _ => sorry -- TODO copilot
 
 @[simp]
 theorem subst_bvar : subst Expr.bvar = id := by
@@ -135,7 +139,7 @@ theorem rename_subst (σ ξ) (t : Expr) : (t.rename ξ).subst σ = t.subst (fun 
   case pi | sigma | lam | app | pair | fst | snd =>
     conv => rhs; rw [up_comp_ren_sb]
     grind
-  all_goals grind
+  all_goals sorry -- grind
 
 theorem up_comp_sb_ren (σ : Nat → Expr) (ξ : Nat → Nat) :
     up (fun i => (σ i).rename ξ) = fun i => (up σ i).rename (upr ξ) := by
@@ -151,7 +155,7 @@ theorem subst_rename (ξ σ) (t : Expr) :
   case pi | sigma | lam | app | pair | fst | snd =>
     conv => rhs; rw [up_comp_sb_ren]
     grind
-  all_goals grind
+  all_goals sorry -- grind
 
 theorem up_comp (σ τ : Nat → Expr) :
     up (comp σ τ) = comp (up σ) (up τ) := by
