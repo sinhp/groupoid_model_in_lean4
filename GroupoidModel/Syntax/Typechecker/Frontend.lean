@@ -19,72 +19,113 @@ def TranslateM.run {α : Type} (x : TranslateM α) : MetaM α := ReaderT.run x {
 def withBinder {α : Type} (x : Lean.Expr) (k : TranslateM α) : TranslateM α := do
   withReader (fun s => s.mapVal (· + 1) |>.insert x.fvarId! 0) k
 
-def getLevel (l : Level) : Lean.MetaM Nat := do
+/-- Extract the level `u` in `Sort u`.
+It must be monomorphic, i.e., may not contain universe variables. -/
+def getSortLevel (l : Level) : Lean.MetaM Nat := do
   match l.toNat with
   | .some (n+1) => return n
   | .some 0 => throwError "unsupported universe{indentExpr <| .sort l}"
   | .none => throwError "unsupported polymorphic universe level in{indentExpr <| .sort l}"
 
+/-- Syntactically check if a Lean expression should be handled by the type translator.
+We use the term translator iff this returns `false`. -/
+def isType : Lean.Expr → Bool
+  | .mdata _ e => isType e
+  | .sort .. | .forallE .. => true
+  | _ => false
+
+/-- Make the HoTT0 term
+`fun (A : Type l) (B : A → Type l') : Type (max l l') => code (Σ (El A) (El (B #0)))`. -/
+def mkSigma (l l' : Nat) : Q(_root_.Expr) :=
+  q(.lam ($l + 1) (max $l $l' + 1) (.univ $l) <|
+    .lam (max $l ($l' + 1)) (max $l $l' + 1) (.pi $l ($l' + 1) (.el <| .bvar 0) (.univ $l')) <|
+      .code <|
+        .sigma $l $l'
+          (.el <| .bvar 1)
+          (.el <| .app $l ($l' + 1) (.univ $l') (.bvar 1) (.bvar 0)))
+
 mutual
 /-- Completeness: if the argument is well-formed in Lean,
 the output is well-typed in HoTT. -/
-partial def translateTp : Lean.Expr → TranslateM (Nat × Q(_root_.Expr))
-  | e@(.bvar ..) => throwError "unexpected bvar{indentExpr e}"
-  | e@(.fvar ..) => do
-    let ⟨l, f⟩ ← translateTm e
-    return ⟨l-1, q(.el $f)⟩
-  | .sort l => do
-    let n : Nat ← getLevel l
-    return ⟨n+1, q(.univ $n)⟩
-  | e@(.app ..) => do
-    let ⟨l+1, a⟩ ← translateTm e
-      | throwError "universe level too low in{indentExpr e}"
+partial def translateAsTp (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr)) := do
+  if !isType e then
+    let ⟨l+1, a⟩ ← translateAsTm e
+      | throwError "type code should have level > 0{indentExpr e}"
     return ⟨l, q(.el $a)⟩
-  | e@(.forallE _ A ..) =>
-    Meta.forallBoundedTelescope e (some 1) fun xs B => do
+  match e with
+  | .mdata _ e => translateAsTp e
+  | .sort l => do
+    let n : Nat ← getSortLevel l
+    return ⟨n+1, q(.univ $n)⟩
+  | .forallE _ A .. =>
+    let ⟨l, A⟩ ← translateAsTp A
+    let ⟨l', B⟩ ← forallBoundedTelescope e (some 1) fun xs B => do
       let #[x] := xs | throwError "internal error (forall tp)"
-      let ⟨l, A⟩ ← translateTp A
-      let ⟨l', B⟩ ← withBinder x <| translateTp B
-      return ⟨max l l', q(.pi $l $l' $A $B)⟩
-  | e@(.letE ..) => throwError "let-binding not supported in{indentExpr e}"
-  | .mdata _ e => translateTp e
-  -- | .proj .. => sorry
-  | e => throwError "unsupported type{indentExpr e}"
+      withBinder x <| translateAsTp B
+    return ⟨max l l', q(.pi $l $l' $A $B)⟩
+  | _ => throwError "internal error: should fail `isType`{indentExpr e}"
 
-partial def translateTm : Lean.Expr → TranslateM (Nat × Q(_root_.Expr))
-  | e@(.bvar ..) => throwError "unexpected bvar{indentExpr e}"
-  | e@(.fvar f) => do
+partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr)) := do
+  if isType e then
+    let ⟨l, A⟩ ← translateAsTp e
+    return ⟨l+1, q(.code $A)⟩
+  match e with
+  | .mdata _ e => translateAsTm e
+  | .fvar f => do
     let eTp ← inferType e
     let .sort l ← inferType eTp | throwError "internal error (sort)"
-    let n ← getLevel l
+    let n ← getSortLevel l
     match (← read).find? f with
     | some i => return ⟨n, q(.bvar $i)⟩
     | none => throwError "unexpected fvar{indentExpr e}"
-  | .sort l => do
-    let n : Nat ← getLevel l
-    return ⟨n+2, q(.code <| .univ $n)⟩
-  | .app fn arg => do
-    let fnTp ← inferType fn
-    let ⟨_, fn⟩ ← translateTm fn
-    let ⟨l, arg⟩ ← translateTm arg
-    forallBoundedTelescope fnTp (some 1) fun xs B => do
-      let #[x] := xs | throwError "internal error (app tm)"
-      let ⟨l', B⟩ ← withBinder x <| translateTp B
-      return ⟨l', q(.app $l $l' $B $fn $arg)⟩
-  | e@(.lam _ A ..) =>
-    Meta.lambdaBoundedTelescope e 1 fun xs b => do
+  | .lam _ A .. =>
+    let ⟨l, A⟩ ← translateAsTp A
+    let ⟨l', b⟩ ← lambdaBoundedTelescope e 1 fun xs b => do
       let #[x] := xs | throwError "internal error (lam tm)"
-      let ⟨l, A⟩ ← translateTp A
-      let ⟨l', b⟩ ← withBinder x <| translateTm b
-      return ⟨max l l', q(.lam $l $l' $A $b)⟩
-  | e@(.forallE ..) => do
-    let ⟨l, A⟩ ← translateTp e
-    return ⟨l+1, q(.code $A)⟩
-  | e@(.letE ..) => throwError "let-binding not supported in{indentExpr e}"
-  -- | .lit .. => sorry
-  | .mdata _ e => translateTm e
-  -- | .proj .. => sorry
+      withBinder x <| translateAsTm b
+    return ⟨max l l', q(.lam $l $l' $A $b)⟩
+  | .app fn arg => do
+    if e.isAppOfArity' ``Sigma.mk 4 then
+      let #[_, B, f, s] := e.getAppArgs | throwError "internal error"
+      let ⟨l', B⟩ ← lambdaBoundedTelescope B 1 fun xs B => do
+        let #[x] := xs | throwError "internal error (Sigma.mk)"
+        withBinder x <| translateAsTp B
+      let ⟨l, f⟩ ← translateAsTm f
+      let ⟨_, s⟩ ← translateAsTm s
+      return ⟨max l l', q(.pair $l $l' $B $f $s)⟩
+    if e.isAppOfArity' ``Sigma.fst 3 then
+      let #[A, B, p] := e.getAppArgs | throwError "internal error"
+      let ⟨l, A⟩ ← translateAsTp A
+      let ⟨l', B⟩ ← lambdaBoundedTelescope B 1 fun xs B => do
+        let #[x] := xs | throwError "internal error (Sigma.mk)"
+        withBinder x <| translateAsTp B
+      let ⟨_, p⟩ ← translateAsTm p
+      return ⟨l, q(.fst $l $l' $A $B $p)⟩
+    if e.isAppOfArity' ``Sigma.snd 3 then
+      let #[A, B, p] := e.getAppArgs | throwError "internal error"
+      let ⟨l, A⟩ ← translateAsTp A
+      let ⟨l', B⟩ ← lambdaBoundedTelescope B 1 fun xs B => do
+        let #[x] := xs | throwError "internal error (Sigma.mk)"
+        withBinder x <| translateAsTp B
+      let ⟨_, p⟩ ← translateAsTm p
+      return ⟨l', q(.snd $l $l' $A $B $p)⟩
+    let fnTp ← inferType fn
+    let ⟨_, fn⟩ ← translateAsTm fn
+    let ⟨l, arg⟩ ← translateAsTm arg
+    let ⟨l', B⟩ ← forallBoundedTelescope fnTp (some 1) fun xs B => do
+      let #[x] := xs | throwError "internal error (app tm)"
+      withBinder x <| translateAsTp B
+    return ⟨l', q(.app $l $l' $B $fn $arg)⟩
+  | .const ``Sigma [l, l'] =>
+    /- FIXME: To simplify the translation,
+    we handle `Sigma` rather than fully applied `@Sigma α β`.
+    However, `mkSigma` has to use codes
+    and consequently Σ in `univMax` cannot be translated. -/
+    let l ← getSortLevel l.succ
+    let l' ← getSortLevel l'.succ
+    return ⟨max l l' + 1, mkSigma l l'⟩
   | e => throwError "unsupported term{indentExpr e}"
+
 end
 
 end HoTT0.Translation
@@ -118,8 +159,8 @@ def elabDeclaration (stx : Syntax) : CommandElabM Unit := do
     | throwError "expected exactly one definition, got {diff.size}:\
       {Lean.indentD ""}{diff.map (·.name)}"
   Command.liftTermElabM do
-    let ⟨l, T⟩ ← Translation.translateTp ci.type |>.run
-    let ⟨_, t⟩ ← Translation.translateTm ci.value! |>.run
+    let ⟨l, T⟩ ← Translation.translateAsTp ci.type |>.run
+    let ⟨_, t⟩ ← Translation.translateAsTm ci.value! |>.run
     let Twf ← checkTp q([]) q($l) q($T)
     let ⟨vT, vTeq⟩ ← evalTpId q([]) q($T)
     let twf ← checkTm q([]) q($l) q($vT) q($t)
@@ -160,16 +201,3 @@ elab "hott " cmd:command : command => do
   | _ => throwError "unhandled command:{indentD cmd}"
 
 end HoTT0.Dsl
-
-/-! ## Tests -/
-
--- This test exhibits the issue with not having `El (code A) ≡ A`.
-/--
-error: cannot prove normal types are equal
-  (Val.univ 0).code.el
-≡?≡
-  Val.univ 0
--/
-#guard_msgs in
-hott def el_code {A : Type} (a : A) : A :=
-  (fun (α : Type) (x : α) => x) ((fun (α : Type 1) (x : α) => x) Type A) a

@@ -42,10 +42,11 @@ partial def evalTp (env : Q(List Val)) (T' : Q(Expr)) : Lean.MetaM ((v : Q(Val))
     )⟩
   | ~q(.el $a) => do
     let ⟨va, vapost⟩ ← evalTm q($env) q($a)
-    return ⟨q(.el $va), q(by as_aux_lemma =>
+    let ⟨v, vpost⟩ ← evalEl q($va)
+    return ⟨v, q(by as_aux_lemma =>
       introv env T
       have := $vapost env T.inv_el
-      exact ValEqTp.el this
+      exact $vpost this
     )⟩
   | ~q(.univ $l) =>
     return ⟨q(.univ $l), q(by as_aux_lemma =>
@@ -192,13 +193,14 @@ partial def evalValTp (env : Q(List Val)) (vT : Q(Val)) : Lean.MetaM ((v : Q(Val
       apply ValEqTp.conv_tp _ (eq.subst env.wf_sb).symm_tp
       apply ValEqTp.univ env.wf_dom (by omega)
     )⟩
-  | ~q(.el $va) =>
-    let ⟨va, vapost⟩ ← evalValTm q($env) q($va)
-    return ⟨q(.el $va), q(by as_aux_lemma =>
+  | ~q(.el $na) =>
+    let ⟨va, vapost⟩ ← evalNeutTm q($env) q($na)
+    let ⟨v, vpost⟩ ← evalEl q($va)
+    return ⟨v, q(by as_aux_lemma =>
       introv env vT
-      have ⟨_, va, eq⟩ := vT.inv_el
+      have ⟨_, na, eq⟩ := vT.inv_el
       apply ValEqTp.conv_tp _ (eq.subst env.wf_sb).symm_tp
-      apply ValEqTp.el ($vapost env va)
+      exact $vpost ($vapost env na)
     )⟩
   | vT => throwError "expected a normal type, got{Lean.indentExpr vT}"
 
@@ -401,6 +403,28 @@ partial def forceClosTm (d : Q(Nat)) (vA : Q(Val)) (vb : Q(Clos)) : Lean.MetaM (
     have := ValEqTm.neut_tm vA this
     convert ($vpost vb this) using 1 <;> autosubst
   )⟩
+
+partial def evalEl (va : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
+    Q(∀ {Δ a l}, ValEqTm Δ (l + 1) $va a (.univ l) → ValEqTp Δ l $v (.el a))) :=
+  match va with
+  | ~q(.code $vA) =>
+    return ⟨vA, q(by as_aux_lemma =>
+      introv va
+      have ⟨_, _, h, vA, eqt, eq⟩ := va.inv_code
+      cases h
+      apply vA.conv_tp
+      have := eq.le_univMax
+      symm
+      apply EqTp.cong_el eqt |>.trans_tp
+      apply EqTp.el_code (by omega) vA.wf_tp
+    )⟩
+  | ~q(.neut $na _) =>
+    return ⟨q(.el $na), q(by as_aux_lemma =>
+      introv va
+      have ⟨_, na⟩ := va.inv_neut
+      apply ValEqTp.el na
+    )⟩
+  | va => throwError "expected a normal form at type Univ, got{Lean.indentExpr va}"
 
 partial def evalApp (vf va : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
     Q(∀ {Δ A B f a l l'}, ValEqTm Δ (max l l') $vf f (.pi l l' A B) → ValEqTm Δ l $va a A →

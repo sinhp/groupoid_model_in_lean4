@@ -15,6 +15,7 @@ macro "grind_cases" : tactic =>
     try case cong_pi' => grind [EqTp.cong_pi']
     try case cong_sigma' => grind [EqTp.cong_sigma']
     try case cong_el => grind [EqTp.cong_el]
+    try case el_code => grind [EqTp.el_code]
     try case refl_tp => grind [EqTp.refl_tp]
     try case symm_tp => grind [EqTp.symm_tp]
     try case trans_tp => grind [EqTp.trans_tp]
@@ -34,6 +35,7 @@ macro "grind_cases" : tactic =>
     try case app_lam' => grind [EqTm.app_lam']
     try case fst_pair' => grind [EqTm.fst_pair']
     try case snd_pair' => grind [EqTm.snd_pair']
+    try case code_el => grind [EqTm.code_el]
     try case lam_app' => grind [EqTm.lam_app']
     try case pair_fst_snd' => grind [EqTm.pair_fst_snd']
     try case conv_eq => grind [EqTm.conv_eq]
@@ -342,6 +344,9 @@ theorem subst_all :
   case univ => grind [WfSb.wf_dom, EqSb.wf_dom, WfTp.univ]
   case el => grind [WfTp.el, EqTp.cong_el]
   case symm_tp => grind [EqSb.symm]
+  case el_code ihA _ _ _ eq =>
+    have := ihA.2 eq
+    grind [EqTp.el_code]
   case lam' => grind [WfTm.lam', EqTm.cong_lam']
   case app' ihA _ _ _ =>
     constructor
@@ -370,6 +375,11 @@ theorem subst_all :
     rw [ih_subst]; apply (EqTm.snd_pair' ..).trans_tm'
     . autosubst; grind [eqSb_snoc, wfSb_snoc]
     all_goals grind
+  case code_el iha _ _ _ eq =>
+    have aσ' := iha.1 eq.wf_right
+    have := aσ'.le_univMax
+    apply (iha.2 eq).trans_tm' (WfTp.univ eq.wf_dom <| by omega)
+    apply EqTm.code_el aσ'
   case lam_app' ihA ihB ihf _ _ _ σσ' =>
     apply (ihf.2 σσ').trans_tm' (by grind [WfTp.pi'])
     have := EqTm.lam_app'

@@ -32,7 +32,7 @@ When set to `0`, types cannot be quantified over at all. -/
 -- TODO: this should be a parameter,
 -- but adding an `optParam` to all judgments is super noisy.
 -- If only we had parameterized modules..
-def univMax : Nat := 3
+def univMax : Nat := 4
 
 /-- `Lookup Γ i A l` means that `A = A'[↑ⁱ⁺¹]` where `Γ[i] = (A', l)`.
 Together with `⊢ Γ`, this implies `Γ ⊢[l] .bvar i : A`. -/
@@ -104,6 +104,12 @@ inductive EqTp : Ctx → Nat → Expr → Expr → Prop
   | cong_el {Γ A A' l} :
     Γ ⊢[l+1] A ≡ A' : .univ l →
     Γ ⊢[l] .el A ≡ .el A'
+
+  -- Reductions
+  | el_code {Γ A l} :
+    l < univMax →
+    Γ ⊢[l] A →
+    Γ ⊢[l] .el (.code A) ≡ A
 
   -- Reflexive-symmetric-transitive closure
   | refl_tp {Γ A l} :
@@ -253,6 +259,10 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     (A,l) :: Γ ⊢[l'] B →
     Γ ⊢[max l l'] p : .sigma l l' A B →
     Γ ⊢[max l l'] p ≡ .pair l l' B (.fst l l' A B p) (.snd l l' A B p) : .sigma l l' A B
+
+  | code_el {Γ a l} :
+    Γ ⊢[l+1] a : .univ l →
+    Γ ⊢[l+1] a ≡ .code (.el a) : .univ l
 
   -- Conversion
   | conv_eq {Γ A A' t t' l} :
