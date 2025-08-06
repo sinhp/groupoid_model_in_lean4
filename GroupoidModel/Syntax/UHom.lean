@@ -514,4 +514,17 @@ theorem mkPair_mkFst_mkSnd {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A)
       (s.mkSnd ilen jlen A B p p_tp) (by simp) = p := by
   sorry
 
+/-! ## Identity types -/
+
+/--
+```
+Γ ⊢ᵢ A  Γ ⊢ᵢ a0, a1 : A
+-----------------------
+Γ ⊢ᵢ Id(A, a0, a1)
+``` -/
+def mkId {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (a0 a1 : y(Γ) ⟶ s[i].Tm)
+    (a0_tp : a0 ≫ s[i].tp = A) (a1_tp : a1 ≫ s[i].tp = A) :
+    y(Γ) ⟶ s[i].Ty :=
+  sorry
+
 end UHomSeqPiSigma

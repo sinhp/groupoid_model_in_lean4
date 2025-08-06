@@ -305,6 +305,13 @@ def ofType (Γ : s.CObj) (l : Nat) :
     let A ← ofType Γ i A
     let B ← ofType (Γ.snoc ilen A) j B
     return lij ▸ s.mkSigma ilen jlen A B
+  | .Id _ A a0 a1, llen => do
+    let A ← ofType Γ l A
+    let a0 ← ofTerm Γ l a0
+    Part.assert (a0 ≫ s[l].tp = A) fun a0_tp => do
+    let a1 ← ofTerm Γ l a1
+    Part.assert (a1 ≫ s[l].tp = A) fun a1_tp => do
+    return s.mkId llen A a0 a1 a0_tp a1_tp
   | .univ i, _ =>
     Part.assert (l = i + 1) fun li => do
     return li ▸ (s.homSucc i).wkU Γ.1
