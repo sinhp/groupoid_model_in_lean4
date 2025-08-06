@@ -7,7 +7,8 @@ In this module we prove special-case congruence lemmas for use with `gcongr`.
 Some of these have fewer premises than general congruences. -/
 
 /- Note: `refl` lemmas are not marked `@[refl]`
-because the `rfl` tactic expects unconditional reflexivity. -/
+because the `rfl` tactic expects unconditional reflexivity
+whereas we have `Γ ⊢[l] A → Γ ⊢[l] A ≡ A`. -/
 
 attribute [symm] EqTp.symm_tp
 attribute [trans] EqTp.trans_tp

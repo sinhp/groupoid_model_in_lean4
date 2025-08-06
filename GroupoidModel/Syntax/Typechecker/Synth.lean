@@ -2,6 +2,11 @@ import GroupoidModel.Syntax.Typechecker.Equate
 
 open Qq
 
+def traceClsTypechecker : Lean.Name := `HoTT0.Typechecker
+
+initialize
+  Lean.registerTraceClass traceClsTypechecker
+
 partial def lookup (vΓ : Q(TpEnv)) (i : Q(Nat)) : Lean.MetaM ((vA : Q(Val)) × (l : Q(Nat)) ×
     Q(∀ {Γ}, TpEnvEqCtx $vΓ Γ → ∃ A, ValEqTp Γ $l $vA A ∧ Lookup Γ $i A $l)) :=
   match i, vΓ with
@@ -26,6 +31,8 @@ partial def lookup (vΓ : Q(TpEnv)) (i : Q(Nat)) : Lean.MetaM ((vA : Q(Val)) × 
 mutual
 partial def checkTp (vΓ : Q(TpEnv)) (l : Q(Nat)) (T : Q(Expr)) :
     Lean.MetaM Q(∀ {Γ}, TpEnvEqCtx $vΓ Γ → Γ ⊢[$l] ($T)) :=
+  Lean.withTraceNode traceClsTypechecker (fun e =>
+    return m!"{Lean.exceptEmoji e} {vΓ} ⊢[{l}] {T}") do
   match T with
   | ~q(.pi $k $k' $A $B) => do
     let leq ← equateNat q($l) q(max $k $k')
@@ -67,6 +74,8 @@ partial def checkTp (vΓ : Q(TpEnv)) (l : Q(Nat)) (T : Q(Expr)) :
 
 partial def checkTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (vT : Q(Val)) (t : Q(Expr)) :
     Lean.MetaM Q(∀ {Γ T}, TpEnvEqCtx $vΓ Γ → ValEqTp Γ $l $vT T → Γ ⊢[$l] ($t) : T) := do
+  Lean.withTraceNode traceClsTypechecker (fun e =>
+    return m!"{Lean.exceptEmoji e} {vΓ} ⊢[{l}] {t} ⇐ {vT}") do
   /- We could do something more bidirectional,
   but all terms synthesize (thanks to extensive annotations). -/
   let ⟨vU, tU⟩ ← synthTm q($vΓ) q($l) q($t)
@@ -80,6 +89,9 @@ partial def checkTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (vT : Q(Val)) (t : Q(Expr)) :
 -- TODO: infer rather than check universe level?
 partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((vT : Q(Val)) ×
     Q(∀ {Γ}, TpEnvEqCtx $vΓ Γ → ∃ T, ValEqTp Γ $l $vT T ∧ (Γ ⊢[$l] ($t) : T))) :=
+  Lean.withTraceNode (ε := Lean.Exception) traceClsTypechecker (fun
+    | .ok vT => return m!"✅️ {vΓ} ⊢[{l}] {t} ⇒ {vT}"
+    | .error e => return m!"❌️ {vΓ} ⊢[{l}] {t} ⇒ _") do
   match t with
   | ~q(.bvar $i) => do
     let ⟨vA, m, lk⟩ ← lookup q($vΓ) q($i)
@@ -106,8 +118,7 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
       convert ClosEqTp.clos_val_tp (envOfTpEnv_wf vΓ) _ vB using 1
       . autosubst
       . autosubst; apply EqTp.refl_tp A
-    )
-⟩
+    )⟩
   | ~q(.app $k $k' $B $f $a) => do
     let lk' ← equateNat q($l) q($k')
     let ⟨vA, vApost⟩ ← synthTm q($vΓ) q($k) q($a)

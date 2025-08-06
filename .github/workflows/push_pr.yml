@@ -19,3 +19,6 @@ jobs:
 
       - name: Build project
         run: ~/.elan/bin/lake build GroupoidModel
+
+      - name: Run tests
+        run: ~/.elan/bin/lake test

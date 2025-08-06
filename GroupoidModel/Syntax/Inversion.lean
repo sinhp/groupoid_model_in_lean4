@@ -89,6 +89,7 @@ theorem inv_all :
   case cong_pi' => grind [WfTp.pi']
   case cong_sigma' => grind [WfTp.sigma']
   case cong_el => grind [WfTp.el]
+  case el_code => grind [WfTp.el, WfTm.code]
   case lam' => grind [WfTp.pi']
   case app' => grind [tp_inst]
   case pair' => grind [WfTp.sigma']
@@ -127,6 +128,7 @@ theorem inv_all :
   case snd_pair' A B _ _ _ _ _ _ =>
     refine ⟨?_, ?_, WfTm.conv (WfTm.snd' ?_ ?_ ?_) ?_, ?_⟩
     all_goals grind [eqtp_inst, EqTp.refl_tp, EqTm.fst_pair', WfTm.fst', WfTm.pair']
+  case code_el => grind [WfTm.code, WfTp.el, WfTm.le_univMax]
   case lam_app' A B _ _ _ Awf Bwf fwf Γwf _ _ =>
     refine ⟨?_, ?_, ?_, WfTm.lam' ?_ ?app⟩
     -- TODO: automate this case more

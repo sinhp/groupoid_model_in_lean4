@@ -47,11 +47,11 @@ inductive Val where
   | lam (l l' : Nat) (vA : Val) (b : Clos)
   | pair (l l' : Nat) (t u : Val)
   | univ (l : Nat)
-  /- TODO: to make the theory usable,
-  we'll need to treat `code` and `el` as eliminators,
-  adding `el (code A) ≡ A` and `code (el a) ≡ a`.
-  For now, we treat them as introductions. -/
-  | el (a : Val)
+  /-- Although `el` is an eliminator,
+  as a neutral form it does not need to be annotated with a type
+  (because it itself is a type).
+  So we embed it in `Val` directly rather than through `Val.neut`. -/
+  | el (a : Neut)
   | code (A : Val)
   /-- A neutral form at the given type. -/
   | neut (n : Neut) (A : Val)
@@ -101,15 +101,15 @@ inductive ValEqTp : Ctx → Nat → Val → Expr → Prop
     WfCtx Γ →
     l < univMax →
     ValEqTp Γ (l + 1) (.univ l) (.univ l)
-  | el {Γ va a l} :
-    ValEqTm Γ (l + 1) va a (.univ l) →
-    ValEqTp Γ l (.el va) (.el a)
+  | el {Γ na a l} :
+    NeutEqTm Γ (l + 1) na a (.univ l) →
+    ValEqTp Γ l (.el na) (.el a)
   | conv_tp {Γ vA A A' l} :
     ValEqTp Γ l vA A →
     Γ ⊢[l] A ≡ A' →
     ValEqTp Γ l vA A'
 
--- Note: no neutral types atm.
+-- Note: neutral types are embedded in `Val` directly and don't need a `NeutEqTp` relation.
 
 inductive ValEqTm : Ctx → Nat → Val → Expr → Expr → Prop
   | lam {Γ A B vA vb b l l'} :
@@ -362,7 +362,7 @@ theorem conv_ctx :
     obtain ⟨rfl, eqA⟩ := eq.lookup_eq lk lk'
     have := NeutEqTm.bvar eq.wf_right lk'
     rw [eq.length_eq]
-    exact NeutEqTm.conv_neut this (EqTm.refl_tm (wf_expr.2.2.1 this)) (eqA.symm_tp.conv_ctx eq)
+    exact NeutEqTm.conv_neut this (EqTm.refl_tm this.wf_tm) (eqA.symm_tp.conv_ctx eq)
   case app eq => grind [NeutEqTm.app]
   case fst => grind [NeutEqTm.fst]
   case snd => grind [NeutEqTm.snd]
@@ -424,7 +424,7 @@ theorem wk_all :
   case univ => grind [ValEqTp.univ, WfCtx.snoc]
   case el => grind [ValEqTp.el]
   case conv_tp => grind [ValEqTp.conv_tp, EqTp.subst, WfSb.wk]
-  case lam eq => grind [ValEqTm.lam]
+  case lam => grind [ValEqTm.lam]
   case pair B _ _ iht ihu _ _ C =>
     have := B.subst (WfSb.wk C |>.up B.wf_binder)
     apply ValEqTm.pair this (iht C) (by convert ihu C using 1; autosubst)
@@ -586,13 +586,15 @@ theorem ValEqTp.inv_univ {Γ l k t} : ValEqTp Γ l (.univ k) t → l = k + 1 ∧
   mutual_induction ValEqTp
   all_goals grind [WfTp.univ]
 
-theorem ValEqTp.inv_el {Γ l va A} : ValEqTp Γ l (.el va) A →
-    ∃ a, ValEqTm Γ (l + 1) va a (.univ l) ∧ (Γ ⊢[l] A ≡ .el a) := by
-  suffices ∀ {Γ l vA A}, ValEqTp Γ l vA A → ∀ {va}, vA = .el va →
-      ∃ a, ValEqTm Γ (l + 1) va a (.univ l) ∧ (Γ ⊢[l] A ≡ .el a) from
+theorem ValEqTp.inv_el {Γ l na A} : ValEqTp Γ l (.el na) A →
+    ∃ a, NeutEqTm Γ (l + 1) na a (.univ l) ∧
+      (Γ ⊢[l] A ≡ .el a) := by
+  suffices ∀ {Γ l vA A}, ValEqTp Γ l vA A → ∀ {na}, vA = .el na →
+      ∃ a, NeutEqTm Γ (l + 1) na a (.univ l) ∧
+        (Γ ⊢[l] A ≡ .el a) from
     fun h => this h rfl
   mutual_induction ValEqTp
-  all_goals grind [WfTp.el, ValEqTm.wf_tm]
+  all_goals grind [WfTp.el, NeutEqTm.wf_tm]
 
 theorem ValEqTm.inv_lam {Γ C vA vb t l₀ l l'} : ValEqTm Γ l₀ (.lam l l' vA vb) t C →
     l₀ = max l l' ∧ ∃ A B b,
@@ -632,10 +634,12 @@ theorem ValEqTm.inv_pair {Γ C vt vu p l₀ l l'} : ValEqTm Γ l₀ (.pair l l' 
   case pair => grind [WfTm.pair, ValEqTm.wf_tm, WfTp.sigma]
 
 theorem ValEqTm.inv_code {Γ C vA c l₀} : ValEqTm Γ l₀ (.code vA) c C →
-    ∃ l A, l₀ = l + 1 ∧ (ValEqTp Γ l vA A) ∧ (Γ ⊢[l₀] c ≡ .code A : C) ∧ (Γ ⊢[l₀] C ≡ .univ l) := by
+    ∃ l A, l₀ = l + 1 ∧
+      (ValEqTp Γ l vA A) ∧ (Γ ⊢[l₀] c ≡ .code A : C) ∧ (Γ ⊢[l₀] C ≡ .univ l) := by
   suffices
       ∀ {Γ l₀ vc c C}, ValEqTm Γ l₀ vc c C → ∀ {vA}, vc = .code vA →
-        ∃ l A, l₀ = l + 1 ∧ (ValEqTp Γ l vA A) ∧ (Γ ⊢[l₀] c ≡ .code A : C) ∧ (Γ ⊢[l₀] C ≡ .univ l) from
+        ∃ l A, l₀ = l + 1 ∧
+          (ValEqTp Γ l vA A) ∧ (Γ ⊢[l₀] c ≡ .code A : C) ∧ (Γ ⊢[l₀] C ≡ .univ l) from
     fun h => this h rfl
   mutual_induction ValEqTm
   all_goals intros; try exact True.intro
