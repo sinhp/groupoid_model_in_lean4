@@ -28,6 +28,8 @@ theorem snoc_succ {X} (σ : Nat → X) (x : X) (n) : snoc σ x (n + 1) = σ n :=
 def upr (ξ : Nat → Nat) : Nat → Nat :=
   snoc (fun i => ξ i + 1) 0
 
+-- TODO: add uprN
+
 @[simp]
 theorem upr_id : upr id = id := by
   ext i; cases i <;> dsimp [upr, snoc]
@@ -42,6 +44,9 @@ def rename (ξ : Nat → Nat) : Expr → Expr
   | .pair l l' B t u => .pair l l' (B.rename (upr ξ)) (t.rename ξ) (u.rename ξ)
   | .fst l l' A B p => .fst l l' (A.rename ξ) (B.rename (upr ξ)) (p.rename ξ)
   | .snd l l' A B p => .snd l l' (A.rename ξ) (B.rename (upr ξ)) (p.rename ξ)
+  | .Id l A a0 a1 => .Id l (A.rename ξ) (a0.rename ξ) (a1.rename ξ)
+  | .refl l A a => .refl l (A.rename ξ) (a.rename ξ)
+  | .j l l' A M h r => .j l l' (A.rename ξ) (M.rename (upr <| upr <| upr ξ)) (h.rename ξ) (r.rename ξ)
   | .univ l => .univ l
   | .el a => .el (a.rename ξ)
   | .code A => .code (A.rename ξ)
@@ -77,6 +82,7 @@ def subst (σ : Nat → Expr) : Expr → Expr
   | .univ l => .univ l
   | .el a => .el (a.subst σ)
   | .code A => .code (A.subst σ)
+  | _ => sorry -- TODO copilot
 
 @[simp]
 theorem subst_bvar : subst Expr.bvar = id := by

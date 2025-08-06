@@ -530,7 +530,7 @@ but when we construct a natural model,
 this may not be definitionally equal to the pullbacks we construct,
 for example using context extension.
 -/
-structure IdBase where
+structure IdIntro where
   k : Psh Ctx
   k1 : k ⟶ M.Tm
   k2 : k ⟶ M.Tm
@@ -558,14 +558,14 @@ but when we construct a natural model,
 this may not be definitionally equal to the pullbacks we construct,
 for example using context extension.
 -/
-structure IdBaseComparison extends IdBase M where
+structure IdElimBase extends IdIntro M where
   i : Psh Ctx
   i1 : i ⟶ M.Tm
   i2 : i ⟶ k
   I_isPullback : IsPullback i1 i2 M.tp Id
 
-namespace IdBaseComparison
-variable (idBaseComparison : IdBaseComparison M)
+namespace IdElimBase
+variable (idElimBase : IdElimBase M)
 
 /-- The comparison map `M.tm ⟶ i` induced by the pullback universal property of `i`.
 
@@ -581,10 +581,10 @@ diag |            |
  V   K --------> M.Ty
           Id
 -/
-def comparison : M.Tm ⟶ idBaseComparison.i :=
-  idBaseComparison.I_isPullback.lift idBaseComparison.refl
-  (IsPullback.lift idBaseComparison.isKernelPair (𝟙 M.Tm) (𝟙 M.Tm) (by simp))
-  idBaseComparison.refl_comm_tp
+def comparison : M.Tm ⟶ idElimBase.i :=
+  idElimBase.I_isPullback.lift idElimBase.refl
+  (IsPullback.lift idElimBase.isKernelPair (𝟙 M.Tm) (𝟙 M.Tm) (by simp))
+  idElimBase.refl_comm_tp
 
 /-- `iOver` can be informally thought of as the context extension
 `(A : Ty).(a b : A).(p : Id(a,b)) ->> (A : Ty)`
@@ -592,18 +592,18 @@ which is defined by the composition of (maps informally thought of as) context e
 `(A : Ty).(a b : A).(p : Id(a,b)) ->> (A : Ty).(a b : A) ->> (A : Ty).(a : A) ->> (A : Ty)`
 
 `iOver` will be treated as an object in the slice over `M.Ty = (A : Ty)` -/
-def iOver : idBaseComparison.i ⟶ M.Ty :=
-  idBaseComparison.i2 ≫ idBaseComparison.k2 ≫ M.tp
+def iOver : idElimBase.i ⟶ M.Ty :=
+  idElimBase.i2 ≫ idElimBase.k2 ≫ M.tp
 
 /-- `iOver` can be viewed as an object in the slice over `M.Ty`.
 This is the signature for a polynomial functor `iOverUvPoly` on the presheaf category `Psh Ctx`.
 -/
-def iOverUvPoly : UvPoly idBaseComparison.i M.Ty := ⟨idBaseComparison.iOver, inferInstance⟩
+def iOverUvPoly : UvPoly idElimBase.i M.Ty := ⟨idElimBase.iOver, inferInstance⟩
 
 /-- `iOver` can be viewed as an object in the slice over `M.Ty`.
 This is the signature for a polynomial functor `iOverUvPoly` on the presheaf category `Psh Ctx`.
 -/
-def iOverFunctor : Psh Ctx ⥤ Psh Ctx := idBaseComparison.iOverUvPoly.functor
+def iOverFunctor : Psh Ctx ⥤ Psh Ctx := idElimBase.iOverUvPoly.functor
 
 /-- The comparison map `comparison : Tm ⟶ i` can be viewed as a map
 `tp ⟶ iOver` in the slice over `Ty`.
@@ -611,11 +611,11 @@ Then the contravariant action `UVPoly.verticalNatTrans` of taking `UvPoly` on a 
 results in a natural transformation `P_iOver ⟶ P_tp`
 between the polynomial endofunctors respectively indexed by `iOver` and `tp` respectively.
 -/
-def verticalNatTrans : idBaseComparison.iOverFunctor ⟶ M.Ptp :=
-    UvPoly.verticalNatTrans M.uvPolyTp idBaseComparison.iOverUvPoly
-  idBaseComparison.comparison (by simp [iOverUvPoly, comparison, iOver])
+def verticalNatTrans : idElimBase.iOverFunctor ⟶ M.Ptp :=
+    UvPoly.verticalNatTrans M.uvPolyTp idElimBase.iOverUvPoly
+  idElimBase.comparison (by simp [iOverUvPoly, comparison, iOver])
 
-end IdBaseComparison
+end IdElimBase
 
 structure WeakPullback {C : Type*} [Category C]
     {P X Y Z : C} (fst : P ⟶ X) (snd : P ⟶ Y) (f : X ⟶ Z) (g : Y ⟶ Z)
@@ -653,12 +653,12 @@ Here we are thinking
 This witnesses the elimination principle for identity types.
 We can then define `J (x.y.p.C;x.c_refl) := c`.
 -/
-structure Id extends IdBaseComparison M where
+structure Id extends IdElimBase M where
   weakPullback : WeakPullback
-    (toIdBaseComparison.verticalNatTrans.app M.Tm)
-    (toIdBaseComparison.iOverFunctor.map M.tp)
+    (toIdElimBase.verticalNatTrans.app M.Tm)
+    (toIdElimBase.iOverFunctor.map M.tp)
     (M.Ptp.map M.tp)
-    (toIdBaseComparison.verticalNatTrans.app M.Ty)
+    (toIdElimBase.verticalNatTrans.app M.Ty)
 
 
 

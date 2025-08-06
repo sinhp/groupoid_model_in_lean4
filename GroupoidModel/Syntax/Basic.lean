@@ -18,6 +18,13 @@ inductive Expr where
   | fst (l l' : Nat) (A B p : Expr)
   /-- Second component of a pair. -/
   | snd (l l' : Nat) (A B p : Expr)
+  /-- Identity type. -/
+  -- TODO: capitalize all the types
+  | Id (l : Nat) (A a0 a1 : Expr)
+  /-- Reflexivity rule. -/
+  | refl (l : Nat) (A a : Expr)
+  /-- Elimination rule for identity types. -/
+  | j (l l' : Nat) (A M h r : Expr)
   /-- A type universe. -/
   | univ (l : Nat)
   /-- Type from a code. -/
