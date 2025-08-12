@@ -44,9 +44,10 @@ def rename (ξ : Nat → Nat) : Expr → Expr
   | .pair l l' B t u => .pair l l' (B.rename (upr ξ)) (t.rename ξ) (u.rename ξ)
   | .fst l l' A B p => .fst l l' (A.rename ξ) (B.rename (upr ξ)) (p.rename ξ)
   | .snd l l' A B p => .snd l l' (A.rename ξ) (B.rename (upr ξ)) (p.rename ξ)
-  | .Id l A a0 a1 => .Id l (A.rename ξ) (a0.rename ξ) (a1.rename ξ)
-  | .refl l A a => .refl l (A.rename ξ) (a.rename ξ)
-  | .j l l' A M h r => .j l l' (A.rename ξ) (M.rename (upr <| upr <| upr ξ)) (h.rename ξ) (r.rename ξ)
+  | .Id l t u => .Id l (t.rename ξ) (u.rename ξ)
+  | .refl l t => .refl l (t.rename ξ)
+  | .idRec l l' t C r u h =>
+    .idRec l l' (t.rename ξ) (C.rename (upr <| upr ξ)) (r.rename ξ) (u.rename ξ) (h.rename ξ)
   | .univ l => .univ l
   | .el a => .el (a.rename ξ)
   | .code A => .code (A.rename ξ)
@@ -81,9 +82,10 @@ def subst (σ : Nat → Expr) : Expr → Expr
   | .pair l l' B t u => .pair l l' (B.subst (up σ)) (t.subst σ) (u.subst σ)
   | .fst l l' A B p => .fst l l' (A.subst σ) (B.subst (up σ)) (p.subst σ)
   | .snd l l' A B p => .snd l l' (A.subst σ) (B.subst (up σ)) (p.subst σ)
-  | .Id l A a0 a1 => .Id l (A.subst σ) (a0.subst σ) (a1.subst σ)
-  | .refl l A a => .refl l (A.subst σ) (a.subst σ)
-  | .j l l' A M h r => .j l l' (A.subst σ) (M.subst (up <| up <| up σ)) (h.subst σ) (r.subst σ)
+  | .Id l t u => .Id l (t.subst σ) (u.subst σ)
+  | .refl l t => .refl l (t.subst σ)
+  | .idRec l l' t C r u h =>
+    .idRec l l' (t.subst σ) (C.subst <| up <| up σ) (r.subst σ) (u.subst σ) (h.subst σ)
   | .univ l => .univ l
   | .el a => .el (a.subst σ)
   | .code A => .code (A.subst σ)
@@ -130,38 +132,32 @@ theorem comp_bvar (σ) : comp σ Expr.bvar = σ := by
   ext i; simp [comp, subst]
 
 theorem up_comp_ren_sb (ξ : Nat → Nat) (σ : Nat → Expr) :
-    up (fun i => σ (ξ i)) = fun i => up σ (upr ξ i) := by
+    up (σ ∘ ξ) = up σ ∘ upr ξ := by
   ext i; cases i <;> (unfold up; dsimp [snoc, upr])
 
-theorem rename_subst (σ ξ) (t : Expr) : (t.rename ξ).subst σ = t.subst (fun i => σ (ξ i)) := by
+theorem rename_subst (σ ξ) (t : Expr) : (t.rename ξ).subst σ = t.subst (σ ∘ ξ) := by
   induction t generalizing σ ξ
-  all_goals dsimp [rename, subst]
-  case pi | sigma | lam | app | pair | fst | snd =>
-    conv => rhs; rw [up_comp_ren_sb]
-    grind
-  all_goals sorry -- grind
+  all_goals grind [rename, subst, up_comp_ren_sb]
 
 theorem up_comp_sb_ren (σ : Nat → Expr) (ξ : Nat → Nat) :
-    up (fun i => (σ i).rename ξ) = fun i => (up σ i).rename (upr ξ) := by
+    up (rename ξ ∘ σ) = rename (upr ξ) ∘ up σ := by
   ext i; cases i <;> (unfold up; dsimp [snoc, rename, upr])
   conv => lhs; rw [rename_eq_subst_ofRen, rename_subst]
   conv => rhs; rw [rename_eq_subst_ofRen, rename_subst]
   rfl
 
 theorem subst_rename (ξ σ) (t : Expr) :
-    (t.subst σ).rename ξ = t.subst (fun i => (σ i).rename ξ) := by
+    (t.subst σ).rename ξ = t.subst (rename ξ ∘ σ) := by
   induction t generalizing ξ σ
-  all_goals dsimp [subst, rename]
-  case pi | sigma | lam | app | pair | fst | snd =>
-    conv => rhs; rw [up_comp_sb_ren]
-    grind
-  all_goals sorry -- grind
+  all_goals grind [subst, rename, up_comp_sb_ren]
 
 theorem up_comp (σ τ : Nat → Expr) :
     up (comp σ τ) = comp (up σ) (up τ) := by
   ext i; unfold up comp snoc; cases i
   . rfl
-  . grind [rename_subst, subst_rename]
+  . rw [rename_subst]
+    conv in rename Nat.succ _ => rw [subst_rename]
+    rfl
 
 theorem subst_subst (σ τ : Nat → Expr) (t : Expr) :
     (t.subst τ).subst σ = t.subst (comp σ τ) := by
@@ -216,14 +212,17 @@ def toSb (t : Expr) : Nat → Expr :=
 theorem snoc_comp_wk_zero_subst (σ) : snoc (comp σ Expr.wk) ((Expr.bvar 0).subst σ) = σ := by
   ext i; cases i <;> dsimp [snoc, comp, subst, wk, ofRen, -ofRen_succ]
 
+theorem ofRen_comp (ξ₁ ξ₂ : Nat → Nat) : ofRen (ξ₁ ∘ ξ₂) = comp (ofRen ξ₁) (ofRen ξ₂) := rfl
+
+theorem wk_app (n) : wk n = .bvar (n + 1) := by
+  rw [wk, ofRen]
+
 -- Rules from Fig. 1 in the paper.
 attribute [autosubst low]
   subst
 attribute [autosubst]
   subst_snoc_zero
-  snoc_zero -- Not in the paper, but seems needed.
   snoc_comp_wk
-  snoc_succ -- Same.
   subst_bvar
   snoc_comp_wk_zero_subst
   comp_bvar
@@ -232,6 +231,13 @@ attribute [autosubst]
   comp_snoc
   subst_subst
   snoc_wk_zero
+
+-- Rules that are not in the paper,
+-- but allow us to prove more stuff.
+attribute [autosubst]
+  snoc_zero
+  snoc_succ
+  wk_app
 
 -- Rules to unfold abbreviations.
 attribute [autosubst high]
@@ -244,6 +250,7 @@ attribute [autosubst low]
 attribute [autosubst]
   rename_eq_subst_ofRen
   ofRen_id
+  ofRen_comp
   ofRen_succ
   ofRen_upr
 
