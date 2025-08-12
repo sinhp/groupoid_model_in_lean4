@@ -754,13 +754,13 @@ This can be thought of as saying the following.
 Fix `A : Ty` and `a : A` - we are working in the slice over `M.Tm`.
 For any context `Γ`, any map `(a, r) : Γ → P_𝟙Tm Tm`
 and `(a, C) : Γ ⟶ iFunctor Ty` such that `r ≫ M.tp = C[x/y, refl_x/p]`,
-there is a map `(a,c) : Γ ⟶ iFunctor Tm` such that `c ≫ M.tp = C` and `c[x/y, refl_x/p] = r`.
+there is a map `(a,c) : Γ ⟶ iFunctor Tm` such that `c ≫ M.tp = C` and `c[a/y, refl_a/p] = r`.
 Here we are thinking
   `Γ (y : A) (p : A) ⊢ C : Ty`
-  `Γ ⊢ r : C[x/y, refl_x/p]`
+  `Γ ⊢ r : C[a/y, refl_a/p]`
   `Γ (y : A) (p : A) ⊢ c : Ty`
 This witnesses the elimination principle for identity types since
-we can take `J (x.y.p.C;x.r) := c`.
+we can take `J (y.p.C;x.r) := c`.
 -/
 structure Id extends IdElimBase M where
   weakPullback : WeakPullback
@@ -776,8 +776,6 @@ variable {M} (i : Id M)
 variable {Γ : Ctx} (a : y(Γ) ⟶ M.Tm)
   (C : y(i.motiveCtx a) ⟶ M.Ty) (r : y(Γ) ⟶ M.Tm)
   (r_tp : r ≫ M.tp = ym(i.reflSubst a) ≫ C)
-  -- (b : y(Γ) ⟶ M.Tm) (b_tp : b ≫ M.tp = A)
-  -- (h : y(Γ) ⟶ M.Tm) (h_tp : h ≫ M.tp = i.isKernelPair.lift a b (by aesop) ≫ i.Id)
 
 /-- The variable `r` witnesses the motive for the case `refl`,
 This gives a map `(a,r) : Γ ⟶ P_𝟙Tm Tm ≅ Tm × Tm` where
@@ -823,8 +821,9 @@ lemma equivFst_eq : i.equivFst M (i.j a C r) = a := sorry
 
 /-- The elimination rule for identity types.
   `Γ ⊢ A` is the type with a term `Γ ⊢ a : A`.
-  `Γ (x : A) (h : Id(A,a,h)) ⊢ C` is the motive for the elimination.
-  `Γ ⊢ b : A` is a second term in `A` and `Γ ⊢ h : Id(A,a,b)` is a path from `a` to `b`.
+  `Γ (y : A) (h : Id(A,a,y)) ⊢ C` is the motive for the elimination.
+  Then we obtain a section of the motive
+  `Γ (y : A) (h : Id(A,a,y)) ⊢ mkJ : A`
 -/
 def mkJ : y(i.motiveCtx a) ⟶ M.Tm :=
   eqToHom (by rw [equivFst_eq]) ≫ i.equivSnd M (i.j a C r)
@@ -834,6 +833,36 @@ lemma mkJ_tp : mkJ i a C r ≫ M.tp = C := sorry
 
 /-- β rule for identity types. Substituting `J` with `refl` gives the user-supplied value `r` -/
 lemma reflSubst_mkJ : ym(i.reflSubst a) ≫ mkJ i a C r = r := sorry
+
+variable (b : y(Γ) ⟶ M.Tm) (b_tp : b ≫ M.tp = a ≫ M.tp)
+  (h : y(Γ) ⟶ M.Tm) (h_tp : h ≫ M.tp = i.isKernelPair.lift b a (by aesop) ≫ i.Id)
+
+def endPtSubst : Γ ⟶ i.motiveCtx a :=
+  M.substCons (M.substCons (𝟙 _) _ b (by aesop)) _ h (by
+    simp only [h_tp, IdIntro.mkId, ← Category.assoc]
+    congr 1
+    apply i.isKernelPair.hom_ext
+    · simp
+    · simp)
+
+/-- The elimination rule for identity types, now with the parameters as explicit terms.
+  `Γ ⊢ A` is the type with a term `Γ ⊢ a : A`.
+  `Γ (y : A) (p : Id(A,a,y)) ⊢ C` is the motive for the elimination.
+  `Γ ⊢ b : A` is a second term in `A` and `Γ ⊢ h : Id(A,a,b)` is a path from `a` to `b`.
+  Then `Γ ⊢ mkJ' : C [b/y,h/p]` is a term of the motive with `b` and `h` substituted
+-/
+def mkJ' : y(Γ) ⟶ M.Tm :=
+  ym(i.endPtSubst a b b_tp h h_tp) ≫ mkJ i a C r
+
+/-- Typing for elimination rule `J` -/
+lemma mkJ'_tp : mkJ' i a C r b b_tp h h_tp ≫ M.tp = ym(i.endPtSubst a b b_tp h h_tp) ≫ C := by
+  rw [mkJ', Category.assoc, mkJ_tp]
+
+/-- β rule for identity types. Substituting `J` with `refl` gives the user-supplied value `r` -/
+lemma mkJ'_refl : mkJ' i a C r a rfl (i.mkRefl a) (by aesop) = r :=
+  calc ym(i.endPtSubst a a rfl (i.mkRefl a) _) ≫ mkJ i a C r
+    _ = ym(i.reflSubst a) ≫ mkJ i a C r := rfl
+    _ = r := by rw [reflSubst_mkJ]
 
 end Id
 
