@@ -180,14 +180,14 @@ inductive WfTm : Ctx → Nat → Expr → Expr → Prop
     Γ ⊢[l] t : A →
     Γ ⊢[l] .refl l t : .Id l t t
 
-  | idRec' {Γ A C t r u h l l'} :
+  | idRec' {Γ A M t r u h l l'} :
     Γ ⊢[l] A →
     Γ ⊢[l] t : A →
-    (.Id l (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] C →
-    Γ ⊢[l'] r : C.subst (.snoc t.toSb <| .refl l t) →
+    (.Id l (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M →
+    Γ ⊢[l'] r : M.subst (.snoc t.toSb <| .refl l t) →
     Γ ⊢[l] u : A →
     Γ ⊢[l] h : .Id l t u →
-    Γ ⊢[l'] .idRec l l' t C r u h : C.subst (.snoc u.toSb h)
+    Γ ⊢[l'] .idRec l l' t M r u h : M.subst (.snoc u.toSb h)
 
   | code {Γ A l} :
     l < univMax →
@@ -245,15 +245,15 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     Γ ⊢[l] t ≡ t' : A →
     Γ ⊢[l] .refl l t ≡ .refl l t' : .Id l t t
 
-  | cong_idRec' {Γ A C C' t t' r r' u u' h h' l l'} :
+  | cong_idRec' {Γ A M M' t t' r r' u u' h h' l l'} :
     Γ ⊢[l] A →
     Γ ⊢[l] t : A →
     Γ ⊢[l] t ≡ t' : A →
-    (.Id l (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] C ≡ C' →
-    Γ ⊢[l'] r ≡ r' : C.subst (.snoc t.toSb <| .refl l t) →
+    (.Id l (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M ≡ M' →
+    Γ ⊢[l'] r ≡ r' : M.subst (.snoc t.toSb <| .refl l t) →
     Γ ⊢[l] u ≡ u' : A →
     Γ ⊢[l] h ≡ h' : .Id l t u →
-    Γ ⊢[l'] .idRec l l' t C r u h ≡ .idRec l l' t' C' r' u' h' : C.subst (.snoc u.toSb h)
+    Γ ⊢[l'] .idRec l l' t M r u h ≡ .idRec l l' t' M' r' u' h' : M.subst (.snoc u.toSb h)
 
   | cong_code {Γ A A' l} :
     l < univMax →
@@ -282,12 +282,12 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     Γ ⊢[l'] u : B.subst t.toSb →
     Γ ⊢[l'] .snd l l' A B (.pair l l' B t u) ≡ u : B.subst t.toSb
 
-  | idRec_refl' {Γ A C t r l l'} :
+  | idRec_refl' {Γ A M t r l l'} :
     Γ ⊢[l] A →
     Γ ⊢[l] t : A →
-    (.Id l (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] C →
-    Γ ⊢[l'] r : C.subst (.snoc t.toSb <| .refl l t) →
-    Γ ⊢[l'] .idRec l l' t C r t (.refl l t) ≡ r : C.subst (.snoc t.toSb <| .refl l t)
+    (.Id l (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M →
+    Γ ⊢[l'] r : M.subst (.snoc t.toSb <| .refl l t) →
+    Γ ⊢[l'] .idRec l l' t M r t (.refl l t) ≡ r : M.subst (.snoc t.toSb <| .refl l t)
 
   -- Expansions
   | lam_app' {Γ A B f l l'} :

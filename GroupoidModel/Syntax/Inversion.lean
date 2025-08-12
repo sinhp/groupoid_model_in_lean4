@@ -30,27 +30,25 @@ theorem wfSb_conv_binder {Γ A A' l} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] A'
 theorem tp_conv_binder {Γ A A' B l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] A' → Γ ⊢[l] A ≡ A' →
     (A, l) :: Γ ⊢[l'] B → (A', l) :: Γ ⊢[l'] B := by
   intro Γ A A' AA' B
-  convert B.subst (wfSb_conv_binder Γ A A' AA') using 1
-  autosubst
+  exact autosubst% B.subst (wfSb_conv_binder Γ A A' AA')
 
 theorem tm_conv_binder {Γ A A' B t l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] A' → Γ ⊢[l] A ≡ A' →
     (A, l) :: Γ ⊢[l'] t : B → (A', l) :: Γ ⊢[l'] t : B := by
   intro Γ A A' AA' t
-  convert t.subst (wfSb_conv_binder Γ A A' AA') using 1 <;>
-    autosubst
+  exact autosubst% t.subst (wfSb_conv_binder Γ A A' AA')
 
 /-! ## Instantiation -/
 
 theorem tp_inst {Γ A B t l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] t : A → (A, l) :: Γ ⊢[l'] B →
     Γ ⊢[l'] B.subst t.toSb :=
   fun Γ A t B =>
-    subst_all.1 B |>.1 ((WfSb.id Γ).snoc A (by convert t; autosubst))
+    subst_all.1 B |>.1 ((WfSb.id Γ).snoc A (autosubst% t))
 
 theorem tm_inst {Γ A B b t l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] t : A →
     (A, l) :: Γ ⊢[l'] b : B →
     Γ ⊢[l'] b.subst t.toSb : B.subst t.toSb :=
   fun Γ A t b =>
-    subst_all.2.2.1 b |>.1 ((WfSb.id Γ).snoc A (by convert t; autosubst))
+    subst_all.2.2.1 b |>.1 ((WfSb.id Γ).snoc A (autosubst% t))
 
 theorem eqtp_inst {Γ A B B' t t' l l'} : WfCtx Γ → Γ ⊢[l] A →
     Γ ⊢[l] t : A → Γ ⊢[l] t' : A → Γ ⊢[l] t ≡ t' : A →
@@ -87,7 +85,7 @@ theorem inv_all :
   case idRec' C _ _ h _ _ _ _ _ _ =>
     refine ⟨?_, ?C⟩
     case C =>
-      apply C.subst ((wfSb_toSb _ _ _).snoc _ (by convert h using 1; autosubst))
+      apply C.subst ((wfSb_toSb _ _ _).snoc _ (autosubst% h))
       all_goals grind [Id_bvar]
     all_goals grind
   case code => grind [WfTp.univ]
@@ -127,18 +125,18 @@ theorem inv_all :
   case cong_idRec' t teq Ceq _ ueq heq _ _ iht ihC ihr _ ihh =>
     refine ⟨?_, ?C, ?_, ?c⟩
     case C =>
-      apply ihC.2.1.subst <| WfSb.snoc (wfSb_toSb _ _ _) _ (by convert ihh.2.2.1 using 1; autosubst)
+      apply ihC.2.1.subst <| WfSb.snoc (wfSb_toSb _ _ _) _ (autosubst% ihh.2.2.1)
       all_goals grind [Id_bvar]
     case c =>
       apply (WfTm.idRec' iht.2.1 ..).conv
       . apply EqTp.symm_tp
         apply Ceq.subst_eq
         apply eqSb_snoc' (eqSb_toSb ..) _ ?hwf ?h'wf ?hh'
-        case hwf => convert ihh.2.2.1 using 1; autosubst
+        case hwf => exact autosubst% ihh.2.2.1
         case h'wf =>
           autosubst
           apply ihh.2.2.2.conv <| EqTp.cong_Id (EqTm.refl_tm t) ueq
-        case hh' => convert heq using 1; autosubst
+        case hh' => exact autosubst% heq
         all_goals grind [Id_bvar, EqTm.symm_tm']
       . grind
       . apply tp_conv_binder _ _ _ ?eq ihC.2.2
@@ -180,8 +178,7 @@ theorem inv_all :
           apply WfSb.snoc _ Awf
           . apply WfTm.bvar _ _
             . grind [WfCtx.snoc, tp_wk]
-            . convert Lookup.zero _ _ _ using 1
-              autosubst
+            . exact autosubst% Lookup.zero _ _ _
           . apply WfSb.ofRen
             . grind [tp_wk, WfCtx.snoc]
             . assumption
@@ -241,8 +238,7 @@ theorem comp {Θ Δ Γ σ τ} : WfSb Θ σ Δ → WfSb Δ τ Γ → WfSb Θ (Exp
   intro σ τ
   apply mk σ.wf_dom τ.wf_cod
   intro _ _ _ lk
-  convert τ.lookup lk |>.subst σ using 1
-  autosubst
+  exact autosubst% τ.lookup lk |>.subst σ
 
 theorem toSb {Γ A t l} : Γ ⊢[l] t : A → WfSb Γ t.toSb ((A, l) :: Γ) :=
   fun t => SubstProof.wfSb_toSb t.wf_ctx t.wf_tp t
@@ -272,7 +268,7 @@ theorem terminal {Δ} (σ σ') : WfCtx Δ → EqSb Δ σ σ' [] :=
   fun Δ => mk Δ .nil nofun
 
 theorem toSb {Γ t t' A l} : Γ ⊢[l] t ≡ t' : A → EqSb Γ t.toSb t'.toSb ((A, l) :: Γ) :=
-  fun tt' => snoc (EqSb.refl <| WfSb.id tt'.wf_ctx) tt'.wf_tp (by convert tt'; autosubst)
+  fun tt' => snoc (EqSb.refl <| WfSb.id tt'.wf_ctx) tt'.wf_tp (autosubst% tt')
 
 end EqSb
 

@@ -1,3 +1,4 @@
+import Mathlib.Tactic.Convert
 import GroupoidModel.Syntax.Basic
 
 /-! Implementation of simultaneous substitutions
@@ -260,5 +261,8 @@ attribute [autosubst]
 
 /-- Decides equality of substitutions applied to expressions. -/
 macro "autosubst" : tactic => `(tactic| simp only [autosubst])
+
+/-- Use a term modulo `autosubst` conversion. -/
+macro "autosubst% " t:term : term => `(by convert ($t) using 1 <;> autosubst)
 
 end Expr
