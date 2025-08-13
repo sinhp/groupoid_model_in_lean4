@@ -239,7 +239,7 @@ thought of as a dependent pair `A : Type` and `B : A ⟶ Type`.
 `PtpEquiv.fst` is the `A` in this pair.
 -/
 def fst (AB : y(Γ) ⟶ M.Ptp.obj X) : y(Γ) ⟶ M.Ty :=
-  UvPoly.Equiv.fst M.uvPolyTp y(Γ) X AB
+  UvPoly.Equiv.fst M.uvPolyTp X AB
 
 /--
 A map `(AB : y(Γ) ⟶ M.Ptp.obj X)` is equivalent to a pair of maps
@@ -248,7 +248,7 @@ thought of as a dependent pair `A : Type` and `B : A ⟶ Type`
 `PtpEquiv.snd` is the `B` in this pair.
 -/
 def snd (AB : y(Γ) ⟶ M.Ptp.obj X) : y(M.ext (fst M AB)) ⟶ X :=
-  (M.pullbackIsoExt _).inv ≫ UvPoly.Equiv.snd M.uvPolyTp y(Γ) X AB
+  (M.pullbackIsoExt _).inv ≫ UvPoly.Equiv.snd M.uvPolyTp X AB
 
 /--
 A map `(AB : y(Γ) ⟶ M.Ptp.obj X)` is equivalent to a pair of maps
@@ -257,7 +257,7 @@ thought of as a dependent pair `A : Type` and `B : A ⟶ Type`
 `PtpEquiv.mk` constructs such a map `AB` from such a pair `A` and `B`.
 -/
 def mk (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) : y(Γ) ⟶ M.Ptp.obj X :=
-  UvPoly.Equiv.mk M.uvPolyTp y(Γ) X A ((M.pullbackIsoExt _).hom ≫ B)
+  UvPoly.Equiv.mk M.uvPolyTp X A ((M.pullbackIsoExt _).hom ≫ B)
 
 @[simp]
 lemma fst_mk (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :

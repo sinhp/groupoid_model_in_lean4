@@ -364,8 +364,8 @@ def etaExpand {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     y(Γ) ⟶ s[max i j].Tm :=
   s.mkLam ilen jlen A <|
     s.mkApp ilen jlen
-      (s[i].wk A A) (ym(s[i].substWk ..) ≫ B) (s[i].wk A f)
-        (by simp_rw [wk_tp, f_tp, wk, comp_mkPi])
+      (ym(s[i].disp A) ≫ A) (ym(s[i].substWk ..) ≫ B) (ym(s[i].disp A) ≫ f)
+        (by simp [f_tp, comp_mkPi])
       (s[i].var A) (s[i].var_tp A)
 
 theorem etaExpand_eq {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
