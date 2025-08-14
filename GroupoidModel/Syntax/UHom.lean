@@ -310,26 +310,30 @@ def slift (ij : i <= j := by omega)
 
 --@jh, Vtec: maybe need a lemma that slift for i < j is UHom somewhere above? I did not use it though.
 
-
-
-def connijm : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ptp.obj s[max i j].Ty :=
+def liftmaxPtp : s[i].Ptp ⟶ s[max i j].Ptp :=
   let hi : Hom s[i] s[max i j] := slift (j:= max i j) s ilen
-  let hj : Hom s[j] s[max i j] := slift (j:= max i j) s jlen
-  let η: s[i].Ptp ⟶ s[max i j].Ptp :=
-      CategoryTheory.UvPoly.cartesianNaturalTrans s[i].uvPolyTp s[max i j].uvPolyTp hi.mapTy hi.mapTm
+  CategoryTheory.UvPoly.cartesianNaturalTrans s[i].uvPolyTp s[max i j].uvPolyTp hi.mapTy hi.mapTm
        (by
         apply CategoryTheory.IsPullback.flip
         convert hi.pb)
-  let Pmhj: s[max i j].Ptp.obj s[j].Ty ⟶ s[max i j].Ptp.obj s[max i j].Ty :=
-    s[max i j].uvPolyTp.functor.map hj.mapTy
-  η.app s[j].Ty ≫ Pmhj
 
+
+
+def connijmTm : s[i].Ptp.obj s[j].Tm ⟶ s[max i j].Ptp.obj s[max i j].Tm :=
+  let Pmhj: s[max i j].Ptp.obj s[j].Tm ⟶ s[max i j].Ptp.obj s[max i j].Tm :=
+    s[max i j].uvPolyTp.functor.map (slift (j:= max i j) s jlen).mapTm
+  (liftmaxPtp s ilen jlen).app s[j].Tm ≫ Pmhj
+
+def connijmTy : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ptp.obj s[max i j].Ty :=
+  let Pmhj: s[max i j].Ptp.obj s[j].Ty ⟶ s[max i j].Ptp.obj s[max i j].Ty :=
+    s[max i j].uvPolyTp.functor.map (slift (j:= max i j) s jlen).mapTy
+  (liftmaxPtp s ilen jlen).app s[j].Ty ≫ Pmhj
 
 def Pi : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
-  connijm s ilen jlen ≫ (s.nmPi (max i j)).Pi
+  connijmTy s ilen jlen ≫ (s.nmPi (max i j)).Pi
 
 def lam : s[i].Ptp.obj s[j].Tm ⟶ s[max i j].Tm :=
-  sorry
+  connijmTm s ilen jlen ≫ (s.nmPi (max i j)).lam
 
 def Pi_pb :
     IsPullback (s.lam ilen jlen) (s[i].Ptp.map s[j].tp) s[max i j].tp (s.Pi ilen jlen) :=
@@ -476,10 +480,10 @@ theorem mkApp_mkLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[
 /-! ## Sigma -/
 
 def Sig : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
-  connijm s ilen jlen ≫ (s.nmSigma (max i j)).Sig
+  connijmTy s ilen jlen ≫ (s.nmSigma (max i j)).Sig
 
 def pair : UvPoly.compDom s[i].uvPolyTp s[j].uvPolyTp ⟶ s[max i j].Tm :=
-  sorry
+  sorry ≫ (s.nmSigma (max i j)).pair
 
 def Sig_pb : IsPullback
     (s.pair ilen jlen)
