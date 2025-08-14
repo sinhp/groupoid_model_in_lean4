@@ -146,6 +146,7 @@ instance : GetElem (UHomSeq Ctx) Nat (NaturalModelBase Ctx) (fun s i => i < s.le
 def homSucc (s : UHomSeq Ctx) (i : Nat) (h : i < s.length := by get_elem_tactic) : UHom s[i] s[i+1] :=
   s.homSucc' i h
 
+
 /-- Composition of embeddings between `i` and `j` in the chain. -/
 def hom (s : UHomSeq Ctx) (i j : Nat) (ij : i < j := by omega)
     (jlen : j < s.length + 1 := by get_elem_tactic) : UHom s[i] s[j] :=
@@ -154,6 +155,26 @@ def hom (s : UHomSeq Ctx) (i j : Nat) (ij : i < j := by omega)
   else
     (s.homSucc i).comp <| s.hom (i+1) j
 termination_by s.length - i
+
+
+
+/- there is no point considering an arbitrary sequence of Homs. Neverthelss, it is useful
+  to be able to talk about the underlying sequence of a UHomSeq.
+  For such a sequence, we can loosen the condition i < j to i <= j, this is helpful for
+  defining the Pi, Sigma below.
+
+  Due to this feature, we now call each map in this sequence of Hom an lehom.
+-/
+def lehom (s : UHomSeq Ctx) (i j : Nat) (ij : i <= j := by omega)
+    (jlen : j < s.length + 1 := by get_elem_tactic) : Hom s[i] s[j] :=
+  if h : i = j then h ▸ Hom.id s[i]
+  else
+   if h : i + 1 = j then
+     h ▸ (s.homSucc i).toHom
+  else
+    (s.homSucc i).toHom.comp <| (s.hom (i+1) j).toHom
+termination_by s.length - i
+
 
 theorem hom_comp_trans (s : UHomSeq Ctx) (i j k : Nat) (ij : i < j) (jk : j < k)
     (klen : k < s.length + 1) :
@@ -278,8 +299,34 @@ variable {i j : Nat} (ilen : i < s.length + 1) (jlen : j < s.length + 1)
 
 /-! ## Pi -/
 
+
+--s[i].Ptp.obj s[j].Ty ⟶ s.toUHomSeq[max i j].Ptp.obj s.toUHomSeq[max i j].Ty
+
+
+def slift (ij : i <= j := by omega)
+    (jlen : j < s.length + 1 := by get_elem_tactic) : Hom s[i] s[j] :=
+    NaturalModelBase.UHomSeq.lehom s.toUHomSeq i j ij jlen
+
+
+--@jh, Vtec: maybe need a lemma that slift for i < j is UHom somewhere above? I did not use it though.
+
+
+
+def connijm : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ptp.obj s[max i j].Ty :=
+  let hi : Hom s[i] s[max i j] := slift (j:= max i j) s ilen
+  let hj : Hom s[j] s[max i j] := slift (j:= max i j) s jlen
+  let η: s[i].Ptp ⟶ s[max i j].Ptp :=
+      CategoryTheory.UvPoly.cartesianNaturalTrans s[i].uvPolyTp s[max i j].uvPolyTp hi.mapTy hi.mapTm
+       (by
+        apply CategoryTheory.IsPullback.flip
+        convert hi.pb)
+  let Pmhj: s[max i j].Ptp.obj s[j].Ty ⟶ s[max i j].Ptp.obj s[max i j].Ty :=
+    s[max i j].uvPolyTp.functor.map hj.mapTy
+  η.app s[j].Ty ≫ Pmhj
+
+
 def Pi : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
-  sorry ≫ (s.nmPi (max i j)).Pi
+  connijm s ilen jlen ≫ (s.nmPi (max i j)).Pi
 
 def lam : s[i].Ptp.obj s[j].Tm ⟶ s[max i j].Tm :=
   sorry
@@ -429,7 +476,7 @@ theorem mkApp_mkLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[
 /-! ## Sigma -/
 
 def Sig : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
-  sorry ≫ (s.nmSigma (max i j)).Sig
+  connijm s ilen jlen ≫ (s.nmSigma (max i j)).Sig
 
 def pair : UvPoly.compDom s[i].uvPolyTp s[j].uvPolyTp ⟶ s[max i j].Tm :=
   sorry
