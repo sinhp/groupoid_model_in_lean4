@@ -751,23 +751,23 @@ theorem ValEqTm.inv_refl {Γ C vt r l₀ l} : ValEqTm Γ l₀ (.refl l vt) r C �
     grind [WfTm.refl, WfTp.Id]
   all_goals grind [EqTm.conv_eq]
 
-theorem NeutEqTm.inv_idRec {Γ C vA cM va vr vh j l₀ l l'} :
-    NeutEqTm Γ l₀ (.idRec l l' vA va cM vr vh) j C → l₀ = l' ∧ ∃ A M t r u h,
+theorem NeutEqTm.inv_idRec {Γ C vA cM va vr nh j l₀ l l'} :
+    NeutEqTm Γ l₀ (.idRec l l' vA va cM vr nh) j C → l₀ = l' ∧ ∃ A M t r u h,
       (ValEqTp Γ l vA A) ∧
       (ValEqTm Γ l va t A) ∧
       (Clos₂EqTp Γ A l (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0)) l l' cM M) ∧
       (ValEqTm Γ l' vr r (M.subst (.snoc t.toSb <| .refl l t))) ∧
-      (NeutEqTm Γ l vh h (.Id l A t u)) ∧
+      (NeutEqTm Γ l nh h (.Id l A t u)) ∧
       (Γ ⊢[l'] j ≡ .idRec l l' t M r u h : C) ∧
       (Γ ⊢[l'] C ≡ M.subst (.snoc u.toSb h)) := by
   suffices
-    ∀ {Γ l₀ vj j C}, NeutEqTm Γ l₀ vj j C → ∀ {vA cM va vr vh l l'},
-      vj = .idRec l l' vA va cM vr vh → l₀ = l' ∧ ∃ A M t r u h,
+    ∀ {Γ l₀ vj j C}, NeutEqTm Γ l₀ vj j C → ∀ {vA cM va vr nh l l'},
+      vj = .idRec l l' vA va cM vr nh → l₀ = l' ∧ ∃ A M t r u h,
         (ValEqTp Γ l vA A) ∧
         (ValEqTm Γ l va t A) ∧
         (Clos₂EqTp Γ A l (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0)) l l' cM M) ∧
         (ValEqTm Γ l' vr r (M.subst (.snoc t.toSb <| .refl l t))) ∧
-        (NeutEqTm Γ l vh h (.Id l A t u)) ∧
+        (NeutEqTm Γ l nh h (.Id l A t u)) ∧
         (Γ ⊢[l'] j ≡ .idRec l l' t M r u h : C) ∧
         (Γ ⊢[l'] C ≡ M.subst (.snoc u.toSb h)) from
     fun h => this h rfl

@@ -270,4 +270,15 @@ macro "autosubst" : tactic => `(tactic| simp only [autosubst])
 /-- Use a term modulo `autosubst` conversion. -/
 macro "autosubst% " t:term : term => `(by convert ($t) using 1 <;> autosubst)
 
+/-! Lemmas that come up in a few proofs -/
+
+theorem subst_toSb_subst (B a : Expr) σ :
+    (B.subst a.toSb).subst σ = (B.subst (Expr.up σ)).subst (a.subst σ).toSb := by
+  autosubst
+
+theorem subst_snoc_toSb_subst (B a b : Expr) σ :
+    (B.subst <| Expr.snoc a.toSb b).subst σ =
+      (B.subst <| Expr.up <| Expr.up σ).subst (Expr.snoc (a.subst σ).toSb (b.subst σ)) := by
+  autosubst
+
 end Expr

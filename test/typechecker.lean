@@ -39,6 +39,17 @@ hott def tm_fst : Type 2 :=
 hott def tm_snd : Type 1 :=
   { fst := Type 1, snd := Type 0 : (A : Type 2) × A }.snd
 
+/-! ## Identity types -/
+
+hott def tp_id : Type 2 :=
+  @HoTT0.Id (Type 1) Type Type
+
+-- TODO
+hott def tm_refl : @HoTT0.Id (Type 1) Type Type :=
+  @HoTT0.Id.refl (Type 1) Type
+
+-- TODO: idRec
+
 /-! ## Definitional equalities -/
 
 hott def defeq_el_code {A : Type} (a : A) : A :=

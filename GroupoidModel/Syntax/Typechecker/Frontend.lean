@@ -3,11 +3,25 @@ import Qq
 import Mathlib.Util.WhatsNew
 import GroupoidModel.Syntax.Typechecker.Synth
 
+/-! ## Basic types -/
+
+namespace HoTT0
+
+inductive Id.{u} {α : Type u} : α → α → Type u where
+  | refl (a : α) : Id a a
+
+end HoTT0
+
 /-! ## Translation from Lean to HoTT0 -/
 
 namespace HoTT0.Translation
 
 open Qq Lean Meta
+
+def traceClsTranslation : Name := `HoTT0.Translation
+
+initialize
+  registerTraceClass traceClsTranslation
 
 -- TODO: namespace `_root_.Expr` et al to `HoTT0`
 
@@ -43,6 +57,14 @@ def mkSigma (l l' : Nat) : Q(_root_.Expr) :=
         .sigma $l $l'
           (.el <| .bvar 1)
           (.el <| .app $l ($l' + 1) (.univ $l') (.bvar 1) (.bvar 0)))
+
+/-- Make the HoTT0 term
+`fun (A : Type l) (a b : A) : Type l => code (.Id l a b)`. -/
+def mkId (l : Nat) : Q(_root_.Expr) :=
+  q(.lam ($l + 1) ($l + 1) (.univ $l) <|
+    .lam $l ($l + 1) (.el <| .bvar 0) <|
+      .lam $l ($l + 1) (.el <| .bvar 1) <|
+        .code <| .Id $l (.el <| .bvar 2) (.bvar 1) (.bvar 0))
 
 mutual
 /-- Completeness: if the argument is well-formed in Lean,
@@ -120,10 +142,16 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr)) :
     /- FIXME: To simplify the translation,
     we handle `Sigma` rather than fully applied `@Sigma α β`.
     However, `mkSigma` has to use codes
-    and consequently Σ in `univMax` cannot be translated. -/
+    and consequently Σ in `univMax` cannot be translated.
+    But the max universe is deficient anyway -
+    it can't have axiomatic function extensionality -
+    so maybe this is fine. -/
     let l ← getSortLevel l.succ
     let l' ← getSortLevel l'.succ
     return ⟨max l l' + 1, mkSigma l l'⟩
+  | .const ``Id [l] =>
+    let l ← getSortLevel l.succ
+    return ⟨l + 1, mkId l⟩
   | e => throwError "unsupported term{indentExpr e}"
 
 end
@@ -160,7 +188,9 @@ def elabDeclaration (stx : Syntax) : CommandElabM Unit := do
       {Lean.indentD ""}{diff.map (·.name)}"
   Command.liftTermElabM do
     let ⟨l, T⟩ ← Translation.translateAsTp ci.type |>.run
-    let ⟨_, t⟩ ← Translation.translateAsTm ci.value! |>.run
+    let ⟨k, t⟩ ← Translation.translateAsTm ci.value! |>.run
+    if l != k then throwError "internal error: inferred level mismatch"
+    trace[HoTT0.Translation] "translated (lvl {l}){Lean.indentD ""}{t} : {T}"
     let Twf ← checkTp q([]) q($l) q($T)
     let ⟨vT, vTeq⟩ ← evalTpId q([]) q($T)
     let twf ← checkTm q([]) q($l) q($vT) q($t)

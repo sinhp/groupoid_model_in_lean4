@@ -423,16 +423,10 @@ theorem subst_all :
         ∀ {Δ σ σ'}, EqSb Δ σ σ' Γ → Δ ⊢[l] t.subst σ ≡ t.subst σ' : A.subst σ) ∧
     (∀ {Γ l A t u}, Γ ⊢[l] t ≡ u : A →
       ∀ {Δ σ σ'}, EqSb Δ σ σ' Γ → Δ ⊢[l] t.subst σ ≡ u.subst σ' : A.subst σ) := by
-  have ih_subst (B a : Expr) σ :
-      (B.subst a.toSb).subst σ = (B.subst (Expr.up σ)).subst (a.subst σ).toSb := by autosubst
-  have ih_subst' (B a b : Expr) σ :
-      (B.subst <| Expr.snoc a.toSb b).subst σ =
-        (B.subst <| Expr.up <| Expr.up σ).subst (Expr.snoc (a.subst σ).toSb (b.subst σ)) := by
-    autosubst
   mutual_induction WfCtx
   all_goals dsimp; try intros
   case snoc => exact True.intro
-  all_goals try simp only [ih_subst, ih_subst', Expr.subst] at *
+  all_goals try simp only [Expr.subst_toSb_subst, Expr.subst_snoc_toSb_subst, Expr.subst] at *
   case bvar => grind [EqSb.lookup, WfSb.lookup]
   case pi' => grind [WfTp.pi', EqTp.cong_pi']
   case sigma' => grind [WfTp.sigma', EqTp.cong_sigma']
