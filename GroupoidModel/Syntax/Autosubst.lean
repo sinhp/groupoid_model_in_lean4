@@ -45,7 +45,7 @@ def rename (ξ : Nat → Nat) : Expr → Expr
   | .pair l l' B t u => .pair l l' (B.rename (upr ξ)) (t.rename ξ) (u.rename ξ)
   | .fst l l' A B p => .fst l l' (A.rename ξ) (B.rename (upr ξ)) (p.rename ξ)
   | .snd l l' A B p => .snd l l' (A.rename ξ) (B.rename (upr ξ)) (p.rename ξ)
-  | .Id l t u => .Id l (t.rename ξ) (u.rename ξ)
+  | .Id l A t u => .Id l (A.rename ξ) (t.rename ξ) (u.rename ξ)
   | .refl l t => .refl l (t.rename ξ)
   | .idRec l l' t C r u h =>
     .idRec l l' (t.rename ξ) (C.rename (upr <| upr ξ)) (r.rename ξ) (u.rename ξ) (h.rename ξ)
@@ -83,7 +83,7 @@ def subst (σ : Nat → Expr) : Expr → Expr
   | .pair l l' B t u => .pair l l' (B.subst (up σ)) (t.subst σ) (u.subst σ)
   | .fst l l' A B p => .fst l l' (A.subst σ) (B.subst (up σ)) (p.subst σ)
   | .snd l l' A B p => .snd l l' (A.subst σ) (B.subst (up σ)) (p.subst σ)
-  | .Id l t u => .Id l (t.subst σ) (u.subst σ)
+  | .Id l A t u => .Id l (A.subst σ) (t.subst σ) (u.subst σ)
   | .refl l t => .refl l (t.subst σ)
   | .idRec l l' t C r u h =>
     .idRec l l' (t.subst σ) (C.subst <| up <| up σ) (r.subst σ) (u.subst σ) (h.subst σ)
@@ -199,6 +199,9 @@ theorem snoc_comp_wk (σ : Nat → Expr) (t) : comp (snoc σ t) wk = σ := by
 theorem snoc_wk_zero : snoc wk (Expr.bvar 0) = Expr.bvar := by
   ext i; cases i <;> dsimp [snoc, wk, ofRen, -ofRen_succ]
 
+theorem snoc_comp_wk_succ (σ n) : snoc (comp wk σ) (bvar (n + 1)) = comp wk (snoc σ (bvar n)) := by
+  ext i; cases i <;> dsimp [comp, snoc, wk, -ofRen_succ, subst, ofRen]
+
 /-- A substitution that instantiates one binder.
 ```
 Γ ⊢ t : A
@@ -217,6 +220,7 @@ theorem ofRen_comp (ξ₁ ξ₂ : Nat → Nat) : ofRen (ξ₁ ∘ ξ₂) = comp 
 
 theorem wk_app (n) : wk n = .bvar (n + 1) := by
   rw [wk, ofRen]
+
 
 -- Rules from Fig. 1 in the paper.
 attribute [autosubst low]
@@ -238,6 +242,7 @@ attribute [autosubst]
 attribute [autosubst]
   snoc_zero
   snoc_succ
+  snoc_comp_wk_succ
   wk_app
 
 -- Rules to unfold abbreviations.

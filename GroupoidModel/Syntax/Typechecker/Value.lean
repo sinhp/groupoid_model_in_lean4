@@ -44,14 +44,16 @@ and hence it suffices to compare the value parts (in this case `p`). -/
 inductive Val where
   | pi (l l' : Nat) (A : Val) (B : Clos)
   | sigma (l l' : Nat) (A : Val) (B : Clos)
-  | lam (l l' : Nat) (vA : Val) (b : Clos)
-  | pair (l l' : Nat) (t u : Val)
+  | Id (l : Nat) (A t u : Val)
   | univ (l : Nat)
   /-- Although `el` is an eliminator,
   as a neutral form it does not need to be annotated with a type
   (because it itself is a type).
   So we embed it in `Val` directly rather than through `Val.neut`. -/
   | el (a : Neut)
+  | lam (l l' : Nat) (vA : Val) (b : Clos)
+  | pair (l l' : Nat) (t u : Val)
+  | refl (l : Nat) (t : Val)
   | code (A : Val)
   /-- A neutral form at the given type. -/
   | neut (n : Neut) (A : Val)
@@ -66,6 +68,7 @@ inductive Neut where
   | app (l l' : Nat) (A : Val) (f : Neut) (a : Val)
   | fst (l l' : Nat) (p : Neut)
   | snd (l l' : Nat) (p : Neut)
+  | idRec (l l' : Nat) (A a : Val) (M : Clos) (r : Val) (h : Neut)
   deriving Inhabited
 
 /-- Recall that given `Γ.A ⊢ b : B` and a substitution `Δ ⊢ env : Γ`,
@@ -97,6 +100,11 @@ inductive ValEqTp : Ctx → Nat → Val → Expr → Prop
     ValEqTp Γ l vA A →
     ClosEqTp Γ l l' A vB B →
     ValEqTp Γ (max l l') (.sigma l l' vA vB) (.sigma l l' A B)
+  | Id {Γ A vA vt t vu u l} :
+    ValEqTp Γ l vA A →
+    ValEqTm Γ l vt t A →
+    ValEqTm Γ l vu u A →
+    ValEqTp Γ l (.Id l vA vt vu) (.Id l A t u)
   | univ {Γ l} :
     WfCtx Γ →
     l < univMax →
@@ -121,6 +129,9 @@ inductive ValEqTm : Ctx → Nat → Val → Expr → Expr → Prop
     ValEqTm Γ l vt t A →
     ValEqTm Γ l' vu u (B.subst t.toSb) →
     ValEqTm Γ (max l l') (.pair l l' vt vu) (.pair l l' B t u) (.sigma l l' A B)
+  | refl {Γ A vt t l} :
+    ValEqTm Γ l vt t A →
+    ValEqTm Γ l (.refl l vt) (.refl l t) (.Id l A t t)
   | code {Γ vA A l} :
     l < univMax →
     ValEqTp Γ l vA A →
@@ -151,6 +162,13 @@ inductive NeutEqTm : Ctx → Nat → Neut → Expr → Expr → Prop
   | snd {Γ A B vp p l l'} :
     NeutEqTm Γ (max l l') vp p (.sigma l l' A B) →
     NeutEqTm Γ l' (.snd l l' vp) (.snd l l' A B p) (B.subst (Expr.fst l l' A B p).toSb)
+  | idRec {Γ vA A cM M va a vr r b nh h l l'} :
+    ValEqTp Γ l vA A →
+    ValEqTm Γ l va a A →
+    Clos₂EqTp Γ A l (.Id l (A.subst Expr.wk) (a.subst Expr.wk) (.bvar 0)) l l' cM M →
+    ValEqTm Γ l' vr r (M.subst (.snoc a.toSb <| .refl l a)) →
+    NeutEqTm Γ l nh h (.Id l A a b) →
+    NeutEqTm Γ l' (.idRec l l' vA va cM vr nh) (.idRec l l' a M r b h) (M.subst (.snoc b.toSb h))
   | conv_neut {Γ A A' vn n n' l} :
     NeutEqTm Γ l vn n A →
     Γ ⊢[l] n ≡ n' : A →
@@ -170,6 +188,22 @@ inductive ClosEqTp : Ctx → Nat → Nat → Expr → Clos → Expr → Prop
     Δ ⊢[l] A.subst σ ≡ Aenv →
     ValEqTp ((A, l) :: Γ) l' vB B →
     ClosEqTp Δ l l' Aenv (.of_val env vB) (B.subst <| Expr.up σ)
+
+/- Can `ClosEqTp` and `Clos₂EqTp` be subsumed by `ClosₙEqTp` that takes a context?
+Would need defining substitution on contexts, and `Expr.upN`. -/
+inductive Clos₂EqTp : Ctx → Expr → Nat → Expr → Nat → Nat → Clos → Expr → Prop
+  | clos₂_tp {Δ Γ A B C Aenv Benv env σ l l' l''} :
+    EnvEqSb Δ env σ Γ →
+    Δ ⊢[l] A.subst σ ≡ Aenv →
+    (Aenv, l) :: Δ ⊢[l'] B.subst (Expr.up σ) ≡ Benv →
+    (B, l') :: (A, l) :: Γ ⊢[l''] C →
+    Clos₂EqTp Δ Aenv l Benv l' l'' (.of_expr env C) (C.subst <| Expr.up <| Expr.up σ)
+  | clos₂_val_tp {Δ Γ A B C vC Aenv Benv env σ l l' l''} :
+    EnvEqSb Δ env σ Γ →
+    Δ ⊢[l] A.subst σ ≡ Aenv →
+    (Aenv, l) :: Δ ⊢[l'] B.subst (Expr.up σ) ≡ Benv →
+    ValEqTp ((B, l') :: (A, l) :: Γ) l'' vC C →
+    Clos₂EqTp Δ Aenv l Benv l' l'' (.of_val env vC) (C.subst <| Expr.up <| Expr.up σ)
 
 /-- `ClosEqTm Δ l l' A B vb b` -/
 inductive ClosEqTm : Ctx → Nat → Nat → Expr → Expr → Clos → Expr → Prop
@@ -225,8 +259,8 @@ theorem lookup_eq : ∀ {Δ E σ Γ}, (env : EnvEqSb Δ E σ Γ) →
   case nil lk => cases lk
   case snoc E A v ih _ _ _ _ lk =>
     rcases lk with _ | ⟨_, _, lk⟩
-    . convert v using 1; autosubst
-    . convert ih lk using 1; autosubst
+    . exact autosubst% v
+    . exact autosubst% ih lk
 
 lemma Expr.eq_snoc_get_zero (σ : Nat → Expr) : σ = Expr.snoc (Expr.comp σ Expr.wk) (σ 0) := by
   ext i; cases i <;> rfl
@@ -247,9 +281,9 @@ theorem mk : ∀ {Γ}, WfCtx Γ → ∀ {Δ} {E : List Val} {σ}, WfCtx Δ → (
       rw [Expr.eq_snoc_get_zero σ]
       apply EnvEqSb.snoc
       . refine ih Δ eq fun lk => ?_
-        convert h (lk.succ ..) using 1; autosubst
+        exact autosubst% h (lk.succ ..)
       . assumption
-      . convert h (Lookup.zero ..) using 1; autosubst
+      . exact autosubst% h (Lookup.zero ..)
 
 end EnvEqSb
 
@@ -260,6 +294,7 @@ theorem wf_expr :
     (∀ {Γ l vt t A}, ValEqTm Γ l vt t A → Γ ⊢[l] t : A) ∧
     (∀ {Γ l vt t A}, NeutEqTm Γ l vt t A → Γ ⊢[l] t : A) ∧
     (∀ {Γ l l' A vB B}, ClosEqTp Γ l l' A vB B → (A, l) :: Γ ⊢[l'] B) ∧
+    (∀ {Γ A l B l' l'' cC C}, Clos₂EqTp Γ A l B l' l'' cC C → (B, l') :: (A, l) :: Γ ⊢[l''] C) ∧
     (∀ {Γ l l' A B vb b}, ClosEqTm Γ l l' A B vb b → (A, l) :: Γ ⊢[l'] b : B) ∧
     (∀ {Γ E σ Γ'}, EnvEqSb Γ E σ Γ' → WfSb Γ σ Γ') := by
   mutual_induction ValEqTp
@@ -267,10 +302,12 @@ theorem wf_expr :
   case pi => grind [WfTp.pi]
   case sigma => grind [WfTp.sigma]
   case univ => grind [WfTp.univ]
+  case Id => grind [WfTp.Id]
   case el => grind [WfTp.el]
   case conv_tp => grind [EqTp.wf_right]
   case lam => grind [WfTm.lam]
   case pair => grind [WfTm.pair]
+  case refl => grind [WfTm.refl]
   case code => grind [WfTm.code]
   case neut_tm => grind
   case conv_nf tt' AA' _ => exact tt'.wf_right.conv AA'
@@ -278,7 +315,22 @@ theorem wf_expr :
   case app => grind [WfTm.app]
   case fst => grind [WfTm.fst]
   case snd => grind [WfTm.snd]
+  case idRec => grind [WfTm.idRec]
   case conv_neut nn' AA' _ => exact nn'.wf_right.conv AA'
+  case clos₂_tp Aenv Benv C σ =>
+    have B := C.wf_binder
+    have A := B.wf_binder
+    apply C.subst (σ.up A |>.up B) |>.conv_ctx
+    apply EqCtx.refl Aenv.wf_ctx
+      |>.snoc Aenv
+      |>.snoc (Benv.conv_binder Aenv.symm_tp)
+  case clos₂_val_tp Aenv Benv _ σ C =>
+    have B := C.wf_binder
+    have A := B.wf_binder
+    apply C.subst (σ.up A |>.up B) |>.conv_ctx
+    apply EqCtx.refl Aenv.wf_ctx
+      |>.snoc Aenv
+      |>.snoc (Benv.conv_binder Aenv.symm_tp)
   case clos_tp Aenv B σ =>
     have := B.subst (σ.up B.wf_binder)
     exact this.conv_binder Aenv
@@ -309,12 +361,16 @@ theorem ClosEqTp.wf_tp {Γ l l' A vB B} (h : ClosEqTp Γ l l' A vB B) :
     (A, l) :: Γ ⊢[l'] B :=
   _root_.wf_expr.2.2.2.1 h
 
-theorem ClosEqTm.wf_tm {Γ l l' A B vb b} (h : ClosEqTm Γ l l' A B vb b) :
-    (A, l) :: Γ ⊢[l'] b : B :=
+theorem Clos₂EqTp.wf_tp {Γ A B C vC l l' l''} (h : Clos₂EqTp Γ A l B l' l'' vC C) :
+    (B, l') :: (A, l) :: Γ ⊢[l''] C :=
   _root_.wf_expr.2.2.2.2.1 h
 
+theorem ClosEqTm.wf_tm {Γ l l' A B vb b} (h : ClosEqTm Γ l l' A B vb b) :
+    (A, l) :: Γ ⊢[l'] b : B :=
+  _root_.wf_expr.2.2.2.2.2.1 h
+
 theorem EnvEqSb.wf_sb {Δ E σ Γ} (h : EnvEqSb Δ E σ Γ) : WfSb Δ σ Γ :=
-  _root_.wf_expr.2.2.2.2.2 h
+  _root_.wf_expr.2.2.2.2.2.2 h
 
 theorem ValEqTm.conv_tm {Γ A vt t t' l} :
     ValEqTm Γ l vt t A → Γ ⊢[l] t ≡ t' : A → ValEqTm Γ l vt t' A :=
@@ -334,12 +390,15 @@ theorem NeutEqTm.conv_tp {Γ A A' vt t l} :
 
 /-! ## Values are closed under context conversion -/
 
-attribute [local grind] EqCtx.length_eq in
+attribute [local grind ←] EqCtx.length_eq in
+attribute [local grind →] WfTp.conv_ctx EqTp.conv_ctx WfTm.conv_ctx EqTm.conv_ctx in
 theorem conv_ctx :
     (∀ {Γ l vA A}, ValEqTp Γ l vA A → ∀ {Γ'}, EqCtx Γ Γ' → ValEqTp Γ' l vA A) ∧
     (∀ {Γ l vt t A}, ValEqTm Γ l vt t A → ∀ {Γ'}, EqCtx Γ Γ' → ValEqTm Γ' l vt t A) ∧
     (∀ {Γ l vt t A}, NeutEqTm Γ l vt t A → ∀ {Γ'}, EqCtx Γ Γ' → NeutEqTm Γ' l vt t A) ∧
     (∀ {Γ l l' A vB B}, ClosEqTp Γ l l' A vB B → ∀ {Γ'}, EqCtx Γ Γ' → ClosEqTp Γ' l l' A vB B) ∧
+    (∀ {Γ A l B l' l'' vC C}, Clos₂EqTp Γ A l B l' l'' vC C →
+      ∀ {Γ'}, EqCtx Γ Γ' → Clos₂EqTp Γ' A l B l' l'' vC C) ∧
     (∀ {Γ l l' A B vb b}, ClosEqTm Γ l l' A B vb b → ∀ {Γ'}, EqCtx Γ Γ' →
       ClosEqTm Γ' l l' A B vb b) ∧
     (∀ {Γ E σ Δ}, EnvEqSb Γ E σ Δ → ∀ {Γ'}, EqCtx Γ Γ' → EnvEqSb Γ' E σ Δ) := by
@@ -347,16 +406,17 @@ theorem conv_ctx :
   all_goals intros
   case pi => grind [ValEqTp.pi]
   case sigma => grind [ValEqTp.sigma]
+  case Id => grind [ValEqTp.Id]
   case univ => grind [ValEqTp.univ, EqCtx.wf_right]
   case el => grind [ValEqTp.el]
-  case conv_tp => grind [ValEqTp.conv_tp, EqTp.conv_ctx]
+  case conv_tp => grind [ValEqTp.conv_tp]
   case lam eq => grind [ValEqTm.lam]
   case pair B _ _ _ _ _ eq =>
-    apply ValEqTm.pair (B.conv_ctx (eq.snoc <| EqTp.refl_tp B.wf_binder)) <;>
-      grind
+    apply ValEqTm.pair (B.conv_ctx (eq.snoc <| EqTp.refl_tp B.wf_binder)) <;> grind
+  case refl => grind [ValEqTm.refl]
   case code => grind [ValEqTm.code]
   case neut_tm => grind [ValEqTm.neut_tm]
-  case conv_nf => grind [EqTm.conv_ctx, EqTp.conv_ctx, ValEqTm.conv_nf]
+  case conv_nf => grind [ValEqTm.conv_nf]
   case bvar lk _ eq =>
     have ⟨A', _, lk'⟩ := Lookup.of_lt_length <| eq.length_eq ▸ lk.lt_length
     obtain ⟨rfl, eqA⟩ := eq.lookup_eq lk lk'
@@ -366,9 +426,16 @@ theorem conv_ctx :
   case app eq => grind [NeutEqTm.app]
   case fst => grind [NeutEqTm.fst]
   case snd => grind [NeutEqTm.snd]
-  case conv_neut => grind [EqTm.conv_ctx, EqTp.conv_ctx, NeutEqTm.conv_neut]
-  case clos_tp => grind [ClosEqTp.clos_tp, EqTp.conv_ctx]
-  case clos_val_tp => grind [ClosEqTp.clos_val_tp, EqTp.conv_ctx]
+  case idRec => grind [NeutEqTm.idRec]
+  case conv_neut => grind [NeutEqTm.conv_neut]
+  case clos_tp => grind [ClosEqTp.clos_tp]
+  case clos_val_tp => grind [ClosEqTp.clos_val_tp]
+  case clos₂_tp Aeq Beq C ihE _ eq =>
+    apply Clos₂EqTp.clos₂_tp (ihE eq) (Aeq.conv_ctx eq) (Beq.conv_ctx _) C
+    grind [Clos₂EqTp.clos₂_tp, EqTp.conv_ctx, EqCtx.snoc, EqTp.trans_tp, EqTp.symm_tp]
+  case clos₂_val_tp Aeq Beq C ihE _ _ eq =>
+    apply Clos₂EqTp.clos₂_val_tp (ihE eq) (Aeq.conv_ctx eq) (Beq.conv_ctx _) C
+    grind [Clos₂EqTp.clos₂_tp, EqTp.conv_ctx, EqCtx.snoc, EqTp.trans_tp, EqTp.symm_tp]
   case clos_tm Aeq Beq b env _ eq =>
     exact ClosEqTm.clos_tm (env eq) (Aeq.conv_ctx eq)
       (Beq.conv_ctx <| eq.snoc <| EqTp.refl_tp Aeq.wf_right)
@@ -378,6 +445,8 @@ theorem conv_ctx :
       (Beq.conv_ctx <| eq.snoc <| EqTp.refl_tp Aeq.wf_right) vb
   case nil eq => exact .nil _ eq.wf_right
   case snoc => grind [EnvEqSb.snoc]
+
+-- TODO: name-based grind_cases
 
 theorem ValEqTp.conv_ctx {Γ Γ' l vA A} : ValEqTp Γ l vA A → EqCtx Γ Γ' → ValEqTp Γ' l vA A :=
   fun h eq => _root_.conv_ctx.1 h eq
@@ -394,12 +463,16 @@ theorem ClosEqTp.conv_ctx {Γ Γ' l l' A vB B} : ClosEqTp Γ l l' A vB B → EqC
     ClosEqTp Γ' l l' A vB B :=
   fun h eq => _root_.conv_ctx.2.2.2.1 h eq
 
-theorem ClosEqTm.conv_ctx {Γ Γ' l l' A B vb b} :
-    ClosEqTm Γ l l' A B vb b → EqCtx Γ Γ' → ClosEqTm Γ' l l' A B vb b :=
+theorem Clos₂EqTp.conv_ctx {Γ Γ' A B C vC l l' l''} : Clos₂EqTp Γ A l B l' l'' vC C → EqCtx Γ Γ' →
+    Clos₂EqTp Γ' A l B l' l'' vC C :=
   fun h eq => _root_.conv_ctx.2.2.2.2.1 h eq
 
+theorem ClosEqTm.conv_ctx {Γ Γ' l l' A B vb b} :
+    ClosEqTm Γ l l' A B vb b → EqCtx Γ Γ' → ClosEqTm Γ' l l' A B vb b :=
+  fun h eq => _root_.conv_ctx.2.2.2.2.2.1 h eq
+
 theorem EnvEqSb.conv_dom {Δ Δ' E σ Γ} : EnvEqSb Δ E σ Γ → EqCtx Δ Δ' → EnvEqSb Δ' E σ Γ :=
-  fun h eq => _root_.conv_ctx.2.2.2.2.2 h eq
+  fun h eq => _root_.conv_ctx.2.2.2.2.2.2 h eq
 
 /-! ## Weakening is free -/
 
@@ -412,6 +485,9 @@ theorem wk_all :
       NeutEqTm ((C,k) :: Γ) l vt (t.subst Expr.wk) (A.subst Expr.wk)) ∧
     (∀ {Γ l l' A vB B}, ClosEqTp Γ l l' A vB B → ∀ {C k}, Γ ⊢[k] C →
       ClosEqTp ((C,k) :: Γ) l l' (A.subst Expr.wk) vB (B.subst (Expr.up Expr.wk))) ∧
+    (∀ {Γ A l B l' l'' vC C}, Clos₂EqTp Γ A l B l' l'' vC C → ∀ {D k}, Γ ⊢[k] D →
+      Clos₂EqTp ((D,k) :: Γ) (A.subst Expr.wk) l (B.subst (Expr.up Expr.wk)) l' l''
+        vC (C.subst (Expr.up <| Expr.up Expr.wk))) ∧
     (∀ {Γ l l' A B vb b}, ClosEqTm Γ l l' A B vb b → ∀ {C k}, Γ ⊢[k] C →
       ClosEqTm ((C,k) :: Γ) l l' (A.subst Expr.wk) (B.subst (Expr.up Expr.wk))
         vb (b.subst (Expr.up Expr.wk))) ∧
@@ -421,48 +497,55 @@ theorem wk_all :
   all_goals intros; try dsimp [Expr.subst] at *
   case pi => grind [ValEqTp.pi]
   case sigma => grind [ValEqTp.sigma]
+  case Id => grind [ValEqTp.Id]
   case univ => grind [ValEqTp.univ, WfCtx.snoc]
   case el => grind [ValEqTp.el]
   case conv_tp => grind [ValEqTp.conv_tp, EqTp.subst, WfSb.wk]
   case lam => grind [ValEqTm.lam]
   case pair B _ _ iht ihu _ _ C =>
     have := B.subst (WfSb.wk C |>.up B.wf_binder)
-    apply ValEqTm.pair this (iht C) (by convert ihu C using 1; autosubst)
+    apply ValEqTm.pair this (iht C) (autosubst% ihu C)
+  case refl => grind [ValEqTm.refl]
   case code => grind [ValEqTm.code]
   case neut_tm => grind [ValEqTm.neut_tm]
   case conv_nf => grind [ValEqTm.conv_nf, EqTp.subst, EqTm.subst, WfSb.wk]
   case bvar Γ lk _ _ C =>
     convert NeutEqTm.bvar (Γ.snoc C) (.succ _ _ lk) using 1; grind
   case app ihA ihf iha _ _ C =>
-    convert NeutEqTm.app (ihA C) (ihf C) (iha C) using 1; autosubst
+    exact autosubst% NeutEqTm.app (ihA C) (ihf C) (iha C)
   case fst => grind [NeutEqTm.fst]
   case snd ih _ _ C =>
-    convert NeutEqTm.snd (ih C) using 1; autosubst
+    exact autosubst% NeutEqTm.snd (ih C)
+  case idRec b _ ihA iha ihM ihr ihh _ _ C =>
+    exact autosubst% NeutEqTm.idRec
+      (ihA C)
+      (iha C)
+      (autosubst% ihM C)
+      (autosubst% ihr C)
+      (ihh C)
   case conv_neut => grind [NeutEqTm.conv_neut, EqTp.subst, EqTm.subst, WfSb.wk]
-  case clos_tp Aeq B ih _ _ C =>
+  case clos_tp Aeq B ihE _ _ C =>
     have := Aeq.subst (WfSb.wk C)
-    convert ClosEqTp.clos_tp (ih C) (by convert this using 1; autosubst) B using 1
-    autosubst
-  case clos_val_tp Aeq vB ihE _ _ _ C =>
-    convert ClosEqTp.clos_val_tp (ihE C)
-      (by convert Aeq.subst (WfSb.wk C) using 1; autosubst) vB using 1
-    autosubst
+    exact autosubst% ClosEqTp.clos_tp (ihE C) (autosubst% this) B
+  case clos_val_tp Aeq B ihE _ _ _ C =>
+    have := Aeq.subst (WfSb.wk C)
+    exact autosubst% ClosEqTp.clos_val_tp (ihE C) (autosubst% this) B
+  case clos₂_tp Aeq Beq C ihE _ _ D =>
+    have Aeq' := Aeq.subst (WfSb.wk D)
+    have Beq' := Beq.subst (WfSb.up (WfSb.wk D) Aeq.wf_right)
+    exact autosubst% Clos₂EqTp.clos₂_tp (ihE D) (autosubst% Aeq') (autosubst% Beq') C
+  case clos₂_val_tp Aeq Beq C ihE _ _ _ D =>
+    have Aeq' := Aeq.subst (WfSb.wk D)
+    have Beq' := Beq.subst (WfSb.up (WfSb.wk D) Aeq.wf_right)
+    exact autosubst% Clos₂EqTp.clos₂_val_tp (ihE D) (autosubst% Aeq') (autosubst% Beq') C
   case clos_tm Aeq Beq b ihE _ _ C =>
     have CAeq := Aeq.subst <| WfSb.wk C
     have CBeq := Beq.subst <| (WfSb.wk C).up Aeq.wf_right
-    have := ClosEqTm.clos_tm (ihE C)
-      (by convert CAeq using 1; autosubst)
-      (by convert CBeq using 1; autosubst)
-      b
-    convert this using 1; autosubst
+    exact autosubst% ClosEqTm.clos_tm (ihE C) (autosubst% CAeq) (autosubst% CBeq) b
   case clos_val_tm Aeq Beq vb ihE _ _ _ C =>
     have CAeq := Aeq.subst <| WfSb.wk C
     have CBeq := Beq.subst <| (WfSb.wk C).up Aeq.wf_right
-    have := ClosEqTm.clos_val_tm (ihE C)
-      (by convert CAeq using 1; autosubst)
-      (by convert CBeq using 1; autosubst)
-      vb
-    convert this using 1; autosubst
+    exact autosubst% ClosEqTm.clos_val_tm (ihE C) (autosubst% CAeq) (autosubst% CBeq) vb
   case nil C => apply EnvEqSb.nil _ (C.wf_ctx.snoc C)
   case snoc =>
     simp only [autosubst] at *
@@ -484,14 +567,20 @@ theorem ClosEqTp.wk {Γ l l' A vB B} (h : ClosEqTp Γ l l' A vB B) {C k} (hC : �
     ClosEqTp ((C,k) :: Γ) l l' (A.subst Expr.wk) vB (B.subst (Expr.up Expr.wk)) :=
   wk_all.2.2.2.1 h hC
 
+theorem Clos₂EqTp.wk {Γ A l B l' l'' vC C} (h : Clos₂EqTp Γ A l B l' l'' vC C)
+    {D k} (hD : Γ ⊢[k] D) :
+    Clos₂EqTp ((D,k) :: Γ) (A.subst Expr.wk) l (B.subst (Expr.up Expr.wk)) l' l''
+      vC (C.subst (Expr.up (Expr.up Expr.wk))) :=
+  wk_all.2.2.2.2.1 h hD
+
 theorem ClosEqTm.wk {Γ l l' A B vb b} (h : ClosEqTm Γ l l' A B vb b) {C k} (hC : Γ ⊢[k] C) :
     ClosEqTm ((C,k) :: Γ) l l' (A.subst Expr.wk) (B.subst (Expr.up Expr.wk))
       vb (b.subst (Expr.up Expr.wk)) :=
-  wk_all.2.2.2.2.1 h hC
+  wk_all.2.2.2.2.2.1 h hC
 
 theorem EnvEqSb.wk {Δ E σ Γ} (h : EnvEqSb Δ E σ Γ) {C k} (hC : Δ ⊢[k] C) :
     EnvEqSb ((C,k) :: Δ) E (Expr.comp Expr.wk σ) Γ :=
-  wk_all.2.2.2.2.2 h hC
+  wk_all.2.2.2.2.2.2 h hC
 
 /-! ## Type environments -/
 
@@ -549,10 +638,10 @@ theorem envOfTpEnv_wf {vΓ Γ} : TpEnvEqCtx vΓ Γ → EnvEqSb Γ (envOfTpEnv v�
   . rw [length_envOfTpEnv, vΓ.length_eq]
   . simp only [envOfTpEnv, List.getElem_mapIdx]
     apply ValEqTm.neut_tm
-    . convert vΓ.lookup_wf lk using 1; autosubst
+    . exact autosubst% vΓ.lookup_wf lk
     . rw [vΓ.length_eq]
       apply NeutEqTm.bvar Γ
-      convert lk using 1; autosubst
+      exact autosubst% lk
 
 /-! ## Inversion for value relations -/
 
@@ -577,6 +666,22 @@ theorem ValEqTp.inv_sigma {Γ C vA vB l k k'} : ValEqTp Γ l (.sigma k k' vA vB)
     fun h => this h rfl
   mutual_induction ValEqTp
   all_goals grind [WfTp.sigma, ClosEqTp.wf_tp]
+
+theorem ValEqTp.inv_Id {Γ C vA vt vu l k} : ValEqTp Γ l (.Id k vA vt vu) C →
+    l = k ∧ ∃ A t u,
+      ValEqTp Γ k vA A ∧ ValEqTm Γ k vt t A ∧ ValEqTm Γ k vu u A ∧
+      (Γ ⊢[k] C ≡ .Id k A t u) := by
+  suffices ∀ {Γ l vC C}, ValEqTp Γ l vC C →
+    ∀ {vA vt vu k}, vC = .Id k vA vt vu →
+    l = k ∧ ∃ A t u, ValEqTp Γ k vA A ∧ ValEqTm Γ k vt t A ∧ ValEqTm Γ k vu u A ∧
+      (Γ ⊢[k] C ≡ .Id k A t u) from
+  fun h => this h rfl
+  mutual_induction ValEqTp
+  case Id =>
+    introv vA vt vu
+    have := WfTp.Id vt.wf_tm vu.wf_tm
+    grind [EqTp.refl_tp]
+  all_goals grind
 
 theorem ValEqTp.inv_univ {Γ l k t} : ValEqTp Γ l (.univ k) t → l = k + 1 ∧
     (Γ ⊢[k + 1] t ≡ .univ k) := by
@@ -632,6 +737,43 @@ theorem ValEqTm.inv_pair {Γ C vt vu p l₀ l l'} : ValEqTm Γ l₀ (.pair l l' 
   all_goals rename_i eq; cases eq
   case conv_nf => grind [EqTm.conv_eq]
   case pair => grind [WfTm.pair, ValEqTm.wf_tm, WfTp.sigma]
+
+theorem ValEqTm.inv_refl {Γ C vt r l₀ l} : ValEqTm Γ l₀ (.refl l vt) r C →
+    l₀ = l ∧ ∃ A t, (ValEqTm Γ l vt t A) ∧
+      (Γ ⊢[l] r ≡ .refl l t : C) ∧ (Γ ⊢[l] C ≡ .Id l A t t) := by
+  suffices ∀ {Γ l₀ vr r C}, ValEqTm Γ l₀ vr r C → ∀ {vt l}, vr = .refl l vt → l₀ = l ∧ ∃ A t,
+      (ValEqTm Γ l vt t A) ∧ (Γ ⊢[l] r ≡ .refl l t : C) ∧ (Γ ⊢[l] C ≡ .Id l A t t) from
+    fun h => this h rfl
+  mutual_induction ValEqTm
+  case refl =>
+    introv vt
+    have := vt.wf_tm
+    grind [WfTm.refl, WfTp.Id]
+  all_goals grind [EqTm.conv_eq]
+
+theorem NeutEqTm.inv_idRec {Γ C vA cM va vr vh j l₀ l l'} :
+    NeutEqTm Γ l₀ (.idRec l l' vA va cM vr vh) j C → l₀ = l' ∧ ∃ A M t r u h,
+      (ValEqTp Γ l vA A) ∧
+      (ValEqTm Γ l va t A) ∧
+      (Clos₂EqTp Γ A l (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0)) l l' cM M) ∧
+      (ValEqTm Γ l' vr r (M.subst (.snoc t.toSb <| .refl l t))) ∧
+      (NeutEqTm Γ l vh h (.Id l A t u)) ∧
+      (Γ ⊢[l'] j ≡ .idRec l l' t M r u h : C) ∧
+      (Γ ⊢[l'] C ≡ M.subst (.snoc u.toSb h)) := by
+  suffices
+    ∀ {Γ l₀ vj j C}, NeutEqTm Γ l₀ vj j C → ∀ {vA cM va vr vh l l'},
+      vj = .idRec l l' vA va cM vr vh → l₀ = l' ∧ ∃ A M t r u h,
+        (ValEqTp Γ l vA A) ∧
+        (ValEqTm Γ l va t A) ∧
+        (Clos₂EqTp Γ A l (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0)) l l' cM M) ∧
+        (ValEqTm Γ l' vr r (M.subst (.snoc t.toSb <| .refl l t))) ∧
+        (NeutEqTm Γ l vh h (.Id l A t u)) ∧
+        (Γ ⊢[l'] j ≡ .idRec l l' t M r u h : C) ∧
+        (Γ ⊢[l'] C ≡ M.subst (.snoc u.toSb h)) from
+    fun h => this h rfl
+  mutual_induction ValEqTm
+  case idRec => grind [NeutEqTm.wf_tm, WfTm.wf_tp, → NeutEqTm.idRec]
+  all_goals grind [EqTm.conv_eq]
 
 theorem ValEqTm.inv_code {Γ C vA c l₀} : ValEqTm Γ l₀ (.code vA) c C →
     ∃ l A, l₀ = l + 1 ∧

@@ -20,7 +20,7 @@ inductive Expr where
   | snd (l l' : Nat) (A B p : Expr)
   /-- Identity type. -/
   -- TODO: capitalize all the types
-  | Id (l : Nat) (t u : Expr)
+  | Id (l : Nat) (A t u : Expr)
   /-- A reflexive identity. -/
   | refl (l : Nat) (t : Expr)
   /-- Eliminates an identity. -/

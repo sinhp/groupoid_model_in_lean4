@@ -74,14 +74,14 @@ theorem inv_all :
   case bvar => grind [WfCtx.lookup_wf]
   case cong_pi' => grind [WfTp.pi']
   case cong_sigma' => grind [WfTp.sigma']
-  case cong_Id => grind [WfTp.Id]
+  case cong_Id => grind [WfTp.Id', WfTm.conv]
   case cong_el => grind [WfTp.el]
   case el_code => grind [WfTp.el, WfTm.code]
   case lam' => grind [WfTp.pi']
   case app' => grind [tp_inst]
   case pair' => grind [WfTp.sigma']
   case snd' => grind [tp_inst, WfTm.fst']
-  case refl => grind [WfTp.Id]
+  case refl' => grind [WfTp.Id']
   case idRec' C _ _ h _ _ _ _ _ _ =>
     refine ⟨?_, ?C⟩
     case C =>
@@ -116,12 +116,12 @@ theorem inv_all :
           ?_ ?_ ?_)⟩
     all_goals grind [tp_inst, WfTm.fst', WfTm.snd', EqTp.cong_sigma', WfTm.conv,
       EqTm.symm_tm', EqTm.cong_fst', EqTp.symm_tp]
-  case cong_refl eq iheq =>
+  case cong_refl' eq iheq =>
     refine ⟨?_, ?_, ?_, ?c⟩
     case c =>
-      apply (WfTm.refl iheq.2.2.2).conv
-      grind [EqTp.cong_Id, EqTm.symm_tm']
-    all_goals grind [WfTp.Id, WfTm.refl]
+      apply (WfTm.refl' iheq.2.1 iheq.2.2.2).conv
+      grind [EqTp.cong_Id, EqTm.symm_tm', EqTp.refl_tp]
+    all_goals grind [WfTp.Id', WfTm.refl']
   case cong_idRec' t teq Ceq _ ueq heq _ _ iht ihC ihr _ ihh =>
     refine ⟨?_, ?C, ?_, ?c⟩
     case C =>
@@ -135,24 +135,25 @@ theorem inv_all :
         case hwf => exact autosubst% ihh.2.2.1
         case h'wf =>
           autosubst
-          apply ihh.2.2.2.conv <| EqTp.cong_Id (EqTm.refl_tm t) ueq
+          apply ihh.2.2.2.conv <| EqTp.cong_Id sorry (EqTm.refl_tm t) ueq
         case hh' => exact autosubst% heq
         all_goals grind [Id_bvar, EqTm.symm_tm']
       . grind
       . apply tp_conv_binder _ _ _ ?eq ihC.2.2
         case eq =>
-          apply EqTp.cong_Id (eqTm_wk _ _ teq) (EqTm.refl_tm (WfTm.bvar _ (.zero ..))) <;> grind
+          apply EqTp.cong_Id sorry (eqTm_wk _ _ teq) (EqTm.refl_tm (WfTm.bvar _ (.zero ..))) <;> grind
         all_goals grind [Id_bvar]
       . apply ihr.2.2.2.conv
         apply Ceq.subst_eq
         apply eqSb_snoc' (eqSb_toSb ..) _ _ ?rwf _
         case rwf =>
           autosubst
-          apply (WfTm.refl iht.2.2.2).conv
-          grind [EqTp.cong_Id, EqTm.symm_tm', EqTm.refl_tm]
-        all_goals (try autosubst); grind [Id_bvar, WfTm.refl, EqTm.cong_refl]
+          apply (WfTm.refl' sorry iht.2.2.2).conv
+          sorry
+          -- grind [EqTp.cong_Id, EqTm.symm_tm', EqTm.refl_tm]
+        all_goals (try autosubst); grind [Id_bvar, WfTm.refl', EqTm.cong_refl']
       . grind
-      . grind [EqTp.cong_Id, WfTm.conv]
+      . sorry --grind [EqTp.cong_Id, WfTm.conv]
     all_goals grind [WfTm.idRec']
   case cong_code => grind [WfTp.univ, WfTm.code]
   case app_lam' => grind [WfTm.app', WfTm.lam', tp_inst, tm_inst]
@@ -163,7 +164,7 @@ theorem inv_all :
   case code_el => grind [WfTm.code, WfTp.el, WfTm.le_univMax]
   case idRec_refl' ihA _ _ =>
     refine ⟨?_, ?_, ?r, ?_⟩
-    case r => apply WfTm.idRec' ihA.2 <;> grind [WfTm.refl]
+    case r => apply WfTm.idRec' ihA.2 <;> grind [WfTm.refl']
     all_goals grind
   case lam_app' A B _ _ _ Awf Bwf fwf Γwf _ _ =>
     refine ⟨?_, ?_, ?_, WfTm.lam' ?_ ?app⟩
@@ -290,11 +291,11 @@ theorem WfTp.inv_sigma {Γ A B l₀ l l'} : Γ ⊢[l₀] .sigma l l' A B →
     fun h => this h rfl
   mutual_induction WfCtx <;> grind
 
-theorem WfTp.inv_Id {Γ t u l₀ l} : Γ ⊢[l₀] .Id l t u →
-    l₀ = l ∧ ∃ A, (Γ ⊢[l] t : A) ∧ (Γ ⊢[l] u : A) := by
+theorem WfTp.inv_Id {Γ A t u l₀ l} : Γ ⊢[l₀] .Id l A t u →
+    l₀ = l ∧ (Γ ⊢[l] t : A) ∧ (Γ ⊢[l] u : A) := by
   suffices
-      ∀ {Γ l₀ A}, Γ ⊢[l₀] A → ∀ {l t u}, A = .Id l t u →
-        l₀ = l ∧ ∃ A, (Γ ⊢[l] t : A) ∧ (Γ ⊢[l] u : A) from
+      ∀ {Γ l₀ T}, Γ ⊢[l₀] T → ∀ {l t u}, T = .Id l A t u →
+        l₀ = l ∧ (Γ ⊢[l] t : A) ∧ (Γ ⊢[l] u : A) from
     fun h => this h rfl
   mutual_induction WfCtx <;> grind
 
@@ -310,15 +311,19 @@ theorem WfTp.inv_el {Γ a l} : Γ ⊢[l] .el a → Γ ⊢[l+1] a : .univ l := by
 
 /-! ## Smart constructors -/
 
-theorem WfTp.pi {Γ A B l l'} :
-    (A, l) :: Γ ⊢[l'] B →
-    Γ ⊢[max l l'] .pi l l' A B :=
+theorem WfTp.pi {Γ A B l l'} : (A, l) :: Γ ⊢[l'] B → Γ ⊢[max l l'] .pi l l' A B :=
   fun h => WfTp.pi' h.wf_binder h
 
 theorem WfTp.sigma {Γ A B l l'} :
     (A, l) :: Γ ⊢[l'] B →
     Γ ⊢[max l l'] .sigma l l' A B :=
   fun h => WfTp.sigma' h.wf_binder h
+
+theorem WfTp.Id {Γ A t u l} :
+    Γ ⊢[l] t : A →
+    Γ ⊢[l] u : A →
+    Γ ⊢[l] .Id l A t u :=
+  fun t u => WfTp.Id' t.wf_tp t u
 
 theorem EqTp.cong_pi {Γ A A' B B' l l'} :
     Γ ⊢[l] A ≡ A' →
@@ -366,15 +371,19 @@ theorem WfTm.snd {Γ A B p l l'} :
     have ⟨_, hB⟩ := hp.wf_tp.inv_sigma
     WfTm.snd' hB.wf_binder hB hp
 
-theorem WfTm.idRec {Γ A C t r u h l l'} :
-    -- FIXME: annotating `Id` with `A` would allow dropping both `t/u` assumptions here
+theorem WfTm.refl {Γ A t l} :
     Γ ⊢[l] t : A →
-    (.Id l (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] C →
-    Γ ⊢[l'] r : C.subst (.snoc t.toSb <| .refl l t) →
-    Γ ⊢[l] u : A →
-    Γ ⊢[l] h : .Id l t u →
-    Γ ⊢[l'] .idRec l l' t C r u h : C.subst (.snoc u.toSb h) :=
-  fun t C r u h => .idRec' t.wf_tp t C r u h
+    Γ ⊢[l] .refl l t : .Id l A t t :=
+  fun t => .refl' t.wf_tp t
+
+theorem WfTm.idRec {Γ A M t r u h l l'} :
+    (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M →
+    Γ ⊢[l'] r : M.subst (.snoc t.toSb <| .refl l t) →
+    Γ ⊢[l] h : .Id l A t u →
+    Γ ⊢[l'] .idRec l l' t M r u h : M.subst (.snoc u.toSb h) :=
+  fun M r h =>
+    have ⟨_, t, u⟩ := h.wf_tp.inv_Id
+    .idRec' t.wf_tp t M r u h
 
 theorem EqTm.cong_lam {Γ A A' B t t' l l'} :
     Γ ⊢[l] A ≡ A' →
@@ -410,14 +419,14 @@ theorem EqTm.cong_snd {Γ A A' B B' p p' l l'} :
     Γ ⊢[l'] .snd l l' A B p ≡ .snd l l' A' B' p' : B.subst (Expr.fst l l' A B p).toSb :=
   fun hAA' hBB' hpp' => EqTm.cong_snd' hAA'.wf_left hAA' hBB' hpp'
 
-theorem EqTm.cong_idRec {Γ A C C' t t' r r' u u' h h' l l'} :
+theorem EqTm.cong_idRec {Γ A M M' t t' r r' u u' h h' l l'} :
     Γ ⊢[l] t ≡ t' : A →
-    (.Id l (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] C ≡ C' →
-    Γ ⊢[l'] r ≡ r' : C.subst (.snoc t.toSb <| .refl l t) →
+    (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M ≡ M' →
+    Γ ⊢[l'] r ≡ r' : M.subst (.snoc t.toSb <| .refl l t) →
     Γ ⊢[l] u ≡ u' : A →
-    Γ ⊢[l] h ≡ h' : .Id l t u →
-    Γ ⊢[l'] .idRec l l' t C r u h ≡ .idRec l l' t' C' r' u' h' : C.subst (.snoc u.toSb h) :=
-  fun teq Ceq req ueq heq => .cong_idRec' teq.wf_tp teq.wf_left teq Ceq req ueq heq
+    Γ ⊢[l] h ≡ h' : .Id l A t u →
+    Γ ⊢[l'] .idRec l l' t M r u h ≡ .idRec l l' t' M' r' u' h' : M.subst (.snoc u.toSb h) :=
+  fun teq Meq req ueq heq => .cong_idRec' teq.wf_tp teq.wf_left teq Meq req ueq heq
 
 theorem EqTm.app_lam {Γ A B t u l l'} :
     (A, l) :: Γ ⊢[l'] t : B →
@@ -439,12 +448,17 @@ theorem EqTm.snd_pair {Γ A B t u l l'} :
     Γ ⊢[l'] .snd l l' A B (.pair l l' B t u) ≡ u : B.subst t.toSb :=
   fun hB ht hu => EqTm.snd_pair' ht.wf_tp hB ht hu
 
-theorem EqTm.idRec_refl {Γ A C t r l l'} :
+theorem EqTm.cong_refl {Γ A t t' l} :
+    Γ ⊢[l] t ≡ t' : A →
+    Γ ⊢[l] .refl l t ≡ .refl l t' : .Id l A t t :=
+  fun t => .cong_refl' t.wf_tp t
+
+theorem EqTm.idRec_refl {Γ A M t r l l'} :
     Γ ⊢[l] t : A →
-    (.Id l (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] C →
-    Γ ⊢[l'] r : C.subst (.snoc t.toSb <| .refl l t) →
-    Γ ⊢[l'] .idRec l l' t C r t (.refl l t) ≡ r : C.subst (.snoc t.toSb <| .refl l t) :=
-  fun t C r => .idRec_refl' t.wf_tp t C r
+    (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M →
+    Γ ⊢[l'] r : M.subst (.snoc t.toSb <| .refl l t) →
+    Γ ⊢[l'] .idRec l l' t M r t (.refl l t) ≡ r : M.subst (.snoc t.toSb <| .refl l t) :=
+  fun t M r => .idRec_refl' t.wf_tp t M r
 
 theorem EqTm.lam_app {Γ A B f l l'} :
     Γ ⊢[max l l'] f : .pi l l' A B →
@@ -472,6 +486,10 @@ theorem EqTm.trans_tm {Γ A t t' t'' l} :
     Γ ⊢[l] t' ≡ t'' : A →
     Γ ⊢[l] t ≡ t'' : A :=
   fun htt' ht't'' => EqTm.trans_tm' htt'.wf_tp htt' ht't''
+
+theorem WfTp.Id_bvar {Γ A t l} : Γ ⊢[l] t : A →
+    (A, l) :: Γ ⊢[l] .Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0) :=
+  fun t => WfTp.Id (t.subst (WfSb.wk t.wf_tp)) (.bvar (t.wf_ctx.snoc t.wf_tp) (.zero ..))
 
 /-! ## Term former inversion -/
 
@@ -539,28 +557,28 @@ theorem WfTm.inv_snd {Γ A B C p l₀ l l'} : Γ ⊢[l₀] .snd l l' A B p : C �
     grind [InvProof.tp_inst, EqTp.refl_tp, EqTp.symm_tp, EqTp.trans_tp, WfTm.fst, WfTp.wf_ctx]
 
 theorem WfTm.inv_refl {Γ C t l₀ l} : Γ ⊢[l₀] .refl l t : C →
-    l₀ = l ∧ ∃ A, (Γ ⊢[l] t : A) ∧ (Γ ⊢[l] C ≡ .Id l t t) := by
+    l₀ = l ∧ ∃ A, (Γ ⊢[l] t : A) ∧ (Γ ⊢[l] C ≡ .Id l A t t) := by
   suffices
       ∀ {Γ l₀ C t'}, Γ ⊢[l₀] t' : C → ∀ {l t}, t' = .refl l t →
-        l₀ = l ∧ ∃ A, (Γ ⊢[l] t : A) ∧ (Γ ⊢[l] C ≡ .Id l t t) from
+        l₀ = l ∧ ∃ A, (Γ ⊢[l] t : A) ∧ (Γ ⊢[l] C ≡ .Id l A t t) from
     fun h => this h rfl
   mutual_induction WfCtx <;> grind [WfTp.Id,  EqTp.refl_tp, EqTp.symm_tp, EqTp.trans_tp]
 
 theorem WfTm.inv_idRec {Γ M C t r u h l₀ l l'} : Γ ⊢[l₀] .idRec l l' t M r u h : C →
     l₀ = l' ∧ ∃ A,
       (Γ ⊢[l] t : A) ∧
-      ((.Id l (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M) ∧
+      ((.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M) ∧
       (Γ ⊢[l'] r : M.subst (.snoc t.toSb <| .refl l t)) ∧
       (Γ ⊢[l] u : A) ∧
-      (Γ ⊢[l] h : .Id l t u) ∧
+      (Γ ⊢[l] h : .Id l A t u) ∧
       (Γ ⊢[l'] C ≡ M.subst (.snoc u.toSb h)) := by
   suffices ∀ {Γ l₀ C t'}, Γ ⊢[l₀] t' : C → ∀ {t M r u h l l'}, t' = .idRec l l' t M r u h →
       l₀ = l' ∧ ∃ A,
         (Γ ⊢[l] t : A) ∧
-        ((.Id l (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M) ∧
+        ((.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M) ∧
         (Γ ⊢[l'] r : M.subst (.snoc t.toSb <| .refl l t)) ∧
         (Γ ⊢[l] u : A) ∧
-        (Γ ⊢[l] h : .Id l t u) ∧
+        (Γ ⊢[l] h : .Id l A t u) ∧
         (Γ ⊢[l'] C ≡ M.subst (.snoc u.toSb h)) from
     fun h => this h rfl
   mutual_induction WfCtx
@@ -569,7 +587,7 @@ theorem WfTm.inv_idRec {Γ M C t r u h l₀ l l'} : Γ ⊢[l₀] .idRec l l' t M
   case refl t M r u h _ _ _ _ _ _ =>
     refine ⟨rfl, _, t, M, r, u, h, ?_⟩
     apply EqTp.refl_tp <| M.subst (WfSb.snoc (WfSb.toSb u) _ _)
-    . grind [SubstProof.Id_bvar, WfTp.wf_ctx]
+    . grind [WfTp.Id_bvar, WfTp.wf_ctx]
     . autosubst; assumption
   case conv => grind [EqTp.trans_tp, EqTp.symm_tp]
 
