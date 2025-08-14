@@ -44,11 +44,11 @@ hott def tm_snd : Type 1 :=
 hott def tp_id : Type 2 :=
   @HoTT0.Id (Type 1) Type Type
 
--- TODO
 hott def tm_refl : @HoTT0.Id (Type 1) Type Type :=
   @HoTT0.Id.refl (Type 1) Type
 
--- TODO: idRec
+hott noncomputable def tm_idRec (A B : Type) (eq : @HoTT0.Id Type A B) (a : A) : B :=
+  @HoTT0.Id.rec Type A (fun T _ => T) a B eq
 
 /-! ## Definitional equalities -/
 

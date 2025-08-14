@@ -131,6 +131,20 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr)) :
         withBinder x <| translateAsTp B
       let ⟨_, p⟩ ← translateAsTm p
       return ⟨l', q(.snd $l $l' $A $B $p)⟩
+    if e.isAppOfArity' ``Id.refl 2 then
+      let #[_, a] := e.getAppArgs | throwError "internal error (Id.refl)"
+      let ⟨l, a⟩ ← translateAsTm a
+      return ⟨l, q(.refl $l $a)⟩
+    if e.isAppOfArity' ``Id.rec 6 then
+      let #[_, a, M, r, b, h] := e.getAppArgs | throwError "internal error (Id.rec)"
+      let ⟨l, a⟩ ← translateAsTm a
+      let ⟨l', M⟩ ← lambdaBoundedTelescope M 2 fun xs M => do
+        let #[x, h] := xs | throwError "internal error (Id.rec)"
+        withBinder x <| withBinder h <| translateAsTp M
+      let ⟨_, r⟩ ← translateAsTm r
+      let ⟨_, b⟩ ← translateAsTm b
+      let ⟨_, h⟩ ← translateAsTm h
+      return ⟨l', q(.idRec $l $l' $a $M $r $b $h)⟩
     let fnTp ← inferType fn
     let ⟨_, fn⟩ ← translateAsTm fn
     let ⟨l, arg⟩ ← translateAsTm arg
