@@ -15,13 +15,13 @@ namespace CategoryTheory
 open Functor.Groupoidal
 
 
-def PGrpd.inc (G : Type) [Groupoid G] : G ⥤ PGrpd  where
-  obj x := {base := Grpd.of G,fiber := x}
-  map f := {base := Functor.id G, fiber := f}
-  map_comp {X Y Z} f g := by
-    fapply Functor.Grothendieck.Hom.ext
-    · simp [Grpd.comp_eq_comp]
-    · simp [Grpd.forgetToCat]
+-- def PGrpd.inc (G : Type) [Groupoid G] : G ⥤ PGrpd  where
+--   obj x := {base := Grpd.of G,fiber := x}
+--   map f := {base := Functor.id G, fiber := f}
+--   map_comp {X Y Z} f g := by
+--     fapply Functor.Grothendieck.Hom.ext
+--     · simp [Grpd.comp_eq_comp]
+--     · simp [Grpd.forgetToCat]
 
 -- namespace GrothendieckPointedCategories
 
@@ -59,11 +59,11 @@ abbrev BPGrpd := ∫ PGrpd.forgetToGrpd
 
 namespace BPGrpd
 
-abbrev fst : BPGrpd ⥤ PGrpd := Functor.Groupoidal.forget
+abbrev snd : BPGrpd ⥤ PGrpd := Functor.Groupoidal.forget
 
-abbrev forgetToGrpd : BPGrpd ⥤ Grpd := fst ⋙ PGrpd.forgetToGrpd
+abbrev forgetToGrpd : BPGrpd ⥤ Grpd := snd ⋙ PGrpd.forgetToGrpd
 
-def snd : BPGrpd ⥤ PGrpd := toPGrpd _
+def fst : BPGrpd ⥤ PGrpd := toPGrpd _
 
 /-- The commutative square
   BPGrpd ----> PGrpd
@@ -74,20 +74,20 @@ def snd : BPGrpd ⥤ PGrpd := toPGrpd _
     V            V
    PGrpd ----> Grpd
 -/
-theorem fst_forgetToGrpd : fst ⋙ PGrpd.forgetToGrpd = snd ⋙ PGrpd.forgetToGrpd := by
+theorem snd_forgetToGrpd : fst ⋙ PGrpd.forgetToGrpd = snd ⋙ PGrpd.forgetToGrpd := by
   simp [fst, snd, toPGrpd_forgetToGrpd]
 
 /- BPGrpd is the pullback of PGrpd.forgetToGrpd with itself -/
-def isPullback : Functor.IsPullback snd.{u,v} fst.{u,v} PGrpd.forgetToGrpd.{u,v}
+def isPullback : Functor.IsPullback fst.{u,v} snd.{u,v} PGrpd.forgetToGrpd.{u,v}
     PGrpd.forgetToGrpd.{u,v} := by
   apply @Functor.Groupoidal.isPullback PGrpd _ (PGrpd.forgetToGrpd)
 
--- TODO: docstring + why is it called `inc`?
-def inc (G : Type) [Groupoid G] : G ⥤ BPGrpd := by
-  fapply isPullback.lift
-  . exact PGrpd.inc G
-  . exact PGrpd.inc G
-  . simp
+-- -- TODO: docstring + why is it called `inc`?
+-- def inc (G : Type) [Groupoid G] : G ⥤ BPGrpd := by
+--   fapply isPullback.lift
+--   . exact PGrpd.inc G
+--   . exact PGrpd.inc G
+--   . simp
 
 end BPGrpd
 
@@ -96,7 +96,6 @@ end CategoryTheory
 namespace GroupoidModel
 
 open CategoryTheory Functor.Groupoidal
-
 
 namespace FunctorOperation
 
@@ -222,7 +221,7 @@ PGrpd ------------>
  ---> BPGrpd -----> Grpd
               Id
 -/
-def R : PGrpd ⥤ ∫ id :=
+def comparison : PGrpd ⥤ ∫ id :=
   (isPullback id).lift refl diag refl_forgetToGrpd
 
 /- This is the composition
@@ -257,9 +256,9 @@ PGrpd ------------>
  ---> BPGrpd -----> Grpd
               Id
 -/
-theorem RKForget : R ⋙ forget ⋙ BPGrpd.forgetToGrpd =
+theorem comparison_comp_forget_comp_forgetToGrpd : comparison ⋙ forget ⋙ BPGrpd.forgetToGrpd =
     PGrpd.forgetToGrpd := by
-  simp [R,<- Functor.assoc,CategoryTheory.Functor.IsPullback.fac_right,diag]
+  simp only [comparison, diag, ← Functor.assoc, Functor.IsPullback.fac_right]
   fapply CategoryTheory.Functor.ext
   . intro X
     simp
@@ -492,20 +491,59 @@ namespace smallUId
 
 def id : Limits.pullback smallU.{v}.tp smallU.{v}.tp ⟶ smallU.{v}.Ty := sorry
 
-def refl: smallU.{v}.Tm ⟶ smallU.{v}.Tm := sorry
+def Ctx.toGrpdOfCategoryIncl (C : Type (u+1)) [Category.{u} C] :
+    Ctx.toGrpd.obj (Ctx.ofCategory C) ⥤ C :=
+  Core.inclusion _ ⋙ AsSmall.down
 
-def comm: Limits.pullback.lift (𝟙 smallU.Tm) (𝟙 smallU.Tm) rfl ≫ id = refl ≫ smallU.tp := sorry
+def yonedaCategoryEquivYonedaπIso :
+    ∫ (yonedaCategoryEquiv smallU.tp.{u}) ≅≅ ∫ PGrpd.forgetToGrpd.{u,u} where
+  hom := Functor.Groupoidal.functorTo (forget ⋙ Ctx.toGrpdOfCategoryIncl _)
+    (fun x => by
+      dsimp [Ctx.toGrpdOfCategoryIncl]
+      have h := x.fiber
+      dsimp at h
+      sorry)
+    sorry sorry sorry
+
+  -- {
+  --   obj X := let X1 := X.base
+  --     Functor.Groupoidal.objMk ((Ctx.toGrpdOfCategoryIncl _).obj X.base) sorry
+  --   map := sorry
+  --   map_id := sorry
+  --   map_comp := sorry
+  -- }
+  inv := sorry
+  hom_inv_id := sorry
+  inv_hom_id := sorry
+
+def Id : y(smallU.ext.{u} smallU.tp.{u}) ⟶ smallU.Ty.{u} :=
+  yonedaCategoryEquiv.invFun
+  ((by
+    dsimp [BPGrpd]
+
+    sorry) ⋙ FunctorOperation.id)
+#check yonedaCategoryEquiv
+def refl : smallU.Tm.{u} ⟶ smallU.Tm.{u} :=
+  sorry
+
+def refl_tp : Limits.pullback.lift (𝟙 smallU.Tm) (𝟙 smallU.Tm) rfl ≫ id = refl ≫ smallU.tp :=
+  sorry
 
 -- TODO: make sure universe levels are most general
 -- TODO: make namespaces consistent with Sigma file
-def smallUIdBase : NaturalModelBase.NaturalModelIdBase smallU.{u,u} where
-  K := y(GroupoidModel.U.ext GroupoidModel.π.{u,u})
-  k1 := sorry -- smallU.{u,u}.var GroupoidModel.π.{u,u}
-  k2 := sorry -- ym(smallU.{u,u}.disp GroupoidModel.π.{u,u})
-  pb_isPullback := sorry
-  Id := Id'
+def smallUIdBase : NaturalModelBase.Id smallU.{u} where
+  k := y(smallU.ext.{u} smallU.tp.{u})
+  k1 := smallU.var smallU.tp
+  k2 := ym(smallU.disp smallU.tp)
+  isKernelPair := smallU.disp_pullback _
+  Id := Id
   refl := sorry
-  Id_comm := sorry
+  refl_tp := sorry
+  i := sorry
+  i1 := sorry
+  i2 := sorry
+  i_isPullback := sorry
+  weakPullback := sorry
 
 end smallUId
 
