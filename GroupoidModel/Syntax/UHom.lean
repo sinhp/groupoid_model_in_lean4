@@ -194,6 +194,10 @@ theorem comp_el (s : UHomSeq Ctx) {Δ Γ : Ctx} {i : Nat} (ilen : i < s.length)
     σ ≫ s.el ilen a a_tp = s.el ilen (σ ≫ a) (by simp [a_tp]) := by
   sorry
 
+theorem el_code (s : UHomSeq Ctx) {Δ Γ : Ctx} {i : Nat} (ilen : i < s.length) (A : y(Γ) ⟶ s[i].Ty) :
+    s.el ilen (s.code ilen A) (s.code_tp ilen A) = A := by
+  sorry
+
 -- code_el A = A
 -- el_code A = A
 
