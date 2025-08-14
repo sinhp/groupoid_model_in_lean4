@@ -140,12 +140,13 @@ structure UHomSeq [CartesianMonoidalCategory Ctx] where
 
 namespace UHomSeq
 
+variable (s : UHomSeq Ctx)
+
 instance : GetElem (UHomSeq Ctx) Nat (NaturalModelBase Ctx) (fun s i => i < s.length + 1) where
   getElem s i h := s.objs i h
 
-def homSucc (s : UHomSeq Ctx) (i : Nat) (h : i < s.length := by get_elem_tactic) : UHom s[i] s[i+1] :=
+def homSucc (i : Nat) (h : i < s.length := by get_elem_tactic) : UHom s[i] s[i+1] :=
   s.homSucc' i h
-
 
 /-- Composition of embeddings between `i` and `j` in the chain. -/
 def hom (s : UHomSeq Ctx) (i j : Nat) (ij : i < j := by omega)
@@ -156,25 +157,54 @@ def hom (s : UHomSeq Ctx) (i j : Nat) (ij : i < j := by omega)
     (s.homSucc i).comp <| s.hom (i+1) j
 termination_by s.length - i
 
-
-
-/- there is no point considering an arbitrary sequence of Homs. Neverthelss, it is useful
-  to be able to talk about the underlying sequence of a UHomSeq.
-  For such a sequence, we can loosen the condition i < j to i <= j, this is helpful for
-  defining the Pi, Sigma below.
-
-  Due to this feature, we now call each map in this sequence of Hom an lehom.
+/- It is useful to be able to talk about the underlying sequence of Homs in a UHomSeq.
+  For such a sequence, we can loosen the condition i < j to i <= j
+  without creating Type in Type.
+  This is helpful for defining `s[i] → s[max i j]` for Pi and Sigma below.
 -/
-def lehom (s : UHomSeq Ctx) (i j : Nat) (ij : i <= j := by omega)
+def homOfLe (i j : Nat) (ij : i <= j := by omega)
     (jlen : j < s.length + 1 := by get_elem_tactic) : Hom s[i] s[j] :=
   if h : i = j then h ▸ Hom.id s[i]
   else
-   if h : i + 1 = j then
-     h ▸ (s.homSucc i).toHom
-  else
-    (s.homSucc i).toHom.comp <| (s.hom (i+1) j).toHom
-termination_by s.length - i
+    have : i < j := by omega
+    (s.hom i j this _).toHom
 
+/--
+If `s` is a sequence of universe homomorphisms then for `i ≤ j` we get a polynomial endofunctor
+natural transformation `s[i].Ptp ⟶ s[j].Ptp`.
+-/
+def homCartesianNaturalTrans (i j : Nat)
+    (ilen : i ≤ j := by get_elem_tactic) (jlen : j < s.length + 1 := by get_elem_tactic) :
+    s[i].Ptp ⟶ s[j].Ptp :=
+  let hi : Hom s[i] s[j] := s.homOfLe i j
+  s[i].uvPolyTp.cartesianNaturalTrans s[j].uvPolyTp hi.mapTy hi.mapTm hi.pb.flip
+
+/--
+This is one side of the commutative square
+```
+s[i0].Ptp.obj s[j0].Tm ⟶ s[i1].Ptp.obj s[j1].Tm
+  |                           |
+  |                           |
+  |                           |
+  |                           |
+  V                           V
+s[i0].Ptp.obj s[j0].Tm ⟶ s[i1].Ptp.obj s[j0].Tm
+```
+Given `i0 ≤ i1` and `j0 ≤ j1`
+-/
+def homCartesianNaturalTransTm (i0 i1 j0 j1 : Nat)
+    (i0len : i0 ≤ i1 := by get_elem_tactic) (i1len : i1 < s.length + 1 := by get_elem_tactic)
+    (j0len : j0 ≤ j1 := by get_elem_tactic) (j1len : j1 < s.length + 1 := by get_elem_tactic)
+    : s[i0].Ptp.obj s[j0].Tm ⟶ s[i1].Ptp.obj s[j1].Tm :=
+  (s.homCartesianNaturalTrans i0 i1).app s[j0].Tm ≫
+  s[i1].uvPolyTp.functor.map (s.homOfLe j0 j1).mapTm
+
+def homCartesianNaturalTransTy (i0 i1 j0 j1 : Nat)
+    (i0len : i0 ≤ i1 := by get_elem_tactic) (i1len : i1 < s.length + 1 := by get_elem_tactic)
+    (j0len : j0 ≤ j1 := by get_elem_tactic) (j1len : j1 < s.length + 1 := by get_elem_tactic)
+    : s[i0].Ptp.obj s[j0].Ty ⟶ s[i1].Ptp.obj s[j1].Ty :=
+  (s.homCartesianNaturalTrans i0 i1).app s[j0].Ty ≫
+  s[i1].uvPolyTp.functor.map (s.homOfLe j0 j1).mapTy
 
 theorem hom_comp_trans (s : UHomSeq Ctx) (i j k : Nat) (ij : i < j) (jk : j < k)
     (klen : k < s.length + 1) :
@@ -299,41 +329,11 @@ variable {i j : Nat} (ilen : i < s.length + 1) (jlen : j < s.length + 1)
 
 /-! ## Pi -/
 
-
---s[i].Ptp.obj s[j].Ty ⟶ s.toUHomSeq[max i j].Ptp.obj s.toUHomSeq[max i j].Ty
-
-
-def slift (ij : i <= j := by omega)
-    (jlen : j < s.length + 1 := by get_elem_tactic) : Hom s[i] s[j] :=
-    NaturalModelBase.UHomSeq.lehom s.toUHomSeq i j ij jlen
-
-
---@jh, Vtec: maybe need a lemma that slift for i < j is UHom somewhere above? I did not use it though.
-
-def liftmaxPtp : s[i].Ptp ⟶ s[max i j].Ptp :=
-  let hi : Hom s[i] s[max i j] := slift (j:= max i j) s ilen
-  CategoryTheory.UvPoly.cartesianNaturalTrans s[i].uvPolyTp s[max i j].uvPolyTp hi.mapTy hi.mapTm
-       (by
-        apply CategoryTheory.IsPullback.flip
-        convert hi.pb)
-
-
-
-def connijmTm : s[i].Ptp.obj s[j].Tm ⟶ s[max i j].Ptp.obj s[max i j].Tm :=
-  let Pmhj: s[max i j].Ptp.obj s[j].Tm ⟶ s[max i j].Ptp.obj s[max i j].Tm :=
-    s[max i j].uvPolyTp.functor.map (slift (j:= max i j) s jlen).mapTm
-  (liftmaxPtp s ilen jlen).app s[j].Tm ≫ Pmhj
-
-def connijmTy : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ptp.obj s[max i j].Ty :=
-  let Pmhj: s[max i j].Ptp.obj s[j].Ty ⟶ s[max i j].Ptp.obj s[max i j].Ty :=
-    s[max i j].uvPolyTp.functor.map (slift (j:= max i j) s jlen).mapTy
-  (liftmaxPtp s ilen jlen).app s[j].Ty ≫ Pmhj
-
 def Pi : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
-  connijmTy s ilen jlen ≫ (s.nmPi (max i j)).Pi
+  s.homCartesianNaturalTransTy i (max i j) j (max i j) ≫ (s.nmPi (max i j)).Pi
 
 def lam : s[i].Ptp.obj s[j].Tm ⟶ s[max i j].Tm :=
-  connijmTm s ilen jlen ≫ (s.nmPi (max i j)).lam
+  s.homCartesianNaturalTransTm i (max i j) j (max i j) ≫ (s.nmPi (max i j)).lam
 
 def Pi_pb :
     IsPullback (s.lam ilen jlen) (s[i].Ptp.map s[j].tp) s[max i j].tp (s.Pi ilen jlen) :=
@@ -480,7 +480,7 @@ theorem mkApp_mkLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[
 /-! ## Sigma -/
 
 def Sig : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
-  connijmTy s ilen jlen ≫ (s.nmSigma (max i j)).Sig
+  s.homCartesianNaturalTransTy i (max i j) j (max i j) ≫ (s.nmSigma (max i j)).Sig
 
 def pair : UvPoly.compDom s[i].uvPolyTp s[j].uvPolyTp ⟶ s[max i j].Tm :=
   sorry ≫ (s.nmSigma (max i j)).pair
