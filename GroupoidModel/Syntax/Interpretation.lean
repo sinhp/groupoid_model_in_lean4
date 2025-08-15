@@ -909,203 +909,6 @@ theorem snoc_mem_ofCtx {Γ A l llen sΓ sA} : sΓ ∈ s.ofCtx Γ → sA ∈ ofTy
 --   simp_part
 --   use ilen, sA, sA_mem, sB, sB_mem, sp, sp_mem, sp_tp
 
-set_option linter.unusedVariables false in
-theorem WfCtx.rec'
-  {motive_1 : (a : Ctx) → Prop}
-  {motive_2 : (a : Ctx) → (a_1 : ℕ) → (a_2 : Expr) → Prop}
-  {motive_3 : (a : Ctx) → (a_1 : ℕ) → (a_2 a_3 : Expr) → Prop}
-  {motive_4 : (a : Ctx) → (a_1 : ℕ) → (a_2 a_3 : Expr) → Prop}
-  {motive_5 : (a : Ctx) → (a_1 : ℕ) → (a_2 a_3 a_4 : Expr) → Prop}
-  (nil : motive_1 [])
-  (snoc :
-    ∀ {Γ : Ctx} {A : Expr} {l : ℕ} (a : WfCtx Γ) (a_1 : Γ ⊢[l] A),
-      motive_1 Γ → motive_2 Γ l A → motive_1 ((A, l) :: Γ))
-  (pi :
-    ∀ {Γ : Ctx} {A B : Expr} {l l' : ℕ} (a : Γ ⊢[l] A) (a_1 : (A, l) :: Γ ⊢[l'] B),
-      motive_2 Γ l A → motive_2 ((A, l) :: Γ) l' B → motive_2 Γ (max l l') (Expr.pi l l' A B))
-  (sigma :
-    ∀ {Γ : Ctx} {A B : Expr} {l l' : ℕ} (a : Γ ⊢[l] A) (a_1 : (A, l) :: Γ ⊢[l'] B),
-      motive_2 Γ l A → motive_2 ((A, l) :: Γ) l' B → motive_2 Γ (max l l') (Expr.sigma l l' A B))
-  (univ : ∀ {Γ : Ctx} {l : ℕ} (a : WfCtx Γ) (a_1 : l < univMax), motive_1 Γ → motive_2 Γ (l + 1) (Expr.univ l))
-  (el :
-    ∀ {Γ : Ctx} {A : Expr} {l : ℕ} (a : Γ ⊢[l + 1] A : Expr.univ l),
-      motive_4 Γ (l + 1) (Expr.univ l) A → motive_2 Γ l A.el)
-  (cong_pi :
-    ∀ {Γ : Ctx} {A A' B B' : Expr} {l l' : ℕ} (a : Γ ⊢[l] A) (a_1 : Γ ⊢[l] A') (a_2 : Γ ⊢[l] A ≡ A')
-      (a_3 : (A, l) :: Γ ⊢[l'] B ≡ B'),
-      motive_2 Γ l A →
-        motive_2 Γ l A' →
-          motive_3 Γ l A A' →
-            motive_3 ((A, l) :: Γ) l' B B' → motive_3 Γ (max l l') (Expr.pi l l' A B) (Expr.pi l l' A' B'))
-  (cong_sigma :
-    ∀ {Γ : Ctx} {A A' B B' : Expr} {l l' : ℕ} (a : Γ ⊢[l] A) (a_1 : Γ ⊢[l] A') (a_2 : Γ ⊢[l] A ≡ A')
-      (a_3 : (A, l) :: Γ ⊢[l'] B ≡ B'),
-      motive_2 Γ l A →
-        motive_2 Γ l A' →
-          motive_3 Γ l A A' →
-            motive_3 ((A, l) :: Γ) l' B B' → motive_3 Γ (max l l') (Expr.sigma l l' A B) (Expr.sigma l l' A' B'))
-  (cong_el :
-    ∀ {Γ : Ctx} {A A' : Expr} {l : ℕ} (a : Γ ⊢[l + 1] A ≡ A' : Expr.univ l),
-      motive_5 Γ (l + 1) (Expr.univ l) A A' → motive_3 Γ l A.el A'.el)
-  (el_code :
-    ∀ {Γ : Ctx} {A : Expr} {l : ℕ} (a : l < univMax) (a_1 : Γ ⊢[l] A), motive_2 Γ l A → motive_3 Γ l A.code.el A)
-  (refl_tp : ∀ {Γ : Ctx} {A : Expr} {l : ℕ} (a : Γ ⊢[l] A), motive_2 Γ l A → motive_3 Γ l A A)
-  (symm_tp : ∀ {Γ : Ctx} {A A' : Expr} {l : ℕ} (a : Γ ⊢[l] A ≡ A'), motive_3 Γ l A A' → motive_3 Γ l A' A)
-  (trans_tp :
-    ∀ {Γ : Ctx} {A A' A'' : Expr} {l : ℕ} (a : Γ ⊢[l] A ≡ A') (a_1 : Γ ⊢[l] A' ≡ A''),
-      motive_3 Γ l A A' → motive_3 Γ l A' A'' → motive_3 Γ l A A'')
-  (bvar :
-    ∀ {Γ : Ctx} {A : Expr} {i l : ℕ} (a : WfCtx Γ) (a_1 : Lookup Γ i A l),
-      motive_1 Γ → motive_4 Γ l A (Expr.bvar i))
-  (lam :
-    ∀ {Γ : Ctx} {A B t : Expr} {l l' : ℕ} (a : Γ ⊢[l] A) (a_1 : (A, l) :: Γ ⊢[l'] t : B),
-      motive_2 Γ l A →
-        motive_4 ((A, l) :: Γ) l' B t → motive_4 Γ (max l l') (Expr.pi l l' A B) (Expr.lam l l' A t))
-  (app :
-    ∀ {Γ : Ctx} {A B f a : Expr} {l l' : ℕ} (a_1 : Γ ⊢[l] A) (a_2 : (A, l) :: Γ ⊢[l'] B)
-      (a_3 : Γ ⊢[max l l'] f : Expr.pi l l' A B) (a_4 : Γ ⊢[l] a : A),
-      motive_2 Γ l A →
-        motive_2 ((A, l) :: Γ) l' B →
-          motive_4 Γ (max l l') (Expr.pi l l' A B) f →
-            motive_4 Γ l A a → motive_4 Γ l' (Expr.subst a.toSb B) (Expr.app l l' B f a))
-  (pair :
-    ∀ {Γ : Ctx} {A B t u : Expr} {l l' : ℕ} (a : Γ ⊢[l] A) (a_1 : (A, l) :: Γ ⊢[l'] B) (a_2 : Γ ⊢[l] t : A)
-      (a_3 : Γ ⊢[l'] u : Expr.subst t.toSb B),
-      motive_2 Γ l A →
-        motive_2 ((A, l) :: Γ) l' B →
-          motive_4 Γ l A t →
-            motive_4 Γ l' (Expr.subst t.toSb B) u →
-              motive_4 Γ (max l l') (Expr.sigma l l' A B) (Expr.pair l l' B t u))
-  (fst :
-    ∀ {Γ : Ctx} {A B p : Expr} {l l' : ℕ} (a : Γ ⊢[l] A) (a_1 : (A, l) :: Γ ⊢[l'] B)
-      (a_2 : Γ ⊢[max l l'] p : Expr.sigma l l' A B),
-      motive_2 Γ l A →
-        motive_2 ((A, l) :: Γ) l' B →
-          motive_4 Γ (max l l') (Expr.sigma l l' A B) p → motive_4 Γ l A (Expr.fst l l' A B p))
-  (snd :
-    ∀ {Γ : Ctx} {A B p : Expr} {l l' : ℕ} (a : Γ ⊢[l] A) (a_1 : (A, l) :: Γ ⊢[l'] B)
-      (a_2 : Γ ⊢[max l l'] p : Expr.sigma l l' A B),
-      motive_2 Γ l A →
-        motive_2 ((A, l) :: Γ) l' B →
-          motive_4 Γ (max l l') (Expr.sigma l l' A B) p →
-            motive_4 Γ l' (Expr.subst (Expr.fst l l' A B p).toSb B) (Expr.snd l l' A B p))
-  (code :
-    ∀ {Γ : Ctx} {A : Expr} {l : ℕ} (a : l < univMax) (a_1 : Γ ⊢[l] A),
-      motive_2 Γ l A → motive_4 Γ (l + 1) (Expr.univ l) A.code)
-  (conv :
-    ∀ {Γ : Ctx} {A A' t : Expr} {l : ℕ} (a : Γ ⊢[l] t : A) (a_1 : Γ ⊢[l] A ≡ A'),
-      motive_4 Γ l A t → motive_3 Γ l A A' → motive_4 Γ l A' t)
-  (cong_lam :
-    ∀ {Γ : Ctx} {A A' B t t' : Expr} {l l' : ℕ} (a : Γ ⊢[l] A) (a_1 : Γ ⊢[l] A') (a_2 : Γ ⊢[l] A ≡ A')
-      (a_3 : (A, l) :: Γ ⊢[l'] t ≡ t' : B),
-      motive_2 Γ l A →
-        motive_2 Γ l A' →
-          motive_3 Γ l A A' →
-            motive_5 ((A, l) :: Γ) l' B t t' →
-              motive_5 Γ (max l l') (Expr.pi l l' A B) (Expr.lam l l' A t) (Expr.lam l l' A' t'))
-  (cong_app :
-    ∀ {Γ : Ctx} {A B B' f f' a a' : Expr} {l l' : ℕ} (a_1 : Γ ⊢[l] A) (a_2 : (A, l) :: Γ ⊢[l'] B ≡ B')
-      (a_3 : Γ ⊢[max l l'] f ≡ f' : Expr.pi l l' A B) (a_4 : Γ ⊢[l] a ≡ a' : A),
-      motive_2 Γ l A →
-        motive_3 ((A, l) :: Γ) l' B B' →
-          motive_5 Γ (max l l') (Expr.pi l l' A B) f f' →
-            motive_5 Γ l A a a' →
-              motive_5 Γ l' (Expr.subst a.toSb B) (Expr.app l l' B f a) (Expr.app l l' B' f' a'))
-  (cong_pair :
-    ∀ {Γ : Ctx} {A B B' t t' u u' : Expr} {l l' : ℕ} (a : Γ ⊢[l] A) (a_1 : (A, l) :: Γ ⊢[l'] B ≡ B')
-      (a_2 : Γ ⊢[l] t ≡ t' : A) (a_3 : Γ ⊢[l'] u ≡ u' : Expr.subst t.toSb B),
-      motive_2 Γ l A →
-        motive_3 ((A, l) :: Γ) l' B B' →
-          motive_5 Γ l A t t' →
-            motive_5 Γ l' (Expr.subst t.toSb B) u u' →
-              motive_5 Γ (max l l') (Expr.sigma l l' A B) (Expr.pair l l' B t u) (Expr.pair l l' B' t' u'))
-  (cong_fst :
-    ∀ {Γ : Ctx} {A A' B B' p p' : Expr} {l l' : ℕ} (a : Γ ⊢[l] A) (a_1 : Γ ⊢[l] A ≡ A') (a_2 : (A, l) :: Γ ⊢[l'] B ≡ B')
-      (a_3 : Γ ⊢[max l l'] p ≡ p' : Expr.sigma l l' A B),
-      motive_2 Γ l A →
-        motive_3 Γ l A A' →
-          motive_3 ((A, l) :: Γ) l' B B' →
-            motive_5 Γ (max l l') (Expr.sigma l l' A B) p p' →
-              motive_5 Γ l A (Expr.fst l l' A B p) (Expr.fst l l' A' B' p'))
-  (cong_snd :
-    ∀ {Γ : Ctx} {A A' B B' p p' : Expr} {l l' : ℕ} (a : Γ ⊢[l] A) (a_1 : Γ ⊢[l] A ≡ A') (a_2 : (A, l) :: Γ ⊢[l'] B ≡ B')
-      (a_3 : Γ ⊢[max l l'] p ≡ p' : Expr.sigma l l' A B),
-      motive_2 Γ l A →
-        motive_3 Γ l A A' →
-          motive_3 ((A, l) :: Γ) l' B B' →
-            motive_5 Γ (max l l') (Expr.sigma l l' A B) p p' →
-              motive_5 Γ l' (Expr.subst (Expr.fst l l' A B p).toSb B) (Expr.snd l l' A B p) (Expr.snd l l' A' B' p'))
-  (cong_code :
-    ∀ {Γ : Ctx} {A A' : Expr} {l : ℕ} (a : l < univMax) (a_1 : Γ ⊢[l] A ≡ A'),
-      motive_3 Γ l A A' → motive_5 Γ (l + 1) (Expr.univ l) A.code A'.code)
-  (app_lam :
-    ∀ {Γ : Ctx} {A B t u : Expr} {l l' : ℕ} (a : Γ ⊢[l] A) (a_1 : (A, l) :: Γ ⊢[l'] B) (a_2 : (A, l) :: Γ ⊢[l'] t : B)
-      (a_3 : Γ ⊢[l] u : A),
-      motive_2 Γ l A →
-        motive_2 ((A, l) :: Γ) l' B →
-          motive_4 ((A, l) :: Γ) l' B t →
-            motive_4 Γ l A u →
-              motive_5 Γ l' (Expr.subst u.toSb B) (Expr.app l l' B (Expr.lam l l' A t) u) (Expr.subst u.toSb t))
-  (fst_pair :
-    ∀ {Γ : Ctx} {A B t u : Expr} {l l' : ℕ} (a : Γ ⊢[l] A) (a_1 : (A, l) :: Γ ⊢[l'] B) (a_2 : Γ ⊢[l] t : A)
-      (a_3 : Γ ⊢[l'] u : Expr.subst t.toSb B),
-      motive_2 Γ l A →
-        motive_2 ((A, l) :: Γ) l' B →
-          motive_4 Γ l A t →
-            motive_4 Γ l' (Expr.subst t.toSb B) u → motive_5 Γ l A (Expr.fst l l' A B (Expr.pair l l' B t u)) t)
-  (snd_pair :
-    ∀ {Γ : Ctx} {A B t u : Expr} {l l' : ℕ} (a : Γ ⊢[l] A) (a_1 : (A, l) :: Γ ⊢[l'] B) (a_2 : Γ ⊢[l] t : A)
-      (a_3 : Γ ⊢[l'] u : Expr.subst t.toSb B),
-      motive_2 Γ l A →
-        motive_2 ((A, l) :: Γ) l' B →
-          motive_4 Γ l A t →
-            motive_4 Γ l' (Expr.subst t.toSb B) u →
-              motive_5 Γ l' (Expr.subst t.toSb B) (Expr.snd l l' A B (Expr.pair l l' B t u)) u)
-  (lam_app :
-    ∀ {Γ : Ctx} {A B f : Expr} {l l' : ℕ} (a : Γ ⊢[l] A) (a_1 : (A, l) :: Γ ⊢[l'] B)
-      (a_2 : Γ ⊢[max l l'] f : Expr.pi l l' A B),
-      motive_2 Γ l A →
-        motive_2 ((A, l) :: Γ) l' B →
-          motive_4 Γ (max l l') (Expr.pi l l' A B) f →
-            motive_5 Γ (max l l') (Expr.pi l l' A B) f
-              (Expr.lam l l' A (Expr.app l l' (Expr.subst (Expr.up Expr.wk) B) (Expr.subst Expr.wk f) (Expr.bvar 0))))
-  (pair_fst_snd :
-    ∀ {Γ : Ctx} {A B p : Expr} {l l' : ℕ} (a : Γ ⊢[l] A) (a_1 : (A, l) :: Γ ⊢[l'] B)
-      (a_2 : Γ ⊢[max l l'] p : Expr.sigma l l' A B),
-      motive_2 Γ l A →
-        motive_2 ((A, l) :: Γ) l' B →
-          motive_4 Γ (max l l') (Expr.sigma l l' A B) p →
-            motive_5 Γ (max l l') (Expr.sigma l l' A B) p (Expr.pair l l' B (Expr.fst l l' A B p) (Expr.snd l l' A B p))
-             )
-  (code_el :
-    ∀ {Γ : Ctx} {a : Expr} {l : ℕ} (a_1 : Γ ⊢[l + 1] a : Expr.univ l),
-      motive_4 Γ (l + 1) (Expr.univ l) a → motive_5 Γ (l + 1) (Expr.univ l) a a.el.code)
-  (conv_eq :
-    ∀ {Γ : Ctx} {A A' t t' : Expr} {l : ℕ} (a : Γ ⊢[l] t ≡ t' : A) (a_1 : Γ ⊢[l] A ≡ A'),
-      motive_5 Γ l A t t' → motive_3 Γ l A A' → motive_5 Γ l A' t t')
-  (refl_tm : ∀ {Γ : Ctx} {A t : Expr} {l : ℕ} (a : Γ ⊢[l] t : A), motive_4 Γ l A t → motive_5 Γ l A t t)
-  (symm_tm :
-    ∀ {Γ : Ctx} {A t t' : Expr} {l : ℕ} (a : Γ ⊢[l] A) (a_1 : Γ ⊢[l] t ≡ t' : A),
-      motive_2 Γ l A → motive_5 Γ l A t t' → motive_5 Γ l A t' t)
-  (trans_tm :
-    ∀ {Γ : Ctx} {A t t' t'' : Expr} {l : ℕ} (a : Γ ⊢[l] A) (a_1 : Γ ⊢[l] t ≡ t' : A) (a_2 : Γ ⊢[l] t' ≡ t'' : A),
-      motive_2 Γ l A → motive_5 Γ l A t t' → motive_5 Γ l A t' t'' → motive_5 Γ l A t t'') :
-  (∀ {Γ : Ctx}, WfCtx Γ → motive_1 Γ) ∧
-  (∀ {Γ l A}, Γ ⊢[l] A → motive_2 Γ l A) ∧
-  (∀ {Γ l A B}, Γ ⊢[l] A ≡ B → motive_3 Γ l A B) ∧
-  (∀ {Γ l A t}, Γ ⊢[l] t : A → motive_4 Γ l A t) ∧
-  (∀ {Γ l A t u}, Γ ⊢[l] t ≡ u : A → motive_5 Γ l A t u) := by
-  set_option hygiene false in run_tac
-    let e ← [``WfCtx.rec, ``WfTp.rec, ``EqTp.rec, ``WfTm.rec, ``EqTm.rec].mapM fun n =>
-      `(@$(Lean.mkIdent n) _ _ _ _ _
-        nil snoc pi sigma univ el
-        cong_pi cong_sigma cong_el el_code refl_tp symm_tp trans_tp
-        bvar lam app pair fst snd code conv
-        cong_lam cong_app cong_pair cong_fst cong_snd cong_code
-        app_lam fst_pair snd_pair
-        lam_app pair_fst_snd code_el conv_eq refl_tm symm_tm trans_tm)
-    Lean.Elab.Tactic.evalTactic (← `(tactic| refine ⟨$(e.toArray),*⟩))
-
 variable (slen : univMax ≤ s.length)
 
 theorem tp_sound {Γ i A l} (H : Lookup Γ i A l) {sΓ} (hΓ : sΓ ∈ ofCtx s Γ) :
@@ -1124,6 +927,7 @@ theorem var_sound {Γ i A l} (H : Lookup Γ i A l) {sΓ} (hΓ : sΓ ∈ ofCtx s 
 
 -- TODO: this proof is boring, repetitive exists-elim/exists-intro: automate!
 include slen in
+set_option maxHeartbeats 300000 in
 theorem ofType_ofTerm_sound :
     (∀ {Γ}, WfCtx Γ → (ofCtx s Γ).Dom) ∧
     (∀ {Γ l A}, (Awf : Γ ⊢[l] A) → ∃ sΓ ∈ ofCtx s Γ, ∃ llen,
@@ -1145,7 +949,7 @@ theorem ofType_ofTerm_sound :
   --     have sΓA := sΓ.snoc llen sA
   --     snoc_mem_ofCtx sΓmem sAmem
   simp [Part.dom_iff_mem]
-  apply WfCtx.rec'
+  mutual_induction WfCtx
   -- all_goals
   --   simp -failIfUnchanged only [mem_ofCtx_snoc, forall_exists_index, and_imp]
   --   intros; subst_eqs
@@ -1156,7 +960,7 @@ theorem ofType_ofTerm_sound :
     intros; rename_i hΓ llen _ hA
     exact ⟨_, _, hΓ, llen, _, hA, rfl⟩
 
-  case pi | sigma =>
+  case pi' | sigma' =>
     simp only [mem_ofCtx_snoc, mem_ofType_pi, mem_ofType_sigma,
       exists_true_left, forall_exists_index, and_imp]
     intros; subst_eqs; rename_i hΓ _ _ hA llen _ hB
@@ -1170,7 +974,7 @@ theorem ofType_ofTerm_sound :
     intros; subst_eqs; rename_i hΓ _ _ _ hA h
     exact ⟨_, hΓ, by omega, _, by omega, _, hA, h, rfl⟩
 
-  case cong_pi | cong_sigma =>
+  case cong_pi' | cong_sigma' =>
     simp only [mem_ofCtx_snoc, mem_ofType_pi, mem_ofType_sigma,
       forall_exists_index, and_imp, exists_true_left, Nat.max_lt]
     intros; subst_eqs; rename_i hΓ _ _ hA _ _ hΓ' _ _ hA' _ _ _ _
@@ -1201,7 +1005,7 @@ theorem ofType_ofTerm_sound :
     intros
     obtain ⟨llen, _, h1, h2⟩ := var_sound ‹_› ‹_›
     exact ⟨_, ‹_›, llen, _, h2, _, h1, rfl⟩
-  case lam =>
+  case lam' =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_lam, mem_ofType_pi,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs; rename_i hΓ _ _ hA _ hΓ' _ _ hA' _ _ _ _
@@ -1209,7 +1013,7 @@ theorem ofType_ofTerm_sound :
     cases Part.mem_unique hA hA'
     refine ⟨_, ‹_›, ⟨‹_›, ‹_›⟩, _, ⟨_, ‹_›, _, ‹_›, rfl⟩, _, ⟨_, ‹_›, _, ‹_›, rfl⟩, ?_⟩
     apply mkLam_tp (t_tp := rfl)
-  case app =>
+  case app' =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_app, mem_ofType_pi,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs
@@ -1223,7 +1027,7 @@ theorem ofType_ofTerm_sound :
     refine ⟨_, ‹_›, ‹_›, _, ?_, _, ⟨‹_›, _, ‹_›, _, ‹_›, _, ‹_›, ‹_›, rfl⟩, rfl⟩
     rw [mkApp_tp]
     sorry
-  case pair =>
+  case pair' =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_pair, mem_ofType_sigma,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs
@@ -1237,7 +1041,7 @@ theorem ofType_ofTerm_sound :
     · apply mkPair_tp
     · refine Part.mem_unique ‹_› ?_
       sorry
-  case fst =>
+  case fst' =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_fst, mem_ofType_sigma,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs; rename_i hΓ _ _ hA _ hΓ' _ _ hA' _ _ hΓ₁ _ _ hA₁ _ hB _ _ _ hB' _
@@ -1248,7 +1052,7 @@ theorem ofType_ofTerm_sound :
     cases Part.mem_unique hB hB'; clear hB'
     refine ⟨_, ‹_›, ‹_›, _, ‹_›, _, ⟨‹_›, _, ‹_›, _, ‹_›, _, ‹_›, ‹_›, rfl⟩, ?_⟩
     apply mkFst_tp
-  case snd =>
+  case snd' =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_snd, mem_ofType_sigma,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs; rename_i hΓ _ _ hA _ hΓ' _ _ hA' _ _ hΓ₁ _ _ hA₁ _ hB _ _ _ hB' _
@@ -1275,7 +1079,7 @@ theorem ofType_ofTerm_sound :
     cases Part.mem_unique hA hA'; clear hA'
     exact ⟨_, ‹_›, ‹_›, _, ‹_›, _, ‹_›, rfl⟩
 
-  case cong_lam =>
+  case cong_lam' =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_lam, mem_ofType_pi,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs; rename_i hΓ _ _ hA _ hΓ' _ _ hA' _ hΓ₁ _ _ hA₁ hA'₁ _ hΓ₂ _ _ hA₂ _ _ _ _ _
@@ -1288,7 +1092,7 @@ theorem ofType_ofTerm_sound :
     refine ⟨_, ‹_›, ⟨‹_›, ‹_›⟩, _, ⟨_, ‹_›, _, ‹_›, rfl⟩, _,
       ⟨_, ‹_›, _, ‹_›, rfl⟩, ⟨_, ‹_›, _, ‹_›, rfl⟩, ?_⟩
     apply mkLam_tp (t_tp := rfl)
-  case cong_app =>
+  case cong_app' =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_app, mem_ofType_pi,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs
@@ -1304,7 +1108,7 @@ theorem ofType_ofTerm_sound :
       ⟨‹_›, _, ‹_›, _, ‹_›, _, ‹_›, ‹_›, rfl⟩, rfl⟩
     rw [mkApp_tp]
     sorry
-  case cong_pair =>
+  case cong_pair' =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_pair, mem_ofType_sigma,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs
@@ -1319,7 +1123,7 @@ theorem ofType_ofTerm_sound :
     · apply mkPair_tp
     · refine Part.mem_unique ‹_› ?_
       sorry
-  case cong_fst =>
+  case cong_fst' =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_fst, mem_ofType_sigma,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs
@@ -1334,7 +1138,7 @@ theorem ofType_ofTerm_sound :
     refine ⟨_, ‹_›, ‹_›, _, ‹_›, _, ⟨‹_›, _, ‹_›, _, ‹_›, _, ‹_›, ‹_›, rfl⟩,
       ⟨‹_›, _, ‹_›, _, ‹_›, _, ‹_›, ‹_›, rfl⟩, ?_⟩
     apply mkFst_tp
-  case cong_snd =>
+  case cong_snd' =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_snd, mem_ofType_sigma,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs
@@ -1357,7 +1161,7 @@ theorem ofType_ofTerm_sound :
     intros
     refine ⟨_, ‹_›, by omega, _, ⟨_, ‹_›, rfl⟩, ⟨_, ‹_›, rfl⟩, ?_⟩
     apply UHomSeq.code_tp
-  case app_lam =>
+  case app_lam' =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_app, mem_ofTerm_lam,
       forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs
@@ -1376,7 +1180,7 @@ theorem ofType_ofTerm_sound :
     · apply mkLam_tp (t_tp := rfl)
     · rw [mkApp_mkLam (t_tp := rfl)]
       sorry
-  case fst_pair =>
+  case fst_pair' =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_fst, mem_ofTerm_pair,
       forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs
@@ -1393,7 +1197,7 @@ theorem ofType_ofTerm_sound :
     · apply mkPair_tp
     · rwa [mkFst_mkPair]
     · rw [mkFst_mkPair]
-  case snd_pair =>
+  case snd_pair' =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_snd, mem_ofTerm_pair,
       forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs
@@ -1410,7 +1214,7 @@ theorem ofType_ofTerm_sound :
       sorry
     · apply mkPair_tp
     · rwa [mkSnd_mkPair]
-  case lam_app =>
+  case lam_app' =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_app, mem_ofTerm_lam, mem_ofType_pi, ofTerm_bvar,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs
@@ -1427,7 +1231,7 @@ theorem ofType_ofTerm_sound :
     · sorry
     · sorry
     · sorry
-  case pair_fst_snd =>
+  case pair_fst_snd' =>
     sorry
   case code_el =>
     sorry
@@ -1435,9 +1239,9 @@ theorem ofType_ofTerm_sound :
     sorry
   case refl_tm =>
     sorry
-  case symm_tm =>
+  case symm_tm' =>
     sorry
-  case trans_tm =>
+  case trans_tm' =>
     sorry
 
   stop
