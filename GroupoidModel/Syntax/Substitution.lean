@@ -130,12 +130,18 @@ theorem rename_all :
   mutual_induction WfCtx
   all_goals dsimp only; try intros
   case snoc => exact True.intro
-  all_goals try dsimp [Expr.rename] at *
+  all_goals try dsimp [Expr.rename, Expr.subst'] at *; simp only [← Expr.rename.eq_1] at *
   case bvar ξ => apply WfTm.bvar _ (ξ.lookup _) <;> assumption
   grind_cases
   -- Cases that didn't go through automatically.
-  case snd' => rw [ih_subst]; apply WfTm.snd' <;> grind
-  case cong_snd' => rw [ih_subst]; apply EqTm.cong_snd' <;> grind
+  case snd' =>
+    rw [ih_subst]
+    simp [Expr.rename, Expr.subst']; simp only [← Expr.rename.eq_1]
+    apply WfTm.snd' <;> grind
+  case cong_snd' =>
+    rw [ih_subst]
+    simp [Expr.rename, Expr.subst']; simp only [← Expr.rename.eq_1]
+    apply EqTm.cong_snd' <;> grind
   case lam_app' =>
     convert EqTm.lam_app' .. using 1
     . congr 2 <;> autosubst
@@ -336,7 +342,9 @@ theorem subst_all :
   mutual_induction WfCtx
   all_goals dsimp; try intros
   case snoc => exact True.intro
-  all_goals try dsimp [Expr.subst] at *
+  all_goals try dsimp [Expr.subst_bvar', Expr.subst_pi, Expr.subst_sigma,
+    Expr.subst_lam, Expr.subst_app, Expr.subst_pair, Expr.subst_fst,
+    Expr.subst_snd, Expr.subst_univ, Expr.subst_el, Expr.subst_code] at *
   case bvar => grind [EqSb.lookup, WfSb.lookup]
   grind_cases
   case pi' => grind [WfTp.pi', EqTp.cong_pi']
@@ -350,30 +358,30 @@ theorem subst_all :
   case lam' => grind [WfTm.lam', EqTm.cong_lam']
   case app' ihA _ _ _ =>
     constructor
-    . grind [WfTm.app']
-    . intro _ _ _ σ
+    · grind [WfTm.app']
+    · intro _ _ _ σ
       rw [ih_subst]
       apply EqTm.cong_app' (ihA.1 σ.wf_left) <;> grind
   case pair' => constructor <;> grind [WfTm.pair', EqTm.cong_pair']
   case fst' => constructor <;> grind [WfTm.fst', EqTm.cong_fst']
   case snd' =>
     constructor
-    . intros; rw [ih_subst]; apply WfTm.snd' <;> grind
-    . intros; rw [ih_subst]; apply EqTm.cong_snd' <;> grind
+    · intros; rw [ih_subst]; apply WfTm.snd' <;> simp only [← Expr.subst.eq_1] <;> grind
+    · intros; rw [ih_subst]; apply EqTm.cong_snd' <;> simp only [← Expr.subst.eq_1] <;> grind
   case code => grind [WfTm.code, EqTm.cong_code]
   case conv => constructor <;> grind [WfTm.conv, EqTm.conv_eq]
   case app_lam' =>
     rw [ih_subst, ih_subst]
     apply (EqTm.app_lam' ..).trans_tm'
-    . autosubst; grind [eqSb_snoc, wfSb_snoc]
-    . autosubst
+    · autosubst; grind [eqSb_snoc, wfSb_snoc]
+    · autosubst
       rename_i iht _ _ _ _ _
       apply iht.2 <;> grind [eqSb_snoc]
     all_goals grind
   case fst_pair' => apply (EqTm.fst_pair' ..).trans_tm' <;> grind
   case snd_pair' =>
     rw [ih_subst]; apply (EqTm.snd_pair' ..).trans_tm'
-    . autosubst; grind [eqSb_snoc, wfSb_snoc]
+    · autosubst; grind [eqSb_snoc, wfSb_snoc]
     all_goals grind
   case code_el iha _ _ _ eq =>
     have aσ' := iha.1 eq.wf_right
@@ -393,7 +401,7 @@ theorem subst_all :
       grind [WfTp.sigma', EqTm.cong_pair', EqTm.cong_fst', EqTm.cong_snd']
   case symm_tm' => grind [EqTm.symm_tm', EqTm.conv_eq, EqSb.symm]
   case trans_tm' => grind [EqTm.trans_tm', EqTm.conv_eq, EqSb.symm]
-  case cong_snd' => rw [ih_subst]; apply EqTm.cong_snd' <;> grind
+  case cong_snd' => rw [ih_subst]; apply EqTm.cong_snd' <;> simp only [← Expr.subst.eq_1] <;> grind
 
 end SubstProof
 
