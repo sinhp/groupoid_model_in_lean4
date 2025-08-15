@@ -7,6 +7,7 @@ import GroupoidModel.ForPoly
 import GroupoidModel.ForMathlib.Tactic.CategoryTheory.FunctorMap
 import GroupoidModel.ForMathlib.CategoryTheory.Yoneda
 import GroupoidModel.ForMathlib.CategoryTheory.RepPullbackCone
+import GroupoidModel.ForMathlib.CategoryTheory.WeakPullback
 
 universe v u
 
@@ -721,14 +722,6 @@ def verticalNatTrans : idElimBase.iFunctor ⟶ M.tmUvPoly.functor :=
   idElimBase.comparison (by simp [iUvPoly, comparison, tmUvPoly])
 
 end IdElimBase
-
--- TODO move
-structure WeakPullback {C : Type*} [Category C]
-    {P X Y Z : C} (fst : P ⟶ X) (snd : P ⟶ Y) (f : X ⟶ Z) (g : Y ⟶ Z)
-    extends CommSq fst snd f g where
-  lift (W : C) (a : W ⟶ X) (b : W ⟶ Y) (h : a ≫ f = b ≫ g) : W ⟶ P
-  fac_left (W : C) (a : W ⟶ X) (b : W ⟶ Y) (h : a ≫ f = b ≫ g) : lift W a b h ≫ fst = a
-  fac_right (W : C) (a : W ⟶ X) (b : W ⟶ Y) (h : a ≫ f = b ≫ g) : lift W a b h ≫ snd = b
 
 /-- The full structure interpreting the natural model semantics for identity types
 requires an `IdIntro`,
