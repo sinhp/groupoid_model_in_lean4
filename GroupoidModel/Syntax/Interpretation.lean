@@ -428,6 +428,20 @@ theorem ofTerm_bvar {Γ l i} {llen : l < s.length + 1} :
     s.ofTerm Γ l (.bvar i) llen = Γ.var llen i := rfl
 
 @[simp]
+theorem mem_var_zero {Γ : s.CObj} {l' l'len A l} {llen : l < s.length + 1} {x} :
+    x ∈ (Γ.snoc (l := l') l'len A).var llen 0 ↔
+    ∃ l'l : l' = l, x = l'l ▸ s[l'].var A := by
+  dsimp only [UHomSeq.CObj.var, UHomSeq.CObj.snoc, UHomSeq.ExtSeq.var]
+  simp_part; exact exists_congr fun _ => by subst l'; simp_part; rfl
+
+@[simp]
+theorem mem_var_succ {Γ : s.CObj} {l' l'len A l i} {llen : l < s.length + 1} {x} :
+    x ∈ (Γ.snoc (l := l') l'len A).var llen (i+1) ↔
+    ∃ a ∈ Γ.var llen i, x = s[l'].wk A a := by
+  dsimp only [UHomSeq.CObj.var, UHomSeq.CObj.snoc, UHomSeq.ExtSeq.var]
+  simp_part; rfl
+
+@[simp]
 theorem mem_ofTerm_lam {Γ l i j A e} {llen : l < s.length + 1} {x} :
     x ∈ s.ofTerm Γ l (.lam i j A e) llen ↔
     ∃ lij : l = max i j,
@@ -1210,36 +1224,209 @@ theorem ofType_ofTerm_sound :
     rw [mkApp_tp]
     sorry
   case pair =>
-    sorry
+    simp only [mem_ofCtx_snoc, mem_ofTerm_pair, mem_ofType_sigma,
+      sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
+    intros; subst_eqs
+    rename_i hΓ _ _ hA _ hΓ' _ _ hA' _ _ hΓ₁ _ _ _ _ hΓ₂ _ _ _ _ _ hA₁ _
+    cases Part.mem_unique hΓ hΓ'; clear hΓ'
+    cases Part.mem_unique hA hA'; clear hA'
+    cases Part.mem_unique hΓ hΓ₁; clear hΓ₁
+    cases Part.mem_unique hΓ hΓ₂; clear hΓ₂
+    cases Part.mem_unique hA hA₁; clear hA₁
+    refine ⟨_, ‹_›, ⟨‹_›, ‹_›⟩, _, ⟨_, ‹_›, _, ‹_›, ?_⟩, _, ⟨_, ‹_›, _, ‹_›, _, ‹_›, ?_, rfl⟩, rfl⟩
+    · apply mkPair_tp
+    · refine Part.mem_unique ‹_› ?_
+      sorry
   case fst =>
-    sorry
+    simp only [mem_ofCtx_snoc, mem_ofTerm_fst, mem_ofType_sigma,
+      sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
+    intros; subst_eqs; rename_i hΓ _ _ hA _ hΓ' _ _ hA' _ _ hΓ₁ _ _ hA₁ _ hB _ _ _ hB' _
+    cases Part.mem_unique hΓ hΓ'; clear hΓ'
+    cases Part.mem_unique hA hA'; clear hA'
+    cases Part.mem_unique hΓ hΓ₁; clear hΓ₁
+    cases Part.mem_unique hA hA₁; clear hA₁
+    cases Part.mem_unique hB hB'; clear hB'
+    refine ⟨_, ‹_›, ‹_›, _, ‹_›, _, ⟨‹_›, _, ‹_›, _, ‹_›, _, ‹_›, ‹_›, rfl⟩, ?_⟩
+    apply mkFst_tp
   case snd =>
+    simp only [mem_ofCtx_snoc, mem_ofTerm_snd, mem_ofType_sigma,
+      sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
+    intros; subst_eqs; rename_i hΓ _ _ hA _ hΓ' _ _ hA' _ _ hΓ₁ _ _ hA₁ _ hB _ _ _ hB' _
+    cases Part.mem_unique hΓ hΓ'; clear hΓ'
+    cases Part.mem_unique hA hA'; clear hA'
+    cases Part.mem_unique hΓ hΓ₁; clear hΓ₁
+    cases Part.mem_unique hA hA₁; clear hA₁
+    cases Part.mem_unique hB hB'; clear hB'
+    refine ⟨_, ‹_›, ‹_›, _, ?_, _, ⟨‹_›, _, ‹_›, _, ‹_›, _, ‹_›, ‹_›, rfl⟩, rfl⟩
+    rw [mkSnd_tp]
     sorry
   case code =>
-    sorry
+    simp only [mem_ofTerm_code, mem_ofType_univ,
+      Nat.add_right_cancel_iff, exists_prop_eq', exists_eq_left, Nat.add_lt_add_iff_right,
+      forall_exists_index, and_imp, exists_true_left]
+    intros; subst_eqs
+    refine ⟨_, ‹_›, by omega, _, ⟨_, ‹_›, rfl⟩, ?_⟩
+    apply UHomSeq.code_tp
   case conv =>
-    sorry
+    simp only [forall_exists_index, and_imp]
+    intros; subst_eqs
+    rename_i hΓ _ _ _ _ hΓ' _ _ hA _ hA'
+    cases Part.mem_unique hΓ hΓ'; clear hΓ'
+    cases Part.mem_unique hA hA'; clear hA'
+    exact ⟨_, ‹_›, ‹_›, _, ‹_›, _, ‹_›, rfl⟩
 
   case cong_lam =>
-    sorry
+    simp only [mem_ofCtx_snoc, mem_ofTerm_lam, mem_ofType_pi,
+      sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
+    intros; subst_eqs; rename_i hΓ _ _ hA _ hΓ' _ _ hA' _ hΓ₁ _ _ hA₁ hA'₁ _ hΓ₂ _ _ hA₂ _ _ _ _ _
+    cases Part.mem_unique hΓ hΓ'; clear hΓ'
+    cases Part.mem_unique hΓ hΓ₁; clear hΓ₁
+    cases Part.mem_unique hA hA₁; clear hA₁
+    cases Part.mem_unique hA' hA'₁; clear hA'₁
+    cases Part.mem_unique hΓ hΓ₂; clear hΓ₂
+    cases Part.mem_unique hA hA₂; clear hA₂
+    refine ⟨_, ‹_›, ⟨‹_›, ‹_›⟩, _, ⟨_, ‹_›, _, ‹_›, rfl⟩, _,
+      ⟨_, ‹_›, _, ‹_›, rfl⟩, ⟨_, ‹_›, _, ‹_›, rfl⟩, ?_⟩
+    apply mkLam_tp (t_tp := rfl)
   case cong_app =>
+    simp only [mem_ofCtx_snoc, mem_ofTerm_app, mem_ofType_pi,
+      sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
+    intros; subst_eqs
+    rename_i hΓ _ _ hA _ hΓ' _ _ hA₁ _ _ hΓ₁ _ _ hA₂ _ hB _ _ _ _ hΓ₂ _ _ _ _ _ hB₁ _ _ hA₃
+    cases Part.mem_unique hΓ hΓ'; clear hΓ'
+    cases Part.mem_unique hΓ hΓ₁; clear hΓ₁
+    cases Part.mem_unique hA hA₁; clear hA₁
+    cases Part.mem_unique hA hA₂; clear hA₂
+    cases Part.mem_unique hΓ hΓ₂; clear hΓ₂
+    cases Part.mem_unique hA hA₃; clear hA₃
+    cases Part.mem_unique hB hB₁; clear hB₁
+    refine ⟨_, ‹_›, ‹_›, _, ?_, _, ⟨‹_›, _, ‹_›, _, ‹_›, _, ‹_›, ‹_›, rfl⟩,
+      ⟨‹_›, _, ‹_›, _, ‹_›, _, ‹_›, ‹_›, rfl⟩, rfl⟩
+    rw [mkApp_tp]
     sorry
   case cong_pair =>
-    sorry
+    simp only [mem_ofCtx_snoc, mem_ofTerm_pair, mem_ofType_sigma,
+      sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
+    intros; subst_eqs
+    rename_i hΓ _ _ hA _ hΓ' _ _ hA' _ _ hΓ₁ _ _ _ _ _ hΓ₂ _ _ _ _ _ _ _ hA₁ _
+    cases Part.mem_unique hΓ hΓ'; clear hΓ'
+    cases Part.mem_unique hA hA'; clear hA'
+    cases Part.mem_unique hΓ hΓ₁; clear hΓ₁
+    cases Part.mem_unique hΓ hΓ₂; clear hΓ₂
+    cases Part.mem_unique hA hA₁; clear hA₁
+    refine ⟨_, ‹_›, ⟨‹_›, ‹_›⟩, _, ⟨_, ‹_›, _, ‹_›, ?_⟩, _,
+      ⟨_, ‹_›, _, ‹_›, _, ‹_›, ?h2, rfl⟩, ⟨_, ‹_›, _, ‹_›, _, ‹_›, ?h2, rfl⟩, rfl⟩
+    · apply mkPair_tp
+    · refine Part.mem_unique ‹_› ?_
+      sorry
   case cong_fst =>
-    sorry
+    simp only [mem_ofCtx_snoc, mem_ofTerm_fst, mem_ofType_sigma,
+      sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
+    intros; subst_eqs
+    rename_i hΓ _ _ hA _ hΓ' _ _ hA₁ _ _ hΓ₁ _ _ hA₂ _ _ hΓ₂ _ _ hA₃ _ hB _ _ _ _ hB₁ _ _
+    cases Part.mem_unique hΓ hΓ'; clear hΓ'
+    cases Part.mem_unique hA hA₁; clear hA₁
+    cases Part.mem_unique hΓ hΓ₁; clear hΓ₁
+    cases Part.mem_unique hA hA₂; clear hA₂
+    cases Part.mem_unique hΓ hΓ₂; clear hΓ₂
+    cases Part.mem_unique hA hA₃; clear hA₃
+    cases Part.mem_unique hB hB₁; clear hB₁
+    refine ⟨_, ‹_›, ‹_›, _, ‹_›, _, ⟨‹_›, _, ‹_›, _, ‹_›, _, ‹_›, ‹_›, rfl⟩,
+      ⟨‹_›, _, ‹_›, _, ‹_›, _, ‹_›, ‹_›, rfl⟩, ?_⟩
+    apply mkFst_tp
   case cong_snd =>
+    simp only [mem_ofCtx_snoc, mem_ofTerm_snd, mem_ofType_sigma,
+      sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
+    intros; subst_eqs
+    rename_i hΓ _ _ hA _ hΓ' _ _ hA₁ _ _ hΓ₁ _ _ hA₂ _ _ hΓ₂ _ _ hA₃ _ hB _ _ _ _ hB₁ _ _
+    cases Part.mem_unique hΓ hΓ'; clear hΓ'
+    cases Part.mem_unique hA hA₁; clear hA₁
+    cases Part.mem_unique hΓ hΓ₁; clear hΓ₁
+    cases Part.mem_unique hA hA₂; clear hA₂
+    cases Part.mem_unique hΓ hΓ₂; clear hΓ₂
+    cases Part.mem_unique hA hA₃; clear hA₃
+    cases Part.mem_unique hB hB₁; clear hB₁
+    refine ⟨_, ‹_›, ‹_›, _, ?_, _, ⟨‹_›, _, ‹_›, _, ‹_›, _, ‹_›, ‹_›, rfl⟩,
+      ⟨‹_›, _, ‹_›, _, ‹_›, _, ‹_›, ‹_›, rfl⟩, rfl⟩
+    rw [mkSnd_tp]
     sorry
   case cong_code =>
-    sorry
+    simp only [mem_ofTerm_code, mem_ofType_univ,
+      Nat.add_right_cancel_iff, exists_prop_eq', exists_eq_left, Nat.add_lt_add_iff_right,
+      forall_exists_index, and_imp, exists_true_left]
+    intros
+    refine ⟨_, ‹_›, by omega, _, ⟨_, ‹_›, rfl⟩, ⟨_, ‹_›, rfl⟩, ?_⟩
+    apply UHomSeq.code_tp
   case app_lam =>
-    sorry
+    simp only [mem_ofCtx_snoc, mem_ofTerm_app, mem_ofTerm_lam,
+      forall_exists_index, and_imp, exists_true_left]
+    intros; subst_eqs
+    rename_i hΓ _ _ hA _ hΓ' _ _ hA₁ _ _ hΓ₁ _ _ hA₂ _ _ hΓ₂ _ _ _ _ hB _ _ hA₃ hB₁
+    cases Part.mem_unique hΓ hΓ'; clear hΓ'
+    cases Part.mem_unique hΓ hΓ₁; clear hΓ₁
+    cases Part.mem_unique hA hA₁; clear hA₁
+    cases Part.mem_unique hA hA₂; clear hA₂
+    cases Part.mem_unique hΓ hΓ₂; clear hΓ₂
+    cases Part.mem_unique hA hA₃; clear hA₃
+    cases Part.mem_unique hB hB₁; clear hB₁
+    refine ⟨_, ‹_›, ‹_›, _, ?_, _,
+      ⟨‹_›, _, ⟨_, ‹_›, _, ‹_›, rfl⟩, _, ‹_›, _, ‹_›, ?_, rfl⟩, ?_, rfl⟩
+    · rw [mkApp_tp]
+      sorry
+    · apply mkLam_tp (t_tp := rfl)
+    · rw [mkApp_mkLam (t_tp := rfl)]
+      sorry
   case fst_pair =>
-    sorry
+    simp only [mem_ofCtx_snoc, mem_ofTerm_fst, mem_ofTerm_pair,
+      forall_exists_index, and_imp, exists_true_left]
+    intros; subst_eqs
+    rename_i hΓ _ _ hA _ hΓ' _ _ hA₁ _ _ hΓ₁ _ _ _ _ hΓ₂ _ _ _ _ _ hA₂ _
+    cases Part.mem_unique hΓ hΓ'; clear hΓ'
+    cases Part.mem_unique hA hA₁; clear hA₁
+    cases Part.mem_unique hΓ hΓ₁; clear hΓ₁
+    cases Part.mem_unique hΓ hΓ₂; clear hΓ₂
+    cases Part.mem_unique hA hA₂; clear hA₂
+    refine ⟨_, ‹_›, ‹_›, _, ‹_›, _,
+      ⟨‹_›, _, ‹_›, _, ‹_›, _, ⟨_, ‹_›, _, ‹_›, _, ‹_›, ?_, rfl⟩, ?_, rfl⟩, ?_, ?_⟩
+    · refine Part.mem_unique ‹_› ?_
+      sorry
+    · apply mkPair_tp
+    · rwa [mkFst_mkPair]
+    · rw [mkFst_mkPair]
   case snd_pair =>
-    sorry
+    simp only [mem_ofCtx_snoc, mem_ofTerm_snd, mem_ofTerm_pair,
+      forall_exists_index, and_imp, exists_true_left]
+    intros; subst_eqs
+    rename_i hΓ _ _ hA _ hΓ' _ _ hA₁ _ _ hΓ₁ _ _ _ _ hΓ₂ _ _ _ _ _ hA₂ _
+    cases Part.mem_unique hΓ hΓ'; clear hΓ'
+    cases Part.mem_unique hA hA₁; clear hA₁
+    cases Part.mem_unique hΓ hΓ₁; clear hΓ₁
+    cases Part.mem_unique hΓ hΓ₂; clear hΓ₂
+    cases Part.mem_unique hA hA₂; clear hA₂
+    refine ⟨_, ‹_›, ‹_›, _, ?_, _, ⟨‹_›, _, ‹_›, _, ‹_›, _,
+      ⟨_, ‹_›, _, ‹_›, _, ‹_›, ?_, rfl⟩, ?_, rfl⟩, ?_, rfl⟩
+    · rwa [mkSnd_mkPair]
+    · refine Part.mem_unique ‹_› ?_
+      sorry
+    · apply mkPair_tp
+    · rwa [mkSnd_mkPair]
   case lam_app =>
-    sorry
+    simp only [mem_ofCtx_snoc, mem_ofTerm_app, mem_ofTerm_lam, mem_ofType_pi, ofTerm_bvar,
+      sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
+    intros; subst_eqs
+    rename_i l _ _ _ _ _ hΓ _ _ hA _ hΓ' _ _ hA₁ _ _ hΓ₁ _ _ hA₂ _ hB _ _ _ hB₁ _
+    cases Part.mem_unique hΓ hΓ'; clear hΓ'
+    cases Part.mem_unique hΓ hΓ₁; clear hΓ₁
+    cases Part.mem_unique hA hA₁; clear hA₁
+    cases Part.mem_unique hA hA₂; clear hA₂
+    cases Part.mem_unique hB hB₁; clear hB₁
+    refine ⟨_, ‹_›, ‹_›, _, ⟨_, ‹_›, _, ‹_›, ‹_›⟩, _, ‹_›, ⟨_, ‹_›, _,
+      ⟨‹_›, sorry, ?_, _, (mem_var_zero (x := s[l].var _)).2 ⟨rfl, rfl⟩, sorry, ?_, ?_, ?_⟩,
+      .symm (mkLam_mkApp (f_tp := ‹_›) ..)⟩, rfl⟩
+    · sorry
+    · sorry
+    · sorry
+    · sorry
   case pair_fst_snd =>
     sorry
   case code_el =>

@@ -392,6 +392,20 @@ theorem mkApp_mkLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[
   rw [mkApp, unLam_mkLam]
   assumption
 
+/--
+```
+Γ ⊢ᵢ A  Γ.A ⊢ⱼ B  Γ ⊢ₘₐₓ₍ᵢ,ⱼ₎ f : ΠA. B
+---------------------------------------
+Γ ⊢ₘₐₓ₍ᵢ,ⱼ₎ λA. f a ≡ f : ΠA. B
+``` -/
+@[simp]
+theorem mkLam_mkApp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
+    (f : y(Γ) ⟶ s[max i j].Tm) (f_tp : f ≫ s[max i j].tp = s.mkPi ilen jlen A B) :
+    s.mkLam ilen jlen A
+      (s.mkApp ilen jlen (s[i].wk _ A) (ym(s[i].substWk _ A) ≫ B) (s[i].wk _ f)
+        (by as_aux_lemma => simp [wk, f_tp, comp_mkPi]) (s[i].var _) (s[i].var_tp _)) = f := by
+  sorry
+
 /-! ## Sigma -/
 
 def Sig : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
