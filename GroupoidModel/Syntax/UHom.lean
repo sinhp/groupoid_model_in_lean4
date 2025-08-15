@@ -1,6 +1,7 @@
 import GroupoidModel.Syntax.NaturalModel
 import GroupoidModel.ForMathlib
 import Mathlib.CategoryTheory.Limits.Shapes.StrictInitial
+import GroupoidModel.ForPoly
 
 /-! Morphisms of natural models, and Russell-universe embeddings. -/
 
@@ -177,7 +178,7 @@ def homCartesianNaturalTrans (i j : Nat)
     (ilen : i ≤ j := by get_elem_tactic) (jlen : j < s.length + 1 := by get_elem_tactic) :
     s[i].Ptp ⟶ s[j].Ptp :=
   let hi : Hom s[i] s[j] := s.homOfLe i j
-  s[i].uvPolyTp.cartesianNaturalTrans s[j].uvPolyTp hi.mapTy hi.mapTm hi.pb.flip
+  s[i].uvPolyTp.cartesianNatTrans s[j].uvPolyTp hi.mapTy hi.mapTm hi.pb.flip
 
 /--
 This is one side of the commutative square
@@ -335,9 +336,37 @@ def Pi : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
 def lam : s[i].Ptp.obj s[j].Tm ⟶ s[max i j].Tm :=
   s.homCartesianNaturalTransTm i (max i j) j (max i j) ≫ (s.nmPi (max i j)).lam
 
+
+
 def Pi_pb :
-    IsPullback (s.lam ilen jlen) (s[i].Ptp.map s[j].tp) s[max i j].tp (s.Pi ilen jlen) :=
-  sorry
+    IsPullback (s.lam ilen jlen) (s[i].Ptp.map s[j].tp) s[max i j].tp (s.Pi ilen jlen) := by
+    have i2m : Hom s[i] s[max i j] := s.homOfLe i (max i j)
+    have t:= s[j].tp
+    let p := (s.homCartesianNaturalTrans i (max i j))
+    have p1 : NatTrans.IsCartesian ((s.homCartesianNaturalTrans i (max i j))) := by
+     simp[NaturalModelBase.UHomSeq.homCartesianNaturalTrans]
+     apply CategoryTheory.UvPoly.isCartesian_cartesianNatTrans
+    let pbL : IsPullback
+              ((s.homCartesianNaturalTrans i (max i j) _ _).app s[j].Tm)
+              (s[i].Ptp.map s[j].tp)
+              (s[max i j].Ptp.map s[j].tp)
+              ((s.homCartesianNaturalTrans i (max i j) _ _).app s[j].Ty) := (p1 s[j].tp).flip
+    let pbR := (s.nmPi (max i j)).Pi_pullback
+    let pbB0: IsPullback
+              (s.homOfLe j (max i j)).mapTm
+              (s[j].tp)
+              (s[max i j].tp)
+              ((s.homOfLe j (max i j)).mapTy) := (s.homOfLe j (max i j)).pb
+    let pbB : IsPullback
+              (s[max i j].Ptp.map (s.homOfLe j (max i j)).mapTm)
+              (s[max i j].Ptp.map s[j].tp)
+              (s[max i j].Ptp.map s[max i j].tp)
+              (s[max i j].Ptp.map (s.homOfLe j (max i j)).mapTy) :=
+              CategoryTheory.UvPoly.preservesPullbacks s[max i j].uvPolyTp _ _ _ _ pbB0
+
+    have q := CategoryTheory.IsPullback.paste_horiz pbB pbR
+    simp[lam,Pi,UHomSeq.homCartesianNaturalTransTm,UHomSeq.homCartesianNaturalTransTy]
+    apply CategoryTheory.IsPullback.paste_horiz pbL q
 
 /--
 ```
@@ -483,7 +512,9 @@ def Sig : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
   s.homCartesianNaturalTransTy i (max i j) j (max i j) ≫ (s.nmSigma (max i j)).Sig
 
 def pair : UvPoly.compDom s[i].uvPolyTp s[j].uvPolyTp ⟶ s[max i j].Tm :=
-  sorry ≫ (s.nmSigma (max i j)).pair
+  let h:  s[i].uvPolyTp.compDom s[j].uvPolyTp ⟶ s[max i j].uvPolyTp.compDom s[max i j].uvPolyTp
+  := sorry
+  h ≫ (s.nmSigma (max i j)).pair
 
 def Sig_pb : IsPullback
     (s.pair ilen jlen)

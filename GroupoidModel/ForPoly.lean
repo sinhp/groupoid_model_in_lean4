@@ -47,4 +47,23 @@ def compDomEquiv {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} :
    simp [compDomEquiv, Equiv.psigmaCongrProp, Equiv.sigmaCongrRight_symm,
     Equiv.coe_fn_symm_mk, pullbackHomEquiv]
 
+
+universe v₁ u₁
+
+variable {C : Type u₁} [Category.{v₁} C] [HasPullbacks C] [HasTerminal C] {E B : C}
+
+instance preservesConnectedLimitsOfShape_of_hasLimitsOfShape {J : Type v₁} [SmallCategory J]
+  [IsConnected J] [HasLimitsOfShape J C] (P : UvPoly E B) :
+    PreservesLimitsOfShape J (P.functor) := by
+  unfold UvPoly.functor
+  infer_instance
+
+instance preservesPullbacks (P : UvPoly E B)
+    {Pb X Y Z : C} (fst : Pb ⟶ X) (snd : Pb ⟶ Y)
+    (f : X ⟶ Z) (g : Y ⟶ Z)
+    (h: IsPullback fst snd f g) :
+    IsPullback (P.functor.map fst) (P.functor.map snd) (P.functor.map f) (P.functor.map g) :=
+    P.functor.map_isPullback h
+
+
 end CategoryTheory.UvPoly
