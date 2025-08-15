@@ -75,6 +75,12 @@ inductive WfTp : Ctx → Nat → Expr → Prop
     (A,l) :: Γ ⊢[l'] B →
     Γ ⊢[max l l'] .sigma l l' A B
 
+  | Id' {Γ A t u l} :
+    Γ ⊢[l] A →
+    Γ ⊢[l] t : A →
+    Γ ⊢[l] u : A →
+    Γ ⊢[l] .Id l A t u
+
   | univ {Γ l} :
     WfCtx Γ →
     l < univMax →
@@ -100,6 +106,12 @@ inductive EqTp : Ctx → Nat → Expr → Expr → Prop
     Γ ⊢[l] A ≡ A'→
     (A,l) :: Γ ⊢[l'] B ≡ B' →
     Γ ⊢[max l l'] .sigma l l' A B ≡ .sigma l l' A' B'
+
+  | cong_Id {Γ A A' t t' u u' l} :
+    Γ ⊢[l] A ≡ A' →
+    Γ ⊢[l] t ≡ t' : A →
+    Γ ⊢[l] u ≡ u' : A →
+    Γ ⊢[l] .Id l A t u ≡ .Id l A' t' u'
 
   | cong_el {Γ A A' l} :
     Γ ⊢[l+1] A ≡ A' : .univ l →
@@ -166,6 +178,20 @@ inductive WfTm : Ctx → Nat → Expr → Expr → Prop
     Γ ⊢[max l l'] p : .sigma l l' A B →
     Γ ⊢[l'] .snd l l' A B p : B.subst (Expr.fst l l' A B p).toSb
 
+  | refl' {Γ A t l} :
+    Γ ⊢[l] A →
+    Γ ⊢[l] t : A →
+    Γ ⊢[l] .refl l t : .Id l A t t
+
+  | idRec' {Γ A M t r u h l l'} :
+    Γ ⊢[l] A →
+    Γ ⊢[l] t : A →
+    (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M →
+    Γ ⊢[l'] r : M.subst (.snoc t.toSb <| .refl l t) →
+    Γ ⊢[l] u : A →
+    Γ ⊢[l] h : .Id l A t u →
+    Γ ⊢[l'] .idRec l l' t M r u h : M.subst (.snoc u.toSb h)
+
   | code {Γ A l} :
     l < univMax →
     Γ ⊢[l] A →
@@ -218,6 +244,21 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     Γ ⊢[max l l'] p ≡ p' : .sigma l l' A B →
     Γ ⊢[l'] .snd l l' A B p ≡ .snd l l' A' B' p' : B.subst (Expr.fst l l' A B p).toSb
 
+  | cong_refl' {Γ A t t' l} :
+    Γ ⊢[l] A →
+    Γ ⊢[l] t ≡ t' : A →
+    Γ ⊢[l] .refl l t ≡ .refl l t' : .Id l A t t
+
+  | cong_idRec' {Γ A M M' t t' r r' u u' h h' l l'} :
+    Γ ⊢[l] A →
+    Γ ⊢[l] t : A →
+    Γ ⊢[l] t ≡ t' : A →
+    (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M ≡ M' →
+    Γ ⊢[l'] r ≡ r' : M.subst (.snoc t.toSb <| .refl l t) →
+    Γ ⊢[l] u ≡ u' : A →
+    Γ ⊢[l] h ≡ h' : .Id l A t u →
+    Γ ⊢[l'] .idRec l l' t M r u h ≡ .idRec l l' t' M' r' u' h' : M.subst (.snoc u.toSb h)
+
   | cong_code {Γ A A' l} :
     l < univMax →
     Γ ⊢[l] A ≡ A' →
@@ -244,6 +285,13 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     Γ ⊢[l] t : A →
     Γ ⊢[l'] u : B.subst t.toSb →
     Γ ⊢[l'] .snd l l' A B (.pair l l' B t u) ≡ u : B.subst t.toSb
+
+  | idRec_refl' {Γ A M t r l l'} :
+    Γ ⊢[l] A →
+    Γ ⊢[l] t : A →
+    (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M →
+    Γ ⊢[l'] r : M.subst (.snoc t.toSb <| .refl l t) →
+    Γ ⊢[l'] .idRec l l' t M r t (.refl l t) ≡ r : M.subst (.snoc t.toSb <| .refl l t)
 
   -- Expansions
   | lam_app' {Γ A B f l l'} :

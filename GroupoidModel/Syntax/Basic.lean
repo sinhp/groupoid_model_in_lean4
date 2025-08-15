@@ -6,18 +6,25 @@ inductive Expr where
   | bvar (i : Nat)
   /-- Dependent product. -/
   | pi (l l' : Nat) (A B : Expr)
-  /-- Dependent sum. -/
-  | sigma (l l' : Nat) (A B : Expr)
   /-- Lambda with the specified argument type. -/
   | lam (l l' : Nat) (A b : Expr)
   /-- Application at the specified output type family `B`. -/
   | app (l l' : Nat) (B fn arg : Expr)
+  /-- Dependent sum. -/
+  | sigma (l l' : Nat) (A B : Expr)
   /-- Pair formation. -/
   | pair (l l' : Nat) (B t u : Expr)
   /-- First component of a pair. -/
   | fst (l l' : Nat) (A B p : Expr)
   /-- Second component of a pair. -/
   | snd (l l' : Nat) (A B p : Expr)
+  /-- Identity type. -/
+  -- TODO: capitalize all the types
+  | Id (l : Nat) (A t u : Expr)
+  /-- A reflexive identity. -/
+  | refl (l : Nat) (t : Expr)
+  /-- Eliminates an identity. -/
+  | idRec (l l' : Nat) (t C r u h : Expr)
   /-- A type universe. -/
   | univ (l : Nat)
   /-- Type from a code. -/
