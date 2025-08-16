@@ -94,14 +94,17 @@ lemma eta (pair : Γ ⟶ P @ X) :
   simp [fst, snd, mk]
   sorry
 
-lemma mk_naturality_right (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
-    mk P X b x ≫ P.functor.map f = mk P Y b (x ≫ f) :=
+lemma fst_naturality_right (pair : Γ ⟶ P @ X) :
+    fst P Y (pair ≫ P.functor.map f) = fst P X pair :=
   sorry
 
-lemma mk_comp_verticalNatTrans (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) {F} (Q : UvPoly F B)
-    (ρ : F ⟶ E) (h : Q.p = ρ ≫ P.p) :
-    mk P X b x ≫ (verticalNatTrans Q P ρ h).app X =
-    mk Q X b (pullback.map b Q.p b P.p (𝟙 _) ρ (𝟙 _) (by simp) (by simp [h]) ≫ x) :=
+lemma snd_naturality_right_heq (pair : Γ ⟶ P @ X) :
+    snd P Y (pair ≫ P.functor.map f) ≍ snd P X pair :=
+  sorry
+
+
+lemma mk_naturality_right (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
+    mk P X b x ≫ P.functor.map f = mk P Y b (x ≫ f) :=
   sorry
 
 end Equiv
@@ -112,12 +115,15 @@ section
 
 variable {F : C} (P : UvPoly E B) (Q : UvPoly F B) (ρ : E ⟶ F) (h : P.p = ρ ≫ Q.p)
 
+-- lemma fst_verticalNatTrans_app {Γ : C} (X : C) (pair : Γ ⟶ Q @ X) :
+--     Equiv.fst P X (pair ≫ (verticalNatTrans P Q ρ h).app X) = Equiv.fst Q X pair :=
+--     sorry
+
 lemma mk_comp_verticalNatTrans_app {Γ : C} (X : C) (b : Γ ⟶ B) (x : pullback b Q.p ⟶ X) :
     Equiv.mk Q X b x ≫ (verticalNatTrans P Q ρ h).app X = Equiv.mk P X b
     (pullback.lift (pullback.fst _ _) (pullback.snd _ _ ≫ ρ)
     (by simp [pullback.condition, h]) ≫ x) :=
   sorry
-
 
 end
 
