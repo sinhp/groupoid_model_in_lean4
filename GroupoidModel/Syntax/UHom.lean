@@ -198,8 +198,10 @@ theorem el_code (s : UHomSeq Ctx) {Γ : Ctx} {i : Nat} (ilen : i < s.length) (A 
     s.el ilen (s.code ilen A) (s.code_tp ilen A) = A := by
   sorry
 
--- code_el A = A
--- el_code A = A
+theorem code_el (s : UHomSeq Ctx) {Γ : Ctx} {i : Nat} (ilen : i < s.length)
+    (a : y(Γ) ⟶ s[i+1].Tm) (a_tp : a ≫ s[i+1].tp = (s.homSucc i).wkU Γ) :
+    s.code ilen (s.el ilen a a_tp) = a := by
+  sorry
 
 end UHomSeq
 
