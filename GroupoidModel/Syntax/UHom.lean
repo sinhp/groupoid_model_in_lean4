@@ -75,8 +75,9 @@ Note this doesn't need to extend `Hom` as none of its fields are used;
 it's just convenient to pack up the data. -/
 structure UHom (M N : NaturalModelBase Ctx) extends Hom M N where
   U : y(𝟙_ Ctx) ⟶ N.Ty
-  U_pb : ∃ v : M.Ty ⟶ N.Tm, IsPullback
-                                 v
+  asTm : M.Ty ⟶ N.Tm
+  U_pb : IsPullback
+                                asTm
     (isTerminal_yUnit.from M.Ty)   N.tp
                                  U
 
@@ -85,8 +86,8 @@ def UHom.ofTyIsoExt
     (H : Hom M N) {U : y(𝟙_ Ctx) ⟶ N.Ty} (i : M.Ty ≅ y(N.ext U)) :
     UHom M N := { H with
   U := U
+  asTm := i.hom ≫ N.var U
   U_pb := by
-    use i.hom ≫ N.var U
     convert IsPullback.of_iso_isPullback (N.disp_pullback _) i
     apply isTerminal_yUnit.hom_ext
 }
@@ -94,9 +95,8 @@ def UHom.ofTyIsoExt
 def UHom.comp {M N O : NaturalModelBase Ctx} (α : UHom M N) (β : UHom N O) : UHom M O := {
   Hom.comp α.toHom β.toHom with
   U := α.U ≫ β.mapTy
-  U_pb :=
-    have ⟨v, pb⟩ := α.U_pb
-    ⟨v ≫ β.mapTm, pb.paste_horiz β.pb⟩
+  asTm := α.asTm ≫ β.mapTm
+  U_pb := α.U_pb.paste_horiz β.pb
 }
 
 def UHom.comp_assoc {M N O P : NaturalModelBase Ctx} (α : UHom M N) (β : UHom N O) (γ : UHom O P) :
@@ -117,14 +117,14 @@ def UHom.ofTarskiU (M : NaturalModelBase Ctx) (U : y(𝟙_ Ctx) ⟶ M.Ty) (El : 
     UHom (M.pullback El) M := {
   M.pullbackHom El with
   U
-  U_pb := ⟨M.var U,
-    (M.disp_pullback U).of_iso
+  asTm := M.var U
+  U_pb := (M.disp_pullback U).of_iso
       (Iso.refl _)
       (Iso.refl _)
       (Iso.refl _)
       (Iso.refl _)
       (by simp) (isTerminal_yUnit.hom_ext ..)
-      (by simp) (by simp)⟩
+      (by simp) (by simp)
 }
 
 /-! ## Universe embeddings -/
@@ -168,34 +168,72 @@ theorem hom_comp_trans (s : UHomSeq Ctx) (i j k : Nat) (ij : i < j) (jk : j < k)
   . rw [UHom.comp_assoc, hom_comp_trans]
 termination_by s.length - i
 
+/--
+TODO: Consider generalising to just UHom?
+Convert a map into the `i`th type classifier into a a term of the
+`i+1`th term classifier, that is a term of the `i`th universe.
+It is defined by composition with the first projection of the pullback square
+               v
+     s[i].Ty ----> s[i+1].Tm
+     ^    |          |
+  A /     |   p.b.   |
+   /      |          |
+  /       V          V
+y(Γ) ---> 1 -----> s[i+1].Ty
+              U_i
+-/
 def code {Γ : Ctx} {i : Nat} (s : UHomSeq Ctx) (ilen : i < s.length) (A : y(Γ) ⟶ s[i].Ty) :
     y(Γ) ⟶ s[i+1].Tm :=
-  sorry
+  A ≫ (s.homSucc i).asTm
 
 @[simp]
 theorem code_tp {Γ : Ctx} {i : Nat} (s : UHomSeq Ctx) (ilen : i < s.length) (A : y(Γ) ⟶ s[i].Ty) :
-    s.code ilen A ≫ s[i+1].tp = (s.homSucc i).wkU Γ :=
-  sorry
+    s.code ilen A ≫ s[i+1].tp = (s.homSucc i).wkU Γ := by
+  simp [code, (s.homSucc i).U_pb.w, UHom.wkU]
 
 @[reassoc]
 theorem comp_code {Δ Γ : Ctx} {i : Nat} (s : UHomSeq Ctx) (ilen : i < s.length)
     (σ : y(Δ) ⟶ y(Γ)) (A : y(Γ) ⟶ s[i].Ty) :
     σ ≫ s.code ilen A = s.code ilen (σ ≫ A) := by
-  sorry
+  simp [code]
 
+/--
+TODO: Consider generalising to just UHom?
+Convert a a term of the `i`th universe (it is a `i+1` level term) into
+a map into the `i`th type classifier.
+It is the unique map into the pullback
+             a
+y(Γ) -----------------¬
+‖  -->          v     V
+‖    s[i].Ty ----> s[i+1].Tm
+‖         |          |
+‖         |   p.b.   |
+‖         |          |
+‖         V          V
+y(Γ) ---> 1 -----> s[i+1].Ty
+              U_i
+-/
 def el (s : UHomSeq Ctx) {Γ : Ctx} {i : Nat} (ilen : i < s.length)
     (a : y(Γ) ⟶ s[i+1].Tm) (a_tp : a ≫ s[i+1].tp = (s.homSucc i).wkU Γ) :
     y(Γ) ⟶ s[i].Ty :=
-  sorry
+  (s.homSucc i).U_pb.lift a (isTerminal_yUnit.from y(Γ)) (by rw [a_tp, UHom.wkU])
 
 @[reassoc]
 theorem comp_el (s : UHomSeq Ctx) {Δ Γ : Ctx} {i : Nat} (ilen : i < s.length)
     (σ : y(Δ) ⟶ y(Γ)) (a : y(Γ) ⟶ s[i+1].Tm) (a_tp : a ≫ s[i+1].tp = (s.homSucc i).wkU Γ) :
-    σ ≫ s.el ilen a a_tp = s.el ilen (σ ≫ a) (by simp [a_tp]) := by
-  sorry
+    σ ≫ s.el ilen a a_tp = s.el ilen (σ ≫ a) (by simp [a_tp]) :=
+  (s.homSucc i).U_pb.hom_ext (by simp [el]) (by simp)
 
--- code_el A = A
--- el_code A = A
+@[simp]
+lemma el_code {Γ : Ctx} {i : Nat} (s : UHomSeq Ctx) (ilen : i < s.length) (A : y(Γ) ⟶ s[i].Ty) :
+    el s ilen (code s ilen A) (code_tp _ _ _) = A :=
+  (s.homSucc i).U_pb.hom_ext (by simp [el, code]) (by simp)
+
+@[simp]
+lemma code_el (s : UHomSeq Ctx) {Γ : Ctx} {i : Nat} (ilen : i < s.length)
+    (a : y(Γ) ⟶ s[i+1].Tm) (a_tp : a ≫ s[i+1].tp = (s.homSucc i).wkU Γ) :
+    code s ilen (el s ilen a a_tp) = a := by
+  simp [code, el]
 
 end UHomSeq
 
