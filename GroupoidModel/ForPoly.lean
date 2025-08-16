@@ -115,4 +115,23 @@ lemma mk_comp_verticalNatTrans_app {Γ : C} (X : C) (b : Γ ⟶ B) (x : pullback
 
 end
 
+
+universe v₁ u₁
+
+variable {C : Type u₁} [Category.{v₁} C] [HasPullbacks C] [HasTerminal C] {E B : C}
+
+instance preservesConnectedLimitsOfShape_of_hasLimitsOfShape {J : Type v₁} [SmallCategory J]
+  [IsConnected J] [HasLimitsOfShape J C] (P : UvPoly E B) :
+    PreservesLimitsOfShape J (P.functor) := by
+  unfold UvPoly.functor
+  infer_instance
+
+instance preservesPullbacks (P : UvPoly E B)
+    {Pb X Y Z : C} (fst : Pb ⟶ X) (snd : Pb ⟶ Y)
+    (f : X ⟶ Z) (g : Y ⟶ Z)
+    (h: IsPullback fst snd f g) :
+    IsPullback (P.functor.map fst) (P.functor.map snd) (P.functor.map f) (P.functor.map g) :=
+    P.functor.map_isPullback h
+
+
 end CategoryTheory.UvPoly

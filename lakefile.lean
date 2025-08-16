@@ -11,7 +11,8 @@ package groupoid_model where
   ]
   -- add any additional package configuration options here
 
-require Poly from git "https://github.com/Vtec234/Poly.git" @ "bump/v4.22.0-rc3"
+require Poly from git "https://github.com/sinhp/Poly" @ "cartesian-nt"
+
 
 @[default_target]
 lean_lib GroupoidModel where
