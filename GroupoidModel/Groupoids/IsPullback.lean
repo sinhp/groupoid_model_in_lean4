@@ -336,5 +336,35 @@ theorem isPullback_yonedaDisp_yonedaπ :
 
 end SmallU
 
+variable {A B C D : Type (v+1)} [Category.{v} A] [Category.{v} B] [Category.{v} C] [Category.{v} D]
+    (north : A ⥤ C) (west : A ⥤ B) (east : C ⥤ D) (south : B ⥤ D)
+    (sah : Functor.IsPullback north west east south)
+
+include sah
+
+open Ctx
+
+theorem isPullback_homOfFunctor_asSmall : IsPullback (Cat.homOf (AsSmall.down ⋙ north ⋙ AsSmall.up))
+    (Cat.homOf (AsSmall.down ⋙ west ⋙ AsSmall.up))
+    (Cat.homOf (AsSmall.down ⋙ east ⋙ AsSmall.up))
+    (Cat.homOf (AsSmall.down ⋙ south ⋙ AsSmall.up)) :=
+  Cat.isPullback (by
+    convert_to AsSmall.down ⋙ (north ⋙ east) ⋙ AsSmall.up = _
+    rw [sah.comm_sq]; rfl) $
+  Functor.IsPullback.ofIso' north west east south sah _ _ _ _ AsSmall.downIso
+  AsSmall.downIso AsSmall.downIso AsSmall.downIso rfl rfl rfl rfl
+
+theorem isPullback_homOfFunctor_core : IsPullback (Grpd.homOf (AsSmall.down ⋙ north ⋙ AsSmall.up).core)
+    (Grpd.homOf (AsSmall.down ⋙ west ⋙ AsSmall.up).core)
+    (Grpd.homOf (AsSmall.down ⋙ east ⋙ AsSmall.up).core)
+    (Grpd.homOf (AsSmall.down ⋙ south ⋙ AsSmall.up).core) :=
+  Functor.map_isPullback Core.map (isPullback_homOfFunctor_asSmall north west east south sah)
+
+theorem isPullback_homOfFunctor :
+    IsPullback (homOfFunctor north) (homOfFunctor west)
+    (homOfFunctor east) (homOfFunctor south) :=
+  Functor.map_isPullback Ctx.ofGrpd (isPullback_homOfFunctor_core north west east south sah)
+
 end IsPullback
+
 end GroupoidModel

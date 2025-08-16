@@ -241,8 +241,6 @@ PGrpd
         V
       Grpd
 -/
--- TODO : consider removal?
--- def K : Grothendieck.Groupoidal Id ⥤ Grpd := Grothendieck.Groupoidal.forget ⋙  BPGrpd.forgetToGrpd
 
 /- This is the universal lift
             Refl
@@ -450,100 +448,75 @@ category of contexts
 -/
 
 
-
-/-
-This is the equivelant of Id above
--/
-
--- TODO tidy up this definition. remove tactic mode + use yonedaCategoryEquiv
-def Id' : y(GroupoidModel.U.ext (GroupoidModel.π.{u,u})) ⟶ smallU.Ty.{u,u} :=
-  yonedaCategoryEquiv.symm (sorry)
-  -- dsimp[GroupoidModel.U.ext,GroupoidModel.U,GroupoidModel.Ctx.ofCategory]
-  -- refine AsSmall.up.map ?_
-  -- dsimp [Quiver.Hom]
-  -- refine Core.functorToCore ?_
-  -- refine ?_ ⋙ AsSmall.up
-  -- refine ?_ ⋙ Id
-  -- dsimp [BPGrpd]
-  -- let F : (GroupoidModel.Ctx.toGrpd.obj GroupoidModel.E) ⥤ PGrpd := by sorry
-  --   -- dsimp[GroupoidModel.E,GroupoidModel.Ctx.ofCategory]
-  --   -- refine ?_ ⋙ Core.inclusion PGrpd
-  --   -- refine Core.map' ?_
-  --   -- exact AsSmall.down
-  -- let h : F ⋙ PGrpd.forgetToGrpd = (GroupoidModel.U.classifier GroupoidModel.π) := by sorry
-  --   -- exact rfl
-  -- rw[<-h]
-  -- exact Grothendieck.Groupoidal.pre PGrpd.forgetToGrpd F
-
 def Refl' : GroupoidModel.E.{u,u} ⟶ GroupoidModel.E.{u,u} :=
   AsSmall.up.map (𝟭 (Core (AsSmall PGrpd)))
 
-/- Lean is gas lighting me -/
-def Diag' : GroupoidModel.E.{v,u} ⟶ GroupoidModel.U.ext (GroupoidModel.π.{v,u}) := by
-  refine IsPullback.lift (GroupoidModel.IsPullback.SmallU.isPullback_disp_π.{v,u} (GroupoidModel.π.{v,u})) ?_ ?_ ?_
-  . refine eqToHom sorry
-  . refine eqToHom sorry
-  . simp
-
-
-
 namespace smallUId
 
-def id : Limits.pullback smallU.{v}.tp smallU.{v}.tp ⟶ smallU.{v}.Ty := sorry
+lemma isKernelPair : IsKernelPair smallU.tp.{u} ym(Ctx.homOfFunctor BPGrpd.fst)
+    ym(Ctx.homOfFunctor BPGrpd.snd) :=
+  Functor.map_isPullback yoneda (IsPullback.isPullback_homOfFunctor _ _ _ _ BPGrpd.isPullback)
 
-def Ctx.toGrpdOfCategoryIncl (C : Type (u+1)) [Category.{u} C] :
-    Ctx.toGrpd.obj (Ctx.ofCategory C) ⥤ C :=
-  Core.inclusion _ ⋙ AsSmall.down
+def Id : y(Ctx.ofCategory BPGrpd.{u,u}) ⟶ smallU.Ty.{u} :=
+  ym(Ctx.homOfFunctor FunctorOperation.id)
 
-def yonedaCategoryEquivYonedaπIso :
-    ∫ (yonedaCategoryEquiv smallU.tp.{u}) ≅≅ ∫ PGrpd.forgetToGrpd.{u,u} where
-  hom := Functor.Groupoidal.functorTo (forget ⋙ Ctx.toGrpdOfCategoryIncl _)
-    (fun x => by
-      dsimp [Ctx.toGrpdOfCategoryIncl]
-      have h := x.fiber
-      dsimp at h
-      sorry)
-    sorry sorry sorry
-
-  -- {
-  --   obj X := let X1 := X.base
-  --     Functor.Groupoidal.objMk ((Ctx.toGrpdOfCategoryIncl _).obj X.base) sorry
-  --   map := sorry
-  --   map_id := sorry
-  --   map_comp := sorry
-  -- }
-  inv := sorry
-  hom_inv_id := sorry
-  inv_hom_id := sorry
-
-def Id : y(smallU.ext.{u} smallU.tp.{u}) ⟶ smallU.Ty.{u} :=
-  yonedaCategoryEquiv.invFun
-  ((by
-    dsimp [BPGrpd]
-
-    sorry) ⋙ FunctorOperation.id)
-#check yonedaCategoryEquiv
 def refl : smallU.Tm.{u} ⟶ smallU.Tm.{u} :=
-  sorry
+  ym(Ctx.homOfFunctor FunctorOperation.refl)
 
-def refl_tp : Limits.pullback.lift (𝟙 smallU.Tm) (𝟙 smallU.Tm) rfl ≫ id = refl ≫ smallU.tp :=
-  sorry
+lemma refl_tp : refl ≫ smallU.tp.{u} = isKernelPair.lift (𝟙 smallU.Tm) (𝟙 smallU.Tm) rfl ≫ Id := by
+  convert_to _ = ym(Ctx.homOfFunctor (BPGrpd.isPullback.lift (𝟭 PGrpd.{u,u}) (𝟭 PGrpd.{u,u}) rfl)) ≫ Id
+  · congr 1
+    apply isKernelPair.hom_ext
+    · erw [isKernelPair.lift_fst]
+      simp [← Functor.map_comp, ← Ctx.homOfFunctor_comp, BPGrpd.isPullback.fac_left, E]
+    · erw [isKernelPair.lift_snd]
+      simp [← Functor.map_comp, ← Ctx.homOfFunctor_comp, BPGrpd.isPullback.fac_right, E]
+  · simp only [smallU_Ty, smallU_Tm, refl, smallU_tp, π, ← Functor.map_comp, ←
+      Ctx.homOfFunctor_comp, FunctorOperation.refl_forgetToGrpd, FunctorOperation.diag_eq_diag',
+      FunctorOperation.diag', Id]
+    rfl
 
--- TODO: make sure universe levels are most general
--- TODO: make namespaces consistent with Sigma file
-def smallUIdBase : NaturalModelBase.Id smallU.{u} where
-  k := y(smallU.ext.{u} smallU.tp.{u})
-  k1 := smallU.var smallU.tp
-  k2 := ym(smallU.disp smallU.tp)
-  isKernelPair := smallU.disp_pullback _
+lemma i_isPullback : IsPullback ym(Ctx.homOfFunctor (toPGrpd FunctorOperation.id))
+    ym(Ctx.homOfFunctor Functor.Groupoidal.forget) smallU.tp Id :=
+  Functor.map_isPullback yoneda
+    (IsPullback.isPullback_homOfFunctor _ _ _ _ (isPullback FunctorOperation.id))
+
+def smallUIdElimBase : NaturalModelBase.IdElimBase smallU.{u} where
+  k := y(Ctx.ofCategory BPGrpd.{u,u})
+  k1 := ym(Ctx.homOfFunctor BPGrpd.fst)
+  k2 := ym(Ctx.homOfFunctor BPGrpd.snd)
+  isKernelPair := isKernelPair
   Id := Id
-  refl := sorry
-  refl_tp := sorry
-  i := sorry
-  i1 := sorry
-  i2 := sorry
-  i_isPullback := sorry
-  weakPullback := sorry
+  refl := refl
+  refl_tp := refl_tp
+  i := y(Ctx.ofCategory (∫ FunctorOperation.id.{u}))
+  i1 := ym(Ctx.homOfFunctor (toPGrpd _))
+  i2 := ym(Ctx.homOfFunctor forget)
+  i_isPullback := i_isPullback
+
+-- TODO: make namespaces consistent with Sigma file
+def smallUId : NaturalModelBase.Id smallU.{u} := {
+  smallUIdElimBase with
+  weakPullback := {
+    w := sorry -- this should be completed automatically
+    lift := sorry
+    fac_left := sorry
+    fac_right := sorry
+  }}
+
+-- def smallUIdBase : NaturalModelBase.Id smallU.{u} where
+--   k := y(smallU.ext.{u} smallU.tp.{u})
+--   k1 := smallU.var smallU.tp
+--   k2 := ym(smallU.disp smallU.tp)
+--   isKernelPair := smallU.disp_pullback _
+--   Id := Id
+--   refl := sorry
+--   refl_tp := sorry
+--   i := sorry
+--   i1 := sorry
+--   i2 := sorry
+--   i_isPullback := sorry
+--   weakPullback := sorry
 
 end smallUId
 

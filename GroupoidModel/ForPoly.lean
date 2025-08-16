@@ -98,6 +98,12 @@ lemma mk_naturality_right (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
     mk P X b x ≫ P.functor.map f = mk P Y b (x ≫ f) :=
   sorry
 
+lemma mk_comp_verticalNatTrans (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) {F} (Q : UvPoly F B)
+    (ρ : F ⟶ E) (h : Q.p = ρ ≫ P.p) :
+    mk P X b x ≫ (verticalNatTrans Q P ρ h).app X =
+    mk Q X b (pullback.map b Q.p b P.p (𝟙 _) ρ (𝟙 _) (by simp) (by simp [h]) ≫ x) :=
+  sorry
+
 end Equiv
 
 open TwoSquare

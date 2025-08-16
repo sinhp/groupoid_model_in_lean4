@@ -92,6 +92,16 @@ def homOfFunctor {C : Type (v+1)} [Category.{v} C] {D : Type (w+1)} [Category.{w
     ⟶ Ctx.ofCategory.{w, max u (v+1) (w+1)} D :=
   Ctx.ofGrpd.map $ Grpd.homOf $ Functor.core $ AsSmall.down ⋙ F ⋙ AsSmall.up
 
+@[simp]
+lemma homOfFunctor_fst {C : Type (v+1)} [Category.{v} C] :
+    homOfFunctor (𝟭 C) = 𝟙 _ :=
+  rfl
+
+lemma homOfFunctor_comp {C : Type (v+1)} [Category.{v} C] {D : Type (v+1)} [Category.{v} D]
+    {E : Type (v+1)} [Category.{v} E]
+    (F : C ⥤ D) (G : D ⥤ E) : homOfFunctor (F ⋙ G) = homOfFunctor F ≫ homOfFunctor G :=
+  rfl
+
 instance : CartesianMonoidalCategory Ctx := equivalence.chosenFiniteProducts
 
 end Ctx
