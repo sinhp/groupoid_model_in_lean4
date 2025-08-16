@@ -111,9 +111,9 @@ theorem upr {Δ Γ A ξ l} : WfRen Δ ξ Γ →
     WfRen ((A.rename ξ, l) :: Δ) (Expr.upr ξ) ((A, l) :: Γ) := by
   unfold WfRen; intro wf _ _ _ lk
   cases lk
-  . rw [show (A.subst Expr.wk).rename (Expr.upr ξ) = (A.rename ξ).subst Expr.wk by autosubst]
+  · rw [show (A.subst Expr.wk).rename (Expr.upr ξ) = (A.rename ξ).subst Expr.wk by autosubst]
     apply Lookup.zero
-  . rename_i A _ lk
+  · rename_i A _ lk
     rw [show (A.subst Expr.wk).rename (Expr.upr ξ) = (A.rename ξ).subst Expr.wk by autosubst]
     apply Lookup.succ _ _ (wf lk)
 
@@ -135,18 +135,28 @@ theorem rename_all :
   mutual_induction WfCtx
   all_goals dsimp only; try intros
   case snoc => exact True.intro
-  all_goals try simp only [Expr.rename, ih_subst] at *
+  any_goals
+    simp only [Expr.rename, Expr.subst'] at *
+    simp only [← Expr.rename.eq_1] at *
   case bvar ξ => apply WfTm.bvar _ (ξ.lookup _) <;> assumption
   -- Cases that didn't go through automatically.
+  case snd' =>
+    rw [ih_subst]
+    simp [Expr.rename, Expr.subst']; simp only [← Expr.rename.eq_1]
+    apply WfTm.snd' <;> grind
+  case cong_snd' =>
+    rw [ih_subst]
+    simp [Expr.rename, Expr.subst']; simp only [← Expr.rename.eq_1]
+    apply EqTm.cong_snd' <;> grind
   case lam_app' =>
     convert EqTm.lam_app' .. using 1
-    . congr 2 <;> autosubst
+    · congr 2 <;> autosubst
     all_goals grind
   -- FIXME: automation fails completely on idRec
   case idRec' ihA iht ihC ihr ihu ihh _ _ Δ ξ =>
     have ΔA := ihA Δ ξ
     convert have ΔAI := ?ΔAI; WfTm.idRec' ΔA _ (ihC ΔAI ?ξuu) _ _ _ using 1
-    . autosubst
+    · autosubst
     case ΔAI =>
       have := Δ.snoc ΔA
       apply this.snoc
@@ -157,14 +167,14 @@ theorem rename_all :
         (autosubst% x)
     case ξuu =>
       convert ξ.upr.upr using 1
-      congr 3 <;> autosubst
-    . grind
-    . exact autosubst% (ihr Δ ξ)
+      congr 3 <;> simp only [← Expr.rename.eq_1] <;> autosubst
+    · grind
+    · exact autosubst% (ihr Δ ξ)
     all_goals grind
   case cong_idRec' ihA iht ihtt ihC ihr ihu ihh _ _ Δ ξ =>
     have ΔA := ihA Δ ξ
     convert have ΔAI := ?ΔAI; EqTm.cong_idRec' ΔA (iht Δ ξ) _ (ihC ΔAI ?ξuu) ?ξr _ _ using 1
-    . autosubst
+    · autosubst
     case ΔAI =>
       have := Δ.snoc ΔA
       apply this.snoc
@@ -175,14 +185,14 @@ theorem rename_all :
         (autosubst% x)
     case ξuu =>
       convert ξ.upr.upr using 1
-      congr 3 <;> autosubst
+      congr 3 <;> simp only [← Expr.rename.eq_1] <;> autosubst
     case ξr =>
       exact autosubst% (ihr Δ ξ)
     all_goals grind
   case idRec_refl' ihA iht ihC ihr _ _ Δ ξ =>
     have ΔA := ihA Δ ξ
     convert have ΔAI := ?ΔAI; EqTm.idRec_refl' ΔA (iht Δ ξ) (ihC ΔAI ?ξuu) _ using 1
-    . autosubst
+    · autosubst
     case ΔAI =>
       have := Δ.snoc ΔA
       apply this.snoc
@@ -193,8 +203,8 @@ theorem rename_all :
         (autosubst% x)
     case ξuu =>
       convert ξ.upr.upr using 1
-      congr 3 <;> autosubst
-    . exact autosubst% (ihr Δ ξ)
+      congr 3 <;> simp only [← Expr.rename.eq_1] <;> autosubst
+    · exact autosubst% (ihr Δ ξ)
   -- Other cases are automatic.
   grind_cases
 
@@ -212,20 +222,20 @@ theorem Lookup.tp_uniq {Γ i A A' l} (lk : Lookup Γ i A l) (lk' : Lookup Γ i A
 theorem Lookup.of_lt_length {Γ i} : i < Γ.length → ∃ A l, Lookup Γ i A l := by
   intro lt
   induction Γ generalizing i
-  . cases lt
-  . cases i
-    . exact ⟨_, _, Lookup.zero ..⟩
-    . rename_i ih _
+  · cases lt
+  · cases i
+    · exact ⟨_, _, Lookup.zero ..⟩
+    · rename_i ih _
       have ⟨A, l, h⟩ := ih <| Nat.succ_lt_succ_iff.mp lt
       exact ⟨A.subst Expr.wk, l, Lookup.succ _ _ h⟩
 
 theorem WfCtx.lookup_wf {Γ i A l} : WfCtx Γ → Lookup Γ i A l → Γ ⊢[l] A := by
   intro Γwf lk
   induction lk
-  . rcases Γwf with _ | ⟨Γ, A⟩
+  · rcases Γwf with _ | ⟨Γ, A⟩
     rw [← Expr.ofRen_succ, ← Expr.rename_eq_subst_ofRen]
     exact rename_all.1 A (Γ.snoc A) (WfRen.wk _ _ _)
-  . rename_i ih
+  · rename_i ih
     rcases Γwf with _ | ⟨Γ, B⟩
     rw [← Expr.ofRen_succ, ← Expr.rename_eq_subst_ofRen]
     exact rename_all.1 (ih Γ) (Γ.snoc B) (WfRen.wk _ _ _)
@@ -298,8 +308,8 @@ theorem ofRen {Δ Γ ξ} : WfCtx Δ → WfCtx Γ → WfRen Δ ξ Γ → WfSb Δ 
   refine ⟨Δ, Γ, fun lk => ?_⟩
   simp only [← Expr.rename_eq_subst_ofRen]
   refine ⟨?A, ?A, EqTp.refl_tp ?A, ?i, ?i, EqTm.refl_tm ?i⟩
-  . exact Δ.lookup_wf (ξ.lookup lk)
-  . exact WfTm.bvar Δ (ξ.lookup lk)
+  · exact Δ.lookup_wf (ξ.lookup lk)
+  · exact WfTm.bvar Δ (ξ.lookup lk)
 
 theorem id {Γ} : WfCtx Γ → WfSb Γ Expr.bvar Γ :=
   fun h => ofRen h h (WfRen.id _)
@@ -372,29 +382,29 @@ theorem eqSb_up {Δ Γ A σ σ' l} : EqSb Δ σ σ' Γ →
   have ΔAσ := σσ'.1.snoc Aσ
   refine ⟨ΔAσ, σσ'.2.1.snoc A, fun lk => ?_⟩
   cases lk
-  . rw [Expr.up_eq_snoc σ, Expr.up_eq_snoc σ']
+  · rw [Expr.up_eq_snoc σ, Expr.up_eq_snoc σ']
     repeat any_goals apply And.intro
-    . exact autosubst% rename_all.1 Aσ ΔAσ (WfRen.wk ..)
-    . exact autosubst% rename_all.1 Aσ' ΔAσ (WfRen.wk ..)
-    . exact autosubst% rename_all.2.1 Aσeq ΔAσ (WfRen.wk ..)
-    . exact autosubst% WfTm.bvar ΔAσ (Lookup.zero ..)
-    . dsimp
+    · exact autosubst% rename_all.1 Aσ ΔAσ (WfRen.wk ..)
+    · exact autosubst% rename_all.1 Aσ' ΔAσ (WfRen.wk ..)
+    · exact autosubst% rename_all.2.1 Aσeq ΔAσ (WfRen.wk ..)
+    · exact autosubst% WfTm.bvar ΔAσ (Lookup.zero ..)
+    · dsimp
       convert WfTm.conv (WfTm.bvar ΔAσ (Lookup.zero ..)) ?_
       exact autosubst% rename_all.2.1 Aσeq ΔAσ (WfRen.wk ..)
-    . exact autosubst% EqTm.refl_tm (WfTm.bvar ΔAσ (Lookup.zero ..))
+    · exact autosubst% EqTm.refl_tm (WfTm.bvar ΔAσ (Lookup.zero ..))
   next lk =>
     have := σσ'.2.2 lk
     repeat any_goals apply And.intro
-    . exact autosubst% rename_all.1 this.1 ΔAσ (WfRen.wk ..)
-    . exact autosubst% rename_all.1 this.2.1 ΔAσ (WfRen.wk ..)
-    . exact autosubst% rename_all.2.1 this.2.2.1 ΔAσ (WfRen.wk ..)
-    . convert rename_all.2.2.1 this.2.2.2.1 ΔAσ (WfRen.wk ..) using 1 <;>
+    · exact autosubst% rename_all.1 this.1 ΔAσ (WfRen.wk ..)
+    · exact autosubst% rename_all.1 this.2.1 ΔAσ (WfRen.wk ..)
+    · exact autosubst% rename_all.2.1 this.2.2.1 ΔAσ (WfRen.wk ..)
+    · convert rename_all.2.2.1 this.2.2.2.1 ΔAσ (WfRen.wk ..) using 1 <;>
         autosubst; rfl
-    . convert autosubst% rename_all.2.2.1 this.2.2.2.2.1 ΔAσ (WfRen.wk ..) using 1 <;>
+    · convert autosubst% rename_all.2.2.1 this.2.2.2.2.1 ΔAσ (WfRen.wk ..) using 1 <;>
         autosubst; rfl
-    . rw [Expr.up_eq_snoc σ, Expr.up_eq_snoc σ']
+    · rw [Expr.up_eq_snoc σ, Expr.up_eq_snoc σ']
       convert rename_all.2.2.2 this.2.2.2.2.2 ΔAσ (WfRen.wk ..) using 1 <;>
-        (autosubst; try rw [Expr.comp])
+        (autosubst; try rw [Expr.comp, Function.comp])
 
 theorem wfSb_up {Δ Γ A σ l} : WfSb Δ σ Γ →
     Γ ⊢[l] A → Δ ⊢[l] A.subst σ →
@@ -426,7 +436,9 @@ theorem subst_all :
   mutual_induction WfCtx
   all_goals dsimp; try intros
   case snoc => exact True.intro
-  all_goals try simp only [Expr.subst_toSb_subst, Expr.subst_snoc_toSb_subst, Expr.subst] at *
+  all_goals try dsimp [Expr.subst_bvar', Expr.subst_pi, Expr.subst_sigma,
+    Expr.subst_lam, Expr.subst_app, Expr.subst_pair, Expr.subst_fst,
+    Expr.subst_snd, Expr.subst_univ, Expr.subst_el, Expr.subst_code] at *
   case bvar => grind [EqSb.lookup, WfSb.lookup]
   case pi' => grind [WfTp.pi', EqTp.cong_pi']
   case sigma' => grind [WfTp.sigma', EqTp.cong_sigma']
@@ -437,16 +449,19 @@ theorem subst_all :
   case lam' => grind [WfTm.lam', EqTm.cong_lam']
   case app' ihA _ _ _ =>
     constructor
-    . grind [WfTm.app']
-    . introv σ
+    · grind [WfTm.app']
+    · introv σ
       apply EqTm.cong_app' (ihA.1 σ.wf_left) <;> grind
   case pair' => grind [WfTm.pair', EqTm.cong_pair']
   case fst' => grind [WfTm.fst', EqTm.cong_fst']
-  case snd' => grind [WfTm.snd', EqTm.cong_snd']
+  case snd' =>
+    constructor
+    · intros; rw [ih_subst]; apply WfTm.snd' <;> simp only [← Expr.subst.eq_1] <;> grind
+    · intros; rw [ih_subst]; apply EqTm.cong_snd' <;> simp only [← Expr.subst.eq_1] <;> grind
   case refl' => grind [WfTm.refl', EqTm.cong_refl']
   case idRec' A t _ _ _ _ ihA iht ihC _ _ _ =>
     constructor
-    . introv σ
+    · introv σ
       have Γ := σ.wf_cod
       have Δ := σ.wf_dom
       have Aσ := ihA.1 σ
@@ -454,10 +469,10 @@ theorem subst_all :
       case C =>
         apply ihC.1
         convert wfSb_up (wfSb_up σ A Aσ) (Id_bvar Γ A t) _ using 1
-        . autosubst
-        . exact autosubst% Id_bvar Δ Aσ (iht.1 σ)
+        · autosubst
+        · exact autosubst% Id_bvar Δ Aσ (iht.1 σ)
       all_goals grind
-    . introv σσ'
+    · introv σσ'
       have σ := σσ'.wf_left
       have σ' := σσ'.wf_right
       have Γ := σ.wf_cod
@@ -468,11 +483,11 @@ theorem subst_all :
       case C =>
         apply ihC.2
         convert eqSb_up (eqSb_up σσ' A Aσ Aσ' (ihA.2 σσ')) (Id_bvar Γ A t) _ _ _ using 1
-        . autosubst
-        . exact autosubst% Id_bvar Δ Aσ (iht.1 σ)
-        . exact autosubst% WfTp.Id' (tp_wk Δ Aσ Aσ') (tm_wk Δ Aσ (iht.1 σ'))
+        · autosubst
+        · exact autosubst% Id_bvar Δ Aσ (iht.1 σ)
+        · exact autosubst% WfTp.Id' (tp_wk Δ Aσ Aσ') (tm_wk Δ Aσ (iht.1 σ'))
             (.conv (.bvar (Δ.snoc Aσ) (.zero ..)) (eqTp_wk Δ Aσ (ihA.2 σσ')))
-        . have := (eqSb_up σσ' A Aσ Aσ' (ihA.2 σσ')).lookup (.zero ..)
+        · have := (eqSb_up σσ' A Aσ Aσ' (ihA.2 σσ')).lookup (.zero ..)
           exact autosubst% EqTp.cong_Id
             (eqTp_wk Δ Aσ (ihA.2 σσ'))
             (eqTm_wk Δ Aσ (iht.2 σσ'))
@@ -492,11 +507,11 @@ theorem subst_all :
     case C =>
       apply ihC
       convert eqSb_up (eqSb_up σσ' A Aσ Aσ' (ihA.2 σσ')) (Id_bvar Γ A t) _ _ _ using 1
-      . autosubst
-      . exact autosubst% Id_bvar Δ Aσ (iht.1 σ)
-      . exact autosubst% WfTp.Id' (tp_wk Δ Aσ Aσ') (tm_wk Δ Aσ (iht.1 σ'))
+      · autosubst
+      · exact autosubst% Id_bvar Δ Aσ (iht.1 σ)
+      · exact autosubst% WfTp.Id' (tp_wk Δ Aσ Aσ') (tm_wk Δ Aσ (iht.1 σ'))
           (.conv (.bvar (Δ.snoc Aσ) (.zero ..)) (eqTp_wk Δ Aσ (ihA.2 σσ')))
-      . have := (eqSb_up σσ' A Aσ Aσ' (ihA.2 σσ')).lookup (.zero ..)
+      · have := (eqSb_up σσ' A Aσ Aσ' (ihA.2 σσ')).lookup (.zero ..)
         exact autosubst% EqTp.cong_Id
           (eqTp_wk Δ Aσ (ihA.2 σσ'))
           (eqTm_wk Δ Aσ (iht.2 σσ'))
@@ -504,15 +519,15 @@ theorem subst_all :
     all_goals grind
   case app_lam' =>
     apply (EqTm.app_lam' ..).trans_tm'
-    . autosubst; grind [eqSb_snoc, wfSb_snoc]
-    . autosubst
+    · autosubst; grind [eqSb_snoc, wfSb_snoc]
+    · autosubst
       rename_i iht _ _ _ _ _
       apply iht.2 <;> grind [eqSb_snoc]
     all_goals grind
   case fst_pair' => apply (EqTm.fst_pair' ..).trans_tm' <;> grind
   case snd_pair' =>
     apply (EqTm.snd_pair' ..).trans_tm'
-    . autosubst; grind [eqSb_snoc, wfSb_snoc]
+    · autosubst; grind [eqSb_snoc, wfSb_snoc]
     all_goals grind
   case idRec_refl' A t _ _ ihA iht ihC _ _ _ σσ' _ =>
     have σ := σσ'.wf_left
@@ -526,14 +541,14 @@ theorem subst_all :
     case C =>
       apply ihC.1
       convert wfSb_up (wfSb_up σ A Aσ) Id _ using 1
-      . autosubst
-      . exact autosubst% Id_bvar Δ Aσ (iht.1 σ)
+      · autosubst
+      · exact autosubst% Id_bvar Δ Aσ (iht.1 σ)
     case C' =>
       autosubst; apply ihC.1
       have := wfSb_snoc σ A Aσ (iht.1 σ)
       apply wfSb_snoc this Id
-      . exact autosubst% WfTp.Id' Aσ (iht.1 σ) (iht.1 σ)
-      . exact autosubst% WfTm.refl' Aσ (iht.1 σ)
+      · exact autosubst% WfTp.Id' Aσ (iht.1 σ) (iht.1 σ)
+      · exact autosubst% WfTm.refl' Aσ (iht.1 σ)
     all_goals grind
   case code_el iha _ _ _ eq =>
     have aσ' := iha.1 eq.wf_right
@@ -551,7 +566,8 @@ theorem subst_all :
   case pair_fst_snd' =>
     apply (EqTm.pair_fst_snd' ..).trans_tm' <;>
       grind [WfTp.sigma', EqTm.cong_pair', EqTm.cong_fst', EqTm.cong_snd']
-  case symm_tm' => grind [EqTm.conv_eq, EqSb.symm]
+  case symm_tm' => grind [EqTm.symm_tm', EqTm.conv_eq, EqSb.symm]
+  case cong_snd' => rw [ih_subst]; apply EqTm.cong_snd' <;> simp only [← Expr.subst.eq_1] <;> grind
   grind_cases
 
 end SubstProof

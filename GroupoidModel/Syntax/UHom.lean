@@ -194,8 +194,14 @@ theorem comp_el (s : UHomSeq Ctx) {Δ Γ : Ctx} {i : Nat} (ilen : i < s.length)
     σ ≫ s.el ilen a a_tp = s.el ilen (σ ≫ a) (by simp [a_tp]) := by
   sorry
 
--- code_el A = A
--- el_code A = A
+theorem el_code (s : UHomSeq Ctx) {Γ : Ctx} {i : Nat} (ilen : i < s.length) (A : y(Γ) ⟶ s[i].Ty) :
+    s.el ilen (s.code ilen A) (s.code_tp ilen A) = A := by
+  sorry
+
+theorem code_el (s : UHomSeq Ctx) {Γ : Ctx} {i : Nat} (ilen : i < s.length)
+    (a : y(Γ) ⟶ s[i+1].Tm) (a_tp : a ≫ s[i+1].tp = (s.homSucc i).wkU Γ) :
+    s.code ilen (s.el ilen a a_tp) = a := by
+  sorry
 
 end UHomSeq
 
@@ -387,6 +393,20 @@ theorem mkApp_mkLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[
     s.mkApp ilen jlen A B (s.mkLam ilen jlen A t) lam_tp a a_tp = ym(s[i].sec A a a_tp) ≫ t := by
   rw [mkApp, unLam_mkLam]
   assumption
+
+/--
+```
+Γ ⊢ᵢ A  Γ.A ⊢ⱼ B  Γ ⊢ₘₐₓ₍ᵢ,ⱼ₎ f : ΠA. B
+---------------------------------------
+Γ ⊢ₘₐₓ₍ᵢ,ⱼ₎ λA. f a ≡ f : ΠA. B
+``` -/
+@[simp]
+theorem mkLam_mkApp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
+    (f : y(Γ) ⟶ s[max i j].Tm) (f_tp : f ≫ s[max i j].tp = s.mkPi ilen jlen A B) :
+    s.mkLam ilen jlen A
+      (s.mkApp ilen jlen (s[i].wk _ A) (ym(s[i].substWk _ A) ≫ B) (s[i].wk _ f)
+        (by as_aux_lemma => simp [wk, f_tp, comp_mkPi]) (s[i].var _) (s[i].var_tp _)) = f := by
+  sorry
 
 /-! ## Sigma -/
 

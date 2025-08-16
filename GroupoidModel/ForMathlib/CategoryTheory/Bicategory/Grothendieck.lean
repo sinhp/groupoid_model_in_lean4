@@ -894,8 +894,8 @@ def preNatIso : pre F G ≅ map (whiskerRight α.hom F) ⋙ (pre F H) :=
     (fun {X Y} f => by
       fapply Hom.ext
       · simp
-      · simp only [comp_obj, Iso.app_hom, Iso.symm_hom, comp_map, Hom.comp_base,
-        transportIso_inv_base, Hom.comp_fiber, pre_map_fiber, transportIso_inv_fiber,
+      · simp only [comp_obj, Iso.app_hom, comp_map, Hom.comp_base,
+        Hom.comp_fiber, pre_map_fiber,
         eqToHom_trans_assoc, map_map_fiber, whiskerRight_app]
         erw [Category.comp_id, Functor.map_id,
           Functor.congr_hom (F.congr_map (transportIso_inv_base (mk (G.obj Y.base) Y.fiber)
@@ -922,7 +922,7 @@ theorem preNatIso_congr {G H : D ⥤ C} {α β : G ≅ H} (h : α = β) :
   ext
   fapply Hom.ext
   · simp
-  · simp only [eqToIso_refl, Iso.refl_hom, comp_obj, eqToIso.hom, preNatIso_hom_app_fiber,
+  · simp only [eqToIso_refl, comp_obj, eqToIso.hom, preNatIso_hom_app_fiber,
       Category.comp_id]
     rw! [eqToHom_app, fiber_eqToHom]
 
