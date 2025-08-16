@@ -4,6 +4,7 @@ import GroupoidModel.Syntax.Interpretation
 import GroupoidModel.Groupoids.NaturalModelBase
 import GroupoidModel.Groupoids.Sigma
 import GroupoidModel.Groupoids.Pi
+import GroupoidModel.Groupoids.Id
 
 /- There should be at least three separate files here for three separate developments:
   1. the basic development of the category Grpd of groupoids

@@ -1,4 +1,5 @@
 import GroupoidModel.Syntax.Inversion
+import GroupoidModel.Syntax.GCongr
 
 /-! ## Level synthesis and uniqueness -/
 
@@ -16,6 +17,7 @@ where
   | .pi _ _ A B | .sigma _ _ A B =>
     let l := go Γ A
     max l (go (l :: Γ) B)
+  | .Id _ A _ _ => go Γ A
   | .lam _ _ A b =>
     let l := go Γ A
     max l (go (l :: Γ) b)
@@ -23,10 +25,12 @@ where
     let l := go Γ a
     go (l :: Γ) B
   | .pair _ _ _ t u => max (go Γ t) (go Γ u)
-  | .fst _ _ A _ _ => go Γ A
+  | .fst _ _ A .. => go Γ A
   | .snd _ _ A B _ =>
     let l := go Γ A
     go (l :: Γ) B
+  | .refl _ t => go Γ t
+  | .idRec _ _ _ _ r .. => go Γ r
   | .univ l => l + 1
   | .el a => go Γ a - 1
   | .code A => go Γ A + 1
@@ -66,6 +70,8 @@ noncomputable def synthTp (Γ : Ctx) : Expr → Expr
   | .pair l l' B t _ => .sigma l l' (synthTp Γ t) B
   | .fst _ _ A _ _ => A
   | .snd l l' A B p => B.subst (Expr.fst l l' A B p).toSb
+  | .refl l t => .Id l (synthTp Γ t) t t
+  | .idRec _ _ _ M _ u h => M.subst (.snoc u.toSb h)
   | .code A => .univ (synthLvl Γ A)
   | _ => default
 
@@ -86,6 +92,13 @@ theorem WfTm.tp_eq_synthTp : ∀ {Γ l A t}, Γ ⊢[l] t : A → Γ ⊢[l] A ≡
   case pair' => grind [EqTp.cong_sigma]
   case fst' => grind
   case snd' => grind [WfTp.subst, WfSb.toSb, WfTm.fst]
+  case refl' =>
+    simp only [synthTp]
+    gcongr <;> grind
+  case idRec' C _ _ _ _ _ _ _ _ _ =>
+    unfold synthTp
+    apply EqTp.refl_tp <| C.subst <| WfSb.snoc (WfSb.toSb ..) ..
+    all_goals (try autosubst); grind [WfTp.Id_bvar, WfTp.wf_ctx]
   case code => grind [WfTp.lvl_eq_synthLvl, WfTp.univ, WfTp.wf_ctx]
   case conv => grind
 

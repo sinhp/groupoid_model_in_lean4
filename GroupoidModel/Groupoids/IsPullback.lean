@@ -265,7 +265,7 @@ theorem isPullback_disp'_coreDisp' :
 
 /--
   The following square is a pullback in `Grpd`
-  U.ext' A -- U.var' A ---> U'
+  U.ext' A -- U.var' A ---> E'
      |                      |
      |                      |
      |                      |
@@ -273,7 +273,7 @@ theorem isPullback_disp'_coreDisp' :
      |                      |
      |                      |
      V                      V
-Ctx.toGrpd.obj Γ ---------> E'
+Ctx.toGrpd.obj Γ ---------> U'
            Ctx.toGrpd.map A
 -/
 theorem isPullback_disp'_π' :

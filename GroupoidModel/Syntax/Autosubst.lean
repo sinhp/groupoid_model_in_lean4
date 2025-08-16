@@ -1,3 +1,4 @@
+import Mathlib.Tactic.Convert
 import GroupoidModel.Syntax.Basic
 
 /-! Implementation of simultaneous substitutions
@@ -28,6 +29,8 @@ theorem snoc_succ {X} (σ : Nat → X) (x : X) (n) : snoc σ x (n + 1) = σ n :=
 def upr (ξ : Nat → Nat) : Nat → Nat :=
   snoc (fun i => ξ i + 1) 0
 
+-- TODO: add uprN
+
 @[simp]
 theorem upr_id : upr id = id := by
   ext ⟨⟩ <;> dsimp [upr, snoc]
@@ -43,6 +46,10 @@ def subst' (σ : S) : Expr → Expr
   | .pair l l' B t u => .pair l l' (B.subst' (up σ)) (t.subst' σ) (u.subst' σ)
   | .fst l l' A B p => .fst l l' (A.subst' σ) (B.subst' (up σ)) (p.subst' σ)
   | .snd l l' A B p => .snd l l' (A.subst' σ) (B.subst' (up σ)) (p.subst' σ)
+  | .Id l A t u => .Id l (A.subst' σ) (t.subst' σ) (u.subst' σ)
+  | .refl l t => .refl l (t.subst' σ)
+  | .idRec l l' t C r u h =>
+    .idRec l l' (t.subst' σ) (C.subst' (up <| up σ)) (r.subst' σ) (u.subst' σ) (h.subst' σ)
   | .univ l => .univ l
   | .el a => .el (a.subst' σ)
   | .code A => .code (A.subst' σ)
@@ -63,6 +70,8 @@ Warning: don't unfold this definition! Use `up_eq_snoc` instead. -/
 @[irreducible]
 def up (σ : Nat → Expr) : Nat → Expr :=
   snoc (fun i => (σ i).rename Nat.succ) (.bvar 0)
+
+-- TODO: upN
 
 @[simp]
 theorem up_bvar : up Expr.bvar = Expr.bvar := by
@@ -119,7 +128,7 @@ theorem comp_bvar (σ) : comp σ Expr.bvar = σ := by
   ext i; simp [comp, subst, subst']
 
 theorem up_comp_ren_sb (ξ : Nat → Nat) (σ : Nat → Expr) :
-    up (fun i => σ (ξ i)) = fun i => up σ (upr ξ i) := by
+    up (σ ∘ ξ) = up σ ∘ upr ξ := by
   ext ⟨⟩ <;> (unfold up; dsimp [snoc, upr])
 
 theorem subst'_subst' {S₁ S₂ S₃ bvar₁ up₁ bvar₂ up₂ bvar₃ up₃}
@@ -149,11 +158,11 @@ theorem rename_subst' {S v' up'}
     specialize hup ξ σ
     simp [*]
 
-theorem rename_subst (σ ξ) (t : Expr) : (t.rename ξ).subst σ = t.subst (fun i => σ (ξ i)) := by
+theorem rename_subst (σ ξ) (t : Expr) : (t.rename ξ).subst σ = t.subst (σ ∘ ξ) := by
   apply rename_subst' (v' := id); apply up_comp_ren_sb
 
 theorem up_comp_sb_ren (σ : Nat → Expr) (ξ : Nat → Nat) :
-    up (fun i => (σ i).rename ξ) = fun i => (up σ i).rename (upr ξ) := by
+    up (rename ξ ∘ σ) = rename (upr ξ) ∘ up σ := by
   ext ⟨⟩ <;> (unfold up; dsimp [snoc, rename, subst', upr])
   simp [← rename.eq_1]
   conv => lhs; rw [rename_eq_subst_ofRen, rename_subst]
@@ -202,14 +211,27 @@ theorem subst_subst'₂ (ξ : S) (σ) (t : Expr) :
 
 omit up0 upS
 theorem subst_rename (ξ σ) (t : Expr) :
-    (t.subst σ).rename ξ = t.subst (fun i => (σ i).rename ξ) :=
+    (t.subst σ).rename ξ = t.subst (rename ξ ∘ σ) :=
   subst_subst'₂ rfl rfl ..
 
 theorem up_comp (σ τ : Nat → Expr) :
     up (comp σ τ) = comp (up σ) (up τ) := by
   ext i; unfold up comp snoc; cases i
-  . rfl
-  . grind [rename_subst, subst_rename]
+  · rfl
+  · grind [rename_subst, subst_rename]
+
+include up0 upS in
+theorem subst'_subst (ξ : S) (σ) (t : Expr) :
+    (t.subst' v' up' ξ).subst σ = t.subst (fun i => (v' ξ i).subst σ) := by
+  apply subst'_subst'
+  · intros _ _ _ H i
+    cases funext H
+    dsimp
+    refine (congrFun (up_comp ..) _).trans ?_
+    simp [comp, subst]; congr
+    cases i <;> simp [up, up0, upS]
+  · intro; rfl
+end
 
 include up0 upS in
 theorem subst'_subst (ξ : S) (σ) (t : Expr) :
@@ -264,6 +286,9 @@ theorem snoc_wk_zero : snoc wk (Expr.bvar 0) = Expr.bvar := by
 @[simp]
 theorem wk_app (i) : wk i = Expr.bvar i.succ := rfl
 
+theorem snoc_comp_wk_succ (σ n) : snoc (comp wk σ) (bvar (n + 1)) = comp wk (snoc σ (bvar n)) := by
+  ext i; cases i <;> dsimp [comp, snoc, wk, -ofRen_succ, subst, ofRen]
+
 /-- A substitution that instantiates one binder.
 ```
 Γ ⊢ t : A
@@ -277,6 +302,12 @@ def toSb (t : Expr) : Nat → Expr :=
 
 theorem snoc_comp_wk_zero_subst (σ) : snoc (comp σ Expr.wk) ((Expr.bvar 0).subst σ) = σ := by
   ext ⟨⟩ <;> dsimp [snoc, comp, subst, subst', wk, ofRen, -ofRen_succ]
+
+theorem ofRen_comp (ξ₁ ξ₂ : Nat → Nat) : ofRen (ξ₁ ∘ ξ₂) = comp (ofRen ξ₁) (ofRen ξ₂) := rfl
+
+theorem wk_app (n) : wk n = .bvar (n + 1) := by
+  rw [wk, ofRen]
+
 
 -- Rules from Fig. 1 in the paper.
 @[autosubst low] theorem subst_bvar' {σ i} :
@@ -305,9 +336,7 @@ attribute [autosubst low]
   subst'
 attribute [autosubst]
   subst_snoc_zero
-  snoc_zero -- Not in the paper, but seems needed.
   snoc_comp_wk
-  snoc_succ -- Same.
   subst_bvar
   snoc_comp_wk_zero_subst
   comp_bvar
@@ -316,6 +345,14 @@ attribute [autosubst]
   comp_snoc
   subst_subst
   snoc_wk_zero
+
+-- Rules that are not in the paper,
+-- but allow us to prove more stuff.
+attribute [autosubst]
+  snoc_zero
+  snoc_succ
+  snoc_comp_wk_succ
+  wk_app
 
 -- Rules to unfold abbreviations.
 attribute [autosubst high]
@@ -326,6 +363,7 @@ attribute [autosubst high]
 attribute [autosubst]
   rename_eq_subst_ofRen
   ofRen_id
+  ofRen_comp
   ofRen_succ
   ofRen_upr
 
@@ -335,5 +373,19 @@ attribute [autosubst]
 
 /-- Decides equality of substitutions applied to expressions. -/
 macro "autosubst" : tactic => `(tactic| simp only [autosubst])
+
+/-- Use a term modulo `autosubst` conversion. -/
+macro "autosubst% " t:term : term => `(by convert ($t) using 1 <;> autosubst)
+
+/-! Lemmas that come up in a few proofs -/
+
+theorem subst_toSb_subst (B a : Expr) σ :
+    (B.subst a.toSb).subst σ = (B.subst (Expr.up σ)).subst (a.subst σ).toSb := by
+  autosubst
+
+theorem subst_snoc_toSb_subst (B a b : Expr) σ :
+    (B.subst <| Expr.snoc a.toSb b).subst σ =
+      (B.subst <| Expr.up <| Expr.up σ).subst (Expr.snoc (a.subst σ).toSb (b.subst σ)) := by
+  autosubst
 
 end Expr

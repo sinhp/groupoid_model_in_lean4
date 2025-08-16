@@ -370,8 +370,8 @@ def etaExpand {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     y(Γ) ⟶ s[max i j].Tm :=
   s.mkLam ilen jlen A <|
     s.mkApp ilen jlen
-      (s[i].wk A A) (ym(s[i].substWk ..) ≫ B) (s[i].wk A f)
-        (by simp_rw [wk_tp, f_tp, wk, comp_mkPi])
+      (ym(s[i].disp A) ≫ A) (ym(s[i].substWk ..) ≫ B) (ym(s[i].disp A) ≫ f)
+        (by simp [f_tp, comp_mkPi])
       (s[i].var A) (s[i].var_tp A)
 
 theorem etaExpand_eq {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
@@ -532,6 +532,19 @@ theorem mkPair_mkFst_mkSnd {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A)
     s.mkPair ilen jlen A B
       (s.mkFst ilen jlen A B p p_tp) (by simp)
       (s.mkSnd ilen jlen A B p p_tp) (by simp) = p := by
+  sorry
+
+/-! ## Identity types -/
+
+/--
+```
+Γ ⊢ᵢ A  Γ ⊢ᵢ a0, a1 : A
+-----------------------
+Γ ⊢ᵢ Id(A, a0, a1)
+``` -/
+def mkId {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (a0 a1 : y(Γ) ⟶ s[i].Tm)
+    (a0_tp : a0 ≫ s[i].tp = A) (a1_tp : a1 ≫ s[i].tp = A) :
+    y(Γ) ⟶ s[i].Ty :=
   sorry
 
 end UHomSeqPiSigma
