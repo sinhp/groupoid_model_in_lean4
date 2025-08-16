@@ -340,33 +340,18 @@ def lam : s[i].Ptp.obj s[j].Tm ⟶ s[max i j].Tm :=
 
 def Pi_pb :
     IsPullback (s.lam ilen jlen) (s[i].Ptp.map s[j].tp) s[max i j].tp (s.Pi ilen jlen) := by
-    have i2m : Hom s[i] s[max i j] := s.homOfLe i (max i j)
-    have t:= s[j].tp
-    let p := (s.homCartesianNaturalTrans i (max i j))
-    have p1 : NatTrans.IsCartesian ((s.homCartesianNaturalTrans i (max i j))) := by
+    have p1 : NatTrans.IsCartesian (s.homCartesianNaturalTrans i (max i j)) := by
      simp[NaturalModelBase.UHomSeq.homCartesianNaturalTrans]
      apply CategoryTheory.UvPoly.isCartesian_cartesianNatTrans
-    let pbL : IsPullback
-              ((s.homCartesianNaturalTrans i (max i j) _ _).app s[j].Tm)
-              (s[i].Ptp.map s[j].tp)
-              (s[max i j].Ptp.map s[j].tp)
-              ((s.homCartesianNaturalTrans i (max i j) _ _).app s[j].Ty) := (p1 s[j].tp).flip
-    let pbR := (s.nmPi (max i j)).Pi_pullback
-    let pbB0: IsPullback
-              (s.homOfLe j (max i j)).mapTm
-              (s[j].tp)
-              (s[max i j].tp)
-              ((s.homOfLe j (max i j)).mapTy) := (s.homOfLe j (max i j)).pb
     let pbB : IsPullback
               (s[max i j].Ptp.map (s.homOfLe j (max i j)).mapTm)
               (s[max i j].Ptp.map s[j].tp)
               (s[max i j].Ptp.map s[max i j].tp)
               (s[max i j].Ptp.map (s.homOfLe j (max i j)).mapTy) :=
-              CategoryTheory.UvPoly.preservesPullbacks s[max i j].uvPolyTp _ _ _ _ pbB0
-
-    have q := CategoryTheory.IsPullback.paste_horiz pbB pbR
-    simp[lam,Pi,UHomSeq.homCartesianNaturalTransTm,UHomSeq.homCartesianNaturalTransTy]
-    apply CategoryTheory.IsPullback.paste_horiz pbL q
+              CategoryTheory.UvPoly.preservesPullbacks s[max i j].uvPolyTp _ _ _ _
+              (s.homOfLe j (max i j)).pb
+    have q := CategoryTheory.IsPullback.paste_horiz pbB (s.nmPi (max i j)).Pi_pullback
+    apply CategoryTheory.IsPullback.paste_horiz (p1 s[j].tp).flip q
 
 /--
 ```
@@ -380,6 +365,9 @@ def mkPi {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty) : y(
 theorem comp_mkPi {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty) :
     ym(σ) ≫ s.mkPi ilen jlen A B = s.mkPi ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ B) := by
+  simp[mkPi,← Category.assoc]
+  congr
+
   sorry
 
 /--
