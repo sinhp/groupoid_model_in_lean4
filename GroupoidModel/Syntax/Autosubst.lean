@@ -261,6 +261,9 @@ theorem snoc_comp_wk (σ : Nat → Expr) (t) : comp (snoc σ t) wk = σ := by
 theorem snoc_wk_zero : snoc wk (Expr.bvar 0) = Expr.bvar := by
   ext ⟨⟩ <;> dsimp [snoc, wk, ofRen, -ofRen_succ]
 
+@[simp]
+theorem wk_app (i) : wk i = Expr.bvar i.succ := rfl
+
 /-- A substitution that instantiates one binder.
 ```
 Γ ⊢ t : A
