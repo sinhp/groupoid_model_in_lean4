@@ -98,16 +98,14 @@ lemma fst_naturality_right (pair : Γ ⟶ P @ X) :
     fst P Y (pair ≫ P.functor.map f) = fst P X pair :=
   sorry
 
-lemma snd_naturality_right_heq (pair : Γ ⟶ P @ X) :
-    snd P Y (pair ≫ P.functor.map f) ≍ snd P X pair :=
+lemma snd_naturality_right (pair : Γ ⟶ P @ X) :
+    snd P Y (pair ≫ P.functor.map f) =
+    eqToHom (by rw [fst_naturality_right]) ≫ snd P X pair ≫ f :=
   sorry
-
 
 lemma mk_naturality_right (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
     mk P X b x ≫ P.functor.map f = mk P Y b (x ≫ f) :=
   sorry
-
-end Equiv
 
 open TwoSquare
 
@@ -115,9 +113,16 @@ section
 
 variable {F : C} (P : UvPoly E B) (Q : UvPoly F B) (ρ : E ⟶ F) (h : P.p = ρ ≫ Q.p)
 
--- lemma fst_verticalNatTrans_app {Γ : C} (X : C) (pair : Γ ⟶ Q @ X) :
---     Equiv.fst P X (pair ≫ (verticalNatTrans P Q ρ h).app X) = Equiv.fst Q X pair :=
---     sorry
+lemma fst_verticalNatTrans_app {Γ : C} (X : C) (pair : Γ ⟶ Q @ X) :
+    Equiv.fst P X (pair ≫ (verticalNatTrans P Q ρ h).app X) = Equiv.fst Q X pair :=
+    sorry
+
+lemma snd_verticalNatTrans_app {Γ : C} (X : C) (pair : Γ ⟶ Q @ X) :
+    Equiv.snd P X (pair ≫ (verticalNatTrans P Q ρ h).app X) =
+    (pullback.lift (pullback.fst _ _) (pullback.snd _ _ ≫ ρ)
+      (by rw [fst_verticalNatTrans_app, pullback.condition, h, Category.assoc])) ≫
+    Equiv.snd Q X pair :=
+    sorry
 
 lemma mk_comp_verticalNatTrans_app {Γ : C} (X : C) (b : Γ ⟶ B) (x : pullback b Q.p ⟶ X) :
     Equiv.mk Q X b x ≫ (verticalNatTrans P Q ρ h).app X = Equiv.mk P X b
@@ -126,5 +131,8 @@ lemma mk_comp_verticalNatTrans_app {Γ : C} (X : C) (b : Γ ⟶ B) (x : pullback
   sorry
 
 end
+
+end Equiv
+
 
 end CategoryTheory.UvPoly
