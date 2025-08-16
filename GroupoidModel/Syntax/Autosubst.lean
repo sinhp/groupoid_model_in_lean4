@@ -69,7 +69,7 @@ def rename (ξ : Nat → Nat) : Expr → Expr := subst' (.bvar ∘ ·) upr ξ
 Warning: don't unfold this definition! Use `up_eq_snoc` instead. -/
 @[irreducible]
 def up (σ : Nat → Expr) : Nat → Expr :=
-  snoc (fun i => (σ i).rename Nat.succ) (.bvar 0)
+  snoc (rename Nat.succ ∘ σ) (.bvar 0)
 
 -- TODO: upN
 
@@ -117,7 +117,7 @@ theorem rename_eq_subst_ofRen (ξ : Nat → Nat) : rename ξ = subst (ofRen ξ) 
 Θ ⊢ σ≫τ : Γ
 ``` -/
 def comp (σ τ : Nat → Expr) : Nat → Expr :=
-  fun i => (τ i).subst σ
+  subst σ ∘ τ
 
 @[simp]
 theorem bvar_comp (σ) : comp Expr.bvar σ = σ := by
@@ -132,31 +132,28 @@ theorem up_comp_ren_sb (ξ : Nat → Nat) (σ : Nat → Expr) :
   ext ⟨⟩ <;> (unfold up; dsimp [snoc, upr])
 
 theorem subst'_subst' {S₁ S₂ S₃ bvar₁ up₁ bvar₂ up₂ bvar₃ up₃}
-    (hup : ∀ ξ σ τ, (∀ i, bvar₃ τ i = (bvar₁ σ i).subst' bvar₂ up₂ ξ) →
-      ∀ i, bvar₃ (up₃ τ) i = (bvar₁ (up₁ σ) i).subst' bvar₂ up₂ (up₂ ξ))
+    (hup : ∀ ξ σ τ, bvar₃ τ = subst' bvar₂ up₂ ξ ∘ bvar₁ σ →
+      bvar₃ (up₃ τ) = subst' bvar₂ up₂ (up₂ ξ) ∘ bvar₁ (up₁ σ))
     (ξ : S₂) (σ : S₁) (τ : S₃) (t : Expr)
-    (H1 : ∀ i, bvar₃ τ i = (bvar₁ σ i).subst' bvar₂ up₂ ξ) :
+    (H1 : bvar₃ τ = subst' bvar₂ up₂ ξ ∘ bvar₁ σ) :
     (t.subst' bvar₁ up₁ σ).subst' bvar₂ up₂ ξ = t.subst' bvar₃ up₃ τ := by
+  simp [funext_iff] at *
   induction t generalizing ξ σ τ <;> dsimp [subst'] <;> grind
 
 theorem subst_subst' {S' bvar' up'}
-    (hup : ∀ ξ σ, up (fun i => (σ i).subst' bvar' up' ξ) =
-      fun i => (up σ i).subst' bvar' up' (up' ξ))
+    (hup : ∀ ξ σ, up (subst' bvar' up' ξ ∘ σ) = subst' bvar' up' (up' ξ) ∘ up σ)
     (ξ : S') (σ) (t : Expr) :
     (t.subst σ).subst' bvar' up' ξ = t.subst fun i => (σ i).subst' bvar' up' ξ := by
-  refine subst'_subst' (fun _ _ _ H => ?_) _ _ _ _ (funext_iff.1 rfl)
-  cases funext_iff.2 H
-  exact funext_iff.1 (hup ..)
+  refine subst'_subst' (fun _ _ _ H => ?_) _ _ _ _ rfl
+  cases H
+  exact hup ..
 
 theorem rename_subst' {S v' up'}
-    (hup : ∀ ξ σ, up' (fun i => σ (ξ i)) = fun i => up' σ (upr ξ i))
+    (hup : ∀ ξ σ, up' (σ ∘ ξ) = up' σ ∘ upr ξ)
     (σ : Nat → S) (ξ) (t : Expr) :
-    (t.rename ξ).subst' (v' ∘ ·) up' σ = t.subst' (v' ∘ ·) up' (fun i => σ (ξ i)) := by
+    (t.rename ξ).subst' (v' ∘ ·) up' σ = t.subst' (v' ∘ ·) up' (σ ∘ ξ) := by
   dsimp [rename, subst]
-  induction t generalizing σ ξ <;> dsimp [subst']
-  all_goals
-    specialize hup ξ σ
-    simp [*]
+  induction t generalizing σ ξ <;> dsimp [subst'] <;> simp [*]
 
 theorem rename_subst (σ ξ) (t : Expr) : (t.rename ξ).subst σ = t.subst (σ ∘ ξ) := by
   apply rename_subst' (v' := id); apply up_comp_ren_sb
@@ -178,36 +175,34 @@ include up0 upS
 
 theorem up_comp_sb'_ren
     (σ) (ξ : S) :
-    up (fun i ↦ v' ξ (σ i)) = fun i => v' (up' ξ) (upr σ i) := by
+    up (v' ξ ∘ σ) = v' (up' ξ) ∘ upr σ := by
   ext ⟨⟩ <;> simp [up, snoc, rename, upr, *]
 
 theorem subst'_rename (ξ : S) (σ) (t : Expr) :
-    (t.rename σ).subst' v' up' ξ = t.subst fun i => v' ξ (σ i) := by
+    (t.rename σ).subst' v' up' ξ = t.subst (v' ξ ∘ σ) := by
   dsimp [rename, subst]
   have := up_comp_sb'_ren up0 upS
   induction t generalizing ξ σ <;> dsimp [subst'] <;> simp [*]
 
 theorem up_comp_sb' (ξ : S) (σ : Nat → Expr) :
-    up (fun i => (σ i).subst' v' up' ξ) = fun i => (up σ i).subst' v' up' (up' ξ) := by
+    up (subst' v' up' ξ ∘ σ) = subst' v' up' (up' ξ) ∘ up σ := by
   ext ⟨⟩ <;> (unfold up; dsimp [snoc, rename, subst', upr])
   · symm; apply up0
   · simp [← rename.eq_1]
     rw [subst'_rename up0 upS]
     apply subst'_subst'
-    · intro ξ σ _ H i
-      cases funext H
-      refine (funext_iff.1 (up_comp_sb_ren _ _) _).trans ?_
-      congr; cases i <;> simp [up, *]
-    · simp [upS, rename]
+    · rintro ξ σ _ rfl
+      refine (up_comp_sb_ren _ _).trans ?_
+      ext i; simp; congr; cases i <;> simp [up, *]
+    · ext i; simp [upS, rename]
 
 theorem subst_subst'₂ (ξ : S) (σ) (t : Expr) :
-    (t.subst σ).subst' v' up' ξ = t.subst (fun i => (σ i).subst' v' up' ξ) := by
+    (t.subst σ).subst' v' up' ξ = t.subst (subst' v' up' ξ ∘ σ) := by
   apply subst'_subst'
-  · intros _ _ _ H i
-    cases funext H
+  · rintro _ _ _ rfl
     dsimp
     rw [up_comp_sb' up0 upS]
-  · intro; rfl
+  · rfl
 
 omit up0 upS
 theorem subst_rename (ξ σ) (t : Expr) :
@@ -216,34 +211,19 @@ theorem subst_rename (ξ σ) (t : Expr) :
 
 theorem up_comp (σ τ : Nat → Expr) :
     up (comp σ τ) = comp (up σ) (up τ) := by
-  ext i; unfold up comp snoc; cases i
+  ext i; cases i <;> simp [up, comp, snoc]
+  simp [subst_rename, rename_subst]; congr
+
+include up0 upS in
+theorem subst'_subst (ξ : S) (σ) (t : Expr) :
+    (t.subst' v' up' ξ).subst σ = t.subst (subst σ ∘ v' ξ) := by
+  apply subst'_subst'
+  · rintro _ _ _ rfl
+    dsimp
+    refine (up_comp ..).trans ?_
+    simp [comp, subst]; congr!
+    ext ⟨⟩ <;> simp [up, up0, upS]
   · rfl
-  · grind [rename_subst, subst_rename]
-
-include up0 upS in
-theorem subst'_subst (ξ : S) (σ) (t : Expr) :
-    (t.subst' v' up' ξ).subst σ = t.subst (fun i => (v' ξ i).subst σ) := by
-  apply subst'_subst'
-  · intros _ _ _ H i
-    cases funext H
-    dsimp
-    refine (congrFun (up_comp ..) _).trans ?_
-    simp [comp, subst]; congr
-    cases i <;> simp [up, up0, upS]
-  · intro; rfl
-end
-
-include up0 upS in
-theorem subst'_subst (ξ : S) (σ) (t : Expr) :
-    (t.subst' v' up' ξ).subst σ = t.subst (fun i => (v' ξ i).subst σ) := by
-  apply subst'_subst'
-  · intros _ _ _ H i
-    cases funext H
-    dsimp
-    refine (congrFun (up_comp ..) _).trans ?_
-    simp [comp, subst]; congr
-    cases i <;> simp [up, up0, upS]
-  · intro; rfl
 end
 
 theorem subst_subst (σ τ : Nat → Expr) (t : Expr) :
@@ -253,7 +233,7 @@ theorem subst_subst (σ τ : Nat → Expr) (t : Expr) :
 theorem comp_assoc (σ τ ρ) : comp σ (comp τ ρ) = comp (comp σ τ) ρ := by
   ext i
   conv => rhs; enter [0]; unfold comp
-  rw [← subst_subst]; dsimp [comp]
+  dsimp; rw [← subst_subst]; dsimp [comp]
 
 theorem comp_snoc (σ τ : Nat → Expr) (t : Expr) :
     comp σ (snoc τ t) = snoc (comp σ τ) (t.subst σ) := by
@@ -283,11 +263,8 @@ theorem snoc_comp_wk (σ : Nat → Expr) (t) : comp (snoc σ t) wk = σ := by
 theorem snoc_wk_zero : snoc wk (Expr.bvar 0) = Expr.bvar := by
   ext ⟨⟩ <;> dsimp [snoc, wk, ofRen, -ofRen_succ]
 
-@[simp]
-theorem wk_app (i) : wk i = Expr.bvar i.succ := rfl
-
 theorem snoc_comp_wk_succ (σ n) : snoc (comp wk σ) (bvar (n + 1)) = comp wk (snoc σ (bvar n)) := by
-  ext i; cases i <;> dsimp [comp, snoc, wk, -ofRen_succ, subst, ofRen]
+  ext ⟨⟩ <;> dsimp [comp, snoc, wk, -ofRen_succ, subst, ofRen, subst']
 
 /-- A substitution that instantiates one binder.
 ```
@@ -305,6 +282,7 @@ theorem snoc_comp_wk_zero_subst (σ) : snoc (comp σ Expr.wk) ((Expr.bvar 0).sub
 
 theorem ofRen_comp (ξ₁ ξ₂ : Nat → Nat) : ofRen (ξ₁ ∘ ξ₂) = comp (ofRen ξ₁) (ofRen ξ₂) := rfl
 
+@[simp]
 theorem wk_app (n) : wk n = .bvar (n + 1) := by
   rw [wk, ofRen]
 
@@ -326,6 +304,13 @@ theorem wk_app (n) : wk n = .bvar (n + 1) := by
   subst σ (.fst l l' A B p) = .fst l l' (A.subst σ) (B.subst (up σ)) (p.subst σ) := rfl
 @[autosubst low] theorem subst_snd {σ l l' A B p} :
   subst σ (.snd l l' A B p) = .snd l l' (A.subst σ) (B.subst (up σ)) (p.subst σ) := rfl
+@[autosubst low] theorem subst_Id {σ l A t u} :
+  subst σ (.Id l A t u) = .Id l (A.subst σ) (t.subst σ) (u.subst σ) := rfl
+@[autosubst low] theorem subst_refl {σ l t} :
+  subst σ (.refl l t) = .refl l (t.subst σ) := rfl
+@[autosubst low] theorem subst_idRec {σ l l' t C r u h} :
+  subst σ (.idRec l l' t C r u h) =
+  .idRec l l' (t.subst σ) (C.subst (up <| up σ)) (r.subst σ) (u.subst σ) (h.subst σ) := rfl
 @[autosubst low] theorem subst_univ {σ l} :
   subst σ (.univ l) = .univ l := rfl
 @[autosubst low] theorem subst_el {σ a} :

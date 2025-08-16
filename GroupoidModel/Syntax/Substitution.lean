@@ -136,7 +136,7 @@ theorem rename_all :
   all_goals dsimp only; try intros
   case snoc => exact True.intro
   any_goals
-    simp only [Expr.rename, Expr.subst', ih_subst] at *
+    simp only [Expr.rename, Expr.subst'] at *
     simp only [← Expr.rename.eq_1] at *
   case bvar ξ => apply WfTm.bvar _ (ξ.lookup _) <;> assumption
   -- Cases that didn't go through automatically.
@@ -167,7 +167,7 @@ theorem rename_all :
         (autosubst% x)
     case ξuu =>
       convert ξ.upr.upr using 1
-      congr 3 <;> autosubst
+      congr 3 <;> simp only [← Expr.rename.eq_1] <;> autosubst
     · grind
     · exact autosubst% (ihr Δ ξ)
     all_goals grind
@@ -185,7 +185,7 @@ theorem rename_all :
         (autosubst% x)
     case ξuu =>
       convert ξ.upr.upr using 1
-      congr 3 <;> autosubst
+      congr 3 <;> simp only [← Expr.rename.eq_1] <;> autosubst
     case ξr =>
       exact autosubst% (ihr Δ ξ)
     all_goals grind
@@ -203,7 +203,7 @@ theorem rename_all :
         (autosubst% x)
     case ξuu =>
       convert ξ.upr.upr using 1
-      congr 3 <;> autosubst
+      congr 3 <;> simp only [← Expr.rename.eq_1] <;> autosubst
     · exact autosubst% (ihr Δ ξ)
   -- Other cases are automatic.
   grind_cases
@@ -404,7 +404,7 @@ theorem eqSb_up {Δ Γ A σ σ' l} : EqSb Δ σ σ' Γ →
         autosubst; rfl
     · rw [Expr.up_eq_snoc σ, Expr.up_eq_snoc σ']
       convert rename_all.2.2.2 this.2.2.2.2.2 ΔAσ (WfRen.wk ..) using 1 <;>
-        (autosubst; try rw [Expr.comp])
+        (autosubst; try rw [Expr.comp, Function.comp])
 
 theorem wfSb_up {Δ Γ A σ l} : WfSb Δ σ Γ →
     Γ ⊢[l] A → Δ ⊢[l] A.subst σ →
