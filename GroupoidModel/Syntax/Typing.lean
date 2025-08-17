@@ -79,7 +79,7 @@ inductive WfTp : Ctx → Nat → Expr → Prop
     Γ ⊢[l] A →
     Γ ⊢[l] t : A →
     Γ ⊢[l] u : A →
-    Γ ⊢[l] .Id l A t u
+    Γ ⊢[l] .Id A t u
 
   | univ {Γ l} :
     WfCtx Γ →
@@ -111,7 +111,7 @@ inductive EqTp : Ctx → Nat → Expr → Expr → Prop
     Γ ⊢[l] A ≡ A' →
     Γ ⊢[l] t ≡ t' : A →
     Γ ⊢[l] u ≡ u' : A →
-    Γ ⊢[l] .Id l A t u ≡ .Id l A' t' u'
+    Γ ⊢[l] .Id A t u ≡ .Id A' t' u'
 
   | cong_el {Γ A A' l} :
     Γ ⊢[l+1] A ≡ A' : .univ l →
@@ -157,7 +157,7 @@ inductive WfTm : Ctx → Nat → Expr → Expr → Prop
     (A,l) :: Γ ⊢[l'] B →
     Γ ⊢[max l l'] f : .pi l l' A B →
     Γ ⊢[l] a : A →
-    Γ ⊢[l'] .app l l' B f a : B.subst a.toSb
+    Γ ⊢[l'] .app l B f a : B.subst a.toSb
 
   | pair' {Γ A B t u l l'} :
     Γ ⊢[l] A →
@@ -181,16 +181,16 @@ inductive WfTm : Ctx → Nat → Expr → Expr → Prop
   | refl' {Γ A t l} :
     Γ ⊢[l] A →
     Γ ⊢[l] t : A →
-    Γ ⊢[l] .refl l t : .Id l A t t
+    Γ ⊢[l] .refl t : .Id A t t
 
   | idRec' {Γ A M t r u h l l'} :
     Γ ⊢[l] A →
     Γ ⊢[l] t : A →
-    (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M →
-    Γ ⊢[l'] r : M.subst (.snoc t.toSb <| .refl l t) →
+    (.Id (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M →
+    Γ ⊢[l'] r : M.subst (.snoc t.toSb <| .refl t) →
     Γ ⊢[l] u : A →
-    Γ ⊢[l] h : .Id l A t u →
-    Γ ⊢[l'] .idRec l l' t M r u h : M.subst (.snoc u.toSb h)
+    Γ ⊢[l] h : .Id A t u →
+    Γ ⊢[l'] .idRec l t M r u h : M.subst (.snoc u.toSb h)
 
   | code {Γ A l} :
     l < univMax →
@@ -221,7 +221,7 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     (A,l) :: Γ ⊢[l'] B ≡ B' →
     Γ ⊢[max l l'] f ≡ f' : .pi l l' A B →
     Γ ⊢[l] a ≡ a' : A →
-    Γ ⊢[l'] .app l l' B f a ≡ .app l l' B' f' a' : B.subst a.toSb
+    Γ ⊢[l'] .app l B f a ≡ .app l B' f' a' : B.subst a.toSb
 
   | cong_pair' {Γ A B B' t t' u u' l l'} :
     Γ ⊢[l] A →
@@ -247,17 +247,17 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
   | cong_refl' {Γ A t t' l} :
     Γ ⊢[l] A →
     Γ ⊢[l] t ≡ t' : A →
-    Γ ⊢[l] .refl l t ≡ .refl l t' : .Id l A t t
+    Γ ⊢[l] .refl t ≡ .refl t' : .Id A t t
 
   | cong_idRec' {Γ A M M' t t' r r' u u' h h' l l'} :
     Γ ⊢[l] A →
     Γ ⊢[l] t : A →
     Γ ⊢[l] t ≡ t' : A →
-    (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M ≡ M' →
-    Γ ⊢[l'] r ≡ r' : M.subst (.snoc t.toSb <| .refl l t) →
+    (.Id (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M ≡ M' →
+    Γ ⊢[l'] r ≡ r' : M.subst (.snoc t.toSb <| .refl t) →
     Γ ⊢[l] u ≡ u' : A →
-    Γ ⊢[l] h ≡ h' : .Id l A t u →
-    Γ ⊢[l'] .idRec l l' t M r u h ≡ .idRec l l' t' M' r' u' h' : M.subst (.snoc u.toSb h)
+    Γ ⊢[l] h ≡ h' : .Id A t u →
+    Γ ⊢[l'] .idRec l t M r u h ≡ .idRec l t' M' r' u' h' : M.subst (.snoc u.toSb h)
 
   | cong_code {Γ A A' l} :
     l < univMax →
@@ -270,7 +270,7 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     (A,l) :: Γ ⊢[l'] B →
     (A,l) :: Γ ⊢[l'] t : B →
     Γ ⊢[l] u : A →
-    Γ ⊢[l'] .app l l' B (.lam l l' A t) u ≡ t.subst u.toSb : B.subst u.toSb
+    Γ ⊢[l'] .app l B (.lam l l' A t) u ≡ t.subst u.toSb : B.subst u.toSb
 
   | fst_pair' {Γ} {A B t u : Expr} {l l'} :
     Γ ⊢[l] A →
@@ -289,9 +289,9 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
   | idRec_refl' {Γ A M t r l l'} :
     Γ ⊢[l] A →
     Γ ⊢[l] t : A →
-    (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M →
-    Γ ⊢[l'] r : M.subst (.snoc t.toSb <| .refl l t) →
-    Γ ⊢[l'] .idRec l l' t M r t (.refl l t) ≡ r : M.subst (.snoc t.toSb <| .refl l t)
+    (.Id (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M →
+    Γ ⊢[l'] r : M.subst (.snoc t.toSb <| .refl t) →
+    Γ ⊢[l'] .idRec l t M r t (.refl t) ≡ r : M.subst (.snoc t.toSb <| .refl t)
 
   -- Expansions
   | lam_app' {Γ A B f l l'} :
@@ -299,7 +299,7 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     (A,l) :: Γ ⊢[l'] B →
     Γ ⊢[max l l'] f : .pi l l' A B →
     Γ ⊢[max l l'] f ≡
-      .lam l l' A (.app l l' (B.subst (Expr.up Expr.wk)) (f.subst Expr.wk) (.bvar 0)) :
+      .lam l l' A (.app l (B.subst (Expr.up Expr.wk)) (f.subst Expr.wk) (.bvar 0)) :
       .pi l l' A B
 
   | pair_fst_snd' {Γ A B p l l'} :

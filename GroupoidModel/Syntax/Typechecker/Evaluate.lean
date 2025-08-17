@@ -8,8 +8,8 @@ open Qq
 
 theorem ValEqTp.Id_bvar {Γ vA A va a l} : ValEqTp Γ l vA A → ValEqTm Γ l va a A →
     ValEqTp ((A, l) :: Γ) l
-      (.Id l vA va (.neut (.bvar Γ.length) vA))
-      (.Id l (A.subst Expr.wk) (a.subst Expr.wk) (.bvar 0)) := by
+      (.Id vA va (.neut (.bvar Γ.length) vA))
+      (.Id (A.subst Expr.wk) (a.subst Expr.wk) (.bvar 0)) := by
   intro vA va
   have A := vA.wf_tp
   apply ValEqTp.Id (vA.wk A) (va.wk A)
@@ -50,15 +50,14 @@ partial def evalTp (env : Q(List Val)) (T' : Q(Expr)) : Lean.MetaM ((v : Q(Val))
       apply ValEqTp.sigma vAeq
       apply ClosEqTp.clos_tp env (EqTp.refl_tp vAeq.wf_tp) B
     )⟩
-  | ~q(.Id $l $A $t $u) => do
+  | ~q(.Id $A $t $u) => do
     let ⟨vA, vApost⟩ ← evalTp q($env) q($A)
     let ⟨vt, vtpost⟩ ← evalTm q($env) q($t)
     let ⟨vu, vupost⟩ ← evalTm q($env) q($u)
-    return ⟨q(.Id $l $vA $vt $vu), q(by as_aux_lemma =>
+    return ⟨q(.Id $vA $vt $vu), q(by as_aux_lemma =>
       introv env T
       simp +zetaDelta only [Expr.subst]
-      have ⟨_, t, u⟩ := T.inv_Id
-      subst_vars
+      have ⟨t, u⟩ := T.inv_Id
       apply ValEqTp.Id ($vApost env t.wf_tp) ($vtpost env t) ($vupost env u)
     )⟩
   | ~q(.el $a) => do
@@ -116,13 +115,13 @@ partial def evalTm (env : Q(List Val)) (t' : Q(Expr)) : Lean.MetaM ((v : Q(Val))
       . exact EqTp.refl_tp <| C.subst env.wf_sb
       . exact EqTp.refl_tp <| b.wf_tp.subst (env.wf_sb.up C)
     )⟩
-  | ~q(.app $k $k' $B $f $a) => do
+  | ~q(.app $k $B $f $a) => do
     let ⟨vf, vfpost⟩ ← evalTm q($env) q($f)
     let ⟨va, vapost⟩ ← evalTm q($env) q($a)
     let ⟨v, vpost⟩ ← evalApp q($vf) q($va)
     return ⟨v, q(by as_aux_lemma =>
       introv env t
-      obtain ⟨rfl, _, f, a, eq⟩ := t.inv_app
+      obtain ⟨_, f, a, eq⟩ := t.inv_app
       apply $vpost ($vfpost env f) ($vapost env a) |>.conv_tp
       convert eq.subst env.wf_sb |>.symm_tp using 1
       autosubst
@@ -158,23 +157,21 @@ partial def evalTm (env : Q(List Val)) (t' : Q(Expr)) : Lean.MetaM ((v : Q(Val))
       convert ($vpost) ($vppost env p) using 1
       autosubst
     )⟩
-  | ~q(.refl $l $u) => do
+  | ~q(.refl $u) => do
     let ⟨vu, vupost⟩ ← evalTm q($env) q($u)
-    return ⟨q(.refl $l $vu), q(by as_aux_lemma =>
+    return ⟨q(.refl $vu), q(by as_aux_lemma =>
       introv env t
-      have ⟨_, _, u, eq⟩ := t.inv_refl
-      subst_vars
+      have ⟨_, u, eq⟩ := t.inv_refl
       apply ValEqTm.conv_tp _ (eq.subst env.wf_sb).symm_tp
       apply ValEqTm.refl ($vupost env u)
     )⟩
-  | ~q(.idRec $l $l' _ $M $r _ $h) => do
+  | ~q(.idRec $l _ $M $r _ $h) => do
     let ⟨vr, vrpost⟩ ← evalTm q($env) q($r)
     let ⟨vh, vhpost⟩ ← evalTm q($env) q($h)
-    let ⟨v, vpost⟩ ← evalIdRec q($l') q(.of_expr $env $M) q($vr) q($vh)
+    let ⟨v, vpost⟩ ← evalIdRec q(.of_expr $env $M) q($vr) q($vh)
     return ⟨v, q(by as_aux_lemma =>
       introv env rec
-      have ⟨_, _, t, M, r, u, h, eq⟩ := rec.inv_idRec
-      subst_vars
+      have ⟨_, t, M, r, u, h, eq⟩ := rec.inv_idRec
       apply ValEqTm.conv_tp _ (eq.subst env.wf_sb).symm_tp
       rw [Expr.subst_snoc_toSb_subst]
       have tE := t.subst env.wf_sb
@@ -231,14 +228,13 @@ partial def evalValTp (env : Q(List Val)) (vT : Q(Val)) : Lean.MetaM ((v : Q(Val
       apply ClosEqTp.clos_val_tp env (EqTp.refl_tp vAσ.wf_tp) <|
         $vBpost env.eq_length vA vB
     )⟩
-  | ~q(.Id $k $vA $vt $vu) =>
+  | ~q(.Id $vA $vt $vu) =>
     let ⟨vA, vApost⟩ ← evalValTp q($env) q($vA)
     let ⟨vt, vtpost⟩ ← evalValTm q($env) q($vt)
     let ⟨vu, vupost⟩ ← evalValTm q($env) q($vu)
-    return ⟨q(.Id $k $vA $vt $vu), q(by as_aux_lemma =>
+    return ⟨q(.Id $vA $vt $vu), q(by as_aux_lemma =>
       introv env vT
-      have ⟨_, _, _, _, vA, vt, vu, eq⟩ := vT.inv_Id
-      subst_vars
+      have ⟨_, _, _, vA, vt, vu, eq⟩ := vT.inv_Id
       apply ValEqTp.conv_tp _ (eq.subst env.wf_sb).symm_tp
       apply ValEqTp.Id ($vApost env vA) ($vtpost env vt) ($vupost env vu)
     )⟩
@@ -295,12 +291,11 @@ partial def evalValTm (env : Q(List Val)) (vt : Q(Val)) : Lean.MetaM ((v : Q(Val
       apply ValEqTm.pair (B.subst (env.wf_sb.up B.wf_binder)) ($vfpost env vf)
       convert ($vspost env vs) using 1; autosubst
     )⟩
-  | ~q(.refl $k $va) =>
+  | ~q(.refl $va) =>
     let ⟨va, vapost⟩ ← evalValTm q($env) q($va)
-    return ⟨q(.refl $k $va), q(by as_aux_lemma =>
+    return ⟨q(.refl $va), q(by as_aux_lemma =>
       introv env vt
-      have ⟨_, _, _, va, eqt, eq⟩ := vt.inv_refl
-      subst_vars
+      have ⟨_, _, va, eqt, eq⟩ := vt.inv_refl
       apply ValEqTm.conv_tm _ (eqt.subst env.wf_sb).symm_tm
       apply ValEqTm.conv_tp _ (eq.subst env.wf_sb).symm_tp
       apply ValEqTm.refl ($vapost env va)
@@ -347,14 +342,13 @@ partial def evalNeutTm (env : Q(List Val)) (nt : Q(Neut)) : Lean.MetaM ((v : Q(V
       congr 3
       exact env.eq_length
     )⟩
-  | ~q(.app _ _ _ $nf $va) =>
+  | ~q(.app _ _ $nf $va) =>
     let ⟨vf, vfpost⟩ ← evalNeutTm q($env) q($nf)
     let ⟨va, vapost⟩ ← evalValTm q($env) q($va)
     let ⟨v, vpost⟩ ← evalApp q($vf) q($va)
     return ⟨v, q(by as_aux_lemma =>
       introv env nt
-      have ⟨_, _, _, _, _, _, nf, va, eqt, eq⟩ := nt.inv_app
-      subst_vars
+      have ⟨_, _, _, _, _, nf, va, eqt, eq⟩ := nt.inv_app
       apply ValEqTm.conv_tm _ (eqt.subst env.wf_sb).symm_tm
       apply ValEqTm.conv_tp _ (eq.subst env.wf_sb).symm_tp
       convert ($vpost ($vfpost env nf) ($vapost env va)) using 1
@@ -383,18 +377,17 @@ partial def evalNeutTm (env : Q(List Val)) (nt : Q(Neut)) : Lean.MetaM ((v : Q(V
       convert ($vpost ($vppost env np_eq)) using 1
       autosubst
     )⟩
-  | ~q(.idRec $k $k' $vA $va $cM $vr $vh) =>
+  | ~q(.idRec $vA $va $cM $vr $vh) =>
     /- NOTE: the type arguments to `forceClos₂Tp`
     are the only reason we annotate `Neut.idRec` with `vA`, `va`. -/
     let ⟨cM, cMpost⟩ ← forceClos₂Tp q(($env).length)
-      q($vA) q(.Id $k $vA $va (.neut (.bvar ($env).length) $vA)) q($cM)
+      q($vA) q(.Id $vA $va (.neut (.bvar ($env).length) $vA)) q($cM)
     let ⟨vr, vrpost⟩ ← evalValTm q($env) q($vr)
     let ⟨vh, vhpost⟩ ← evalNeutTm q($env) q($vh)
-    let ⟨v, vpost⟩ ← evalIdRec q($k') q(.of_val $env $cM) q($vr) q($vh)
+    let ⟨v, vpost⟩ ← evalIdRec q(.of_val $env $cM) q($vr) q($vh)
     return ⟨v, q(by as_aux_lemma =>
       introv env nt
       have ⟨_, _, _, _, _, _, _, vA, va, cM, vr, vh, eqt, eq⟩ := nt.inv_idRec
-      subst_vars
       apply ValEqTm.conv_tm _ (eqt.subst env.wf_sb).symm_tm
       apply ValEqTm.conv_tp _ (eq.subst env.wf_sb).symm_tp
       rw [Expr.subst_snoc_toSb_subst]
@@ -570,7 +563,7 @@ partial def evalEl (va : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
 
 partial def evalApp (vf va : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
     Q(∀ {Δ A B f a l l'}, ValEqTm Δ (max l l') $vf f (.pi l l' A B) → ValEqTm Δ l $va a A →
-      ValEqTm Δ l' $v (.app l l' B f a) (B.subst a.toSb))) :=
+      ValEqTm Δ l' $v (.app l B f a) (B.subst a.toSb))) :=
   match vf with
   | ~q(.lam $k $k' _ $vb) => do
     let ⟨v, vpost⟩ ← evalClosTm q($vb) q($va)
@@ -590,7 +583,7 @@ partial def evalApp (vf va : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
     )⟩
   | ~q(.neut $n (.pi $k $k' $vA $vB)) => do
     let ⟨vBa, vBpost⟩ ← evalClosTp q($vB) q($va)
-    return ⟨q(.neut (.app $k $k' $vA $n $va) $vBa), q(by as_aux_lemma =>
+    return ⟨q(.neut (.app $k $vA $n $va) $vBa), q(by as_aux_lemma =>
       introv vf va
       have ⟨P, n⟩ := vf.inv_neut
       have ⟨_, _, _, vA, vB, eq⟩ := P.inv_pi
@@ -674,20 +667,19 @@ partial def evalSnd (vp : Q(Val)) : Lean.MetaM ((v : Q(Val)) ×
     )⟩
   | vp => throwError "expected a normal form at type Σ, got{Lean.indentExpr vp}"
 
-partial def evalIdRec (l' : Q(Nat)) (cM : Q(Clos)) (vr vh : Q(Val)) :
-    Lean.MetaM ((v : Q(Val)) × Q(∀ {Δ A M t r u h l},
-      Clos₂EqTp Δ A l (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0)) l $l' $cM M →
-      ValEqTm Δ $l' $vr r (M.subst (.snoc t.toSb <| .refl l t)) →
-      ValEqTm Δ l $vh h (.Id l A t u) →
-      ValEqTm Δ $l' $v (.idRec l $l' t M r u h) (M.subst (.snoc u.toSb h)))) :=
+partial def evalIdRec (cM : Q(Clos)) (vr vh : Q(Val)) :
+    Lean.MetaM ((v : Q(Val)) × Q(∀ {Δ A M t r u h l l'},
+      Clos₂EqTp Δ A l (.Id (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0)) l l' $cM M →
+      ValEqTm Δ l' $vr r (M.subst (.snoc t.toSb <| .refl t)) →
+      ValEqTm Δ l $vh h (.Id A t u) →
+      ValEqTm Δ l' $v (.idRec l t M r u h) (M.subst (.snoc u.toSb h)))) :=
   match vh with
-  | ~q(.refl $l $va) =>
+  | ~q(.refl $va) =>
     return ⟨vr, q(by as_aux_lemma =>
       introv cM vr vh
       have M := cM.wf_tp
-      have ⟨_, _, _, va, eqt, eq⟩ := vh.inv_refl
-      have ⟨_, _, _, tw, uw⟩ := eq.inv_Id
-      subst_vars
+      have ⟨_, _, va, eqt, eq⟩ := vh.inv_refl
+      have ⟨_, tw, uw⟩ := eq.inv_Id
       have tu := tw.trans_tm uw.symm_tm
       have t := tu.wf_left
       apply vr.conv_nf
@@ -700,14 +692,13 @@ partial def evalIdRec (l' : Q(Nat)) (cM : Q(Clos)) (vr vh : Q(Val)) :
         autosubst
         exact ?eq
     )⟩
-  | ~q(.neut $nh (.Id $l $vA $va $vb)) => do
+  | ~q(.neut $nh (.Id $vA $va $vb)) => do
     let ⟨vT, vTpost⟩ ← evalClos₂Tp q($cM) q($vb) q($vh)
-    return ⟨q(.neut (.idRec $l $l' $vA $va $cM $vr $nh) $vT), q(by as_aux_lemma =>
+    return ⟨q(.neut (.idRec $vA $va $cM $vr $nh) $vT), q(by as_aux_lemma =>
       introv cM vr vh
       have ⟨vId, nh⟩ := vh.inv_neut
-      have ⟨_, _, _, _, vA, va, vb, eq⟩ := vId.inv_Id
-      have ⟨_, _, _, teq, ueq⟩ := eq.inv_Id
-      subst_vars
+      have ⟨_, _, _, vA, va, vb, eq⟩ := vId.inv_Id
+      have ⟨_, teq, ueq⟩ := eq.inv_Id
       have wA := vb.wf_tm.uniq_tp ueq.wf_right
       replace vb := vb.conv_nf (ueq.symm_tm.conv_eq wA.symm_tp) wA
       have := $vTpost cM vb (autosubst% vh)

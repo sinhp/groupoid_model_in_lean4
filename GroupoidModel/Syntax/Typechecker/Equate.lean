@@ -3,17 +3,17 @@ import GroupoidModel.Syntax.Typechecker.Evaluate
 open Qq
 
 mutual
-partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT vU : Q(Val)) :
-    Lean.MetaM Q(∀ {Γ T U},
-      $d = Γ.length → ValEqTp Γ $l $vT T → ValEqTp Γ $l $vU U → Γ ⊢[$l] T ≡ U) := do
+partial def equateTp (d : Q(Nat)) (vT vU : Q(Val)) :
+    Lean.MetaM Q(∀ {Γ l T U},
+      $d = Γ.length → ValEqTp Γ l $vT T → ValEqTp Γ l $vU U → Γ ⊢[l] T ≡ U) := do
   match vT, vU with
   | ~q(.pi $k $k' $vA $vB), ~q(.pi $m $m' $vA' $vB') => do
     let keq ← equateNat q($k) q($m)
     let keq' ← equateNat q($k') q($m')
-    let Aeq ← equateTp q($d) q($k) q($vA) q($vA')
+    let Aeq ← equateTp q($d) q($vA) q($vA')
     let ⟨Bx, Bxpost⟩ ← forceClosTp q($d) q($vA) q($vB)
     let ⟨Bx', Bxpost'⟩ ← forceClosTp q($d) q($vA') q($vB')
-    let Beq ← equateTp q($d + 1) q($k') q($Bx) q($Bx')
+    let Beq ← equateTp q($d + 1) q($Bx) q($Bx')
     return q(by as_aux_lemma =>
       introv _ vT vU
       have ⟨_, _, _, vA, vB, eq⟩ := vT.inv_pi
@@ -29,10 +29,10 @@ partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT vU : Q(Val)) :
   | ~q(.sigma $k $k' $vA $vB), ~q(.sigma $m $m' $vA' $vB') => do
     let keq ← equateNat q($k) q($m)
     let keq' ← equateNat q($k') q($m')
-    let Aeq ← equateTp q($d) q($k) q($vA) q($vA')
+    let Aeq ← equateTp q($d) q($vA) q($vA')
     let ⟨Bx, Bxpost⟩ ← forceClosTp q($d) q($vA) q($vB)
     let ⟨Bx', Bxpost'⟩ ← forceClosTp q($d) q($vA') q($vB')
-    let Beq ← equateTp q($d + 1) q($k') q($Bx) q($Bx')
+    let Beq ← equateTp q($d + 1) q($Bx) q($Bx')
     return q(by as_aux_lemma =>
       introv _ vT vU
       have ⟨_, _, _, vA, vB, eq⟩ := vT.inv_sigma
@@ -45,15 +45,14 @@ partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT vU : Q(Val)) :
       have := $Beq (by simp) Bx (Bx'.conv_ctx (EqCtx.refl Aeq.wf_ctx |>.snoc Aeq.symm_tp))
       gcongr
     )
-  | ~q(.Id $k $vA $va $vb), ~q(.Id $m $vA' $va' $vb') => do
-    let keq ← equateNat q($k) q($m)
-    let Aeq ← equateTp q($d) q($k) q($vA) q($vA')
-    let aeq ← equateTm q($d) q($k) q($vA) q($va) q($va')
-    let beq ← equateTm q($d) q($k) q($vA) q($vb) q($vb')
+  | ~q(.Id $vA $va $vb), ~q(.Id $vA' $va' $vb') => do
+    let Aeq ← equateTp q($d) q($vA) q($vA')
+    let aeq ← equateTm q($d) q($vA) q($va) q($va')
+    let beq ← equateTm q($d) q($vA) q($vb) q($vb')
     return q(by as_aux_lemma =>
       introv _ vT vU
-      have ⟨_, _, _, _, vA, va, vb, eq⟩ := vT.inv_Id
-      have ⟨_, _, _, _, vA', va', vb', eq'⟩ := vU.inv_Id
+      have ⟨_, _, _, vA, va, vb, eq⟩ := vT.inv_Id
+      have ⟨_, _, _, vA', va', vb', eq'⟩ := vU.inv_Id
       subst_vars
       apply eq.trans_tp _ |>.trans_tp eq'.symm_tp
       have Aeq := $Aeq rfl vA vA'
@@ -85,16 +84,16 @@ partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT vU : Q(Val)) :
   | vT, vU =>
     throwError "cannot prove normal types are equal{Lean.indentExpr vT}\n≡?≡{Lean.indentExpr vU}"
 
-partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val)) : Lean.MetaM Q(∀ {Γ T t u},
-    $d = Γ.length → ValEqTp Γ $l $vT T → ValEqTm Γ $l $vt t T → ValEqTm Γ $l $vu u T →
-      Γ ⊢[$l] t ≡ u : T) := do
+partial def equateTm (d : Q(Nat)) (vT vt vu : Q(Val)) : Lean.MetaM Q(∀ {Γ l T t u},
+    $d = Γ.length → ValEqTp Γ l $vT T → ValEqTm Γ l $vt t T → ValEqTm Γ l $vu u T →
+      Γ ⊢[l] t ≡ u : T) := do
   match vT with
   | ~q(.pi _ $k' $vA $vB) => do
     let x : Q(Val) := q(.neut (.bvar $d) $vA)
     let ⟨tx, txpost⟩ ← evalApp q($vt) q($x)
     let ⟨ux, uxpost⟩ ← evalApp q($vu) q($x)
     let ⟨Bx, Bxpost⟩ ← forceClosTp q($d) q($vA) q($vB)
-    let tueq ← equateTm q($d + 1) q($k') q($Bx) q($tx) q($ux)
+    let tueq ← equateTm q($d + 1) q($Bx) q($tx) q($ux)
     return q(by as_aux_lemma =>
       introv _ vT vt vu
       have ⟨_, _, _, vA, vB, eq⟩ := vT.inv_pi
@@ -120,11 +119,11 @@ partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val)) : Lean.MetaM 
   | ~q(.sigma $k $k' $vA $vB) => do
     let ⟨tf, tfpost⟩ ← evalFst q($vt)
     let ⟨uf, ufpost⟩ ← evalFst q($vu)
-    let feq ← equateTm q($d) q($k) q($vA) q($tf) q($uf)
+    let feq ← equateTm q($d) q($vA) q($tf) q($uf)
     let ⟨ts, tspost⟩ ← evalSnd q($vt)
     let ⟨us, uspost⟩ ← evalSnd q($vu)
     let ⟨Btf, Btfpost⟩ ← evalClosTp q($vB) q($tf)
-    let seq ← equateTm q($d) q($k') q($Btf) q($ts) q($us)
+    let seq ← equateTm q($d) q($Btf) q($ts) q($us)
     return q(by as_aux_lemma =>
       introv deq vT vt vu
       have ⟨_, _, _, vA, vB, eq⟩ := vT.inv_sigma
@@ -151,7 +150,7 @@ partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val)) : Lean.MetaM 
   | ~q(.univ $k) => do
     let ⟨vA, vApost⟩ ← evalEl q($vt)
     let ⟨vA', vApost'⟩ ← evalEl q($vu)
-    let Aeq ← equateTp q($d) q($k) q($vA) q($vA')
+    let Aeq ← equateTp q($d) q($vA) q($vA')
     return q(by as_aux_lemma =>
       introv deq vT vt vu
       have ⟨_, eq⟩ := vT.inv_univ
@@ -169,13 +168,13 @@ partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val)) : Lean.MetaM 
     )
   | _ =>
     match vT, vt, vu with
-    | ~q(.Id $k $vA $va $vb), ~q(.refl _ _), ~q(.refl _ _) =>
+    | ~q(.Id $vA $va $vb), ~q(.refl _), ~q(.refl _) =>
       return q(by as_aux_lemma =>
         introv deq vT vt vu
-        have ⟨_, _, _, _, eqt, eq⟩ := vt.inv_refl
-        have ⟨_, _, _, _, eqt', eq'⟩ := vu.inv_refl
+        have ⟨_, _, _, eqt, eq⟩ := vt.inv_refl
+        have ⟨_, _, _, eqt', eq'⟩ := vu.inv_refl
         subst_vars
-        have ⟨_, _, _, _, _⟩ := eq.symm_tp.trans_tp eq' |>.inv_Id
+        have ⟨_, _, _⟩ := eq.symm_tp.trans_tp eq' |>.inv_Id
         apply eqt.trans_tm _ |>.trans_tm eqt'.symm_tm
         apply EqTm.conv_eq _ eq.symm_tp
         gcongr
@@ -210,14 +209,14 @@ partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut)) : Lean.MetaM Q(∀ {Γ T
       apply eqt.trans_tm _ |>.trans_tm (eqt'.conv_eq Aeq.symm_tp).symm_tm
       apply EqTm.refl_tm eqt.wf_right
     )
-  | ~q(.app $k _ $vA $nf $va), ~q(.app $m _ _ $nf' $va') => do
+  | ~q(.app $k $vA $nf $va), ~q(.app $m _ $nf' $va') => do
     let km ← equateNat k m
     let feq ← equateNeutTm q($d) q($nf) q($nf')
-    let aeq ← equateTm q($d) q($k) q($vA) q($va) q($va')
+    let aeq ← equateTm q($d) q($vA) q($va) q($va')
     return q(by as_aux_lemma =>
       introv _ nt nu
-      have ⟨_, _, _, _, _, vA, nf, va, eqt, eq⟩ := nt.inv_app
-      have ⟨_, _, _, _, _, vA', nf', va', eqt', eq'⟩ := nu.inv_app
+      have ⟨_, _, _, _, vA, nf, va, eqt, eq⟩ := nt.inv_app
+      have ⟨_, _, _, _, vA', nf', va', eqt', eq'⟩ := nu.inv_app
       subst_vars
       have ⟨Peq, feq⟩ := $feq rfl nf nf'
       have ⟨_, _, _, Aeq, Beq⟩ := Peq.inv_pi
@@ -262,24 +261,23 @@ partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut)) : Lean.MetaM Q(∀ {Γ T
         apply EqTm.conv_eq _ eq.symm_tp
         gcongr
     )
-  | ~q(.idRec $k $k' $vA $va $cM $vr $nh), ~q(.idRec $m $m' $vA' $va' $cM' $vr' $nh') => do
-    let km ← equateNat q($k) q($m)
-    let km' ← equateNat q($k') q($m')
+  | ~q(.idRec $vA $va $cM $vr $nh), ~q(.idRec $vA' $va' $cM' $vr' $nh') => do
     let heq ← equateNeutTm q($d) q($nh) q($nh')
     let ⟨Mx, Mxpost⟩ ← forceClos₂Tp
-      q($d) q($vA) q(.Id $k $vA $va (.neut (.bvar $d) $vA)) q($cM)
+      q($d) q($vA) q(.Id $vA $va (.neut (.bvar $d) $vA)) q($cM)
     let ⟨Mx', Mxpost'⟩ ← forceClos₂Tp
-      q($d) q($vA') q(.Id $k $vA' $va' (.neut (.bvar $d) $vA')) q($cM')
-    let Meq ← equateTp q($d + 2) q($k') q($Mx) q($Mx')
-    let ⟨Mrfl, Mrflpost⟩ ← evalClos₂Tp q($cM) q($va) q(.refl $k $va)
-    let req ← equateTm q($d) q($k') q($Mrfl) q($vr) q($vr')
+      q($d) q($vA') q(.Id $vA' $va' (.neut (.bvar $d) $vA')) q($cM')
+    let Meq ← equateTp q($d + 2) q($Mx) q($Mx')
+    let ⟨Mrfl, Mrflpost⟩ ← evalClos₂Tp q($cM) q($va) q(.refl $va)
+    let req ← equateTm q($d) q($Mrfl) q($vr) q($vr')
     return q(by as_aux_lemma =>
       introv _ nt nu
-      have ⟨_, _, _, _, _, _, _, vA, va, cM, vr, nh, eqt, eq⟩ := nt.inv_idRec
-      have ⟨_, _, _, _, _, _, _, vA', va', cM', vr', nh', eqt', eq'⟩ := nu.inv_idRec
+      have ⟨l, _, _, _, _, _, _, vA, va, cM, vr, nh, eqt, eq⟩ := nt.inv_idRec
+      have ⟨l', _, _, _, _, _, _, vA', va', cM', vr', nh', eqt', eq'⟩ := nu.inv_idRec
+      cases show l = l' by sorry
       subst_vars
       have ⟨eqId, heq⟩ := $heq rfl nh nh'
-      have ⟨_, _, Aeq, aeq, beq⟩ := eqId.inv_Id
+      have ⟨Aeq, aeq, beq⟩ := eqId.inv_Id
       have Mx := $Mxpost rfl vA (.Id_bvar vA va) cM
       have Mx' := $Mxpost' rfl vA' (.Id_bvar vA' va') cM'
       have Meq := by

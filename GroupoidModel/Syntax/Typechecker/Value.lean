@@ -44,7 +44,7 @@ and hence it suffices to compare the value parts (in this case `p`). -/
 inductive Val where
   | pi (l l' : Nat) (A : Val) (B : Clos)
   | sigma (l l' : Nat) (A : Val) (B : Clos)
-  | Id (l : Nat) (A t u : Val)
+  | Id (A t u : Val)
   | univ (l : Nat)
   /-- Although `el` is an eliminator,
   as a neutral form it does not need to be annotated with a type
@@ -53,7 +53,7 @@ inductive Val where
   | el (a : Neut)
   | lam (l l' : Nat) (vA : Val) (b : Clos)
   | pair (l l' : Nat) (t u : Val)
-  | refl (l : Nat) (t : Val)
+  | refl (t : Val)
   | code (A : Val)
   /-- A neutral form at the given type. -/
   | neut (n : Neut) (A : Val)
@@ -65,10 +65,10 @@ inductive Neut where
   /-- A de Bruijn *level*. -/
   | bvar (i : Nat)
   /-- Application at the specified argument type. -/
-  | app (l l' : Nat) (A : Val) (f : Neut) (a : Val)
+  | app (l : Nat) (A : Val) (f : Neut) (a : Val)
   | fst (l l' : Nat) (p : Neut)
   | snd (l l' : Nat) (p : Neut)
-  | idRec (l l' : Nat) (A a : Val) (M : Clos) (r : Val) (h : Neut)
+  | idRec (A a : Val) (M : Clos) (r : Val) (h : Neut)
   deriving Inhabited
 
 /-- Recall that given `Γ.A ⊢ b : B` and a substitution `Δ ⊢ env : Γ`,
@@ -104,7 +104,7 @@ inductive ValEqTp : Ctx → Nat → Val → Expr → Prop
     ValEqTp Γ l vA A →
     ValEqTm Γ l vt t A →
     ValEqTm Γ l vu u A →
-    ValEqTp Γ l (.Id l vA vt vu) (.Id l A t u)
+    ValEqTp Γ l (.Id vA vt vu) (.Id A t u)
   | univ {Γ l} :
     WfCtx Γ →
     l < univMax →
@@ -131,7 +131,7 @@ inductive ValEqTm : Ctx → Nat → Val → Expr → Expr → Prop
     ValEqTm Γ (max l l') (.pair l l' vt vu) (.pair l l' B t u) (.sigma l l' A B)
   | refl {Γ A vt t l} :
     ValEqTm Γ l vt t A →
-    ValEqTm Γ l (.refl l vt) (.refl l t) (.Id l A t t)
+    ValEqTm Γ l (.refl vt) (.refl t) (.Id A t t)
   | code {Γ vA A l} :
     l < univMax →
     ValEqTp Γ l vA A →
@@ -155,7 +155,7 @@ inductive NeutEqTm : Ctx → Nat → Neut → Expr → Expr → Prop
     ValEqTp Γ l vA A →
     NeutEqTm Γ (max l l') vf f (.pi l l' A B) →
     ValEqTm Γ l va a A →
-    NeutEqTm Γ l' (.app l l' vA vf va) (.app l l' B f a) (B.subst a.toSb)
+    NeutEqTm Γ l' (.app l vA vf va) (.app l B f a) (B.subst a.toSb)
   | fst {Γ A B vp p l l'} :
     NeutEqTm Γ (max l l') vp p (.sigma l l' A B) →
     NeutEqTm Γ l (.fst l l' vp) (.fst l l' A B p) A
@@ -165,10 +165,10 @@ inductive NeutEqTm : Ctx → Nat → Neut → Expr → Expr → Prop
   | idRec {Γ vA A cM M va a vr r b nh h l l'} :
     ValEqTp Γ l vA A →
     ValEqTm Γ l va a A →
-    Clos₂EqTp Γ A l (.Id l (A.subst Expr.wk) (a.subst Expr.wk) (.bvar 0)) l l' cM M →
-    ValEqTm Γ l' vr r (M.subst (.snoc a.toSb <| .refl l a)) →
-    NeutEqTm Γ l nh h (.Id l A a b) →
-    NeutEqTm Γ l' (.idRec l l' vA va cM vr nh) (.idRec l l' a M r b h) (M.subst (.snoc b.toSb h))
+    Clos₂EqTp Γ A l (.Id (A.subst Expr.wk) (a.subst Expr.wk) (.bvar 0)) l l' cM M →
+    ValEqTm Γ l' vr r (M.subst (.snoc a.toSb <| .refl a)) →
+    NeutEqTm Γ l nh h (.Id A a b) →
+    NeutEqTm Γ l' (.idRec vA va cM vr nh) (.idRec l a M r b h) (M.subst (.snoc b.toSb h))
   | conv_neut {Γ A A' vn n n' l} :
     NeutEqTm Γ l vn n A →
     Γ ⊢[l] n ≡ n' : A →
@@ -667,14 +667,14 @@ theorem ValEqTp.inv_sigma {Γ C vA vB l k k'} : ValEqTp Γ l (.sigma k k' vA vB)
   mutual_induction ValEqTp
   all_goals grind [WfTp.sigma, ClosEqTp.wf_tp]
 
-theorem ValEqTp.inv_Id {Γ C vA vt vu l k} : ValEqTp Γ l (.Id k vA vt vu) C →
-    l = k ∧ ∃ A t u,
-      ValEqTp Γ k vA A ∧ ValEqTm Γ k vt t A ∧ ValEqTm Γ k vu u A ∧
-      (Γ ⊢[k] C ≡ .Id k A t u) := by
+theorem ValEqTp.inv_Id {Γ C vA vt vu l} : ValEqTp Γ l (.Id vA vt vu) C →
+    ∃ A t u,
+      ValEqTp Γ l vA A ∧ ValEqTm Γ l vt t A ∧ ValEqTm Γ l vu u A ∧
+      (Γ ⊢[l] C ≡ .Id A t u) := by
   suffices ∀ {Γ l vC C}, ValEqTp Γ l vC C →
-    ∀ {vA vt vu k}, vC = .Id k vA vt vu →
-    l = k ∧ ∃ A t u, ValEqTp Γ k vA A ∧ ValEqTm Γ k vt t A ∧ ValEqTm Γ k vu u A ∧
-      (Γ ⊢[k] C ≡ .Id k A t u) from
+    ∀ {vA vt vu}, vC = .Id vA vt vu →
+    ∃ A t u, ValEqTp Γ l vA A ∧ ValEqTm Γ l vt t A ∧ ValEqTm Γ l vu u A ∧
+      (Γ ⊢[l] C ≡ .Id A t u) from
   fun h => this h rfl
   mutual_induction ValEqTp
   case Id =>
@@ -738,11 +738,11 @@ theorem ValEqTm.inv_pair {Γ C vt vu p l₀ l l'} : ValEqTm Γ l₀ (.pair l l' 
   case conv_nf => grind [EqTm.conv_eq]
   case pair => grind [WfTm.pair, ValEqTm.wf_tm, WfTp.sigma]
 
-theorem ValEqTm.inv_refl {Γ C vt r l₀ l} : ValEqTm Γ l₀ (.refl l vt) r C →
-    l₀ = l ∧ ∃ A t, (ValEqTm Γ l vt t A) ∧
-      (Γ ⊢[l] r ≡ .refl l t : C) ∧ (Γ ⊢[l] C ≡ .Id l A t t) := by
-  suffices ∀ {Γ l₀ vr r C}, ValEqTm Γ l₀ vr r C → ∀ {vt l}, vr = .refl l vt → l₀ = l ∧ ∃ A t,
-      (ValEqTm Γ l vt t A) ∧ (Γ ⊢[l] r ≡ .refl l t : C) ∧ (Γ ⊢[l] C ≡ .Id l A t t) from
+theorem ValEqTm.inv_refl {Γ C vt r l} : ValEqTm Γ l (.refl vt) r C →
+    ∃ A t, (ValEqTm Γ l vt t A) ∧
+      (Γ ⊢[l] r ≡ .refl t : C) ∧ (Γ ⊢[l] C ≡ .Id A t t) := by
+  suffices ∀ {Γ l vr r C}, ValEqTm Γ l vr r C → ∀ {vt}, vr = .refl vt → ∃ A t,
+      (ValEqTm Γ l vt t A) ∧ (Γ ⊢[l] r ≡ .refl t : C) ∧ (Γ ⊢[l] C ≡ .Id A t t) from
     fun h => this h rfl
   mutual_induction ValEqTm
   case refl =>
@@ -751,24 +751,24 @@ theorem ValEqTm.inv_refl {Γ C vt r l₀ l} : ValEqTm Γ l₀ (.refl l vt) r C �
     grind [WfTm.refl, WfTp.Id]
   all_goals grind [EqTm.conv_eq]
 
-theorem NeutEqTm.inv_idRec {Γ C vA cM va vr nh j l₀ l l'} :
-    NeutEqTm Γ l₀ (.idRec l l' vA va cM vr nh) j C → l₀ = l' ∧ ∃ A M t r u h,
+theorem NeutEqTm.inv_idRec {Γ C vA cM va vr nh j l'} :
+    NeutEqTm Γ l' (.idRec vA va cM vr nh) j C → ∃ l A M t r u h,
       (ValEqTp Γ l vA A) ∧
       (ValEqTm Γ l va t A) ∧
-      (Clos₂EqTp Γ A l (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0)) l l' cM M) ∧
-      (ValEqTm Γ l' vr r (M.subst (.snoc t.toSb <| .refl l t))) ∧
-      (NeutEqTm Γ l nh h (.Id l A t u)) ∧
-      (Γ ⊢[l'] j ≡ .idRec l l' t M r u h : C) ∧
+      (Clos₂EqTp Γ A l (.Id (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0)) l l' cM M) ∧
+      (ValEqTm Γ l' vr r (M.subst (.snoc t.toSb <| .refl t))) ∧
+      (NeutEqTm Γ l nh h (.Id A t u)) ∧
+      (Γ ⊢[l'] j ≡ .idRec l t M r u h : C) ∧
       (Γ ⊢[l'] C ≡ M.subst (.snoc u.toSb h)) := by
   suffices
-    ∀ {Γ l₀ vj j C}, NeutEqTm Γ l₀ vj j C → ∀ {vA cM va vr nh l l'},
-      vj = .idRec l l' vA va cM vr nh → l₀ = l' ∧ ∃ A M t r u h,
+    ∀ {Γ l' vj j C}, NeutEqTm Γ l' vj j C → ∀ {vA cM va vr nh},
+      vj = .idRec vA va cM vr nh → ∃ l A M t r u h,
         (ValEqTp Γ l vA A) ∧
         (ValEqTm Γ l va t A) ∧
-        (Clos₂EqTp Γ A l (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0)) l l' cM M) ∧
-        (ValEqTm Γ l' vr r (M.subst (.snoc t.toSb <| .refl l t))) ∧
-        (NeutEqTm Γ l nh h (.Id l A t u)) ∧
-        (Γ ⊢[l'] j ≡ .idRec l l' t M r u h : C) ∧
+        (Clos₂EqTp Γ A l (.Id (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0)) l l' cM M) ∧
+        (ValEqTm Γ l' vr r (M.subst (.snoc t.toSb <| .refl t))) ∧
+        (NeutEqTm Γ l nh h (.Id A t u)) ∧
+        (Γ ⊢[l'] j ≡ .idRec l t M r u h : C) ∧
         (Γ ⊢[l'] C ≡ M.subst (.snoc u.toSb h)) from
     fun h => this h rfl
   mutual_induction ValEqTm
@@ -813,14 +813,14 @@ theorem NeutEqTm.inv_bvar {Γ A t i l} : NeutEqTm Γ l (.bvar i) t A →
     exact ⟨_, lk, EqTm.refl_tm (WfTm.bvar (by omega) lk), EqTp.refl_tp (Γwf.lookup_wf lk)⟩
   case conv_neut => grind [EqTm.conv_eq]
 
-theorem NeutEqTm.inv_app {Γ vA C vf va t l₀ l l'} : NeutEqTm Γ l₀ (.app l l' vA vf va) t C →
-    l₀ = l' ∧ ∃ A B f a,
+theorem NeutEqTm.inv_app {Γ vA C vf va t l l'} : NeutEqTm Γ l' (.app l vA vf va) t C →
+    ∃ A B f a,
       ValEqTp Γ l vA A ∧ NeutEqTm Γ (max l l') vf f (.pi l l' A B) ∧ ValEqTm Γ l va a A ∧
-      (Γ ⊢[l'] t ≡ .app l l' B f a : C) ∧ (Γ ⊢[l'] C ≡ B.subst a.toSb) := by
-  suffices ∀ {Γ l₀ vn n C}, NeutEqTm Γ l₀ vn n C → ∀ {vA vf va l l'}, vn = .app l l' vA vf va →
-      l₀ = l' ∧ ∃ A B f a,
+      (Γ ⊢[l'] t ≡ .app l B f a : C) ∧ (Γ ⊢[l'] C ≡ B.subst a.toSb) := by
+  suffices ∀ {Γ l' vn n C}, NeutEqTm Γ l' vn n C → ∀ {vA vf va l}, vn = .app l vA vf va →
+      ∃ A B f a,
         ValEqTp Γ l vA A ∧ NeutEqTm Γ (max l l') vf f (.pi l l' A B) ∧ ValEqTm Γ l va a A ∧
-        (Γ ⊢[l'] n ≡ .app l l' B f a : C) ∧ (Γ ⊢[l'] C ≡ B.subst a.toSb) from
+        (Γ ⊢[l'] n ≡ .app l B f a : C) ∧ (Γ ⊢[l'] C ≡ B.subst a.toSb) from
     fun h => this h rfl
   mutual_induction NeutEqTm
   all_goals intros; try exact True.intro

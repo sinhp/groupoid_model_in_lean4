@@ -56,7 +56,7 @@ def mkSigma (l l' : Nat) : Q(_root_.Expr) :=
       .code <|
         .sigma $l $l'
           (.el <| .bvar 1)
-          (.el <| .app $l ($l' + 1) (.univ $l') (.bvar 1) (.bvar 0)))
+          (.el <| .app $l (.univ $l') (.bvar 1) (.bvar 0)))
 
 /-- Make the HoTT0 term
 `fun (A : Type l) (a b : A) : Type l => code (.Id l a b)`. -/
@@ -64,7 +64,7 @@ def mkId (l : Nat) : Q(_root_.Expr) :=
   q(.lam ($l + 1) ($l + 1) (.univ $l) <|
     .lam $l ($l + 1) (.el <| .bvar 0) <|
       .lam $l ($l + 1) (.el <| .bvar 1) <|
-        .code <| .Id $l (.el <| .bvar 2) (.bvar 1) (.bvar 0))
+        .code <| .Id (.el <| .bvar 2) (.bvar 1) (.bvar 0))
 
 mutual
 /-- Completeness: if the argument is well-formed in Lean,
@@ -134,7 +134,7 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr)) :
     if e.isAppOfArity' ``Id.refl 2 then
       let #[_, a] := e.getAppArgs | throwError "internal error (Id.refl)"
       let ⟨l, a⟩ ← translateAsTm a
-      return ⟨l, q(.refl $l $a)⟩
+      return ⟨l, q(.refl $a)⟩
     if e.isAppOfArity' ``Id.rec 6 then
       let #[_, a, M, r, b, h] := e.getAppArgs | throwError "internal error (Id.rec)"
       let ⟨l, a⟩ ← translateAsTm a
@@ -144,14 +144,14 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr)) :
       let ⟨_, r⟩ ← translateAsTm r
       let ⟨_, b⟩ ← translateAsTm b
       let ⟨_, h⟩ ← translateAsTm h
-      return ⟨l', q(.idRec $l $l' $a $M $r $b $h)⟩
+      return ⟨l', q(.idRec $l $a $M $r $b $h)⟩
     let fnTp ← inferType fn
     let ⟨_, fn⟩ ← translateAsTm fn
     let ⟨l, arg⟩ ← translateAsTm arg
     let ⟨l', B⟩ ← forallBoundedTelescope fnTp (some 1) fun xs B => do
       let #[x] := xs | throwError "internal error (app tm)"
       withBinder x <| translateAsTp B
-    return ⟨l', q(.app $l $l' $B $fn $arg)⟩
+    return ⟨l', q(.app $l $B $fn $arg)⟩
   | .const ``Sigma [l, l'] =>
     /- FIXME: To simplify the translation,
     we handle `Sigma` rather than fully applied `@Sigma α β`.

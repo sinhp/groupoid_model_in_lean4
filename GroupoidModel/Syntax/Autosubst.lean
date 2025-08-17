@@ -41,14 +41,14 @@ def rename (ξ : Nat → Nat) : Expr → Expr
   | .pi l l' A B => .pi l l' (A.rename ξ) (B.rename (upr ξ))
   | .sigma l l' A B => .sigma l l' (A.rename ξ) (B.rename (upr ξ))
   | .lam l l' A t => .lam l l' (A.rename ξ) (t.rename (upr ξ))
-  | .app l l' B fn arg => .app l l' (B.rename (upr ξ)) (fn.rename ξ) (arg.rename ξ)
+  | .app l B fn arg => .app l (B.rename (upr ξ)) (fn.rename ξ) (arg.rename ξ)
   | .pair l l' B t u => .pair l l' (B.rename (upr ξ)) (t.rename ξ) (u.rename ξ)
   | .fst l l' A B p => .fst l l' (A.rename ξ) (B.rename (upr ξ)) (p.rename ξ)
   | .snd l l' A B p => .snd l l' (A.rename ξ) (B.rename (upr ξ)) (p.rename ξ)
-  | .Id l A t u => .Id l (A.rename ξ) (t.rename ξ) (u.rename ξ)
-  | .refl l t => .refl l (t.rename ξ)
-  | .idRec l l' t C r u h =>
-    .idRec l l' (t.rename ξ) (C.rename (upr <| upr ξ)) (r.rename ξ) (u.rename ξ) (h.rename ξ)
+  | .Id A t u => .Id (A.rename ξ) (t.rename ξ) (u.rename ξ)
+  | .refl t => .refl (t.rename ξ)
+  | .idRec l t C r u h =>
+    .idRec l (t.rename ξ) (C.rename (upr <| upr ξ)) (r.rename ξ) (u.rename ξ) (h.rename ξ)
   | .univ l => .univ l
   | .el a => .el (a.rename ξ)
   | .code A => .code (A.rename ξ)
@@ -79,14 +79,14 @@ def subst (σ : Nat → Expr) : Expr → Expr
   | .pi l l' A B => .pi l l' (A.subst σ) (B.subst (up σ))
   | .sigma l l' A B => .sigma l l' (A.subst σ) (B.subst (up σ))
   | .lam l l' A t => .lam l l' (A.subst σ) (t.subst (up σ))
-  | .app l l' B fn arg => .app l l' (B.subst (up σ)) (fn.subst σ) (arg.subst σ)
+  | .app l B fn arg => .app l (B.subst (up σ)) (fn.subst σ) (arg.subst σ)
   | .pair l l' B t u => .pair l l' (B.subst (up σ)) (t.subst σ) (u.subst σ)
   | .fst l l' A B p => .fst l l' (A.subst σ) (B.subst (up σ)) (p.subst σ)
   | .snd l l' A B p => .snd l l' (A.subst σ) (B.subst (up σ)) (p.subst σ)
-  | .Id l A t u => .Id l (A.subst σ) (t.subst σ) (u.subst σ)
-  | .refl l t => .refl l (t.subst σ)
-  | .idRec l l' t C r u h =>
-    .idRec l l' (t.subst σ) (C.subst <| up <| up σ) (r.subst σ) (u.subst σ) (h.subst σ)
+  | .Id A t u => .Id (A.subst σ) (t.subst σ) (u.subst σ)
+  | .refl t => .refl (t.subst σ)
+  | .idRec l t C r u h =>
+    .idRec l (t.subst σ) (C.subst <| up <| up σ) (r.subst σ) (u.subst σ) (h.subst σ)
   | .univ l => .univ l
   | .el a => .el (a.subst σ)
   | .code A => .code (A.subst σ)
