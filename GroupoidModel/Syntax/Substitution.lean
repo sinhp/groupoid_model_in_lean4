@@ -2,55 +2,7 @@ import Mathlib.Tactic.Convert
 import Mathlib.Tactic.SimpRw
 import GroupoidModel.Syntax.Typing
 import GroupoidModel.Tactic.MutualInduction
-
-/-! # Admissibility of substitution -/
-
-/-- Try solving each inductive case by its respective constructor passed to `grind`. -/
--- TODO: can the script be shortened? metaprogram a generator for the cases?
-macro "grind_cases" : tactic =>
-  `(tactic| (
-    try case pi' => grind [WfTp.pi']
-    try case sigma' => grind [WfTp.sigma']
-    try case Id' => grind [WfTp.Id']
-    try case univ => grind [WfTp.univ]
-    try case el => grind [WfTp.el]
-    try case cong_pi' => grind [EqTp.cong_pi']
-    try case cong_sigma' => grind [EqTp.cong_sigma']
-    try case cong_Id => grind [EqTp.cong_Id]
-    try case cong_el => grind [EqTp.cong_el]
-    try case el_code => grind [EqTp.el_code]
-    try case refl_tp => grind [EqTp.refl_tp]
-    try case symm_tp => grind [EqTp.symm_tp]
-    try case trans_tp => grind [EqTp.trans_tp]
-    try case lam' => grind [WfTm.lam']
-    try case app' => grind [WfTm.app']
-    try case pair' => grind [WfTm.pair']
-    try case fst' => grind [WfTm.fst']
-    try case snd' => grind [WfTm.snd']
-    try case refl' => grind [WfTm.refl']
-    try case idRec' => grind [WfTm.idRec']
-    try case code => grind [WfTm.code]
-    try case conv => grind [WfTm.conv]
-    try case cong_lam' => grind [EqTm.cong_lam']
-    try case cong_app' => grind [EqTm.cong_app']
-    try case cong_pair' => grind [EqTm.cong_pair']
-    try case cong_fst' => grind [EqTm.cong_fst']
-    try case cong_snd' => grind [EqTm.cong_snd']
-    try case cong_refl' => grind [EqTm.cong_refl']
-    try case cong_idRec' => grind [EqTm.cong_idRec']
-    try case cong_code => grind [EqTm.cong_code]
-    try case app_lam' => grind [EqTm.app_lam']
-    try case fst_pair' => grind [EqTm.fst_pair']
-    try case snd_pair' => grind [EqTm.snd_pair']
-    try case idRec_refl => grind [EqTm.idRec_refl]
-    try case code_el => grind [EqTm.code_el]
-    try case lam_app' => grind [EqTm.lam_app']
-    try case pair_fst_snd' => grind [EqTm.pair_fst_snd']
-    try case conv_eq => grind [EqTm.conv_eq]
-    try case refl_tm => grind [EqTm.refl_tm]
-    try case symm_tm' => grind [EqTm.symm_tm']
-    try case trans_tm' => grind [EqTm.trans_tm']
-  ))
+import GroupoidModel.Tactic.GrindCases
 
 /-! ## Universe level bounds -/
 
@@ -134,7 +86,6 @@ theorem rename_all :
       (B.subst a.toSb).rename ξ = (B.rename (Expr.upr ξ)).subst (a.rename ξ).toSb := by autosubst
   mutual_induction WfCtx
   all_goals dsimp only; try intros
-  case snoc => exact True.intro
   all_goals try simp only [Expr.rename, ih_subst] at *
   case bvar ξ => apply WfTm.bvar _ (ξ.lookup _) <;> assumption
   -- Cases that didn't go through automatically.
@@ -425,7 +376,6 @@ theorem subst_all :
       ∀ {Δ σ σ'}, EqSb Δ σ σ' Γ → Δ ⊢[l] t.subst σ ≡ u.subst σ' : A.subst σ) := by
   mutual_induction WfCtx
   all_goals dsimp; try intros
-  case snoc => exact True.intro
   all_goals try simp only [Expr.subst_toSb_subst, Expr.subst_snoc_toSb_subst, Expr.subst] at *
   case bvar => grind [EqSb.lookup, WfSb.lookup]
   case pi' => grind [WfTp.pi', EqTp.cong_pi']
