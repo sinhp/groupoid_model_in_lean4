@@ -235,14 +235,6 @@ theorem var_tp {l : Nat} (Γ : s.CObj) (llen : l < s.length + 1) (i : ℕ) :
     (Γ.var llen i).map (· ≫ s[l].tp) = Γ.tp llen i :=
   Γ.2.var_tp llen i
 
--- theorem mem_var_liftVar {l} {llen : l < s.length + 1} {sΓ : s.CObj} {sΘ sΓ' : 𝒞}
---     {st : y(sΓ') ⟶ (s[l]'llen).Tm} (i)
---     (d : s.ExtSeq sΓ.1 sΘ) (e : s.ExtSeq sΓ.1 sΓ')
---     (st_mem : st ∈ (sΓ.append e).var llen i) :
---     let ⟨sΔ, σ⟩ := sΓ.append d |>.substWk d.disp e
---     ym(σ) ≫ st ∈ sΔ.var llen (liftVar d.length i e.length) :=
---   ExtSeq.mem_var_liftVar _ sΓ.2 d e st_mem
-
 end CObj
 
 variable (slen : univMax ≤ s.length)
@@ -533,6 +525,14 @@ theorem mem_ofCtx_snoc {Γ A l sΓ'} : sΓ' ∈ s.ofCtx ((A,l) :: Γ) ↔
 
 variable (slen : univMax ≤ s.length)
 
+/-- An inductive characterization of those semantic substitutions
+that appear in syntactic operations.
+We use this as an auxiliary device
+in the proof of semantic substitution admissibility.
+
+The family with `full = false` characterizes renamings,
+whereas `full = true` contains general substitutions
+but where composition is limited to renamings on the left. -/
 inductive CSb : (Δ Γ : s.CObj) → (Δ.1 ⟶ Γ.1) → (full : Bool := true) → Type _ where
   | id Γ (full : Bool := true) : CSb Γ Γ (𝟙 _) full
   | wk {Γ : s.CObj} {l} (llen : l < s.length + 1) (A : y(Γ.1) ⟶ s[l].Ty)
