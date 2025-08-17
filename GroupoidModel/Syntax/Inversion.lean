@@ -122,7 +122,7 @@ theorem inv_all :
       apply (WfTm.refl' iheq.2.1 iheq.2.2.2).conv
       grind [EqTp.cong_Id, EqTm.symm_tm', EqTp.refl_tp]
     all_goals grind [WfTp.Id', WfTm.refl']
-  case cong_idRec' t teq Ceq _ ueq heq _ _ iht ihC ihr _ ihh =>
+  case cong_idRec' A t teq Ceq _ ueq heq _ _ iht ihC ihr _ ihh =>
     refine ⟨?_, ?C, ?_, ?c⟩
     case C =>
       apply ihC.2.1.subst <| WfSb.snoc (wfSb_toSb _ _ _) _ (autosubst% ihh.2.2.1)
@@ -135,25 +135,26 @@ theorem inv_all :
         case hwf => exact autosubst% ihh.2.2.1
         case h'wf =>
           autosubst
-          apply ihh.2.2.2.conv <| EqTp.cong_Id sorry (EqTm.refl_tm t) ueq
+          apply ihh.2.2.2.conv <| EqTp.cong_Id (.refl_tp A) (.refl_tm t) ueq
         case hh' => exact autosubst% heq
         all_goals grind [Id_bvar, EqTm.symm_tm']
       . grind
       . apply tp_conv_binder _ _ _ ?eq ihC.2.2
         case eq =>
-          apply EqTp.cong_Id sorry (eqTm_wk _ _ teq) (EqTm.refl_tm (WfTm.bvar _ (.zero ..))) <;> grind
+          apply EqTp.cong_Id (.refl_tp <| tp_wk _ A A) (eqTm_wk _ _ teq)
+              (EqTm.refl_tm (WfTm.bvar _ (.zero ..)))
+            <;> grind
         all_goals grind [Id_bvar]
       . apply ihr.2.2.2.conv
         apply Ceq.subst_eq
         apply eqSb_snoc' (eqSb_toSb ..) _ _ ?rwf _
         case rwf =>
           autosubst
-          apply (WfTm.refl' sorry iht.2.2.2).conv
-          sorry
-          -- grind [EqTp.cong_Id, EqTm.symm_tm', EqTm.refl_tm]
+          apply (WfTm.refl' A iht.2.2.2).conv
+          grind [EqTp.cong_Id, EqTm.symm_tm', EqTm.refl_tm, EqTp.refl_tp]
         all_goals (try autosubst); grind [Id_bvar, WfTm.refl', EqTm.cong_refl']
       . grind
-      . sorry --grind [EqTp.cong_Id, WfTm.conv]
+      . grind [EqTp.cong_Id, WfTm.conv, EqTp.refl_tp]
     all_goals grind [WfTm.idRec']
   case cong_code => grind [WfTp.univ, WfTm.code]
   case app_lam' => grind [WfTm.app', WfTm.lam', tp_inst, tm_inst]
