@@ -194,8 +194,14 @@ theorem comp_el (s : UHomSeq Ctx) {Δ Γ : Ctx} {i : Nat} (ilen : i < s.length)
     σ ≫ s.el ilen a a_tp = s.el ilen (σ ≫ a) (by simp [a_tp]) := by
   sorry
 
--- code_el A = A
--- el_code A = A
+theorem el_code (s : UHomSeq Ctx) {Γ : Ctx} {i : Nat} (ilen : i < s.length) (A : y(Γ) ⟶ s[i].Ty) :
+    s.el ilen (s.code ilen A) (s.code_tp ilen A) = A := by
+  sorry
+
+theorem code_el (s : UHomSeq Ctx) {Γ : Ctx} {i : Nat} (ilen : i < s.length)
+    (a : y(Γ) ⟶ s[i+1].Tm) (a_tp : a ≫ s[i+1].tp = (s.homSucc i).wkU Γ) :
+    s.code ilen (s.el ilen a a_tp) = a := by
+  sorry
 
 end UHomSeq
 
@@ -525,6 +531,14 @@ theorem mkPair_mkFst_mkSnd {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A)
 def mkId {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (a0 a1 : y(Γ) ⟶ s[i].Tm)
     (a0_tp : a0 ≫ s[i].tp = A) (a1_tp : a1 ≫ s[i].tp = A) :
     y(Γ) ⟶ s[i].Ty :=
+  sorry
+
+theorem comp_mkId {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
+    (A : y(Γ) ⟶ s[i].Ty) (a0 a1 : y(Γ) ⟶ s[i].Tm)
+    (a0_tp : a0 ≫ s[i].tp = A) (a1_tp : a1 ≫ s[i].tp = A) :
+    ym(σ) ≫ s.mkId ilen A a0 a1 a0_tp a1_tp =
+      s.mkId ilen (ym(σ) ≫ A) (ym(σ) ≫ a0) (ym(σ) ≫ a1)
+        (by simp [a0_tp]) (by simp [a1_tp]) := by
   sorry
 
 end UHomSeqPiSigma

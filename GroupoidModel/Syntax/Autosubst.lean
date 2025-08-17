@@ -33,7 +33,7 @@ def upr (ξ : Nat → Nat) : Nat → Nat :=
 
 @[simp]
 theorem upr_id : upr id = id := by
-  ext i; cases i <;> dsimp [upr, snoc]
+  ext ⟨⟩ <;> dsimp [upr, snoc]
 
 /-- Rename the de Bruijn indices in an expression. -/
 def rename (ξ : Nat → Nat) : Expr → Expr
@@ -65,13 +65,13 @@ def rename (ξ : Nat → Nat) : Expr → Expr
 Warning: don't unfold this definition! Use `up_eq_snoc` instead. -/
 @[irreducible]
 def up (σ : Nat → Expr) : Nat → Expr :=
-  snoc (fun i => (σ i).rename Nat.succ) (.bvar 0)
+  snoc (rename Nat.succ ∘ σ) (.bvar 0)
 
 -- TODO: upN
 
 @[simp]
 theorem up_bvar : up Expr.bvar = Expr.bvar := by
-  ext i; cases i <;> (unfold up; dsimp [snoc, rename])
+  ext ⟨⟩ <;> (unfold up; dsimp [snoc, rename])
 
 /-- Apply a substitution to an expression. -/
 def subst (σ : Nat → Expr) : Expr → Expr
@@ -107,7 +107,7 @@ def ofRen (ξ : Nat → Nat) : Nat → Expr :=
 theorem ofRen_id : ofRen id = Expr.bvar := rfl
 
 theorem ofRen_upr (ξ) : ofRen (upr ξ) = up (ofRen ξ) := by
-  ext i; cases i <;> simp [ofRen, upr, up, snoc, rename]
+  ext ⟨⟩ <;> simp [ofRen, upr, up, snoc, rename]
 
 theorem rename_eq_subst_ofRen (ξ : Nat → Nat) : rename ξ = subst (ofRen ξ) := by
   ext t
@@ -122,7 +122,7 @@ theorem rename_eq_subst_ofRen (ξ : Nat → Nat) : rename ξ = subst (ofRen ξ) 
 Θ ⊢ σ≫τ : Γ
 ``` -/
 def comp (σ τ : Nat → Expr) : Nat → Expr :=
-  fun i => (τ i).subst σ
+  subst σ ∘ τ
 
 @[simp]
 theorem bvar_comp (σ) : comp Expr.bvar σ = σ := by
@@ -134,7 +134,7 @@ theorem comp_bvar (σ) : comp σ Expr.bvar = σ := by
 
 theorem up_comp_ren_sb (ξ : Nat → Nat) (σ : Nat → Expr) :
     up (σ ∘ ξ) = up σ ∘ upr ξ := by
-  ext i; cases i <;> (unfold up; dsimp [snoc, upr])
+  ext ⟨⟩ <;> (unfold up; dsimp [snoc, upr])
 
 theorem rename_subst (σ ξ) (t : Expr) : (t.rename ξ).subst σ = t.subst (σ ∘ ξ) := by
   induction t generalizing σ ξ
@@ -142,7 +142,7 @@ theorem rename_subst (σ ξ) (t : Expr) : (t.rename ξ).subst σ = t.subst (σ �
 
 theorem up_comp_sb_ren (σ : Nat → Expr) (ξ : Nat → Nat) :
     up (rename ξ ∘ σ) = rename (upr ξ) ∘ up σ := by
-  ext i; cases i <;> (unfold up; dsimp [snoc, rename, upr])
+  ext ⟨⟩ <;> (unfold up; dsimp [snoc, rename, upr])
   conv => lhs; rw [rename_eq_subst_ofRen, rename_subst]
   conv => rhs; rw [rename_eq_subst_ofRen, rename_subst]
   rfl
@@ -154,11 +154,8 @@ theorem subst_rename (ξ σ) (t : Expr) :
 
 theorem up_comp (σ τ : Nat → Expr) :
     up (comp σ τ) = comp (up σ) (up τ) := by
-  ext i; unfold up comp snoc; cases i
-  . rfl
-  . rw [rename_subst]
-    conv in rename Nat.succ _ => rw [subst_rename]
-    rfl
+  ext ⟨⟩ <;> simp [up, comp, snoc]
+  simp [subst_rename, rename_subst]; congr
 
 theorem subst_subst (σ τ : Nat → Expr) (t : Expr) :
     (t.subst τ).subst σ = t.subst (comp σ τ) := by
@@ -169,11 +166,11 @@ theorem subst_subst (σ τ : Nat → Expr) (t : Expr) :
 theorem comp_assoc (σ τ ρ) : comp σ (comp τ ρ) = comp (comp σ τ) ρ := by
   ext i
   conv => rhs; enter [0]; unfold comp
-  rw [← subst_subst]; dsimp [comp]
+  dsimp; rw [← subst_subst]; dsimp [comp]
 
 theorem comp_snoc (σ τ : Nat → Expr) (t : Expr) :
     comp σ (snoc τ t) = snoc (comp σ τ) (t.subst σ) := by
-  ext i; cases i <;> dsimp [comp, snoc]
+  ext ⟨⟩ <;> dsimp [comp, snoc]
 
 /-- The weakening substitution.
 ```
@@ -193,14 +190,14 @@ theorem up_eq_snoc (σ : Nat → Expr) : up σ = snoc (comp wk σ) (.bvar 0) := 
 
 @[simp]
 theorem snoc_comp_wk (σ : Nat → Expr) (t) : comp (snoc σ t) wk = σ := by
-  ext i; cases i <;> dsimp [comp, snoc, wk, ofRen, subst, -ofRen_succ]
+  ext ⟨⟩ <;> dsimp [comp, snoc, wk, ofRen, subst, -ofRen_succ]
 
 @[simp]
 theorem snoc_wk_zero : snoc wk (Expr.bvar 0) = Expr.bvar := by
-  ext i; cases i <;> dsimp [snoc, wk, ofRen, -ofRen_succ]
+  ext ⟨⟩ <;> dsimp [snoc, wk, ofRen, -ofRen_succ]
 
 theorem snoc_comp_wk_succ (σ n) : snoc (comp wk σ) (bvar (n + 1)) = comp wk (snoc σ (bvar n)) := by
-  ext i; cases i <;> dsimp [comp, snoc, wk, -ofRen_succ, subst, ofRen]
+  ext ⟨⟩ <;> dsimp [comp, snoc, wk, -ofRen_succ, subst, ofRen]
 
 /-- A substitution that instantiates one binder.
 ```
@@ -214,10 +211,11 @@ def toSb (t : Expr) : Nat → Expr :=
 /-! ## Decision procedure -/
 
 theorem snoc_comp_wk_zero_subst (σ) : snoc (comp σ Expr.wk) ((Expr.bvar 0).subst σ) = σ := by
-  ext i; cases i <;> dsimp [snoc, comp, subst, wk, ofRen, -ofRen_succ]
+  ext ⟨⟩ <;> dsimp [snoc, comp, subst, wk, ofRen, -ofRen_succ]
 
 theorem ofRen_comp (ξ₁ ξ₂ : Nat → Nat) : ofRen (ξ₁ ∘ ξ₂) = comp (ofRen ξ₁) (ofRen ξ₂) := rfl
 
+@[simp]
 theorem wk_app (n) : wk n = .bvar (n + 1) := by
   rw [wk, ofRen]
 
