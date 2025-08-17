@@ -965,12 +965,15 @@ lemma mkJ_tp : mkJ i a C r r_tp ≫ M.tp = C := by
 
 /-- β rule for identity types. Substituting `J` with `refl` gives the user-supplied value `r` -/
 lemma reflSubst_mkJ : ym(i.reflSubst a) ≫ mkJ i a C r r_tp = r := by
-  dsimp [mkJ]
-  have h := i.equivSnd_verticalNatTrans_app M (i.motive a C)
-  simp [motive, IdElimBase.equivMk] at h
-  -- rw [UvPoly.Equiv.snd_mk M.tmUvPoly M.Ty a ((IdElimBase.pullbackIsoMotiveCtx M i.toIdElimBase a).hom ≫ C)] at h
-  -- dsimp [IdElimBase.equivMk] at h
-  sorry
+  have h := i.equivSnd_verticalNatTrans_app M (i.j a C r r_tp)
+  rw! [i.weakPullback.fac_left] at h
+  simp only [reflCase, tmUvPoly_p, UvPoly.Equiv.snd_mk, ← IsIso.eq_inv_comp] at h
+  apply Eq.trans _ h.symm
+  rw! (castMode := .all) [equivFst_j_eq, UvPoly.Equiv.fst_mk]
+  simp only [mkJ, eqToHom_refl, IsIso.inv_id, Category.id_comp, IsIso.inv_hom_id_assoc]
+  congr 1
+  simp only [← heq_eq_eq, heq_eqRec_iff_heq, eqToHom_comp_heq_iff]
+  rfl
 
 variable (b : y(Γ) ⟶ M.Tm) (b_tp : b ≫ M.tp = a ≫ M.tp)
   (h : y(Γ) ⟶ M.Tm) (h_tp : h ≫ M.tp = i.isKernelPair.lift b a (by aesop) ≫ i.Id)
