@@ -498,7 +498,8 @@ def smallUIdElimBase : NaturalModelBase.IdElimBase smallU.{u} where
 def smallUId : NaturalModelBase.Id smallU.{u} := {
   smallUIdElimBase with
   weakPullback := {
-    w := sorry -- this should be completed automatically
+    w := ((NaturalModelBase.IdElimBase.verticalNatTrans smallU.{u}
+      smallUIdElimBase.{u}).naturality smallU.tp.{u}).symm
     lift := sorry
     fac_left := sorry
     fac_right := sorry
