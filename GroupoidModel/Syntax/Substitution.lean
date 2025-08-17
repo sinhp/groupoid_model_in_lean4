@@ -354,7 +354,7 @@ theorem wfSb_up {Δ Γ A σ l} : WfSb Δ σ Γ →
 
 theorem Id_bvar {Γ A t l} :
     WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] t : A →
-    (A, l) :: Γ ⊢[l] .Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0) :=
+    (A, l) :: Γ ⊢[l] .Id (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0) :=
   fun Γ A t => WfTp.Id' (tp_wk Γ A A) (tm_wk Γ A t) (.bvar (Γ.snoc A) (.zero ..))
 
 attribute [local grind ←] WfCtx.snoc eqSb_up wfSb_up in

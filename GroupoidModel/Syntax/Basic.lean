@@ -9,7 +9,7 @@ inductive Expr where
   /-- Lambda with the specified argument type. -/
   | lam (l l' : Nat) (A b : Expr)
   /-- Application at the specified output type family `B`. -/
-  | app (l l' : Nat) (B fn arg : Expr)
+  | app (l : Nat) (B fn arg : Expr)
   /-- Dependent sum. -/
   | sigma (l l' : Nat) (A B : Expr)
   /-- Pair formation. -/
@@ -20,11 +20,11 @@ inductive Expr where
   | snd (l l' : Nat) (A B p : Expr)
   /-- Identity type. -/
   -- TODO: capitalize all the types
-  | Id (l : Nat) (A t u : Expr)
+  | Id (A t u : Expr)
   /-- A reflexive identity. -/
-  | refl (l : Nat) (t : Expr)
+  | refl (t : Expr)
   /-- Eliminates an identity. -/
-  | idRec (l l' : Nat) (t C r u h : Expr)
+  | idRec (l : Nat) (t C r u h : Expr)
   /-- A type universe. -/
   | univ (l : Nat)
   /-- Type from a code. -/

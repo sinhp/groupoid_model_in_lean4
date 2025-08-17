@@ -54,16 +54,16 @@ partial def checkTp (vΓ : Q(TpEnv)) (l : Q(Nat)) (T : Q(Expr)) :
       subst_vars
       apply WfTp.sigma <| $Bwf <| vΓ.snoc <| $vAeq vΓ <| $Awf vΓ
     )
-  | ~q(.Id $k $A $a $b) => do
-    let leq ← equateNat q($l) q($k)
-    let Awf ← checkTp q($vΓ) q($k) q($A)
+  | ~q(.Id $A $a $b) => do
+    let Awf ← checkTp q($vΓ) q($l) q($A)
     let ⟨vA, vAeq⟩ ← evalTpId q($vΓ) q($A)
-    let awf ← checkTm q($vΓ) q($k) q($vA) q($a)
-    let bwf ← checkTm q($vΓ) q($k) q($vA) q($b)
+    let awf ← checkTm q($vΓ) q($l) q($vA) q($a)
+    let bwf ← checkTm q($vΓ) q($l) q($vA) q($b)
     return q(by as_aux_lemma =>
       introv vΓ
       subst_vars
       have := $vAeq vΓ ($Awf vΓ)
+      show Γ ⊢[«$l»] .Id $A $a $b
       apply WfTp.Id ($awf vΓ this) ($bwf vΓ this)
     )
   | ~q(.univ $n) => do
@@ -91,7 +91,7 @@ partial def checkTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (vT : Q(Val)) (t : Q(Expr)) :
   /- We could do something more bidirectional,
   but all terms synthesize (thanks to extensive annotations). -/
   let ⟨vU, tU⟩ ← synthTm q($vΓ) q($l) q($t)
-  let eq ← equateTp q(($vΓ).length) q($l) q($vU) q($vT)
+  let eq ← equateTp q(($vΓ).length) q($vU) q($vT)
   return q(by as_aux_lemma =>
     introv vΓ vT
     have ⟨_, vU, t⟩ := $tU vΓ
@@ -131,11 +131,10 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
       . autosubst
       . autosubst; apply EqTp.refl_tp A
     )⟩
-  | ~q(.app $k $k' $B $f $a) => do
-    let lk' ← equateNat q($l) q($k')
+  | ~q(.app $k $B $f $a) => do
     let ⟨vA, vApost⟩ ← synthTm q($vΓ) q($k) q($a)
-    let Bwf ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
-    let fwf ← checkTm q($vΓ) q(max $k $k') q(.pi $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B)) q($f)
+    let Bwf ← checkTp q(($vA, $k) :: $vΓ) q($l) q($B)
+    let fwf ← checkTm q($vΓ) q(max $k $l) q(.pi $k $l $vA (.of_expr (envOfTpEnv $vΓ) $B)) q($f)
     let ⟨va, vaeq⟩ ← evalTmId q($vΓ) q($a)
     let ⟨vBa, vBaeq⟩ ← evalTp q($va :: envOfTpEnv $vΓ) q($B)
     return ⟨vBa, q(by as_aux_lemma =>
@@ -216,33 +215,29 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
       simp +zetaDelta only [autosubst] at p ⊢
       apply WfTm.snd p
     )⟩
-  | ~q(.refl $k $a) => do
-    let leq ← equateNat q($l) q($k)
+  | ~q(.refl $a) => do
     let ⟨vA, vApost⟩ ← synthTm q($vΓ) q($l) q($a)
     let ⟨va, vapost⟩ ← evalTmId q($vΓ) q($a)
-    return ⟨q(.Id $k $vA $va $va), q(by as_aux_lemma =>
+    return ⟨q(.Id $vA $va $va), q(by as_aux_lemma =>
       introv vΓ
-      subst_vars
       have ⟨_, vA, a⟩ := $vApost vΓ
       have va := $vapost vΓ a
       refine ⟨_, ValEqTp.Id vA va va, WfTm.refl a⟩
     )⟩
-  | ~q(.idRec $k $k' $a $M $r $b $h) => do
-    let leq ← equateNat q($l) q($k')
+  | ~q(.idRec $k $a $M $r $b $h) => do
     let ⟨vA, vApost⟩ ← synthTm q($vΓ) q($k) q($a)
     let ⟨va, vapost⟩ ← evalTmId q($vΓ) q($a)
     let Mwf ← checkTp
-      q((.Id $k $vA $va (.neut (.bvar ($vΓ).length) $vA), $k) :: ($vA, $k) :: $vΓ) q($k') q($M)
-    let ⟨vMa, vMapost⟩ ← evalTp q((.refl $k $va) :: $va :: envOfTpEnv $vΓ) q($M)
-    let rwf ← checkTm q($vΓ) q($k') q($vMa) q($r)
+      q((.Id $vA $va (.neut (.bvar ($vΓ).length) $vA), $k) :: ($vA, $k) :: $vΓ) q($l) q($M)
+    let ⟨vMa, vMapost⟩ ← evalTp q((.refl $va) :: $va :: envOfTpEnv $vΓ) q($M)
+    let rwf ← checkTm q($vΓ) q($l) q($vMa) q($r)
     let bwf ← checkTm q($vΓ) q($k) q($vA) q($b)
     let ⟨vb, vbpost⟩ ← evalTmId q($vΓ) q($b)
-    let hwf ← checkTm q($vΓ) q($k) q(.Id $k $vA $va $vb) q($h)
+    let hwf ← checkTm q($vΓ) q($k) q(.Id $vA $va $vb) q($h)
     let ⟨vh, vhpost⟩ ← evalTmId q($vΓ) q($h)
     let ⟨vMb, vMbpost⟩ ← evalTp q($vh :: $vb :: envOfTpEnv $vΓ) q($M)
     return ⟨q($vMb), q(by as_aux_lemma =>
       introv vΓ
-      subst_vars
       have ⟨_, vA, a⟩ := $vApost vΓ
       have va := $vapost vΓ a
       have := ValEqTp.Id_bvar vA va
