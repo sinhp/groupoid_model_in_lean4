@@ -135,19 +135,9 @@ theorem rename_all :
   mutual_induction WfCtx
   all_goals dsimp only; try intros
   case snoc => exact True.intro
-  any_goals
-    simp only [Expr.rename, Expr.subst'] at *
-    simp only [← Expr.rename.eq_1] at *
+  all_goals try simp only [Expr.rename, ih_subst] at *
   case bvar ξ => apply WfTm.bvar _ (ξ.lookup _) <;> assumption
   -- Cases that didn't go through automatically.
-  case snd' =>
-    rw [ih_subst]
-    simp [Expr.rename, Expr.subst']; simp only [← Expr.rename.eq_1]
-    apply WfTm.snd' <;> grind
-  case cong_snd' =>
-    rw [ih_subst]
-    simp [Expr.rename, Expr.subst']; simp only [← Expr.rename.eq_1]
-    apply EqTm.cong_snd' <;> grind
   case lam_app' =>
     convert EqTm.lam_app' .. using 1
     · congr 2 <;> autosubst
@@ -167,7 +157,7 @@ theorem rename_all :
         (autosubst% x)
     case ξuu =>
       convert ξ.upr.upr using 1
-      congr 3 <;> simp only [← Expr.rename.eq_1] <;> autosubst
+      congr 3 <;> autosubst
     · grind
     · exact autosubst% (ihr Δ ξ)
     all_goals grind
@@ -185,7 +175,7 @@ theorem rename_all :
         (autosubst% x)
     case ξuu =>
       convert ξ.upr.upr using 1
-      congr 3 <;> simp only [← Expr.rename.eq_1] <;> autosubst
+      congr 3 <;> autosubst
     case ξr =>
       exact autosubst% (ihr Δ ξ)
     all_goals grind
@@ -203,7 +193,7 @@ theorem rename_all :
         (autosubst% x)
     case ξuu =>
       convert ξ.upr.upr using 1
-      congr 3 <;> simp only [← Expr.rename.eq_1] <;> autosubst
+      congr 3 <;> autosubst
     · exact autosubst% (ihr Δ ξ)
   -- Other cases are automatic.
   grind_cases
@@ -436,9 +426,7 @@ theorem subst_all :
   mutual_induction WfCtx
   all_goals dsimp; try intros
   case snoc => exact True.intro
-  all_goals try dsimp [Expr.subst_bvar', Expr.subst_pi, Expr.subst_sigma,
-    Expr.subst_lam, Expr.subst_app, Expr.subst_pair, Expr.subst_fst,
-    Expr.subst_snd, Expr.subst_univ, Expr.subst_el, Expr.subst_code] at *
+  all_goals try simp only [Expr.subst_toSb_subst, Expr.subst_snoc_toSb_subst, Expr.subst] at *
   case bvar => grind [EqSb.lookup, WfSb.lookup]
   case pi' => grind [WfTp.pi', EqTp.cong_pi']
   case sigma' => grind [WfTp.sigma', EqTp.cong_sigma']
@@ -454,10 +442,7 @@ theorem subst_all :
       apply EqTm.cong_app' (ihA.1 σ.wf_left) <;> grind
   case pair' => grind [WfTm.pair', EqTm.cong_pair']
   case fst' => grind [WfTm.fst', EqTm.cong_fst']
-  case snd' =>
-    constructor
-    · intros; rw [ih_subst]; apply WfTm.snd' <;> simp only [← Expr.subst.eq_1] <;> grind
-    · intros; rw [ih_subst]; apply EqTm.cong_snd' <;> simp only [← Expr.subst.eq_1] <;> grind
+  case snd' => grind [WfTm.snd', EqTm.cong_snd']
   case refl' => grind [WfTm.refl', EqTm.cong_refl']
   case idRec' A t _ _ _ _ ihA iht ihC _ _ _ =>
     constructor
@@ -566,8 +551,7 @@ theorem subst_all :
   case pair_fst_snd' =>
     apply (EqTm.pair_fst_snd' ..).trans_tm' <;>
       grind [WfTp.sigma', EqTm.cong_pair', EqTm.cong_fst', EqTm.cong_snd']
-  case symm_tm' => grind [EqTm.symm_tm', EqTm.conv_eq, EqSb.symm]
-  case cong_snd' => rw [ih_subst]; apply EqTm.cong_snd' <;> simp only [← Expr.subst.eq_1] <;> grind
+  case symm_tm' => grind [EqTm.conv_eq, EqSb.symm]
   grind_cases
 
 end SubstProof
