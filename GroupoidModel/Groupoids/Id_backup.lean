@@ -312,16 +312,6 @@ theorem comparison_comp_forget_comp_forgetToGrpd : comparison ⋙ forget ⋙ BPG
 -- theorem PreJLift  (G : Type u) [Groupoid G] : (Path_Refl G) ⋙ (PreJ G) = 𝟭 G := by
 --   simp [Path_Refl,PreJ,Functor.comp,Functor.id]
 
--- def j {Γ : Type*} [Category Γ] (a : Γ ⥤ PGrpd.{u,u}) (C : y(smallUIdIntro.{u}.motiveCtx a) ⟶ smallU.Ty.{u})
---     (r : y(Γ) ⟶ smallU.Tm.{u}) (r_tp : r ≫ smallU.tp.{u} = ym(smallUIdIntro.{u}.reflSubst a) ≫ C)
---     : (y(smallUIdIntro.{u}.motiveCtx a) ⟶ smallU.Tm.{u}) := by
---   let a' := yonedaCategoryEquiv a
---   let C' := yonedaCategoryEquiv C
---   let r' := yonedaCategoryEquiv r
---   have r'_forgetToGrpd : r' ⋙ PGrpd.forgetToGrpd =
---       Ctx.toGrpd.map (smallUIdIntro.reflSubst a) ⋙ C' := sorry
---   sorry
-
 end Id
 end FunctorOperation
 
@@ -491,7 +481,7 @@ lemma i_isPullback : IsPullback ym(Ctx.homOfFunctor (toPGrpd FunctorOperation.id
   Functor.map_isPullback yoneda
     (IsPullback.isPullback_homOfFunctor _ _ _ _ (isPullback FunctorOperation.id))
 
-def smallUIdIntro : NaturalModelBase.IdIntro smallU.{u} where
+def smallUIdElimBase : NaturalModelBase.IdElimBase smallU.{u} where
   k := y(Ctx.ofCategory BPGrpd.{u,u})
   k1 := ym(Ctx.homOfFunctor BPGrpd.fst)
   k2 := ym(Ctx.homOfFunctor BPGrpd.snd)
@@ -499,31 +489,21 @@ def smallUIdIntro : NaturalModelBase.IdIntro smallU.{u} where
   Id := Id
   refl := refl
   refl_tp := refl_tp
-
-open NaturalModelBase
-
-def j {Γ : Ctx} (a : y(Γ) ⟶ smallU.Tm.{u}) (C : y(smallUIdIntro.{u}.motiveCtx a) ⟶ smallU.Ty.{u})
-    (r : y(Γ) ⟶ smallU.Tm.{u}) (r_tp : r ≫ smallU.tp.{u} = ym(smallUIdIntro.{u}.reflSubst a) ≫ C)
-    : y(smallUIdIntro.{u}.motiveCtx a) ⟶ smallU.Tm.{u} := by
-  let a' := yonedaCategoryEquiv a
-  let C' := yonedaCategoryEquiv C
-  let r' := yonedaCategoryEquiv r
-  have r'_forgetToGrpd : r' ⋙ PGrpd.forgetToGrpd =
-      Ctx.toGrpd.map (smallUIdIntro.reflSubst a) ⋙ C' := sorry
-  -- simp [IdIntro.motiveCtx] at C
-  sorry
-
-lemma j_tp {Γ : Ctx} (a : y(Γ) ⟶ smallU.Tm.{u}) (C : y(smallUIdIntro.{u}.motiveCtx a) ⟶ smallU.Ty.{u})
-    (r : y(Γ) ⟶ smallU.Tm.{u}) (r_tp : r ≫ smallU.tp.{u} = ym(smallUIdIntro.{u}.reflSubst a) ≫ C)
-    : j.{u} a C r r_tp ≫ smallU.tp.{u} = C := sorry
+  i := y(Ctx.ofCategory (∫ FunctorOperation.id.{u}))
+  i1 := ym(Ctx.homOfFunctor (toPGrpd _))
+  i2 := ym(Ctx.homOfFunctor forget)
+  i_isPullback := i_isPullback
 
 -- TODO: make namespaces consistent with Sigma file
-def smallUId : NaturalModelBase.Id smallU.{u} := {
-  smallUIdIntro.{u} with
-  j := j
-  j_tp a C r r_tp := sorry
-  reflSubst_j := sorry
-}
+def smallUId : NaturalModelBase.Id' smallU.{u} := {
+  smallUIdElimBase with
+  weakPullback := {
+    w := ((NaturalModelBase.IdElimBase.verticalNatTrans smallU.{u}
+      smallUIdElimBase.{u}).naturality smallU.tp.{u}).symm
+    lift := sorry
+    fac_left := sorry
+    fac_right := sorry
+  }}
 
 -- def smallUIdBase : NaturalModelBase.Id smallU.{u} where
 --   k := y(smallU.ext.{u} smallU.tp.{u})
