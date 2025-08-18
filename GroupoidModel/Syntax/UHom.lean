@@ -336,22 +336,20 @@ def Pi : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
 def lam : s[i].Ptp.obj s[j].Tm ⟶ s[max i j].Tm :=
   s.homCartesianNaturalTransTm i (max i j) j (max i j) ≫ (s.nmPi (max i j)).lam
 
-
-
 def Pi_pb :
     IsPullback (s.lam ilen jlen) (s[i].Ptp.map s[j].tp) s[max i j].tp (s.Pi ilen jlen) := by
-    have p1 : NatTrans.IsCartesian (s.homCartesianNaturalTrans i (max i j)) := by
-     simp[NaturalModelBase.UHomSeq.homCartesianNaturalTrans]
-     apply CategoryTheory.UvPoly.isCartesian_cartesianNatTrans
-    let pbB : IsPullback
-              (s[max i j].Ptp.map (s.homOfLe j (max i j)).mapTm)
-              (s[max i j].Ptp.map s[j].tp)
-              (s[max i j].Ptp.map s[max i j].tp)
-              (s[max i j].Ptp.map (s.homOfLe j (max i j)).mapTy) :=
-              CategoryTheory.UvPoly.preservesPullbacks s[max i j].uvPolyTp _ _ _ _
-              (s.homOfLe j (max i j)).pb
-    have q := CategoryTheory.IsPullback.paste_horiz pbB (s.nmPi (max i j)).Pi_pullback
-    apply CategoryTheory.IsPullback.paste_horiz (p1 s[j].tp).flip q
+  have p1 : NatTrans.IsCartesian (s.homCartesianNaturalTrans i (max i j)) := by
+   dsimp only [UHomSeq.homCartesianNaturalTrans]
+   apply UvPoly.isCartesian_cartesianNatTrans
+  let pbB : IsPullback
+      (s[max i j].Ptp.map (s.homOfLe j (max i j)).mapTm)
+      (s[max i j].Ptp.map s[j].tp)
+      (s[max i j].Ptp.map s[max i j].tp)
+      (s[max i j].Ptp.map (s.homOfLe j (max i j)).mapTy) :=
+    CategoryTheory.UvPoly.preservesPullbacks s[max i j].uvPolyTp _ _ _ _
+    (s.homOfLe j (max i j)).pb
+  have q := IsPullback.paste_horiz pbB (s.nmPi (max i j)).Pi_pullback
+  apply CategoryTheory.IsPullback.paste_horiz (p1 s[j].tp).flip q
 
 /--
 ```
@@ -500,9 +498,9 @@ def Sig : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
   s.homCartesianNaturalTransTy i (max i j) j (max i j) ≫ (s.nmSigma (max i j)).Sig
 
 def pair : UvPoly.compDom s[i].uvPolyTp s[j].uvPolyTp ⟶ s[max i j].Tm :=
-  let h:  s[i].uvPolyTp.compDom s[j].uvPolyTp ⟶ s[max i j].uvPolyTp.compDom s[max i j].uvPolyTp
-  := sorry
-  h ≫ (s.nmSigma (max i j)).pair
+  let l : s[i].uvPolyTp.compDom s[j].uvPolyTp ⟶ s[max i j].uvPolyTp.compDom s[max i j].uvPolyTp :=
+    sorry
+  l ≫ (s.nmSigma (max i j)).pair
 
 def Sig_pb : IsPullback
     (s.pair ilen jlen)
