@@ -45,6 +45,22 @@ partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT vU : Q(Val)) :
       have := $Beq (by simp) Bx (Bx'.conv_ctx (EqCtx.refl Aeq.wf_ctx |>.snoc Aeq.symm_tp))
       gcongr
     )
+  | ~q(.Id $k $vA $va $vb), ~q(.Id $m $vA' $va' $vb') => do
+    let keq ← equateNat q($k) q($m)
+    let Aeq ← equateTp q($d) q($k) q($vA) q($vA')
+    let aeq ← equateTm q($d) q($k) q($vA) q($va) q($va')
+    let beq ← equateTm q($d) q($k) q($vA) q($vb) q($vb')
+    return q(by as_aux_lemma =>
+      introv _ vT vU
+      have ⟨_, _, _, _, vA, va, vb, eq⟩ := vT.inv_Id
+      have ⟨_, _, _, _, vA', va', vb', eq'⟩ := vU.inv_Id
+      subst_vars
+      apply eq.trans_tp _ |>.trans_tp eq'.symm_tp
+      have Aeq := $Aeq rfl vA vA'
+      have := $aeq rfl vA va (va'.conv_tp Aeq.symm_tp)
+      have := $beq rfl vA vb (vb'.conv_tp Aeq.symm_tp)
+      gcongr
+    )
   | ~q(.univ _), ~q(.univ _) => do
     return q(by as_aux_lemma =>
       introv _ vT vU
@@ -152,8 +168,19 @@ partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val)) : Lean.MetaM 
       exact $Aeq rfl ($vApost vt) ($vApost' vu)
     )
   | _ =>
-    match vt, vu with
-    | ~q(.neut $nt _), ~q(.neut $nu _) => do
+    match vT, vt, vu with
+    | ~q(.Id $k $vA $va $vb), ~q(.refl _ _), ~q(.refl _ _) =>
+      return q(by as_aux_lemma =>
+        introv deq vT vt vu
+        have ⟨_, _, _, _, eqt, eq⟩ := vt.inv_refl
+        have ⟨_, _, _, _, eqt', eq'⟩ := vu.inv_refl
+        subst_vars
+        have ⟨_, _, _, _, _⟩ := eq.symm_tp.trans_tp eq' |>.inv_Id
+        apply eqt.trans_tm _ |>.trans_tm eqt'.symm_tm
+        apply EqTm.conv_eq _ eq.symm_tp
+        gcongr
+      )
+    | vT, ~q(.neut $nt _), ~q(.neut $nu _) => do
       let eq ← equateNeutTm q($d) q($nt) q($nu)
       return q(by as_aux_lemma =>
         introv deq vT vt vu
@@ -161,8 +188,11 @@ partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val)) : Lean.MetaM 
         have ⟨_, nu⟩ := vu.inv_neut
         exact $eq deq nt nu |>.2
       )
-    | vt, vu =>
-      throwError "cannot prove normal terms are equal{Lean.indentExpr vt}\n≡?≡{Lean.indentExpr vu}"
+    | _, vt, vu =>
+      throwError "cannot prove normal terms are equal\
+        {Lean.indentExpr vt}\n≡?≡{Lean.indentExpr vu}\n\
+        at type\
+        {Lean.indentExpr vT}"
 
 partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut)) : Lean.MetaM Q(∀ {Γ T U t u l},
     $d = Γ.length → NeutEqTm Γ l $nt t T → NeutEqTm Γ l $nu u U →
@@ -230,6 +260,47 @@ partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut)) : Lean.MetaM Q(∀ {Γ T
         gcongr; apply EqSb.toSb; gcongr
       . apply eqt.trans_tm _ |>.trans_tm (eqt'.conv_eq TUeq.symm_tp).symm_tm
         apply EqTm.conv_eq _ eq.symm_tp
+        gcongr
+    )
+  | ~q(.idRec $k $k' $vA $va $cM $vr $nh), ~q(.idRec $m $m' $vA' $va' $cM' $vr' $nh') => do
+    let km ← equateNat q($k) q($m)
+    let km' ← equateNat q($k') q($m')
+    let heq ← equateNeutTm q($d) q($nh) q($nh')
+    let ⟨Mx, Mxpost⟩ ← forceClos₂Tp
+      q($d) q($vA) q(.Id $k $vA $va (.neut (.bvar $d) $vA)) q($cM)
+    let ⟨Mx', Mxpost'⟩ ← forceClos₂Tp
+      q($d) q($vA') q(.Id $k $vA' $va' (.neut (.bvar $d) $vA')) q($cM')
+    let Meq ← equateTp q($d + 2) q($k') q($Mx) q($Mx')
+    let ⟨Mrfl, Mrflpost⟩ ← evalClos₂Tp q($cM) q($va) q(.refl $k $va)
+    let req ← equateTm q($d) q($k') q($Mrfl) q($vr) q($vr')
+    return q(by as_aux_lemma =>
+      introv _ nt nu
+      have ⟨_, _, _, _, _, _, _, vA, va, cM, vr, nh, eqt, eq⟩ := nt.inv_idRec
+      have ⟨_, _, _, _, _, _, _, vA', va', cM', vr', nh', eqt', eq'⟩ := nu.inv_idRec
+      subst_vars
+      have ⟨eqId, heq⟩ := $heq rfl nh nh'
+      have ⟨_, _, Aeq, aeq, beq⟩ := eqId.inv_Id
+      have Mx := $Mxpost rfl vA (.Id_bvar vA va) cM
+      have Mx' := $Mxpost' rfl vA' (.Id_bvar vA' va') cM'
+      have Meq := by
+        apply $Meq rfl Mx (Mx'.conv_ctx <| Aeq.wf_ctx.eq_self.snoc Aeq.symm_tp |>.snoc _)
+        apply EqTp.cong_Id
+          (Aeq.symm_tp.subst <| WfSb.wk Aeq.wf_right)
+          (aeq.symm_tm.conv_eq Aeq |>.subst <| WfSb.wk Aeq.wf_right)
+          (.refl_tm _)
+        apply WfTm.bvar (Aeq.wf_ctx.snoc Aeq.wf_right) (.zero ..)
+      refine have TUeq := ?_; ⟨TUeq, ?_⟩
+      . apply eq.trans_tp _ |>.trans_tp eq'.symm_tp
+        apply Meq.subst_eq (EqSb.toSb beq |>.snoc (.Id_bvar aeq.wf_left) (autosubst% heq))
+      . apply eqt.trans_tm _ |>.trans_tm (eqt'.conv_eq TUeq.symm_tp).symm_tm
+        apply EqTm.conv_eq _ eq.symm_tp
+        have Mrfl := $Mrflpost cM va (autosubst% ValEqTm.refl va)
+        have := by
+          apply $req rfl Mrfl vr (vr'.conv_tp _)
+          apply Meq.symm_tp.subst_eq (EqSb.toSb aeq.symm_tm |>.snoc (.Id_bvar aeq.wf_left) _)
+          apply EqTm.cong_refl aeq.symm_tm |>.conv_eq
+          autosubst; gcongr
+          exact aeq.wf_right
         gcongr
     )
   | nt, nu =>

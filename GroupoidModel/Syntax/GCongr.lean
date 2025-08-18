@@ -50,6 +50,30 @@ theorem EqTp.cong_sigma_cod {Γ A B B' l l'} :
 
 attribute [gcongr] EqTp.cong_el
 
+@[gcongr]
+theorem EqTp.cong_Id_tp {Γ A A' t u l} :
+    Γ ⊢[l] A ≡ A' →
+    Γ ⊢[l] t : A →
+    Γ ⊢[l] u : A →
+    Γ ⊢[l] .Id l A t u ≡ .Id l A' t u :=
+  fun A t u => .cong_Id A (.refl_tm t) (.refl_tm u)
+
+@[gcongr]
+theorem EqTp.cong_Id_left {Γ A t t' u l} :
+    Γ ⊢[l] t ≡ t' : A →
+    Γ ⊢[l] u : A →
+    Γ ⊢[l] .Id l A t u ≡ .Id l A t' u :=
+  fun h h' => .cong_Id (.refl_tp h.wf_tp) h (.refl_tm h')
+
+@[gcongr]
+theorem EqTp.cong_Id_right {Γ A t u u' l} :
+    Γ ⊢[l] t : A →
+    Γ ⊢[l] u ≡ u' : A →
+    Γ ⊢[l] .Id l A t u ≡ .Id l A t u' :=
+  fun h h' => .cong_Id (.refl_tp h.wf_tp) (.refl_tm h) h'
+
+attribute [gcongr] EqTp.cong_Id
+
 /-! ### Lemmas for terms -/
 
 attribute [gcongr] EqTm.cong_lam
@@ -167,6 +191,9 @@ theorem EqTm.cong_snd_pair {Γ A B p p' l l'} :
   fun pp' =>
     have ⟨_, B⟩ := pp'.wf_tp.inv_sigma
     .cong_snd (EqTp.refl_tp B.wf_binder) (EqTp.refl_tp B) pp'
+
+attribute [gcongr] EqTm.cong_refl
+attribute [gcongr] EqTm.cong_idRec
 
 /-! ## Lemmas for substitution -/
 

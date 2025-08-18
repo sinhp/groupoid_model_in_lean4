@@ -36,7 +36,7 @@ partial def checkTp (vΓ : Q(TpEnv)) (l : Q(Nat)) (T : Q(Expr)) :
   match T with
   | ~q(.pi $k $k' $A $B) => do
     let leq ← equateNat q($l) q(max $k $k')
-    let Awf ← checkTp q($vΓ) q($k) A
+    let Awf ← checkTp q($vΓ) q($k) q($A)
     let ⟨vA, vAeq⟩ ← evalTpId q($vΓ) q($A)
     let Bwf ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
     return q(by as_aux_lemma =>
@@ -46,13 +46,25 @@ partial def checkTp (vΓ : Q(TpEnv)) (l : Q(Nat)) (T : Q(Expr)) :
     )
   | ~q(.sigma $k $k' $A $B) => do
     let leq ← equateNat q($l) q(max $k $k')
-    let Awf ← checkTp q($vΓ) q($k) A
+    let Awf ← checkTp q($vΓ) q($k) q($A)
     let ⟨vA, vAeq⟩ ← evalTpId q($vΓ) q($A)
     let Bwf ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
     return q(by as_aux_lemma =>
       introv vΓ
       subst_vars
       apply WfTp.sigma <| $Bwf <| vΓ.snoc <| $vAeq vΓ <| $Awf vΓ
+    )
+  | ~q(.Id $k $A $a $b) => do
+    let leq ← equateNat q($l) q($k)
+    let Awf ← checkTp q($vΓ) q($k) q($A)
+    let ⟨vA, vAeq⟩ ← evalTpId q($vΓ) q($A)
+    let awf ← checkTm q($vΓ) q($k) q($vA) q($a)
+    let bwf ← checkTm q($vΓ) q($k) q($vA) q($b)
+    return q(by as_aux_lemma =>
+      introv vΓ
+      subst_vars
+      have := $vAeq vΓ ($Awf vΓ)
+      apply WfTp.Id ($awf vΓ this) ($bwf vΓ this)
     )
   | ~q(.univ $n) => do
     let ln ← equateNat q($l) q($n + 1)
@@ -164,7 +176,8 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
     let Awf ← checkTp q($vΓ) q($k) q($A)
     let ⟨vA, vApost⟩ ← evalTpId q($vΓ) q($A)
     let Bwf ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
-    let pwf ← checkTm q($vΓ) q(max $k $k') q(.sigma $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B)) q($p)
+    let pwf ← checkTm
+      q($vΓ) q(max $k $k') q(.sigma $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B)) q($p)
     return ⟨vA, q(by as_aux_lemma =>
       introv vΓ
       subst_vars
@@ -182,7 +195,8 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
     let Awf ← checkTp q($vΓ) q($k) q($A)
     let ⟨vA, vApost⟩ ← evalTpId q($vΓ) q($A)
     let Bwf ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
-    let pwf ← checkTm q($vΓ) q(max $k $k') q(.sigma $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B)) q($p)
+    let pwf ←
+      checkTm q($vΓ) q(max $k $k') q(.sigma $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B)) q($p)
     let ⟨vp, vppost⟩ ← evalTmId q($vΓ) q($p)
     let ⟨vf, vfpost⟩ ← evalFst q($vp)
     let ⟨vBf, vBfpost⟩ ← evalTp q($vf :: envOfTpEnv $vΓ) q($B)
@@ -201,6 +215,53 @@ partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((v
       refine ⟨_, vBf, ?_⟩
       simp +zetaDelta only [autosubst] at p ⊢
       apply WfTm.snd p
+    )⟩
+  | ~q(.refl $k $a) => do
+    let leq ← equateNat q($l) q($k)
+    let ⟨vA, vApost⟩ ← synthTm q($vΓ) q($l) q($a)
+    let ⟨va, vapost⟩ ← evalTmId q($vΓ) q($a)
+    return ⟨q(.Id $k $vA $va $va), q(by as_aux_lemma =>
+      introv vΓ
+      subst_vars
+      have ⟨_, vA, a⟩ := $vApost vΓ
+      have va := $vapost vΓ a
+      refine ⟨_, ValEqTp.Id vA va va, WfTm.refl a⟩
+    )⟩
+  | ~q(.idRec $k $k' $a $M $r $b $h) => do
+    let leq ← equateNat q($l) q($k')
+    let ⟨vA, vApost⟩ ← synthTm q($vΓ) q($k) q($a)
+    let ⟨va, vapost⟩ ← evalTmId q($vΓ) q($a)
+    let Mwf ← checkTp
+      q((.Id $k $vA $va (.neut (.bvar ($vΓ).length) $vA), $k) :: ($vA, $k) :: $vΓ) q($k') q($M)
+    let ⟨vMa, vMapost⟩ ← evalTp q((.refl $k $va) :: $va :: envOfTpEnv $vΓ) q($M)
+    let rwf ← checkTm q($vΓ) q($k') q($vMa) q($r)
+    let bwf ← checkTm q($vΓ) q($k) q($vA) q($b)
+    let ⟨vb, vbpost⟩ ← evalTmId q($vΓ) q($b)
+    let hwf ← checkTm q($vΓ) q($k) q(.Id $k $vA $va $vb) q($h)
+    let ⟨vh, vhpost⟩ ← evalTmId q($vΓ) q($h)
+    let ⟨vMb, vMbpost⟩ ← evalTp q($vh :: $vb :: envOfTpEnv $vΓ) q($M)
+    return ⟨q($vMb), q(by as_aux_lemma =>
+      introv vΓ
+      subst_vars
+      have ⟨_, vA, a⟩ := $vApost vΓ
+      have va := $vapost vΓ a
+      have := ValEqTp.Id_bvar vA va
+      rw [← vΓ.length_eq] at this
+      have M := $Mwf (vΓ.snoc vA |>.snoc this)
+      have := envOfTpEnv_wf vΓ
+        |>.snoc a.wf_tp (autosubst% va)
+        |>.snoc (WfTp.Id_bvar a) (autosubst% ValEqTm.refl va)
+      have vMa := $vMapost this M
+      have r := $rwf vΓ vMa
+      have b := $bwf vΓ vA
+      have vb := $vbpost vΓ b
+      have h := $hwf vΓ (ValEqTp.Id vA va vb)
+      have vh := $vhpost vΓ h
+      have := envOfTpEnv_wf vΓ
+        |>.snoc a.wf_tp (autosubst% vb)
+        |>.snoc (WfTp.Id_bvar a) (autosubst% vh)
+      have vMb := $vMbpost this M
+      refine ⟨_, vMb, .idRec M r h⟩
     )⟩
   | ~q(.code $A) => do
     -- TODO: WHNF `l`? See comment at `evalTp`.

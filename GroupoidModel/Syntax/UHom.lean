@@ -15,6 +15,8 @@ namespace NaturalModelBase
 
 variable {Ctx : Type u} [SmallCategory Ctx]
 
+macro "by>" s:tacticSeq : term => `(by as_aux_lemma => $s)
+
 /- We have a 'nice', specific terminal object in `Ctx`,
 and this instance allows use to use it directly
 rather than through an isomorphism with `Limits.terminal`.
@@ -468,8 +470,8 @@ def etaExpand {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     y(Γ) ⟶ s[max i j].Tm :=
   s.mkLam ilen jlen A <|
     s.mkApp ilen jlen
-      (s[i].wk A A) (ym(s[i].substWk ..) ≫ B) (s[i].wk A f)
-        (by simp_rw [wk_tp, f_tp, wk, comp_mkPi])
+      (ym(s[i].disp A) ≫ A) (ym(s[i].substWk ..) ≫ B) (ym(s[i].disp A) ≫ f)
+        (by simp [f_tp, comp_mkPi])
       (s[i].var A) (s[i].var_tp A)
 
 theorem etaExpand_eq {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
@@ -618,6 +620,95 @@ theorem mkPair_mkFst_mkSnd {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A)
     s.mkPair ilen jlen A B
       (s.mkFst ilen jlen A B p p_tp) (by simp)
       (s.mkSnd ilen jlen A B p p_tp) (by simp) = p := by
+  sorry
+
+/-! ## Identity types -/
+
+/--
+```
+Γ ⊢ᵢ A  Γ ⊢ᵢ a0, a1 : A
+-----------------------
+Γ ⊢ᵢ Id(A, a0, a1)
+``` -/
+def mkId {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (a0 a1 : y(Γ) ⟶ s[i].Tm)
+    (a0_tp : a0 ≫ s[i].tp = A) (a1_tp : a1 ≫ s[i].tp = A) :
+    y(Γ) ⟶ s[i].Ty :=
+  sorry
+
+theorem comp_mkId {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
+    (A : y(Γ) ⟶ s[i].Ty) (a0 a1 : y(Γ) ⟶ s[i].Tm)
+    (a0_tp : a0 ≫ s[i].tp = A) (a1_tp : a1 ≫ s[i].tp = A) :
+    ym(σ) ≫ s.mkId ilen A a0 a1 a0_tp a1_tp =
+      s.mkId ilen (ym(σ) ≫ A) (ym(σ) ≫ a0) (ym(σ) ≫ a1)
+        (by simp [a0_tp]) (by simp [a1_tp]) := by
+  sorry
+
+/--
+```
+Γ ⊢ᵢ t : A
+-----------------------
+Γ ⊢ᵢ refl(t) : Id(A, t, t)
+``` -/
+def mkRefl {Γ : Ctx} (t : y(Γ) ⟶ s[i].Tm) : y(Γ) ⟶ s[i].Tm :=
+  sorry
+
+theorem comp_mkRefl {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
+    (t : y(Γ) ⟶ s[i].Tm) :
+    ym(σ) ≫ s.mkRefl ilen t = s.mkRefl ilen (ym(σ) ≫ t) := by
+  sorry
+
+@[simp]
+theorem mkRefl_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty)
+    (t : y(Γ) ⟶ s[i].Tm) (t_tp : t ≫ s[i].tp = A) :
+    s.mkRefl ilen t ≫ s[i].tp = s.mkId ilen A t t t_tp t_tp := by
+  sorry
+
+/--
+```
+Γ ⊢ᵢ t : A
+-----------------------
+Γ ⊢ᵢ idRec(t) : Id(A, t, t)
+``` -/
+def mkIdRec {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty)
+    (t : y(Γ) ⟶ s[i].Tm) (t_tp : t ≫ s[i].tp = A)
+    (M : y(s[i].ext (s.mkId ilen (ym(s[i].disp A) ≫ A)
+      (ym(s[i].disp A) ≫ t) (s[i].var A) (by> simp [*]) (by> simp))) ⟶ s[j].Ty)
+    (r : y(Γ) ⟶ s[j].Tm) (r_tp : r ≫ s[j].tp =
+      ym(substCons _ (s[i].sec A t t_tp) _ (s.mkRefl ilen t)
+        (by> subst t_tp; simp [comp_mkId])) ≫ M)
+    (u : y(Γ) ⟶ s[i].Tm) (u_tp : u ≫ s[i].tp = A)
+    (h : y(Γ) ⟶ s[i].Tm) (h_tp : h ≫ s[i].tp = s.mkId ilen A t u t_tp u_tp) :
+    y(Γ) ⟶ s[j].Tm :=
+  sorry
+
+theorem comp_mkIdRec {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
+    (A : y(Γ) ⟶ s[i].Ty) (t t_tp M) (r : y(Γ) ⟶ s[j].Tm) (r_tp u u_tp h h_tp) :
+    ym(σ) ≫ s.mkIdRec ilen jlen A t t_tp M r r_tp u u_tp h h_tp =
+    s.mkIdRec ilen jlen (ym(σ) ≫ A) (ym(σ) ≫ t) (by> simp [*])
+       (ym(s[i].substWk' (s[i].substWk σ _) _ _ (by>
+            simp [comp_mkId]
+            congr! 1 <;> rw [← Functor.map_comp_assoc, substWk_disp] <;> simp))
+          ≫ M)
+       (ym(σ) ≫ r) (by>
+        simp [*]
+        simp only [← Functor.map_comp_assoc]; congr! 2
+        simp [comp_substCons, comp_sec, substWk', comp_mkRefl])
+       (ym(σ) ≫ u) (by> simp [*])
+       (ym(σ) ≫ h) (by> simp [*, comp_mkId]) := by
+  sorry
+
+@[simp]
+theorem mkIdRec_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty)
+    (t t_tp M) (r : y(Γ) ⟶ s[j].Tm) (r_tp u u_tp h h_tp) :
+    s.mkIdRec ilen jlen A t t_tp M r r_tp u u_tp h h_tp ≫ s[j].tp =
+      ym(substCons _ (s[i].sec _ u u_tp) _ h (by> simp [*, comp_mkId])) ≫ M := by
+  sorry
+
+@[simp]
+theorem mkIdRec_mkRefl {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty)
+    (t t_tp M) (r : y(Γ) ⟶ s[j].Tm) (r_tp) :
+    s.mkIdRec ilen jlen A t t_tp M r r_tp t t_tp
+      (s.mkRefl ilen t) (s.mkRefl_tp ilen _ t t_tp) = r := by
   sorry
 
 end UHomSeqPiSigma

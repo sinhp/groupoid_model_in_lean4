@@ -46,6 +46,74 @@ def compDomEquiv {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} :
     compDomEquiv.symm ⟨AB,α,β,w,h⟩ ≫ (P.comp Q).p = AB := by
    simp [compDomEquiv, Equiv.psigmaCongrProp, Equiv.sigmaCongrRight_symm,
     Equiv.coe_fn_symm_mk, pullbackHomEquiv]
+end CategoryTheory.UvPoly
+
+
+noncomputable section
+
+namespace CategoryTheory.UvPoly
+open Limits PartialProduct
+
+universe v u
+variable {C : Type u} [Category.{v} C] [HasPullbacks C] [HasTerminal C] {E B : C}
+
+namespace Equiv
+
+variable (P : UvPoly E B) {Γ : C} (X Y : C) (f : X ⟶ Y)
+
+def fst (pair : Γ ⟶ P @ X) :
+    Γ ⟶ B :=
+  fan P X |>.extend pair |>.fst
+
+def snd (pair : Γ ⟶ P @ X) :
+    pullback (fst P X pair) P.p ⟶ X :=
+  fan P X |>.extend pair |>.snd
+
+def mk (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
+    Γ ⟶ P @ X :=
+  P.lift (Γ := Γ) (X := X) b x
+
+@[simp]
+lemma fst_mk (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
+    fst P X (mk P X b x) = b := by
+  simp [fst, mk]
+
+lemma snd_mk_heq (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
+    snd P X (mk P X b x) ≍ x := by
+  simp [snd, mk, fst]
+  sorry
+
+lemma snd_mk (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
+    snd P X (mk P X b x) = eqToHom (by simp) ≫ x := by
+  simp [fst, snd, mk]
+  sorry
+
+@[simp]
+lemma eta (pair : Γ ⟶ P @ X) :
+    mk P X (fst P X pair) (snd P X pair) = pair := by
+  simp [fst, snd, mk]
+  sorry
+
+lemma mk_naturality_right (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
+    mk P X b x ≫ P.functor.map f = mk P Y b (x ≫ f) :=
+  sorry
+
+end Equiv
+
+open TwoSquare
+
+section
+
+variable {F : C} (P : UvPoly E B) (Q : UvPoly F B) (ρ : E ⟶ F) (h : P.p = ρ ≫ Q.p)
+
+lemma mk_comp_verticalNatTrans_app {Γ : C} (X : C) (b : Γ ⟶ B) (x : pullback b Q.p ⟶ X) :
+    Equiv.mk Q X b x ≫ (verticalNatTrans P Q ρ h).app X = Equiv.mk P X b
+    (pullback.lift (pullback.fst _ _) (pullback.snd _ _ ≫ ρ)
+    (by simp [pullback.condition, h]) ≫ x) :=
+  sorry
+
+
+end
 
 
 universe v₁ u₁
