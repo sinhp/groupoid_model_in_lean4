@@ -295,13 +295,21 @@ lemma fst_mk (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
     fst M (mk M A B) = A := by
   simp [fst, mk]
 
-lemma snd_mk_heq (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
-    snd M (mk M A B) ≍ B := by
-  sorry
-
+@[simp]
 lemma snd_mk (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
     snd M (mk M A B) = ym(eqToHom (by rw [fst_mk M A B])) ≫ B := by
-  sorry
+  simp [snd, mk, UvPoly.Equiv.snd_mk]
+  generalize_proofs _ _ _ _ _ _ h1 _ h2 h3
+  suffices ∀ (A' : y(Γ) ⟶ M.Ty) (h1 : IsPullback ym(M.disp A') (M.var A') A' M.tp)
+      (h2 : A' = A),
+      h1.isoPullback.hom ≫ eqToHom (h2 ▸ rfl) ≫ h3.isoPullback.inv ≫ B =
+      ym(eqToHom (by rw [h2])) ≫ B from
+    this _ _ (by simp [fst])
+  rintro _ _ rfl; simp
+
+lemma snd_mk_heq (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
+    snd M (mk M A B) ≍ B := by
+  simp [eqToHom_map]
 
 section
 variable {Δ : Ctx} {σ : Δ ⟶ Γ} {AB : y(Γ) ⟶ M.Ptp.obj X}
@@ -327,6 +335,12 @@ theorem Ptp_equiv_naturality_right {Γ : Ctx} {X Y : Psh Ctx}
 theorem Ptp_equiv_symm_naturality_right {Γ : Ctx} {X Y : Psh Ctx}
     (A : y(Γ) ⟶ M.Ty) (x : y(M.ext A) ⟶ X) (α : X ⟶ Y) :
     M.Ptp_equiv.symm ⟨A, x⟩ ≫ M.Ptp.map α = M.Ptp_equiv.symm ⟨A, x ≫ α⟩ := by
+  sorry
+
+@[reassoc]
+theorem PtpEquiv.mk_map {Γ : Ctx} {X Y : Psh Ctx}
+    (A : y(Γ) ⟶ M.Ty) (x : y(M.ext A) ⟶ X) (α : X ⟶ Y) :
+    mk M A x ≫ M.Ptp.map α = mk M A (x ≫ α) := by
   sorry
 
 /-! ## Polynomial composition `M.tp ▸ N.tp` -/

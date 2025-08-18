@@ -169,15 +169,58 @@ def homOfLe (i j : Nat) (ij : i <= j := by omega)
   else
     (s.hom i j (by omega) _).toHom
 
+def unlift (i j) (ij : i ≤ j := by omega) (jlen : j < s.length + 1 := by get_elem_tactic)
+    {Γ} (A : Γ ⟶ (s[i]'(ij.trans_lt jlen)).Ty) (t : Γ ⟶ s[j].Tm)
+    (eq : t ≫ s[j].tp = A ≫ (s.homOfLe i j).mapTy) :
+    Γ ⟶ (s[i]'(ij.trans_lt jlen)).Tm :=
+  (s.homOfLe i j).pb.lift t A eq
+
+@[simp]
+theorem unlift_tp {i j ij jlen Γ A}
+    {t : y(Γ) ⟶ _} (eq : t ≫ s[j].tp = A ≫ (s.homOfLe i j).mapTy) :
+    s.unlift i j ij jlen A t eq ≫ (s[i]'(ij.trans_lt jlen)).tp = A := by
+  simp [unlift]
+
+def unliftVar (i j) (ij : i ≤ j := by omega) (jlen : j < s.length + 1 := by get_elem_tactic)
+    {Γ} (A : y(Γ) ⟶ (s[i]'(ij.trans_lt jlen)).Ty)
+    {A' : y(Γ) ⟶ s[j].Ty} (eq : A ≫ (s.homOfLe i j).mapTy = A') :
+    y(s[j].ext A') ⟶ (s[i]'(ij.trans_lt jlen)).Tm :=
+  s.unlift i j ij jlen (ym(s[j].disp _) ≫ A) (s[j].var _) (by simp [eq])
+
+@[simp]
+theorem unliftVar_tp {i j ij jlen Γ A} {A' : y(Γ) ⟶ s[j].Ty}
+    (eq : A ≫ (s.homOfLe i j).mapTy = A') :
+    s.unliftVar i j ij jlen A eq ≫ (s[i]'(ij.trans_lt jlen)).tp = ym(s[j].disp _) ≫ A := by
+  simp [unliftVar]
+
+theorem substCons_unliftVar {i j ij jlen Γ A} {A' : y(Γ) ⟶ s[j].Ty}
+    {eq : A ≫ (s.homOfLe i j).mapTy = A'}
+    {Δ} {σ : Δ ⟶ Γ} {t : y(Δ) ⟶ _}
+    (t_tp : t ≫ (s[i]'(ij.trans_lt jlen)).tp = ym(σ) ≫ A) :
+    ym(s[j].substCons σ A' (t ≫ (s.homOfLe i j ij jlen).mapTm) (by
+      simp [*]
+      conv_lhs => rhs; apply (s.homOfLe i j).pb.w
+      subst A'; rw [← Category.assoc, ← Category.assoc, ← t_tp]))
+    ≫ s.unliftVar i j ij jlen A eq = t := by
+  simp [unlift, unliftVar]; apply (s.homOfLe i j).pb.hom_ext <;> simp [*]
+
 /--
 If `s` is a sequence of universe homomorphisms then for `i ≤ j` we get a polynomial endofunctor
 natural transformation `s[i].Ptp ⟶ s[j].Ptp`.
 -/
 def homCartesianNaturalTrans (i j : Nat)
-    (ilen : i ≤ j := by get_elem_tactic) (jlen : j < s.length + 1 := by get_elem_tactic) :
+    (ij : i ≤ j := by get_elem_tactic) (jlen : j < s.length + 1 := by get_elem_tactic) :
     s[i].Ptp ⟶ s[j].Ptp :=
   let hi : Hom s[i] s[j] := s.homOfLe i j
   s[i].uvPolyTp.cartesianNatTrans s[j].uvPolyTp hi.mapTy hi.mapTm hi.pb.flip
+
+@[reassoc]
+theorem mk_homCartesianNaturalTrans {i j ij jlen}
+    {Γ X} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ X)
+    : PtpEquiv.mk s[i] A B ≫ (s.homCartesianNaturalTrans i j).app X =
+      PtpEquiv.mk s[j] (A ≫ (s.homOfLe i j).mapTy)
+        (ym(substCons _ (s[j].disp _) _ (s.unliftVar i j ij jlen A rfl) (by simp)) ≫ B) := by
+  sorry
 
 /--
 This is one side of the commutative square
@@ -193,18 +236,34 @@ s[i0].Ptp.obj s[j0].Tm ⟶ s[i1].Ptp.obj s[j0].Tm
 Given `i0 ≤ i1` and `j0 ≤ j1`
 -/
 def homCartesianNaturalTransTm (i0 i1 j0 j1 : Nat)
-    (i0len : i0 ≤ i1 := by get_elem_tactic) (i1len : i1 < s.length + 1 := by get_elem_tactic)
-    (j0len : j0 ≤ j1 := by get_elem_tactic) (j1len : j1 < s.length + 1 := by get_elem_tactic)
+    (ii : i0 ≤ i1 := by get_elem_tactic) (ilen : i1 < s.length + 1 := by get_elem_tactic)
+    (jj : j0 ≤ j1 := by get_elem_tactic) (jlen : j1 < s.length + 1 := by get_elem_tactic)
     : s[i0].Ptp.obj s[j0].Tm ⟶ s[i1].Ptp.obj s[j1].Tm :=
   (s.homCartesianNaturalTrans i0 i1).app s[j0].Tm ≫
-  s[i1].uvPolyTp.functor.map (s.homOfLe j0 j1).mapTm
+  s[i1].Ptp.map (s.homOfLe j0 j1).mapTm
+
+theorem mk_homCartesianNaturalTransTm {i0 i1 j0 j1 ii ilen jj jlen}
+    {Γ X} (A : y(Γ) ⟶ s[i0].Ty) (B : y(s[i0].ext A) ⟶ s[j0].Tm)
+    : PtpEquiv.mk s[i0] A B ≫ s.homCartesianNaturalTransTm i0 i1 j0 j1 ii ilen jj jlen =
+      PtpEquiv.mk s[i1] (A ≫ (s.homOfLe i0 i1).mapTy)
+        (ym(substCons _ (s[i1].disp _) _ (s.unliftVar i0 i1 ii ilen A rfl) (by simp))
+          ≫ B ≫ (s.homOfLe j0 j1).mapTm) := by
+  simp [homCartesianNaturalTransTm, mk_homCartesianNaturalTrans_assoc, PtpEquiv.mk_map]
 
 def homCartesianNaturalTransTy (i0 i1 j0 j1 : Nat)
     (i0len : i0 ≤ i1 := by get_elem_tactic) (i1len : i1 < s.length + 1 := by get_elem_tactic)
     (j0len : j0 ≤ j1 := by get_elem_tactic) (j1len : j1 < s.length + 1 := by get_elem_tactic)
     : s[i0].Ptp.obj s[j0].Ty ⟶ s[i1].Ptp.obj s[j1].Ty :=
   (s.homCartesianNaturalTrans i0 i1).app s[j0].Ty ≫
-  s[i1].uvPolyTp.functor.map (s.homOfLe j0 j1).mapTy
+  s[i1].Ptp.map (s.homOfLe j0 j1).mapTy
+
+theorem mk_homCartesianNaturalTransTy {i0 i1 j0 j1 ii ilen jj jlen}
+    {Γ X} (A : y(Γ) ⟶ s[i0].Ty) (B : y(s[i0].ext A) ⟶ s[j0].Ty)
+    : PtpEquiv.mk s[i0] A B ≫ s.homCartesianNaturalTransTy i0 i1 j0 j1 ii ilen jj jlen =
+      PtpEquiv.mk s[i1] (A ≫ (s.homOfLe i0 i1).mapTy)
+        (ym(substCons _ (s[i1].disp _) _ (s.unliftVar i0 i1 ii ilen A rfl) (by simp))
+          ≫ B ≫ (s.homOfLe j0 j1).mapTy) := by
+  simp [homCartesianNaturalTransTy, mk_homCartesianNaturalTrans_assoc, PtpEquiv.mk_map]
 
 theorem hom_comp_trans (s : UHomSeq Ctx) (i j k : Nat) (ij : i < j) (jk : j < k)
     (klen : k < s.length + 1) :
@@ -520,7 +579,7 @@ def Sig : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
 ``` -/
 def mkSigma {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty) :
     y(Γ) ⟶ s[max i j].Ty :=
-  s[i].Ptp_equiv.symm ⟨A, B⟩ ≫ s.Sig ilen jlen
+  PtpEquiv.mk s[i] A B ≫ s.Sig ilen jlen
 
 theorem comp_mkSigma {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty) :
@@ -545,10 +604,8 @@ def mkPair {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
   refine compDomEquiv.mk _
     (t ≫ (s.homOfLe i (max i j)).mapTm)
     (ym(substCons _ (s[max i j].disp _) _
-        ((s.homOfLe i (max i j)).pb.lift (s[max i j].var _)
-          (ym(s[max i j].disp _) ≫ A)
-          (by simp [*]))
-        (by simp))
+        (s.unliftVar i (max i j) (by omega) _ A (by simp [*]))
+        (by have := @s.unliftVar_tp; simp_all))
       ≫ B ≫ (s.homOfLe j (max i j)).mapTy)
     (u ≫ (s.homOfLe j (max i j)).mapTm)
     ?_
@@ -560,7 +617,7 @@ def mkPair {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
   dsimp; rw [hu, ← Functor.map_comp_assoc]; congr! 2
   rw [comp_substCons, sec]; congr!
   · simp
-  · apply (s.homOfLe i (max i j)).pb.hom_ext <;> simp [*]
+  · symm; apply s.substCons_unliftVar; simp [t_tp]
 
 theorem comp_mkPair {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
@@ -582,16 +639,25 @@ theorem mkPair_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j]
 def mkFst {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (p : y(Γ) ⟶ s[max i j].Tm) (p_tp : p ≫ s[max i j].tp = s.mkSigma ilen jlen A B) :
     y(Γ) ⟶ s[i].Tm :=
-  let AB := s[i].Ptp_equiv.symm ⟨A, B⟩
-  let tu : y(Γ) ⟶ s[i].uvPolyTp.compDom s[j].uvPolyTp :=
-    (s.Sig_pb ilen jlen).lift p AB p_tp
-  NaturalModelBase.compDomEquiv.fst s[j] tu
+  s.unlift i (max i j) (by omega) (by omega) A
+    (compDomEquiv.fst s[max i j]
+      ((s.nmSigma (max i j)).Sig_pullback.lift p
+        (PtpEquiv.mk s[max i j]
+          (A ≫ (s.homOfLe i (max i j)).mapTy)
+          (ym(substCons _ (s[max i j].disp _) _
+            (s.unliftVar i (max i j) (by omega) _ A (by simp [*]))
+            (by have' := @s.unliftVar_tp; simp_all))
+          ≫ B ≫ (s.homOfLe j (max i j)).mapTy))
+        (by
+          simp [mkSigma, *, Sig]
+          rw [← Category.assoc]; congr! 1
+          apply s.mk_homCartesianNaturalTransTy)))
+    (by simp [compDomEquiv.fst_tp])
 
 @[simp]
 theorem mkFst_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (p : y(Γ) ⟶ s[max i j].Tm) (p_tp : p ≫ s[max i j].tp = s.mkSigma ilen jlen A B) :
-    s.mkFst ilen jlen A B p p_tp ≫ s[i].tp = A := by
-  sorry
+    s.mkFst ilen jlen A B p p_tp ≫ s[i].tp = A := s.unlift_tp ..
 
 @[simp]
 theorem mkFst_mkPair {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
@@ -610,11 +676,23 @@ theorem comp_mkFst {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
 
 def mkSnd {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (p : y(Γ) ⟶ s[max i j].Tm) (p_tp : p ≫ s[max i j].tp = s.mkSigma ilen jlen A B) :
-    y(Γ) ⟶ s[j].Tm :=
-  let AB := s[i].Ptp_equiv.symm ⟨A, B⟩
-  let tu : y(Γ) ⟶ s[i].uvPolyTp.compDom s[j].uvPolyTp :=
-    (s.Sig_pb ilen jlen).lift p AB p_tp
-  NaturalModelBase.compDomEquiv.snd s[j] tu
+    y(Γ) ⟶ s[j].Tm := by
+  let := (s.nmSigma (max i j)).Sig_pullback.lift p
+    (PtpEquiv.mk s[max i j]
+      (A ≫ (s.homOfLe i (max i j)).mapTy)
+      (ym(substCons _ (s[max i j].disp _) _
+        (s.unliftVar i (max i j) (by omega) _ A (by simp [*]))
+        (by have' := @s.unliftVar_tp; simp_all))
+      ≫ B ≫ (s.homOfLe j (max i j)).mapTy))
+    (by
+      simp [mkSigma, *, Sig]
+      rw [← Category.assoc]; congr! 1
+      apply s.mk_homCartesianNaturalTransTy)
+  refine s.unlift j (max i j) (by omega) (by omega) 
+    (ym(s[i].sec _ (s.mkFst ilen jlen A B p p_tp) (by simp)) ≫ B)
+    (compDomEquiv.snd s[max i j] this) ?_
+  simp [compDomEquiv.snd_tp]
+  sorry
 
 @[simp]
 theorem mkSnd_mkPair {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
@@ -627,8 +705,7 @@ theorem mkSnd_mkPair {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s
 theorem mkSnd_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (p : y(Γ) ⟶ s[max i j].Tm) (p_tp : p ≫ s[max i j].tp = s.mkSigma ilen jlen A B) :
     s.mkSnd ilen jlen A B p p_tp ≫ s[j].tp =
-      ym(s[i].sec A (s.mkFst ilen jlen A B p p_tp) (by simp)) ≫ B := by
-  sorry
+      ym(s[i].sec A (s.mkFst ilen jlen A B p p_tp) (by simp)) ≫ B := s.unlift_tp ..
 
 theorem comp_mkSnd {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
