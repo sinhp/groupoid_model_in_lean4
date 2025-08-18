@@ -80,27 +80,26 @@ structure UHom (M N : NaturalModelBase Ctx) extends Hom M N where
   U : y(𝟙_ Ctx) ⟶ N.Ty
   asTm : M.Ty ⟶ N.Tm
   U_pb : IsPullback
-                                asTm
-    (isTerminal_yUnit.from M.Ty)   N.tp
-                                 U
+            /- m.Ty -/           asTm /- N.Tm -/
+    (isTerminal_yUnit.from M.Ty)         N.tp
+             /- ⊤ -/               U  /- N.Ty -/
 
 def UHom.ofTyIsoExt
     {M N : NaturalModelBase Ctx}
     (H : Hom M N) {U : y(𝟙_ Ctx) ⟶ N.Ty} (i : M.Ty ≅ y(N.ext U)) :
-    UHom M N := { H with
+    UHom M N where
+  __ := H
   U := U
   asTm := i.hom ≫ N.var U
   U_pb := by
     convert IsPullback.of_iso_isPullback (N.disp_pullback _) i
     apply isTerminal_yUnit.hom_ext
-}
 
-def UHom.comp {M N O : NaturalModelBase Ctx} (α : UHom M N) (β : UHom N O) : UHom M O := {
-  Hom.comp α.toHom β.toHom with
+def UHom.comp {M N O : NaturalModelBase Ctx} (α : UHom M N) (β : UHom N O) : UHom M O where
+  __ := Hom.comp α.toHom β.toHom
   U := α.U ≫ β.mapTy
   asTm := α.asTm ≫ β.mapTm
   U_pb := α.U_pb.paste_horiz β.pb
-}
 
 def UHom.comp_assoc {M N O P : NaturalModelBase Ctx} (α : UHom M N) (β : UHom N O) (γ : UHom O P) :
     comp (comp α β) γ = comp α (comp β γ) := by
@@ -117,8 +116,8 @@ theorem UHom.comp_wkU {M N : NaturalModelBase Ctx} {Δ Γ : Ctx} (α : UHom M N)
 /- Sanity check:
 construct a `UHom` into a natural model with a Tarski universe. -/
 def UHom.ofTarskiU (M : NaturalModelBase Ctx) (U : y(𝟙_ Ctx) ⟶ M.Ty) (El : y(M.ext U) ⟶ M.Ty) :
-    UHom (M.pullback El) M := {
-  M.pullbackHom El with
+    UHom (M.pullback El) M where
+  __ := M.pullbackHom El
   U
   asTm := M.var U
   U_pb := (M.disp_pullback U).of_iso
@@ -128,7 +127,6 @@ def UHom.ofTarskiU (M : NaturalModelBase Ctx) (U : y(𝟙_ Ctx) ⟶ M.Ty) (El : 
       (Iso.refl _)
       (by simp) (isTerminal_yUnit.hom_ext ..)
       (by simp) (by simp)
-}
 
 /-! ## Universe embeddings -/
 
@@ -169,8 +167,7 @@ def homOfLe (i j : Nat) (ij : i <= j := by omega)
     (jlen : j < s.length + 1 := by get_elem_tactic) : Hom s[i] s[j] :=
   if h : i = j then h ▸ Hom.id s[i]
   else
-    have : i < j := by omega
-    (s.hom i j this _).toHom
+    (s.hom i j (by omega) _).toHom
 
 /--
 If `s` is a sequence of universe homomorphisms then for `i ≤ j` we get a polynomial endofunctor
@@ -365,7 +362,7 @@ def mkPi {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty) : y(
 theorem comp_mkPi {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty) :
     ym(σ) ≫ s.mkPi ilen jlen A B = s.mkPi ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ B) := by
-  simp[mkPi,← Category.assoc]
+  simp[mkPi, ← Category.assoc]
   congr
 
   sorry
@@ -499,16 +496,21 @@ theorem mkApp_mkLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[
 def Sig : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
   s.homCartesianNaturalTransTy i (max i j) j (max i j) ≫ (s.nmSigma (max i j)).Sig
 
-def pair : UvPoly.compDom s[i].uvPolyTp s[j].uvPolyTp ⟶ s[max i j].Tm :=
-  let l : s[i].uvPolyTp.compDom s[j].uvPolyTp ⟶ s[max i j].uvPolyTp.compDom s[max i j].uvPolyTp :=
-    sorry
-  l ≫ (s.nmSigma (max i j)).pair
+-- def pair : UvPoly.compDom s[i].uvPolyTp s[j].uvPolyTp ⟶ s[max i j].Tm :=
+--   let l : s[i].uvPolyTp.compDom s[j].uvPolyTp ⟶ s[max i j].uvPolyTp.compDom s[max i j].uvPolyTp :=
+--     let ⟨fst, snd, thd, h2, h3⟩ := UvPoly.compDomEquiv (𝟙 (s[i].uvPolyTp.compDom s[j].uvPolyTp))
+--     UvPoly.compDomEquiv.symm ⟨
+--       fst ≫ s.homCartesianNaturalTransTy i _ j _,
+--       snd ≫ (s.homOfLe i (max i j)).mapTm,
+--       thd ≫ (s.homOfLe j (max i j)).mapTm,
+--       _, _⟩
+--   l ≫ (s.nmSigma (max i j)).pair
 
-def Sig_pb : IsPullback
-    (s.pair ilen jlen)
-  (s[i].uvPolyTp.comp s[j].uvPolyTp).p s[max i j].tp
-    (s.Sig ilen jlen) :=
-  sorry
+-- def Sig_pb : IsPullback
+--     (s.pair ilen jlen)
+--   (s[i].uvPolyTp.comp s[j].uvPolyTp).p s[max i j].tp
+--     (s.Sig ilen jlen) :=
+--   sorry
 
 /--
 ```
@@ -535,8 +537,30 @@ theorem comp_mkSigma {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
 def mkPair {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (t : y(Γ) ⟶ s[i].Tm) (t_tp : t ≫ s[i].tp = A)
     (u : y(Γ) ⟶ s[j].Tm) (u_tp : u ≫ s[j].tp = ym(s[i].sec A t t_tp) ≫ B) :
-    y(Γ) ⟶ s[max i j].Tm :=
-  NaturalModelBase.compDomEquiv.mk s[j] t (t_tp ▸ B) u sorry ≫ s.pair ilen jlen
+    y(Γ) ⟶ s[max i j].Tm := by
+  have ht : (t ≫ (s.homOfLe i (max i j)).mapTm) ≫ s[max i j].tp =
+      A ≫ (s.homOfLe i (max i j)).mapTy := by
+    have := (s.homOfLe i (max i j)).pb.w; dsimp at this
+    rw [Category.assoc, this, ← Category.assoc, t_tp]
+  refine compDomEquiv.mk _
+    (t ≫ (s.homOfLe i (max i j)).mapTm)
+    (ym(substCons _ (s[max i j].disp _) _
+        ((s.homOfLe i (max i j)).pb.lift (s[max i j].var _)
+          (ym(s[max i j].disp _) ≫ A)
+          (by simp [*]))
+        (by simp))
+      ≫ B ≫ (s.homOfLe j (max i j)).mapTy)
+    (u ≫ (s.homOfLe j (max i j)).mapTm)
+    ?_
+    ≫ (s.nmSigma (max i j)).pair
+  have hu : (u ≫ (s.homOfLe j (max i j)).mapTm) ≫ s[max i j].tp =
+      ym(s[i].sec A t t_tp) ≫ B ≫ (s.homOfLe j (max i j)).mapTy := by
+    have := (s.homOfLe j (max i j)).pb.w; dsimp at this
+    rw [Category.assoc, this, ← Category.assoc, u_tp, Category.assoc]
+  dsimp; rw [hu, ← Functor.map_comp_assoc]; congr! 2
+  rw [comp_substCons, sec]; congr!
+  · simp
+  · apply (s.homOfLe i (max i j)).pb.hom_ext <;> simp [*]
 
 theorem comp_mkPair {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
