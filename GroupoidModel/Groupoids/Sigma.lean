@@ -834,8 +834,8 @@ theorem smallUSigma.Sig_naturality {Γ Δ : Ctx} (σ : Δ ⟶ Γ)
   rw [← yonedaCategoryEquiv_symm_naturality_left, sigma_naturality,
   -- note the order of rewrite is first the fiber, then the base
   -- this allows rw! to cast the proof in the `eqToHom`
-    smallU.PtpEquiv.snd_naturality]
-  rw! [smallU.PtpEquiv.fst_naturality]
+    smallU.PtpEquiv.snd_comp_left]
+  rw! [smallU.PtpEquiv.fst_comp_left]
   congr 2
   · simp [map_id_eq, Functor.id_comp]
 

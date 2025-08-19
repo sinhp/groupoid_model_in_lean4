@@ -137,6 +137,13 @@ lemma fst_mk (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
     fst P X (mk P X b x) = b := by
   simp [fst, mk]
 
+theorem fst_comp_left (pair : Γ ⟶ P @ X) {Δ} (f : Δ ⟶ Γ) :
+    fst P X (f ≫ pair) = f ≫ fst P X pair := by
+  sorry
+
+theorem fst_comp_right (pair : Γ ⟶ P @ X) : fst P Y (pair ≫ P.functor.map f) = fst P X pair := by
+  sorry
+
 lemma snd_mk_heq (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
     snd P X (mk P X b x) ≍ x := by
   simp [snd, mk, fst]
@@ -147,13 +154,17 @@ lemma snd_mk (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
   simp [fst, snd, mk]
   sorry
 
+theorem snd_comp_right (pair : Γ ⟶ P @ X) : snd P Y (pair ≫ P.functor.map f) =
+    eqToHom congr(pullback $(fst_comp_right ..) _) ≫ snd P X pair ≫ f := by
+  sorry
+
 @[simp]
 lemma eta (pair : Γ ⟶ P @ X) :
     mk P X (fst P X pair) (snd P X pair) = pair := by
   simp [fst, snd, mk]
   sorry
 
-lemma mk_naturality_right (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
+lemma mk_comp_right (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
     mk P X b x ≫ P.functor.map f = mk P Y b (x ≫ f) :=
   sorry
 

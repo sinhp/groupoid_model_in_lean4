@@ -243,20 +243,6 @@ Specializations of results from the `Poly` package to natural models. -/
 @[simps] def uvPolyTp : UvPoly M.Tm M.Ty := ⟨M.tp, inferInstance⟩
 def Ptp : Psh Ctx ⥤ Psh Ctx := M.uvPolyTp.functor
 
-/--
-```
-yΓ ⟶ P_tp(X)
-=======================
-Γ ⊢ A type  y(Γ.A) ⟶ X
-```
--/
-@[simps!]
-def Ptp_equiv {Γ : Ctx} {X : Psh Ctx} :
-    (y(Γ) ⟶ M.Ptp.obj X) ≃ (A : y(Γ) ⟶ M.Ty) × (y(M.ext A) ⟶ X) :=
-  (UvPoly.equiv _ _ _).trans
-    (Equiv.sigmaCongrRight fun _ =>
-      (M.pullbackIsoExt _).homCongr (Iso.refl _))
-
 namespace PtpEquiv
 
 variable {Γ : Ctx} {X : Psh Ctx}
@@ -314,28 +300,28 @@ lemma snd_mk_heq (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
 section
 variable {Δ : Ctx} {σ : Δ ⟶ Γ} {AB : y(Γ) ⟶ M.Ptp.obj X}
 
-theorem fst_naturality_left : fst M (ym(σ) ≫ AB) = ym(σ) ≫ fst M AB := rfl
+theorem fst_comp_left (σ : y(Δ) ⟶ y(Γ)) : fst M (σ ≫ AB) = σ ≫ fst M AB :=
+  UvPoly.Equiv.fst_comp_left ..
 
-theorem snd_naturality_left : snd M (ym(σ) ≫ AB) = ym(M.substWk σ _) ≫ snd M AB := by
+theorem fst_comp_right {Y} (σ : X ⟶ Y) : fst M (AB ≫ M.Ptp.map σ) = fst M AB :=
+  UvPoly.Equiv.fst_comp_right ..
+
+attribute [-simp] pullbackIsoExt_inv in
+theorem snd_comp_right {Y} (σ : X ⟶ Y) : snd M (AB ≫ M.Ptp.map σ) =
+    ym(eqToHom congr(M.ext $(fst_comp_right ..))) ≫ snd M AB ≫ σ := by
+  simp [snd]; conv_lhs => rhs; apply UvPoly.Equiv.snd_comp_right
+  simp only [← Category.assoc]; congr! 2
+  suffices ∀ A (h : A = fst M AB),
+    (M.pullbackIsoExt A).inv ≫ eqToHom (h ▸ rfl) =
+    ym(eqToHom (h ▸ rfl)) ≫ (M.pullbackIsoExt (fst M AB)).inv from this _ (fst_comp_right ..)
+  rintro _ rfl; simp
+
+theorem snd_comp_left : snd M (ym(σ) ≫ AB) = ym(M.substWk σ _) ≫ snd M AB := by
   sorry
 
 end
 
 end PtpEquiv
-
-theorem Ptp_equiv_naturality_right {Γ : Ctx} {X Y : Psh Ctx}
-    (x : y(Γ) ⟶ M.Ptp.obj X) (α : X ⟶ Y) :
-    M.Ptp_equiv (x ≫ M.Ptp.map α) =
-      let S := M.Ptp_equiv x
-      ⟨S.1, S.2 ≫ α⟩ := by
-  -- See https://leanprover.zulipchat.com/#narrow/channel/116395-maths/topic/Natural.20equivalences.20and.20kernel.20performance/with/513971849
-  sorry
-
-@[reassoc]
-theorem Ptp_equiv_symm_naturality_right {Γ : Ctx} {X Y : Psh Ctx}
-    (A : y(Γ) ⟶ M.Ty) (x : y(M.ext A) ⟶ X) (α : X ⟶ Y) :
-    M.Ptp_equiv.symm ⟨A, x⟩ ≫ M.Ptp.map α = M.Ptp_equiv.symm ⟨A, x ≫ α⟩ := by
-  sorry
 
 @[reassoc]
 theorem PtpEquiv.mk_map {Γ : Ctx} {X Y : Psh Ctx}
@@ -367,8 +353,8 @@ A map `ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp` is equivalently three maps
 is the `(a : A)` in `(a : A) × (b : B a)`.
 -/
 def fst (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : y(Γ) ⟶ M.Tm :=
-ab ≫ pullback.snd N.tp (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).snd ≫
-  pullback.snd (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).fst M.uvPolyTp.p
+  ab ≫ pullback.snd N.tp (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).snd ≫
+    pullback.snd (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).fst M.uvPolyTp.p
 
 /-- Computation of `comp` (part 1).
 
@@ -849,7 +835,7 @@ def motive : y(Γ) ⟶ i.iFunctor.obj M.Ty :=
 def j : y(Γ) ⟶ i.iFunctor.obj M.Tm :=
   i.weakPullback.lift y(Γ) (reflCase a r) (motive i a C) (by
     simp [reflCase, motive]
-    rw [UvPoly.Equiv.mk_naturality_right]
+    rw [UvPoly.Equiv.mk_comp_right]
     sorry
   )
 

@@ -242,13 +242,13 @@ thought of as a dependent pair `A : Type` and `B : A ⟶ Type` when `C = Grpd`.
 def snd : ∫(fst AB) ⥤ C :=
   yonedaCategoryEquiv (NaturalModelBase.PtpEquiv.snd smallU AB)
 
-theorem fst_naturality : fst (ym(σ) ≫ AB) = Ctx.toGrpd.map σ ⋙ fst AB := by
+nonrec theorem fst_comp_left : fst (ym(σ) ≫ AB) = Ctx.toGrpd.map σ ⋙ fst AB := by
   dsimp only [fst]
-  rw [PtpEquiv.fst_naturality_left, ← yonedaCategoryEquiv_naturality_left]
+  rw [PtpEquiv.fst_comp_left, ← yonedaCategoryEquiv_naturality_left]
 
-theorem snd_naturality : snd (ym(σ) ≫ AB) =
-    map (eqToHom (fst_naturality σ AB)) ⋙ pre _ (Ctx.toGrpd.map σ) ⋙ snd AB := by
-  rw [snd, PtpEquiv.snd_naturality_left, yonedaCategoryEquiv_naturality_left, ← Functor.assoc,
+nonrec theorem snd_comp_left : snd (ym(σ) ≫ AB) =
+    map (eqToHom (fst_comp_left σ AB)) ⋙ pre _ (Ctx.toGrpd.map σ) ⋙ snd AB := by
+  rw [snd, PtpEquiv.snd_comp_left, yonedaCategoryEquiv_naturality_left, ← Functor.assoc,
     smallU_substWk, Ctx.toGrpd_map_ofGrpd_map, yonedaCategoryEquivPre, Grpd.homOf]
   rfl
 

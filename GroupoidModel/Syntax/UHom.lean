@@ -442,13 +442,13 @@ def Pi_pb :
 Γ ⊢ₘₐₓ₍ᵢ,ⱼ₎ ΠA. B
 ``` -/
 def mkPi {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty) : y(Γ) ⟶ s[max i j].Ty :=
-  s[i].Ptp_equiv.symm ⟨A, B⟩ ≫ s.Pi ilen jlen
+  PtpEquiv.mk s[i] A B ≫ s.Pi ilen jlen
 
 theorem comp_mkPi {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty) :
     ym(σ) ≫ s.mkPi ilen jlen A B = s.mkPi ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ B) := by
-  simp[mkPi, ← Category.assoc]
-  congr
+  simp [mkPi, ← Category.assoc]
+  congr!
 
   sorry
 
@@ -459,13 +459,13 @@ theorem comp_mkPi {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
 Γ ⊢ₘₐₓ₍ᵢ,ⱼ₎ λA. t : ΠA. B
 ``` -/
 def mkLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (t : y(s[i].ext A) ⟶ s[j].Tm) : y(Γ) ⟶ s[max i j].Tm :=
-  s[i].Ptp_equiv.symm ⟨A, t⟩ ≫ s.lam ilen jlen
+  PtpEquiv.mk s[i] A t ≫ s.lam ilen jlen
 
 @[simp]
 theorem mkLam_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (t : y(s[i].ext A) ⟶ s[j].Tm) (t_tp : t ≫ s[j].tp = B) :
     s.mkLam ilen jlen A t ≫ s[max i j].tp = s.mkPi ilen jlen A B := by
-  simp [mkLam, mkPi, (s.Pi_pb ilen jlen).w, s[i].Ptp_equiv_symm_naturality_right_assoc, t_tp]
+  simp [mkLam, mkPi, (s.Pi_pb ilen jlen).w, PtpEquiv.mk_map_assoc, t_tp]
 
 theorem comp_mkLam {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (t : y(s[i].ext A) ⟶ s[j].Tm) :
@@ -482,13 +482,12 @@ def unLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (f : y(Γ) ⟶ s[max i j].Tm) (f_tp : f ≫ s[max i j].tp = s.mkPi ilen jlen A B) :
     y(s[i].ext A) ⟶ s[j].Tm := by
   let total : y(Γ) ⟶ s[i].Ptp.obj s[j].Tm :=
-    (s.Pi_pb ilen jlen).lift f (s[i].Ptp_equiv.symm ⟨A, B⟩) f_tp
-  convert (s[i].Ptp_equiv total).snd
-  have eq : total ≫ s[i].Ptp.map s[j].tp = s[i].Ptp_equiv.symm ⟨A, B⟩ :=
+    (s.Pi_pb ilen jlen).lift f (PtpEquiv.mk s[i] A B) f_tp
+  convert PtpEquiv.snd s[i] total
+  have eq : total ≫ s[i].Ptp.map s[j].tp = PtpEquiv.mk s[i] A B :=
     (s.Pi_pb ilen jlen).isLimit.fac _ (some .right)
-  apply_fun s[i].Ptp_equiv at eq
-  apply_fun Sigma.fst at eq
-  rw [Equiv.apply_symm_apply, Ptp_equiv_naturality_right] at eq
+  apply_fun PtpEquiv.fst s[i] at eq
+  rw [PtpEquiv.fst_comp_right] at eq
   simpa using eq.symm
 
 @[simp]
