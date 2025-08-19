@@ -550,7 +550,7 @@ theorem mkRefl_tp (a : y(Γ) ⟶ M.Tm) :
 /-- The context appearing in the motive for identity elimination `J`
   Γ ⊢ A
   Γ ⊢ a : A
-  Γ.(x:A).(h:Id(A,a,x)) ⊢ M
+  Γ.(x:A).(h:Id(A,a,x)) ⊢ C
   ...
 -/
 def motiveCtx (a : y(Γ) ⟶ M.Tm) : Ctx :=
@@ -574,22 +574,25 @@ requires an `IdIntro` and an elimination rule `j` which satisfies a typing rule 
 and a β-rule `reflSubst_j`.
 There is an equivalent formulation of these extra conditions later in `Id'`
 that uses the language of polynomial endofunctors.
+
+Note that the universe/model `N` for the motive `C` is different from the universe `M` that the
+idenity type lives in.
 -/
-structure Id extends IdIntro M where
-  j {Γ} (a : y(Γ) ⟶ M.Tm) (C : y(IdIntro.motiveCtx _ a) ⟶ M.Ty) (r : y(Γ) ⟶ M.Tm)
-    (r_tp : r ≫ M.tp = ym(toIdIntro.reflSubst a) ≫ C) :
-    y(IdIntro.motiveCtx _ a) ⟶ M.Tm
-  j_tp {Γ} (a : y(Γ) ⟶ M.Tm) (C : y(IdIntro.motiveCtx _ a) ⟶ M.Ty) (r : y(Γ) ⟶ M.Tm)
-    (r_tp : r ≫ M.tp = ym(toIdIntro.reflSubst a) ≫ C) : j a C r r_tp ≫ M.tp = C
-  reflSubst_j {Γ} (a : y(Γ) ⟶ M.Tm) (C : y(IdIntro.motiveCtx _ a) ⟶ M.Ty) (r : y(Γ) ⟶ M.Tm)
-    (r_tp : r ≫ M.tp = ym(toIdIntro.reflSubst a) ≫ C) :
+structure Id (N : NaturalModelBase Ctx) extends IdIntro M where
+  j {Γ} (a : y(Γ) ⟶ M.Tm) (C : y(IdIntro.motiveCtx _ a) ⟶ N.Ty) (r : y(Γ) ⟶ N.Tm)
+    (r_tp : r ≫ N.tp = ym(toIdIntro.reflSubst a) ≫ C) :
+    y(IdIntro.motiveCtx _ a) ⟶ N.Tm
+  j_tp {Γ} (a : y(Γ) ⟶ M.Tm) (C : y(IdIntro.motiveCtx _ a) ⟶ N.Ty) (r : y(Γ) ⟶ N.Tm)
+    (r_tp : r ≫ N.tp = ym(toIdIntro.reflSubst a) ≫ C) : j a C r r_tp ≫ N.tp = C
+  reflSubst_j {Γ} (a : y(Γ) ⟶ M.Tm) (C : y(IdIntro.motiveCtx _ a) ⟶ N.Ty) (r : y(Γ) ⟶ N.Tm)
+    (r_tp : r ≫ N.tp = ym(toIdIntro.reflSubst a) ≫ C) :
     ym(toIdIntro.reflSubst a) ≫ j a C r r_tp = r
 
 namespace Id
 
-variable (i : Id M) {Γ : Ctx} (a : y(Γ) ⟶ M.Tm)
-  (C : y(i.motiveCtx a) ⟶ M.Ty) (r : y(Γ) ⟶ M.Tm)
-  (r_tp : r ≫ M.tp = ym(i.reflSubst a) ≫ C) (b : y(Γ) ⟶ M.Tm) (b_tp : b ≫ M.tp = a ≫ M.tp)
+variable {M} {N : NaturalModelBase Ctx} (i : Id M N) {Γ : Ctx} (a : y(Γ) ⟶ M.Tm)
+  (C : y(i.motiveCtx a) ⟶ N.Ty) (r : y(Γ) ⟶ N.Tm)
+  (r_tp : r ≫ N.tp = ym(i.reflSubst a) ≫ C) (b : y(Γ) ⟶ M.Tm) (b_tp : b ≫ M.tp = a ≫ M.tp)
   (h : y(Γ) ⟶ M.Tm) (h_tp : h ≫ M.tp = i.isKernelPair.lift b a (by aesop) ≫ i.Id)
 
 def endPtSubst : Γ ⟶ i.motiveCtx a :=
@@ -606,16 +609,16 @@ def endPtSubst : Γ ⟶ i.motiveCtx a :=
   `Γ ⊢ b : A` is a second term in `A` and `Γ ⊢ h : Id(A,a,b)` is a path from `a` to `b`.
   Then `Γ ⊢ mkJ' : C [b/y,h/p]` is a term of the motive with `b` and `h` substituted
 -/
-def mkJ : y(Γ) ⟶ M.Tm :=
-  ym(i.endPtSubst M a b b_tp h h_tp) ≫ i.j a C r r_tp
+def mkJ : y(Γ) ⟶ N.Tm :=
+  ym(i.endPtSubst a b b_tp h h_tp) ≫ i.j a C r r_tp
 
 /-- Typing for elimination rule `J` -/
-lemma mkJ_tp : i.mkJ M a C r r_tp b b_tp h h_tp ≫ M.tp = ym(i.endPtSubst M a b b_tp h h_tp) ≫ C := by
+lemma mkJ_tp : i.mkJ a C r r_tp b b_tp h h_tp ≫ N.tp = ym(i.endPtSubst a b b_tp h h_tp) ≫ C := by
   rw [mkJ, Category.assoc, i.j_tp]
 
 /-- β rule for identity types. Substituting `J` with `refl` gives the user-supplied value `r` -/
-lemma mkJ_refl : i.mkJ M a C r r_tp a rfl (i.mkRefl a) (by aesop) = r :=
-  calc ym(i.endPtSubst M a a _ (i.mkRefl a) _) ≫ i.j a C r r_tp
+lemma mkJ_refl : i.mkJ a C r r_tp a rfl (i.mkRefl a) (by aesop) = r :=
+  calc ym(i.endPtSubst a a _ (i.mkRefl a) _) ≫ i.j a C r r_tp
     _ = ym(i.reflSubst a) ≫ i.j a C r r_tp := rfl
     _ = r := by rw [i.reflSubst_j]
 
@@ -1040,13 +1043,14 @@ def endPtSubst : Γ ⟶ i.motiveCtx a :=
     · simp)
 
 /-- `Id'` is equivalent to `Id` (one half). -/
-def toId : Id M := {
+def toId : Id M M := {
   i with
   j := i.j
   j_tp := i.j_tp
   reflSubst_j := i.reflSubst_j
   }
 -- TODO: prove the other half of the equivalence.
+-- Generalize this version so that the universe for elimination is not also `M`
 
 end Id'
 

@@ -273,14 +273,15 @@ def lift : C ⥤ Libya := Chosen.lift Cn Cw hC ⋙ P.fromChosen
 /--
 Commuting conditions for the universal lift of the pullback `P`.
 -/
-theorem fac_left : lift P Cn Cw hC ⋙ north = Cn := by
+@[simp]
+theorem lift_fst : lift P Cn Cw hC ⋙ north = Cn := by
   simp [lift, Functor.assoc, P.from_north, Chosen.fac_left]
-
 
 /--
 Commuting conditions for the universal lift of the pullback `P`.
 -/
-theorem fac_right : lift P Cn Cw hC ⋙ west = Cw := by
+@[simp]
+theorem lift_snd : lift P Cn Cw hC ⋙ west = Cw := by
   simp [lift, Functor.assoc, P.from_west, Chosen.fac_right]
 
 include P in
@@ -306,8 +307,8 @@ Uniqueness of universal lifts for the pullback `P`.
 theorem lift_uniq {l : C ⥤ Libya} (hnorth : l ⋙ north = Cn)
     (hwest : l ⋙ west = Cw) : l = lift P Cn Cw hC := by
   apply hom_ext P
-  · simp [hnorth, fac_left]
-  · simp [hwest, fac_right]
+  · simp [hnorth]
+  · simp [hwest]
 end
 
 section
@@ -424,9 +425,9 @@ def ofIso'Universal {C : Type*} [Category C]
     → l0 = l1 :=
   ⟨ ofIso'Lift north west east south pb east' south' lib egy cha sud heast hsouth Cn Cw hC,
     by rw [ofIso'Lift, Functor.assoc, (Iso.inv_comp_eq_comp_inv lib egy hnorth).mpr hnorth,
-        ← Functor.assoc, pb.fac_left, Functor.assoc, egy.hom_inv_id, Functor.comp_id],
+        ← Functor.assoc, pb.lift_fst, Functor.assoc, egy.hom_inv_id, Functor.comp_id],
     by rw [ofIso'Lift, Functor.assoc, (Iso.inv_comp_eq_comp_inv lib cha hwest.symm).mpr hwest.symm,
-        ← Functor.assoc, pb.fac_right, Functor.assoc, cha.hom_inv_id, Functor.comp_id],
+        ← Functor.assoc, pb.lift_snd, Functor.assoc, cha.hom_inv_id, Functor.comp_id],
     by
       intro l0 l1 hn hw
       have : l0 ⋙ lib.hom = l1 ⋙ lib.hom := by
@@ -501,7 +502,7 @@ variable {C : Type u} [Category.{v} C] (Cn : C ⥤ Egypt) (Cw : C ⥤ Niger)
   (hC : Cn ⋙ east = Cw ⋙ so ⋙ uth)
 
 def lift : C ⥤ Algeria :=
-  wsah_pb.lift (esah_pb.lift Cn (Cw ⋙ so) hC) Cw (esah_pb.fac_right _ _ _)
+  wsah_pb.lift (esah_pb.lift Cn (Cw ⋙ so) hC) Cw (esah_pb.lift_snd _ _ _)
 
 def universal : (lift : C ⥤ Algeria) ×'
     lift ⋙ no ⋙ rth = Cn ∧
@@ -509,8 +510,8 @@ def universal : (lift : C ⥤ Algeria) ×'
     ∀ {l0 l1 : C ⥤ Algeria}, l0 ⋙ no ⋙ rth = l1 ⋙ no ⋙ rth →
     l0 ⋙ west = l1 ⋙ west → l0 = l1 :=
   ⟨ lift esah_pb wsah_pb Cn Cw hC,
-    by rw [lift, ← Functor.assoc, wsah_pb.fac_left, esah_pb.fac_left],
-    wsah_pb.fac_right _ _ _,
+    by rw [lift, ← Functor.assoc, wsah_pb.lift_fst, esah_pb.lift_fst],
+    wsah_pb.lift_snd _ _ _,
     by
       intro l0 l1 hnorth hwest
       apply wsah_pb.hom_ext
@@ -580,11 +581,11 @@ namespace ofRight
   ⟨ lift esah_pb.comm_sq outer_pb Cn Cw hC,
   by constructor
      . apply esah_pb.hom_ext
-       . exact outer_pb.fac_left _ _ _
+       . exact outer_pb.lift_fst _ _ _
        . rw [Functor.assoc, wsah, ← Functor.assoc, hC]
-         rw! [outer_pb.fac_right (Cn⋙rth) Cw (hCLeft esah Cn Cw hC)]
+         rw! [outer_pb.lift_snd (Cn⋙rth) Cw (hCLeft esah Cn Cw hC)]
      . constructor
-       . exact outer_pb.fac_right (Cn⋙rth) Cw (hCLeft esah Cn Cw hC)
+       . exact outer_pb.lift_snd (Cn⋙rth) Cw (hCLeft esah Cn Cw hC)
        . intro l0 l1 hln hlw
          apply outer_pb.hom_ext
          . rw[← Functor.assoc, ← Functor.assoc, hln]
@@ -656,26 +657,34 @@ def universal : (lift : C ⥤ Algeria) ×'
   by constructor
      . apply esah_pb.hom_ext
        . calc
-          (outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ esah_pb.lift north (west ⋙ so) outer) ⋙ rth =
-            outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ esah_pb.lift north (west ⋙ so) outer ⋙ rth := by rw[Functor.assoc]
-          _ = outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ north := by rw[esah_pb.fac_left north (west ⋙ so) outer]
-          _ = Cn ⋙ rth := by rw[outer_pb.fac_left (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC)]
+          (outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙
+            esah_pb.lift north (west ⋙ so) outer) ⋙ rth =
+            outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙
+            esah_pb.lift north (west ⋙ so) outer ⋙ rth := by rw[Functor.assoc]
+          _ = outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ north := by
+            simp
+          _ = Cn ⋙ rth := by
+            simp
        . calc
-          (outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ esah_pb.lift north (west ⋙ so) outer) ⋙ sah =
-            outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ esah_pb.lift north (west ⋙ so) outer ⋙ sah := by rw[Functor.assoc]
-          _ = outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ (west ⋙ so) := by rw[esah_pb.fac_right north (west ⋙ so) outer]
-          _ = Cw ⋙ so := by rw[← Functor.assoc, outer_pb.fac_right (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC)]
+          (outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙
+            esah_pb.lift north (west ⋙ so) outer) ⋙ sah =
+            outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙
+            esah_pb.lift north (west ⋙ so) outer ⋙ sah := by rw[Functor.assoc]
+          _ = outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ (west ⋙ so) := by
+            rw[esah_pb.lift_snd north (west ⋙ so) outer]
+          _ = Cw ⋙ so := by
+            rw[← Functor.assoc, outer_pb.lift_snd (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC)]
           _ = Cn ⋙ sah := by rw[hC]
      . constructor
-       . exact outer_pb.fac_right (Cn⋙rth) Cw (ofRight.hCLeft esah Cn Cw hC)
+       . simp
        . intro l0 l1 hll hlw
          apply outer_pb.hom_ext
          . calc
             l0 ⋙ north = l0 ⋙ (esah_pb.lift north (west ⋙ so) outer ⋙ rth) :=
-              by rw [esah_pb.fac_left north (west ⋙ so) outer ]
+              by simp
             _ = (l0 ⋙ esah_pb.lift north (west ⋙ so) outer) ⋙ rth := by rw [Functor.assoc]
             _ = (l1 ⋙ esah_pb.lift north (west ⋙ so) outer) ⋙ rth := by rw [hll]
-            _ = l1 ⋙ north := by rw [Functor.assoc, esah_pb.fac_left north (west ⋙ so) outer]
+            _ = l1 ⋙ north := by rw [Functor.assoc, esah_pb.lift_fst north (west ⋙ so) outer]
          . exact hlw
     ⟩
 
@@ -707,7 +716,7 @@ def ofRight' {north : Algeria ⥤ Egypt} {rth : Libya ⥤ Egypt}
   (esah_pb : IsPullback rth sah east uth) :
   IsPullback (esah_pb.lift north (west ⋙ so) outer) west sah so :=
   IsPullback.ofUniversal (esah_pb.lift north (west ⋙ so) outer) west sah so
-  (esah_pb.fac_right _ _ _)
+  (esah_pb.lift_snd _ _ _)
   (fun Cn Cw hC => ofRight'.universal outer esah esah_pb outer_pb Cn Cw hC)
   (fun Cn Cw hC => ofRight'.universal outer esah esah_pb outer_pb Cn Cw hC)
 
@@ -739,23 +748,25 @@ variable {Libya Egypt Chad Sudan : Type u} [Category.{v} Libya]
 
 def lift : s.pt ⟶ of Libya := h.lift s.fst s.snd s.condition
 
-def fac_left : lift h s ≫ (homOf north) = s.fst :=
-  h.fac_left _ _ _
+@[simp]
+lemma lift_fst : lift h s ≫ (homOf north) = s.fst := by
+  simp [lift, homOf, Cat.comp_eq_comp]
 
-def fac_right : lift h s ≫ (homOf west) = s.snd :=
-  h.fac_right _ _ _
+@[simp]
+lemma lift_snd : lift h s ≫ (homOf west) = s.snd := by
+  simp [lift, homOf, Cat.comp_eq_comp]
 
 def uniq (m : s.pt ⟶ of Libya) (hl : m ≫ homOf north = s.fst)
     (hr : m ≫ homOf west = s.snd) : m = lift h s := by
   apply h.hom_ext
-  · convert (fac_left h s).symm
-  · convert (fac_right h s).symm
+  · convert (lift_fst h s).symm
+  · convert (lift_snd h s).symm
 
 variable (comm_sq) in
 def isPullback : IsPullback (homOf north) (homOf west) (homOf east)
     (homOf south) :=
   IsPullback.of_isLimit (PullbackCone.IsLimit.mk
-    comm_sq (lift h) (fac_left _) (fac_right _) (uniq _))
+    comm_sq (lift h) (lift_fst _) (lift_snd _) (uniq _))
 
 end
 

@@ -926,7 +926,7 @@ theorem fac_right : lift.{v} AB αβ hαβ ≫ smallU.comp.{v} = AB := by
   · apply HEq.trans (dependent_heq _).symm
     rw [lift, dependent_mk]
     dsimp [sigma.dependent']
-    simp [map_id_eq, Functor.id_comp]
+    simp only [map_id_eq, Cat.of_α, Functor.id_comp]
     apply map_eqToHom_comp_heq
 
 theorem hom_ext (m n : y(Γ) ⟶ smallU.compDom.{v})

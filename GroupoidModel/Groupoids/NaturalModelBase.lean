@@ -158,14 +158,14 @@ theorem smallU_lift {Γ Δ : Ctx} (A : y(Γ) ⟶ smallU.{v}.Ty)
   apply (smallU.{v}.disp_pullback A).hom_ext
   · dsimp only [smallU_var]
     erw [← yonedaCategoryEquiv_symm_naturality_left,
-      (Functor.Groupoidal.isPullback (yonedaCategoryEquiv A)).fac_left,
+      (Functor.Groupoidal.isPullback (yonedaCategoryEquiv A)).lift_fst,
       Equiv.apply_symm_apply]
     simp
   · simp only [smallU_ext, smallU_Tm, smallU_Ty, smallU_var, Grpd.coe_of,
       smallU_disp,
       smallU_tp, IsPullback.lift_snd, ← Functor.map_comp, Grpd.comp_eq_comp,
       smallU.disp]
-    erw [(isPullback (yonedaCategoryEquiv A)).fac_right, AsSmall.down_map_up_map]
+    erw [(isPullback (yonedaCategoryEquiv A)).lift_snd, AsSmall.down_map_up_map]
 
 def yonedaCategoryEquivPre (A : y(Γ) ⟶ smallU.{v}.Ty) :
     ∫(yonedaCategoryEquiv (ym(σ) ≫ A)) ⥤ ∫(yonedaCategoryEquiv A) :=

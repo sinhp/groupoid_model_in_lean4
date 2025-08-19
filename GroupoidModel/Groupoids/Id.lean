@@ -1,4 +1,6 @@
 import GroupoidModel.Groupoids.NaturalModelBase
+import GroupoidModel.Syntax.NaturalModel
+import GroupoidModel.ForMathlib.CategoryTheory.RepPullbackCone
 
 import GroupoidModel.Syntax.NaturalModel
 
@@ -59,10 +61,12 @@ abbrev BPGrpd := ∫ PGrpd.forgetToGrpd
 
 namespace BPGrpd
 
-abbrev snd : BPGrpd ⥤ PGrpd := Functor.Groupoidal.forget
+@[simp]
+def snd : BPGrpd ⥤ PGrpd := Functor.Groupoidal.forget
 
 abbrev forgetToGrpd : BPGrpd ⥤ Grpd := snd ⋙ PGrpd.forgetToGrpd
 
+@[simp]
 def fst : BPGrpd ⥤ PGrpd := toPGrpd _
 
 /-- The commutative square
@@ -75,19 +79,54 @@ def fst : BPGrpd ⥤ PGrpd := toPGrpd _
    PGrpd ----> Grpd
 -/
 theorem snd_forgetToGrpd : fst ⋙ PGrpd.forgetToGrpd = snd ⋙ PGrpd.forgetToGrpd := by
-  simp [fst, snd, toPGrpd_forgetToGrpd]
+  simp [toPGrpd_forgetToGrpd]
 
 /- BPGrpd is the pullback of PGrpd.forgetToGrpd with itself -/
 def isPullback : Functor.IsPullback fst.{u,v} snd.{u,v} PGrpd.forgetToGrpd.{u,v}
     PGrpd.forgetToGrpd.{u,v} := by
   apply @Functor.Groupoidal.isPullback PGrpd _ (PGrpd.forgetToGrpd)
 
--- -- TODO: docstring + why is it called `inc`?
--- def inc (G : Type) [Groupoid G] : G ⥤ BPGrpd := by
---   fapply isPullback.lift
---   . exact PGrpd.inc G
---   . exact PGrpd.inc G
---   . simp
+lemma isPullback_lift_obj_base {Γ : Type*} [Category Γ] (F G : Γ ⥤ PGrpd) (hFG) (x) :
+    ((BPGrpd.isPullback.lift F G hFG).obj x).base = G.obj x :=
+  calc ((BPGrpd.isPullback.lift F G hFG).obj x).base
+  _ = (BPGrpd.isPullback.lift F G hFG ⋙ BPGrpd.snd).obj x := by
+    rw [Functor.comp_obj]
+    simp
+  _ = _ := by simp only [BPGrpd.fst, BPGrpd.snd, Functor.IsPullback.lift_snd]
+
+lemma isPullback_lift_obj_fiber {Γ : Type*} [Category Γ] (F G : Γ ⥤ PGrpd) (hFG) (x) :
+    ((BPGrpd.isPullback.lift F G hFG).obj x).fiber ≍ PGrpd.objFiber F x := by
+  rw [← Functor.Groupoidal.toPGrpd_obj_fiber]
+  rw! (castMode := .all)
+    [← Functor.comp_obj (BPGrpd.isPullback.lift F G hFG) (toPGrpd PGrpd.forgetToGrpd),
+    Functor.IsPullback.lift_fst]
+  simp [PGrpd.objFiber]
+
+lemma isPullback_lift_map_base {Γ : Type*} [Category Γ] (F G : Γ ⥤ PGrpd) (hFG) {x y}
+    (f : x ⟶ y) :
+    ((BPGrpd.isPullback.lift F G hFG).map f).base =
+    eqToHom (BPGrpd.isPullback_lift_obj_base _ _ _ _) ≫
+    G.map f ≫ eqToHom (BPGrpd.isPullback_lift_obj_base _ _ _ _).symm :=
+  calc ((BPGrpd.isPullback.lift F G hFG).map f).base
+  _ = (BPGrpd.isPullback.lift F G hFG ⋙ BPGrpd.snd).map f := by
+    rw [Functor.comp_map]
+    simp
+  _ = _ := by
+    apply Functor.congr_hom
+    simp
+
+lemma isPullback_lift_map_fiber {Γ : Type*} [Category Γ] (F G : Γ ⥤ PGrpd) (hFG) {x y}
+    (f : x ⟶ y) :
+    ((BPGrpd.isPullback.lift F G hFG).map f).fiber ≍
+    PGrpd.mapFiber F f := by
+  rw [← Functor.Groupoidal.toPGrpd_map_fiber]
+  rw! (castMode := .all)
+    [← Functor.comp_map (BPGrpd.isPullback.lift F G hFG) (toPGrpd PGrpd.forgetToGrpd),
+    Functor.IsPullback.lift_fst]
+  simp only [eqRec_heq_iff_heq]
+  congr 1
+  any_goals rw [← Functor.comp_obj]
+  all_goals simp
 
 end BPGrpd
 
@@ -96,6 +135,8 @@ end CategoryTheory
 namespace GroupoidModel
 
 open CategoryTheory Functor.Groupoidal
+
+attribute [local simp] Functor.assoc
 
 namespace FunctorOperation
 
@@ -190,6 +231,12 @@ def diag : PGrpd ⥤ BPGrpd where
     · simp
     · simp [Grpd.forgetToCat]
 
+@[simp]
+lemma diag_comp_toPGrpd : diag ⋙ toPGrpd _ = 𝟭 _ := rfl
+
+@[simp]
+lemma diag_comp_forget : diag ⋙ forget = 𝟭 _ := rfl
+
 /--
 This version of `diag` is used for functor equational reasoning.
 -/
@@ -197,7 +244,7 @@ def diag' : PGrpd ⥤ BPGrpd :=
   BPGrpd.isPullback.lift (𝟭 _) (𝟭 _) rfl
 
 lemma diag_eq_diag' : diag = diag' :=
-  BPGrpd.isPullback.lift_uniq _ _ _ rfl rfl
+  BPGrpd.isPullback.hom_ext (by simp [diag']) (by simp [diag'])
 
 def reflObjFiber (x : PGrpd) : Discrete (x.fiber ⟶ x.fiber) := ⟨𝟙 x.fiber⟩
 
@@ -207,7 +254,7 @@ def refl : PGrpd ⥤ PGrpd :=
     (by simp)
     (by intros; simp [Discrete.eqToHom, eqToHom_map])
 
-theorem refl_forgetToGrpd : refl ⋙ PGrpd.forgetToGrpd = diag ⋙ id := rfl
+theorem refl_comp_forgetToGrpd : refl ⋙ PGrpd.forgetToGrpd = diag ⋙ id := rfl
 
 /- This is the universal lift
             Refl
@@ -222,7 +269,7 @@ PGrpd ------------>
               Id
 -/
 def comparison : PGrpd ⥤ ∫ id :=
-  (isPullback id).lift refl diag refl_forgetToGrpd
+  (isPullback id).lift refl diag refl_comp_forgetToGrpd
 
 /- This is the composition
 
@@ -256,7 +303,7 @@ PGrpd ------------>
 -/
 theorem comparison_comp_forget_comp_forgetToGrpd : comparison ⋙ forget ⋙ BPGrpd.forgetToGrpd =
     PGrpd.forgetToGrpd := by
-  simp only [comparison, diag, ← Functor.assoc, Functor.IsPullback.fac_right]
+  simp only [comparison, diag, ← Functor.assoc, Functor.IsPullback.lift_snd]
   fapply CategoryTheory.Functor.ext
   . intro X
     simp
@@ -312,16 +359,113 @@ theorem comparison_comp_forget_comp_forgetToGrpd : comparison ⋙ forget ⋙ BPG
 -- theorem PreJLift  (G : Type u) [Groupoid G] : (Path_Refl G) ⋙ (PreJ G) = 𝟭 G := by
 --   simp [Path_Refl,PreJ,Functor.comp,Functor.id]
 
--- def j {Γ : Type*} [Category Γ] (a : Γ ⥤ PGrpd.{u,u}) (C : y(smallUIdIntro.{u}.motiveCtx a) ⟶ smallU.Ty.{u})
---     (r : y(Γ) ⟶ smallU.Tm.{u}) (r_tp : r ≫ smallU.tp.{u} = ym(smallUIdIntro.{u}.reflSubst a) ≫ C)
---     : (y(smallUIdIntro.{u}.motiveCtx a) ⟶ smallU.Tm.{u}) := by
---   let a' := yonedaCategoryEquiv a
---   let C' := yonedaCategoryEquiv C
---   let r' := yonedaCategoryEquiv r
---   have r'_forgetToGrpd : r' ⋙ PGrpd.forgetToGrpd =
---       Ctx.toGrpd.map (smallUIdIntro.reflSubst a) ⋙ C' := sorry
---   sorry
+def mkId {Γ : Type*} [Category Γ] (a0 a1 : Γ ⥤ PGrpd.{u,u})
+    (a0_tp_eq_a1_tp : a0 ⋙ PGrpd.forgetToGrpd = a1 ⋙ PGrpd.forgetToGrpd) :
+    Γ ⥤ Grpd :=
+  BPGrpd.isPullback.lift a1 a0 (by rw [a0_tp_eq_a1_tp]) ⋙ FunctorOperation.id
 
+section
+variable {Γ : Type*} [Groupoid Γ] (a : Γ ⥤ PGrpd.{u,u})
+
+/-- The context appearing in the motive for identity elimination `J`
+  Here `A = a ⋙ PGrpd.forgetToGrpd`
+  ```
+  Γ ⊢ A
+  Γ ⊢ a : A
+  Γ.(x:A).(h:Id(A,a,x)) ⊢ C
+  motiveCtx a := Γ.(x:A).(h:Id(A,a,x))
+  ...
+  ```
+-/
+def motiveCtx : Grpd :=
+  Grpd.of $ ∫ mkId (forget ⋙ a) (toPGrpd (a ⋙ PGrpd.forgetToGrpd)) rfl
+
+def reflSubst' : Γ ⥤ motiveCtx a :=
+  (isPullback _).lift (a ⋙ refl) (sec _ a rfl) (by
+    simp only [Functor.assoc, refl_comp_forgetToGrpd, mkId]
+    simp only [← Functor.assoc]
+    congr 1
+    apply (isPullback _).hom_ext
+    · simp
+    · simp only [Functor.assoc, diag_comp_forget, Functor.simpCompId, BPGrpd.fst, BPGrpd.snd,
+        Functor.IsPullback.lift_snd]
+      simp [← Functor.assoc])
+
+-- This seems like a bad way of going about it.
+@[simps]
+def reflSubst : Γ ⥤ motiveCtx a where
+  obj x := objMk (objMk x (PGrpd.objFiber a x)) (Discrete.mk (eqToHom (by
+    rw! (castMode := .all) [BPGrpd.isPullback_lift_obj_base]
+    rw! (castMode := .all) [BPGrpd.isPullback_lift_obj_fiber]
+    simp only [← heq_eq_eq, heq_eqRec_iff_heq]
+    simp [PGrpd.objFiber])))
+  map := sorry
+  map_id := sorry
+  map_comp := sorry
+
+lemma reflSubst_eq_reflSubst' : reflSubst a = reflSubst' a := by
+  apply (isPullback _).hom_ext
+  · simp [reflSubst']
+    sorry
+  · sorry
+
+variable (C : motiveCtx a ⥤ Grpd.{v,v}) (r : Γ ⥤ PGrpd.{v,v})
+  (r_tp : r ⋙ PGrpd.forgetToGrpd = reflSubst a ⋙ C)
+
+def motiveCtx.fiber_as' (x : motiveCtx a) : PGrpd.objFiber a _ ⟶ (base x).fiber := by
+  have h := x.fiber.as
+  rw! [BPGrpd.isPullback_lift_obj_fiber, BPGrpd.isPullback_lift_obj_base] at h
+  exact h
+
+lemma motiveCtx.fiber_as'_heq (x : motiveCtx a) : motiveCtx.fiber_as' a x ≍ x.fiber.as := by
+  simp [fiber_as']
+
+-- TODO: replace `reflSubst` with `reflSubst'` in the following definition.
+/--
+The morphism in the groupoid `motiveCtx` from `(reflSubst a).obj x.base.base` to any
+`x : motiveCtx a = (x.base.base : Γ) · (x.base.fiber : a.base) · a.base(a.fiber,x.fiber)`
+given by the triple `(𝟙 x : x ⟶ x, x.fiber : a.base ⟶ x.fiber, 𝟙 x.fiber)`
+-/
+def retraction (x : motiveCtx a) : (reflSubst a).obj x.base.base ⟶ x :=
+  homMk (homMk (𝟙 x.base.base)
+    (eqToHom (by simp [CategoryTheory.Functor.map_id]) ≫ motiveCtx.fiber_as' a x))
+  (eqToHom (by
+    apply Discrete.ext
+    simp only [mkId, Functor.comp_map, id_map, idMap]
+    rw! (castMode := .all) [BPGrpd.isPullback_lift_map_fiber, BPGrpd.isPullback_lift_map_base,
+      ← motiveCtx.fiber_as'_heq]
+    simp only [BPGrpd.fst, BPGrpd.snd, reflSubst_obj, objMk_base, Functor.comp_obj, id_obj,
+      Functor.Groupoidal.forget_obj, Functor.Grothendieck.forget_obj,
+      Functor.Grothendieck.forget_map, objMk_fiber, Functor.comp_map, forget_map, homMk_base,
+      Functor.Grothendieck.Hom.comp_base, Functor.Grothendieck.Hom.comp_fiber, eqToHom_refl,
+      Functor.Grothendieck.fiber_eqToHom, eqToHom_map, PGrpd.map_id_fiber, eqToHom_trans,
+      Category.id_comp, inv_eqToHom, Grpd.comp_obj, toPGrpd_obj_base, PGrpd.mapFiber,
+      toPGrpd_map_fiber, homMk_fiber, Discrete.functor_obj_eq_as, eqToHom_trans_assoc, ← heq_eq_eq,
+      heq_cast_iff_heq]
+    generalize_proofs _ _ _ p1 p2 p3 p4
+    apply HEq.trans (b := cast p3 (eqToHom p4 ≫ motiveCtx.fiber_as' a x))
+    · rw [eqToHom_comp_heq_iff]
+    · simp))
+
+/-- Identity elimination in the groupoid model,
+as an operation on functor categories.
+On objects, this is defined by transport along a path from the diagonal:
+suppose `x : motiveCtx a = (x.base : Γ) · (x.fiber.base : a.base) · a.base(a.fiber,x.fiber.fiber)`.
+Then there is a morphism in the groupoid `motiveCtx` from `reflSubst a` to `x`
+given by the triple `(𝟙 x : x ⟶ x, x.fiber.fiber : a.base ⟶ x.fiber.fiber, 𝟙 x.fiber.fiber)`
+-/
+def j : motiveCtx a ⥤ PGrpd.{v,v} :=
+  PGrpd.functorTo C
+  (fun x => (C.map (retraction a x)).obj $ PGrpd.objFiber' r_tp x.base.base)
+  sorry sorry sorry
+
+/-- The typing rule for identity elimination `j` -/
+lemma j_comp_forgetToGrpd : j a C r r_tp ⋙ PGrpd.forgetToGrpd = C := rfl
+
+/-- The identity type `β` computation rule for the groupoid model. -/
+lemma reflSubst_comp_j : reflSubst a ⋙ j a C r r_tp = r := sorry
+
+end
 end Id
 end FunctorOperation
 
@@ -478,11 +622,11 @@ lemma refl_tp : refl ≫ smallU.tp.{u} = isKernelPair.lift (𝟙 smallU.Tm) (�
   · congr 1
     apply isKernelPair.hom_ext
     · erw [isKernelPair.lift_fst]
-      simp [← Functor.map_comp, ← Ctx.homOfFunctor_comp, BPGrpd.isPullback.fac_left, E]
+      simp [← Functor.map_comp, ← Ctx.homOfFunctor_comp, E]
     · erw [isKernelPair.lift_snd]
-      simp [← Functor.map_comp, ← Ctx.homOfFunctor_comp, BPGrpd.isPullback.fac_right, E]
+      simp [← Functor.map_comp, ← Ctx.homOfFunctor_comp, E]
   · simp only [smallU_Ty, smallU_Tm, refl, smallU_tp, π, ← Functor.map_comp, ←
-      Ctx.homOfFunctor_comp, FunctorOperation.refl_forgetToGrpd, FunctorOperation.diag_eq_diag',
+      Ctx.homOfFunctor_comp, FunctorOperation.refl_comp_forgetToGrpd, FunctorOperation.diag_eq_diag',
       FunctorOperation.diag', Id]
     rfl
 
@@ -502,9 +646,11 @@ def smallUIdIntro : NaturalModelBase.IdIntro smallU.{u} where
 
 open NaturalModelBase
 
-def j {Γ : Ctx} (a : y(Γ) ⟶ smallU.Tm.{u}) (C : y(smallUIdIntro.{u}.motiveCtx a) ⟶ smallU.Ty.{u})
-    (r : y(Γ) ⟶ smallU.Tm.{u}) (r_tp : r ≫ smallU.tp.{u} = ym(smallUIdIntro.{u}.reflSubst a) ≫ C)
-    : y(smallUIdIntro.{u}.motiveCtx a) ⟶ smallU.Tm.{u} := by
+def j {Γ : Ctx.{(max u v w) + 1}} (a : y(Γ) ⟶ smallU.Tm.{u,(max u v w) + 1})
+    (C : y(smallUIdIntro.{u,(max u v w) + 1}.motiveCtx a) ⟶ smallU.Ty.{v,(max u v w) + 1})
+    (r : y(Γ) ⟶ smallU.Tm.{v,(max u v w) + 1})
+    (r_tp : r ≫ smallU.tp.{v} = ym(smallUIdIntro.{u}.reflSubst a) ≫ C)
+    : y(smallUIdIntro.{u,(max u v w) + 1}.motiveCtx a) ⟶ smallU.Tm.{v,(max u v w) + 1} := by
   let a' := yonedaCategoryEquiv a
   let C' := yonedaCategoryEquiv C
   let r' := yonedaCategoryEquiv r
@@ -513,16 +659,25 @@ def j {Γ : Ctx} (a : y(Γ) ⟶ smallU.Tm.{u}) (C : y(smallUIdIntro.{u}.motiveCt
   -- simp [IdIntro.motiveCtx] at C
   sorry
 
-lemma j_tp {Γ : Ctx} (a : y(Γ) ⟶ smallU.Tm.{u}) (C : y(smallUIdIntro.{u}.motiveCtx a) ⟶ smallU.Ty.{u})
-    (r : y(Γ) ⟶ smallU.Tm.{u}) (r_tp : r ≫ smallU.tp.{u} = ym(smallUIdIntro.{u}.reflSubst a) ≫ C)
-    : j.{u} a C r r_tp ≫ smallU.tp.{u} = C := sorry
+lemma j_tp {Γ : Ctx.{(max u v w) + 1}} (a : y(Γ) ⟶ smallU.Tm.{u,(max u v w) + 1})
+    (C : y(smallUIdIntro.{u,(max u v w) + 1}.motiveCtx a) ⟶ smallU.Ty.{v,(max u v w) + 1})
+    (r : y(Γ) ⟶ smallU.Tm.{v,(max u v w) + 1})
+    (r_tp : r ≫ smallU.tp.{v} = ym(smallUIdIntro.{u}.reflSubst a) ≫ C)
+    : j.{w,v,u} a C r r_tp ≫ smallU.tp.{v} = C := sorry
 
+lemma reflSubst_j {Γ : Ctx.{(max u v w) + 1}} (a : y(Γ) ⟶ smallU.Tm.{u,(max u v w) + 1})
+    (C : y(smallUIdIntro.{u,(max u v w) + 1}.motiveCtx a) ⟶ smallU.Ty.{v,(max u v w) + 1})
+    (r : y(Γ) ⟶ smallU.Tm.{v,(max u v w) + 1})
+    (r_tp : r ≫ smallU.tp.{v} = ym(smallUIdIntro.{u}.reflSubst a) ≫ C)
+    : ym(smallUIdIntro.{u}.reflSubst a) ≫ j.{w,v,u} a C r r_tp = r := sorry
+
+-- TODO: can universe variables be improved?
 -- TODO: make namespaces consistent with Sigma file
-def smallUId : NaturalModelBase.Id smallU.{u} := {
-  smallUIdIntro.{u} with
-  j := j
-  j_tp a C r r_tp := sorry
-  reflSubst_j := sorry
+def smallUId : NaturalModelBase.Id smallU.{u, (max u v w) + 1} smallU.{v, (max u v w) + 1} := {
+  smallUIdIntro.{u, (max u v w) + 1} with
+  j := j.{w,v,u}
+  j_tp := j_tp.{w,v,u}
+  reflSubst_j := reflSubst_j.{w,v,u}
 }
 
 -- def smallUIdBase : NaturalModelBase.Id smallU.{u} where
