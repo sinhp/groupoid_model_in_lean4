@@ -63,23 +63,23 @@ theorem ε_map {E B A E' B' A' : 𝒞} {P : UvPoly E B}
 
 def compDomMap {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q : UvPoly D A}
     {P' : UvPoly E' B'} {Q' : UvPoly D' A'}
-    (p : P.functor ⟶ P'.functor)
     (e : E ⟶ E')
     (d : D ⟶ D')
     (b : B ⟶ B')
     (a : A ⟶ A')
-    (ha : P.fstProj A ≫ b = p.app A ≫ P'.fstProj A)
-    (hp : P.p ≫ b = e ≫ P'.p)
-    (hq : Q.p ≫ a = d ≫ Q'.p) :
+    (hp : IsPullback P.p e b P'.p)
+    (hq : IsPullback Q.p d a Q'.p)
+    (ha : P.fstProj A ≫ b = (P.cartesianNatTrans P' b e hp).app A ≫ P'.fstProj A) :
     compDom P Q ⟶ compDom P' Q' := by
+  set p := P.cartesianNatTrans P' b e hp
   let ⟨fst, dependent, snd, h1, h2⟩ := compDomEquiv (𝟙 (P.compDom Q))
   have : (fst ≫ p.app A ≫ P'.functor.map a) ≫ P'.fstProj A' = (dependent ≫ e) ≫ P'.p := by
-    simp [← ha]; rw [← Category.assoc, h1]; simp [hp]
+    simp [← ha]; rw [← Category.assoc, h1]; simp [hp.w]
   refine compDomEquiv.symm ⟨fst ≫ p.app A ≫ P'.functor.map a, dependent ≫ e, snd ≫ d, this, ?_⟩
-  simp [← hq]; rw [← Category.assoc, h2]; simp
+  simp [← hq.w]; rw [← Category.assoc, h2]; simp
   simp [show pullback.lift (fst ≫ p.app A ≫ P'.functor.map a) (dependent ≫ e) this =
     pullback.lift fst dependent h1 ≫
-      pullback.map _ _ _ _ (p.app A ≫ P'.functor.map a) _ _ (by simp [ha]) hp by
+      pullback.map _ _ _ _ (p.app A ≫ P'.functor.map a) _ _ (by simp [ha]) hp.w by
     apply pullback.hom_ext <;> simp]
   congr! 1
   rw [← Category.assoc, ← Category.assoc, ε_map (ha := ha)]
@@ -87,19 +87,23 @@ def compDomMap {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q : UvPoly D A}
 
 theorem compDomMap_isPullback {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q : UvPoly D A}
     {P' : UvPoly E' B'} {Q' : UvPoly D' A'}
-    (p : P.functor ⟶ P'.functor)
     (e : E ⟶ E')
     (d : D ⟶ D')
     (b : B ⟶ B')
     (a : A ⟶ A')
-    (ha : P.fstProj A ≫ b = p.app A ≫ P'.fstProj A)
-    (hp : P.p ≫ b = e ≫ P'.p)
-    (hq : Q.p ≫ a = d ≫ Q'.p) :
+    (p : P.functor ⟶ P'.functor)
+    (hp : IsPullback P.p e b P'.p)
+    (hq : IsPullback Q.p d a Q'.p)
+    (ha : P.fstProj A ≫ b = (P.cartesianNatTrans P' b e hp).app A ≫ P'.fstProj A) :
     IsPullback
-      (UvPoly.compDomMap p e d b a ha hp hq)
+      (UvPoly.compDomMap e d b a hp hq ha)
       (P.comp Q).p (P'.comp Q').p
       (p.app A ≫ P'.functor.map a) := by
-  sorry
+  set p := P.cartesianNatTrans P' b e hp
+  apply IsPullback.paste_vert
+    (h₂₁ := pullback.map _ _ _ _ (p.app A ≫ P'.functor.map a) _ _ (by simp [ha]) hp.w)
+  · sorry
+  · sorry
 
 end CategoryTheory.UvPoly
 
