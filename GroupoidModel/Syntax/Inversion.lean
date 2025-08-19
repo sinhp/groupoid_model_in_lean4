@@ -5,7 +5,11 @@ variable {χ : Type*} {E : Env χ} {Θ Δ Γ : Ctx χ}
   {σ σ' : Nat → Expr χ}
   {i l l' : Nat}
 
-/-! ## Inversion of typing -/
+/-! ## Inversion of typing
+
+In this module we prove that presuppositions hold of typing judgments:
+e.g. if `E ∣ Γ ⊢[l] t : A` then `WfCtx Γ` and `E ∣ Γ ⊢[l] A`.
+Note that `E.Wf` does not necessarily hold. -/
 
 /- We hide proof-specific lemmas in a namespace analogous to `SubstProof`. -/
 namespace InvProof
