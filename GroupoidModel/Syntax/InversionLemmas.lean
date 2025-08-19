@@ -1,6 +1,6 @@
 import GroupoidModel.Syntax.Inversion
 
-variable {χ : Type*} {E : Env χ} {Γ : Ctx χ}
+variable {χ : Type*} {E : Env χ}
 
 /-! This module establishes consequences of typing inversion,
 namely inversion lemmas for type/term formers,
@@ -48,12 +48,12 @@ theorem WfTp.inv_el {Γ a l} : E ∣ Γ ⊢[l] .el a → E ∣ Γ ⊢[l+1] a : .
 
 variable [Fact E.Wf]
 
-theorem WfTp.pi {A B l l'} :
+theorem WfTp.pi {Γ A B l l'} :
     E ∣ (A, l) :: Γ ⊢[l'] B →
     E ∣ Γ ⊢[max l l'] .pi l l' A B :=
   fun B => WfTp.pi' B.wf_binder B
 
-theorem WfTp.sigma {A B l l'} :
+theorem WfTp.sigma {Γ A B l l'} :
     E ∣ (A, l) :: Γ ⊢[l'] B →
     E ∣ Γ ⊢[max l l'] .sigma l l' A B :=
   fun B => WfTp.sigma' B.wf_binder B
