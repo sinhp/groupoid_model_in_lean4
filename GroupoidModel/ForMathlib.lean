@@ -174,6 +174,9 @@ theorem of_iso_isPullback (h : IsPullback fst snd f g) {Q} (i : Q ≅ P) :
   have : Limits.HasPullback f g := ⟨ h.cone , h.isLimit ⟩
   refine IsPullback.of_iso_pullback (by simp [h.w]) (i ≪≫ h.isoPullback) (by simp) (by simp)
 
+@[simp] theorem isoPullback_refl [Limits.HasPullback f g] :
+    isoPullback (.of_hasPullback f g) = Iso.refl _ := by ext <;> simp
+
 end IsPullback
 end CategoryTheory
 

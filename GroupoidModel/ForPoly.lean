@@ -6,6 +6,107 @@ open CategoryTheory Limits
 noncomputable section
 
 namespace CategoryTheory.UvPoly
+open Limits PartialProduct
+
+universe v u
+variable {C : Type u} [Category.{v} C] [HasPullbacks C] [HasTerminal C] {E B : C}
+
+namespace Equiv
+
+variable (P : UvPoly E B) {Γ : C} (X Y : C) (f : X ⟶ Y)
+
+def fst (pair : Γ ⟶ P @ X) :
+    Γ ⟶ B :=
+  fan P X |>.extend pair |>.fst
+
+def snd (pair : Γ ⟶ P @ X) :
+    pullback (fst P X pair) P.p ⟶ X :=
+  fan P X |>.extend pair |>.snd
+
+def snd' (pair : Γ ⟶ P @ X) {R f g} (H : IsPullback (P := R) f g (fst P X pair) P.p) : R ⟶ X :=
+  H.isoPullback.hom ≫ snd P X pair
+
+theorem snd_eq_snd' (pair : Γ ⟶ P @ X) :
+    snd P X pair = snd' P X pair (.of_hasPullback ..) := by simp [snd']
+
+def mk (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
+    Γ ⟶ P @ X :=
+  P.lift (Γ := Γ) (X := X) b x
+
+def mk' (b : Γ ⟶ B) {R f g} (H : IsPullback (P := R) f g b P.p) (x : R ⟶ X) : Γ ⟶ P @ X :=
+  mk P X b (H.isoPullback.inv ≫ x)
+
+theorem mk_eq_mk' (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
+    mk P X b x = mk' P X b (.of_hasPullback ..) x := by simp [mk']
+
+@[simp]
+lemma fst_mk (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
+    fst P X (mk P X b x) = b := by
+  simp [fst, mk]
+
+@[simp]
+lemma fst_mk' (b : Γ ⟶ B) {R f g} (H : IsPullback (P := R) f g b P.p) (x : R ⟶ X) :
+    fst P X (mk' P X b H x) = b := by
+  simp [mk']
+
+lemma fst_eq (pair : Γ ⟶ P @ X) : fst P X pair = pair ≫ P.fstProj X := by simp [fst]
+
+theorem fst_comp_left (pair : Γ ⟶ P @ X) {Δ} (f : Δ ⟶ Γ) :
+    fst P X (f ≫ pair) = f ≫ fst P X pair := by
+  sorry
+
+theorem fst_comp_right (pair : Γ ⟶ P @ X) : fst P Y (pair ≫ P.functor.map f) = fst P X pair := by
+  sorry
+
+lemma snd_mk_heq (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
+    snd P X (mk P X b x) ≍ x := by
+  simp [snd, mk, fst]
+  sorry
+
+lemma snd_mk (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
+    snd P X (mk P X b x) = eqToHom (by simp) ≫ x := by
+  simp [fst, snd, mk]
+  sorry
+
+theorem snd_comp_right (pair : Γ ⟶ P @ X) : snd P Y (pair ≫ P.functor.map f) =
+    eqToHom congr(pullback $(fst_comp_right ..) _) ≫ snd P X pair ≫ f := by
+  sorry
+
+lemma snd'_mk' (b : Γ ⟶ B) {R f g} (H : IsPullback (P := R) f g b P.p) (x : R ⟶ X) :
+    snd' P X (mk' P X b H x) (by rwa [fst_mk']) = x := by
+  simp [snd', mk', ← IsIso.eq_inv_comp, snd_mk]
+  generalize_proofs
+  generalize eq : fst P X (mk P X b (H.isoPullback.inv ≫ x)) = Y at *
+  simp [fst_mk] at eq; subst Y; simp
+
+theorem snd'_comp_right (pair : Γ ⟶ P @ X)
+    {R f1 f2} (H : IsPullback (P := R) f1 f2 (fst P X pair) P.p) :
+    snd' P Y (pair ≫ P.functor.map f) (by rwa [fst_comp_right]) =
+    snd' P X pair H ≫ f := by
+  simp [snd', snd]
+  sorry
+
+@[simp]
+lemma eta (pair : Γ ⟶ P @ X) :
+    mk P X (fst P X pair) (snd P X pair) = pair := by
+  simp [fst, snd, mk]
+  sorry
+
+lemma mk_comp_right (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
+    mk P X b x ≫ P.functor.map f = mk P Y b (x ≫ f) := by
+  simp [mk]
+  sorry
+
+lemma mk'_comp_right (b : Γ ⟶ B) {R f1 f2} (H : IsPullback (P := R) f1 f2 b P.p) (x : R ⟶ X) :
+    mk' P X b H x ≫ P.functor.map f = mk' P Y b H (x ≫ f) := by
+  simp [mk', mk, functor, lift, fan, partialProd.lift, partialProd.isLimit, isLimitFan,
+    ExponentiableMorphism.pushforwardCurry, overPullbackToStar, Fan.overPullbackToStar,
+    ExponentiableMorphism.pushforward]
+  sorry
+
+end Equiv
+
+section
 
 variable {𝒞} [Category 𝒞] [HasTerminal 𝒞] [HasPullbacks 𝒞]
 
@@ -47,28 +148,35 @@ def compDomEquiv {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} :
    simp [compDomEquiv, Equiv.psigmaCongrProp, Equiv.sigmaCongrRight_symm,
     Equiv.coe_fn_symm_mk, pullbackHomEquiv]
 
-theorem ε_map {E B A E' B' A' : 𝒞} {P : UvPoly E B}
-    {P' : UvPoly E' B'}
-    (p : P.functor ⟶ P'.functor)
-    (e : E ⟶ E')
-    (b : B ⟶ B')
-    (a : A ⟶ A')
-    (ha : P.fstProj A ≫ b = p.app A ≫ P'.fstProj A)
-    (hp : P.p ≫ b = e ≫ P'.p) :
-    pullback.map (P.fstProj A) P.p (P'.fstProj A') P'.p (p.app A ≫ P'.functor.map a)
-      e b (by simp [ha]) hp ≫ PartialProduct.ε P' A' =
+theorem ε_map {E B A E' B' A' : 𝒞} {P : UvPoly E B} {P' : UvPoly E' B'}
+    (e : E ⟶ E') (b : B ⟶ B') (a : A ⟶ A')
+    (hp : IsPullback P.p e b P'.p)
+    (ha : P.fstProj A ≫ b = (P.cartesianNatTrans P' b e hp).app A ≫ P'.fstProj A) :
+    pullback.map (P.fstProj A) P.p (P'.fstProj A') P'.p
+      ((P.cartesianNatTrans P' b e hp).app A ≫ P'.functor.map a)
+      e b (by simp [ha]) hp.w ≫ PartialProduct.ε P' A' =
     PartialProduct.ε P A ≫ prod.map e a := by
+  set p := P.cartesianNatTrans P' b e hp
+  let z := P.functor.map a ≫ p.app A'
+  let R := pullback (P.fstProj A) P.p
+  let R' := pullback (P'.fstProj A') P'.p
+  have : Equiv.fst P' A' z = P.fstProj A ≫ b := by simp [Equiv.fst_eq, z, ha]
+  have pb : IsPullback (P := R) (pullback.fst ..) (pullback.snd .. ≫ e)
+      (Equiv.fst P' A' z) P'.p := this ▸ .paste_vert (.of_hasPullback ..) hp
+  have : Equiv.snd' P' _ z pb = ε P A ≫ prod.snd ≫ a := by
+    sorry
+  have : Equiv.fst P A' (P.functor.map a) = P.fstProj A := by simp [Equiv.fst_eq]
+  have pb : IsPullback (P := R) (pullback.fst ..) (pullback.snd ..)
+      (Equiv.fst P A' (P.functor.map a)) P.p := by rw [this]; exact .of_hasPullback ..
+  have : Equiv.snd' P A' (P.functor.map a) pb = ε P A ≫ prod.snd ≫ a := by
+    sorry
   simp [PartialProduct.ε]
   sorry
 
 def compDomMap {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q : UvPoly D A}
     {P' : UvPoly E' B'} {Q' : UvPoly D' A'}
-    (e : E ⟶ E')
-    (d : D ⟶ D')
-    (b : B ⟶ B')
-    (a : A ⟶ A')
-    (hp : IsPullback P.p e b P'.p)
-    (hq : IsPullback Q.p d a Q'.p)
+    (e : E ⟶ E') (d : D ⟶ D') (b : B ⟶ B') (a : A ⟶ A')
+    (hp : IsPullback P.p e b P'.p) (hq : IsPullback Q.p d a Q'.p)
     (ha : P.fstProj A ≫ b = (P.cartesianNatTrans P' b e hp).app A ≫ P'.fstProj A) :
     compDom P Q ⟶ compDom P' Q' := by
   set p := P.cartesianNatTrans P' b e hp
@@ -82,93 +190,25 @@ def compDomMap {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q : UvPoly D A}
       pullback.map _ _ _ _ (p.app A ≫ P'.functor.map a) _ _ (by simp [ha]) hp.w by
     apply pullback.hom_ext <;> simp]
   congr! 1
-  rw [← Category.assoc, ← Category.assoc, ε_map (ha := ha)]
+  rw [← Category.assoc, ← Category.assoc, ε_map (hp := hp) (ha := ha)]
   simp
 
 theorem compDomMap_isPullback {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q : UvPoly D A}
     {P' : UvPoly E' B'} {Q' : UvPoly D' A'}
-    (e : E ⟶ E')
-    (d : D ⟶ D')
-    (b : B ⟶ B')
-    (a : A ⟶ A')
-    (p : P.functor ⟶ P'.functor)
-    (hp : IsPullback P.p e b P'.p)
-    (hq : IsPullback Q.p d a Q'.p)
+    (e : E ⟶ E') (d : D ⟶ D') (b : B ⟶ B') (a : A ⟶ A')
+    (hp : IsPullback P.p e b P'.p) (hq : IsPullback Q.p d a Q'.p)
     (ha : P.fstProj A ≫ b = (P.cartesianNatTrans P' b e hp).app A ≫ P'.fstProj A) :
     IsPullback
       (UvPoly.compDomMap e d b a hp hq ha)
       (P.comp Q).p (P'.comp Q').p
-      (p.app A ≫ P'.functor.map a) := by
+      ((P.cartesianNatTrans P' b e hp).app A ≫ P'.functor.map a) := by
   set p := P.cartesianNatTrans P' b e hp
   apply IsPullback.paste_vert
     (h₂₁ := pullback.map _ _ _ _ (p.app A ≫ P'.functor.map a) _ _ (by simp [ha]) hp.w)
   · sorry
   · sorry
 
-end CategoryTheory.UvPoly
-
-
-noncomputable section
-
-namespace CategoryTheory.UvPoly
-open Limits PartialProduct
-
-universe v u
-variable {C : Type u} [Category.{v} C] [HasPullbacks C] [HasTerminal C] {E B : C}
-
-namespace Equiv
-
-variable (P : UvPoly E B) {Γ : C} (X Y : C) (f : X ⟶ Y)
-
-def fst (pair : Γ ⟶ P @ X) :
-    Γ ⟶ B :=
-  fan P X |>.extend pair |>.fst
-
-def snd (pair : Γ ⟶ P @ X) :
-    pullback (fst P X pair) P.p ⟶ X :=
-  fan P X |>.extend pair |>.snd
-
-def mk (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
-    Γ ⟶ P @ X :=
-  P.lift (Γ := Γ) (X := X) b x
-
-@[simp]
-lemma fst_mk (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
-    fst P X (mk P X b x) = b := by
-  simp [fst, mk]
-
-theorem fst_comp_left (pair : Γ ⟶ P @ X) {Δ} (f : Δ ⟶ Γ) :
-    fst P X (f ≫ pair) = f ≫ fst P X pair := by
-  sorry
-
-theorem fst_comp_right (pair : Γ ⟶ P @ X) : fst P Y (pair ≫ P.functor.map f) = fst P X pair := by
-  sorry
-
-lemma snd_mk_heq (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
-    snd P X (mk P X b x) ≍ x := by
-  simp [snd, mk, fst]
-  sorry
-
-lemma snd_mk (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
-    snd P X (mk P X b x) = eqToHom (by simp) ≫ x := by
-  simp [fst, snd, mk]
-  sorry
-
-theorem snd_comp_right (pair : Γ ⟶ P @ X) : snd P Y (pair ≫ P.functor.map f) =
-    eqToHom congr(pullback $(fst_comp_right ..) _) ≫ snd P X pair ≫ f := by
-  sorry
-
-@[simp]
-lemma eta (pair : Γ ⟶ P @ X) :
-    mk P X (fst P X pair) (snd P X pair) = pair := by
-  simp [fst, snd, mk]
-  sorry
-
-lemma mk_comp_right (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
-    mk P X b x ≫ P.functor.map f = mk P Y b (x ≫ f) :=
-  sorry
-
-end Equiv
+end
 
 open TwoSquare
 
