@@ -68,6 +68,15 @@ lemma snd_mk (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
   simp [fst, snd, mk]
   sorry
 
+lemma snd'_eq (pair : Γ ⟶ P @ X) {R f g} (H : IsPullback (P := R) f g (fst P X pair) P.p) :
+    snd' P X pair H = pullback.lift (f ≫ pair) g (by simpa using H.w) ≫ ε P X ≫ prod.snd := by
+  simp [snd', snd]
+  simp only [← Category.assoc]; congr! 2
+  ext <;> simp
+  · simp only [← Category.assoc]; congr! 1
+    exact H.isoPullback_hom_fst
+  · exact H.isoPullback_hom_snd
+
 theorem snd_comp_right (pair : Γ ⟶ P @ X) : snd P Y (pair ≫ P.functor.map f) =
     eqToHom congr(pullback $(fst_comp_right ..) _) ≫ snd P X pair ≫ f := by
   sorry
@@ -83,8 +92,17 @@ theorem snd'_comp_right (pair : Γ ⟶ P @ X)
     {R f1 f2} (H : IsPullback (P := R) f1 f2 (fst P X pair) P.p) :
     snd' P Y (pair ≫ P.functor.map f) (by rwa [fst_comp_right]) =
     snd' P X pair H ≫ f := by
-  simp [snd', snd]
-  sorry
+  simp [snd'_eq, ε]
+  have := congr($((ExponentiableMorphism.ev P.p).naturality ((Over.star E).map f)).left ≫ prod.snd)
+  dsimp at this; simp at this
+  rw [← this]; clear this
+  simp only [← Category.assoc]; congr! 2
+  ext <;> simp
+  · slice_rhs 2 3 => apply pullback.lift_fst
+    slice_rhs 1 2 => apply pullback.lift_fst
+    simp; rfl
+  · slice_rhs 2 3 => apply pullback.lift_snd
+    symm; apply pullback.lift_snd
 
 @[simp]
 lemma eta (pair : Γ ⟶ P @ X) :
