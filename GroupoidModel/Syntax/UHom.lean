@@ -585,14 +585,14 @@ theorem comp_mkIdRec {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (t t_tp M) (r : y(Γ) ⟶ s[j].Tm) (r_tp u u_tp h h_tp) :
     ym(σ) ≫ s.mkIdRec ilen jlen A t t_tp M r r_tp u u_tp h h_tp =
     s.mkIdRec ilen jlen (ym(σ) ≫ A) (ym(σ) ≫ t) (by> simp [*])
-       (ym(s[i].substWk' (s[i].substWk σ _) _ _ (by>
+       (ym(s[i].substWk (s[i].substWk σ _) _ _ (by>
             simp [comp_mkId]
             congr! 1 <;> rw [← Functor.map_comp_assoc, substWk_disp] <;> simp))
           ≫ M)
        (ym(σ) ≫ r) (by>
         simp [*]
         simp only [← Functor.map_comp_assoc]; congr! 2
-        simp [comp_substCons, comp_sec, substWk', comp_mkRefl])
+        simp [comp_substCons, comp_sec, substWk, comp_mkRefl])
        (ym(σ) ≫ u) (by> simp [*])
        (ym(σ) ≫ h) (by> simp [*, comp_mkId]) := by
   sorry
