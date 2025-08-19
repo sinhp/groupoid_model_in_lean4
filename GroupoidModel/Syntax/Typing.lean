@@ -395,8 +395,17 @@ end PrettyPrinting
 
 /-- The given constant environment is well-formed.
 
-It wouldn't be strictly positive to make this mutual with typing,
-so we do not get environment inversion (`E | Γ ⊢[l] 𝒥 ⇏ E.Wf`). -/
+Unlike contexts that change via substitutions,
+most syntactic lemmas live 'over' a fixed environment.
+These all require an `Env.Wf` assumption
+that cannot be eliminated using inversion (`E | Γ ⊢[l] 𝒥 ⇏ E.Wf`).
+We propagate this assumption using the typeclass `[Fact E.Wf]`. -/
+/- FIXME: Can't make inversion true by making `Env.Wf` mutual with typing
+(that's not strictly positive),
+but we could redefine `E ∣ Γ ⊢[l] 𝒥` to mean `E.Wf ∧ E ∣ Γ ⊢[l] 𝒥`.
+We'd need to rederive all typing rules for the latter,
+and this should be done using custom automation
+(do NOT write a million lemmas by hand). -/
 abbrev Env.Wf (E : Env χ) :=
   ∀ {c : χ} {p}, E c = some p → E ∣ [] ⊢[p.val.2] p.val.1
 

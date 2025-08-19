@@ -541,7 +541,7 @@ theorem EqTm.subst (h : E ∣ Γ ⊢[l] t ≡ u : A) (hσ : WfSb E Δ σ Γ) :
     E ∣ Δ ⊢[l] t.subst σ ≡ u.subst σ : A.subst σ :=
   h.subst_eq (EqSb.refl hσ)
 
-/-! ## Simplified WfSb/EqSb constructors -/
+/-! ## Consequences of substitution -/
 
 namespace WfSb
 
@@ -563,6 +563,8 @@ theorem up : EqSb E Δ σ σ' Γ → E ∣ Γ ⊢[l] A →
 
 end EqSb
 
+/-- The type of any constant in the environment is closed,
+so can be used in any context without weakening. -/
 theorem Env.Wf.atCtx {c Al} : E.Wf → WfCtx E Γ → E c = some Al → E ∣ Γ ⊢[Al.val.2] Al.val.1 := by
   intro E Γwf Ec
   induction Γ

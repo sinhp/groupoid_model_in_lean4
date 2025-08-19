@@ -202,85 +202,84 @@ theorem WfCtx.inv_snoc : WfCtx E ((A, l) :: Γ) → E ∣ Γ ⊢[l] A | .snoc _ 
 
 section
 open InvProof
-variable (Ewf : E.Wf)
-include Ewf
+variable [Ewf : Fact E.Wf]
 
-theorem WfTp.wf_ctx : E ∣ Γ ⊢[l] A → WfCtx E Γ := inv_all Ewf |>.1
-theorem EqTp.wf_left : E ∣ Γ ⊢[l] A ≡ B → E ∣ Γ ⊢[l] A := fun h => (inv_all Ewf |>.2.1 h).2.1
-theorem EqTp.wf_right : E ∣ Γ ⊢[l] A ≡ B → E ∣ Γ ⊢[l] B := fun h => (inv_all Ewf |>.2.1 h).2.2
-theorem EqTp.wf_ctx : E ∣ Γ ⊢[l] A ≡ B → WfCtx E Γ := fun h => h.wf_left Ewf |>.wf_ctx Ewf
-theorem WfTm.wf_tp : E ∣ Γ ⊢[l] t : A → E ∣ Γ ⊢[l] A := fun h => (inv_all Ewf |>.2.2.1 h).2
-theorem WfTm.wf_ctx : E ∣ Γ ⊢[l] t : A → WfCtx E Γ := fun h => h.wf_tp Ewf |>.wf_ctx Ewf
+theorem WfTp.wf_ctx : E ∣ Γ ⊢[l] A → WfCtx E Γ := inv_all Ewf.out |>.1
+theorem EqTp.wf_left : E ∣ Γ ⊢[l] A ≡ B → E ∣ Γ ⊢[l] A := fun h => (inv_all Ewf.out |>.2.1 h).2.1
+theorem EqTp.wf_right : E ∣ Γ ⊢[l] A ≡ B → E ∣ Γ ⊢[l] B := fun h => (inv_all Ewf.out |>.2.1 h).2.2
+theorem EqTp.wf_ctx : E ∣ Γ ⊢[l] A ≡ B → WfCtx E Γ := fun h => h.wf_left.wf_ctx
+theorem WfTm.wf_tp : E ∣ Γ ⊢[l] t : A → E ∣ Γ ⊢[l] A := fun h => (inv_all Ewf.out |>.2.2.1 h).2
+theorem WfTm.wf_ctx : E ∣ Γ ⊢[l] t : A → WfCtx E Γ := fun h => h.wf_tp.wf_ctx
 theorem EqTm.wf_left : E ∣ Γ ⊢[l] t ≡ u : A → E ∣ Γ ⊢[l] t : A :=
-  fun h => (inv_all Ewf |>.2.2.2 h).2.2.1
+  fun h => (inv_all Ewf.out |>.2.2.2 h).2.2.1
 theorem EqTm.wf_right : E ∣ Γ ⊢[l] t ≡ u : A → E ∣ Γ ⊢[l] u : A :=
-  fun h => (inv_all Ewf |>.2.2.2 h).2.2.2
-theorem EqTm.wf_tp : E ∣ Γ ⊢[l] t ≡ u : A → E ∣ Γ ⊢[l] A := fun h => h.wf_left Ewf |>.wf_tp Ewf
-theorem EqTm.wf_ctx : E ∣ Γ ⊢[l] t ≡ u : A → WfCtx E Γ := fun h => h.wf_tp Ewf |>.wf_ctx Ewf
+  fun h => (inv_all Ewf.out |>.2.2.2 h).2.2.2
+theorem EqTm.wf_tp : E ∣ Γ ⊢[l] t ≡ u : A → E ∣ Γ ⊢[l] A := fun h => h.wf_left.wf_tp
+theorem EqTm.wf_ctx : E ∣ Γ ⊢[l] t ≡ u : A → WfCtx E Γ := fun h => h.wf_tp.wf_ctx
 theorem WfTp.wf_binder : E ∣ (A, l) :: Γ ⊢[l'] B → E ∣ Γ ⊢[l] A :=
-  fun h => h.wf_ctx Ewf |>.inv_snoc
+  fun h => h.wf_ctx.inv_snoc
 theorem EqTp.wf_binder : E ∣ (A, l) :: Γ ⊢[l'] B ≡ B' → E ∣ Γ ⊢[l] A :=
-  fun h => h.wf_ctx Ewf |>.inv_snoc
+  fun h => h.wf_ctx.inv_snoc
 theorem WfTm.wf_binder : E ∣ (A, l) :: Γ ⊢[l'] t : B → E ∣ Γ ⊢[l] A :=
-  fun h => h.wf_ctx Ewf |>.inv_snoc
+  fun h => h.wf_ctx.inv_snoc
 theorem EqTm.wf_binder : E ∣ (A, l) :: Γ ⊢[l'] t ≡ u : B → E ∣ Γ ⊢[l] A :=
-  fun h => h.wf_ctx Ewf |>.inv_snoc
+  fun h => h.wf_ctx.inv_snoc
 end
 
 /-! ## Substitution -/
 
 namespace WfSb
+variable [Fact E.Wf]
 
-theorem mk : E.Wf → WfCtx E Δ → WfCtx E Γ →
-    (∀ {i A l}, Lookup Γ i A l → E ∣ Δ ⊢[l] σ i : A.subst σ) →
+theorem mk : WfCtx E Δ → WfCtx E Γ → (∀ {i A l}, Lookup Γ i A l → E ∣ Δ ⊢[l] σ i : A.subst σ) →
     WfSb E Δ σ Γ := by
   unfold WfSb EqSb
-  intro E Δ Γ h
+  intro Δ Γ h
   refine ⟨Δ, Γ, fun lk => ?_⟩
   replace h := h lk
-  exact ⟨h.wf_tp E, h.wf_tp E, EqTp.refl_tp <| h.wf_tp E, h, h, EqTm.refl_tm h⟩
+  exact ⟨h.wf_tp, h.wf_tp, EqTp.refl_tp h.wf_tp, h, h, EqTm.refl_tm h⟩
 
-theorem wk : E.Wf → E ∣ Γ ⊢[l] A → WfSb E ((A, l) :: Γ) Expr.wk Γ :=
-  fun E A => SubstProof.wfSb_wk (A.wf_ctx E) A
+theorem wk : E ∣ Γ ⊢[l] A → WfSb E ((A, l) :: Γ) Expr.wk Γ :=
+  fun A => SubstProof.wfSb_wk A.wf_ctx A
 
-theorem terminal (σ) : E.Wf → WfCtx E Δ → WfSb E Δ σ [] :=
-  fun E Δ => mk E Δ .nil nofun
+theorem terminal (σ) : WfCtx E Δ → WfSb E Δ σ [] :=
+  fun Δ => mk Δ .nil nofun
 
-theorem comp : E.Wf → WfSb E Θ σ Δ → WfSb E Δ σ' Γ → WfSb E Θ (Expr.comp σ σ') Γ := by
-  intro E σ σ'
-  apply mk E σ.wf_dom σ'.wf_cod
+theorem comp : WfSb E Θ σ Δ → WfSb E Δ σ' Γ → WfSb E Θ (Expr.comp σ σ') Γ := by
+  intro σ σ'
+  apply mk σ.wf_dom σ'.wf_cod
   intro _ _ _ lk
   exact autosubst% σ'.lookup lk |>.subst σ
 
-theorem toSb : E.Wf → E ∣ Γ ⊢[l] t : A → WfSb E Γ t.toSb ((A, l) :: Γ) :=
-  fun E t => SubstProof.wfSb_toSb (t.wf_ctx E) (t.wf_tp E) t
+theorem toSb : E ∣ Γ ⊢[l] t : A → WfSb E Γ t.toSb ((A, l) :: Γ) :=
+  fun t => SubstProof.wfSb_toSb t.wf_ctx t.wf_tp t
 
 end WfSb
 
 namespace EqSb
+variable [Fact E.Wf]
 
-theorem mk : E.Wf → WfCtx E Δ → WfCtx E Γ →
+theorem mk : WfCtx E Δ → WfCtx E Γ →
     (∀ {i A l}, Lookup Γ i A l →
       (E ∣ Δ ⊢[l] A.subst σ ≡ A.subst σ') ∧ (E ∣ Δ ⊢[l] σ i ≡ σ' i : A.subst σ)) →
     EqSb E Δ σ σ' Γ := by
   unfold EqSb
-  intro E Δ Γ h
+  intro Δ Γ h
   refine ⟨Δ, Γ, fun lk => ?_⟩
   replace h := h lk
   have A := Γ.lookup_wf lk
-  exact ⟨h.1.wf_left E, h.1.wf_right E, h.1, h.2.wf_left E, WfTm.conv (h.2.wf_right E) h.1, h.2⟩
+  exact ⟨h.1.wf_left, h.1.wf_right, h.1, h.2.wf_left, WfTm.conv h.2.wf_right h.1, h.2⟩
 
-theorem snoc : E.Wf → EqSb E Δ σ σ' Γ → E ∣ Γ ⊢[l] A →
-    E ∣ Δ ⊢[l] t ≡ t' : A.subst σ →
+theorem snoc : EqSb E Δ σ σ' Γ → E ∣ Γ ⊢[l] A → E ∣ Δ ⊢[l] t ≡ t' : A.subst σ →
     EqSb E Δ (Expr.snoc σ t) (Expr.snoc σ' t') ((A,l) :: Γ) := by
-  intro E σσ' A tt'
+  intro σσ' A tt'
   apply SubstProof.eqSb_snoc σσ' A (A.subst σσ'.wf_left) (A.subst σσ'.wf_right)
-    (A.subst_eq σσ') (tt'.wf_left E) (tt'.wf_right E |>.conv (A.subst_eq σσ')) tt'
+    (A.subst_eq σσ') tt'.wf_left (tt'.wf_right.conv (A.subst_eq σσ')) tt'
 
-theorem terminal (σ σ') : E.Wf → WfCtx E Δ → EqSb E Δ σ σ' [] :=
-  fun E Δ => mk E Δ .nil nofun
+theorem terminal (σ σ') : WfCtx E Δ → EqSb E Δ σ σ' [] :=
+  fun Δ => mk Δ .nil nofun
 
-theorem toSb : E.Wf → E ∣ Γ ⊢[l] t ≡ t' : A → EqSb E Γ t.toSb t'.toSb ((A, l) :: Γ) :=
-  fun E tt' => snoc E (EqSb.refl <| WfSb.id <| tt'.wf_ctx E) (tt'.wf_tp E) (autosubst% tt')
+theorem toSb : E ∣ Γ ⊢[l] t ≡ t' : A → EqSb E Γ t.toSb t'.toSb ((A, l) :: Γ) :=
+  fun tt' => snoc (EqSb.refl <| WfSb.id tt'.wf_ctx) tt'.wf_tp (autosubst% tt')
 
 end EqSb
