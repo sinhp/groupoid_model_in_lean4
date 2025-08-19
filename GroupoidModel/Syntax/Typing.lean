@@ -22,9 +22,6 @@ When set to `0`, types cannot be quantified over at all. -/
 -- If only we had parameterized modules..
 def univMax : Nat := 4
 
-/-- A typing context consisting of type expressions and their universe levels. -/
-abbrev Ctx (χ : Type*) := List (Expr χ × Nat)
-
 /-- A *constant environment* is a (possibly infinite) set
 of closed term constants indexed by a type `χ`.
 We record the universe level and type of each constant.
@@ -36,6 +33,9 @@ This does mean we cannot have type constants at level `univMax`.
 We do *not* use `Env` for definitions;
 the native Lean `Environment` is used instead. -/
 abbrev Env (χ : Type*) := χ → Option { Al : Expr χ × Nat // Al.1.isClosed ∧ Al.2 ≤ univMax }
+
+/-- A typing context consisting of type expressions and their universe levels. -/
+abbrev Ctx (χ : Type*) := List (Expr χ × Nat)
 
 variable {χ : Type*} (E : Env χ)
 

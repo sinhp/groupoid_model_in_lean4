@@ -337,6 +337,9 @@ theorem eqSb_up : EqSb E Δ σ σ' Γ →
       convert rename_all.2.2.2 this.2.2.2.2.2 ΔAσ (WfRen.wk ..) using 1 <;>
         (autosubst; try rw [Expr.comp, Function.comp])
 
+theorem wfSb_wk {Γ A l} : WfCtx E Γ → E ∣ Γ ⊢[l] A → WfSb E ((A,l) :: Γ) Expr.wk Γ :=
+  fun h h' => WfSb.ofRen (h.snoc h') h (WfRen.wk ..)
+
 theorem wfSb_up : WfSb E Δ σ Γ →
     E ∣ Γ ⊢[l] A → E ∣ Δ ⊢[l] A.subst σ →
     WfSb E ((A.subst σ, l) :: Δ) (Expr.up σ) ((A,l) :: Γ) :=
@@ -559,3 +562,11 @@ theorem up : EqSb E Δ σ σ' Γ → E ∣ Γ ⊢[l] A →
   fun σσ' A => eqSb_up σσ' A (A.subst σσ'.wf_left) (A.subst σσ'.wf_right) (A.subst_eq σσ')
 
 end EqSb
+
+theorem Env.Wf.atCtx {c Al} : E.Wf → WfCtx E Γ → E c = some Al → E ∣ Γ ⊢[Al.val.2] Al.val.1 := by
+  intro E Γwf Ec
+  induction Γ
+  . exact E Ec
+  . rename_i ih
+    rcases Γwf with _ | ⟨Γwf, A⟩
+    simpa [Expr.subst_of_isClosed _ Al.2.1] using (ih Γwf).subst (SubstProof.wfSb_wk Γwf A)
