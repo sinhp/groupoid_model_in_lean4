@@ -123,6 +123,12 @@ theorem substCons_var {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (t : y
     ym(M.substCons σ A t aTp) ≫ M.var A = t := by
   simp [substCons]
 
+@[simp]
+theorem comp_substCons {Θ Δ Γ : Ctx} (τ : Θ ⟶ Δ) (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (t : y(Δ) ⟶ M.Tm)
+    (aTp : t ≫ M.tp = ym(σ) ≫ A) :
+    τ ≫ M.substCons σ A t aTp = M.substCons (τ ≫ σ) A (ym(τ) ≫ t) (by simp [*]) := by
+  sorry
+
 /--
 ```
 Δ ⊢ σ : Γ.A
@@ -154,24 +160,25 @@ theorem var_tp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) : M.var A ≫ M.tp = ym(M.disp A)
 /--
 Weaken a substitution.
 ```
-Δ ⊢ σ : Γ  Γ ⊢ A type
-----------------------------------------
-Δ.A[σ] ⊢ ↑≫σ : Γ  Δ.A[σ] ⊢ v₀ : A[↑≫σ]
-----------------------------------------
-Δ.A[σ] ⊢ (↑≫σ).v₀ : Γ.A
+Δ ⊢ σ : Γ  Γ ⊢ A type  A' = A[σ]
+------------------------------------
+Δ.A' ⊢ ↑≫σ : Γ  Δ.A' ⊢ v₀ : A[↑≫σ]
+------------------------------------
+Δ.A' ⊢ (↑≫σ).v₀ : Γ.A
 ```
 -/
-def substWk {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) : M.ext (ym(σ) ≫ A) ⟶ M.ext A :=
-  M.substCons (M.disp _ ≫ σ) A (M.var _) (by simp)
+def substWk {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty)
+    (A' := ym(σ) ≫ A) (eq : ym(σ) ≫ A = A' := by rfl) : M.ext A' ⟶ M.ext A :=
+  M.substCons (M.disp _ ≫ σ) A (M.var _) (by simp [eq])
 
 @[functor_map (attr := reassoc)]
-theorem substWk_disp {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) :
-    M.substWk σ A ≫ M.disp A = M.disp (ym(σ) ≫ A) ≫ σ := by
+theorem substWk_disp {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (A' eq) :
+    M.substWk σ A A' eq ≫ M.disp A = M.disp A' ≫ σ := by
   simp [substWk]
 
 @[reassoc (attr := simp)]
-theorem substWk_var {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) :
-    ym(M.substWk σ A) ≫ M.var A = M.var (ym(σ) ≫ A) := by
+theorem substWk_var {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (A' eq) :
+    ym(M.substWk σ A A' eq) ≫ M.var A = M.var A' := by
   simp [substWk]
 
 /-- `sec` is the section of `disp A` corresponding to `a`.
