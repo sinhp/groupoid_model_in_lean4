@@ -46,6 +46,43 @@ def compDomEquiv {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} :
     compDomEquiv.symm ⟨AB, α, β, w, h⟩ ≫ (P.comp Q).p = AB := by
    simp [compDomEquiv, Equiv.psigmaCongrProp, Equiv.sigmaCongrRight_symm,
     Equiv.coe_fn_symm_mk, pullbackHomEquiv]
+
+theorem ε_map {E B A E' B' A' : 𝒞} {P : UvPoly E B}
+    {P' : UvPoly E' B'}
+    (f : P.functor.obj A ⟶ P'.functor.obj A')
+    (e : E ⟶ E')
+    (b : B ⟶ B')
+    (a : A ⟶ A')
+    (ha : P.fstProj A ≫ b = f ≫ P'.fstProj A')
+    (hp : P.p ≫ b = e ≫ P'.p) :
+    pullback.map (P.fstProj A) P.p (P'.fstProj A') P'.p f e b ha hp ≫ PartialProduct.ε P' A' =
+    PartialProduct.ε P A ≫ prod.map e a := by
+  simp [PartialProduct.ε]
+  sorry
+
+def compDomMap {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q : UvPoly D A}
+    {P' : UvPoly E' B'} {Q' : UvPoly D' A'}
+    (f : P.functor.obj A ⟶ P'.functor.obj A')
+    (e : E ⟶ E')
+    (d : D ⟶ D')
+    (b : B ⟶ B')
+    (a : A ⟶ A')
+    (ha : P.fstProj A ≫ b = f ≫ P'.fstProj A')
+    (hp : P.p ≫ b = e ≫ P'.p)
+    (hq : Q.p ≫ a = d ≫ Q'.p) :
+    compDom P Q ⟶ compDom P' Q' := by
+  let ⟨fst, dependent, snd, h1, h2⟩ := compDomEquiv (𝟙 (P.compDom Q))
+  have : (fst ≫ f) ≫ P'.fstProj A' = (dependent ≫ e) ≫ P'.p := by
+    simp [← ha]; rw [← Category.assoc, h1]; simp [hp]
+  refine compDomEquiv.symm ⟨fst ≫ f, dependent ≫ e, snd ≫ d, this, ?_⟩
+  simp [← hq]; rw [← Category.assoc, h2]; simp
+  simp [show pullback.lift (fst ≫ f) (dependent ≫ e) this =
+      pullback.lift fst dependent h1 ≫ pullback.map _ _ _ _ _ _ _ ha hp by
+    apply pullback.hom_ext <;> simp]
+  congr! 1
+  rw [← Category.assoc, ← Category.assoc, ε_map f e b a ha hp]
+  simp
+
 end CategoryTheory.UvPoly
 
 
@@ -112,9 +149,29 @@ lemma mk_comp_verticalNatTrans_app {Γ : C} (X : C) (b : Γ ⟶ B) (x : pullback
     (by simp [pullback.condition, h]) ≫ x) :=
   sorry
 
-
 end
 
+open Over ExponentiableMorphism in
+lemma cartesianNatTrans_fstProj {D F : C} (P : UvPoly E B) (Q : UvPoly F D)
+    (δ : B ⟶ D) (φ : E ⟶ F) (pb : IsPullback P.p φ δ Q.p) (X : C) :
+    (P.cartesianNatTrans Q δ φ pb).app X ≫ Q.fstProj X = P.fstProj X ≫ δ := by
+  simp [cartesianNatTrans, fstProj]
+  let SE := Over.star E
+  let SF := Over.star F
+  let pφ := Over.pullback φ
+  let pδ := Over.pullback δ
+  let Pp := pushforward P.p
+  let Qp := pushforward Q.p
+  let fB := Over.forget B
+  let fD := Over.forget D
+  let FF : SE ⟶ SF ⋙ pφ := (Over.starPullbackIsoStar φ).inv
+  let GG : pφ ⋙ Pp ⟶ Qp ⋙ pδ :=
+    (pushforwardPullbackIsoSquare pb.flip).inv
+  let HH : pδ ⋙ fB ⟶ fD := pullbackForgetTwoSquare δ
+  change (Pp.map (FF.app X)).left ≫ (GG.app (SF.obj X)).left ≫
+      HH.app (Qp.obj (SF.obj X)) ≫ (Qp.obj (SF.obj X)).hom =
+    (Pp.obj (SE.obj X)).hom ≫ δ
+  sorry
 
 universe v₁ u₁
 

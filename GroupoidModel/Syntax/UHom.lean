@@ -181,6 +181,12 @@ theorem unlift_tp {i j ij jlen Γ A}
     s.unlift i j ij jlen A t eq ≫ (s[i]'(ij.trans_lt jlen)).tp = A := by
   simp [unlift]
 
+@[simp]
+theorem unlift_lift {i j ij jlen Γ A}
+    {t : y(Γ) ⟶ _} (eq : t ≫ s[j].tp = A ≫ (s.homOfLe i j).mapTy) :
+    s.unlift i j ij jlen A t eq ≫ (s.homOfLe i j).mapTm = t := by
+  simp [unlift]
+
 def unliftVar (i j) (ij : i ≤ j := by omega) (jlen : j < s.length + 1 := by get_elem_tactic)
     {Γ} (A : y(Γ) ⟶ (s[i]'(ij.trans_lt jlen)).Ty)
     {A' : y(Γ) ⟶ s[j].Ty} (eq : A ≫ (s.homOfLe i j).mapTy = A') :
@@ -222,6 +228,12 @@ theorem mk_homCartesianNaturalTrans {i j ij jlen}
         (ym(substCons _ (s[j].disp _) _ (s.unliftVar i j ij jlen A rfl) (by simp)) ≫ B) := by
   sorry
 
+theorem homCartesianNaturalTrans_fstProj {i j ij jlen X} :
+    (s.homCartesianNaturalTrans i j ij jlen).app X ≫ s[j].uvPolyTp.fstProj X =
+    s[i].uvPolyTp.fstProj X ≫ (s.homOfLe i j ij jlen).mapTy := by
+  unfold homCartesianNaturalTrans
+  apply UvPoly.cartesianNatTrans_fstProj
+
 /--
 This is one side of the commutative square
 ```
@@ -250,6 +262,13 @@ theorem mk_homCartesianNaturalTransTm {i0 i1 j0 j1 ii ilen jj jlen}
           ≫ B ≫ (s.homOfLe j0 j1).mapTm) := by
   simp [homCartesianNaturalTransTm, mk_homCartesianNaturalTrans_assoc, PtpEquiv.mk_map]
 
+theorem homCartesianNaturalTransTm_fstProj {i0 i1 j0 j1 ii ilen jj jlen} :
+    s.homCartesianNaturalTransTm i0 i1 j0 j1 ii ilen jj jlen ≫ s[i1].uvPolyTp.fstProj s[j1].Tm =
+    s[i0].uvPolyTp.fstProj s[j0].Tm ≫ (s.homOfLe i0 i1).mapTy := by
+  simp [homCartesianNaturalTransTm]
+  slice_lhs 2 3 => apply UvPoly.map_fstProj
+  apply homCartesianNaturalTrans_fstProj
+
 def homCartesianNaturalTransTy (i0 i1 j0 j1 : Nat)
     (i0len : i0 ≤ i1 := by get_elem_tactic) (i1len : i1 < s.length + 1 := by get_elem_tactic)
     (j0len : j0 ≤ j1 := by get_elem_tactic) (j1len : j1 < s.length + 1 := by get_elem_tactic)
@@ -264,6 +283,13 @@ theorem mk_homCartesianNaturalTransTy {i0 i1 j0 j1 ii ilen jj jlen}
         (ym(substCons _ (s[i1].disp _) _ (s.unliftVar i0 i1 ii ilen A rfl) (by simp))
           ≫ B ≫ (s.homOfLe j0 j1).mapTy) := by
   simp [homCartesianNaturalTransTy, mk_homCartesianNaturalTrans_assoc, PtpEquiv.mk_map]
+
+theorem homCartesianNaturalTransTy_fstProj {i0 i1 j0 j1 ii ilen jj jlen} :
+    s.homCartesianNaturalTransTy i0 i1 j0 j1 ii ilen jj jlen ≫ s[i1].uvPolyTp.fstProj s[j1].Ty =
+    s[i0].uvPolyTp.fstProj s[j0].Ty ≫ (s.homOfLe i0 i1).mapTy := by
+  simp [homCartesianNaturalTransTy]
+  slice_lhs 2 3 => apply UvPoly.map_fstProj
+  apply homCartesianNaturalTrans_fstProj
 
 theorem hom_comp_trans (s : UHomSeq Ctx) (i j k : Nat) (ij : i < j) (jk : j < k)
     (klen : k < s.length + 1) :
@@ -555,21 +581,24 @@ theorem mkApp_mkLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[
 def Sig : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
   s.homCartesianNaturalTransTy i (max i j) j (max i j) ≫ (s.nmSigma (max i j)).Sig
 
--- def pair : UvPoly.compDom s[i].uvPolyTp s[j].uvPolyTp ⟶ s[max i j].Tm :=
---   let l : s[i].uvPolyTp.compDom s[j].uvPolyTp ⟶ s[max i j].uvPolyTp.compDom s[max i j].uvPolyTp :=
---     let ⟨fst, snd, thd, h2, h3⟩ := UvPoly.compDomEquiv (𝟙 (s[i].uvPolyTp.compDom s[j].uvPolyTp))
---     UvPoly.compDomEquiv.symm ⟨
---       fst ≫ s.homCartesianNaturalTransTy i _ j _,
---       snd ≫ (s.homOfLe i (max i j)).mapTm,
---       thd ≫ (s.homOfLe j (max i j)).mapTm,
---       _, _⟩
---   l ≫ (s.nmSigma (max i j)).pair
+def pair : UvPoly.compDom s[i].uvPolyTp s[j].uvPolyTp ⟶ s[max i j].Tm :=
+  let l : s[i].uvPolyTp.compDom s[j].uvPolyTp ⟶ s[max i j].uvPolyTp.compDom s[max i j].uvPolyTp :=
+    UvPoly.compDomMap
+      (s.homCartesianNaturalTransTy i (max i j) j (max i j))
+      (s.homOfLe i (max i j)).mapTm
+      (s.homOfLe j (max i j)).mapTm
+      (s.homOfLe i (max i j)).mapTy
+      (s.homOfLe j (max i j)).mapTy
+      s.homCartesianNaturalTransTy_fstProj.symm
+      (s.homOfLe i (max i j)).pb.w.symm
+      (s.homOfLe j (max i j)).pb.w.symm
+  l ≫ (s.nmSigma (max i j)).pair
 
--- def Sig_pb : IsPullback
---     (s.pair ilen jlen)
---   (s[i].uvPolyTp.comp s[j].uvPolyTp).p s[max i j].tp
---     (s.Sig ilen jlen) :=
---   sorry
+def Sig_pb : IsPullback
+    (s.pair ilen jlen)
+  (s[i].uvPolyTp.comp s[j].uvPolyTp).p s[max i j].tp
+    (s.Sig ilen jlen) :=
+  sorry
 
 /--
 ```
@@ -664,7 +693,10 @@ theorem mkFst_mkPair {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s
     (t : y(Γ) ⟶ s[i].Tm) (t_tp : t ≫ s[i].tp = A)
     (u : y(Γ) ⟶ s[j].Tm) (u_tp : u ≫ s[j].tp = ym(s[i].sec A t t_tp) ≫ B) :
     s.mkFst ilen jlen A B (s.mkPair ilen jlen A B t t_tp u u_tp) (by simp) = t := by
-  sorry
+  simp [mkFst, mkPair]
+  apply (s.homOfLe i (max i j)).pb.hom_ext <;> simp
+  · sorry
+  · sorry
 
 theorem comp_mkFst {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
@@ -688,7 +720,7 @@ def mkSnd {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
       simp [mkSigma, *, Sig]
       rw [← Category.assoc]; congr! 1
       apply s.mk_homCartesianNaturalTransTy)
-  refine s.unlift j (max i j) (by omega) (by omega) 
+  refine s.unlift j (max i j) (by omega) (by omega)
     (ym(s[i].sec _ (s.mkFst ilen jlen A B p p_tp) (by simp)) ≫ B)
     (compDomEquiv.snd s[max i j] this) ?_
   simp [compDomEquiv.snd_tp]
