@@ -13,18 +13,18 @@ variable {E B : 𝒞} (P : UvPoly E B) (A : 𝒞)
 
 def compDomEquiv {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} :
     (Γ ⟶ compDom P Q) ≃
-      (AB : Γ ⟶ P.functor.obj A) × (α : Γ ⟶ E) × (β : Γ ⟶ D) ×'
+      (AB : Γ ⟶ P @ A) × (α : Γ ⟶ E) × (β : Γ ⟶ D) ×'
       (w : AB ≫ P.fstProj A = α ≫ P.p) ×'
       (β ≫ Q.p = pullback.lift AB α w ≫ (PartialProduct.fan P A).snd) :=
   calc
   _ ≃ (β : Γ ⟶ D) × (αB : Γ ⟶ pullback (PartialProduct.fan P A).fst P.p) ×'
       β ≫ Q.p = αB ≫ (PartialProduct.fan P A).snd :=
     pullbackHomEquiv
-  _ ≃ (β : Γ ⟶ D) × (αB : (AB : Γ ⟶ P.functor.obj A) × (α : Γ ⟶ E) ×'
+  _ ≃ (β : Γ ⟶ D) × (αB : (AB : Γ ⟶ P @ A) × (α : Γ ⟶ E) ×'
         AB ≫ P.fstProj A = α ≫ P.p) ×'
       β ≫ Q.p = pullback.lift αB.1 αB.2.1 αB.2.2 ≫ (PartialProduct.fan P A).snd :=
     Equiv.sigmaCongrRight (fun β => calc
-      _ ≃ (αB : (AB : Γ ⟶ P.functor.obj A) × (α : Γ ⟶ E) ×' (AB ≫ P.fstProj A = α ≫ P.p)) ×'
+      _ ≃ (αB : (AB : Γ ⟶ P @ A) × (α : Γ ⟶ E) ×' (AB ≫ P.fstProj A = α ≫ P.p)) ×'
           (β ≫ Q.p = pullback.lift αB.1 αB.2.1 αB.2.2 ≫ (PartialProduct.fan P A).snd) :=
         Equiv.psigmaCongrProp pullbackHomEquiv (fun αB => by
           apply Eq.congr_right
@@ -40,7 +40,7 @@ def compDomEquiv {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} :
       right_inv _ := rfl }
 
 @[simp] theorem compDomEquiv_symm_comp_p {Γ E B D A : 𝒞} {P : UvPoly E B}
-    {Q : UvPoly D A} (AB : Γ ⟶ P.functor.obj A) (α : Γ ⟶ E)
+    {Q : UvPoly D A} (AB : Γ ⟶ P @ A) (α : Γ ⟶ E)
     (β : Γ ⟶ D) (w : AB ≫ P.fstProj A = α ≫ P.p)
     (h : β ≫ Q.p = pullback.lift AB α w ≫ (PartialProduct.fan P A).snd) :
     compDomEquiv.symm ⟨AB, α, β, w, h⟩ ≫ (P.comp Q).p = AB := by
@@ -49,39 +49,57 @@ def compDomEquiv {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} :
 
 theorem ε_map {E B A E' B' A' : 𝒞} {P : UvPoly E B}
     {P' : UvPoly E' B'}
-    (f : P.functor.obj A ⟶ P'.functor.obj A')
+    (p : P.functor ⟶ P'.functor)
     (e : E ⟶ E')
     (b : B ⟶ B')
     (a : A ⟶ A')
-    (ha : P.fstProj A ≫ b = f ≫ P'.fstProj A')
+    (ha : P.fstProj A ≫ b = p.app A ≫ P'.fstProj A)
     (hp : P.p ≫ b = e ≫ P'.p) :
-    pullback.map (P.fstProj A) P.p (P'.fstProj A') P'.p f e b ha hp ≫ PartialProduct.ε P' A' =
+    pullback.map (P.fstProj A) P.p (P'.fstProj A') P'.p (p.app A ≫ P'.functor.map a)
+      e b (by simp [ha]) hp ≫ PartialProduct.ε P' A' =
     PartialProduct.ε P A ≫ prod.map e a := by
   simp [PartialProduct.ε]
   sorry
 
 def compDomMap {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q : UvPoly D A}
     {P' : UvPoly E' B'} {Q' : UvPoly D' A'}
-    (f : P.functor.obj A ⟶ P'.functor.obj A')
+    (p : P.functor ⟶ P'.functor)
     (e : E ⟶ E')
     (d : D ⟶ D')
     (b : B ⟶ B')
     (a : A ⟶ A')
-    (ha : P.fstProj A ≫ b = f ≫ P'.fstProj A')
+    (ha : P.fstProj A ≫ b = p.app A ≫ P'.fstProj A)
     (hp : P.p ≫ b = e ≫ P'.p)
     (hq : Q.p ≫ a = d ≫ Q'.p) :
     compDom P Q ⟶ compDom P' Q' := by
   let ⟨fst, dependent, snd, h1, h2⟩ := compDomEquiv (𝟙 (P.compDom Q))
-  have : (fst ≫ f) ≫ P'.fstProj A' = (dependent ≫ e) ≫ P'.p := by
+  have : (fst ≫ p.app A ≫ P'.functor.map a) ≫ P'.fstProj A' = (dependent ≫ e) ≫ P'.p := by
     simp [← ha]; rw [← Category.assoc, h1]; simp [hp]
-  refine compDomEquiv.symm ⟨fst ≫ f, dependent ≫ e, snd ≫ d, this, ?_⟩
+  refine compDomEquiv.symm ⟨fst ≫ p.app A ≫ P'.functor.map a, dependent ≫ e, snd ≫ d, this, ?_⟩
   simp [← hq]; rw [← Category.assoc, h2]; simp
-  simp [show pullback.lift (fst ≫ f) (dependent ≫ e) this =
-      pullback.lift fst dependent h1 ≫ pullback.map _ _ _ _ _ _ _ ha hp by
+  simp [show pullback.lift (fst ≫ p.app A ≫ P'.functor.map a) (dependent ≫ e) this =
+    pullback.lift fst dependent h1 ≫
+      pullback.map _ _ _ _ (p.app A ≫ P'.functor.map a) _ _ (by simp [ha]) hp by
     apply pullback.hom_ext <;> simp]
   congr! 1
-  rw [← Category.assoc, ← Category.assoc, ε_map f e b a ha hp]
+  rw [← Category.assoc, ← Category.assoc, ε_map (ha := ha)]
   simp
+
+theorem compDomMap_isPullback {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q : UvPoly D A}
+    {P' : UvPoly E' B'} {Q' : UvPoly D' A'}
+    (p : P.functor ⟶ P'.functor)
+    (e : E ⟶ E')
+    (d : D ⟶ D')
+    (b : B ⟶ B')
+    (a : A ⟶ A')
+    (ha : P.fstProj A ≫ b = p.app A ≫ P'.fstProj A)
+    (hp : P.p ≫ b = e ≫ P'.p)
+    (hq : Q.p ≫ a = d ≫ Q'.p) :
+    IsPullback
+      (UvPoly.compDomMap p e d b a ha hp hq)
+      (P.comp Q).p (P'.comp Q').p
+      (p.app A ≫ P'.functor.map a) := by
+  sorry
 
 end CategoryTheory.UvPoly
 

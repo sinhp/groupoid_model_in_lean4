@@ -584,12 +584,12 @@ def Sig : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
 def pair : UvPoly.compDom s[i].uvPolyTp s[j].uvPolyTp ⟶ s[max i j].Tm :=
   let l : s[i].uvPolyTp.compDom s[j].uvPolyTp ⟶ s[max i j].uvPolyTp.compDom s[max i j].uvPolyTp :=
     UvPoly.compDomMap
-      (s.homCartesianNaturalTransTy i (max i j) j (max i j))
+      (s.homCartesianNaturalTrans i (max i j))
       (s.homOfLe i (max i j)).mapTm
       (s.homOfLe j (max i j)).mapTm
       (s.homOfLe i (max i j)).mapTy
       (s.homOfLe j (max i j)).mapTy
-      s.homCartesianNaturalTransTy_fstProj.symm
+      s.homCartesianNaturalTrans_fstProj.symm
       (s.homOfLe i (max i j)).pb.w.symm
       (s.homOfLe j (max i j)).pb.w.symm
   l ≫ (s.nmSigma (max i j)).pair
@@ -598,7 +598,7 @@ def Sig_pb : IsPullback
     (s.pair ilen jlen)
   (s[i].uvPolyTp.comp s[j].uvPolyTp).p s[max i j].tp
     (s.Sig ilen jlen) :=
-  sorry
+  (UvPoly.compDomMap_isPullback ..).paste_horiz (s.nmSigma (max i j)).Sig_pullback
 
 /--
 ```
