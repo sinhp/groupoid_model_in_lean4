@@ -163,8 +163,8 @@ variable (C : Type*) [Category C] (D : Type*) [Category D]
 
 end
 
-namespace IsPullback
 open Limits
+namespace IsPullback
 
 variable {C : Type u₁} [Category.{v₁} C]
 
@@ -186,6 +186,14 @@ theorem isoPullback_eq_eqToIso_left
     eqToIso (by subst hf; rfl) := by subst hf; simp
 
 end IsPullback
+
+theorem pullback_map_eq_eqToHom {C : Type u₁} [Category.{v₁} C]
+    {X Y Z : C} {f f' : X ⟶ Z} (hf : f = f') {g g' : Y ⟶ Z} (hg : g = g')
+    [H : HasPullback f g] :
+    letI : HasPullback f' g' := hf ▸ hg ▸ H
+    pullback.map f g f' g' (𝟙 _) (𝟙 _) (𝟙 _) (by simp [hf]) (by simp [hg]) =
+    eqToHom (by subst hf hg; rfl) := by subst hf hg; simp
+
 end CategoryTheory
 
 namespace CategoryTheory

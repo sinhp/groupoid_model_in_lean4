@@ -187,20 +187,16 @@ theorem mk_comp_left {Δ} (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) (σ: Δ ⟶ 
     (pullback.map _ _ _ _ σ (𝟙 _) (𝟙 _) (by simp) (by simp) ≫ x) := by
   simp only [mk_eq_mk']
   rw [mk'_comp_left (H := IsPullback.of_hasPullback _ _) (H' := IsPullback.of_hasPullback _ _)]
-  congr 2
-  ext
-  · simp
-  · simp
+  congr 2; ext <;> simp
 
-lemma mk'_comp_cartesianNatTrans_app {E' B' Γ X : C} {P' : UvPoly E' B'}
-    (y : Γ ⟶ B) (R f g) (H : IsPullback (P := R) f g y P.p)
-    (x : R ⟶ X) (e : E ⟶ E') (b : B ⟶ B')
-    (hp : IsPullback P.p e b P'.p) :
-    Equiv.mk' P X y H x ≫ (P.cartesianNatTrans P' b e hp).app X =
-    Equiv.mk' P' X (y ≫ b) (R := R) (f := f) (g := g ≫ e) sorry x := by
-  dsimp [cartesianNatTrans]
-  simp
-  sorry
+-- open ExponentiableMorphism in
+-- lemma mk'_comp_cartesianNatTrans_app {E' B' Γ X : C} {P' : UvPoly E' B'}
+--     (y : Γ ⟶ B) (R f g) (H : IsPullback (P := R) f g y P.p)
+--     (x : R ⟶ X) (e : E ⟶ E') (b : B ⟶ B')
+--     (hp : IsPullback P.p e b P'.p) :
+--     Equiv.mk' P X y H x ≫ (P.cartesianNatTrans P' b e hp).app X =
+--     Equiv.mk' P' X (y ≫ b) (H.paste_vert hp) x := by
+--   simp [mk', mk]
 
 end Equiv
 
@@ -246,42 +242,184 @@ def compDomEquiv {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} :
    simp [compDomEquiv, Equiv.psigmaCongrProp, Equiv.sigmaCongrRight_symm,
     Equiv.coe_fn_symm_mk, pullbackHomEquiv]
 
--- TODO: rename
-abbrev ev1 : pullback (P.fstProj A) P.p ⟶ A := ε P A ≫ prod.snd
+-- -- TODO: rename
+-- abbrev ev1 : pullback (P.fstProj A) P.p ⟶ A := ε P A ≫ prod.snd
 
-theorem ev1_map {E B A E' B' A' : 𝒞} {P : UvPoly E B} {P' : UvPoly E' B'}
-    (e : E ⟶ E') (b : B ⟶ B') (a : A ⟶ A')
-    (hp : IsPullback P.p e b P'.p)
-    (ha : P.fstProj A ≫ b = (P.cartesianNatTrans P' b e hp).app A ≫ P'.fstProj A) :
-    pullback.map (P.fstProj A) P.p (P'.fstProj A') P'.p
-      ((P.cartesianNatTrans P' b e hp).app A ≫ P'.functor.map a)
-      e b (by simp [ha]) hp.w ≫ ev1 P' A' =
-    ev1 P A ≫ a := by
-  let z := P.functor.map a ≫ (P.cartesianNatTrans P' b e hp).app A'
-  have isPullbackOuter : IsPullback (pullback.fst (P.fstProj A) P.p)
-    (pullback.snd (P.fstProj A) P.p ≫ e)
-    (((P.cartesianNatTrans P' b e hp).app A) ≫ P'.fstProj A) P'.p := by
-    rw [← ha]
-    exact IsPullback.paste_vert (IsPullback.of_hasPullback (P.fstProj A) P.p) hp
-  have isPullbackUpper : IsPullback (pullback.fst (P.fstProj A) P.p)
-      (pullback.snd (P.fstProj A) P.p ≫ e) (Equiv.fst P' A' z) P'.p := by
-    convert isPullbackOuter
-    simp [Equiv.fst_eq, z, (P.cartesianNatTrans P' b e hp).naturality]
-  have functor_map_eq_mk : P.functor.map a = Equiv.mk P A' (fstProj P A) (ev1 P A ≫ a) := by
-    sorry
-  calc (pullback.map (P.fstProj A) P.p (P'.fstProj A') P'.p
-    ((P.cartesianNatTrans P' b e hp).app A ≫ P'.functor.map a)
-    e b (by simp [ha]) hp.w ≫ ev1 P' A')
-  _ = UvPoly.Equiv.snd' P' A' z (R := pullback (P.fstProj A) P.p)
-      (f := pullback.fst _ _) (g := pullback.snd _ _ ≫ e) isPullbackUpper := by
-    simp only [Equiv.snd'_eq, ev1, ← Category.assoc]
-    congr 2
-    ext <;> simp [z]
-  _ = _ := by
-    dsimp [z]
-    rw! [functor_map_eq_mk, Equiv.mk_eq_mk', Equiv.mk'_comp_cartesianNatTrans_app, Equiv.snd'_mk']
+-- theorem ev1_map {E B A E' B' A' : 𝒞} {P : UvPoly E B} {P' : UvPoly E' B'}
+--     (e : E ⟶ E') (b : B ⟶ B') (a : A ⟶ A')
+--     (hp : IsPullback P.p e b P'.p)
+--     (ha : P.fstProj A ≫ b = (P.cartesianNatTrans P' b e hp).app A ≫ P'.fstProj A) :
+--     pullback.map (P.fstProj A) P.p (P'.fstProj A') P'.p
+--       ((P.cartesianNatTrans P' b e hp).app A ≫ P'.functor.map a)
+--       e b (by simp [ha]) hp.w ≫ ev1 P' A' =
+--     ev1 P A ≫ a := by
+--   set p := P.cartesianNatTrans P' b e hp
+--   let z := P.functor.map a ≫ p.app A'
+--   have isPullbackUpper : IsPullback (pullback.fst (P.fstProj A) P.p)
+--       (pullback.snd (P.fstProj A) P.p ≫ e) (Equiv.fst P' A' z) P'.p := by
+--     simp [Equiv.fst_eq, z, p.naturality, ← ha]
+--     exact .paste_vert (.of_hasPullback (P.fstProj A) P.p) hp
+--   have functor_map_eq_mk : P.functor.map a = Equiv.mk P A' (fstProj P A) (ev1 P A ≫ a) := by
+--     rw [← Equiv.mk_comp_right]
+--     refine .symm <| .trans ?_ (Category.id_comp _); congr 1
+--     have pb : IsPullback (pullback.fst (P.fstProj A) P.p)
+--         (pullback.snd (P.fstProj A) P.p) (Equiv.fst P A (𝟙 _)) P.p := by
+--       simp [Equiv.fst_eq]; exact .of_hasPullback ..
+--     rw [Equiv.mk_eq_mk']
+--     convert Equiv.eta' P A (𝟙 _) pb
+--     · simp [Equiv.fst_eq]
+--     · simp [ev1, Equiv.snd'_eq]
+--   calc pullback.map _ _ _ _ (p.app A ≫ P'.functor.map a) e b (by simp [ha]) hp.w ≫ ev1 P' A'
+--   _ = UvPoly.Equiv.snd' P' A' z isPullbackUpper := by
+--     simp only [Equiv.snd'_eq, ev1, ← Category.assoc]
+--     congr 2
+--     ext <;> simp [z]
+--   _ = _ := by
+--     dsimp [z]
+--     rw! [functor_map_eq_mk, Equiv.mk_eq_mk', Equiv.mk'_comp_cartesianNatTrans_app, Equiv.snd'_mk']
 
 open ExponentiableMorphism in
+theorem ev_naturality {E B E' B' : 𝒞} {P : UvPoly E B} {P' : UvPoly E' B'}
+    (e : E ⟶ E') (b : B ⟶ B')
+    (hp : IsPullback P.p e b P'.p) :
+    let pfwd := pushforward P.p
+    let p'fwd := pushforward P'.p
+    let pbk := Over.pullback P.p
+    let ebk := Over.pullback e
+    let bbk := Over.pullback b
+    let p'bk := Over.pullback P'.p
+    have β : ebk ⋙ pfwd ⟶ p'fwd ⋙ bbk := (pushforwardPullbackIsoSquare hp.flip).inv
+    have bb : bbk ⋙ pbk ≅ p'bk ⋙ ebk :=
+      (Over.pullbackComp P.p b).symm.trans (eqToIso congr(Over.pullback $(hp.w)))
+        |>.trans (Over.pullbackComp e P'.p)
+    (Functor.whiskerRight β pbk ≫
+      Functor.whiskerLeft p'fwd bb.hom ≫
+      Functor.whiskerRight (ev P'.p) ebk : ebk ⋙ pfwd ⋙ pbk ⟶ ebk) =
+    Functor.whiskerLeft ebk (ev P.p) :=
+  sorry
+
+theorem associator_eq_id {C D E E'} [Category C] [Category D] [Category E] [Category E']
+    (F : C ⥤ D) (G : D ⥤ E) (H : E ⥤ E') : Functor.associator F G H = Iso.refl (F ⋙ G ⋙ H) := rfl
+
+open Functor in
+theorem whiskerRight_left' {C D E B} [Category C] [Category D] [Category E] [Category B]
+    (F : B ⥤ C) {G H : C ⥤ D} (α : G ⟶ H) (K : D ⥤ E) :
+    whiskerRight (whiskerLeft F α) K = whiskerLeft F (whiskerRight α K) := by
+  aesop_cat
+
+open Functor in
+theorem id_whiskerLeft' {C D} [Category C] [Category D] {G H : C ⥤ D} (α : G ⟶ H) :
+    whiskerLeft (𝟭 C) α = α := by
+  aesop_cat
+
+open Functor in
+theorem whiskerLeft_twice' {C D E B} [Category C] [Category D] [Category E] [Category B]
+    (F : B ⥤ C) (G : C ⥤ D) {H K : D ⥤ E} (α : H ⟶ K) :
+    whiskerLeft F (whiskerLeft G α) = whiskerLeft (F ⋙ G) α := by
+  aesop_cat
+
+open Functor in
+theorem whiskerRight_twice' {C D E B} [Category C] [Category D] [Category E] [Category B]
+    {H K : B ⥤ C} (F : C ⥤ D) (G : D ⥤ E) (α : H ⟶ K) :
+    whiskerRight (whiskerRight α F) G = whiskerRight α (F ⋙ G) := by
+  aesop_cat
+
+open ExponentiableMorphism Functor in
+set_option maxHeartbeats 300000 in
+theorem ε_map_snd' {E B A E' B' : 𝒞} {P : UvPoly E B} {P' : UvPoly E' B'}
+    (e : E ⟶ E') (b : B ⟶ B')
+    (hp : IsPullback P.p e b P'.p)
+    (ha : P.fstProj A ≫ b = (P.cartesianNatTrans P' b e hp).app A ≫ P'.fstProj A) :
+    pullback.map (P.fstProj A) P.p (P'.fstProj A) P'.p
+      ((P.cartesianNatTrans P' b e hp).app A)
+      e b (by simp [ha]) hp.w ≫ ε P' A ≫ prod.snd =
+    ε P A ≫ prod.snd := by
+  have := ev_naturality e b hp; revert this; lift_lets
+  let sE := Over.star E
+  let sE' := Over.star E'
+  let UE := Over.forget E
+  let UE' := Over.forget E'
+  let UB := Over.forget B
+  let UB' := Over.forget B'
+  intros pfwd p'fwd pbk ebk bbk p'bk β bb eq
+  let α : sE ⟶ sE' ⋙ ebk := (Over.starPullbackIsoStar e).inv
+  let eγ : ebk ⋙ UE ⟶ UE' := Over.pullbackForgetTriangle e
+  let bγ : bbk ⋙ UB ⟶ UB' := Over.pullbackForgetTriangle b
+  let pγ : pbk ⋙ UE ⟶ UB := Over.pullbackForgetTriangle P.p
+  let p'γ : p'bk ⋙ UE' ⟶ UB' := Over.pullbackForgetTriangle P'.p
+  let y1 := whiskerRight α pfwd ≫ whiskerLeft sE' β
+  set p : sE ⋙ pfwd ⋙ UB ⟶ sE' ⋙ p'fwd ⋙ UB' :=
+    P.cartesianNatTrans P' b e hp
+  have p_eq : whiskerRight y1 UB ≫ whiskerLeft (sE' ⋙ p'fwd) bγ = p := by
+    simp [y1, associator_eq_id, bγ, p, cartesianNatTrans, TwoSquare.vComp, TwoSquare.mk,
+      TwoSquare.natTrans]
+    conv_lhs => apply Category.id_comp
+    slice_rhs 2 6 => apply Category.id_comp
+    slice_rhs 4 5 => apply Category.comp_id
+    slice_rhs 2 2 => rw [← whiskerRight_left']
+    slice_rhs 3 3 => apply whiskerLeft_id
+    slice_rhs 3 4 => apply Category.id_comp
+    rfl
+  let r :=
+    whiskerRight (
+      whiskerRight y1 pbk ≫
+      whiskerLeft (sE' ⋙ p'fwd) bb.hom) UE ≫
+    whiskerLeft (sE' ⋙ p'fwd ⋙ p'bk) eγ
+  have : r.app A = pullback.map (P.fstProj A) P.p (P'.fstProj A) P'.p
+      (p.app A) e b (by simp [ha]) hp.w := by
+    simp [r, UE, bb, eγ, sE', UE', pbk, p'bk, Over.pullbackComp, Over.pullbackForgetTriangle,
+      Over.pullbackForgetTwoSquare, Over.pullback, Adjunction.id, Over.mapForget,
+      TwoSquare.natTrans]
+    slice_lhs 5 5 => exact (pullback_map_eq_eqToHom rfl hp.w).symm
+    slice_lhs 10 10 => enter [2,2,2,2]; apply Category.comp_id
+    ext <;> simp
+    · conv_rhs => apply pullback.lift_fst
+      slice_lhs 1 2 => apply pullback.lift_fst
+      simp [← p_eq, UB, bγ, p'fwd, pfwd, Over.pullbackForgetTriangle,
+        Over.pullbackForgetTwoSquare, Adjunction.id, TwoSquare.natTrans, Over.mapForget]
+      congr 2
+      symm; apply Category.id_comp
+    · slice_lhs 1 2 => apply pullback.lift_snd
+      symm; apply pullback.lift_snd
+  let Z : sE ⋙ pfwd ⋙ pbk ⋙ UE ⟶ sE ⋙ UE :=
+    whiskerRight (sE.whiskerLeft (ev P.p)) UE
+  let Z' : sE' ⋙ p'fwd ⋙ p'bk ⋙ UE' ⟶ sE' ⋙ UE' :=
+    whiskerRight (sE'.whiskerLeft (ev P'.p)) UE'
+  rw [← this, ← show Z.app A = ε P A by rfl, ← show Z'.app A = ε P' A by rfl]
+  have : Z ≫ whiskerRight α UE ≫ whiskerLeft sE' eγ = r ≫ Z' := by
+    simp [Z, Z', r, y1, associator_eq_id]
+    slice_rhs 1 1 => apply whiskerRight_id
+    slice_rhs 1 2 => apply Category.id_comp
+    slice_rhs 1 2 => apply Category.id_comp
+    slice_rhs 1 2 => apply Category.comp_id
+    slice_lhs 1 1 => apply whiskerRight_left'
+    slice_lhs 1 2 => apply whiskerLeft_comp_whiskerRight (H := pfwd ⋙ pbk ⋙ UE)
+    slice_lhs 2 2 =>
+      conv => apply (whiskerLeft_twice' ..).symm
+      arg 2; apply (whiskerRight_left' ..).symm
+    simp [← eq, associator_eq_id]; congr! 1
+    slice_lhs 1 1 => apply whiskerLeft_id
+    slice_lhs 1 2 => apply Category.id_comp
+    slice_rhs 1 1 => apply whiskerRight_left'
+    slice_rhs 2 2 =>
+      conv => arg 1; apply (whiskerLeft_twice' ..).symm
+      apply whiskerRight_left'
+    slice_lhs 3 3 => apply whiskerLeft_id
+    slice_lhs 3 4 => apply Category.id_comp
+    slice_rhs 3 3 => apply (whiskerLeft_twice' sE' (p'fwd ⋙ p'bk) _).symm
+    slice_rhs 3 4 =>
+      conv => arg 2; apply whiskerRight_left'
+      rw [← whiskerLeft_comp, whiskerLeft_comp_whiskerRight, whiskerLeft_comp, id_whiskerLeft']
+  have := congr($(this).app A)
+  simp [UE, eγ, Over.pullbackForgetTriangle, Over.pullbackForgetTwoSquare,
+    Adjunction.id, TwoSquare.natTrans, Over.mapForget] at this
+  slice_lhs 1 2 => rw [← this]
+  slice_lhs 2 3 => apply Category.comp_id
+  simp [α, Over.starPullbackIsoStar]
+  slice_lhs 5 6 => apply pullback.lift_fst
+  simp [Over.mapForget]
+
+open ExponentiableMorphism Functor in
 theorem ε_map {E B A E' B' A' : 𝒞} {P : UvPoly E B} {P' : UvPoly E' B'}
     (e : E ⟶ E') (b : B ⟶ B') (a : A ⟶ A')
     (hp : IsPullback P.p e b P'.p)
@@ -295,45 +433,19 @@ theorem ε_map {E B A E' B' A' : 𝒞} {P : UvPoly E B} {P' : UvPoly E' B'}
     slice_rhs 1 2 => apply by simpa using ((ev P.p).app ((Over.star E).obj A)).w
     slice_lhs 2 3 => apply by simpa using ((ev P'.p).app ((Over.star E').obj A')).w
     apply pullback.lift_snd
-  · have := ((Over.star E).whiskerLeft (ev P.p)).naturality a
+  · have := ((Over.star E').whiskerLeft (ev P'.p)).naturality a
     replace := congr($(this).left ≫ prod.snd)
-    simp [ε, -Adjunction.counit_naturality] at this ⊢
-    simp [cartesianNatTrans] at ha
-    let Z := Functor.whiskerRight ((Over.star E).whiskerLeft (ev P.p)) (Over.forget E)
-    have : Z.app A = sorry := sorry; simp [Z] at this
-    have := (pushforwardPullbackIsoSquare hp.flip).inv
-    have := (Over.starPullbackIsoStar e).inv
-    have := (Over.pullbackForgetTwoSquare b).natTrans
-    have := P.cartesianNatTrans P' b e hp; dsimp [functor] at this
-    stop
-    set p := P.cartesianNatTrans P' b e hp
-    let z := P.functor.map a ≫ p.app A'
-    let R := pullback (P.fstProj A) P.p
-    let r1 : R ⟶ P @ A := pullback.fst (P.fstProj A) P.p
-    let r2 : R ⟶ E := pullback.snd (P.fstProj A) P.p
-    let R' := pullback (P'.fstProj A') P'.p
-    have : Equiv.fst P' A' z = P.fstProj A ≫ b := by simp [Equiv.fst_eq, z, ha]
-    have pb : IsPullback r1 (r2 ≫ e) (Equiv.fst P' A' z) P'.p := this ▸ .paste_vert (.of_hasPullback ..) hp
-    have : Equiv.snd' P' A' z pb = ε P A ≫ prod.snd ≫ a := by
-      rw [Equiv.snd'_eq]
-      sorry
-    have : Equiv.fst P A' (P.functor.map a) = P.fstProj A := by simp [Equiv.fst_eq]
-    have pb : IsPullback (P := R) r1 r2 (Equiv.fst P A' (P.functor.map a)) P.p := by rw [this]; exact .of_hasPullback ..
-    have := Equiv.snd'_eq P A' (P.functor.map a) pb
-    have : ε P A ≫ ?_ = ?_ ≫ ε P' A' := sorry
-    unfold ε at this
-    have := (ev P.p).app ((Over.star E).obj A)
-    dsimp at this
-    have := pushforwardUncurry <|
-      (pushforward P.p).map ((Over.star E).map a)
-    have := ((pushforward P.p).obj
-          ((Over.star E).obj A))
-    have' := pushforwardUncurry (f := P.p)
-      (𝟙
-        ((pushforward P.p).obj
-          ((Over.star E).obj A)))
-    simp [PartialProduct.ε]
-    sorry
+    simp [-Adjunction.counit_naturality] at this
+    simp [← ε.eq_def] at this
+    have H := congr($(ε_map_snd' e b hp ha) ≫ a)
+    conv at H => lhs; slice 2 4; apply this.symm
+    simp at H ⊢; rw [← H]
+    simp only [← Category.assoc]; congr 2; ext <;> simp
+    · slice_rhs 2 3 => apply pullback.lift_fst
+      slice_rhs 1 2 => apply pullback.lift_fst
+      simp; rfl
+    · slice_rhs 2 3 => apply pullback.lift_snd
+      slice_rhs 1 2 => apply pullback.lift_snd
 
 def compDomMap {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q : UvPoly D A}
     {P' : UvPoly E' B'} {Q' : UvPoly D' A'}
