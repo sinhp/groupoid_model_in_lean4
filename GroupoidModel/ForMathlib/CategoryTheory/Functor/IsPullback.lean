@@ -188,10 +188,10 @@ structure IsPullback {Libya Egypt Chad Sudan : Type*}
   (comm_sq : north ⋙ east = west ⋙ south)
   (toChosen : Libya ⥤ Chosen east south)
   (fromChosen : Chosen east south ⥤ Libya)
-  (to_from_id : toChosen ⋙ fromChosen = 𝟭 _)
-  (from_to_id : fromChosen ⋙ toChosen = 𝟭 _)
-  (from_north : fromChosen ⋙ north = Chosen.north)
-  (from_west : fromChosen ⋙ west = Chosen.west)
+  (to_from_id' : toChosen ⋙ fromChosen = 𝟭 _)
+  (from_to_id' : fromChosen ⋙ toChosen = 𝟭 _)
+  (from_north' : fromChosen ⋙ north = Chosen.north)
+  (from_west' : fromChosen ⋙ west = Chosen.west)
 
 namespace IsPullback
 
@@ -205,6 +205,18 @@ section
 variable {Libya'} [Category Libya']
   (h : IsPullback north west east south)
 
+@[simp]
+lemma to_from_id : h.toChosen ⋙ h.fromChosen = 𝟭 _ := h.to_from_id'
+
+@[simp]
+lemma from_to_id : h.fromChosen ⋙ h.toChosen = 𝟭 _ := h.from_to_id'
+
+@[simp]
+lemma from_north : h.fromChosen ⋙ north = Chosen.north := h.from_north'
+
+@[simp]
+lemma from_west : h.fromChosen ⋙ west = Chosen.west := h.from_west'
+
 /--
 We can construct a pullback by only providing an isomorphism to the chosen pullback.
 -/
@@ -215,16 +227,16 @@ def ofIso (to' : Libya' ⥤ Libya)
   comm_sq := by rw [Functor.assoc, h.comm_sq, Functor.assoc]
   toChosen := to' ⋙ h.toChosen
   fromChosen := h.fromChosen ⋙ from'
-  to_from_id := calc to' ⋙ (h.toChosen ⋙ h.fromChosen) ⋙ from'
+  to_from_id' := calc to' ⋙ (h.toChosen ⋙ h.fromChosen) ⋙ from'
     _ = to' ⋙ from' := by rw [h.to_from_id, Functor.id_comp]
     _ = 𝟭 _ := htf
-  from_to_id := calc h.fromChosen ⋙ (from' ⋙ to') ⋙ h.toChosen
+  from_to_id' := calc h.fromChosen ⋙ (from' ⋙ to') ⋙ h.toChosen
     _ = h.fromChosen ⋙ h.toChosen := by rw [hft, Functor.id_comp]
     _ = 𝟭 _ := h.from_to_id
-  from_north := calc h.fromChosen ⋙ (from' ⋙ to') ⋙ north
+  from_north' := calc h.fromChosen ⋙ (from' ⋙ to') ⋙ north
     _ = h.fromChosen ⋙ north := by rw [hft, Functor.id_comp]
     _ = Chosen.north := h.from_north
-  from_west := calc h.fromChosen ⋙ (from' ⋙ to') ⋙ west
+  from_west' := calc h.fromChosen ⋙ (from' ⋙ to') ⋙ west
     _ = h.fromChosen ⋙ west := by rw [hft, Functor.id_comp]
     _ = Chosen.west := h.from_west
 
@@ -235,10 +247,10 @@ def Chosen.isPullback : IsPullback (@Chosen.north _ _ _ _ _ _ east south)
   comm_sq := Chosen.comm_sq
   toChosen := 𝟭 _
   fromChosen := 𝟭 _
-  to_from_id := rfl
-  from_to_id := rfl
-  from_north := rfl
-  from_west := rfl
+  to_from_id' := rfl
+  from_to_id' := rfl
+  from_north' := rfl
+  from_west' := rfl
 
 /--
 We can construct a pullback by only providing an isomorphism to the chosen pullback.
@@ -254,13 +266,13 @@ variable {north} {east} {south} {west} (P : IsPullback north west east south)
 Commuting conditions between a general pullback `P` and the chosen pullback.
 -/
 theorem toChosen_north : P.toChosen ⋙ Chosen.north = north := by
-  simp [← P.from_north, ← Functor.assoc, P.to_from_id, Functor.id_comp]
+  simp only [← P.from_north, ← Functor.assoc, P.to_from_id, Functor.id_comp]
 
 /--
 Commuting conditions between a general pullback `P` and the chosen pullback.
 -/
 theorem toChosen_west : P.toChosen ⋙ Chosen.west = west := by
-  simp [← P.from_west, ← Functor.assoc, P.to_from_id, Functor.id_comp]
+  simp only [← P.from_west, ← Functor.assoc, P.to_from_id, Functor.id_comp]
 
 variable {C : Type u} [Category.{v} C] (Cn : C ⥤ Egypt) (Cw : C ⥤ Chad)
     (hC : Cn ⋙ east = Cw ⋙ south)
@@ -357,20 +369,20 @@ def ofUniversal : IsPullback north west east south := {
   comm_sq := comm_sq
   toChosen := Chosen.lift north west comm_sq
   fromChosen := (lChosen Chosen.north Chosen.west Chosen.comm_sq).1
-  to_from_id := by
+  to_from_id' := by
     apply (lLibya north west comm_sq).2.2.2
     · rw [Functor.assoc, (lChosen _ _ Chosen.comm_sq).2.1,
         Chosen.fac_left, Functor.id_comp]
     · rw [Functor.assoc, (lChosen _ _ Chosen.comm_sq).2.2.1,
         Chosen.fac_right, Functor.id_comp]
-  from_to_id := by
+  from_to_id' := by
     apply Chosen.hom_ext
     · rw [Functor.assoc, Chosen.fac_left, Functor.id_comp,
         (lChosen _ _ Chosen.comm_sq).2.1]
     · rw [Functor.assoc, Chosen.fac_right, Functor.id_comp,
         (lChosen _ _ Chosen.comm_sq).2.2.1]
-  from_north := (lChosen _ _ Chosen.comm_sq).2.1
-  from_west := (lChosen _ _ Chosen.comm_sq).2.2.1
+  from_north' := (lChosen _ _ Chosen.comm_sq).2.1
+  from_west' := (lChosen _ _ Chosen.comm_sq).2.2.1
 }
 
 
@@ -726,6 +738,29 @@ end ofRight'
 end north
 
 end Paste
+
+section isoIsPullback
+
+variable {Libya Libya' Egypt Chad Sudan : Type*}
+  [Category Libya] [Category Libya']
+  [Category Egypt] [Category Chad] [Category Sudan]
+  (north : Libya ⥤ Egypt) (west : Libya ⥤ Chad)
+  (east : Egypt ⥤ Sudan) (south : Chad ⥤ Sudan)
+  (hLibya : IsPullback north west east south)
+  (north' : Libya' ⥤ Egypt) (west' : Libya' ⥤ Chad)
+  (hLibya' : IsPullback north' west' east south)
+
+def isoIsPullback : Libya ≅≅ Libya' where
+  hom := hLibya.toChosen ⋙ hLibya'.fromChosen
+  inv := hLibya'.toChosen ⋙ hLibya.fromChosen
+  hom_inv_id := calc _
+    _ = hLibya.toChosen ⋙ (hLibya'.fromChosen ⋙ hLibya'.toChosen) ⋙ hLibya.fromChosen := rfl
+    _ = _ := by simp [Functor.id_comp]
+  inv_hom_id := calc _
+    _ = hLibya'.toChosen ⋙ (hLibya.fromChosen ⋙ hLibya.toChosen) ⋙ hLibya'.fromChosen := rfl
+    _ = _ := by simp [Functor.id_comp]
+
+end isoIsPullback
 
 
 end IsPullback

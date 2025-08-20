@@ -644,6 +644,30 @@ def smallUIdIntro : NaturalModelBase.IdIntro smallU.{u} where
   refl := refl
   refl_tp := refl_tp
 
+def Ctx.toGrpdExtIso {Γ : Ctx.{max v (u+1)}}
+    (A : y(Γ) ⟶ smallU.{u,max v (u+1)}.Ty) :
+    Ctx.toGrpd.obj (smallU.ext A) ≅≅ ∫ yonedaCategoryEquiv A :=
+  let A' := yonedaCategoryEquiv A
+  have h := Functor.IsPullback.isoIsPullback (toPGrpd A') forget PGrpd.forgetToGrpd A'
+    (Functor.Groupoidal.isPullback A') (yonedaCategoryEquiv (smallU.var A))
+    (Ctx.toGrpd.map $ smallU.disp _) sorry
+  sorry
+
+def Ctx.ofGrpdGroupoidalYonedaCategoryEquivIsoExt {Γ : Ctx.{max v (u+1)}}
+    (A : y(Γ) ⟶ smallU.{u,max v (u+1)}.Ty) :
+    smallU.ext A ≅ Ctx.ofGrpd.obj (Grpd.of (∫ yonedaCategoryEquiv A)) :=
+  have := Functor.Groupoidal.isPullback (yonedaCategoryEquiv A)
+  -- have := Cat.isPullback (Functor.Groupoidal.isPullback (yonedaCategoryEquiv A)).comm_sq
+  --   (Functor.Groupoidal.isPullback (yonedaCategoryEquiv A))
+  sorry
+
+def ofGrpdMotiveCtxIso {Γ : Ctx.{(max u v w) + 1}} (a : y(Γ) ⟶ smallU.Tm.{u,(max u v w) + 1}) :
+    Ctx.ofGrpd.obj (FunctorOperation.motiveCtx (yonedaCategoryEquiv a)) ≅
+    smallUIdIntro.{u,(max u v w) + 1}.motiveCtx a := by
+  dsimp [FunctorOperation.motiveCtx, NaturalModelBase.IdIntro.motiveCtx]
+  -- refine Ctx.ofGrpd.mapIso ?_ ≪≫ (Ctx.ofGrpdGroupoidalYonedaCategoryEquivIsoExt _).symm
+  sorry
+
 open NaturalModelBase
 
 def j {Γ : Ctx.{(max u v w) + 1}} (a : y(Γ) ⟶ smallU.Tm.{u,(max u v w) + 1})
