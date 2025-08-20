@@ -46,6 +46,7 @@ by uniqueness of typing, lemmas like the following can be proven
 ```
 and hence it suffices to compare the value parts (in this case `p`). -/
 inductive Val where
+  | const (c : χ)
   | pi (l l' : Nat) (A : Val) (B : Clos)
   | sigma (l l' : Nat) (A : Val) (B : Clos)
   | Id (l : Nat) (A t u : Val)
@@ -126,6 +127,10 @@ inductive ValEqTp : Ctx χ → Nat → Val χ → Expr χ → Prop
 -- Note: neutral types are embedded in `Val` directly and don't need a `NeutEqTp` relation.
 
 inductive ValEqTm : Ctx χ → Nat → Val χ → Expr χ → Expr χ → Prop
+  | const {Γ c Al} :
+    WfCtx E Γ →
+    E c = some Al →
+    ValEqTm Γ Al.val.2 (.const c) (.const c) Al.val.1
   | lam {Γ A B vA vb b l l'} :
     ValEqTp Γ l vA A →
     ClosEqTm Γ l l' A B vb b →
@@ -309,6 +314,7 @@ theorem wf_expr :
     (∀ {Γ Eᵥ σ Γ'}, EnvEqSb E Γ Eᵥ σ Γ' → WfSb E Γ σ Γ') := by
   mutual_induction ValEqTp
   all_goals dsimp; intros
+  case const => apply WfTm.const <;> assumption
   case conv_tp => grind [EqTp.wf_right]
   case conv_nf tt' AA' _ => exact tt'.wf_right.conv AA'
   case conv_neut nn' AA' _ => exact nn'.wf_right.conv AA'
@@ -402,6 +408,7 @@ theorem conv_ctx :
     (∀ {Γ Eᵥ σ Δ}, EnvEqSb E Γ Eᵥ σ Δ → ∀ {Γ'}, EqCtx E Γ Γ' → EnvEqSb E Γ' Eᵥ σ Δ) := by
   mutual_induction ValEqTp
   all_goals intros
+  case const => apply ValEqTm.const <;> grind [EqCtx.wf_right]
   case univ => grind [ValEqTp.univ, EqCtx.wf_right]
   case pair B _ _ _ _ _ eq =>
     apply ValEqTm.pair (B.conv_ctx (eq.snoc <| EqTp.refl_tp B.wf_binder)) <;> grind
@@ -476,6 +483,9 @@ theorem wk_all :
       EnvEqSb E ((C,k) :: Γ) Eᵥ (Expr.comp Expr.wk σ) Δ) := by
   mutual_induction ValEqTp
   all_goals intros; try dsimp [Expr.subst] at *
+  case const Al _ _ _ _ _ =>
+    rw [Expr.subst_of_isClosed _ Al.2.1]
+    apply ValEqTm.const <;> grind [WfCtx.snoc]
   case univ => grind [ValEqTp.univ, WfCtx.snoc]
   case conv_tp => grind [ValEqTp.conv_tp, EqTp.subst, WfSb.wk]
   case pair B _ _ iht ihu _ _ C =>
