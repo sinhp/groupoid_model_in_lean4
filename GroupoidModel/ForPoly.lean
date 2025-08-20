@@ -419,7 +419,30 @@ theorem ε_map_snd' {E B A E' B' : 𝒞} {P : UvPoly E B} {P' : UvPoly E' B'}
   slice_lhs 5 6 => apply pullback.lift_fst
   simp [Over.mapForget]
 
-open ExponentiableMorphism Functor in
+open ExponentiableMorphism in
+theorem ε_map_snd {E B A E' B' A' : 𝒞} {P : UvPoly E B} {P' : UvPoly E' B'}
+    (e : E ⟶ E') (b : B ⟶ B') (a : A ⟶ A')
+    (hp : IsPullback P.p e b P'.p)
+    (ha : P.fstProj A ≫ b = (P.cartesianNatTrans P' b e hp).app A ≫ P'.fstProj A) :
+    pullback.map (P.fstProj A) P.p (P'.fstProj A') P'.p
+      ((P.cartesianNatTrans P' b e hp).app A ≫ P'.functor.map a)
+      e b (by simp [ha]) hp.w ≫ ε P' A' ≫ prod.snd =
+    (ε P A ≫ prod.snd) ≫ a := by
+  have := ((Over.star E').whiskerLeft (ev P'.p)).naturality a
+  replace := congr($(this).left ≫ prod.snd)
+  simp [-Adjunction.counit_naturality] at this
+  simp [← ε.eq_def] at this
+  have H := congr($(ε_map_snd' e b hp ha) ≫ a)
+  conv at H => lhs; slice 2 4; apply this.symm
+  simp at H ⊢; rw [← H]
+  simp only [← Category.assoc]; congr 2; ext <;> simp
+  · slice_rhs 2 3 => apply pullback.lift_fst
+    slice_rhs 1 2 => apply pullback.lift_fst
+    simp; rfl
+  · slice_rhs 2 3 => apply pullback.lift_snd
+    slice_rhs 1 2 => apply pullback.lift_snd
+
+open ExponentiableMorphism in
 theorem ε_map {E B A E' B' A' : 𝒞} {P : UvPoly E B} {P' : UvPoly E' B'}
     (e : E ⟶ E') (b : B ⟶ B') (a : A ⟶ A')
     (hp : IsPullback P.p e b P'.p)
@@ -433,19 +456,7 @@ theorem ε_map {E B A E' B' A' : 𝒞} {P : UvPoly E B} {P' : UvPoly E' B'}
     slice_rhs 1 2 => apply by simpa using ((ev P.p).app ((Over.star E).obj A)).w
     slice_lhs 2 3 => apply by simpa using ((ev P'.p).app ((Over.star E').obj A')).w
     apply pullback.lift_snd
-  · have := ((Over.star E').whiskerLeft (ev P'.p)).naturality a
-    replace := congr($(this).left ≫ prod.snd)
-    simp [-Adjunction.counit_naturality] at this
-    simp [← ε.eq_def] at this
-    have H := congr($(ε_map_snd' e b hp ha) ≫ a)
-    conv at H => lhs; slice 2 4; apply this.symm
-    simp at H ⊢; rw [← H]
-    simp only [← Category.assoc]; congr 2; ext <;> simp
-    · slice_rhs 2 3 => apply pullback.lift_fst
-      slice_rhs 1 2 => apply pullback.lift_fst
-      simp; rfl
-    · slice_rhs 2 3 => apply pullback.lift_snd
-      slice_rhs 1 2 => apply pullback.lift_snd
+  · simpa using ε_map_snd e b a hp ha
 
 def compDomMap {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q : UvPoly D A}
     {P' : UvPoly E' B'} {Q' : UvPoly D' A'}
@@ -454,18 +465,9 @@ def compDomMap {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q : UvPoly D A}
     (ha : P.fstProj A ≫ b = (P.cartesianNatTrans P' b e hp).app A ≫ P'.fstProj A) :
     compDom P Q ⟶ compDom P' Q' := by
   set p := P.cartesianNatTrans P' b e hp
-  let ⟨fst, dependent, snd, h1, h2⟩ := compDomEquiv (𝟙 (P.compDom Q))
-  have : (fst ≫ p.app A ≫ P'.functor.map a) ≫ P'.fstProj A' = (dependent ≫ e) ≫ P'.p := by
-    simp [← ha]; rw [← Category.assoc, h1]; simp [hp.w]
-  refine compDomEquiv.symm ⟨fst ≫ p.app A ≫ P'.functor.map a, dependent ≫ e, snd ≫ d, this, ?_⟩
-  simp [← hq.w]; rw [← Category.assoc, h2]; simp
-  simp [show pullback.lift (fst ≫ p.app A ≫ P'.functor.map a) (dependent ≫ e) this =
-    pullback.lift fst dependent h1 ≫
-      pullback.map _ _ _ _ (p.app A ≫ P'.functor.map a) _ _ (by simp [ha]) hp.w by
-    apply pullback.hom_ext <;> simp]
-  congr! 1
-  rw [← Category.assoc, ← Category.assoc, ε_map (hp := hp) (ha := ha)]
-  simp
+  let pa := p.app A ≫ P'.functor.map a
+  let r := pullback.map (P.fstProj A) P.p (P'.fstProj A') P'.p pa e b (by simp [pa, ha]) hp.w
+  refine pullback.map _ _ _ _ d r a hq.w (ε_map_snd _ _ _ hp ha).symm
 
 theorem compDomMap_isPullback {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q : UvPoly D A}
     {P' : UvPoly E' B'} {Q' : UvPoly D' A'}
@@ -479,8 +481,12 @@ theorem compDomMap_isPullback {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q :
   set p := P.cartesianNatTrans P' b e hp
   apply IsPullback.paste_vert
     (h₂₁ := pullback.map _ _ _ _ (p.app A ≫ P'.functor.map a) _ _ (by simp [ha]) hp.w)
-  · sorry
-  · sorry
+  · refine hq.flip.back_face_of_comm_cube _ _ _ _ _ _ _ _ _ _ _ _ (by simp [compDomMap]) ?_ ?_
+      (.of_hasPullback ..) (.of_hasPullback ..)
+    · exact ⟨ε_map_snd _ _ a hp ha⟩
+    · constructor; simp [compDomMap]; ext <;> simp [p]
+  · exact hp.flip.back_face_of_comm_cube _ _ _ _ _ _ _ _ _ _ _ _
+      (by simp) (by simp [ha]) (by simp) (.flip (.of_hasPullback ..)) (.flip (.of_hasPullback ..))
 
 end
 
