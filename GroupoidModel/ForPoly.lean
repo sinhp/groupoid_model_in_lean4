@@ -202,6 +202,127 @@ def compDomEquiv {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} :
    simp [compDomEquiv, Equiv.psigmaCongrProp, Equiv.sigmaCongrRight_symm,
     Equiv.coe_fn_symm_mk, pullbackHomEquiv]
 
+abbrev ev1 : pullback (P.fstProj A) P.p ⟶ A := ε P A ≫ prod.snd
+
+-- -- TODO better name
+-- def isoPullback {E' B' Γ : 𝒞} (P' : UvPoly E' B') (e : E ⟶ E') (b : B ⟶ B') (f : Γ ⟶ B) :
+--     pullback (f ≫ b) P'.p ≅ pullback f P.p :=
+--   sorry
+
+-- lemma mk_comp_cartesianNatTrans_app {E' B' Γ : 𝒞} {P' : UvPoly E' B'}
+--     (e : E ⟶ E') (b : B ⟶ B')
+--     (hp : IsPullback P.p e b P'.p)
+--     (X : 𝒞) (f : Γ ⟶ B) (g : pullback f P.p ⟶ X) :
+--     Equiv.mk P X f g ≫ (P.cartesianNatTrans P' b e hp).app X =
+--     Equiv.mk P' X (f ≫ b) ((isoPullback P P' e b f).hom ≫ g) :=
+--   sorry
+
+lemma mk'_comp_cartesianNatTrans_app {E' B' Γ X : 𝒞} {P' : UvPoly E' B'}
+    (y : Γ ⟶ B) (R f g) (H : IsPullback (P := R) f g y P.p)
+    (x : R ⟶ X) (e : E ⟶ E') (b : B ⟶ B')
+    (hp : IsPullback P.p e b P'.p) :
+    Equiv.mk' P X y H x ≫ (P.cartesianNatTrans P' b e hp).app X =
+    Equiv.mk' P' X (y ≫ b) (R := R) (f := f) (g := g ≫ e) sorry x :=
+  sorry
+
+theorem ev_map {E B A E' B' A' : 𝒞} {P : UvPoly E B} {P' : UvPoly E' B'}
+    (e : E ⟶ E') (b : B ⟶ B') (a : A ⟶ A')
+    (hp : IsPullback P.p e b P'.p)
+    (ha : P.fstProj A ≫ b = (P.cartesianNatTrans P' b e hp).app A ≫ P'.fstProj A) :
+    pullback.map (P.fstProj A) P.p (P'.fstProj A') P'.p
+      ((P.cartesianNatTrans P' b e hp).app A ≫ P'.functor.map a)
+      e b (by simp [ha]) hp.w ≫ ev1 P' A' =
+    ev1 P A ≫ a := by
+  let z := P.functor.map a ≫ (P.cartesianNatTrans P' b e hp).app A'
+  have isPullbackOuter : IsPullback (pullback.fst (P.fstProj A) P.p) (pullback.snd (P.fstProj A) P.p ≫ e)
+    (((P.cartesianNatTrans P' b e hp).app A) ≫ P'.fstProj A) P'.p :=
+    sorry
+  have isPullbackLeft : IsPullback (pullback.fst (P.fstProj A) P.p)
+      (pullback.snd (P.fstProj A) P.p ≫ e) (Equiv.fst P' A' z) P'.p :=
+    sorry -- follows from pullback pasting and `hp`
+  have h2 : P.functor.map a = Equiv.mk P A' (fstProj P A) (ev1 P A ≫ a) := by
+    sorry
+  calc (pullback.map (P.fstProj A) P.p (P'.fstProj A') P'.p
+    ((P.cartesianNatTrans P' b e hp).app A ≫ P'.functor.map a)
+    e b (by simp [ha]) hp.w ≫ ev1 P' A')
+  _ = UvPoly.Equiv.snd' P' A' z (R := pullback (P.fstProj A) P.p)
+    (f := pullback.fst _ _) (g := pullback.snd _ _ ≫ e) isPullbackLeft := by
+    simp only [Equiv.snd'_eq, ev1, ← Category.assoc]
+    congr 2
+    ext <;> simp [z]
+  _ = _ := by
+    dsimp [z]
+    rw! [h2, Equiv.mk_eq_mk', mk'_comp_cartesianNatTrans_app, Equiv.snd'_mk']
+
+-- theorem ev_map' {E B A E' B' A' : 𝒞} {P : UvPoly E B} {P' : UvPoly E' B'}
+--     (e : E ⟶ E') (b : B ⟶ B') (a : A ⟶ A')
+--     (hp : IsPullback P.p e b P'.p)
+--     (ha : P.fstProj A ≫ b = (P.cartesianNatTrans P' b e hp).app A ≫ P'.fstProj A) :
+--     pullback.map (P.fstProj A) P.p (P'.fstProj A') P'.p
+--       ((P.cartesianNatTrans P' b e hp).app A ≫ P'.functor.map a)
+--       e b (by simp [ha]) hp.w ≫ ev1 P' A' =
+--     ev1 P A ≫ a := by
+--   let z := P.functor.map a ≫ (P.cartesianNatTrans P' b e hp).app A'
+--   -- let z':= (P.cartesianNatTrans P' b e hp).app A ≫ P'.functor.map a
+--   -- have hzz' : z = z' := (P.cartesianNatTrans P' b e hp).naturality _
+--   -- have pbIso : pullback (P.fstProj A ≫ b) P'.p ≅ pullback (P.fstProj A) P.p :=
+--   --   isoPullback P P' e b _ -- follows from pullback pasting and `hp`
+--   -- have h1 : UvPoly.Equiv.mk P' A' (P.fstProj A ≫ b) (pbIso.hom ≫ ev P A ≫ a) = z := sorry
+--   have isPullbackOuter : IsPullback (pullback.fst (P.fstProj A) P.p) (pullback.snd (P.fstProj A) P.p ≫ e)
+--     (((P.cartesianNatTrans P' b e hp).app A) ≫ P'.fstProj A) P'.p :=
+--     sorry
+--   have isPullbackLeft : IsPullback (pullback.fst (P.fstProj A) P.p)
+--       (pullback.snd (P.fstProj A) P.p ≫ e) (Equiv.fst P' A' z) P'.p :=
+--     sorry -- follows from pullback pasting and `hp`
+--   -- have h0 : UvPoly.Equiv.snd' P' A' z (R := pullback (P.fstProj A) P.p)
+--   --     (f := pullback.fst _ _) (g := pullback.snd _ _ ≫ e) isPullbackLeft =
+--   --     pullback.map (P.fstProj A) P.p (P'.fstProj A') P'.p
+--   --     ((P.cartesianNatTrans P' b e hp).app A ≫ P'.functor.map a)
+--   --     e b (by simp [ha]) hp.w ≫ ev1 P' A' := by
+--   --   simp only [Equiv.snd'_eq, ev1, ← Category.assoc]
+--   --   congr 2
+--   --   ext <;> simp [z]
+--   -- have h1 : UvPoly.Equiv.snd' P A' (P.functor.map a) (R := pullback (P.fstProj A) P.p)
+--   --   (f := pullback.fst _ _) (g := pullback.snd _ _) (by
+--   --     convert IsPullback.of_hasPullback (P.fstProj A) P.p
+--   --     simp [Equiv.fst]) = ev1 P A ≫ a := sorry
+--   have h2 : P.functor.map a = Equiv.mk P A' (fstProj P A) (ev1 P A ≫ a) := sorry
+--   calc (pullback.map (P.fstProj A) P.p (P'.fstProj A') P'.p
+--     ((P.cartesianNatTrans P' b e hp).app A ≫ P'.functor.map a)
+--     e b (by simp [ha]) hp.w ≫ ev1 P' A')
+--   _ = UvPoly.Equiv.snd' P' A' z (R := pullback (P.fstProj A) P.p)
+--     (f := pullback.fst _ _) (g := pullback.snd _ _ ≫ e) isPullbackLeft := by
+--     simp only [Equiv.snd'_eq, ev1, ← Category.assoc]
+--     congr 2
+--     ext <;> simp [z]
+--   -- _ = UvPoly.Equiv.mk P A (P.fstProj A) (pbIso.hom ≫ ev1 P A ≫ a) ≫
+--   --   (P.cartesianNatTrans P' b e hp).app A' := sorry
+--   _ = _ := by
+--     dsimp [z]
+--     rw! [h2, mk_comp_cartesianNatTrans_app, Equiv.mk_eq_mk']
+--     have h := Equiv.snd'_mk' P' A' (P.fstProj A ≫ b) (R := pullback (P.fstProj A) P.p)
+--       (f := sorry) (g := sorry) sorry (P.ev1 A ≫ a)
+--     -- have h := Equiv.snd'_mk' P' A' (P.fstProj A ≫ b) (R := pullback (P.fstProj A ≫ b) P'.p)
+--     --   (f := pullback.fst (P.fstProj A ≫ b) P'.p) (g := pullback.snd (P.fstProj A ≫ b) P'.p) sorry
+--     --   ((P.isoPullback P' e b (P.fstProj A)).hom ≫ P.ev1 A ≫ a)
+--     conv => rhs; rw [← h]
+--     -- apply h.trans
+
+--     -- convert h
+--     sorry
+--   -- _ = UvPoly.Equiv.snd' P' A' z' (R := pullback (P.fstProj A) P.p) (f := pullback.fst _ _)
+--   --     (g := pullback.snd _ _ ≫ e) (by convert isPullbackLeft; rw [hzz']) := by
+--   --   rw! [hzz']
+--   -- _ = Equiv.snd' P' A ((P.cartesianNatTrans P' b e hp).app A) isPullbackOuter ≫ a := by
+--   --   dsimp only [z']
+--   --   rw [Equiv.snd'_comp_right (H := isPullbackOuter)]
+--   -- _ = ev1 P A ≫ a := by
+--   --   congr 1
+--   --   simp only [Equiv.snd'_eq, ev1]
+--     -- convert_to _ ≫ ev1 _ _ = _
+
+--     -- sorry
+
 open ExponentiableMorphism in
 theorem ε_map {E B A E' B' A' : 𝒞} {P : UvPoly E B} {P' : UvPoly E' B'}
     (e : E ⟶ E') (b : B ⟶ B') (a : A ⟶ A')
