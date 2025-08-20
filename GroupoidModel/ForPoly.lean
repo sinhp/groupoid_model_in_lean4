@@ -202,32 +202,59 @@ def compDomEquiv {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} :
    simp [compDomEquiv, Equiv.psigmaCongrProp, Equiv.sigmaCongrRight_symm,
     Equiv.coe_fn_symm_mk, pullbackHomEquiv]
 
+open ExponentiableMorphism in
 theorem ε_map {E B A E' B' A' : 𝒞} {P : UvPoly E B} {P' : UvPoly E' B'}
     (e : E ⟶ E') (b : B ⟶ B') (a : A ⟶ A')
     (hp : IsPullback P.p e b P'.p)
     (ha : P.fstProj A ≫ b = (P.cartesianNatTrans P' b e hp).app A ≫ P'.fstProj A) :
     pullback.map (P.fstProj A) P.p (P'.fstProj A') P'.p
       ((P.cartesianNatTrans P' b e hp).app A ≫ P'.functor.map a)
-      e b (by simp [ha]) hp.w ≫ PartialProduct.ε P' A' =
-    PartialProduct.ε P A ≫ prod.map e a := by
-  set p := P.cartesianNatTrans P' b e hp
-  let z := P.functor.map a ≫ p.app A'
-  let R := pullback (P.fstProj A) P.p
-  let r1 : R ⟶ P @ A := pullback.fst (P.fstProj A) P.p
-  let r2 : R ⟶ E := pullback.snd (P.fstProj A) P.p
-  let R' := pullback (P'.fstProj A') P'.p
-  have : Equiv.fst P' A' z = P.fstProj A ≫ b := by simp [Equiv.fst_eq, z, ha]
-  have pb : IsPullback r1 (r2 ≫ e) (Equiv.fst P' A' z) P'.p := this ▸ .paste_vert (.of_hasPullback ..) hp
-  have : Equiv.snd' P' A' z pb = ε P A ≫ prod.snd ≫ a := by
-    rw [Equiv.snd'_eq]
+      e b (by simp [ha]) hp.w ≫ ε P' A' =
+    ε P A ≫ prod.map e a := by
+  ext
+  · simp
+    slice_rhs 1 2 => apply by simpa using ((ev P.p).app ((Over.star E).obj A)).w
+    slice_lhs 2 3 => apply by simpa using ((ev P'.p).app ((Over.star E').obj A')).w
+    apply pullback.lift_snd
+  · have := ((Over.star E).whiskerLeft (ev P.p)).naturality a
+    replace := congr($(this).left ≫ prod.snd)
+    simp [ε, -Adjunction.counit_naturality] at this ⊢
+    simp [cartesianNatTrans] at ha
+    let Z := Functor.whiskerRight ((Over.star E).whiskerLeft (ev P.p)) (Over.forget E)
+    have : Z.app A = sorry := sorry; simp [Z] at this
+    have := (pushforwardPullbackIsoSquare hp.flip).inv
+    have := (Over.starPullbackIsoStar e).inv
+    have := (Over.pullbackForgetTwoSquare b).natTrans
+    have := P.cartesianNatTrans P' b e hp; dsimp [functor] at this
+    stop
+    set p := P.cartesianNatTrans P' b e hp
+    let z := P.functor.map a ≫ p.app A'
+    let R := pullback (P.fstProj A) P.p
+    let r1 : R ⟶ P @ A := pullback.fst (P.fstProj A) P.p
+    let r2 : R ⟶ E := pullback.snd (P.fstProj A) P.p
+    let R' := pullback (P'.fstProj A') P'.p
+    have : Equiv.fst P' A' z = P.fstProj A ≫ b := by simp [Equiv.fst_eq, z, ha]
+    have pb : IsPullback r1 (r2 ≫ e) (Equiv.fst P' A' z) P'.p := this ▸ .paste_vert (.of_hasPullback ..) hp
+    have : Equiv.snd' P' A' z pb = ε P A ≫ prod.snd ≫ a := by
+      rw [Equiv.snd'_eq]
+      sorry
+    have : Equiv.fst P A' (P.functor.map a) = P.fstProj A := by simp [Equiv.fst_eq]
+    have pb : IsPullback (P := R) r1 r2 (Equiv.fst P A' (P.functor.map a)) P.p := by rw [this]; exact .of_hasPullback ..
+    have := Equiv.snd'_eq P A' (P.functor.map a) pb
+    have : ε P A ≫ ?_ = ?_ ≫ ε P' A' := sorry
+    unfold ε at this
+    have := (ev P.p).app ((Over.star E).obj A)
+    dsimp at this
+    have := pushforwardUncurry <|
+      (pushforward P.p).map ((Over.star E).map a)
+    have := ((pushforward P.p).obj
+          ((Over.star E).obj A))
+    have' := pushforwardUncurry (f := P.p)
+      (𝟙
+        ((pushforward P.p).obj
+          ((Over.star E).obj A)))
+    simp [PartialProduct.ε]
     sorry
-  have : Equiv.fst P A' (P.functor.map a) = P.fstProj A := by simp [Equiv.fst_eq]
-  have pb : IsPullback (P := R) (pullback.fst ..) (pullback.snd ..)
-      (Equiv.fst P A' (P.functor.map a)) P.p := by rw [this]; exact .of_hasPullback ..
-  have : Equiv.snd' P A' (P.functor.map a) pb = ε P A ≫ prod.snd ≫ a := by
-    sorry
-  simp [PartialProduct.ε]
-  sorry
 
 def compDomMap {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q : UvPoly D A}
     {P' : UvPoly E' B'} {Q' : UvPoly D' A'}
