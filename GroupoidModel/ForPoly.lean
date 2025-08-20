@@ -229,7 +229,7 @@ theorem ev1_map {E B A E' B' A' : 𝒞} {P : UvPoly E B} {P' : UvPoly E' B'}
     exact IsPullback.paste_vert (IsPullback.of_hasPullback (P.fstProj A) P.p) hp
   have isPullbackUpper : IsPullback (pullback.fst (P.fstProj A) P.p)
       (pullback.snd (P.fstProj A) P.p ≫ e) (Equiv.fst P' A' z) P'.p := by
-    convert isPullbackOuter -- follows from pullback pasting and `hp`
+    convert isPullbackOuter
     simp [Equiv.fst_eq, z, (P.cartesianNatTrans P' b e hp).naturality]
   have functor_map_eq_mk : P.functor.map a = Equiv.mk P A' (fstProj P A) (ev1 P A ≫ a) := by
     sorry
