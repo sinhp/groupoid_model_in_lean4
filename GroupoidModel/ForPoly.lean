@@ -181,7 +181,7 @@ theorem mk'_comp_left {Δ}
     simp
   · simp [fst_comp_left]
 
-theorem mk_naturality_left {Δ} (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) (σ: Δ ⟶ Γ) :
+theorem mk_comp_left {Δ} (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) (σ: Δ ⟶ Γ) :
     σ ≫ UvPoly.Equiv.mk P X b x =
     UvPoly.Equiv.mk P X (σ  ≫ b)
     (pullback.map _ _ _ _ σ (𝟙 _) (𝟙 _) (by simp) (by simp) ≫ x) := by
