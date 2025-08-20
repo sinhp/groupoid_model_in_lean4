@@ -265,7 +265,7 @@ thought of as a dependent pair `A : Type` and `B : A ⟶ Type`
 `PtpEquiv.snd` is the `B` in this pair.
 -/
 def snd (AB : y(Γ) ⟶ M.Ptp.obj X) : y(M.ext (fst M AB)) ⟶ X :=
-  (M.pullbackIsoExt _).inv ≫ UvPoly.Equiv.snd M.uvPolyTp X AB
+  UvPoly.Equiv.snd' M.uvPolyTp X AB (M.disp_pullback _).flip
 
 /--
 A map `(AB : y(Γ) ⟶ M.Ptp.obj X)` is equivalent to a pair of maps
@@ -274,7 +274,7 @@ thought of as a dependent pair `A : Type` and `B : A ⟶ Type`
 `PtpEquiv.mk` constructs such a map `AB` from such a pair `A` and `B`.
 -/
 def mk (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) : y(Γ) ⟶ M.Ptp.obj X :=
-  UvPoly.Equiv.mk M.uvPolyTp X A ((M.pullbackIsoExt _).hom ≫ B)
+  UvPoly.Equiv.mk' M.uvPolyTp X A (M.disp_pullback _).flip B
 
 @[simp]
 lemma fst_mk (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
@@ -284,14 +284,9 @@ lemma fst_mk (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
 @[simp]
 lemma snd_mk (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
     snd M (mk M A B) = ym(eqToHom (by rw [fst_mk M A B])) ≫ B := by
-  simp [snd, mk, UvPoly.Equiv.snd_mk]
-  generalize_proofs _ _ _ _ _ _ h1 _ h2 h3
-  suffices ∀ (A' : y(Γ) ⟶ M.Ty) (h1 : IsPullback ym(M.disp A') (M.var A') A' M.tp)
-      (h2 : A' = A),
-      h1.isoPullback.hom ≫ eqToHom (h2 ▸ rfl) ≫ h3.isoPullback.inv ≫ B =
-      ym(eqToHom (by rw [h2])) ≫ B from
-    this _ _ (by simp [fst])
-  rintro _ _ rfl; simp
+  dsimp only [snd, mk]
+  rw! [fst_mk, UvPoly.Equiv.snd'_mk']
+  simp
 
 lemma snd_mk_heq (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
     snd M (mk M A B) ≍ B := by
@@ -309,14 +304,16 @@ theorem fst_comp_right {Y} (σ : X ⟶ Y) : fst M (AB ≫ M.Ptp.map σ) = fst M 
 attribute [-simp] pullbackIsoExt_inv in
 theorem snd_comp_right {Y} (σ : X ⟶ Y) : snd M (AB ≫ M.Ptp.map σ) =
     ym(eqToHom congr(M.ext $(fst_comp_right ..))) ≫ snd M AB ≫ σ := by
-  simp [snd]; conv_lhs => rhs; apply UvPoly.Equiv.snd_comp_right
-  simp only [← Category.assoc]; congr! 2
-  suffices ∀ A (h : A = fst M AB),
-    (M.pullbackIsoExt A).inv ≫ eqToHom (h ▸ rfl) =
-    ym(eqToHom (h ▸ rfl)) ≫ (M.pullbackIsoExt (fst M AB)).inv from this _ (fst_comp_right ..)
-  rintro _ rfl; simp
+  dsimp only [snd]
+  rw! [fst_comp_right]
+  simp only [eqToHom_refl, CategoryTheory.Functor.map_id, ←
+    UvPoly.Equiv.snd'_comp_right M.uvPolyTp X Y σ AB (M.disp_pullback _).flip, Category.id_comp]
+  rfl
 
 theorem snd_comp_left : snd M (ym(σ) ≫ AB) = ym(M.substWk σ _) ≫ snd M AB := by
+  dsimp only [snd]
+  rw! (castMode := .all) [fst_comp_left]
+  -- rw [UvPoly.Equiv.snd'_comp_left]
   sorry
 
 end

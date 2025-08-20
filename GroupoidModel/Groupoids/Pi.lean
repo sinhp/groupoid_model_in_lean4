@@ -973,8 +973,8 @@ def Pi_naturality {Δ Γ} (f : Δ ⟶ Γ) (α : y(Γ) ⟶ smallU.Ptp.obj smallU.
     Pi_app (ym(f) ≫ α) = ym(f) ≫ Pi_app α := by
   dsimp only [Pi_app]
   rw [← yonedaCategoryEquiv_symm_naturality_left, pi_naturality,
-    smallU.PtpEquiv.snd_naturality]
-  rw! [smallU.PtpEquiv.fst_naturality]
+    smallU.PtpEquiv.snd_comp_left]
+  rw! [smallU.PtpEquiv.fst_comp_left]
   simp [map_id_eq, Functor.id_comp]
 
 /-- The formation rule for Π-types for the natural model `smallU` -/
@@ -995,7 +995,7 @@ def lam_naturality {Δ Γ} (f : Δ ⟶ Γ) (α : y(Γ) ⟶ smallU.Ptp.obj smallU
     lam_app (ym(f) ≫ α) = ym(f) ≫ lam_app α := by
   dsimp only [lam_app]
   rw [← yonedaCategoryEquiv_symm_naturality_left, FunctorOperation.lam_naturality]
-  rw! [snd_naturality, fst_naturality]
+  rw! [snd_comp_left, fst_comp_left]
   simp [map_id_eq]
 
 /-- The introduction rule for Π-types for the natural model `smallU` -/

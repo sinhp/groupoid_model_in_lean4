@@ -444,6 +444,15 @@ def Pi_pb :
 def mkPi {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty) : y(Γ) ⟶ s[max i j].Ty :=
   PtpEquiv.mk s[i] A B ≫ s.Pi ilen jlen
 
+theorem PtpEquiv.mk_naturality_left {Δ Γ : Ctx} (M : NaturalModelBase Ctx) (σ : Δ ⟶ Γ)
+    {X : Psh Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
+    ym(σ) ≫ PtpEquiv.mk M A B = PtpEquiv.mk M (ym(σ) ≫ A) (ym(M.substWk σ A) ≫ B) := by
+  dsimp [PtpEquiv.mk]
+  have h := UvPoly.Equiv.mk'_comp_left M.uvPolyTp X A (M.disp_pullback A).flip B ym(σ)
+    (M.disp_pullback (ym(σ) ≫ A)).flip
+  convert h
+  sorry
+
 theorem comp_mkPi {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty) :
     ym(σ) ≫ s.mkPi ilen jlen A B = s.mkPi ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ B) := by
