@@ -98,6 +98,18 @@ lemma snd_mk (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
     snd P X (mk P X b x) = eqToHom (by simp) ≫ x := by
   apply eq_of_heq; rw [heq_eqToHom_comp_iff]; apply snd_mk_heq
 
+theorem snd'_comp_left (pair : Γ ⟶ P @ X)
+    {R f g} (H : IsPullback (P := R) f g (fst P X pair) P.p)
+    {Δ} (σ : Δ ⟶ Γ)
+    {R' f' g'} (H' : IsPullback (P := R') f' g' (σ ≫ fst P X pair) P.p) :
+    snd' P X (σ ≫ pair) (by convert H'; rw [fst_comp_left]) =
+    H.lift (f' ≫ σ) g' (by simp [H'.w]) ≫ snd' P X pair H := by
+  simp only [snd'_eq, ← Category.assoc]
+  congr 2
+  ext
+  · simp
+  · simp
+
 theorem snd'_comp_right (pair : Γ ⟶ P @ X)
     {R f1 f2} (H : IsPullback (P := R) f1 f2 (fst P X pair) P.p) :
     snd' P Y (pair ≫ P.functor.map f) (by rwa [fst_comp_right]) =
@@ -158,12 +170,36 @@ lemma mk_comp_right (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
     mk P X b x ≫ P.functor.map f = mk P Y b (x ≫ f) := by
   simp [mk_eq_mk', mk'_comp_right]
 
+theorem mk'_comp_left {Δ}
+    (b : Γ ⟶ B) {R f g} (H : IsPullback (P := R) f g b P.p) (x : R ⟶ X) (σ : Δ ⟶ Γ)
+    {R' f' g'} (H' : IsPullback (P := R') f' g' (σ ≫ b) P.p) :
+    σ ≫ UvPoly.Equiv.mk' P X b H x =
+    UvPoly.Equiv.mk' P X (σ  ≫ b) H'
+    (H.lift (f' ≫ σ) g' (by simp [H'.w]) ≫ x) := by
+  apply hom_ext' P (R := R') (f := f') (g := g') (H := by convert H'; simp [fst_eq])
+  · rw [snd'_comp_left (H := by convert H; rw [fst_mk']) (H' := by convert H'; rw [fst_mk'])]
+    simp
+  · simp [fst_comp_left]
+
+theorem mk_naturality_left {Δ} (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) (σ: Δ ⟶ Γ) :
+    σ ≫ UvPoly.Equiv.mk P X b x =
+    UvPoly.Equiv.mk P X (σ  ≫ b)
+    (pullback.map _ _ _ _ σ (𝟙 _) (𝟙 _) (by simp) (by simp) ≫ x) := by
+  simp only [mk_eq_mk']
+  rw [mk'_comp_left (H := IsPullback.of_hasPullback _ _) (H' := IsPullback.of_hasPullback _ _)]
+  congr 2
+  ext
+  · simp
+  · simp
+
 lemma mk'_comp_cartesianNatTrans_app {E' B' Γ X : C} {P' : UvPoly E' B'}
     (y : Γ ⟶ B) (R f g) (H : IsPullback (P := R) f g y P.p)
     (x : R ⟶ X) (e : E ⟶ E') (b : B ⟶ B')
     (hp : IsPullback P.p e b P'.p) :
     Equiv.mk' P X y H x ≫ (P.cartesianNatTrans P' b e hp).app X =
-    Equiv.mk' P' X (y ≫ b) (R := R) (f := f) (g := g ≫ e) sorry x :=
+    Equiv.mk' P' X (y ≫ b) (R := R) (f := f) (g := g ≫ e) sorry x := by
+  dsimp [cartesianNatTrans]
+  simp
   sorry
 
 end Equiv
