@@ -46,7 +46,7 @@ theorem WfTp.inv_el {Γ a l} : E ∣ Γ ⊢[l] .el a → E ∣ Γ ⊢[l+1] a : .
 
 -- FIXME: write a generator for these lemmas.
 
-variable [Fact E.Wf]
+variable [Ewf : Fact E.Wf]
 
 theorem WfTp.pi {Γ A B l l'} :
     E ∣ (A, l) :: Γ ⊢[l'] B →
@@ -232,9 +232,22 @@ theorem WfTp.Id_bvar {Γ A t l} : E ∣ Γ ⊢[l] t : A →
 
 /-! ## Term former inversion -/
 
+theorem WfTm.inv_const {Γ C c l} : E ∣ Γ ⊢[l] .const c : C →
+    ∃ Al, E c = some Al ∧ l = Al.val.2 ∧ (E ∣ Γ ⊢[l] C ≡ Al.val.1) := by
+  suffices
+      ∀ {Γ l C t}, E ∣ Γ ⊢[l] t : C → ∀ {c}, t = .const c → ∃ Al,
+        E c = some Al ∧ l = Al.val.2 ∧ (E ∣ Γ ⊢[l] C ≡ Al.val.1) from
+    fun h => this h rfl
+  mutual_induction WfCtx
+  all_goals try grind
+  case const =>
+    intros; rename_i Γ Ec _ _ eq; cases eq
+    exact ⟨_, Ec, rfl, .refl_tp <| (WfTm.const Γ Ec).wf_tp⟩
+  case conv => grind [EqTp.refl_tp, EqTp.symm_tp, EqTp.trans_tp]
+
 omit [Fact E.Wf] in
 theorem WfTm.inv_bvar {Γ A i l} : E ∣ Γ ⊢[l] .bvar i : A →
-  ∃ B, Lookup Γ i B l ∧ (E ∣ Γ ⊢[l] A ≡ B) := by
+    ∃ B, Lookup Γ i B l ∧ (E ∣ Γ ⊢[l] A ≡ B) := by
   suffices
       ∀ {Γ l C t}, E ∣ Γ ⊢[l] t : C → ∀ {i}, t = .bvar i → ∃ B,
         Lookup Γ i B l ∧ (E ∣ Γ ⊢[l] C ≡ B) from

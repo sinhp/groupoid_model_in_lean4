@@ -632,3 +632,15 @@ theorem envOfTpEnv_wf {vΓ Γ} : TpEnvEqCtx E vΓ Γ → EnvEqSb E Γ (envOfTpEn
     . rw [vΓ.length_eq]
       apply NeutEqTm.bvar Γ
       exact autosubst% lk
+
+/-! ## Misc lemmas -/
+
+theorem ValEqTp.Id_bvar {Γ vA A va a l} : ValEqTp E Γ l vA A → ValEqTm E Γ l va a A →
+    ValEqTp E ((A, l) :: Γ) l
+      (.Id l vA va (.neut (.bvar Γ.length) vA))
+      (.Id l (A.subst Expr.wk) (a.subst Expr.wk) (.bvar 0)) := by
+  intro vA va
+  have A := vA.wf_tp
+  apply ValEqTp.Id (vA.wk A) (va.wk A)
+  apply ValEqTm.neut_tm (vA.wk A)
+  exact NeutEqTm.bvar (A.wf_ctx.snoc A) (.zero ..)

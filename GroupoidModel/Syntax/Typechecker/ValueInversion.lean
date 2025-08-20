@@ -2,7 +2,7 @@ import GroupoidModel.Syntax.Typechecker.Value
 
 /-! ## Inversion for value relations -/
 
-variable {χ : Type*} {E : Env χ} [Fact E.Wf]
+variable {χ : Type*} {E : Env χ} [Ewf : Fact E.Wf]
 
 attribute [local grind]
   EqTp.refl_tp EqTp.symm_tp EqTp.trans_tp
@@ -64,6 +64,21 @@ theorem ValEqTp.inv_el {Γ l na A} : ValEqTp E Γ l (.el na) A →
     fun h => this h rfl
   mutual_induction ValEqTp
   all_goals grind [WfTp.el, NeutEqTm.wf_tm]
+
+theorem ValEqTm.inv_const {Γ C c t l₀} : ValEqTm E Γ l₀ (.const c) t C → ∃ Al,
+    E c = some Al ∧ l₀ = Al.val.2 ∧ (E ∣ Γ ⊢[l₀] t ≡ .const c : C) ∧
+    (E ∣ Γ ⊢[l₀] C ≡ Al.val.1) := by
+  suffices ∀ {Γ l₀ vt t C}, ValEqTm E Γ l₀ vt t C → ∀ {c}, vt = .const c → ∃ Al,
+      E c = some Al ∧ l₀ = Al.val.2 ∧ (E ∣ Γ ⊢[l₀] t ≡ .const c : C) ∧
+      (E ∣ Γ ⊢[l₀] C ≡ Al.val.1) from
+    fun h => this h rfl
+  mutual_induction ValEqTm
+  all_goals intros; try exact True.intro
+  all_goals rename_i eq; cases eq
+  case conv_nf => grind [EqTm.conv_eq]
+  case const _ Γ Ec =>
+    refine ⟨_, Ec, rfl, EqTm.refl_tm <| WfTm.const Γ Ec, EqTp.refl_tp <| ?_⟩
+    exact Env.Wf.atCtx Ewf.out Γ Ec
 
 theorem ValEqTm.inv_lam {Γ C vA vb t l₀ l l'} : ValEqTm E Γ l₀ (.lam l l' vA vb) t C →
     l₀ = max l l' ∧ ∃ A B b,

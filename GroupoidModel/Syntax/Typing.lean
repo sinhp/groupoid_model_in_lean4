@@ -411,4 +411,4 @@ abbrev Env.Wf (E : Env χ) :=
 
 def Env.empty (χ) : Env χ := fun _ => none
 
-theorem Env.empty_Wf (χ) : (empty χ).Wf := nofun
+theorem Env.Wf.empty (χ) : (empty χ).Wf := nofun

@@ -16,7 +16,8 @@ whereas we have `Γ ⊢[l] A → Γ ⊢[l] A ≡ A`. -/
 attribute [symm] EqTp.symm_tp
 attribute [trans] EqTp.trans_tp
 
-attribute [symm] EqTm.symm_tm
+-- https://github.com/leanprover/lean4/issues/9997
+-- attribute [symm] EqTm.symm_tm
 attribute [trans] EqTm.trans_tm
 
 /-! ## Lemmas for types -/
