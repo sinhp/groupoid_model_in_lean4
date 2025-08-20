@@ -51,22 +51,16 @@ lemma fst_mk' (b : Γ ⟶ B) {R f g} (H : IsPullback (P := R) f g b P.p) (x : R 
 
 lemma fst_eq (pair : Γ ⟶ P @ X) : fst P X pair = pair ≫ P.fstProj X := by simp [fst]
 
+@[simp]
+lemma mk'_comp_fstProj (b : Γ ⟶ B) {R f g} (H : IsPullback (P := R) f g b P.p) (x : R ⟶ X) :
+    mk' P X b H x ≫ P.fstProj X = b := by
+  simp [← fst_eq]
+
 theorem fst_comp_left (pair : Γ ⟶ P @ X) {Δ} (f : Δ ⟶ Γ) :
-    fst P X (f ≫ pair) = f ≫ fst P X pair := by
-  sorry
+    fst P X (f ≫ pair) = f ≫ fst P X pair := by simp [fst_eq]
 
 theorem fst_comp_right (pair : Γ ⟶ P @ X) : fst P Y (pair ≫ P.functor.map f) = fst P X pair := by
-  sorry
-
-lemma snd_mk_heq (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
-    snd P X (mk P X b x) ≍ x := by
-  simp [snd, mk, fst]
-  sorry
-
-lemma snd_mk (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
-    snd P X (mk P X b x) = eqToHom (by simp) ≫ x := by
-  simp [fst, snd, mk]
-  sorry
+  simp [fst_eq]
 
 lemma snd'_eq (pair : Γ ⟶ P @ X) {R f g} (H : IsPullback (P := R) f g (fst P X pair) P.p) :
     snd' P X pair H = pullback.lift (f ≫ pair) g (by simpa using H.w) ≫ ε P X ≫ prod.snd := by
@@ -77,16 +71,32 @@ lemma snd'_eq (pair : Γ ⟶ P @ X) {R f g} (H : IsPullback (P := R) f g (fst P 
     exact H.isoPullback_hom_fst
   · exact H.isoPullback_hom_snd
 
-theorem snd_comp_right (pair : Γ ⟶ P @ X) : snd P Y (pair ≫ P.functor.map f) =
-    eqToHom congr(pullback $(fst_comp_right ..) _) ≫ snd P X pair ≫ f := by
-  sorry
-
+@[simp]
 lemma snd'_mk' (b : Γ ⟶ B) {R f g} (H : IsPullback (P := R) f g b P.p) (x : R ⟶ X) :
     snd' P X (mk' P X b H x) (by rwa [fst_mk']) = x := by
-  simp [snd', mk', ← IsIso.eq_inv_comp, snd_mk]
-  generalize_proofs
-  generalize eq : fst P X (mk P X b (H.isoPullback.inv ≫ x)) = Y at *
-  simp [fst_mk] at eq; subst Y; simp
+  have : comparison (c := fan P X) (mk' P X b H x) ≫ _ =
+      (pullback.congrHom (f₁ := mk' P X b H x ≫ _) ..).hom ≫ _ :=
+    partialProd.lift_snd ⟨fan P X, isLimitFan P X⟩ b (H.isoPullback.inv ≫ x)
+  have H' : IsPullback (P := R) f g (mk' P X b H x ≫ (fan P X).fst) P.p := by simpa
+  convert congr(H'.isoPullback.hom ≫ $(this)) using 1
+  · simp [partialProd.snd, partialProd.cone, snd'_eq]
+    simp only [← Category.assoc]; congr! 2
+    simp [comparison]; ext <;> simp
+  · slice_rhs 1 0 => skip
+    refine .symm <| .trans ?_ (Category.id_comp _); congr! 1
+    rw [Iso.comp_inv_eq_id]; ext <;> simp
+
+lemma snd_mk_heq (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
+    snd P X (mk P X b x) ≍ x := by
+  have h := mk_eq_mk' P X b x
+  set t := mk' P ..
+  have : snd' P X t _ = x := snd'_mk' ..
+  refine .trans ?_ this.heq
+  rw [snd_eq_snd']; congr! 2 <;> simp
+
+lemma snd_mk (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
+    snd P X (mk P X b x) = eqToHom (by simp) ≫ x := by
+  apply eq_of_heq; rw [heq_eqToHom_comp_iff]; apply snd_mk_heq
 
 theorem snd'_comp_right (pair : Γ ⟶ P @ X)
     {R f1 f2} (H : IsPullback (P := R) f1 f2 (fst P X pair) P.p) :
@@ -104,23 +114,49 @@ theorem snd'_comp_right (pair : Γ ⟶ P @ X)
   · slice_rhs 2 3 => apply pullback.lift_snd
     symm; apply pullback.lift_snd
 
+theorem snd_comp_right (pair : Γ ⟶ P @ X) : snd P Y (pair ≫ P.functor.map f) =
+    eqToHom congr(pullback $(fst_comp_right ..) _) ≫ snd P X pair ≫ f := by
+  rw [snd_eq_snd', snd'_comp_right, snd', Category.assoc, ← eqToIso.hom]; congr! 2
+  exact IsPullback.isoPullback_eq_eqToIso_left (fst_comp_right _ _ _ f pair) P.p
+
+lemma hom_ext' {pair₁ pair₂ : Γ ⟶ P @ X}
+    {R f g} (H : IsPullback (P := R) f g (fst P X pair₁) P.p)
+    (h1 : fst P X pair₁ = fst P X pair₂)
+    (h2 : snd' P X pair₁ H = snd' P X pair₂ (by rwa [h1] at H)) :
+    pair₁ = pair₂ := by
+  simp [fst_eq] at h1 H
+  apply partialProd.hom_ext ⟨fan P X, isLimitFan P X⟩ h1
+  refine (cancel_epi H.isoPullback.hom).1 ?_
+  convert h2 using 1 <;> (
+    simp [snd'_eq, comparison_pullback.map, partialProd.snd, partialProd.cone]
+    simp only [← Category.assoc]; congr! 2
+    ext <;> simp)
+  · slice_lhs 2 3 => apply pullback.lift_fst
+    slice_lhs 1 2 => apply H.isoPullback_hom_fst
+    simp
+  · slice_lhs 2 3 => apply pullback.lift_snd
+    slice_lhs 1 2 => apply H.isoPullback_hom_snd
+    simp
+
+@[simp]
+lemma eta' (pair : Γ ⟶ P @ X)
+    {R f1 f2} (H : IsPullback (P := R) f1 f2 (fst P X pair) P.p) :
+    mk' P X (fst P X pair) H (snd' P X pair H) = pair :=
+  .symm <| hom_ext' P X H (by simp) (by simp)
+
 @[simp]
 lemma eta (pair : Γ ⟶ P @ X) :
     mk P X (fst P X pair) (snd P X pair) = pair := by
-  simp [fst, snd, mk]
-  sorry
-
-lemma mk_comp_right (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
-    mk P X b x ≫ P.functor.map f = mk P Y b (x ≫ f) := by
-  simp [mk]
-  sorry
+  simp [mk_eq_mk', snd_eq_snd']
 
 lemma mk'_comp_right (b : Γ ⟶ B) {R f1 f2} (H : IsPullback (P := R) f1 f2 b P.p) (x : R ⟶ X) :
     mk' P X b H x ≫ P.functor.map f = mk' P Y b H (x ≫ f) := by
-  simp [mk', mk, functor, lift, fan, partialProd.lift, partialProd.isLimit, isLimitFan,
-    ExponentiableMorphism.pushforwardCurry, overPullbackToStar, Fan.overPullbackToStar,
-    ExponentiableMorphism.pushforward]
-  sorry
+  refine .symm <| hom_ext' _ _ (by rwa [fst_mk']) (by simp [fst_comp_right]) ?_
+  rw [snd'_comp_right (H := by rwa [fst_mk'])]; simp
+
+lemma mk_comp_right (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
+    mk P X b x ≫ P.functor.map f = mk P Y b (x ≫ f) := by
+  simp [mk_eq_mk', mk'_comp_right]
 
 end Equiv
 
@@ -177,11 +213,13 @@ theorem ε_map {E B A E' B' A' : 𝒞} {P : UvPoly E B} {P' : UvPoly E' B'}
   set p := P.cartesianNatTrans P' b e hp
   let z := P.functor.map a ≫ p.app A'
   let R := pullback (P.fstProj A) P.p
+  let r1 : R ⟶ P @ A := pullback.fst (P.fstProj A) P.p
+  let r2 : R ⟶ E := pullback.snd (P.fstProj A) P.p
   let R' := pullback (P'.fstProj A') P'.p
   have : Equiv.fst P' A' z = P.fstProj A ≫ b := by simp [Equiv.fst_eq, z, ha]
-  have pb : IsPullback (P := R) (pullback.fst ..) (pullback.snd .. ≫ e)
-      (Equiv.fst P' A' z) P'.p := this ▸ .paste_vert (.of_hasPullback ..) hp
-  have : Equiv.snd' P' _ z pb = ε P A ≫ prod.snd ≫ a := by
+  have pb : IsPullback r1 (r2 ≫ e) (Equiv.fst P' A' z) P'.p := this ▸ .paste_vert (.of_hasPullback ..) hp
+  have : Equiv.snd' P' A' z pb = ε P A ≫ prod.snd ≫ a := by
+    rw [Equiv.snd'_eq]
     sorry
   have : Equiv.fst P A' (P.functor.map a) = P.fstProj A := by simp [Equiv.fst_eq]
   have pb : IsPullback (P := R) (pullback.fst ..) (pullback.snd ..)

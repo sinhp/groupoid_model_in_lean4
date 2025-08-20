@@ -164,6 +164,7 @@ variable (C : Type*) [Category C] (D : Type*) [Category D]
 end
 
 namespace IsPullback
+open Limits
 
 variable {C : Type u₁} [Category.{v₁} C]
 
@@ -171,11 +172,18 @@ variable {P X Y Z : C} {fst : P ⟶ X} {snd : P ⟶ Y} {f : X ⟶ Z} {g : Y ⟶ 
 
 theorem of_iso_isPullback (h : IsPullback fst snd f g) {Q} (i : Q ≅ P) :
       IsPullback (i.hom ≫ fst) (i.hom ≫ snd) f g := by
-  have : Limits.HasPullback f g := ⟨ h.cone , h.isLimit ⟩
+  have : HasPullback f g := ⟨ h.cone , h.isLimit ⟩
   refine IsPullback.of_iso_pullback (by simp [h.w]) (i ≪≫ h.isoPullback) (by simp) (by simp)
 
-@[simp] theorem isoPullback_refl [Limits.HasPullback f g] :
+@[simp] theorem isoPullback_refl [HasPullback f g] :
     isoPullback (.of_hasPullback f g) = Iso.refl _ := by ext <;> simp
+
+theorem isoPullback_eq_eqToIso_left
+    {X Y Z : C} {f f' : X ⟶ Z} (hf : f = f') (g : Y ⟶ Z) [H : HasPullback f g] :
+    letI : HasPullback f' g := hf ▸ H
+    isoPullback (fst := pullback.fst f g) (snd := pullback.snd f g) (f := f')
+      (by subst hf; exact .of_hasPullback f g) =
+    eqToIso (by subst hf; rfl) := by subst hf; simp
 
 end IsPullback
 end CategoryTheory
