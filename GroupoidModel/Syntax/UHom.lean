@@ -715,7 +715,6 @@ theorem comp_mkPair {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
   simp only[← Category.assoc,eqToHom_map,mkPair]
   congr
   apply NaturalModel.compDomEquiv.mk_naturality (A:= A) (e1 := t_tp)
-  · simp[u_tp]
   · simp only [u_tp]
     rw![t_tp]
     rfl
