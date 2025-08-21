@@ -18,7 +18,7 @@ open CategoryTheory Limits Opposite
 /-- A natural model with support for dependent types (and nothing more).
 The data is a natural transformation with representable fibers,
 stored as a choice of representative for each fiber. -/
-structure NaturalModelBase (Ctx : Type u) [Category Ctx] where
+structure NaturalModel (Ctx : Type u) [Category Ctx] where
   Tm : Psh Ctx
   Ty : Psh Ctx
   tp : Tm ⟶ Ty
@@ -28,9 +28,9 @@ structure NaturalModelBase (Ctx : Type u) [Category Ctx] where
   disp_pullback {Γ : Ctx} (A : y(Γ) ⟶ Ty) :
     IsPullback (var A) ym(disp A) tp A
 
-namespace NaturalModelBase
+namespace NaturalModel
 
-variable {Ctx : Type u} [SmallCategory Ctx] (M : NaturalModelBase Ctx)
+variable {Ctx : Type u} [SmallCategory Ctx] (M : NaturalModel Ctx)
 
 @[simps! hom inv]
 def pullbackIsoExt {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) :
@@ -41,7 +41,7 @@ def pullbackIsoExt {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) :
 /-! ## Pullback of representable natural transformation -/
 
 /-- Pull a natural model back along a type. -/
-protected def pullback {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) : NaturalModelBase Ctx where
+protected def pullback {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) : NaturalModel Ctx where
   Tm := y(M.ext A)
   Ty := y(Γ)
   tp := ym(M.disp A)
@@ -71,7 +71,7 @@ protected def pullback {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) : NaturalModelBase Ctx wh
 def ofIsPullback {U E : Psh Ctx} {π : E ⟶ U}
     {toTy : U ⟶ M.Ty} {toTm : E ⟶ M.Tm}
     (pb : IsPullback toTm π M.tp toTy) :
-    NaturalModelBase Ctx where
+    NaturalModel Ctx where
   Ty := U
   Tm := E
   tp := π
@@ -107,8 +107,7 @@ def ofIsPullback {U E : Psh Ctx} {π : E ⟶ U}
 def substCons {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty)
     (t : y(Δ) ⟶ M.Tm) (t_tp : t ≫ M.tp = ym(σ) ≫ A) :
     Δ ⟶ M.ext A :=
-  let i : y(M.ext A) ≅ pullback M.tp A := (M.disp_pullback A).isoPullback
-  Yoneda.fullyFaithful.1 <| pullback.lift t ym(σ) t_tp ≫ i.inv
+  Yoneda.fullyFaithful.1 <| (M.disp_pullback A).lift t ym(σ) t_tp
 
 @[functor_map (attr := reassoc (attr := simp))]
 theorem substCons_disp {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (t : y(Δ) ⟶ M.Tm)
@@ -122,6 +121,15 @@ theorem substCons_var {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (t : y
     (aTp : t ≫ M.tp = ym(σ) ≫ A) :
     ym(M.substCons σ A t aTp) ≫ M.var A = t := by
   simp [substCons]
+
+@[simp]
+theorem comp_substCons {Θ Δ Γ : Ctx} (τ : Θ ⟶ Δ) (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (t : y(Δ) ⟶ M.Tm)
+    (aTp : t ≫ M.tp = ym(σ) ≫ A) :
+    τ ≫ M.substCons σ A t aTp = M.substCons (τ ≫ σ) A (ym(τ) ≫ t) (by simp [*]) := by
+  apply Yoneda.fullyFaithful.map_injective
+  apply (M.disp_pullback A).hom_ext
+  · simp
+  · simp
 
 /--
 ```
@@ -154,24 +162,25 @@ theorem var_tp {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) : M.var A ≫ M.tp = ym(M.disp A)
 /--
 Weaken a substitution.
 ```
-Δ ⊢ σ : Γ  Γ ⊢ A type
-----------------------------------------
-Δ.A[σ] ⊢ ↑≫σ : Γ  Δ.A[σ] ⊢ v₀ : A[↑≫σ]
-----------------------------------------
-Δ.A[σ] ⊢ (↑≫σ).v₀ : Γ.A
+Δ ⊢ σ : Γ  Γ ⊢ A type  A' = A[σ]
+------------------------------------
+Δ.A' ⊢ ↑≫σ : Γ  Δ.A' ⊢ v₀ : A[↑≫σ]
+------------------------------------
+Δ.A' ⊢ (↑≫σ).v₀ : Γ.A
 ```
 -/
-def substWk {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) : M.ext (ym(σ) ≫ A) ⟶ M.ext A :=
-  M.substCons (M.disp _ ≫ σ) A (M.var _) (by simp)
+def substWk {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty)
+    (A' := ym(σ) ≫ A) (eq : ym(σ) ≫ A = A' := by rfl) : M.ext A' ⟶ M.ext A :=
+  M.substCons (M.disp _ ≫ σ) A (M.var _) (by simp [eq])
 
 @[functor_map (attr := reassoc)]
-theorem substWk_disp {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) :
-    M.substWk σ A ≫ M.disp A = M.disp (ym(σ) ≫ A) ≫ σ := by
+theorem substWk_disp {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (A' eq) :
+    M.substWk σ A A' eq ≫ M.disp A = M.disp A' ≫ σ := by
   simp [substWk]
 
 @[reassoc (attr := simp)]
-theorem substWk_var {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) :
-    ym(M.substWk σ A) ≫ M.var A = M.var (ym(σ) ≫ A) := by
+theorem substWk_var {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (A' eq) :
+    ym(M.substWk σ A A' eq) ≫ M.var A = M.var A' := by
   simp [substWk]
 
 /-- `sec` is the section of `disp A` corresponding to `a`.
@@ -213,20 +222,6 @@ Specializations of results from the `Poly` package to natural models. -/
 @[simps] def uvPolyTp : UvPoly M.Tm M.Ty := ⟨M.tp, inferInstance⟩
 def Ptp : Psh Ctx ⥤ Psh Ctx := M.uvPolyTp.functor
 
-/--
-```
-yΓ ⟶ P_tp(X)
-=======================
-Γ ⊢ A type  y(Γ.A) ⟶ X
-```
--/
-@[simps!]
-def Ptp_equiv {Γ : Ctx} {X : Psh Ctx} :
-    (y(Γ) ⟶ M.Ptp.obj X) ≃ (A : y(Γ) ⟶ M.Ty) × (y(M.ext A) ⟶ X) :=
-  (UvPoly.equiv _ _ _).trans
-    (Equiv.sigmaCongrRight fun _ =>
-      (M.pullbackIsoExt _).homCongr (Iso.refl _))
-
 namespace PtpEquiv
 
 variable {Γ : Ctx} {X : Psh Ctx}
@@ -248,8 +243,8 @@ A map `(AB : y(Γ) ⟶ M.Ptp.obj X)` is equivalent to a pair of maps
 thought of as a dependent pair `A : Type` and `B : A ⟶ Type`
 `PtpEquiv.snd` is the `B` in this pair.
 -/
-def snd (AB : y(Γ) ⟶ M.Ptp.obj X) : y(M.ext (fst M AB)) ⟶ X :=
-  (M.pullbackIsoExt _).inv ≫ UvPoly.Equiv.snd M.uvPolyTp X AB
+def snd (AB : y(Γ) ⟶ M.Ptp.obj X) (A := fst M AB) (eq : fst M AB = A := by rfl) : y(M.ext A) ⟶ X :=
+  UvPoly.Equiv.snd' M.uvPolyTp X AB (by rw [← fst, eq]; exact (M.disp_pullback _).flip)
 
 /--
 A map `(AB : y(Γ) ⟶ M.Ptp.obj X)` is equivalent to a pair of maps
@@ -258,51 +253,82 @@ thought of as a dependent pair `A : Type` and `B : A ⟶ Type`
 `PtpEquiv.mk` constructs such a map `AB` from such a pair `A` and `B`.
 -/
 def mk (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) : y(Γ) ⟶ M.Ptp.obj X :=
-  UvPoly.Equiv.mk M.uvPolyTp X A ((M.pullbackIsoExt _).hom ≫ B)
+  UvPoly.Equiv.mk' M.uvPolyTp X A (M.disp_pullback _).flip B
 
 @[simp]
 lemma fst_mk (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
     fst M (mk M A B) = A := by
   simp [fst, mk]
 
-lemma snd_mk_heq (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
-    snd M (mk M A B) ≍ B := by
-  sorry
-
+@[simp]
 lemma snd_mk (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
-    snd M (mk M A B) = ym(eqToHom (by rw [fst_mk M A B])) ≫ B := by
-  sorry
+    snd M (mk M A B) _ (fst_mk ..) = B := by
+  dsimp only [snd, mk]
+  rw! [UvPoly.Equiv.snd'_mk']
 
 section
 variable {Δ : Ctx} {σ : Δ ⟶ Γ} {AB : y(Γ) ⟶ M.Ptp.obj X}
 
-theorem fst_naturality_left : fst M (ym(σ) ≫ AB) = ym(σ) ≫ fst M AB := rfl
+theorem fst_comp_left (σ : y(Δ) ⟶ y(Γ)) : fst M (σ ≫ AB) = σ ≫ fst M AB :=
+  UvPoly.Equiv.fst_comp_left ..
 
-theorem snd_naturality_left : snd M (ym(σ) ≫ AB) = ym(M.substWk σ _) ≫ snd M AB := by
-  sorry
+theorem fst_comp_right {Y} (σ : X ⟶ Y) : fst M (AB ≫ M.Ptp.map σ) = fst M AB :=
+  UvPoly.Equiv.fst_comp_right ..
+
+theorem snd_comp_right {Y} (σ : X ⟶ Y) {A} (eq : fst M AB = A) :
+    snd M (AB ≫ M.Ptp.map σ) _ (fst_comp_right M σ ▸ eq) = snd M AB _ eq ≫ σ := by
+  simp only [snd, Ptp]
+  rw [UvPoly.Equiv.snd'_comp_right M.uvPolyTp X Y σ AB]
+
+theorem snd_comp_left {A} (eqA : fst M AB = A) {σA} (eqσ : ym(σ) ≫ A = σA) :
+    snd M (ym(σ) ≫ AB) σA (by simp [fst_comp_left, eqA, eqσ]) =
+    ym(M.substWk σ _ _ eqσ) ≫ snd M AB _ eqA := by
+  refine
+    have H1 := by rw [← fst, eqA]; exact (M.disp_pullback _).flip
+    have H2 := by rw [← fst, eqA, eqσ]; exact (M.disp_pullback _).flip
+    (UvPoly.Equiv.snd'_comp_left M.uvPolyTp X AB H1 _ H2).trans ?_
+  congr 1
+  apply H1.hom_ext <;> simp [← Functor.map_comp, substWk]
+
+theorem mk_comp_left {Δ Γ : Ctx} (M : NaturalModel Ctx) (σ : Δ ⟶ Γ)
+    {X : Psh Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
+    ym(σ) ≫ PtpEquiv.mk M A B = PtpEquiv.mk M (ym(σ) ≫ A) (ym(M.substWk σ A) ≫ B) := by
+  dsimp [PtpEquiv.mk]
+  have h := UvPoly.Equiv.mk'_comp_left M.uvPolyTp X A (M.disp_pullback A).flip B ym(σ)
+    (M.disp_pullback (ym(σ) ≫ A)).flip
+  convert h
+  apply (M.disp_pullback _).hom_ext
+  · simp
+  · simp [← Functor.map_comp, substWk_disp]
+
+theorem mk_comp_right {Γ : Ctx} (M : NaturalModel Ctx)
+    {X Y : Psh Ctx} (σ : X ⟶ Y) (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
+    PtpEquiv.mk M A B ≫ M.Ptp.map σ = PtpEquiv.mk M A (B ≫ σ) :=
+  UvPoly.Equiv.mk'_comp_right M.uvPolyTp X Y σ A (M.disp_pullback A).flip B
+
+theorem ext {AB AB' : y(Γ) ⟶ M.Ptp.obj X}
+    (A := fst M AB) (eq : fst M AB = A := by rfl)
+    (h1 : fst M AB = fst M AB')
+    (h2 : snd M AB A eq = snd M AB' A (h1 ▸ eq))
+    : AB = AB' := UvPoly.Equiv.ext' _ _ _ h1 h2
+
+theorem eta (AB : y(Γ) ⟶ M.Ptp.obj X) : mk M (fst M AB) (snd M AB) = AB :=
+  .symm <| ext _ _ rfl (by simp) (by simp)
 
 end
 
 end PtpEquiv
 
-theorem Ptp_equiv_naturality_right {Γ : Ctx} {X Y : Psh Ctx}
-    (x : y(Γ) ⟶ M.Ptp.obj X) (α : X ⟶ Y) :
-    M.Ptp_equiv (x ≫ M.Ptp.map α) =
-      let S := M.Ptp_equiv x
-      ⟨S.1, S.2 ≫ α⟩ := by
-  -- See https://leanprover.zulipchat.com/#narrow/channel/116395-maths/topic/Natural.20equivalences.20and.20kernel.20performance/with/513971849
-  sorry
-
 @[reassoc]
-theorem Ptp_equiv_symm_naturality_right {Γ : Ctx} {X Y : Psh Ctx}
+theorem PtpEquiv.mk_map {Γ : Ctx} {X Y : Psh Ctx}
     (A : y(Γ) ⟶ M.Ty) (x : y(M.ext A) ⟶ X) (α : X ⟶ Y) :
-    M.Ptp_equiv.symm ⟨A, x⟩ ≫ M.Ptp.map α = M.Ptp_equiv.symm ⟨A, x ≫ α⟩ := by
-  sorry
+    mk M A x ≫ M.Ptp.map α = mk M A (x ≫ α) := by
+  simp [mk, Ptp, UvPoly.Equiv.mk'_comp_right]
 
 /-! ## Polynomial composition `M.tp ▸ N.tp` -/
 
 -- -- `private` lemma for the equivalence below.
--- private lemma lift_ev {Γ : Ctx} {N : NaturalModelBase Ctx}
+-- private lemma lift_ev {Γ : Ctx} {N : NaturalModel Ctx}
 --     {AB : y(Γ) ⟶ M.Ptp.obj N.Ty} {α : y(Γ) ⟶ M.Tm}
 --     (hA : AB ≫ M.uvPolyTp.fstProj N.Ty = α ≫ M.tp) :
 --     pullback.lift AB α hA ≫ (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).snd =
@@ -314,7 +340,7 @@ theorem Ptp_equiv_symm_naturality_right {Γ : Ctx} {X Y : Psh Ctx}
 
 namespace compDomEquiv
 
-variable {M} (N : NaturalModelBase Ctx) {Γ Δ : Ctx} (σ : Δ ⟶ Γ)
+variable {M} (N : NaturalModel Ctx) {Γ Δ : Ctx} (σ : Δ ⟶ Γ)
 
 /-- Universal property of `compDom`, decomposition (part 1).
 
@@ -323,8 +349,8 @@ A map `ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp` is equivalently three maps
 is the `(a : A)` in `(a : A) × (b : B a)`.
 -/
 def fst (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : y(Γ) ⟶ M.Tm :=
-ab ≫ pullback.snd N.tp (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).snd ≫
-  pullback.snd (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).fst M.uvPolyTp.p
+  ab ≫ pullback.snd N.tp (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).snd ≫
+    pullback.snd (M.uvPolyTp.fstProj N.Ty) M.uvPolyTp.p
 
 /-- Computation of `comp` (part 1).
 
@@ -393,12 +419,31 @@ def mk (α : y(Γ) ⟶ M.Tm) (B : y(M.ext (α ≫ M.tp)) ⟶ N.Ty) (β : y(Γ) �
   --     (by sorry))  -- proof they agree
   --   (by sorry)
 
+/-ym(σ) ≫ compDomEquiv.mk s[j] t (ym(eqToHom ⋯) ≫ B) u ⋯ =
+  compDomEquiv.mk s[j] (ym(σ) ≫ t) ((ym(eqToHom ⋯) ≫ ym(s[i].substWk σ A)) ≫ B) (ym(σ) ≫ u) ⋯
+
+  {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
+    (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
+    (t : y(Γ) ⟶ s[i].Tm) (t_tp : t ≫ s[i].tp = A)
+    (u : y(Γ) ⟶ s[j].Tm) (u_tp : u ≫ s[j].tp = ym(s[i].sec A t t_tp) ≫ B)
+
+  -/
+
+def mk_naturality (A : y(Γ) ⟶ M.Ty) (α : y(Γ) ⟶ M.Tm) (B : y(M.ext (α ≫ M.tp)) ⟶ N.Ty)
+    (β : y(Γ) ⟶ N.Tm) (e1 : α ≫ M.tp = A) (e2 : β ≫ N.tp = ym(M.sec A α e1) ≫ eqToHom sorry ≫ B)
+    (h : β ≫ N.tp = ym(M.sec _ α rfl) ≫ B) (σ : Δ ⟶ Γ) :
+    ym(σ) ≫ compDomEquiv.mk N α B β sorry =
+    compDomEquiv.mk N (ym(σ) ≫ α)
+      (ym(eqToHom sorry ≫ M.substWk σ A) ≫ (eqToHom sorry ≫ B)) (ym(σ) ≫ β) sorry := by
+  sorry
+
 def fst_naturality (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
     fst N (ym(σ) ≫ ab) = ym(σ) ≫ fst N ab := by
   simp only [fst, Category.assoc]
 
-def dependent_naturality (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : dependent N (ym(σ) ≫ ab)
-    = ym(eqToHom (by simp [fst_naturality]) ≫ M.substWk σ _) ≫ dependent N ab := by
+def dependent_naturality (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
+    dependent N (ym(σ) ≫ ab) =
+    ym(eqToHom (by simp [fst_naturality]) ≫ M.substWk σ _) ≫ dependent N ab := by
   --simp[dependent, substWk, substCons]
   sorry
 
@@ -408,87 +453,20 @@ def snd_naturality (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
 
 end compDomEquiv
 
--- /-- A specialization of the universal property of `UvPoly.compDom` to `M.uvPolyTp`,
---   using the chosen pullback `M.ext` instead of `pullback`. -/
--- def uvPolyTpCompDomEquiv (N : NaturalModelBase Ctx) (Γ : Ctx) :
---     (y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp)
---     ≃ (α : y(Γ) ⟶ M.Tm)
---     × (B : y(M.ext (α ≫ M.tp)) ⟶ N.Ty)
---     × (β : y(Γ) ⟶ N.Tm)
---     ×' β ≫ N.tp = ym(M.sec (α ≫ M.tp) α rfl) ≫ B :=
---   calc
---     _ ≃ _ := UvPoly.compDomEquiv
---     _ ≃ _ := {
---       toFun := fun ⟨ AB, α, β, hA, hB ⟩ =>
---         ⟨ α,
---           (M.disp_pullback _).lift (M.var _) ym(M.disp _)
---             (by dsimp; rw [hA, (M.disp_pullback _).w, uvPolyTp_p]) ≫
---           (M.Ptp_equiv AB).2,
---           β,
---           hB.trans (M.lift_ev hA)
---         ⟩
---       invFun := fun ⟨ α, B, β, h ⟩ =>
---         ⟨ M.Ptp_equiv.symm ⟨ α ≫ M.tp, B ⟩, α, β,
---           by simp [uvPolyTp_p, Ptp_equiv_symm_apply_comp_fstProj],
---           by
---             refine h.trans ?_
---             rw! [M.lift_ev, Equiv.apply_symm_apply]
---             simp
---         ⟩
---       left_inv := fun ⟨ AB, α, β, hA, hB ⟩ => by
---         congr!
---         erw [Equiv.symm_apply_eq]
---         refine Eq.trans ?_ (Sigma.eta _)
---         ext : 1
---         . dsimp
---           erw [← hA, M.Ptp_equiv_apply_fst]
---         . dsimp
---           rw! (castMode := .all) [hA]
---           simp; rfl
---       right_inv := fun ⟨ α, B, β, h ⟩ => by
---         congr!
---         rw! [Equiv.apply_symm_apply]
---         simp
---     }
-
--- theorem uvPolyTpCompDomEquiv_apply_fst_tp (N : NaturalModelBase Ctx) {Γ}
---     (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
---     (M.uvPolyTpCompDomEquiv N Γ ab).fst ≫ M.tp
---     = (M.Ptp_equiv (ab ≫ (M.uvPolyTp.comp N.uvPolyTp).p)).fst :=
---   sorry
-
--- theorem uvPolyTpCompDomEquiv_apply_snd_fst_aux (N : NaturalModelBase Ctx)
---     {Γ : Ctx} (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
---     M.ext (((M.uvPolyTpCompDomEquiv N Γ) ab).fst ≫ M.tp) =
---     M.ext (M.Ptp_equiv (ab ≫ (M.uvPolyTp.comp N.uvPolyTp).p)).fst := by
---   rw [uvPolyTpCompDomEquiv_apply_fst_tp]
-
--- -- NOTE could define ym(eqToHom ⋯) =
--- -- (M.disp_pullback _).lift (M.var _) ym(M.disp _) (by
---       -- rw [(M.disp_pullback _).w, uvPolyTpCompDomEquiv_apply_fst_tp])
--- -- in this theorem, but it is convenient to have it as ym(⋯)
--- theorem uvPolyTpCompDomEquiv_apply_snd_fst (N : NaturalModelBase Ctx) {Γ : Ctx}
---     (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
---     (M.uvPolyTpCompDomEquiv N Γ ab).snd.fst
---     = (M.disp_pullback _).lift (M.var _) ym(M.disp _) (by
---         rw [(M.disp_pullback _).w, uvPolyTpCompDomEquiv_apply_fst_tp]) ≫
---       (M.Ptp_equiv (ab ≫ (M.uvPolyTp.comp N.uvPolyTp).p)).snd := by
---   sorry
-
 /-! ## Pi and Sigma types -/
 
-structure NaturalModelPi where
+protected structure Pi where
   Pi : M.Ptp.obj M.Ty ⟶ M.Ty
   lam : M.Ptp.obj M.Tm ⟶ M.Tm
   Pi_pullback : IsPullback lam (M.Ptp.map M.tp) M.tp Pi
 
-structure NaturalModelSigma where
+protected structure Sigma where
   Sig : M.Ptp.obj M.Ty ⟶ M.Ty
   pair : UvPoly.compDom (uvPolyTp M) (uvPolyTp M) ⟶ M.Tm
   Sig_pullback : IsPullback pair ((uvPolyTp M).comp (uvPolyTp M)).p M.tp Sig
 
 /--
-NaturalModelBase.IdBase consists of the following commutative square
+NaturalModel.IdIntro consists of the following commutative square
        refl
 M.Tm ------> M.Tm
  |            |
@@ -805,7 +783,7 @@ def motive : y(Γ) ⟶ i.iFunctor.obj M.Ty :=
 def j : y(Γ) ⟶ i.iFunctor.obj M.Tm :=
   i.weakPullback.lift y(Γ) (reflCase a r) (motive i a C) (by
     simp [reflCase, motive]
-    rw [UvPoly.Equiv.mk_naturality_right]
+    rw [UvPoly.Equiv.mk_comp_right]
     sorry
   )
 
@@ -858,4 +836,4 @@ lemma mkJ'_refl : mkJ' i a C r a rfl (i.mkRefl a) (by aesop) = r :=
 
 end Id
 
-end NaturalModelBase
+end NaturalModel

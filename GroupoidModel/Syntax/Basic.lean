@@ -29,7 +29,7 @@ inductive Expr where
   /-- A reflexive identity. -/
   | refl (l : Nat) (t : Expr)
   /-- Eliminates an identity. -/
-  | idRec (l l' : Nat) (t C r u h : Expr)
+  | idRec (l l' : Nat) (t M r u h : Expr)
   /-- A type universe. -/
   | univ (l : Nat)
   /-- Type from a code. -/

@@ -9,7 +9,7 @@ noncomputable section
 
 namespace GroupoidModel
 
-open CategoryTheory NaturalModelBase Opposite Functor.Groupoidal PGrpd
+open CategoryTheory NaturalModel Opposite Functor.Groupoidal PGrpd
 
 attribute [local simp] eqToHom_map Grpd.id_eq_id Grpd.comp_eq_comp Functor.id_comp
 
@@ -818,7 +818,7 @@ open FunctorOperation
 Behavior of the Σ-type former (a natural transformation) on an input.
 By Yoneda, "an input" is the same as a map from a representable into the domain.
 -/
-def smallUSigma.Sig_app {Γ : Ctx}
+def smallUSig.Sig_app {Γ : Ctx}
     (AB : y(Γ) ⟶ smallU.{v}.Ptp.obj smallU.{v}.Ty) :
     y(Γ) ⟶ smallU.{v}.Ty :=
   yonedaCategoryEquiv.symm (sigma _ (smallU.PtpEquiv.snd AB))
@@ -827,15 +827,15 @@ def smallUSigma.Sig_app {Γ : Ctx}
 Naturality for the formation rule for Σ-types.
 Also known as Beck-Chevalley
 -/
-theorem smallUSigma.Sig_naturality {Γ Δ : Ctx} (σ : Δ ⟶ Γ)
+theorem smallUSig.Sig_naturality {Γ Δ : Ctx} (σ : Δ ⟶ Γ)
     (AB : y(Γ) ⟶ smallU.{v}.Ptp.obj smallU.{v}.Ty) :
-    smallUSigma.Sig_app (ym(σ) ≫ AB) = ym(σ) ≫ smallUSigma.Sig_app AB := by
-  dsimp only [smallUSigma.Sig_app]
+    smallUSig.Sig_app (ym(σ) ≫ AB) = ym(σ) ≫ smallUSig.Sig_app AB := by
+  dsimp only [smallUSig.Sig_app]
   rw [← yonedaCategoryEquiv_symm_naturality_left, sigma_naturality,
   -- note the order of rewrite is first the fiber, then the base
   -- this allows rw! to cast the proof in the `eqToHom`
-    smallU.PtpEquiv.snd_naturality]
-  rw! [smallU.PtpEquiv.fst_naturality]
+    smallU.PtpEquiv.snd_comp_left]
+  rw! [smallU.PtpEquiv.fst_comp_left]
   congr 2
   · simp [map_id_eq, Functor.id_comp]
 
@@ -843,64 +843,64 @@ theorem smallUSigma.Sig_naturality {Γ Δ : Ctx} (σ : Δ ⟶ Γ)
   If possible, don't use NatTrans.app on this,
   instead precompose it with maps from representables.
 -/
-def smallUSigma.Sig : smallU.{v}.Ptp.obj smallU.{v}.Ty
+def smallUSig.Sig : smallU.{v}.Ptp.obj smallU.{v}.Ty
   ⟶ smallU.{v}.Ty :=
-  NatTrans.yonedaMk smallUSigma.Sig_app smallUSigma.Sig_naturality
+  NatTrans.yonedaMk smallUSig.Sig_app smallUSig.Sig_naturality
 
-lemma smallUSigma.Sig_app_eq {Γ : Ctx} (AB : y(Γ) ⟶ _) : AB ≫ smallUSigma.Sig =
-    smallUSigma.Sig_app AB := by
-  simp only [smallUSigma.Sig, NatTrans.yonedaMk_app]
+lemma smallUSig.Sig_app_eq {Γ : Ctx} (AB : y(Γ) ⟶ _) : AB ≫ smallUSig.Sig =
+    smallUSig.Sig_app AB := by
+  simp only [smallUSig.Sig, NatTrans.yonedaMk_app]
 
 open smallU.compDom
 
-def smallUSigma.pair_app {Γ : Ctx}
+def smallUSig.pair_app {Γ : Ctx}
     (ab : y(Γ) ⟶ smallU.{v}.uvPolyTp.compDom smallU.{v}.uvPolyTp)
     : y(Γ) ⟶ smallU.{v}.Tm :=
   yonedaCategoryEquiv.symm (pair _ _ _ (snd_forgetToGrpd ab))
 
-theorem smallUSigma.pair_naturality {Γ Δ : Ctx} (f : Δ ⟶ Γ)
+theorem smallUSig.pair_naturality {Γ Δ : Ctx} (f : Δ ⟶ Γ)
     (ab : y(Γ) ⟶ smallU.compDom.{v}) :
-    smallUSigma.pair_app (ym(f) ≫ ab) = ym(f) ≫ smallUSigma.pair_app ab := by
-  dsimp only [smallUSigma.pair_app]
+    smallUSig.pair_app (ym(f) ≫ ab) = ym(f) ≫ smallUSig.pair_app ab := by
+  dsimp only [smallUSig.pair_app]
   rw [← yonedaCategoryEquiv_symm_naturality_left, FunctorOperation.pair_naturality]
-  -- Like with `smallUSigma.Sig_naturality` rw from inside to outside (w.r.t type dependency)
+  -- Like with `smallUSig.Sig_naturality` rw from inside to outside (w.r.t type dependency)
   rw! [dependent_naturality, snd_naturality, fst_naturality]
   simp [map_id_eq, Functor.id_comp]
 
-def smallUSigma.pair : smallU.compDom.{v} ⟶ smallU.{v}.Tm :=
-  NatTrans.yonedaMk smallUSigma.pair_app smallUSigma.pair_naturality
+def smallUSig.pair : smallU.compDom.{v} ⟶ smallU.{v}.Tm :=
+  NatTrans.yonedaMk smallUSig.pair_app smallUSig.pair_naturality
 
-lemma smallUSigma.pair_app_eq {Γ : Ctx} (ab : y(Γ) ⟶ _) : ab ≫ smallUSigma.pair =
+lemma smallUSig.pair_app_eq {Γ : Ctx} (ab : y(Γ) ⟶ _) : ab ≫ smallUSig.pair =
     yonedaCategoryEquiv.symm (FunctorOperation.pair _ _ _ (snd_forgetToGrpd ab)) := by
-  simp only [smallUSigma.pair, smallUSigma.pair_app, NatTrans.yonedaMk_app]
+  simp only [smallUSig.pair, smallUSig.pair_app, NatTrans.yonedaMk_app]
 
-namespace SigmaPullback
+namespace SigPullback
 
 open Limits
 
 section
 
-theorem smallUSigma.pair_tp : smallUSigma.pair.{v} ≫ smallU.{v}.tp =
-    smallU.comp.{v} ≫ smallUSigma.Sig.{v} := by
+theorem smallUSig.pair_tp : smallUSig.pair.{v} ≫ smallU.{v}.tp =
+    smallU.comp.{v} ≫ smallUSig.Sig.{v} := by
   apply hom_ext_yoneda
   intros Γ ab
-  rw [← Category.assoc, ← Category.assoc, smallUSigma.pair_app_eq,
-    smallUSigma.Sig_app_eq, smallU_tp, π,
+  rw [← Category.assoc, ← Category.assoc, smallUSig.pair_app_eq,
+    smallUSig.Sig_app_eq, smallU_tp, π,
     ← yonedaCategoryEquiv_symm_naturality_right,
-    pair_comp_forgetToGrpd, smallUSigma.Sig_app]
+    pair_comp_forgetToGrpd, smallUSig.Sig_app]
   congr 2
   · rw [fst_forgetToGrpd]
   · exact dependent_heq.{v} ab
 
 section
 variable {Γ : Ctx} (AB : y(Γ) ⟶ smallU.Ptp.obj.{v} y(U.{v}))
-  (αβ : y(Γ) ⟶ y(E.{v})) (hαβ : αβ ≫ ym(π) = AB ≫ smallUSigma.Sig)
+  (αβ : y(Γ) ⟶ y(E.{v})) (hαβ : αβ ≫ ym(π) = AB ≫ smallUSig.Sig)
 
 include hαβ in
 theorem yonedaCategoryEquiv_forgetToGrpd : yonedaCategoryEquiv αβ ⋙ forgetToGrpd
     = sigma (smallU.PtpEquiv.fst AB) (smallU.PtpEquiv.snd AB) := by
   erw [← yonedaCategoryEquiv_naturality_right, hαβ]
-  rw [smallUSigma.Sig_app_eq, smallUSigma.Sig_app, yonedaCategoryEquiv.apply_symm_apply]
+  rw [smallUSig.Sig_app_eq, smallUSig.Sig_app, yonedaCategoryEquiv.apply_symm_apply]
 
 def lift : y(Γ) ⟶ smallU.compDom.{v} :=
   let β' := smallU.PtpEquiv.snd AB
@@ -911,8 +911,8 @@ def lift : y(Γ) ⟶ smallU.compDom.{v} :=
   mk (sigma.fst' β' αβ' hαβ') (sigma.dependent' β' αβ' hαβ')
   (sigma.snd' β' αβ' hαβ') (sigma.snd'_forgetToGrpd β' αβ' hαβ')
 
-theorem fac_left : lift.{v} AB αβ hαβ ≫ smallUSigma.pair.{v} = αβ := by
-  rw [smallUSigma.pair_app_eq]
+theorem fac_left : lift.{v} AB αβ hαβ ≫ smallUSig.pair.{v} = αβ := by
+  rw [smallUSig.pair_app_eq]
   dsimp only [lift]
   rw! [dependent_mk, snd_mk, fst_mk]
   simp only [eqToHom_refl, map_id_eq, Cat.of_α, Functor.id_comp]
@@ -931,17 +931,17 @@ theorem fac_right : lift.{v} AB αβ hαβ ≫ smallU.comp.{v} = AB := by
 
 theorem hom_ext (m n : y(Γ) ⟶ smallU.compDom.{v})
     (hComp : m ≫ smallU.comp = n ≫ smallU.comp)
-    (hPair : m ≫ smallUSigma.pair = n ≫ smallUSigma.pair) : m = n := by
+    (hPair : m ≫ smallUSig.pair = n ≫ smallUSig.pair) : m = n := by
   have h : (pair (fst m) (snd m) (dependent m)
         (snd_forgetToGrpd m)) =
       (pair (fst n) (snd n) (dependent n)
         (snd_forgetToGrpd n)) :=
       calc _
-        _ = yonedaCategoryEquiv (m ≫ smallUSigma.pair) := by
-          simp [smallUSigma.pair_app_eq m]
-        _ = yonedaCategoryEquiv (n ≫ smallUSigma.pair) := by rw [hPair]
+        _ = yonedaCategoryEquiv (m ≫ smallUSig.pair) := by
+          simp [smallUSig.pair_app_eq m]
+        _ = yonedaCategoryEquiv (n ≫ smallUSig.pair) := by rw [hPair]
         _ = _ := by
-          simp [smallUSigma.pair_app_eq n]
+          simp [smallUSig.pair_app_eq n]
   have hdep : HEq (dependent m) (dependent n) := by
     refine (dependent_heq _).trans
       $ HEq.trans ?_ $ (dependent_heq _).symm
@@ -970,7 +970,7 @@ theorem hom_ext (m n : y(Γ) ⟶ smallU.compDom.{v})
       _ = snd n := sigma.snd'_pair _
 
 theorem uniq (m : y(Γ) ⟶ smallU.compDom)
-    (hmAB : m ≫ smallU.comp = AB) (hmαβ : m ≫ smallUSigma.pair = αβ) :
+    (hmAB : m ≫ smallU.comp = AB) (hmαβ : m ≫ smallUSig.pair = αβ) :
     m = lift AB αβ hαβ := by
   apply hom_ext
   · rw [hmAB, fac_right]
@@ -979,30 +979,30 @@ theorem uniq (m : y(Γ) ⟶ smallU.compDom)
 end
 end
 
-end SigmaPullback
+end SigPullback
 
-open SigmaPullback
+open SigPullback
 
-theorem smallUSigma.isPullback : IsPullback smallUSigma.pair.{v,u} smallU.comp.{v,u}
-    smallU.{v, u}.tp smallUSigma.Sig.{v, u} :=
-  Limits.RepPullbackCone.is_pullback smallUSigma.pair_tp.{v,u}
+theorem smallUSig.isPullback : IsPullback smallUSig.pair.{v,u} smallU.comp.{v,u}
+    smallU.{v, u}.tp smallUSig.Sig.{v, u} :=
+  Limits.RepPullbackCone.is_pullback smallUSig.pair_tp.{v,u}
     (fun s => lift s.snd s.fst s.condition)
     (fun s => fac_left.{v,u} _ _ s.condition)
     (fun s => fac_right.{v,u} _ _ s.condition)
     (fun s m fac_left fac_right => uniq.{v,u} _ _ s.condition m fac_right fac_left)
 
-def smallUSigma : NaturalModelSigma smallU.{v} where
-  Sig := smallUSigma.Sig
-  pair := smallUSigma.pair
-  Sig_pullback := smallUSigma.isPullback
+def smallUSig : NaturalModel.Sigma smallU.{v} where
+  Sig := smallUSig.Sig
+  pair := smallUSig.pair
+  Sig_pullback := smallUSig.isPullback
 
-def uHomSeqSigmas' (i : ℕ) (ilen : i < 4) :
-  NaturalModelSigma (uHomSeqObjs i ilen) :=
+def uHomSeqSigs' (i : ℕ) (ilen : i < 4) :
+    NaturalModel.Sigma (uHomSeqObjs i ilen) :=
   match i with
-  | 0 => smallUSigma.{0, 4}
-  | 1 => smallUSigma.{1, 4}
-  | 2 => smallUSigma.{2, 4}
-  | 3 => smallUSigma.{3, 4}
+  | 0 => smallUSig.{0, 4}
+  | 1 => smallUSig.{1, 4}
+  | 2 => smallUSig.{2, 4}
+  | 3 => smallUSig.{3, 4}
   | (n+4) => by omega
 
 end GroupoidModel
