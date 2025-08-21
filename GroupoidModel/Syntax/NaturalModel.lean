@@ -453,12 +453,12 @@ end compDomEquiv
 
 /-! ## Pi and Sigma types -/
 
-structure Pi where
+protected structure Pi where
   Pi : M.Ptp.obj M.Ty ⟶ M.Ty
   lam : M.Ptp.obj M.Tm ⟶ M.Tm
   Pi_pullback : IsPullback lam (M.Ptp.map M.tp) M.tp Pi
 
-structure Sig where
+protected structure Sigma where
   Sig : M.Ptp.obj M.Ty ⟶ M.Ty
   pair : UvPoly.compDom (uvPolyTp M) (uvPolyTp M) ⟶ M.Tm
   Sig_pullback : IsPullback pair ((uvPolyTp M).comp (uvPolyTp M)).p M.tp Sig

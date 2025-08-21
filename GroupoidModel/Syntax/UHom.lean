@@ -419,8 +419,8 @@ can be extended to
 ``` -/
 structure UHomSeqPiSig (Ctx : Type u) [SmallCategory.{u} Ctx] [CartesianMonoidalCategory Ctx]
     extends UHomSeq Ctx where
-  nmPi (i : Nat) (ilen : i < length + 1 := by get_elem_tactic) : Pi toUHomSeq[i]
-  nmSig (i : Nat) (ilen : i < length + 1 := by get_elem_tactic) : Sig toUHomSeq[i]
+  nmPi (i : Nat) (ilen : i < length + 1 := by get_elem_tactic) : NaturalModel.Pi toUHomSeq[i]
+  nmSig (i : Nat) (ilen : i < length + 1 := by get_elem_tactic) : NaturalModel.Sigma toUHomSeq[i]
 
 namespace UHomSeqPiSig
 

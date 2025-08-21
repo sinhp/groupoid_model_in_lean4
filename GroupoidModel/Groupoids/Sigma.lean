@@ -991,13 +991,13 @@ theorem smallUSig.isPullback : IsPullback smallUSig.pair.{v,u} smallU.comp.{v,u}
     (fun s => fac_right.{v,u} _ _ s.condition)
     (fun s m fac_left fac_right => uniq.{v,u} _ _ s.condition m fac_right fac_left)
 
-def smallUSig : Sig smallU.{v} where
+def smallUSig : NaturalModel.Sigma smallU.{v} where
   Sig := smallUSig.Sig
   pair := smallUSig.pair
   Sig_pullback := smallUSig.isPullback
 
 def uHomSeqSigs' (i : ℕ) (ilen : i < 4) :
-  Sig (uHomSeqObjs i ilen) :=
+    NaturalModel.Sigma (uHomSeqObjs i ilen) :=
   match i with
   | 0 => smallUSig.{0, 4}
   | 1 => smallUSig.{1, 4}

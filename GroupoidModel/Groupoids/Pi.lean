@@ -469,16 +469,10 @@ lemma comm_sq_of_comp_mono {C : Type*} [Category C]
     : f ≫ g = h ≫ i := by
   apply e.right_cancellation
   calc (f ≫ g) ≫ mZ
-    _ = f ≫ g ≫ mZ := by aesop
     _ = f ≫ mY ≫ g' := by aesop
     _ = (f ≫ mY) ≫ g' := by simp
-    _  = (mX ≫ f') ≫ g' := by aesop
-    _  = mX ≫ f' ≫ g' := by simp
-    _  = mX ≫ h' ≫ i' := by aesop
-    _  = (mX ≫ h') ≫ i' := by simp
     _  = (h ≫ mW) ≫ i' := by aesop
     _  = h ≫ mW ≫ i' := by simp
-    _  = h ≫ i ≫ mZ := by aesop
     _  = (h ≫ i) ≫ mZ := by aesop
 
 theorem pi_naturality_map {x y} (f : x ⟶ y) :
@@ -1088,13 +1082,13 @@ theorem isPullback : IsPullback lam.{v, max u (v+1)}
 
 end smallUPi
 
-def smallUPi : Pi smallU.{v} where
+def smallUPi : NaturalModel.Pi smallU.{v} where
   Pi := smallUPi.Pi.{v}
   lam := smallUPi.lam.{v}
   Pi_pullback := smallUPi.isPullback.{v}
 
 def uHomSeqPis' (i : ℕ) (ilen : i < 4) :
-  Pi (uHomSeqObjs i ilen) :=
+    NaturalModel.Pi (uHomSeqObjs i ilen) :=
   match i with
   | 0 => smallUPi.{0,4}
   | 1 => smallUPi.{1,4}
@@ -1102,9 +1096,10 @@ def uHomSeqPis' (i : ℕ) (ilen : i < 4) :
   | 3 => smallUPi.{3,4}
   | (n+4) => by omega
 
-def uHomSeqPiSig : UHomSeqPiSig Ctx := { uHomSeq with
+def uHomSeqPiSigma : UHomSeqPiSig Ctx where
+  __ := uHomSeq
   nmPi := uHomSeqPis'
-  nmSig := uHomSeqSigs' }
+  nmSig := uHomSeqSigs'
 
 end
 
