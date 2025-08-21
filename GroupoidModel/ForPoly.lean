@@ -419,41 +419,73 @@ variable {𝒞} [Category 𝒞] [HasTerminal 𝒞] [HasPullbacks 𝒞]
 
 variable {E B : 𝒞} (P : UvPoly E B) (A : 𝒞)
 
-def compDomEquiv {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} :
-    (Γ ⟶ compDom P Q) ≃
-      (AB : Γ ⟶ P @ A) × (α : Γ ⟶ E) × (β : Γ ⟶ D) ×'
-      (w : AB ≫ P.fstProj A = α ≫ P.p) ×'
-      (β ≫ Q.p = pullback.lift AB α w ≫ (PartialProduct.fan P A).snd) :=
-  calc
-  _ ≃ (β : Γ ⟶ D) × (αB : Γ ⟶ pullback (PartialProduct.fan P A).fst P.p) ×'
-      β ≫ Q.p = αB ≫ (PartialProduct.fan P A).snd :=
-    pullbackHomEquiv
-  _ ≃ (β : Γ ⟶ D) × (αB : (AB : Γ ⟶ P @ A) × (α : Γ ⟶ E) ×'
-        AB ≫ P.fstProj A = α ≫ P.p) ×'
-      β ≫ Q.p = pullback.lift αB.1 αB.2.1 αB.2.2 ≫ (PartialProduct.fan P A).snd :=
-    Equiv.sigmaCongrRight (fun β => calc
-      _ ≃ (αB : (AB : Γ ⟶ P @ A) × (α : Γ ⟶ E) ×' (AB ≫ P.fstProj A = α ≫ P.p)) ×'
-          (β ≫ Q.p = pullback.lift αB.1 αB.2.1 αB.2.2 ≫ (PartialProduct.fan P A).snd) :=
-        Equiv.psigmaCongrProp pullbackHomEquiv (fun αB => by
-          apply Eq.congr_right
-          congr 1
-          apply pullback.hom_ext
-          · simp [pullbackHomEquiv]
-          · simp [pullbackHomEquiv]))
-  _ ≃ _ := {
-      -- TODO should be general tactic for this?
-      toFun x := ⟨ x.2.1.1, x.2.1.2.1 , x.1 , x.2.1.2.2, x.2.2 ⟩
-      invFun x := ⟨ x.2.2.1 , ⟨ x.1, x.2.1 , x.2.2.2.1 ⟩ , x.2.2.2.2 ⟩
-      left_inv _ := rfl
-      right_inv _ := rfl }
+namespace compDomEquiv
 
-@[simp] theorem compDomEquiv_symm_comp_p {Γ E B D A : 𝒞} {P : UvPoly E B}
-    {Q : UvPoly D A} (AB : Γ ⟶ P @ A) (α : Γ ⟶ E)
-    (β : Γ ⟶ D) (w : AB ≫ P.fstProj A = α ≫ P.p)
-    (h : β ≫ Q.p = pullback.lift AB α w ≫ (PartialProduct.fan P A).snd) :
-    compDomEquiv.symm ⟨AB, α, β, w, h⟩ ≫ (P.comp Q).p = AB := by
-   simp [compDomEquiv, Equiv.psigmaCongrProp, Equiv.sigmaCongrRight_symm,
-    Equiv.coe_fn_symm_mk, pullbackHomEquiv]
+variable {Γ E B E' B' : 𝒞} {P : UvPoly E B} {P' : UvPoly E' B'}
+
+def fst (triple : Γ ⟶ compDom P P') : Γ ⟶ E :=
+  triple ≫ pullback.snd _ _ ≫ pullback.snd _ _
+
+theorem fst_comp_p (triple : Γ ⟶ compDom P P') :
+    fst triple ≫ P.p = Equiv.fst P B' (triple ≫ (P.comp P').p) :=
+  sorry
+
+def dependent (triple : Γ ⟶ compDom P P')
+    (T) (f : T ⟶ E) (g : T ⟶ Γ) (H : IsPullback f g P.p (fst triple ≫ P.p)) :
+    T ⟶ B' :=
+  sorry
+
+def snd (triple : Γ ⟶ compDom P P') : Γ ⟶ E' :=
+  sorry
+
+theorem snd_comp_p (triple : Γ ⟶ compDom P P')
+    (T) (f : T ⟶ E) (g : T ⟶ Γ) (H : IsPullback f g P.p (fst triple ≫ P.p))
+    : snd triple ≫ P'.p =
+    H.lift (fst triple) (𝟙 Γ) (by simp) ≫ dependent triple T f g H := by
+  sorry
+
+def mk (α : Γ ⟶ E) (T) (f : T ⟶ E) (g : T ⟶ Γ) (H : IsPullback f g P.p (α ≫ P.p))
+    (B : T ⟶ B') (β : Γ ⟶ E') (h : β ≫ P'.p = H.lift α (𝟙 Γ) (by simp) ≫ B) :
+    Γ ⟶ P.compDom P' :=
+  sorry
+
+end compDomEquiv
+
+-- def compDomEquiv {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} :
+--     (Γ ⟶ compDom P Q) ≃
+--       (AB : Γ ⟶ P @ A) × (α : Γ ⟶ E) × (β : Γ ⟶ D) ×'
+--       (w : AB ≫ P.fstProj A = α ≫ P.p) ×'
+--       (β ≫ Q.p = pullback.lift AB α w ≫ (PartialProduct.fan P A).snd) :=
+--   calc
+--   _ ≃ (β : Γ ⟶ D) × (αB : Γ ⟶ pullback (PartialProduct.fan P A).fst P.p) ×'
+--       β ≫ Q.p = αB ≫ (PartialProduct.fan P A).snd :=
+--     pullbackHomEquiv
+--   _ ≃ (β : Γ ⟶ D) × (αB : (AB : Γ ⟶ P @ A) × (α : Γ ⟶ E) ×'
+--         AB ≫ P.fstProj A = α ≫ P.p) ×'
+--       β ≫ Q.p = pullback.lift αB.1 αB.2.1 αB.2.2 ≫ (PartialProduct.fan P A).snd :=
+--     Equiv.sigmaCongrRight (fun β => calc
+--       _ ≃ (αB : (AB : Γ ⟶ P @ A) × (α : Γ ⟶ E) ×' (AB ≫ P.fstProj A = α ≫ P.p)) ×'
+--           (β ≫ Q.p = pullback.lift αB.1 αB.2.1 αB.2.2 ≫ (PartialProduct.fan P A).snd) :=
+--         Equiv.psigmaCongrProp pullbackHomEquiv (fun αB => by
+--           apply Eq.congr_right
+--           congr 1
+--           apply pullback.hom_ext
+--           · simp [pullbackHomEquiv]
+--           · simp [pullbackHomEquiv]))
+--   _ ≃ _ := {
+--       -- TODO should be general tactic for this?
+--       toFun x := ⟨ x.2.1.1, x.2.1.2.1 , x.1 , x.2.1.2.2, x.2.2 ⟩
+--       invFun x := ⟨ x.2.2.1 , ⟨ x.1, x.2.1 , x.2.2.2.1 ⟩ , x.2.2.2.2 ⟩
+--       left_inv _ := rfl
+--       right_inv _ := rfl }
+
+-- @[simp] theorem compDomEquiv_symm_comp_p {Γ E B D A : 𝒞} {P : UvPoly E B}
+--     {Q : UvPoly D A} (AB : Γ ⟶ P @ A) (α : Γ ⟶ E)
+--     (β : Γ ⟶ D) (w : AB ≫ P.fstProj A = α ≫ P.p)
+--     (h : β ≫ Q.p = pullback.lift AB α w ≫ (PartialProduct.fan P A).snd) :
+--     compDomEquiv.symm ⟨AB, α, β, w, h⟩ ≫ (P.comp Q).p = AB := by
+--    simp [compDomEquiv, Equiv.psigmaCongrProp, Equiv.sigmaCongrRight_symm,
+--     Equiv.coe_fn_symm_mk, pullbackHomEquiv]
 
 -- -- TODO: rename
 -- abbrev ev1 : pullback (P.fstProj A) P.p ⟶ A := ε P A ≫ prod.snd
