@@ -260,6 +260,13 @@ lemma snd'_eq (pair : Γ ⟶ P @ X) {R f g} (H : IsPullback (P := R) f g (fst P 
     exact H.isoPullback_hom_fst
   · exact H.isoPullback_hom_snd
 
+lemma snd'_eq_snd' (pair : Γ ⟶ P @ X) {R f g} (H : IsPullback (P := R) f g (fst P X pair) P.p)
+    {R' f' g'} (H' : IsPullback (P := R') f' g' (fst P X pair) P.p) :
+    snd' P X pair H = (H.isoIsPullback _ _ H').hom ≫ snd' P X pair H' := by
+  simp [snd'_eq, ← Category.assoc]
+  congr 2
+  ext <;> simp
+
 @[simp]
 lemma snd'_mk' (b : Γ ⟶ B) {R f g} (H : IsPullback (P := R) f g b P.p) (x : R ⟶ X) :
     snd' P X (mk' P X b H x) (by rwa [fst_mk']) = x := by
@@ -338,6 +345,15 @@ lemma hom_ext' {pair₁ pair₂ : Γ ⟶ P @ X}
   · slice_lhs 2 3 => apply pullback.lift_snd
     slice_lhs 1 2 => apply H.isoPullback_hom_snd
     simp
+
+theorem mk'_eq_mk' (b : Γ ⟶ B) {R f g} (H : IsPullback (P := R) f g b P.p) (x : R ⟶ X)
+    {R' f' g'} (H' : IsPullback (P := R') f' g' b P.p) :
+    mk' P X b H x = mk' P X b (R := R') H' ((IsPullback.isoIsPullback _ _ H H').inv ≫ x) := by
+  apply hom_ext' P X (R := R) (f := f) (g := g) (by convert H; simp)
+  · rw [snd'_eq_snd' P X (mk' P X b H' ((IsPullback.isoIsPullback _ _ H H').inv ≫ x))
+      (by convert H; simp) (by convert H'; simp)]
+    simp [snd'_mk']
+  · simp
 
 @[simp]
 lemma eta' (pair : Γ ⟶ P @ X)
