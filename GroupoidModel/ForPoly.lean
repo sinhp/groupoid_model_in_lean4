@@ -449,6 +449,8 @@ def mk (α : Γ ⟶ E) (T) (f : T ⟶ E) (g : T ⟶ Γ) (H : IsPullback f g P.p 
     Γ ⟶ P.compDom P' :=
   sorry
 
+
+
 end compDomEquiv
 
 -- def compDomEquiv {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} :

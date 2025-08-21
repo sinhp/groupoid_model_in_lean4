@@ -349,8 +349,7 @@ A map `ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp` is equivalently three maps
 is the `(a : A)` in `(a : A) × (b : B a)`.
 -/
 def fst (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : y(Γ) ⟶ M.Tm :=
-  ab ≫ pullback.snd N.tp (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).snd ≫
-    pullback.snd (M.uvPolyTp.fstProj N.Ty) M.uvPolyTp.p
+  UvPoly.compDomEquiv.fst (P:= M.uvPolyTp) (P' := N.uvPolyTp) ab
 
 /-- Computation of `comp` (part 1).
 
@@ -369,8 +368,15 @@ theorem fst_tp (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
   have : pullback.snd (M.uvPolyTp.fstProj N.Ty) M.tp ≫ M.tp =
     pullback.fst (M.uvPolyTp.fstProj N.Ty) M.tp ≫ M.uvPolyTp.fstProj N.Ty :=
       Eq.symm pullback.condition
-  simp [PtpEquiv.fst, fst, this]
-  rfl
+  unfold fst
+  convert_to
+  UvPoly.compDomEquiv.fst ab ≫ M.uvPolyTp.p = PtpEquiv.fst M (ab ≫ (M.uvPolyTp.comp N.uvPolyTp).p)
+  rw[UvPoly.compDomEquiv.fst_comp_p]
+  simp only[UvPoly.Equiv.fst_comp_left]
+  symm
+  dsimp only[PtpEquiv.fst]
+  apply UvPoly.Equiv.fst_comp_left
+
 
 /-- Universal property of `compDom`, decomposition (part 2).
 
@@ -430,15 +436,21 @@ def mk (α : y(Γ) ⟶ M.Tm) (B : y(M.ext (α ≫ M.tp)) ⟶ N.Ty) (β : y(Γ) �
   -/
 
 def mk_naturality  (A : y(Γ) ⟶ M.Ty)  (α : y(Γ) ⟶ M.Tm) (B : y(M.ext (α ≫ M.tp)) ⟶ N.Ty)
-    (β : y(Γ) ⟶ N.Tm) (e1 : α ≫ M.tp = A) (e2 : β ≫ N.tp = ym(M.sec A α e1) ≫ eqToHom sorry ≫  B)
+    (β : y(Γ) ⟶ N.Tm) (e1 : α ≫ M.tp = A)
+    (e2 : β ≫ N.tp = ym(M.sec A α e1) ≫ eqToHom (by simp[e1]) ≫ B)
     (h : β ≫ N.tp = ym(M.sec _ α rfl) ≫ B) (σ : Δ ⟶ Γ) :
-    ym(σ) ≫ compDomEquiv.mk N α B β sorry  =
-  compDomEquiv.mk N (ym(σ) ≫ α) (ym(eqToHom sorry  ≫ M.substWk σ A) ≫ (eqToHom sorry  ≫ B) ) (ym(σ) ≫ β) sorry
+    ym(σ) ≫ compDomEquiv.mk N α B β h  =
+  compDomEquiv.mk N (ym(σ) ≫ α) (ym(eqToHom (by simp[e1,Category.assoc]) ≫ M.substWk σ A) ≫
+  (eqToHom (sorry) ≫ B) ) (ym(σ) ≫ β) (by sorry)
    := sorry
+
+
 
 def fst_naturality (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
     fst N (ym(σ) ≫ ab) = ym(σ) ≫ fst N ab := by
-  simp only [fst, Category.assoc]
+  unfold fst UvPoly.compDomEquiv.fst
+  simp[Category.assoc]
+
 
 def dependent_naturality (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : dependent N (ym(σ) ≫ ab)
     = ym(eqToHom (by simp [fst_naturality]) ≫ M.substWk σ _) ≫ dependent N ab := by
