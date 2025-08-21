@@ -253,9 +253,10 @@ theorem fst_comp_right (pair : Γ ⟶ P @ X) : fst P Y (pair ≫ P.functor.map f
 
 lemma snd'_eq (pair : Γ ⟶ P @ X) {R f g} (H : IsPullback (P := R) f g (fst P X pair) P.p) :
     snd' P X pair H = pullback.lift (f ≫ pair) g (by simpa using H.w) ≫ ε P X ≫ prod.snd := by
-  simp [snd', snd]
-  simp only [← Category.assoc]; congr! 2
-  ext <;> simp
+  simp only [snd', snd, Fan.extend_snd, fan_pt, fan_fst, fan_snd, ← Category.assoc]
+  congr! 2
+  ext <;> simp only [Category.assoc, limit.lift_π, PullbackCone.mk_pt, PullbackCone.mk_π_app,
+    Category.comp_id]
   · simp only [← Category.assoc]; congr! 1
     exact H.isoPullback_hom_fst
   · exact H.isoPullback_hom_snd
@@ -427,22 +428,41 @@ def fst (triple : Γ ⟶ compDom P P') : Γ ⟶ E :=
   triple ≫ pullback.snd _ _ ≫ pullback.snd _ _
 
 theorem fst_comp_p (triple : Γ ⟶ compDom P P') :
-    fst triple ≫ P.p = Equiv.fst P B' (triple ≫ (P.comp P').p) :=
-  sorry
+    fst triple ≫ P.p = Equiv.fst P B' (triple ≫ (P.comp P').p) := by
+  rw [fst, Equiv.fst_comp_left, Equiv.fst_eq]
+  simp [UvPoly.comp, pullback.condition]
 
 def dependent (triple : Γ ⟶ compDom P P')
-    (T) (f : T ⟶ E) (g : T ⟶ Γ) (H : IsPullback f g P.p (fst triple ≫ P.p)) :
+    (T) (f : T ⟶ Γ) (g : T ⟶ E) (H : IsPullback f g (fst triple ≫ P.p) P.p) :
     T ⟶ B' :=
-  sorry
+  Equiv.snd' P B' (triple ≫ (P.comp P').p) (by convert H; simp only [fst_comp_p])
 
 def snd (triple : Γ ⟶ compDom P P') : Γ ⟶ E' :=
-  sorry
+  triple ≫ pullback.fst _ _
 
 theorem snd_comp_p (triple : Γ ⟶ compDom P P')
-    (T) (f : T ⟶ E) (g : T ⟶ Γ) (H : IsPullback f g P.p (fst triple ≫ P.p))
-    : snd triple ≫ P'.p =
-    H.lift (fst triple) (𝟙 Γ) (by simp) ≫ dependent triple T f g H := by
-  sorry
+    (T) (f : T ⟶ Γ) (g : T ⟶ E) (H : IsPullback f g (fst triple ≫ P.p) P.p) :
+    snd triple ≫ P'.p =
+    H.lift (𝟙 Γ) (fst triple) (by simp) ≫ dependent triple T f g H :=
+  let R := pullback (fan P B').fst P.p
+  let total := triple ≫ (P.comp P').p
+  calc (triple ≫ pullback.fst _ _) ≫ P'.p
+  _ = (triple ≫ pullback.snd _ _) ≫ ε P B' ≫ prod.snd := by
+    simp [pullback.condition]
+  _ = pullback.lift ((triple ≫ pullback.snd _ _) ≫ pullback.fst _ _) (fst triple)
+    (by simp [fst, pullback.condition]) ≫ ε P B' ≫ prod.snd := by
+    -- rw [← Equiv.snd'_eq P B' (pullback.fst _ _)]
+  --   -- rw [← Equiv.snd'_eq P B' (P.comp P').p (R := pullback (Equiv.fst P B' (P.comp P').p) P.p)]
+  --     -- (IsPullback.of_hasPullback (Equiv.fst P B' (P.comp P').p) P.p)]
+  --   sorry
+    sorry
+  -- _ = sorry := sorry
+  _ = H.lift (𝟙 Γ) (fst triple) (by simp) ≫ dependent triple T f g H := by
+    -- dsimp [dependent]
+    -- have h := Equiv.snd'_comp_left P B' (P.comp P').p (R := R) (f := pullback.snd (fan P B').fst P.p) (g := pullback.snd _ _)
+    --   (H := IsPullback.of_hasPullback (fan P B').fst P.p)
+    -- rw [Equiv.snd'_comp_left P B' _ (R := R) (g := pullback.snd _ _) (R' := T)]
+    sorry
 
 def mk (α : Γ ⟶ E) (T) (f : T ⟶ E) (g : T ⟶ Γ) (H : IsPullback f g P.p (α ≫ P.p))
     (B : T ⟶ B') (β : Γ ⟶ E') (h : β ≫ P'.p = H.lift α (𝟙 Γ) (by simp) ≫ B) :
