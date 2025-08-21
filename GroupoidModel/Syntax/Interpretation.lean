@@ -616,27 +616,17 @@ def CSb.sub1 {Γ : s.CObj} {l} (llen : l < s.length + 1)
     (H : se ∈ ofTerm Γ l e) :
     (sub1 llen A e eq H).toSb = Expr.toSb e := rfl
 
-def CSb.up' {Δ Γ σ full} (sσ : s.CSb Δ Γ σ full)
+def CSb.up {Δ Γ σ full} (sσ : s.CSb Δ Γ σ full)
     {l} (llen : l < s.length + 1) (A : y(Γ.1) ⟶ s[l].Ty)
-    {A'} (eq : ym(σ) ≫ A = A') :
-    CSb (Δ.snoc llen A') (Γ.snoc llen A) (s[l].substWk' σ A _ eq) full := by
+    (A' := ym(σ) ≫ A) (eq : ym(σ) ≫ A = A' := by rfl) :
+    CSb (Δ.snoc llen A') (Γ.snoc llen A) (s[l].substWk σ A _ eq) full := by
   refine ((CSb.wk _ _ false).comp sσ).snoc' _ _ (.bvar 0) (by simp) _ ?_
   simp [UHomSeq.CObj.var, UHomSeq.ExtSeq.var]
 
-@[simp] theorem CSb.up'_toSb {Δ Γ σ full} (sσ : s.CSb Δ Γ σ full)
-     {l} (llen : l < s.length + 1) (A : y(Γ.1) ⟶ s[l].Ty) {A'} (eq : ym(σ) ≫ A = A') :
-    (up' sσ llen A eq).toSb = Expr.up sσ.toSb := by
-  simp [up', toSb, Expr.up_eq_snoc]
-
-def CSb.up {Δ Γ σ full} (sσ : s.CSb Δ Γ σ full)
-    {l} (llen : l < s.length + 1) (A : y(Γ.1) ⟶ s[l].Ty) :
-    CSb (Δ.snoc llen (ym(σ) ≫ A)) (Γ.snoc llen A) (by exact s[l].substWk σ A) full :=
-  up' sσ llen A rfl
-
 @[simp] theorem CSb.up_toSb {Δ Γ σ full} (sσ : s.CSb Δ Γ σ full)
-     {l} (llen : l < s.length + 1) (A : y(Γ.1) ⟶ s[l].Ty) :
-    (up sσ llen A).toSb = Expr.up sσ.toSb :=
-  up'_toSb sσ llen A rfl
+     {l} {llen : l < s.length + 1} {A A'} {eq : ym(σ) ≫ A = A'} :
+    (up sσ llen A _ eq).toSb = Expr.up sσ.toSb := by
+  simp [up, toSb, Expr.up_eq_snoc]
 
 theorem mem_ofType_ofTerm_subst' {full}
     (IH : full = true → ∀ {Δ Γ l} (llen : l < s.length + 1) {sσ} (σ : CSb Δ Γ sσ false) {se e},
@@ -710,7 +700,7 @@ theorem mem_ofType_ofTerm_subst' {full}
     obtain ⟨llen', f, hf, a, ha, B, hB, eq, rfl⟩ := mem_ofTerm_app.1 H
     simp only [Expr.subst, comp_mkApp, mem_ofTerm_app]
     refine ⟨‹_›, _, (ihf (by simp [*]) σ).2 hf, _, (iha llen' σ).2 ha, _, ?_, ?_, rfl⟩
-    · rw [← CSb.up'_toSb]; exact (ihB llen (σ.up' llen' _ (Category.assoc ..).symm)).1 hB
+    · rw [← CSb.up_toSb]; exact (ihB llen (σ.up llen' _ _ (Category.assoc ..).symm)).1 hB
     · simp [*, comp_mkPi]
       congr! 1
   case pair ihB iht ihu =>
@@ -718,7 +708,7 @@ theorem mem_ofType_ofTerm_subst' {full}
     obtain ⟨t, ht, B, hB, u, hu, eq, rfl⟩ := H; clear H
     simp only [Expr.subst, comp_mkPair, mem_ofTerm_pair, exists_true_left]
     refine ⟨_, (iht llen.1 σ).2 ht, _, ?_, _, (ihu llen.2 σ).2 hu, ?_, rfl⟩
-    · rw [← CSb.up'_toSb]; exact (ihB llen.2 (σ.up' llen.1 _ (Category.assoc ..).symm)).1 hB
+    · rw [← CSb.up_toSb]; exact (ihB llen.2 (σ.up llen.1 _ _ (Category.assoc ..).symm)).1 hB
     · simp [*]; rw [← Functor.map_comp_assoc, comp_sec, ← Functor.map_comp_assoc]; congr! 0
   case fst ihA ihB ihp =>
     obtain ⟨jlen, A, hA, B, hB, p, hp, eq, rfl⟩ := mem_ofTerm_fst.1 H
@@ -741,7 +731,7 @@ theorem mem_ofType_ofTerm_subst' {full}
     simp only [Expr.subst, comp_mkIdRec, mem_ofTerm_idRec]
     refine ⟨ilen, _, (iht ilen σ).2 ht, _, ?_, _, (ihr llen σ).2 hr, _,
       _, (ihu ilen σ).2 hu, _, _, (ihh ilen σ).2 hh, _, rfl⟩
-    rw [← CSb.up_toSb, ← CSb.up'_toSb]; exact (ihM llen ((σ.up ilen _).up' ilen ..)).1 hM
+    rw [← CSb.up_toSb, ← CSb.up_toSb]; exact (ihM llen ((σ.up ilen _).up ilen _ _ _)).1 hM
   case code ihA =>
     obtain ⟨l, rfl, H⟩ := mem_ofTerm_code.1 H; simp at H llen
     obtain ⟨A, hA, rfl⟩ := H; clear H
@@ -1195,7 +1185,7 @@ theorem ofType_ofTerm_sound :
     cases Part.mem_unique hB hB₁; clear hB₁
     refine ⟨_, ‹_›, ‹_›, _, ⟨_, ‹_›, _, ‹_›, ‹_›⟩, _, ‹_›, ⟨_, ‹_›, _,
       ⟨‹_›, _, mem_ofTerm_wk _ ‹_› .., _, (mem_var_zero (x := s[l].var _)).2 ⟨rfl, rfl⟩,
-        _, (mem_ofType_ofTerm_subst _ (.up' (.wk _ _) _ _ ?_) (CSb.up'_toSb ..)).1 ‹_›, ?_, ?_⟩,
+        _, (mem_ofType_ofTerm_subst _ (.up (.wk _ _) _ _ _ ?_) (CSb.up_toSb _)).1 ‹_›, ?_, ?_⟩,
       .symm (etaExpand_eq (f_tp := ‹_›) ..)⟩, rfl⟩
     · simp
     · simp [*, comp_mkPi, substWk]
@@ -1246,15 +1236,61 @@ theorem ofType_ofTerm_sound :
     cases Part.mem_unique ht₁ ht₂
     exact ⟨_, ‹_›, ‹_›, _, ‹_›, _, ‹_›, ‹_›, ‹_›⟩
 
-/-- Given `Γ, l, A` s.t. `Γ ⊢[l] A` and `sΓ = ⟦Γ⟧`, return `⟦A⟧_{sΓ}`. -/
+/-- Given `Γ` s.t. `WfCtx Γ`, return `⟦Γ⟧`. -/
+def interpCtx {Γ : Ctx} (H : WfCtx Γ) : s.CObj :=
+  (s.ofCtx Γ).get <| (ofType_ofTerm_sound slen).1 H
+
+@[simp] theorem interpCtx_mem {Γ : Ctx} (H : WfCtx Γ) : interpCtx slen H ∈ ofCtx s Γ :=
+  Part.get_mem ..
+
+/-- Given `Γ, l, A` s.t. `Γ ⊢[l] A`, return `⟦A⟧_⟦Γ⟧`. -/
 def interpType
-    {Γ : Ctx} {l : Nat} {A : Expr} (ΓA : Γ ⊢[l] A) (lt : l < s.length + 1)
+    {Γ : Ctx} {l : Nat} {A : Expr} (H : Γ ⊢[l] A) (lt : l < s.length + 1)
     (sΓ : s.CObj) (sΓ_mem : sΓ ∈ ofCtx s Γ) :
     y(sΓ.1) ⟶ s[l].Ty :=
   (ofType sΓ l A).get <| by
-    have ⟨_, h1, _, h2⟩ := (ofType_ofTerm_sound slen).2.1 ΓA
+    have ⟨_, h1, _, h2⟩ := (ofType_ofTerm_sound slen).2.1 H
     cases Part.mem_unique sΓ_mem h1
     exact h2
+
+@[simp] theorem interpType_mem {Γ l A} (H : Γ ⊢[l] A) (lt : l < s.length + 1)
+    (sΓ : s.CObj) (sΓ_mem : sΓ ∈ ofCtx s Γ) : interpType slen H lt sΓ sΓ_mem ∈ ofType sΓ l A :=
+  Part.get_mem ..
+
+theorem interpType_eq {Γ l A B} (H : Γ ⊢[l] A ≡ B) (lt : l < s.length + 1)
+    (sΓ : s.CObj) (sΓ_mem : sΓ ∈ ofCtx s Γ) :
+    interpType slen H.wf_left lt sΓ sΓ_mem = interpType slen H.wf_right lt sΓ sΓ_mem := by
+  have ⟨_, h1, _, _, ⟨_, H⟩, _, rfl⟩ := (ofType_ofTerm_sound slen).2.2.1 H
+  cases Part.mem_unique sΓ_mem h1
+  exact H
+
+/-- Given `Γ, l, t, A` s.t. `Γ ⊢[l] t : A`, return `⟦t⟧_⟦Γ⟧`. -/
+def interpTerm
+    {Γ : Ctx} {l : Nat} {t A : Expr} (H : Γ ⊢[l] t : A) (lt : l < s.length + 1)
+    (sΓ : s.CObj) (sΓ_mem : sΓ ∈ ofCtx s Γ) :
+    y(sΓ.1) ⟶ s[l].Tm :=
+  (ofTerm sΓ l t).get <| by
+    have ⟨_, h1, _, _, _, _, ⟨h2, rfl⟩, _⟩ := (ofType_ofTerm_sound slen).2.2.2.1 H
+    cases Part.mem_unique sΓ_mem h1
+    exact h2
+
+@[simp] theorem interpTerm_mem {Γ l t A} (H : Γ ⊢[l] t : A) (lt : l < s.length + 1)
+    (sΓ : s.CObj) (sΓ_mem : sΓ ∈ ofCtx s Γ) : interpTerm slen H lt sΓ sΓ_mem ∈ ofTerm sΓ l t :=
+  Part.get_mem ..
+
+@[simp] theorem interpTerm_tp {Γ l t A} (H : Γ ⊢[l] t : A) (lt : l < s.length + 1)
+    (sΓ : s.CObj) (sΓ_mem : sΓ ∈ ofCtx s Γ) :
+    interpTerm slen H lt sΓ sΓ_mem ≫ s[l].tp = interpType slen H.wf_tp lt sΓ sΓ_mem := by
+  have ⟨_, h1, _, _, ⟨_, rfl⟩, _, ⟨_, rfl⟩, H⟩ := (ofType_ofTerm_sound slen).2.2.2.1 H
+  cases Part.mem_unique sΓ_mem h1
+  exact H
+
+theorem interpTerm_eq {Γ l t u A} (H : Γ ⊢[l] t ≡ u : A) (lt : l < s.length + 1)
+    (sΓ : s.CObj) (sΓ_mem : sΓ ∈ ofCtx s Γ) :
+    interpTerm slen H.wf_left lt sΓ sΓ_mem = interpTerm slen H.wf_right lt sΓ sΓ_mem := by
+  have ⟨_, h1, _, _, _, _, ⟨_, H⟩, ⟨_, rfl⟩, _⟩ := (ofType_ofTerm_sound slen).2.2.2.2 H
+  cases Part.mem_unique sΓ_mem h1
+  exact H
 
 end UHomSeqPiSigma
 end NaturalModel
