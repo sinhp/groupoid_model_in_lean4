@@ -378,7 +378,6 @@ theorem mk_comp_left {Δ} (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) (σ: Δ ⟶ 
   rw [mk'_comp_left (H := IsPullback.of_hasPullback _ _) (H' := IsPullback.of_hasPullback _ _)]
   congr 2; ext <;> simp
 
-open ExponentiableMorphism in
 lemma mk'_comp_cartesianNatTrans_app {E' B' Γ X : C} {P' : UvPoly E' B'}
     (y : Γ ⟶ B) (R f g) (H : IsPullback (P := R) f g y P.p)
     (x : R ⟶ X) (e : E ⟶ E') (b : B ⟶ B')

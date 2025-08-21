@@ -69,6 +69,23 @@ def Hom.subst (M : NaturalModelBase Ctx)
       convert IsPullback.of_right' (M.disp_pullback Aσ) (M.disp_pullback A)
       simp }
 
+def Hom.cartesianNaturalTrans (M N : NaturalModelBase Ctx) (h : Hom M N) :
+    M.Ptp ⟶ N.Ptp :=
+  M.uvPolyTp.cartesianNatTrans N.uvPolyTp h.mapTy h.mapTm h.pb.flip
+
+@[reassoc]
+theorem mk_comp_cartesianNaturalTrans (M N : NaturalModelBase Ctx) (h : Hom M N)
+    {Γ X} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
+    PtpEquiv.mk M A B ≫ (h.cartesianNaturalTrans).app X =
+    PtpEquiv.mk N (A ≫ h.mapTy) (ym(substCons M ym(N.disp _) A  ) ≫ B) := by
+    -- (ym(substCons _ (M.disp _) A sorry sorry) ≫ B) := by
+  dsimp [PtpEquiv.mk, Hom.cartesianNaturalTrans]
+  rw [UvPoly.Equiv.mk'_comp_cartesianNatTrans_app]
+  rw [← UvPoly.Equiv.mk'_comp_cartesianNatTrans_app M.uvPolyTp A (y(N.ext (A ≫ h.mapTy)))
+    ym(N.disp (A ≫ h.mapTy)) (N.var (A ≫ h.mapTy)) ]
+  sorry
+
+
 /-- A Russell universe embedding is a hom of natural models `M ⟶ N`
 such that types in `M` correspond to terms of a universe `U` in `N`.
 
@@ -214,18 +231,19 @@ theorem substCons_unliftVar {i j ij jlen Γ A} {A' : y(Γ) ⟶ s[j].Ty}
 If `s` is a sequence of universe homomorphisms then for `i ≤ j` we get a polynomial endofunctor
 natural transformation `s[i].Ptp ⟶ s[j].Ptp`.
 -/
-def homCartesianNaturalTrans (i j : Nat)
+def cartesianNaturalTrans (i j : Nat)
     (ij : i ≤ j := by get_elem_tactic) (jlen : j < s.length + 1 := by get_elem_tactic) :
     s[i].Ptp ⟶ s[j].Ptp :=
-  let hi : Hom s[i] s[j] := s.homOfLe i j
-  s[i].uvPolyTp.cartesianNatTrans s[j].uvPolyTp hi.mapTy hi.mapTm hi.pb.flip
+  (s.homOfLe i j).cartesianNaturalTrans
 
 @[reassoc]
-theorem mk_homCartesianNaturalTrans {i j ij jlen}
-    {Γ X} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ X)
-    : PtpEquiv.mk s[i] A B ≫ (s.homCartesianNaturalTrans i j).app X =
-      PtpEquiv.mk s[j] (A ≫ (s.homOfLe i j).mapTy)
-        (ym(substCons _ (s[j].disp _) _ (s.unliftVar i j ij jlen A rfl) (by simp)) ≫ B) := by
+theorem mk_homCartesianNaturalTrans {i j ij jlen} {Γ X} (A : y(Γ) ⟶ s[i].Ty)
+    (B : y(s[i].ext A) ⟶ X) :
+    PtpEquiv.mk s[i] A B ≫ (s.homCartesianNaturalTrans i j).app X =
+    PtpEquiv.mk s[j] (A ≫ (s.homOfLe i j).mapTy)
+    (ym(substCons _ (s[j].disp _) _ (s.unliftVar i j ij jlen A rfl) (by simp)) ≫ B) := by
+  dsimp [PtpEquiv.mk]
+
   sorry
 
 theorem homCartesianNaturalTrans_fstProj {i j ij jlen X} :
