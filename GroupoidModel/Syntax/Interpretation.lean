@@ -23,9 +23,6 @@ open scoped MonoidalCategory
 
 /-! ## Universe level bound helpers -/
 
--- FIXME: get rid of these lemmas by well-universe-scoping some types;
--- or, be more fine-grained and just get rid of `univMax` altogether.
--- Put local `l < s.length + 1` assumptions instead.
 section univBounds
 variable {s : UHomSeq 𝒞} (slen : univMax ≤ s.length)
 variable {χ : Type*} {E : Env χ} {Γ : Ctx χ} {A B t u : Expr χ} {l : Nat}
