@@ -23,7 +23,9 @@ When set to `0`, types cannot be quantified over at all. -/
 def univMax : Nat := 4
 
 /-- A *constant environment* is a (possibly infinite) set
-of closed term constants indexed by a type `χ`.
+of closed term constants indexed by a type of names `χ`.
+`χ` is in general larger than necessary
+and not all names correspond to constants.
 We record the universe level and type of each constant.
 
 We do not support type constants directly:
