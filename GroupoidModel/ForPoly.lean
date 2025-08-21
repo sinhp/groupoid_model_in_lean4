@@ -295,7 +295,8 @@ theorem ev_naturality {E B E' B' : 𝒞} {P : UvPoly E B} {P' : UvPoly E' B'}
     (Functor.whiskerRight β pbk ≫
       Functor.whiskerLeft p'fwd bb.hom ≫
       Functor.whiskerRight (ev P'.p) ebk : ebk ⋙ pfwd ⋙ pbk ⟶ ebk) =
-    Functor.whiskerLeft ebk (ev P.p) :=
+    Functor.whiskerLeft ebk (ev P.p) := by
+  intro pfwd p'fwd pbk ebk bbk p'bk β bb
   sorry
 
 theorem associator_eq_id {C D E E'} [Category C] [Category D] [Category E] [Category E']
@@ -504,27 +505,17 @@ lemma mk_comp_verticalNatTrans_app {Γ : C} (X : C) (b : Γ ⟶ B) (x : pullback
 
 end
 
-open Over ExponentiableMorphism in
-lemma cartesianNatTrans_fstProj {D F : C} (P : UvPoly E B) (Q : UvPoly F D)
-    (δ : B ⟶ D) (φ : E ⟶ F) (pb : IsPullback P.p φ δ Q.p) (X : C) :
-    (P.cartesianNatTrans Q δ φ pb).app X ≫ Q.fstProj X = P.fstProj X ≫ δ := by
-  simp [cartesianNatTrans, fstProj]
-  let SE := Over.star E
-  let SF := Over.star F
-  let pφ := Over.pullback φ
-  let pδ := Over.pullback δ
-  let Pp := pushforward P.p
-  let Qp := pushforward Q.p
-  let fB := Over.forget B
-  let fD := Over.forget D
-  let FF : SE ⟶ SF ⋙ pφ := (Over.starPullbackIsoStar φ).inv
-  let GG : pφ ⋙ Pp ⟶ Qp ⋙ pδ :=
-    (pushforwardPullbackIsoSquare pb.flip).inv
-  let HH : pδ ⋙ fB ⟶ fD := pullbackForgetTwoSquare δ
-  change (Pp.map (FF.app X)).left ≫ (GG.app (SF.obj X)).left ≫
-      HH.app (Qp.obj (SF.obj X)) ≫ (Qp.obj (SF.obj X)).hom =
-    (Pp.obj (SE.obj X)).hom ≫ δ
-  sorry
+open Over ExponentiableMorphism Functor in
+lemma cartesianNatTrans_fstProj {B' E' : C} (P : UvPoly E B) (P' : UvPoly E' B')
+    (b : B ⟶ B') (e : E ⟶ E') (pb : IsPullback P.p e b P'.p) (X : C) :
+    (P.cartesianNatTrans P' b e pb).app X ≫ P'.fstProj X = P.fstProj X ≫ b := by
+  let m := whiskerRight (Over.starPullbackIsoStar e).inv (pushforward P.p) ≫
+    whiskerLeft (Over.star E') (pushforwardPullbackIsoSquare pb.flip).inv
+  simp [cartesianNatTrans, pullbackForgetTwoSquare, Adjunction.id, Over.mapForget]
+  rw [← Category.assoc]
+  change (m.app X).left ≫ pullback.fst (P'.fstProj X) b ≫ P'.fstProj X = P.fstProj X ≫ b
+  rw [pullback.condition, ← Category.assoc]; congr 1
+  simpa using Over.w (m.app X)
 
 universe v₁ u₁
 
