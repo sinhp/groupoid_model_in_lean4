@@ -587,7 +587,6 @@ def pair : UvPoly.compDom s[i].uvPolyTp s[j].uvPolyTp ⟶ s[max i j].Tm :=
       (s.homOfLe j (max i j)).mapTy
       (s.homOfLe i (max i j)).pb.flip
       (s.homOfLe j (max i j)).pb.flip
-      s.homCartesianNaturalTrans_fstProj.symm
   l ≫ (s.nmSigma (max i j)).pair
 
 def Sig_pb : IsPullback
