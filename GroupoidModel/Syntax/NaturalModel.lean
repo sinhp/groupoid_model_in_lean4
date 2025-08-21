@@ -18,7 +18,7 @@ open CategoryTheory Limits Opposite
 /-- A natural model with support for dependent types (and nothing more).
 The data is a natural transformation with representable fibers,
 stored as a choice of representative for each fiber. -/
-structure NaturalModelBase (Ctx : Type u) [Category Ctx] where
+structure NaturalModel (Ctx : Type u) [Category Ctx] where
   Tm : Psh Ctx
   Ty : Psh Ctx
   tp : Tm ⟶ Ty
@@ -28,9 +28,9 @@ structure NaturalModelBase (Ctx : Type u) [Category Ctx] where
   disp_pullback {Γ : Ctx} (A : y(Γ) ⟶ Ty) :
     IsPullback (var A) ym(disp A) tp A
 
-namespace NaturalModelBase
+namespace NaturalModel
 
-variable {Ctx : Type u} [SmallCategory Ctx] (M : NaturalModelBase Ctx)
+variable {Ctx : Type u} [SmallCategory Ctx] (M : NaturalModel Ctx)
 
 @[simps! hom inv]
 def pullbackIsoExt {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) :
@@ -41,7 +41,7 @@ def pullbackIsoExt {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) :
 /-! ## Pullback of representable natural transformation -/
 
 /-- Pull a natural model back along a type. -/
-protected def pullback {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) : NaturalModelBase Ctx where
+protected def pullback {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) : NaturalModel Ctx where
   Tm := y(M.ext A)
   Ty := y(Γ)
   tp := ym(M.disp A)
@@ -71,7 +71,7 @@ protected def pullback {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) : NaturalModelBase Ctx wh
 def ofIsPullback {U E : Psh Ctx} {π : E ⟶ U}
     {toTy : U ⟶ M.Ty} {toTm : E ⟶ M.Tm}
     (pb : IsPullback toTm π M.tp toTy) :
-    NaturalModelBase Ctx where
+    NaturalModel Ctx where
   Ty := U
   Tm := E
   tp := π
@@ -313,7 +313,7 @@ theorem snd_comp_left {A} (eqA : fst M AB = A) {σA} (eqσ : ym(σ) ≫ A = σA)
   congr 1
   apply H1.hom_ext <;> simp [← Functor.map_comp, substWk']
 
-theorem mk_comp_left {Δ Γ : Ctx} (M : NaturalModelBase Ctx) (σ : Δ ⟶ Γ)
+theorem mk_comp_left {Δ Γ : Ctx} (M : NaturalModel Ctx) (σ : Δ ⟶ Γ)
     {X : Psh Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
     ym(σ) ≫ PtpEquiv.mk M A B = PtpEquiv.mk M (ym(σ) ≫ A) (ym(M.substWk σ A) ≫ B) := by
   dsimp [PtpEquiv.mk]
@@ -324,7 +324,7 @@ theorem mk_comp_left {Δ Γ : Ctx} (M : NaturalModelBase Ctx) (σ : Δ ⟶ Γ)
   · simp
   · simp [← Functor.map_comp, substWk_disp]
 
-theorem mk_comp_right {Γ : Ctx} (M : NaturalModelBase Ctx)
+theorem mk_comp_right {Γ : Ctx} (M : NaturalModel Ctx)
     {X Y : Psh Ctx} (σ : X ⟶ Y) (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
     PtpEquiv.mk M A B ≫ M.Ptp.map σ = PtpEquiv.mk M A (B ≫ σ) :=
   UvPoly.Equiv.mk'_comp_right M.uvPolyTp X Y σ A (M.disp_pullback A).flip B
@@ -351,7 +351,7 @@ theorem PtpEquiv.mk_map {Γ : Ctx} {X Y : Psh Ctx}
 /-! ## Polynomial composition `M.tp ▸ N.tp` -/
 
 -- -- `private` lemma for the equivalence below.
--- private lemma lift_ev {Γ : Ctx} {N : NaturalModelBase Ctx}
+-- private lemma lift_ev {Γ : Ctx} {N : NaturalModel Ctx}
 --     {AB : y(Γ) ⟶ M.Ptp.obj N.Ty} {α : y(Γ) ⟶ M.Tm}
 --     (hA : AB ≫ M.uvPolyTp.fstProj N.Ty = α ≫ M.tp) :
 --     pullback.lift AB α hA ≫ (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).snd =
@@ -363,7 +363,7 @@ theorem PtpEquiv.mk_map {Γ : Ctx} {X Y : Psh Ctx}
 
 namespace compDomEquiv
 
-variable {M} (N : NaturalModelBase Ctx) {Γ Δ : Ctx} (σ : Δ ⟶ Γ)
+variable {M} (N : NaturalModel Ctx) {Γ Δ : Ctx} (σ : Δ ⟶ Γ)
 
 /-- Universal property of `compDom`, decomposition (part 1).
 
@@ -459,7 +459,7 @@ end compDomEquiv
 
 -- /-- A specialization of the universal property of `UvPoly.compDom` to `M.uvPolyTp`,
 --   using the chosen pullback `M.ext` instead of `pullback`. -/
--- def uvPolyTpCompDomEquiv (N : NaturalModelBase Ctx) (Γ : Ctx) :
+-- def uvPolyTpCompDomEquiv (N : NaturalModel Ctx) (Γ : Ctx) :
 --     (y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp)
 --     ≃ (α : y(Γ) ⟶ M.Tm)
 --     × (B : y(M.ext (α ≫ M.tp)) ⟶ N.Ty)
@@ -500,13 +500,13 @@ end compDomEquiv
 --         simp
 --     }
 
--- theorem uvPolyTpCompDomEquiv_apply_fst_tp (N : NaturalModelBase Ctx) {Γ}
+-- theorem uvPolyTpCompDomEquiv_apply_fst_tp (N : NaturalModel Ctx) {Γ}
 --     (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
 --     (M.uvPolyTpCompDomEquiv N Γ ab).fst ≫ M.tp
 --     = (M.Ptp_equiv (ab ≫ (M.uvPolyTp.comp N.uvPolyTp).p)).fst :=
 --   sorry
 
--- theorem uvPolyTpCompDomEquiv_apply_snd_fst_aux (N : NaturalModelBase Ctx)
+-- theorem uvPolyTpCompDomEquiv_apply_snd_fst_aux (N : NaturalModel Ctx)
 --     {Γ : Ctx} (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
 --     M.ext (((M.uvPolyTpCompDomEquiv N Γ) ab).fst ≫ M.tp) =
 --     M.ext (M.Ptp_equiv (ab ≫ (M.uvPolyTp.comp N.uvPolyTp).p)).fst := by
@@ -516,7 +516,7 @@ end compDomEquiv
 -- -- (M.disp_pullback _).lift (M.var _) ym(M.disp _) (by
 --       -- rw [(M.disp_pullback _).w, uvPolyTpCompDomEquiv_apply_fst_tp])
 -- -- in this theorem, but it is convenient to have it as ym(⋯)
--- theorem uvPolyTpCompDomEquiv_apply_snd_fst (N : NaturalModelBase Ctx) {Γ : Ctx}
+-- theorem uvPolyTpCompDomEquiv_apply_snd_fst (N : NaturalModel Ctx) {Γ : Ctx}
 --     (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
 --     (M.uvPolyTpCompDomEquiv N Γ ab).snd.fst
 --     = (M.disp_pullback _).lift (M.var _) ym(M.disp _) (by
@@ -526,18 +526,18 @@ end compDomEquiv
 
 /-! ## Pi and Sigma types -/
 
-structure NaturalModelPi where
+structure Pi where
   Pi : M.Ptp.obj M.Ty ⟶ M.Ty
   lam : M.Ptp.obj M.Tm ⟶ M.Tm
   Pi_pullback : IsPullback lam (M.Ptp.map M.tp) M.tp Pi
 
-structure NaturalModelSigma where
+structure Sigma where
   Sig : M.Ptp.obj M.Ty ⟶ M.Ty
   pair : UvPoly.compDom (uvPolyTp M) (uvPolyTp M) ⟶ M.Tm
   Sig_pullback : IsPullback pair ((uvPolyTp M).comp (uvPolyTp M)).p M.tp Sig
 
 /--
-NaturalModelBase.IdBase consists of the following commutative square
+NaturalModel.IdIntro consists of the following commutative square
        refl
 M.Tm ------> M.Tm
  |            |
@@ -907,4 +907,4 @@ lemma mkJ'_refl : mkJ' i a C r a rfl (i.mkRefl a) (by aesop) = r :=
 
 end Id
 
-end NaturalModelBase
+end NaturalModel

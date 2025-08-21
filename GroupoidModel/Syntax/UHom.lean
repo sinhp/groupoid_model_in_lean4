@@ -11,43 +11,43 @@ noncomputable section
 
 open CategoryTheory Limits Opposite MonoidalCategory
 
-namespace NaturalModelBase
+namespace NaturalModel
 
 variable {Ctx : Type u} [SmallCategory Ctx]
 
 macro "by>" s:tacticSeq : term => `(by as_aux_lemma => $s)
 
-structure Hom (M N : NaturalModelBase Ctx) where
+structure Hom (M N : NaturalModel Ctx) where
   mapTm : M.Tm ⟶ N.Tm
   mapTy : M.Ty ⟶ N.Ty
   pb : IsPullback mapTm M.tp N.tp mapTy
 
-def Hom.id (M : NaturalModelBase Ctx) : Hom M M where
+def Hom.id (M : NaturalModel Ctx) : Hom M M where
   mapTm := 𝟙 _
   mapTy := 𝟙 _
   pb := IsPullback.of_id_fst
 
-def Hom.comp {M N O : NaturalModelBase Ctx} (α : Hom M N) (β : Hom N O) : Hom M O where
+def Hom.comp {M N O : NaturalModel Ctx} (α : Hom M N) (β : Hom N O) : Hom M O where
   mapTm := α.mapTm ≫ β.mapTm
   mapTy := α.mapTy ≫ β.mapTy
   pb := α.pb.paste_horiz β.pb
 
-def Hom.comp_assoc {M N O P : NaturalModelBase Ctx} (α : Hom M N) (β : Hom N O) (γ : Hom O P) :
+def Hom.comp_assoc {M N O P : NaturalModel Ctx} (α : Hom M N) (β : Hom N O) (γ : Hom O P) :
     comp (comp α β) γ = comp α (comp β γ) := by
   simp [comp]
 
 /-- Morphism into the representable natural transformation `M`
 from the pullback of `M` along a type. -/
-protected def pullbackHom (M : NaturalModelBase Ctx) {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) :
+protected def pullbackHom (M : NaturalModel Ctx) {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) :
     Hom (M.pullback A) M where
   mapTm := M.var A
   mapTy := A
   pb := M.disp_pullback A
 
-/-- Given `M : NaturalModelBase`, a semantic type `A : y(Γ) ⟶ M.Ty`,
+/-- Given `M : NaturalModel`, a semantic type `A : y(Γ) ⟶ M.Ty`,
 and a substitution `σ : Δ ⟶ Γ`, construct a Hom for the substitution `A[σ]`.
 -/
-def Hom.subst (M : NaturalModelBase Ctx)
+def Hom.subst (M : NaturalModel Ctx)
     {Γ Δ : Ctx} (A : y(Γ) ⟶ M.Ty) (σ : Δ ⟶ Γ) :
     Hom (M.pullback (ym(σ) ≫ A)) (M.pullback A) :=
   let Aσ := ym(σ) ≫ A
@@ -58,17 +58,17 @@ def Hom.subst (M : NaturalModelBase Ctx)
       convert IsPullback.of_right' (M.disp_pullback Aσ) (M.disp_pullback A)
       simp }
 
-def Hom.cartesianNaturalTrans {M N : NaturalModelBase Ctx} (h : Hom M N) :
+def Hom.cartesianNaturalTrans {M N : NaturalModel Ctx} (h : Hom M N) :
     M.Ptp ⟶ N.Ptp :=
   M.uvPolyTp.cartesianNatTrans N.uvPolyTp h.mapTy h.mapTm h.pb.flip
 
-@[simp] def Hom.extIsoExt {M N : NaturalModelBase Ctx} (h : Hom M N)
+@[simp] def Hom.extIsoExt {M N : NaturalModel Ctx} (h : Hom M N)
     {Γ} (A : y(Γ) ⟶ M.Ty) : y(N.ext (A ≫ h.mapTy)) ≅ y(M.ext A) :=
   IsPullback.isoIsPullback N.Tm y(Γ) (N.disp_pullback (A ≫ h.mapTy))
   (IsPullback.paste_horiz (M.disp_pullback A) h.pb)
 
 @[reassoc]
-theorem Hom.mk_comp_cartesianNaturalTrans {M N : NaturalModelBase Ctx} (h : Hom M N)
+theorem Hom.mk_comp_cartesianNaturalTrans {M N : NaturalModel Ctx} (h : Hom M N)
     {Γ X} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
     PtpEquiv.mk M A B ≫ h.cartesianNaturalTrans.app X =
     PtpEquiv.mk N (A ≫ h.mapTy) ((h.extIsoExt A).hom ≫ B) := by
@@ -99,7 +99,7 @@ These don't form a category since `UHom.id M` is essentially `Type : Type` in `M
 
 Note this doesn't need to extend `Hom` as none of its fields are used;
 it's just convenient to pack up the data. -/
-structure UHom (M N : NaturalModelBase Ctx) extends Hom M N where
+structure UHom (M N : NaturalModel Ctx) extends Hom M N where
   U : y(𝟙_ Ctx) ⟶ N.Ty
   asTm : M.Ty ⟶ N.Tm
   U_pb : IsPullback
@@ -108,7 +108,7 @@ structure UHom (M N : NaturalModelBase Ctx) extends Hom M N where
              /- ⊤ -/               U  /- N.Ty -/
 
 def UHom.ofTyIsoExt
-    {M N : NaturalModelBase Ctx}
+    {M N : NaturalModel Ctx}
     (H : Hom M N) {U : y(𝟙_ Ctx) ⟶ N.Ty} (i : M.Ty ≅ y(N.ext U)) :
     UHom M N where
   __ := H
@@ -118,27 +118,27 @@ def UHom.ofTyIsoExt
     convert IsPullback.of_iso_isPullback (N.disp_pullback _) i
     apply isTerminal_yUnit.hom_ext
 
-def UHom.comp {M N O : NaturalModelBase Ctx} (α : UHom M N) (β : UHom N O) : UHom M O where
+def UHom.comp {M N O : NaturalModel Ctx} (α : UHom M N) (β : UHom N O) : UHom M O where
   __ := Hom.comp α.toHom β.toHom
   U := α.U ≫ β.mapTy
   asTm := α.asTm ≫ β.mapTm
   U_pb := α.U_pb.paste_horiz β.pb
 
-def UHom.comp_assoc {M N O P : NaturalModelBase Ctx} (α : UHom M N) (β : UHom N O) (γ : UHom O P) :
+def UHom.comp_assoc {M N O P : NaturalModel Ctx} (α : UHom M N) (β : UHom N O) (γ : UHom O P) :
     comp (comp α β) γ = comp α (comp β γ) := by
   simp [comp, Hom.comp]
 
-def UHom.wkU {M N : NaturalModelBase Ctx} (Γ : Ctx) (α : UHom M N) : y(Γ) ⟶ N.Ty :=
+def UHom.wkU {M N : NaturalModel Ctx} (Γ : Ctx) (α : UHom M N) : y(Γ) ⟶ N.Ty :=
   isTerminal_yUnit.from y(Γ) ≫ α.U
 
 @[reassoc (attr := simp)]
-theorem UHom.comp_wkU {M N : NaturalModelBase Ctx} {Δ Γ : Ctx} (α : UHom M N) (f : y(Δ) ⟶ y(Γ)) :
+theorem UHom.comp_wkU {M N : NaturalModel Ctx} {Δ Γ : Ctx} (α : UHom M N) (f : y(Δ) ⟶ y(Γ)) :
     f ≫ α.wkU Γ = α.wkU Δ := by
   simp [wkU]
 
 /- Sanity check:
 construct a `UHom` into a natural model with a Tarski universe. -/
-def UHom.ofTarskiU (M : NaturalModelBase Ctx) (U : y(𝟙_ Ctx) ⟶ M.Ty) (El : y(M.ext U) ⟶ M.Ty) :
+def UHom.ofTarskiU (M : NaturalModel Ctx) (U : y(𝟙_ Ctx) ⟶ M.Ty) (El : y(M.ext U) ⟶ M.Ty) :
     UHom (M.pullback El) M where
   __ := M.pullbackHom El
   U
@@ -159,14 +159,14 @@ structure UHomSeq [CartesianMonoidalCategory Ctx] where
   /-- Number of embeddings in the sequence,
   or one less than the number of models in the sequence. -/
   length : Nat
-  objs (i : Nat) (h : i < length + 1) : NaturalModelBase Ctx
+  objs (i : Nat) (h : i < length + 1) : NaturalModel Ctx
   homSucc' (i : Nat) (h : i < length) : UHom (objs i <| by omega) (objs (i + 1) <| by omega)
 
 namespace UHomSeq
 
 variable (s : UHomSeq Ctx)
 
-instance : GetElem (UHomSeq Ctx) Nat (NaturalModelBase Ctx) (fun s i => i < s.length + 1) where
+instance : GetElem (UHomSeq Ctx) Nat (NaturalModel Ctx) (fun s i => i < s.length + 1) where
   getElem s i h := s.objs i h
 
 def homSucc (i : Nat) (h : i < s.length := by get_elem_tactic) : UHom s[i] s[i+1] :=
@@ -417,14 +417,14 @@ can be extended to
 ``` -/
 structure UHomSeqPiSigma (Ctx : Type u) [SmallCategory.{u} Ctx] [CartesianMonoidalCategory Ctx]
     extends UHomSeq Ctx where
-  nmPi (i : Nat) (ilen : i < length + 1 := by get_elem_tactic) : NaturalModelPi toUHomSeq[i]
-  nmSigma (i : Nat) (ilen : i < length + 1 := by get_elem_tactic) : NaturalModelSigma toUHomSeq[i]
+  nmPi (i : Nat) (ilen : i < length + 1 := by get_elem_tactic) : Pi toUHomSeq[i]
+  nmSigma (i : Nat) (ilen : i < length + 1 := by get_elem_tactic) : Sigma toUHomSeq[i]
 
 namespace UHomSeqPiSigma
 
 variable {Ctx : Type u} [SmallCategory.{u} Ctx] [CartesianMonoidalCategory Ctx]
 
-instance : GetElem (UHomSeqPiSigma Ctx) Nat (NaturalModelBase Ctx)
+instance : GetElem (UHomSeqPiSigma Ctx) Nat (NaturalModel Ctx)
     (fun s i => i < s.length + 1) where
   getElem s i h := s.toUHomSeq[i]
 

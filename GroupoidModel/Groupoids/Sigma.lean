@@ -9,7 +9,7 @@ noncomputable section
 
 namespace GroupoidModel
 
-open CategoryTheory NaturalModelBase Opposite Functor.Groupoidal PGrpd
+open CategoryTheory NaturalModel Opposite Functor.Groupoidal PGrpd
 
 attribute [local simp] eqToHom_map Grpd.id_eq_id Grpd.comp_eq_comp Functor.id_comp
 
@@ -991,13 +991,13 @@ theorem smallUSigma.isPullback : IsPullback smallUSigma.pair.{v,u} smallU.comp.{
     (fun s => fac_right.{v,u} _ _ s.condition)
     (fun s m fac_left fac_right => uniq.{v,u} _ _ s.condition m fac_right fac_left)
 
-def smallUSigma : NaturalModelSigma smallU.{v} where
+def smallUSigma : Sigma smallU.{v} where
   Sig := smallUSigma.Sig
   pair := smallUSigma.pair
   Sig_pullback := smallUSigma.isPullback
 
 def uHomSeqSigmas' (i : ℕ) (ilen : i < 4) :
-  NaturalModelSigma (uHomSeqObjs i ilen) :=
+  Sigma (uHomSeqObjs i ilen) :=
   match i with
   | 0 => smallUSigma.{0, 4}
   | 1 => smallUSigma.{1, 4}

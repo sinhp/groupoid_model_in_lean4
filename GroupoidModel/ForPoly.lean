@@ -260,6 +260,7 @@ lemma snd'_eq (pair : Γ ⟶ P @ X) {R f g} (H : IsPullback (P := R) f g (fst P 
     exact H.isoPullback_hom_fst
   · exact H.isoPullback_hom_snd
 
+/-- Switch the selected pullback `R` used in `UvPoly.Equiv.snd'` with a different pullback `R'`. -/
 lemma snd'_eq_snd' (pair : Γ ⟶ P @ X) {R f g} (H : IsPullback (P := R) f g (fst P X pair) P.p)
     {R' f' g'} (H' : IsPullback (P := R') f' g' (fst P X pair) P.p) :
     snd' P X pair H = (H.isoIsPullback _ _ H').hom ≫ snd' P X pair H' := by
@@ -346,6 +347,7 @@ lemma ext' {pair₁ pair₂ : Γ ⟶ P @ X}
     slice_lhs 1 2 => apply H.isoPullback_hom_snd
     simp
 
+/-- Switch the selected pullback `R` used in `UvPoly.Equiv.mk'` with a different pullback `R'`. -/
 theorem mk'_eq_mk' (b : Γ ⟶ B) {R f g} (H : IsPullback (P := R) f g b P.p) (x : R ⟶ X)
     {R' f' g'} (H' : IsPullback (P := R') f' g' b P.p) :
     mk' P X b H x = mk' P X b (R := R') H' ((IsPullback.isoIsPullback _ _ H H').inv ≫ x) := by
