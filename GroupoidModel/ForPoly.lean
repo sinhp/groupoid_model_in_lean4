@@ -455,7 +455,6 @@ theorem snd_comp_p (triple : Γ ⟶ compDom P P')
     · simp [fst]
 
 def mk (e : Γ ⟶ E) (T) (f : T ⟶ Γ) (g : T ⟶ E) (HT : IsPullback f g (e ≫ P.p) P.p)
-    -- (R) (r1 : R ⟶ E) (r2 : R ⟶ P @ B') (HR : IsPullback r1 r2 P.p (P.fstProj B'))
     (b : T ⟶ B') (e' : Γ ⟶ E') (he' : e' ≫ P'.p = HT.lift (𝟙 Γ) e (by simp) ≫ b) :
     Γ ⟶ P.compDom P' :=
   pullback.lift e' (pullback.lift (Equiv.mk' P B' (e ≫ P.p) HT b) e (by simp)) (by
