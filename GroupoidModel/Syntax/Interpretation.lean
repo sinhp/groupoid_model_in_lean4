@@ -17,7 +17,7 @@ open CategoryTheory Limits
 
 noncomputable section
 
-namespace NaturalModelBase
+namespace NaturalModel
 namespace UHomSeq
 
 variable {𝒞 : Type u} [SmallCategory 𝒞] [CartesianMonoidalCategory 𝒞]
@@ -91,7 +91,7 @@ theorem substWk_length {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : s.ExtSeq Γ Γ')
 @[functor_map (attr := reassoc)]
 theorem substWk_disp {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : s.ExtSeq Γ Γ') :
     (d.substWk σ).2.2 ≫ d.disp = (d.substWk σ).2.1.disp ≫ σ := by
-  induction d generalizing σ <;> simp [substWk, NaturalModelBase.substWk_disp_assoc, *]
+  induction d generalizing σ <;> simp [substWk, NaturalModel.substWk_disp_assoc, *]
 
 /-- `Γ.Aₖ.….A₀ ⊢ vₙ : Aₙ[↑ⁿ⁺¹]` -/
 protected def var {Γ Γ' : 𝒞} {l : Nat} (llen : l < s.length + 1) :
@@ -171,7 +171,7 @@ theorem var_substWk_of_lt_length {l i} {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : 
       obtain ⟨a, amem, rfl⟩ := st_mem
       refine ⟨_, ih amem h, ?_⟩
       simp only [← Functor.map_comp_assoc]
-      simp [NaturalModelBase.substWk_disp]
+      simp [NaturalModel.substWk_disp]
 
 end ExtSeq
 
@@ -266,9 +266,9 @@ end UHomSeq
 
 /-! ## Interpretation -/
 
-namespace UHomSeqPiSigma
+namespace UHomSeqPiSig
 
-variable {𝒞 : Type u} [SmallCategory 𝒞] [CartesianMonoidalCategory 𝒞] {s : UHomSeqPiSigma 𝒞}
+variable {𝒞 : Type u} [SmallCategory 𝒞] [CartesianMonoidalCategory 𝒞] {s : UHomSeqPiSig 𝒞}
 
 mutual
 
@@ -290,7 +290,7 @@ def ofType (Γ : s.CObj) (l : Nat) :
     have jlen : j < s.length + 1 := by omega
     let A ← ofType Γ i A
     let B ← ofType (Γ.snoc ilen A) j B
-    return lij ▸ s.mkSigma ilen jlen A B
+    return lij ▸ s.mkSig ilen jlen A B
   | .Id _ A a0 a1, llen => do
     let A ← ofType Γ l A
     let a0 ← ofTerm Γ l a0
@@ -340,14 +340,14 @@ def ofTerm (Γ : s.CObj) (l : Nat) :
     let A ← ofType Γ l A
     let B ← ofType (Γ.snoc llen A) j B
     let p ← ofTerm Γ (max l j) p
-    Part.assert (p ≫ s[max l j].tp = s.mkSigma llen jlen A B) fun p_tp =>
+    Part.assert (p ≫ s[max l j].tp = s.mkSig llen jlen A B) fun p_tp =>
     return s.mkFst llen jlen A B p p_tp
   | .snd i _ A B p, llen => do
     Part.assert (i < s.length + 1) fun ilen => do
     let A ← ofType Γ i A
     let B ← ofType (Γ.snoc ilen A) l B
     let p ← ofTerm Γ (max i l) p
-    Part.assert (p ≫ s[max i l].tp = s.mkSigma ilen llen A B) fun p_tp =>
+    Part.assert (p ≫ s[max i l].tp = s.mkSig ilen llen A B) fun p_tp =>
     return s.mkSnd ilen llen A B p p_tp
   | .refl _ t, llen => do
     let t ← ofTerm Γ l t
@@ -372,7 +372,7 @@ def ofTerm (Γ : s.CObj) (l : Nat) :
 
 end
 
-def ofCtx (s : UHomSeqPiSigma 𝒞) : Ctx → Part s.CObj
+def ofCtx (s : UHomSeqPiSig 𝒞) : Ctx → Part s.CObj
   | [] => return s.nilCObj
   | (A,l) :: Γ => do
     Part.assert (l < s.length + 1) fun llen => do
@@ -399,7 +399,7 @@ theorem mem_ofType_sigma {Γ l i j A B} {llen : l < s.length + 1} {x} :
     have jlen : j < s.length + 1 := by> omega
     ∃ (A' : y(Γ.fst) ⟶ s[i].Ty), A' ∈ s.ofType Γ i A ∧
     ∃ (B' : y((Γ.snoc ilen A').fst) ⟶ s[j].Ty), B' ∈ s.ofType (Γ.snoc ilen A') j B ∧
-    x = lij ▸ s.mkSigma ilen jlen A' B' := by
+    x = lij ▸ s.mkSig ilen jlen A' B' := by
   dsimp only [ofType]; simp_part; exact exists_congr fun _ => by subst l; simp_part
 
 @[simp]
@@ -485,7 +485,7 @@ theorem mem_ofTerm_fst {Γ l i j A B p} {llen : l < s.length + 1} {x} :
     ∃ B' : y((Γ.snoc llen A').1) ⟶ s[j].Ty,
       B' ∈ ofType (Γ.snoc llen A') j B ∧
     ∃ p' : y(Γ.1) ⟶ s[max l j].Tm, p' ∈ ofTerm Γ (max l j) p ∧
-    ∃ p_tp : p' ≫ s[max l j].tp = s.mkSigma llen jlen A' B',
+    ∃ p_tp : p' ≫ s[max l j].tp = s.mkSig llen jlen A' B',
     x = s.mkFst llen jlen A' B' p' p_tp := by
   dsimp only [ofTerm]; simp_part
 
@@ -498,7 +498,7 @@ theorem mem_ofTerm_snd {Γ l i j A B p} {llen : l < s.length + 1} {x} :
     ∃ B' : y((Γ.snoc ilen A').1) ⟶ s[l].Ty,
       B' ∈ ofType (Γ.snoc ilen A') l B ∧
     ∃ p' : y(Γ.1) ⟶ s[max i l].Tm, p' ∈ ofTerm Γ (max i l) p ∧
-    ∃ p_tp : p' ≫ s[max i l].tp = s.mkSigma ilen llen A' B',
+    ∃ p_tp : p' ≫ s[max i l].tp = s.mkSig ilen llen A' B',
     x = s.mkSnd ilen llen A' B' p' p_tp := by
   dsimp only [ofTerm]; simp_part
 
@@ -649,7 +649,7 @@ theorem mem_ofType_ofTerm_subst' {full}
   case sigma.left ihA ihB =>
     obtain ⟨rfl, H⟩ := mem_ofType_sigma.1 H; simp at H llen
     obtain ⟨A, hA, B, hB, rfl⟩ := H; clear H
-    simp only [Expr.subst, comp_mkSigma, mem_ofType_sigma, exists_true_left]
+    simp only [Expr.subst, comp_mkSig, mem_ofType_sigma, exists_true_left]
     refine ⟨_, (ihA llen.1 σ).1 hA, _, ?_, rfl⟩
     rw [← CSb.up_toSb]; exact (ihB llen.2 (σ.up llen.1 A)).1 hB
   case Id.left ihA iha ihb =>
@@ -715,13 +715,13 @@ theorem mem_ofType_ofTerm_subst' {full}
     simp only [Expr.subst, comp_mkFst, mem_ofTerm_fst]
     refine ⟨jlen, _, (ihA llen σ).1 hA, _, ?_, _, (ihp (by simp [*]) σ).2 hp, ?_, rfl⟩
     · rw [← CSb.up_toSb]; exact (ihB jlen (σ.up llen _)).1 hB
-    · simp [*, comp_mkSigma]
+    · simp [*, comp_mkSig]
   case snd ihA ihB ihp =>
     obtain ⟨ilen, A, hA, B, hB, p, hp, eq, rfl⟩ := mem_ofTerm_snd.1 H
     simp only [Expr.subst, comp_mkSnd, mem_ofTerm_snd]
     refine ⟨ilen, _, (ihA ilen σ).1 hA, _, ?_, _, (ihp (by simp [*]) σ).2 hp, ?_, rfl⟩
     · rw [← CSb.up_toSb]; exact (ihB llen (σ.up ilen _)).1 hB
-    · simp [*, comp_mkSigma]
+    · simp [*, comp_mkSig]
   case refl iht =>
     obtain ⟨t, ht, rfl⟩ := mem_ofTerm_refl.1 H
     simp only [Expr.subst, comp_mkRefl, mem_ofTerm_refl]
@@ -1292,5 +1292,5 @@ theorem interpTerm_eq {Γ l t u A} (H : Γ ⊢[l] t ≡ u : A) (lt : l < s.lengt
   cases Part.mem_unique sΓ_mem h1
   exact H
 
-end UHomSeqPiSigma
-end NaturalModelBase
+end UHomSeqPiSig
+end NaturalModel

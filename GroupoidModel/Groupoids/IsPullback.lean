@@ -13,7 +13,7 @@ universe w v u v₁ u₁ v₂ u₂ v₃ u₃
 
 noncomputable section
 open CategoryTheory ULift Functor.Groupoidal
-  Limits NaturalModelBase
+  Limits NaturalModel
 
 namespace GroupoidModel
 namespace IsPullback
