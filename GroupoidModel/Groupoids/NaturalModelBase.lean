@@ -193,15 +193,15 @@ theorem map_eqToHom_toPGrpd {Γ : Type*} [Category Γ] (A A' : Γ ⥤ Grpd) (h :
 
 end Grothendieck.Groupoidal
 
-theorem smallU_substWk' (A : y(Γ) ⟶ smallU.{v}.Ty) : smallU.substWk' σ A _ rfl =
+theorem smallU_substWk (A : y(Γ) ⟶ smallU.{v}.Ty) : smallU.substWk σ A _ rfl =
     (Ctx.ofGrpd.map $ Grpd.homOf $ yonedaCategoryEquivPre σ A) := by
   apply Yoneda.fullyFaithful.map_injective
   apply (smallU.disp_pullback A).hom_ext
   · conv => right; erw [← yonedaCategoryEquiv_symm_naturality_left]
-    rw [substWk'_var, smallU_var, yonedaCategoryEquivPre, Ctx.toGrpd_map_ofGrpd_map,
+    rw [substWk_var, smallU_var, yonedaCategoryEquivPre, Ctx.toGrpd_map_ofGrpd_map,
       Functor.assoc, pre_toPGrpd, Grothendieck.Groupoidal.map_eqToHom_toPGrpd]
     dsimp only [smallU_Ty, smallU_ext, smallU.var]
-  · conv => left; rw [← Functor.map_comp, substWk'_disp]
+  · conv => left; rw [← Functor.map_comp, substWk_disp]
     simp only [smallU_disp, ← Functor.map_comp, Grpd.homOf, yonedaCategoryEquivPre,
       Grpd.comp_eq_comp, Functor.assoc, smallU.disp]
     rw [pre_comp_forget, ← Functor.assoc, map_forget]
@@ -251,7 +251,7 @@ nonrec theorem snd_comp_left : snd (ym(σ) ≫ AB) =
   dsimp only [snd]
   rw [PtpEquiv.snd_comp_left smallU (snd._proof_1 AB), yonedaCategoryEquiv_naturality_left]
   · rw! (castMode := .all) [NaturalModel.PtpEquiv.fst_comp_left]
-    simp [smallU_substWk', Ctx.equivalence, yonedaCategoryEquivPre, Grpd.homOf]
+    simp [smallU_substWk, Ctx.equivalence, yonedaCategoryEquivPre, Grpd.homOf]
     rfl
   · rw [NaturalModel.PtpEquiv.fst_comp_left]
 /--
@@ -375,8 +375,8 @@ theorem fst_naturality : fst (ym(σ) ≫ ab) = Ctx.toGrpd.map σ ⋙ fst ab := b
 
 theorem dependent_naturality : dependent (ym(σ) ≫ ab) = map (eqToHom (by rw [fst_naturality, Functor.assoc]))
     ⋙ pre _ (Ctx.toGrpd.map σ) ⋙ dependent ab := by
-  rw [dependent, dependent, NaturalModel.compDomEquiv.dependent_naturality, substWk,
-    smallU_substWk', yonedaCategoryEquiv_naturality_left, Functor.map_comp, eqToHom_map,
+  rw [dependent, dependent, NaturalModel.compDomEquiv.dependent_naturality,
+    smallU_substWk, yonedaCategoryEquiv_naturality_left, Functor.map_comp, eqToHom_map,
     Ctx.toGrpd_map_ofGrpd_map, yonedaCategoryEquivPre, Grpd.homOf_comp, ← eqToHom_eq_homOf_map,
     ← Category.assoc, eqToHom_trans, Grpd.comp_eq_comp, Grpd.homOf, eqToHom_eq_homOf_map]
   rfl
