@@ -419,6 +419,23 @@ def mk (α : y(Γ) ⟶ M.Tm) (B : y(M.ext (α ≫ M.tp)) ⟶ N.Ty) (β : y(Γ) �
   --     (by sorry))  -- proof they agree
   --   (by sorry)
 
+/-ym(σ) ≫ compDomEquiv.mk s[j] t (ym(eqToHom ⋯) ≫ B) u ⋯ =
+  compDomEquiv.mk s[j] (ym(σ) ≫ t) ((ym(eqToHom ⋯) ≫ ym(s[i].substWk σ A)) ≫ B) (ym(σ) ≫ u) ⋯
+
+  {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
+    (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
+    (t : y(Γ) ⟶ s[i].Tm) (t_tp : t ≫ s[i].tp = A)
+    (u : y(Γ) ⟶ s[j].Tm) (u_tp : u ≫ s[j].tp = ym(s[i].sec A t t_tp) ≫ B)
+
+  -/
+
+def mk_naturality  (A : y(Γ) ⟶ M.Ty)  (α : y(Γ) ⟶ M.Tm) (B : y(M.ext (α ≫ M.tp)) ⟶ N.Ty)
+    (β : y(Γ) ⟶ N.Tm) (e1 : α ≫ M.tp = A) (e2 : β ≫ N.tp = ym(M.sec A α e1) ≫ eqToHom sorry ≫  B)
+    (h : β ≫ N.tp = ym(M.sec _ α rfl) ≫ B) (σ : Δ ⟶ Γ) :
+    ym(σ) ≫ compDomEquiv.mk N α B β sorry  =
+  compDomEquiv.mk N (ym(σ) ≫ α) (ym(eqToHom sorry  ≫ M.substWk σ A) ≫ (eqToHom sorry  ≫ B) ) (ym(σ) ≫ β) sorry
+   := sorry
+
 def fst_naturality (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
     fst N (ym(σ) ≫ ab) = ym(σ) ≫ fst N ab := by
   simp only [fst, Category.assoc]

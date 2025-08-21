@@ -712,13 +712,25 @@ theorem comp_mkPair {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
       s.mkPair ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ B)
         (ym(σ) ≫ t) (by simp [t_tp])
         (ym(σ) ≫ u) (by simp [u_tp, comp_sec_functor_map_assoc]) := by
-  sorry
+  unfold mkPair
+  simp[← Category.assoc]
+  congr
+  apply NaturalModel.compDomEquiv.mk_naturality (A:= A) (e1 := t_tp)
+  · simp[u_tp]
+    sorry
+  · simp[u_tp]
+    rw![t_tp]
+    congr 1
+    simp
+
+
 
 @[simp]
 theorem mkPair_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (t : y(Γ) ⟶ s[i].Tm) (t_tp : t ≫ s[i].tp = A)
     (u : y(Γ) ⟶ s[j].Tm) (u_tp : u ≫ s[j].tp = ym(s[i].sec A t t_tp) ≫ B) :
     s.mkPair ilen jlen A B t t_tp u u_tp ≫ s[max i j].tp = s.mkSig ilen jlen A B := by
+  unfold mkPair mkSig Sig
   sorry -- equiv theorems
 
 def mkFst {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
