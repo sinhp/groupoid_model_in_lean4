@@ -455,42 +455,6 @@ def compDomEquiv {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} :
    simp [compDomEquiv, Equiv.psigmaCongrProp, Equiv.sigmaCongrRight_symm,
     Equiv.coe_fn_symm_mk, pullbackHomEquiv]
 
--- -- TODO: rename
--- abbrev ev1 : pullback (P.fstProj A) P.p ⟶ A := ε P A ≫ prod.snd
-
--- theorem ev1_map {E B A E' B' A' : 𝒞} {P : UvPoly E B} {P' : UvPoly E' B'}
---     (e : E ⟶ E') (b : B ⟶ B') (a : A ⟶ A')
---     (hp : IsPullback P.p e b P'.p)
---     (ha : P.fstProj A ≫ b = (P.cartesianNatTrans P' b e hp).app A ≫ P'.fstProj A) :
---     pullback.map (P.fstProj A) P.p (P'.fstProj A') P'.p
---       ((P.cartesianNatTrans P' b e hp).app A ≫ P'.functor.map a)
---       e b (by simp [ha]) hp.w ≫ ev1 P' A' =
---     ev1 P A ≫ a := by
---   set p := P.cartesianNatTrans P' b e hp
---   let z := P.functor.map a ≫ p.app A'
---   have isPullbackUpper : IsPullback (pullback.fst (P.fstProj A) P.p)
---       (pullback.snd (P.fstProj A) P.p ≫ e) (Equiv.fst P' A' z) P'.p := by
---     simp [Equiv.fst_eq, z, p.naturality, ← ha]
---     exact .paste_vert (.of_hasPullback (P.fstProj A) P.p) hp
---   have functor_map_eq_mk : P.functor.map a = Equiv.mk P A' (fstProj P A) (ev1 P A ≫ a) := by
---     rw [← Equiv.mk_comp_right]
---     refine .symm <| .trans ?_ (Category.id_comp _); congr 1
---     have pb : IsPullback (pullback.fst (P.fstProj A) P.p)
---         (pullback.snd (P.fstProj A) P.p) (Equiv.fst P A (𝟙 _)) P.p := by
---       simp [Equiv.fst_eq]; exact .of_hasPullback ..
---     rw [Equiv.mk_eq_mk']
---     convert Equiv.eta' P A (𝟙 _) pb
---     · simp [Equiv.fst_eq]
---     · simp [ev1, Equiv.snd'_eq]
---   calc pullback.map _ _ _ _ (p.app A ≫ P'.functor.map a) e b (by simp [ha]) hp.w ≫ ev1 P' A'
---   _ = UvPoly.Equiv.snd' P' A' z isPullbackUpper := by
---     simp only [Equiv.snd'_eq, ev1, ← Category.assoc]
---     congr 2
---     ext <;> simp [z]
---   _ = _ := by
---     dsimp [z]
---     rw! [functor_map_eq_mk, Equiv.mk_eq_mk', Equiv.mk'_comp_cartesianNatTrans_app, Equiv.snd'_mk']
-
 def compDomMap {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q : UvPoly D A}
     {P' : UvPoly E' B'} {Q' : UvPoly D' A'}
     (e : E ⟶ E') (d : D ⟶ D') (b : B ⟶ B') (a : A ⟶ A')
