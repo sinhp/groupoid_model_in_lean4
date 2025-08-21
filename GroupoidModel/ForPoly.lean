@@ -165,8 +165,6 @@ theorem fan_snd_map' {E B E' B' : C} {P : UvPoly E B} {P' : UvPoly E' B'}
   slice_lhs 5 6 => apply pullback.lift_fst
   simp [Over.mapForget]
 
-theorem fan_snd {E B : C} (P : UvPoly E B) (A : C) : (fan P A).snd = ε P A ≫ prod.snd := rfl
-
 open ExponentiableMorphism in
 theorem fan_snd_map {E B A E' B' A' : C} {P : UvPoly E B} {P' : UvPoly E' B'}
     (e : E ⟶ E') (b : B ⟶ B') (a : A ⟶ A')
