@@ -70,15 +70,16 @@ def Hom.cartesianNaturalTrans {M N : NaturalModelBase Ctx} (h : Hom M N) :
 @[reassoc]
 theorem Hom.mk_comp_cartesianNaturalTrans {M N : NaturalModelBase Ctx} (h : Hom M N)
     {Γ X} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
-    PtpEquiv.mk M A B ≫ (h.cartesianNaturalTrans).app X =
+    PtpEquiv.mk M A B ≫ h.cartesianNaturalTrans.app X =
     PtpEquiv.mk N (A ≫ h.mapTy) ((h.extIsoExt A).hom ≫ B) := by
-  dsimp [PtpEquiv.mk, Hom.cartesianNaturalTrans]
-  rw [UvPoly.Equiv.mk'_comp_cartesianNatTrans_app,
-    UvPoly.Equiv.mk'_eq_mk' N.uvPolyTp X (A ≫ h.mapTy)
-    (IsPullback.paste_horiz (M.disp_pullback A) h.pb).flip B
-    (N.disp_pullback (A ≫ h.mapTy)).flip]
-  congr 2
-  apply (IsPullback.paste_horiz (M.disp_pullback A) h.pb).hom_ext <;> simp
+  simp [PtpEquiv.mk]
+  have := UvPoly.Equiv.mk'_comp_cartesianNatTrans_app M.uvPolyTp (P' := N.uvPolyTp)
+    A _ _ _ (M.disp_pullback _).flip B h.mapTm h.mapTy h.pb.flip
+  refine this.trans ?_
+  simp [UvPoly.Equiv.mk']; congr 1
+  rw [← Category.assoc]; congr 1
+  generalize_proofs _ h1
+  apply h1.hom_ext <;> simp
 
 /- We have a 'nice', specific terminal object in `Ctx`,
 and this instance allows use to use it directly
@@ -505,20 +506,33 @@ def unLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     y(s[i].ext A) ⟶ s[j].Tm := by
   let total : y(Γ) ⟶ s[i].Ptp.obj s[j].Tm :=
     (s.Pi_pb ilen jlen).lift f (PtpEquiv.mk s[i] A B) f_tp
-  convert PtpEquiv.snd s[i] total
+  refine PtpEquiv.snd s[i] total _ ?_
   have eq : total ≫ s[i].Ptp.map s[j].tp = PtpEquiv.mk s[i] A B :=
-    (s.Pi_pb ilen jlen).isLimit.fac _ (some .right)
+    (s.Pi_pb ilen jlen).lift_snd ..
   apply_fun PtpEquiv.fst s[i] at eq
   rw [PtpEquiv.fst_comp_right] at eq
-  simpa using eq.symm
+  simpa using eq
 
 @[simp]
 theorem unLam_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (f : y(Γ) ⟶ s[max i j].Tm) (f_tp : f ≫ s[max i j].tp = s.mkPi ilen jlen A B) :
     s.unLam ilen jlen A B f f_tp ≫ s[j].tp = B := by
-  -- This proof is `s[i].Ptp_equiv_symm_naturality`, `IsPullback.lift_snd`, and ITT gunk.
-  dsimp only [unLam]
-  sorry
+  rw [unLam, ← PtpEquiv.snd_comp_right]
+  convert PtpEquiv.snd_mk s[i] A B using 2; simp
+
+theorem comp_unLam {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
+    (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
+    (f : y(Γ) ⟶ s[max i j].Tm) (f_tp : f ≫ s[max i j].tp = s.mkPi ilen jlen A B) :
+    ym(s[i].substWk σ A) ≫ s.unLam ilen jlen A B f f_tp =
+      s.unLam ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ B)
+        (ym(σ) ≫ f) (by simp [f_tp, comp_mkPi]) := by
+  simp [unLam, substWk]
+  rw [← PtpEquiv.snd_comp_left]
+  simp [PtpEquiv.snd, UvPoly.Equiv.snd'_eq]
+  simp only [← Category.assoc]; congr 2
+  apply pullback.hom_ext <;> simp; congr 1
+  apply (s.Pi_pb ilen jlen).hom_ext <;> simp
+  rw [PtpEquiv.mk_comp_left]; rfl
 
 /--
 ```
@@ -546,20 +560,33 @@ theorem comp_mkApp {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
       s.mkApp ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ B)
         (ym(σ) ≫ f) (by simp [f_tp, comp_mkPi])
         (ym(σ) ≫ a) (by simp [a_tp]) := by
-  sorry
+  unfold mkApp; rw [← Functor.map_comp_assoc, comp_sec, Functor.map_comp_assoc, comp_unLam]
 
 @[simp]
 theorem mkLam_unLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (f : y(Γ) ⟶ s[max i j].Tm) (f_tp : f ≫ s[max i j].tp = s.mkPi ilen jlen A B) :
     s.mkLam ilen jlen A (s.unLam ilen jlen A B f f_tp) = f := by
-  sorry
+  let total : y(Γ) ⟶ s[i].Ptp.obj s[j].Tm :=
+    (s.Pi_pb ilen jlen).lift f (PtpEquiv.mk s[i] A B) f_tp
+  simp [mkLam, unLam]
+  have : PtpEquiv.fst s[i] total = A := by
+    simp [total, PtpEquiv.fst, UvPoly.Equiv.fst]
+    rw [← s[i].uvPolyTp.map_fstProj s[j].tp]
+    slice_lhs 1 2 => apply (s.Pi_pb ilen jlen).lift_snd
+    apply PtpEquiv.fst_mk
+  slice_lhs 1 1 => equals total =>
+    apply PtpEquiv.ext _ (A := A) (by simp) (by simp [this]) (by simp [total])
+  apply (s.Pi_pb ilen jlen).lift_fst
 
 @[simp]
 theorem unLam_mkLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (t : y(s[i].ext A) ⟶ s[j].Tm) (t_tp : t ≫ s[j].tp = B)
     (lam_tp : s.mkLam ilen jlen A t ≫ s[max i j].tp = s.mkPi ilen jlen A B) :
     s.unLam ilen jlen A B (s.mkLam ilen jlen A t) lam_tp = t := by
-  sorry
+  simp [mkLam, unLam]
+  convert PtpEquiv.snd_mk s[i] A t using 2
+  apply (s.Pi_pb ilen jlen).hom_ext <;> simp
+  rw [PtpEquiv.mk_comp_right, t_tp]
 
 /--
 ```
@@ -580,7 +607,13 @@ def etaExpand {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
 theorem etaExpand_eq {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (f : y(Γ) ⟶ s[max i j].Tm) (f_tp : f ≫ s[max i j].tp = s.mkPi ilen jlen A B) :
     s.etaExpand ilen jlen A B f f_tp = f := by
-  sorry
+  simp [etaExpand]
+  convert s.mkLam_unLam ilen jlen A B f f_tp using 2
+  simp [mkApp]; rw [← comp_unLam (f_tp := f_tp), ← Category.assoc]
+  conv_rhs => rw [← Category.id_comp (s.unLam ..)]
+  congr 2
+  apply (s[i].disp_pullback A).hom_ext <;> simp
+  simp [substWk, substWk']
 
 /--
 ```

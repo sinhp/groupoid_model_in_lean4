@@ -266,8 +266,8 @@ A map `(AB : y(Γ) ⟶ M.Ptp.obj X)` is equivalent to a pair of maps
 thought of as a dependent pair `A : Type` and `B : A ⟶ Type`
 `PtpEquiv.snd` is the `B` in this pair.
 -/
-def snd (AB : y(Γ) ⟶ M.Ptp.obj X) : y(M.ext (fst M AB)) ⟶ X :=
-  UvPoly.Equiv.snd' M.uvPolyTp X AB (M.disp_pullback _).flip
+def snd (AB : y(Γ) ⟶ M.Ptp.obj X) (A := fst M AB) (eq : fst M AB = A := by rfl) : y(M.ext A) ⟶ X :=
+  UvPoly.Equiv.snd' M.uvPolyTp X AB (by rw [← fst, eq]; exact (M.disp_pullback _).flip)
 
 /--
 A map `(AB : y(Γ) ⟶ M.Ptp.obj X)` is equivalent to a pair of maps
@@ -285,14 +285,9 @@ lemma fst_mk (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
 
 @[simp]
 lemma snd_mk (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
-    snd M (mk M A B) = ym(eqToHom (by rw [fst_mk M A B])) ≫ B := by
+    snd M (mk M A B) _ (fst_mk ..) = B := by
   dsimp only [snd, mk]
-  rw! [fst_mk, UvPoly.Equiv.snd'_mk']
-  simp
-
-lemma snd_mk_heq (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
-    snd M (mk M A B) ≍ B := by
-  simp [eqToHom_map]
+  rw! [UvPoly.Equiv.snd'_mk']
 
 section
 variable {Δ : Ctx} {σ : Δ ⟶ Γ} {AB : y(Γ) ⟶ M.Ptp.obj X}
@@ -303,27 +298,20 @@ theorem fst_comp_left (σ : y(Δ) ⟶ y(Γ)) : fst M (σ ≫ AB) = σ ≫ fst M 
 theorem fst_comp_right {Y} (σ : X ⟶ Y) : fst M (AB ≫ M.Ptp.map σ) = fst M AB :=
   UvPoly.Equiv.fst_comp_right ..
 
-attribute [-simp] pullbackIsoExt_inv in
-theorem snd_comp_right {Y} (σ : X ⟶ Y) : snd M (AB ≫ M.Ptp.map σ) =
-    ym(eqToHom congr(M.ext $(fst_comp_right ..))) ≫ snd M AB ≫ σ := by
-  dsimp only [snd]
-  rw! [fst_comp_right]
-  simp only [eqToHom_refl, CategoryTheory.Functor.map_id, ←
-    UvPoly.Equiv.snd'_comp_right M.uvPolyTp X Y σ AB (M.disp_pullback _).flip, Category.id_comp]
-  rfl
+theorem snd_comp_right {Y} (σ : X ⟶ Y) {A} (eq : fst M AB = A) :
+    snd M (AB ≫ M.Ptp.map σ) _ (fst_comp_right M σ ▸ eq) = snd M AB _ eq ≫ σ := by
+  simp only [snd, Ptp]
+  rw [UvPoly.Equiv.snd'_comp_right M.uvPolyTp X Y σ AB]
 
-theorem snd_comp_left : snd M (ym(σ) ≫ AB) = ym(M.substWk σ _) ≫ snd M AB := by
-  dsimp only [snd]
-  rw! (castMode := .all) [fst_comp_left]
-  rw [UvPoly.Equiv.snd'_comp_left M.uvPolyTp X AB (M.disp_pullback _).flip]
-  · congr 1
-    apply IsPullback.hom_ext (fst := M.var (UvPoly.Equiv.fst M.uvPolyTp X AB))
-      (snd := ym(M.disp (UvPoly.Equiv.fst M.uvPolyTp X AB))) (f := M.tp)
-      (g := UvPoly.Equiv.fst M.uvPolyTp X AB)
-    · exact M.disp_pullback _
-    · simp [fst]
-    · simp [fst, ← Functor.map_comp, substWk, substWk']
-  · exact (M.disp_pullback _).flip
+theorem snd_comp_left {A} (eqA : fst M AB = A) {σA} (eqσ : ym(σ) ≫ A = σA) :
+    snd M (ym(σ) ≫ AB) σA (by simp [fst_comp_left, eqA, eqσ]) =
+    ym(M.substWk' σ _ _ eqσ) ≫ snd M AB _ eqA := by
+  refine
+    have H1 := by rw [← fst, eqA]; exact (M.disp_pullback _).flip
+    have H2 := by rw [← fst, eqA, eqσ]; exact (M.disp_pullback _).flip
+    (UvPoly.Equiv.snd'_comp_left M.uvPolyTp X AB H1 _ H2).trans ?_
+  congr 1
+  apply H1.hom_ext <;> simp [← Functor.map_comp, substWk']
 
 theorem mk_comp_left {Δ Γ : Ctx} (M : NaturalModelBase Ctx) (σ : Δ ⟶ Γ)
     {X : Psh Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
@@ -340,6 +328,15 @@ theorem mk_comp_right {Γ : Ctx} (M : NaturalModelBase Ctx)
     {X Y : Psh Ctx} (σ : X ⟶ Y) (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
     PtpEquiv.mk M A B ≫ M.Ptp.map σ = PtpEquiv.mk M A (B ≫ σ) :=
   UvPoly.Equiv.mk'_comp_right M.uvPolyTp X Y σ A (M.disp_pullback A).flip B
+
+theorem ext {AB AB' : y(Γ) ⟶ M.Ptp.obj X}
+    (A := fst M AB) (eq : fst M AB = A := by rfl)
+    (h1 : fst M AB = fst M AB')
+    (h2 : snd M AB A eq = snd M AB' A (h1 ▸ eq))
+    : AB = AB' := UvPoly.Equiv.ext' _ _ _ h1 h2
+
+theorem eta (AB : y(Γ) ⟶ M.Ptp.obj X) : mk M (fst M AB) (snd M AB) = AB :=
+  .symm <| ext _ _ rfl (by simp) (by simp)
 
 end
 
@@ -376,7 +373,7 @@ is the `(a : A)` in `(a : A) × (b : B a)`.
 -/
 def fst (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : y(Γ) ⟶ M.Tm :=
   ab ≫ pullback.snd N.tp (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).snd ≫
-    pullback.snd (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).fst M.uvPolyTp.p
+    pullback.snd (M.uvPolyTp.fstProj N.Ty) M.uvPolyTp.p
 
 /-- Computation of `comp` (part 1).
 
