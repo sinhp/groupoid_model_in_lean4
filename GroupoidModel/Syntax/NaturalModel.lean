@@ -107,8 +107,7 @@ def ofIsPullback {U E : Psh Ctx} {π : E ⟶ U}
 def substCons {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty)
     (t : y(Δ) ⟶ M.Tm) (t_tp : t ≫ M.tp = ym(σ) ≫ A) :
     Δ ⟶ M.ext A :=
-  let i : y(M.ext A) ≅ pullback M.tp A := (M.disp_pullback A).isoPullback
-  Yoneda.fullyFaithful.1 <| pullback.lift t ym(σ) t_tp ≫ i.inv
+  Yoneda.fullyFaithful.1 <| (M.disp_pullback A).lift t ym(σ) t_tp
 
 @[functor_map (attr := reassoc (attr := simp))]
 theorem substCons_disp {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (t : y(Δ) ⟶ M.Tm)
@@ -127,7 +126,10 @@ theorem substCons_var {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (t : y
 theorem comp_substCons {Θ Δ Γ : Ctx} (τ : Θ ⟶ Δ) (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (t : y(Δ) ⟶ M.Tm)
     (aTp : t ≫ M.tp = ym(σ) ≫ A) :
     τ ≫ M.substCons σ A t aTp = M.substCons (τ ≫ σ) A (ym(τ) ≫ t) (by simp [*]) := by
-  sorry
+  apply Yoneda.fullyFaithful.map_injective
+  apply (M.disp_pullback A).hom_ext
+  · simp
+  · simp
 
 /--
 ```
@@ -313,8 +315,31 @@ theorem snd_comp_right {Y} (σ : X ⟶ Y) : snd M (AB ≫ M.Ptp.map σ) =
 theorem snd_comp_left : snd M (ym(σ) ≫ AB) = ym(M.substWk σ _) ≫ snd M AB := by
   dsimp only [snd]
   rw! (castMode := .all) [fst_comp_left]
-  -- rw [UvPoly.Equiv.snd'_comp_left]
-  sorry
+  rw [UvPoly.Equiv.snd'_comp_left M.uvPolyTp X AB (M.disp_pullback _).flip]
+  · congr 1
+    apply IsPullback.hom_ext (fst := M.var (UvPoly.Equiv.fst M.uvPolyTp X AB))
+      (snd := ym(M.disp (UvPoly.Equiv.fst M.uvPolyTp X AB))) (f := M.tp)
+      (g := UvPoly.Equiv.fst M.uvPolyTp X AB)
+    · exact M.disp_pullback _
+    · simp [fst]
+    · simp [fst, ← Functor.map_comp, substWk, substWk']
+  · exact (M.disp_pullback _).flip
+
+theorem mk_comp_left {Δ Γ : Ctx} (M : NaturalModelBase Ctx) (σ : Δ ⟶ Γ)
+    {X : Psh Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
+    ym(σ) ≫ PtpEquiv.mk M A B = PtpEquiv.mk M (ym(σ) ≫ A) (ym(M.substWk σ A) ≫ B) := by
+  dsimp [PtpEquiv.mk]
+  have h := UvPoly.Equiv.mk'_comp_left M.uvPolyTp X A (M.disp_pullback A).flip B ym(σ)
+    (M.disp_pullback (ym(σ) ≫ A)).flip
+  convert h
+  apply (M.disp_pullback _).hom_ext
+  · simp
+  · simp [← Functor.map_comp, substWk_disp]
+
+theorem mk_comp_right {Γ : Ctx} (M : NaturalModelBase Ctx)
+    {X Y : Psh Ctx} (σ : X ⟶ Y) (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
+    PtpEquiv.mk M A B ≫ M.Ptp.map σ = PtpEquiv.mk M A (B ≫ σ) :=
+  UvPoly.Equiv.mk'_comp_right M.uvPolyTp X Y σ A (M.disp_pullback A).flip B
 
 end
 
@@ -324,7 +349,7 @@ end PtpEquiv
 theorem PtpEquiv.mk_map {Γ : Ctx} {X Y : Psh Ctx}
     (A : y(Γ) ⟶ M.Ty) (x : y(M.ext A) ⟶ X) (α : X ⟶ Y) :
     mk M A x ≫ M.Ptp.map α = mk M A (x ≫ α) := by
-  sorry
+  simp [mk, Ptp, UvPoly.Equiv.mk'_comp_right]
 
 /-! ## Polynomial composition `M.tp ▸ N.tp` -/
 
