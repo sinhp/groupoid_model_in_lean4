@@ -191,7 +191,9 @@ def homOfLe (i j : Nat) (ij : i <= j := by omega)
   if h : i = j then h ▸ Hom.id s[i]
   else
     (s.hom i j (by omega) _).toHom
-
+/-- For `i ≤ j` and a term `t` at level `j`,
+if the type of `t` is lifted from level `i`,
+then `t` is a lift of a term at level `i`. -/
 def unlift (i j) (ij : i ≤ j := by omega) (jlen : j < s.length + 1 := by get_elem_tactic)
     {Γ} (A : Γ ⟶ (s[i]'(ij.trans_lt jlen)).Ty) (t : Γ ⟶ s[j].Tm)
     (eq : t ≫ s[j].tp = A ≫ (s.homOfLe i j).mapTy) :
