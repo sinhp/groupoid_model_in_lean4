@@ -444,32 +444,37 @@ theorem snd_comp_p (triple : Γ ⟶ compDom P P')
     (T) (f : T ⟶ Γ) (g : T ⟶ E) (H : IsPullback f g (fst triple ≫ P.p) P.p) :
     snd triple ≫ P'.p =
     H.lift (𝟙 Γ) (fst triple) (by simp) ≫ dependent triple T f g H :=
-  let R := pullback (fan P B').fst P.p
-  let total := triple ≫ (P.comp P').p
   calc (triple ≫ pullback.fst _ _) ≫ P'.p
-  _ = (triple ≫ pullback.snd _ _) ≫ ε P B' ≫ prod.snd := by
+  _ = triple ≫ pullback.snd _ _ ≫ ε P B' ≫ prod.snd := by
     simp [pullback.condition]
-  _ = pullback.lift ((triple ≫ pullback.snd _ _) ≫ pullback.fst _ _) (fst triple)
-    (by simp [fst, pullback.condition]) ≫ ε P B' ≫ prod.snd := by
-    -- rw [← Equiv.snd'_eq P B' (pullback.fst _ _)]
-  --   -- rw [← Equiv.snd'_eq P B' (P.comp P').p (R := pullback (Equiv.fst P B' (P.comp P').p) P.p)]
-  --     -- (IsPullback.of_hasPullback (Equiv.fst P B' (P.comp P').p) P.p)]
-  --   sorry
-    sorry
-  -- _ = sorry := sorry
   _ = H.lift (𝟙 Γ) (fst triple) (by simp) ≫ dependent triple T f g H := by
-    -- dsimp [dependent]
-    -- have h := Equiv.snd'_comp_left P B' (P.comp P').p (R := R) (f := pullback.snd (fan P B').fst P.p) (g := pullback.snd _ _)
-    --   (H := IsPullback.of_hasPullback (fan P B').fst P.p)
-    -- rw [Equiv.snd'_comp_left P B' _ (R := R) (g := pullback.snd _ _) (R' := T)]
-    sorry
+    simp only [fan_pt, fan_fst, fan_snd, ← Category.assoc, dependent, comp_p, Equiv.snd'_eq]
+    congr 2
+    ext
+    · simp
+    · simp [fst]
 
-def mk (α : Γ ⟶ E) (T) (f : T ⟶ E) (g : T ⟶ Γ) (H : IsPullback f g P.p (α ≫ P.p))
-    (B : T ⟶ B') (β : Γ ⟶ E') (h : β ≫ P'.p = H.lift α (𝟙 Γ) (by simp) ≫ B) :
+def mk (e : Γ ⟶ E) (T) (f : T ⟶ Γ) (g : T ⟶ E) (HT : IsPullback f g (e ≫ P.p) P.p)
+    -- (R) (r1 : R ⟶ E) (r2 : R ⟶ P @ B') (HR : IsPullback r1 r2 P.p (P.fstProj B'))
+    (b : T ⟶ B') (e' : Γ ⟶ E') (he' : e' ≫ P'.p = HT.lift (𝟙 Γ) e (by simp) ≫ b) :
     Γ ⟶ P.compDom P' :=
-  sorry
-
-
+  pullback.lift e' (pullback.lift (Equiv.mk' P B' (e ≫ P.p) HT b) e (by simp)) (by
+    let l : Γ ⟶ pullback (e ≫ P.p) P.p := pullback.lift (𝟙 Γ) e (by simp)
+    have h := Equiv.snd'_eq P B' (Equiv.mk' P B' (e ≫ P.p) HT b) (IsPullback.of_hasPullback (Equiv.fst P B' (Equiv.mk' P B' (e ≫ P.p) HT b)) P.p)
+    rw! [Equiv.snd'_eq_snd' (H' := by convert HT; simp), Equiv.fst_mk', Equiv.snd'_mk'] at h
+    generalize_proofs p1 p2 p3 p4 p5 at h
+    calc _
+    _ = l ≫ (IsPullback.isoIsPullback Γ E p2 HT).hom ≫ b := by
+      simp [he', ← Category.assoc]
+      congr 1
+      apply HT.hom_ext <;> simp [l]
+    _ = l ≫ pullback.lift (pullback.fst (e ≫ P.p) P.p ≫ Equiv.mk' P B' (e ≫ P.p) HT b) (pullback.snd (e ≫ P.p) P.p) p4 ≫
+      ε P B' ≫ prod.snd := by rw [h]
+    _ = _ := by
+      simp [← Category.assoc]
+      congr 2
+      ext <;> simp [l]
+    )
 
 end compDomEquiv
 
