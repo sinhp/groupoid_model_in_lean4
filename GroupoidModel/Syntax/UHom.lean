@@ -191,6 +191,7 @@ def homOfLe (i j : Nat) (ij : i <= j := by omega)
   if h : i = j then h ▸ Hom.id s[i]
   else
     (s.hom i j (by omega) _).toHom
+
 /-- For `i ≤ j` and a term `t` at level `j`,
 if the type of `t` is lifted from level `i`,
 then `t` is a lift of a term at level `i`. -/
@@ -712,16 +713,13 @@ theorem comp_mkPair {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
       s.mkPair ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ B)
         (ym(σ) ≫ t) (by simp [t_tp])
         (ym(σ) ≫ u) (by simp [u_tp, comp_sec_functor_map_assoc]) := by
-  simp only[← Category.assoc,eqToHom_map,mkPair]
+  simp only [← Category.assoc,eqToHom_map,mkPair]
   congr
-  apply NaturalModel.compDomEquiv.mk_naturality (A:= A) (e1 := t_tp)
-  · simp[u_tp]
+  apply NaturalModel.compDomEquiv.mk_naturality (A := A) (e1 := t_tp)
+  · simp [u_tp]
   · simp only [u_tp]
-    rw![t_tp]
+    rw! [t_tp]
     rfl
-
-
-
 
 @[simp]
 theorem mkPair_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
