@@ -620,26 +620,26 @@ variable {x y : Γ} (f : x ⟶ y)
 
 open CategoryTheory.Functor
 
-def lamObjFiberObjCompSigmaMap.app (a : A.obj x) :
+def lamObjFiberObjCompSigMap.app (a : A.obj x) :
     (lamObjFiberObj A β x ⋙ sigmaMap (β ⋙ PGrpd.forgetToGrpd) f).obj a ⟶
     (A.map f ⋙ lamObjFiberObj A β y).obj a :=
   homMk (𝟙 _) (eqToHom (by simp; rfl) ≫ (β.map ((ιNatTrans f).app a)).fiber)
 
-@[simp] lemma lamObjFiberObjCompSigmaMap.app_base (a : A.obj x) : (app A β f a).base = 𝟙 _ := by
+@[simp] lemma lamObjFiberObjCompSigMap.app_base (a : A.obj x) : (app A β f a).base = 𝟙 _ := by
   simp [app]
 
-lemma lamObjFiberObjCompSigmaMap.app_fiber_eq (a : A.obj x) : (app A β f a).fiber =
+lemma lamObjFiberObjCompSigMap.app_fiber_eq (a : A.obj x) : (app A β f a).fiber =
     eqToHom (by simp; rfl) ≫ (β.map ((ιNatTrans f).app a)).fiber := by
   simp [app]
 
-lemma lamObjFiberObjCompSigmaMap.app_fiber_heq (a : A.obj x) : (app A β f a).fiber ≍
+lemma lamObjFiberObjCompSigMap.app_fiber_heq (a : A.obj x) : (app A β f a).fiber ≍
     (β.map ((ιNatTrans f).app a)).fiber := by
   simp [app]
 
-lemma lamObjFiberObjCompSigmaMap.naturality {x y : Γ} (f : x ⟶ y) {a1 a2 : A.obj x} (h : a1 ⟶ a2) :
+lemma lamObjFiberObjCompSigMap.naturality {x y : Γ} (f : x ⟶ y) {a1 a2 : A.obj x} (h : a1 ⟶ a2) :
     (lamObjFiberObj A β x ⋙ sigmaMap (β ⋙ PGrpd.forgetToGrpd) f).map h
-    ≫ lamObjFiberObjCompSigmaMap.app A β f a2 =
-    lamObjFiberObjCompSigmaMap.app A β f a1
+    ≫ lamObjFiberObjCompSigMap.app A β f a2 =
+    lamObjFiberObjCompSigMap.app A β f a1
     ≫ (A.map f ⋙ lamObjFiberObj A β y).map h := by
   apply Hom.hext
   · simp [sigmaObj]
@@ -663,7 +663,7 @@ lemma lamObjFiberObjCompSigmaMap.naturality {x y : Γ} (f : x ⟶ y) {a1 a2 : A.
       congr 3
       aesop_cat
 
-@[simp] lemma lamObjFiberObjCompSigmaMap.app_id (a) : lamObjFiberObjCompSigmaMap.app A β (𝟙 x) a
+@[simp] lemma lamObjFiberObjCompSigMap.app_id (a) : lamObjFiberObjCompSigMap.app A β (𝟙 x) a
     = eqToHom (by simp) := by
   apply Hom.hext
   · rw [base_eqToHom]
@@ -674,7 +674,7 @@ lemma lamObjFiberObjCompSigmaMap.naturality {x y : Γ} (f : x ⟶ y) {a1 a2 : A.
       eqToHom_trans]
     apply (eqToHom_heq_id_cod _ _ _).trans (eqToHom_heq_id_cod _ _ _).symm
 
-lemma lamObjFiberObjCompSigmaMap.app_comp {x y z : Γ} (f : x ⟶ y) (g : y ⟶ z) (a) :
+lemma lamObjFiberObjCompSigMap.app_comp {x y z : Γ} (f : x ⟶ y) (g : y ⟶ z) (a) :
     app A β (f ≫ g) a
     = eqToHom (by simp)
     ≫ (sigmaMap (β ⋙ PGrpd.forgetToGrpd) g).map (app A β f a)
@@ -700,16 +700,16 @@ lemma lamObjFiberObjCompSigmaMap.app_comp {x y z : Γ} (f : x ⟶ y) (g : y ⟶ 
       Functor.Grothendieck.base_eqToHom, ιNatTrans_app_base, this]
     aesop_cat
 
-def lamObjFiberObjCompSigmaMap :
+def lamObjFiberObjCompSigMap :
     lamObjFiberObj A β x ⋙ sigmaMap (β ⋙ PGrpd.forgetToGrpd) f ⟶
     A.map f ⋙ lamObjFiberObj A β y where
-  app := lamObjFiberObjCompSigmaMap.app A β f
-  naturality _ _ h := lamObjFiberObjCompSigmaMap.naturality A β f h
+  app := lamObjFiberObjCompSigMap.app A β f
+  naturality _ _ h := lamObjFiberObjCompSigMap.naturality A β f h
 
-@[simp] lemma lamObjFiberObjCompSigmaMap_id (x : Γ) : lamObjFiberObjCompSigmaMap A β (𝟙 x) =
+@[simp] lemma lamObjFiberObjCompSigMap_id (x : Γ) : lamObjFiberObjCompSigMap A β (𝟙 x) =
     eqToHom (by simp [sigmaMap_id]) := by
   ext a
-  simp [lamObjFiberObjCompSigmaMap]
+  simp [lamObjFiberObjCompSigMap]
 
 /-
 lamObjFiberObj A β x ⋙ sigmaMap (β ⋙ PGrpd.forgetToGrpd) (f ≫ g)
@@ -718,33 +718,33 @@ _ ⟶ lamObjFiberObj A β x ⋙ sigmaMap (β ⋙ PGrpd.forgetToGrpd) f ⋙ sigma
 := eqToHom ⋯
 
 _ ⟶ A.map f ⋙ lamObjFiberObj A β y ⋙ sigmaMap (β ⋙ PGrpd.forgetToGrpd) g
-:= whiskerRight (lamObjFiberObjCompSigmaMap A β f) (sigmaMap (β ⋙ PGrpd.forgetToGrpd) g)
+:= whiskerRight (lamObjFiberObjCompSigMap A β f) (sigmaMap (β ⋙ PGrpd.forgetToGrpd) g)
 
 _ ⟶ A.map f ⋙ A.map g ⋙ lamObjFiberObj A β z
-:= whiskerLeft (A.map f) (lamObjFiberObjCompSigmaMap A β g)
+:= whiskerLeft (A.map f) (lamObjFiberObjCompSigMap A β g)
 
 _ ⟶ A.map (f ≫ g) ⋙ lamObjFiberObj A β z
 := eqToHom ⋯
 
 -/
-lemma lamObjFiberObjCompSigmaMap_comp {x y z : Γ} (f : x ⟶ y) (g : y ⟶ z) :
-    lamObjFiberObjCompSigmaMap A β (f ≫ g) =
+lemma lamObjFiberObjCompSigMap_comp {x y z : Γ} (f : x ⟶ y) (g : y ⟶ z) :
+    lamObjFiberObjCompSigMap A β (f ≫ g) =
     eqToHom (by rw [sigmaMap_comp]; rfl)
-    ≫ whiskerRight (lamObjFiberObjCompSigmaMap A β f) (sigmaMap (β ⋙ PGrpd.forgetToGrpd) g)
-    ≫ whiskerLeft (A.map f) (lamObjFiberObjCompSigmaMap A β g)
+    ≫ whiskerRight (lamObjFiberObjCompSigMap A β f) (sigmaMap (β ⋙ PGrpd.forgetToGrpd) g)
+    ≫ whiskerLeft (A.map f) (lamObjFiberObjCompSigMap A β g)
     ≫ eqToHom (by rw [Functor.map_comp, Grpd.comp_eq_comp, Functor.assoc]) := by
   ext a
-  simp [lamObjFiberObjCompSigmaMap, lamObjFiberObjCompSigmaMap.app_comp]
+  simp [lamObjFiberObjCompSigMap, lamObjFiberObjCompSigMap.app_comp]
 
-def whiskerLeftInvLamObjObjSigmaMap :
+def whiskerLeftInvLamObjObjSigMap :
     A.map (CategoryTheory.inv f) ⋙ lamObjFiberObj A β x ⋙ sigmaMap (β ⋙ PGrpd.forgetToGrpd) f ⟶
     lamObjFiberObj A β y :=
-  whiskerLeft (A.map (CategoryTheory.inv f)) (lamObjFiberObjCompSigmaMap A β f)
+  whiskerLeft (A.map (CategoryTheory.inv f)) (lamObjFiberObjCompSigMap A β f)
   ≫ eqToHom (by simp [← Grpd.comp_eq_comp])
 
-@[simp] lemma whiskerLeftInvLamObjObjSigmaMap_id (x : Γ) :
-    whiskerLeftInvLamObjObjSigmaMap A β (𝟙 x) = eqToHom (by simp [sigmaMap_id]) := by
-  simp [whiskerLeftInvLamObjObjSigmaMap]
+@[simp] lemma whiskerLeftInvLamObjObjSigMap_id (x : Γ) :
+    whiskerLeftInvLamObjObjSigMap A β (𝟙 x) = eqToHom (by simp [sigmaMap_id]) := by
+  simp [whiskerLeftInvLamObjObjSigMap]
 
 attribute [local simp] Functor.assoc in
 lemma whiskerLeftInvLamObjObjSimgaMap_comp_aux {A A' B B' C C' : Type*}
@@ -779,13 +779,13 @@ lemma whiskerLeftInvLamObjObjSimgaMap_comp_aux {A A' B B' C C' : Type*}
       whiskerLeft G.inv lamG ≫
       eqToHom (by aesop) := by aesop_cat
 
-lemma whiskerLeftInvLamObjObjSigmaMap_comp {x y z} (f : x ⟶ y) (g : y ⟶ z) :
-    whiskerLeftInvLamObjObjSigmaMap A β (f ≫ g)
+lemma whiskerLeftInvLamObjObjSigMap_comp {x y z} (f : x ⟶ y) (g : y ⟶ z) :
+    whiskerLeftInvLamObjObjSigMap A β (f ≫ g)
     = eqToHom (by simp [Functor.assoc, sigmaMap_comp])
     ≫ whiskerRight (whiskerLeft (A.map (CategoryTheory.inv g))
-      (whiskerLeftInvLamObjObjSigmaMap A β f)) (sigmaMap (β ⋙ PGrpd.forgetToGrpd) g)
-    ≫ whiskerLeftInvLamObjObjSigmaMap A β g := by
-  simp only [whiskerLeftInvLamObjObjSigmaMap, lamObjFiberObjCompSigmaMap_comp]
+      (whiskerLeftInvLamObjObjSigMap A β f)) (sigmaMap (β ⋙ PGrpd.forgetToGrpd) g)
+    ≫ whiskerLeftInvLamObjObjSigMap A β g := by
+  simp only [whiskerLeftInvLamObjObjSigMap, lamObjFiberObjCompSigMap_comp]
   have hAfg : A.map (CategoryTheory.inv (f ≫ g)) = (Grpd.Functor.iso A g).inv ≫
     (Grpd.Functor.iso A f).inv := by simp [Grpd.Functor.iso]
   rw! (castMode := .all) [hAfg]
@@ -795,7 +795,7 @@ lemma whiskerLeftInvLamObjObjSigmaMap_comp {x y z} (f : x ⟶ y) (g : y ⟶ z) :
 
 def lamMapFiber :
     ((pi A (β ⋙ PGrpd.forgetToGrpd)).map f).obj (lamObjFiber A β x) ⟶ lamObjFiber A β y :=
-  whiskerLeftInvLamObjObjSigmaMap A β f
+  whiskerLeftInvLamObjObjSigMap A β f
 
 @[simp] lemma lamMapFiber_id (x : Γ) : lamMapFiber A β (𝟙 x) = eqToHom (by simp) := by
   simp [lamMapFiber]
@@ -806,7 +806,7 @@ lemma lamMapFiber_comp {x y z} (f : x ⟶ y) (g : y ⟶ z) :
     = eqToHom (by rw [← Functor.comp_obj]; apply Functor.congr_obj; simp [piMap_comp])
     ≫ ((piMap A (β ⋙ PGrpd.forgetToGrpd)) g).map ((lamMapFiber A β) f)
     ≫ lamMapFiber A β g := by
-  simp [lamMapFiber, piMap, whiskerLeftInvLamObjObjSigmaMap_comp]
+  simp [lamMapFiber, piMap, whiskerLeftInvLamObjObjSigMap_comp]
   rfl
 
 def lam : Γ ⥤ PGrpd.{u₁,u₁} :=
@@ -861,9 +861,9 @@ theorem lam_naturality_obj (x : Δ) : HEq (lamObjFiber A β (σ.obj x))
     any_goals simp [lam_naturality_aux]
   · apply lamObjFiberObj_naturality
 
-lemma lamObjFiberObjCompSigmaMap.app_naturality {x y} (f : x ⟶ y) (a) :
-    lamObjFiberObjCompSigmaMap.app A β (σ.map f) a ≍
-    lamObjFiberObjCompSigmaMap.app (σ ⋙ A) (pre A σ ⋙ β) f a := by
+lemma lamObjFiberObjCompSigMap.app_naturality {x y} (f : x ⟶ y) (a) :
+    lamObjFiberObjCompSigMap.app A β (σ.map f) a ≍
+    lamObjFiberObjCompSigMap.app (σ ⋙ A) (pre A σ ⋙ β) f a := by
   apply Hom.hext'
   any_goals apply Grpd.Functor.hcongr_obj
   any_goals apply Grpd.comp_hcongr
@@ -874,21 +874,21 @@ lemma lamObjFiberObjCompSigmaMap.app_naturality {x y} (f : x ⟶ y) (a) :
   any_goals apply lamObjFiberObj_naturality
   any_goals simp [app]; rfl
 
-lemma lamObjFiberObjCompSigmaMap_naturality {x y} (f : x ⟶ y) :
-    lamObjFiberObjCompSigmaMap A β (σ.map f) ≍
-    lamObjFiberObjCompSigmaMap (σ ⋙ A) (pre A σ ⋙ β) f := by
+lemma lamObjFiberObjCompSigMap_naturality {x y} (f : x ⟶ y) :
+    lamObjFiberObjCompSigMap A β (σ.map f) ≍
+    lamObjFiberObjCompSigMap (σ ⋙ A) (pre A σ ⋙ β) f := by
   apply Grpd.NatTrans.hext
   any_goals apply Grpd.comp_hcongr
   any_goals simp only [comp_obj, Functor.comp_map, heq_eq_eq, eqToHom_refl]
   any_goals apply sigmaObj_naturality
   any_goals apply lamObjFiberObj_naturality
   · apply sigmaMap_naturality_heq
-  · apply lamObjFiberObjCompSigmaMap.app_naturality
+  · apply lamObjFiberObjCompSigMap.app_naturality
 
-lemma whiskerLeftInvLamObjObjSigmaMap_naturality_heq {x y} (f : x ⟶ y) :
-    whiskerLeftInvLamObjObjSigmaMap A β (σ.map f) ≍
-    whiskerLeftInvLamObjObjSigmaMap (σ ⋙ A) (pre A σ ⋙ β) f := by
-  simp only [whiskerLeftInvLamObjObjSigmaMap, Functor.comp_map]
+lemma whiskerLeftInvLamObjObjSigMap_naturality_heq {x y} (f : x ⟶ y) :
+    whiskerLeftInvLamObjObjSigMap A β (σ.map f) ≍
+    whiskerLeftInvLamObjObjSigMap (σ ⋙ A) (pre A σ ⋙ β) f := by
+  simp only [whiskerLeftInvLamObjObjSigMap, Functor.comp_map]
   apply HEq.trans (comp_eqToHom_heq _ _)
   apply HEq.trans _ (comp_eqToHom_heq _ _).symm
   rw [Functor.map_inv, Functor.map_inv, Functor.map_inv]
@@ -898,11 +898,11 @@ lemma whiskerLeftInvLamObjObjSigmaMap_naturality_heq {x y} (f : x ⟶ y) :
   any_goals apply sigmaObj_naturality
   any_goals apply lamObjFiberObj_naturality
   · apply sigmaMap_naturality_heq
-  · apply lamObjFiberObjCompSigmaMap_naturality
+  · apply lamObjFiberObjCompSigMap_naturality
 
 lemma lam_naturality_map {x y} (f : x ⟶ y) :
     lamMapFiber A β (σ.map f) ≍ lamMapFiber (σ ⋙ A) (pre A σ ⋙ β) f := by
-  apply whiskerLeftInvLamObjObjSigmaMap_naturality_heq
+  apply whiskerLeftInvLamObjObjSigMap_naturality_heq
 
 theorem lam_naturality : σ ⋙ lam A β = lam (σ ⋙ A) (pre A σ ⋙ β)
      := by
@@ -1007,24 +1007,24 @@ lemma lam_app_eq {Γ : Ctx} (ab : y(Γ) ⟶ smallU.Ptp.obj smallU.Tm) : ab ≫ l
   rw [lam, NatTrans.yonedaMk_app, lam_app]
 
 
-/-lemma smallUSigma.pair_app_eq {Γ : Ctx} (ab : y(Γ) ⟶ _) : ab ≫ smallUSigma.pair =
+/-lemma smallUSig.pair_app_eq {Γ : Ctx} (ab : y(Γ) ⟶ _) : ab ≫ smallUSig.pair =
     yonedaCategoryEquiv.symm (FunctorOperation.pair _ _ _ (snd_forgetToGrpd ab)) := by
-  simp only [smallUSigma.pair, smallUSigma.pair_app, NatTrans.yonedaMk_app]
+  simp only [smallUSig.pair, smallUSig.pair_app, NatTrans.yonedaMk_app]
 
-namespace SigmaPullback
+namespace SigPullback
 
 open Limits
 
 section
 
-theorem smallUSigma.pair_tp : smallUSigma.pair.{v} ≫ smallU.{v}.tp =
-    smallU.comp.{v} ≫ smallUSigma.Sig.{v} := by
+theorem smallUSig.pair_tp : smallUSig.pair.{v} ≫ smallU.{v}.tp =
+    smallU.comp.{v} ≫ smallUSig.Sig.{v} := by
   apply hom_ext_yoneda
   intros Γ ab
-  rw [← Category.assoc, ← Category.assoc, smallUSigma.pair_app_eq,
-    smallUSigma.Sig_app_eq, smallU_tp, π,
+  rw [← Category.assoc, ← Category.assoc, smallUSig.pair_app_eq,
+    smallUSig.Sig_app_eq, smallU_tp, π,
     ← yonedaCategoryEquiv_symm_naturality_right,
-    pair_comp_forgetToGrpd, smallUSigma.Sig_app]
+    pair_comp_forgetToGrpd, smallUSig.Sig_app]
   congr 2
   · rw [fst_forgetToGrpd]
   · exact dependent_heq.{v} ab
@@ -1102,9 +1102,9 @@ def uHomSeqPis' (i : ℕ) (ilen : i < 4) :
   | 3 => smallUPi.{3,4}
   | (n+4) => by omega
 
-def uHomSeqPiSigma : UHomSeqPiSigma Ctx := { uHomSeq with
+def uHomSeqPiSig : UHomSeqPiSig Ctx := { uHomSeq with
   nmPi := uHomSeqPis'
-  nmSigma := uHomSeqSigmas' }
+  nmSig := uHomSeqSigs' }
 
 end
 
