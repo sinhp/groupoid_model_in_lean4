@@ -339,13 +339,14 @@ theorem PtpEquiv.mk_map {Γ : Ctx} {X Y : Psh Ctx}
 --   sorry
 
 namespace compDomEquiv
+open UvPoly
 
-variable {M} (N : NaturalModel Ctx) {Γ Δ : Ctx} (σ : Δ ⟶ Γ)
+variable {M N : NaturalModel Ctx} {Γ Δ : Ctx} (σ : Δ ⟶ Γ)
 
 /-- Universal property of `compDom`, decomposition (part 1).
 
 A map `ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp` is equivalently three maps
-`fst, dependent, snd` such that `snd_tp`. The map `fst : y(Γ) ⟶ M.Tm`
+`fst, dependent, snd` such that `fst_tp` and `snd_tp`. The map `fst : y(Γ) ⟶ M.Tm`
 is the `(a : A)` in `(a : A) × (b : B a)`.
 -/
 def fst (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : y(Γ) ⟶ M.Tm :=
@@ -365,96 +366,132 @@ def fst (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : y(Γ) ⟶ M.Tm :=
 Namely the first projection `α ≫ tp` agrees.
 -/
 theorem fst_tp (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
-    fst N ab ≫ M.tp = PtpEquiv.fst M (ab ≫ (M.uvPolyTp.comp _).p) := by
+    fst ab ≫ M.tp = PtpEquiv.fst M (ab ≫ (M.uvPolyTp.comp _).p) := by
   have : pullback.snd (M.uvPolyTp.fstProj N.Ty) M.tp ≫ M.tp =
     pullback.fst (M.uvPolyTp.fstProj N.Ty) M.tp ≫ M.uvPolyTp.fstProj N.Ty :=
       Eq.symm pullback.condition
   simp [PtpEquiv.fst, fst, this]
   rfl
 
+theorem comp_fst (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) (σ : y(Δ) ⟶ y(Γ)) :
+    σ ≫ fst ab = fst (σ ≫ ab) := by simp [fst]
+
 /-- Universal property of `compDom`, decomposition (part 2).
 
 A map `ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp` is equivalently three maps
-`fst, dependent, snd` such that `snd_tp`.
+`fst, dependent, snd` such that `fst_tp` and `snd_tp`.
 The map `dependent : y(M.ext (fst N ab ≫ M.tp)) ⟶ M.Ty`
 is the `B : A ⟶ Type` in `(a : A) × (b : B a)`.
 Here `A` is implicit, derived by the typing of `fst`, or `(a : A)`.
 -/
-def dependent (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
-    y(M.ext (fst N ab ≫ M.tp)) ⟶ N.Ty :=
-  ym(eqToHom (by rw [fst_tp])) ≫ PtpEquiv.snd M (ab ≫ (M.uvPolyTp.comp _).p)
+def dependent (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp)
+    (A := fst ab ≫ M.tp) (eq : fst ab ≫ M.tp = A := by rfl) :
+    y(M.ext A) ⟶ N.Ty :=
+  PtpEquiv.snd M (ab ≫ (M.uvPolyTp.comp _).p) _ (by rw [← eq, fst_tp])
 
+theorem comp_dependent (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp)
+    {A} (eq1 : fst ab ≫ M.tp = A)
+    {σA} (eq2 : ym(σ) ≫ A = σA) :
+    ym(substWk M σ _ _ eq2) ≫ dependent ab A eq1 =
+    dependent (ym(σ) ≫ ab) σA (by simp [← comp_fst, eq1, eq2]) := by
+  rw [dependent, ← PtpEquiv.snd_comp_left]; rfl
 
 /-- Universal property of `compDom`, decomposition (part 3).
 
 A map `ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp` is equivalently three maps
-`fst, dependent, snd` such that `snd_tp`.
+`fst, dependent, snd` such that `fst_tp` and `snd_tp`.
 The map `snd : y(Γ) ⟶ M.Tm`
 is the `(b : B a)` in `(a : A) × (b : B a)`.
 -/
 def snd (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : y(Γ) ⟶ N.Tm :=
-  ab ≫ pullback.fst N.tp (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).snd
+  ab ≫ pullback.fst N.tp (PartialProduct.fan M.uvPolyTp N.Ty).snd
+
+theorem comp_snd (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) (σ : y(Δ) ⟶ y(Γ)) :
+    σ ≫ snd ab = snd (σ ≫ ab) := by simp [snd]
 
 /-- Universal property of `compDom`, decomposition (part 4).
 
 A map `ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp` is equivalently three maps
-`fst, dependent, snd` such that `snd_tp`.
+`fst, dependent, snd` such that `fst_tp` and `snd_tp`.
 The equation `snd_tp` says that the type of `b : B a` agrees with
 the expression for `B a` obtained solely from `dependent`, or `B : A ⟶ Type`.
 -/
-theorem snd_tp (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : snd N ab ≫ N.tp =
-    ym(M.sec _ (fst N ab) rfl) ≫ dependent N ab := by
-  sorry
+theorem snd_tp (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp)
+    {A} (eq : fst ab ≫ M.tp = A) :
+    snd ab ≫ N.tp = ym(M.sec _ (fst ab) eq) ≫ dependent ab A eq := by
+  simp [snd, pullback.condition, dependent, PtpEquiv.snd, Equiv.snd'_eq]
+  simp only [← Category.assoc]; congr! 2
+  apply pullback.hom_ext <;> simp [fst]
+
+attribute [-simp] PartialProduct.fan_snd -- FIXME: upstream this to Poly
 
 /-- Universal property of `compDom`, constructing a map into `compDom`. -/
-def mk (α : y(Γ) ⟶ M.Tm) (B : y(M.ext (α ≫ M.tp)) ⟶ N.Ty) (β : y(Γ) ⟶ N.Tm)
-    (h : β ≫ N.tp = ym(M.sec _ α rfl) ≫ B) : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp :=
-  sorry
-  -- let AB := M.Ptp_equiv.symm ⟨α ≫ M.tp, B⟩
-  -- pullback.lift
-  --   β                     -- snd component
-  --   (pullback.lift
-  --     AB                  -- first part of dependent pair
-  --     α                   -- fst component
-  --     (by sorry))  -- proof they agree
-  --   (by sorry)
+def mk (α : y(Γ) ⟶ M.Tm) {A} (eq : α ≫ M.tp = A) (B : y(M.ext A) ⟶ N.Ty) (β : y(Γ) ⟶ N.Tm)
+    (h : β ≫ N.tp = ym(M.sec _ α eq) ≫ B) : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp := by
+  refine pullback.lift β (pullback.lift (PtpEquiv.mk _ A B) α ?_) ?_
+  · simp [← Equiv.fst_eq, ← PtpEquiv.fst.eq_def, eq]
+  · simp [h]
+    conv_lhs => arg 2; exact
+      Equiv.snd'_mk' M.uvPolyTp N.Ty A _ B
+        |>.symm.trans <| Equiv.snd'_eq M.uvPolyTp N.Ty (PtpEquiv.mk M A B) _
+    simp only [← Category.assoc]; congr! 1
+    apply pullback.hom_ext <;> simp
 
-/-ym(σ) ≫ compDomEquiv.mk s[j] t (ym(eqToHom ⋯) ≫ B) u ⋯ =
-  compDomEquiv.mk s[j] (ym(σ) ≫ t) ((ym(eqToHom ⋯) ≫ ym(s[i].substWk σ A)) ≫ B) (ym(σ) ≫ u) ⋯
+@[simp]
+theorem fst_mk (α : y(Γ) ⟶ M.Tm) {A} (eq : α ≫ M.tp = A) (B : y(M.ext A) ⟶ N.Ty) (β : y(Γ) ⟶ N.Tm)
+    (h : β ≫ N.tp = ym(M.sec _ α eq) ≫ B) : fst (mk α eq B β h) = α := by
+  simp [mk, fst]
 
-  {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
-    (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
-    (t : y(Γ) ⟶ s[i].Tm) (t_tp : t ≫ s[i].tp = A)
-    (u : y(Γ) ⟶ s[j].Tm) (u_tp : u ≫ s[j].tp = ym(s[i].sec A t t_tp) ≫ B)
+@[simp]
+theorem dependent_mk (α : y(Γ) ⟶ M.Tm) {A} (eq : α ≫ M.tp = A)
+    (B : y(M.ext A) ⟶ N.Ty) (β : y(Γ) ⟶ N.Tm)
+    (h : β ≫ N.tp = ym(M.sec _ α eq) ≫ B) :
+    dependent (mk α eq B β h) A (by simp [fst_mk, eq]) = B := by
+  simp [mk, dependent]
+  convert PtpEquiv.snd_mk M A B using 2
+  slice_lhs 1 2 => apply pullback.lift_snd
+  simp
 
-  -/
+@[simp]
+theorem snd_mk (α : y(Γ) ⟶ M.Tm) {A} (eq : α ≫ M.tp = A) (B : y(M.ext A) ⟶ N.Ty) (β : y(Γ) ⟶ N.Tm)
+    (h : β ≫ N.tp = ym(M.sec _ α eq) ≫ B) : snd (mk α eq B β h) = β := by
+  simp [mk, snd]
 
-def mk_naturality (A : y(Γ) ⟶ M.Ty) (α : y(Γ) ⟶ M.Tm) (B : y(M.ext (α ≫ M.tp)) ⟶ N.Ty)
-    (β : y(Γ) ⟶ N.Tm) (e1 : α ≫ M.tp = A) (e2 : β ≫ N.tp = ym(M.sec A α e1) ≫ eqToHom sorry ≫ B)
-    (h : β ≫ N.tp = ym(M.sec _ α rfl) ≫ B) (σ : Δ ⟶ Γ) :
-    ym(σ) ≫ compDomEquiv.mk N α B β sorry =
-    compDomEquiv.mk N (ym(σ) ≫ α)
-      (ym(eqToHom sorry ≫ M.substWk σ A) ≫ (eqToHom sorry ≫ B)) (ym(σ) ≫ β) sorry := by
-  sorry
+theorem ext {ab₁ ab₂ : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp}
+    {A} (eq : fst ab₁ ≫ M.tp = A)
+    (h1 : fst ab₁ = fst ab₂)
+    (h2 : dependent ab₁ A eq = dependent ab₂ A (h1 ▸ eq))
+    (h3 : snd ab₁ = snd ab₂) : ab₁ = ab₂ := by
+  refine pullback.hom_ext h3 (pullback.hom_ext ?_ h1)
+  simp only [dependent, PtpEquiv.snd] at h2
+  generalize_proofs _ _ H at h2
+  refine Equiv.ext' M.uvPolyTp N.Ty H ?_ h2
+  simp [Equiv.fst, pullback.condition]
+  simp only [← Category.assoc]; congr 1
 
-def fst_naturality (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
-    fst N (ym(σ) ≫ ab) = ym(σ) ≫ fst N ab := by
-  simp only [fst, Category.assoc]
+theorem comp_mk
+    (α : y(Γ) ⟶ M.Tm) {A} (e1 : α ≫ M.tp = A)
+    (B : y(M.ext A) ⟶ N.Ty)
+    (β : y(Γ) ⟶ N.Tm)
+    (e2 : β ≫ N.tp = ym(M.sec A α e1) ≫ B)
+    (σ : Δ ⟶ Γ) {σA} (e3 : ym(σ) ≫ A = σA) :
+    ym(σ) ≫ mk α e1 B β e2 =
+    mk (ym(σ) ≫ α) (by simp [e1, e3])
+      (ym(M.substWk σ A _ e3) ≫ B) (ym(σ) ≫ β)
+      (by simp [e2]; rw [← Functor.map_comp_assoc, comp_sec]; simp; congr!) := by
+  apply ext (A := σA) (by simp [← comp_fst, e1, e3]) <;> simp [← comp_fst, ← comp_snd]
+  rw [← comp_dependent, dependent_mk]
 
-def dependent_naturality (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
-    dependent N (ym(σ) ≫ ab) =
-    ym(eqToHom (by simp [fst_naturality]) ≫ M.substWk σ _) ≫ dependent N ab := by
-  --simp[dependent, substWk, substCons]
-  sorry
-
-def snd_naturality (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
-    snd N (ym(σ) ≫ ab) = ym(σ) ≫ snd N ab := by
-  simp only [snd, Category.assoc]
+theorem eta (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp)
+    {A} (eq : fst ab ≫ M.tp = A) :
+    mk (fst ab) eq (dependent ab A eq) (snd ab) (snd_tp ab eq) = ab := by
+  symm; apply ext (eq := eq) <;> simp
 
 end compDomEquiv
 
 /-! ## Pi and Sigma types -/
 
+set_option linter.dupNamespace false in
 protected structure Pi where
   Pi : M.Ptp.obj M.Ty ⟶ M.Ty
   lam : M.Ptp.obj M.Tm ⟶ M.Tm
@@ -780,7 +817,7 @@ Ty <-- y(motiveCtx) ----> i
 def motive : y(Γ) ⟶ i.iFunctor.obj M.Ty :=
   i.equivMk M a C
 
-def j : y(Γ) ⟶ i.iFunctor.obj M.Tm :=
+protected def j : y(Γ) ⟶ i.iFunctor.obj M.Tm :=
   i.weakPullback.lift y(Γ) (reflCase a r) (motive i a C) (by
     simp [reflCase, motive]
     rw [UvPoly.Equiv.mk_comp_right]
