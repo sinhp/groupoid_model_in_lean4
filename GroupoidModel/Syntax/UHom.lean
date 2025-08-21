@@ -712,16 +712,14 @@ theorem comp_mkPair {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
       s.mkPair ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ B)
         (ym(σ) ≫ t) (by simp [t_tp])
         (ym(σ) ≫ u) (by simp [u_tp, comp_sec_functor_map_assoc]) := by
-  unfold mkPair
-  simp[← Category.assoc]
+  simp only[← Category.assoc,eqToHom_map,mkPair]
   congr
   apply NaturalModel.compDomEquiv.mk_naturality (A:= A) (e1 := t_tp)
   · simp[u_tp]
-    sorry
-  · simp[u_tp]
+  · simp only [u_tp]
     rw![t_tp]
-    congr 1
-    simp
+    rfl
+
 
 
 
