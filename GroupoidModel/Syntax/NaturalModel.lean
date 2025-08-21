@@ -282,13 +282,13 @@ theorem snd_comp_right {Y} (σ : X ⟶ Y) {A} (eq : fst M AB = A) :
 
 theorem snd_comp_left {A} (eqA : fst M AB = A) {σA} (eqσ : ym(σ) ≫ A = σA) :
     snd M (ym(σ) ≫ AB) σA (by simp [fst_comp_left, eqA, eqσ]) =
-    ym(M.substWk' σ _ _ eqσ) ≫ snd M AB _ eqA := by
+    ym(M.substWk σ _ _ eqσ) ≫ snd M AB _ eqA := by
   refine
     have H1 := by rw [← fst, eqA]; exact (M.disp_pullback _).flip
     have H2 := by rw [← fst, eqA, eqσ]; exact (M.disp_pullback _).flip
     (UvPoly.Equiv.snd'_comp_left M.uvPolyTp X AB H1 _ H2).trans ?_
   congr 1
-  apply H1.hom_ext <;> simp [← Functor.map_comp, substWk']
+  apply H1.hom_ext <;> simp [← Functor.map_comp, substWk]
 
 theorem mk_comp_left {Δ Γ : Ctx} (M : NaturalModel Ctx) (σ : Δ ⟶ Γ)
     {X : Psh Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :

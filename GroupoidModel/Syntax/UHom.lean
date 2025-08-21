@@ -526,13 +526,13 @@ theorem comp_unLam {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     ym(s[i].substWk σ A) ≫ s.unLam ilen jlen A B f f_tp =
       s.unLam ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ B)
         (ym(σ) ≫ f) (by simp [f_tp, comp_mkPi]) := by
-  simp [unLam, substWk]
+  simp [unLam]
   rw [← PtpEquiv.snd_comp_left]
   simp [PtpEquiv.snd, UvPoly.Equiv.snd'_eq]
   simp only [← Category.assoc]; congr 2
   apply pullback.hom_ext <;> simp; congr 1
   apply (s.Pi_pb ilen jlen).hom_ext <;> simp
-  rw [PtpEquiv.mk_comp_left]; rfl
+  rw [PtpEquiv.mk_comp_left]
 
 /--
 ```
@@ -613,7 +613,7 @@ theorem etaExpand_eq {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s
   conv_rhs => rw [← Category.id_comp (s.unLam ..)]
   congr 2
   apply (s[i].disp_pullback A).hom_ext <;> simp
-  simp [substWk, substWk']
+  simp [substWk]
 
 /--
 ```
