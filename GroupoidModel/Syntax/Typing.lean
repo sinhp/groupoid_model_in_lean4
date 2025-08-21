@@ -8,24 +8,12 @@ as `Prop`-valued relations. -/
 section Notation -- TODO make notation local
 
 declare_syntax_cat judgment
-syntax:25 term:51 " ⊢[" term:51 "] " judgment:50 : term
-
 syntax:50 term:51 : judgment
 syntax:50 term:51 " ≡ " term:51 : judgment
 syntax:50 term:51 " : " term:51 : judgment
 syntax:50 term:51 " ≡ " term:51 " : " term:51 : judgment
 
-set_option hygiene false in
-macro_rules
-  | `($Γ ⊢[$l:term] $A:term) => `(WfTp $Γ $l $A)
-  | `($Γ ⊢[$l:term] $A:term ≡ $B:term) => `(EqTp $Γ $l $A $B)
-  | `($Γ ⊢[$l:term] $t:term : $A:term) => `(WfTm $Γ $l $A $t)
-  | `($Γ ⊢[$l:term] $t:term ≡ $u:term : $A:term) => `(EqTm $Γ $l $A $t $u)
-
 end Notation
-
-/-- A typing context consisting of type expressions and their universe levels. -/
-abbrev Ctx := List (Expr × Nat)
 
 /-- The maximum `l` for which `Γ ⊢[l] 𝒥` makes sense.
 When set to `0`, types cannot be quantified over at all. -/
@@ -34,16 +22,45 @@ When set to `0`, types cannot be quantified over at all. -/
 -- If only we had parameterized modules..
 def univMax : Nat := 4
 
+/-- A *constant environment* is a (possibly infinite) set
+of closed term constants indexed by a type of names `χ`.
+`χ` is in general larger than necessary
+and not all names correspond to constants.
+We record the universe level and type of each constant.
+
+We do not support type constants directly:
+they are just term constants in a universe.
+This does mean we cannot have type constants at level `univMax`.
+
+We do *not* use `Env` for definitions;
+the native Lean `Environment` is used instead. -/
+abbrev Env (χ : Type*) := χ → Option { Al : Expr χ × Nat // Al.1.isClosed ∧ Al.2 ≤ univMax }
+
+/-- A typing context consisting of type expressions and their universe levels. -/
+abbrev Ctx (χ : Type*) := List (Expr χ × Nat)
+
+variable {χ : Type*} (E : Env χ)
+
 /-- `Lookup Γ i A l` means that `A = A'[↑ⁱ⁺¹]` where `Γ[i] = (A', l)`.
 Together with `⊢ Γ`, this implies `Γ ⊢[l] .bvar i : A`. -/
-inductive Lookup : Ctx → Nat → Expr → Nat → Prop where
+inductive Lookup : Ctx χ → Nat → Expr χ → Nat → Prop where
   | zero (Γ A l) : Lookup ((A,l) :: Γ) 0 (A.subst Expr.wk) l
   | succ {Γ A i l} (B l') : Lookup Γ i A l → Lookup ((B,l') :: Γ) (i+1) (A.subst Expr.wk) l
 
-mutual
+/-- Judgment syntax not parameterized by an environment.
+Used locally to define typing rules without repeating `E ∣ Γ`. -/
+local syntax:25 term:51 " ⊢[" term:51 "] " judgment:50 : term
 
+set_option hygiene false in
+macro_rules
+  | `($Γ ⊢[$l:term] $A:term) => `(WfTp $Γ $l $A)
+  | `($Γ ⊢[$l:term] $A:term ≡ $B:term) => `(EqTp $Γ $l $A $B)
+  | `($Γ ⊢[$l:term] $t:term : $A:term) => `(WfTm $Γ $l $A $t)
+  | `($Γ ⊢[$l:term] $t:term ≡ $u:term : $A:term) => `(EqTm $Γ $l $A $t $u)
+
+mutual
 /-- All types in the given context are well-formed. -/
-inductive WfCtx : Ctx → Prop
+inductive WfCtx : Ctx χ → Prop
   | nil : WfCtx []
   | snoc {Γ A l} :
     WfCtx Γ →
@@ -63,7 +80,7 @@ it also means the Lean kernel is checking smaller derivation trees.
 
 Convention on order of implicit parameters:
 contexts, types, terms, de Bruijn indices, universe levels. -/
-inductive WfTp : Ctx → Nat → Expr → Prop
+inductive WfTp : Ctx χ → Nat → Expr χ → Prop
   -- Type formers
   | pi' {Γ A B l l'} :
     Γ ⊢[l] A →
@@ -91,7 +108,7 @@ inductive WfTp : Ctx → Nat → Expr → Prop
     Γ ⊢[l] .el A
 
 /-- The two types are equal at the specified universe level. -/
-inductive EqTp : Ctx → Nat → Expr → Expr → Prop
+inductive EqTp : Ctx χ → Nat → Expr χ → Expr χ → Prop
   -- Congruences
   | cong_pi' {Γ A A' B B' l l'} :
     Γ ⊢[l] A →
@@ -140,8 +157,13 @@ inductive EqTp : Ctx → Nat → Expr → Expr → Prop
 /-- The term has the specified type at the specified universe level.
 
 Note: the type is the _first_ `Expr` argument. -/
-inductive WfTm : Ctx → Nat → Expr → Expr → Prop
+inductive WfTm : Ctx χ → Nat → Expr χ → Expr χ → Prop
   -- Term formers
+  | const {Γ c Al} :
+    WfCtx Γ →
+    E c = some Al →
+    Γ ⊢[Al.val.2] .const c : Al.val.1
+
   | bvar {Γ A i l} :
     WfCtx Γ →
     Lookup Γ i A l →
@@ -207,7 +229,7 @@ inductive WfTm : Ctx → Nat → Expr → Expr → Prop
 
 Note: the type is the _first_ `Expr` argument in order to make `gcongr` work.
 We still pretty-print it last following convention. -/
-inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
+inductive EqTm : Ctx χ → Nat → Expr χ → Expr χ → Expr χ → Prop
   -- Congruences
   | cong_lam' {Γ A A' B t t' l l'} :
     Γ ⊢[l] A →
@@ -272,14 +294,14 @@ inductive EqTm : Ctx → Nat → Expr → Expr → Expr → Prop
     Γ ⊢[l] u : A →
     Γ ⊢[l'] .app l l' B (.lam l l' A t) u ≡ t.subst u.toSb : B.subst u.toSb
 
-  | fst_pair' {Γ} {A B t u : Expr} {l l'} :
+  | fst_pair' {Γ} {A B t u} {l l'} :
     Γ ⊢[l] A →
     (A,l) :: Γ ⊢[l'] B →
     Γ ⊢[l] t : A →
     Γ ⊢[l'] u : B.subst t.toSb →
     Γ ⊢[l] .fst l l' A B (.pair l l' B t u) ≡ t : A
 
-  | snd_pair' {Γ} {A B t u : Expr} {l l'} :
+  | snd_pair' {Γ} {A B t u} {l l'} :
     Γ ⊢[l] A →
     (A,l) :: Γ ⊢[l'] B →
     Γ ⊢[l] t : A →
@@ -337,27 +359,58 @@ end
 
 /-! ## Pretty-printers -/
 
+-- FIXME: hovering over this syntax doesn't show docstrings for `WfTp` et al.
+syntax:25 term:51 " ∣ " term:51 " ⊢[" term:51 "] " judgment:50 : term
+
+macro_rules
+  | `($E ∣ $Γ ⊢[$l:term] $A:term) => ``(WfTp $E $Γ $l $A)
+  | `($E ∣ $Γ ⊢[$l:term] $A:term ≡ $B:term) => ``(EqTp $E $Γ $l $A $B)
+  | `($E ∣ $Γ ⊢[$l:term] $t:term : $A:term) => ``(WfTm $E $Γ $l $A $t)
+  | `($E ∣ $Γ ⊢[$l:term] $t:term ≡ $u:term : $A:term) => ``(EqTm $E $Γ $l $A $t $u)
+
 section PrettyPrinting
 open Lean PrettyPrinter
 
 @[app_unexpander WfTp]
 def WfTp.unexpand : Unexpander
-  | `($_ $Γ $l $A) => `($Γ ⊢[$l] $A:term)
+  | `($_ $E $Γ $l $A) => `($E ∣ $Γ ⊢[$l] $A:term)
   | _ => throw ()
 
 @[app_unexpander EqTp]
 def EqTp.unexpand : Unexpander
-  | `($_ $Γ $l $A $A') => `($Γ ⊢[$l] $A:term ≡ $A')
+  | `($_ $E $Γ $l $A $A') => `($E ∣ $Γ ⊢[$l] $A:term ≡ $A')
   | _ => throw ()
 
 @[app_unexpander WfTm]
 def WfTm.unexpand : Unexpander
-  | `($_ $Γ $l $A $t) => `($Γ ⊢[$l] $t:term : $A)
+  | `($_ $E $Γ $l $A $t) => `($E ∣ $Γ ⊢[$l] $t:term : $A)
   | _ => throw ()
 
 @[app_unexpander EqTm]
 def EqTm.unexpand : Unexpander
-  | `($_ $Γ $l $A $t $t') => `($Γ ⊢[$l] $t:term ≡ $t' : $A)
+  | `($_ $E $Γ $l $A $t $t') => `($E ∣ $Γ ⊢[$l] $t:term ≡ $t' : $A)
   | _ => throw ()
 
 end PrettyPrinting
+
+/-! ## Well-formed constant environments -/
+
+/-- The given constant environment is well-formed.
+
+Unlike contexts that change via substitutions,
+most syntactic lemmas live 'over' a fixed environment.
+These all require an `Env.Wf` assumption
+that cannot be eliminated using inversion (`E | Γ ⊢[l] 𝒥 ⇏ E.Wf`).
+We propagate this assumption using the typeclass `[Fact E.Wf]`. -/
+/- FIXME: Can't make inversion true by making `Env.Wf` mutual with typing
+(that's not strictly positive),
+but we could redefine `E ∣ Γ ⊢[l] 𝒥` to mean `E.Wf ∧ E ∣ Γ ⊢[l] 𝒥`.
+We'd need to rederive all typing rules for the latter,
+and this should be done using custom automation
+(do NOT write a million lemmas by hand). -/
+abbrev Env.Wf (E : Env χ) :=
+  ∀ {c : χ} {p}, E c = some p → E ∣ [] ⊢[p.val.2] p.val.1
+
+def Env.empty (χ) : Env χ := fun _ => none
+
+theorem Env.Wf.empty (χ) : (empty χ).Wf := nofun

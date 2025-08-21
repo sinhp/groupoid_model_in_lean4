@@ -7,13 +7,15 @@ def traceClsTypechecker : Lean.Name := `HoTT0.Typechecker
 initialize
   Lean.registerTraceClass traceClsTypechecker
 
-partial def lookup (vΓ : Q(TpEnv)) (i : Q(Nat)) : Lean.MetaM ((vA : Q(Val)) × (l : Q(Nat)) ×
-    Q(∀ {Γ}, TpEnvEqCtx $vΓ Γ → ∃ A, ValEqTp Γ $l $vA A ∧ Lookup Γ $i A $l)) :=
+variable {_u : Lean.Level} {χ : Q(Type _u)}
+
+partial def lookup (vΓ : Q(TpEnv $χ)) (i : Q(Nat)) : Lean.MetaM ((vA : Q(Val $χ)) × (l : Q(Nat)) ×
+    Q(∀ {E Γ}, [Fact E.Wf] → TpEnvEqCtx E $vΓ Γ → ∃ A, ValEqTp E Γ $l $vA A ∧ Lookup Γ $i A $l)) :=
   match i, vΓ with
   | _, ~q([]) => throwError "bvar {i} out of range in type environment{Lean.indentExpr vΓ}"
   | ~q(.zero), ~q(($vA, $l) :: _) => do
     return ⟨q($vA), q($l), q(by as_aux_lemma =>
-      introv vΓ
+      introv _ vΓ
       simp +zetaDelta only at vΓ
       rcases vΓ with _ | ⟨vΓ, vA⟩
       exact ⟨_, vA.wk vA.wf_tp, Lookup.zero ..⟩
@@ -21,7 +23,7 @@ partial def lookup (vΓ : Q(TpEnv)) (i : Q(Nat)) : Lean.MetaM ((vA : Q(Val)) × 
   | ~q($i' + 1), ~q(_ :: $vΓ') => do
     let ⟨vA, l, pf⟩ ← lookup q($vΓ') q($i')
     return ⟨q($vA), q($l), q(by as_aux_lemma =>
-      introv vΓ
+      introv _ vΓ
       simp +zetaDelta only at vΓ ⊢
       rcases vΓ with _ | ⟨vΓ', vB⟩
       have ⟨_, vA, lk⟩ := $pf vΓ'
@@ -29,8 +31,10 @@ partial def lookup (vΓ : Q(TpEnv)) (i : Q(Nat)) : Lean.MetaM ((vA : Q(Val)) × 
     )⟩
 
 mutual
-partial def checkTp (vΓ : Q(TpEnv)) (l : Q(Nat)) (T : Q(Expr)) :
-    Lean.MetaM Q(∀ {Γ}, TpEnvEqCtx $vΓ Γ → Γ ⊢[$l] ($T)) :=
+variable (E : Q(Env $χ)) (Ewf : Q(Fact ($E).Wf))
+
+partial def checkTp (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (T : Q(Expr $χ)) :
+    Lean.MetaM Q(∀ {Γ}, TpEnvEqCtx $E $vΓ Γ → $E ∣ Γ ⊢[$l] ($T)) :=
   Lean.withTraceNode traceClsTypechecker (fun e =>
     return m!"{Lean.exceptEmoji e} {vΓ} ⊢[{l}] {T}") do
   match T with
@@ -84,8 +88,9 @@ partial def checkTp (vΓ : Q(TpEnv)) (l : Q(Nat)) (T : Q(Expr)) :
     )
   | T => throwError "expected a type, got{Lean.indentExpr T}"
 
-partial def checkTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (vT : Q(Val)) (t : Q(Expr)) :
-    Lean.MetaM Q(∀ {Γ T}, TpEnvEqCtx $vΓ Γ → ValEqTp Γ $l $vT T → Γ ⊢[$l] ($t) : T) := do
+partial def checkTm (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (vT : Q(Val $χ)) (t : Q(Expr $χ)) :
+    Lean.MetaM Q(∀ {Γ T}, TpEnvEqCtx $E $vΓ Γ → ValEqTp $E Γ $l $vT T →
+      $E ∣ Γ ⊢[$l] ($t) : T) := do
   Lean.withTraceNode traceClsTypechecker (fun e =>
     return m!"{Lean.exceptEmoji e} {vΓ} ⊢[{l}] {t} ⇐ {vT}") do
   /- We could do something more bidirectional,
@@ -99,12 +104,33 @@ partial def checkTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (vT : Q(Val)) (t : Q(Expr)) :
   )
 
 -- TODO: infer rather than check universe level?
-partial def synthTm (vΓ : Q(TpEnv)) (l : Q(Nat)) (t : Q(Expr)) : Lean.MetaM ((vT : Q(Val)) ×
-    Q(∀ {Γ}, TpEnvEqCtx $vΓ Γ → ∃ T, ValEqTp Γ $l $vT T ∧ (Γ ⊢[$l] ($t) : T))) :=
+partial def synthTm (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (t : Q(Expr $χ)) :
+    Lean.MetaM ((vT : Q(Val $χ)) × Q(∀ {Γ}, TpEnvEqCtx $E $vΓ Γ →
+      ∃ T, ValEqTp $E Γ $l $vT T ∧ ($E ∣ Γ ⊢[$l] ($t) : T))) :=
   Lean.withTraceNode (ε := Lean.Exception) traceClsTypechecker (fun
     | .ok vT => return m!"✅️ {vΓ} ⊢[{l}] {t} ⇒ {vT}"
     | .error e => return m!"❌️ {vΓ} ⊢[{l}] {t} ⇒ _") do
   match t with
+  -- TODO: also handle *Lean* constants (refs to `Lean.Environment`)
+  | ~q(.const $c) => do
+    let Al : Q(Option { Al : Expr $χ × Nat // Al.1.isClosed ∧ Al.2 ≤ univMax }) ←
+      Lean.Meta.whnf q($E $c)
+    let ~q(some $Al') := Al
+      | throwError "could not find constant '{c}' in environment{Lean.indentExpr E}\n\
+         note: expected 'some _', got{Lean.indentExpr Al}"
+    have : $Al =Q $E $c := .unsafeIntro -- FIXME: `whnfQ`?
+    let leq ← equateNat q($l) q(($Al').val.2)
+    -- NOTE: could also evaluate in empty environment here and then weaken `ValEqTp`;
+    -- I think it makes no difference.
+    let ⟨vA, vApost⟩ ← evalTpId q($vΓ) q(($Al').val.1)
+    return ⟨vA, q(by as_aux_lemma =>
+      introv vΓ
+      subst_vars
+      have Ec := ($this).symm
+      have := Env.Wf.atCtx ($Ewf).out vΓ.wf_ctx Ec
+      refine ⟨_, $vApost vΓ this, ?_⟩
+      apply WfTm.const vΓ.wf_ctx Ec
+    )⟩
   | ~q(.bvar $i) => do
     let ⟨vA, m, lk⟩ ← lookup q($vΓ) q($i)
     let lm ← equateNat q($l) q($m)

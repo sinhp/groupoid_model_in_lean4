@@ -50,7 +50,7 @@ def isType : Lean.Expr → Bool
 
 /-- Make the HoTT0 term
 `fun (A : Type l) (B : A → Type l') : Type (max l l') => code (Σ (El A) (El (B #0)))`. -/
-def mkSigma (l l' : Nat) : Q(_root_.Expr) :=
+def mkSigma {u : Level} (χ : Q(Type u)) (l l' : Nat) : Q(_root_.Expr $χ) :=
   q(.lam ($l + 1) (max $l $l' + 1) (.univ $l) <|
     .lam (max $l ($l' + 1)) (max $l $l' + 1) (.pi $l ($l' + 1) (.el <| .bvar 0) (.univ $l')) <|
       .code <|
@@ -60,16 +60,18 @@ def mkSigma (l l' : Nat) : Q(_root_.Expr) :=
 
 /-- Make the HoTT0 term
 `fun (A : Type l) (a b : A) : Type l => code (.Id l a b)`. -/
-def mkId (l : Nat) : Q(_root_.Expr) :=
+def mkId {u : Level} (χ : Q(Type u)) (l : Nat) : Q(_root_.Expr $χ) :=
   q(.lam ($l + 1) ($l + 1) (.univ $l) <|
     .lam $l ($l + 1) (.el <| .bvar 0) <|
       .lam $l ($l + 1) (.el <| .bvar 1) <|
         .code <| .Id $l (.el <| .bvar 2) (.bvar 1) (.bvar 0))
 
 mutual
+variable {u : Level} (χ : Q(Type u))
+
 /-- Completeness: if the argument is well-formed in Lean,
 the output is well-typed in HoTT. -/
-partial def translateAsTp (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr)) := do
+partial def translateAsTp (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr $χ)) := do
   if !isType e then
     let ⟨l+1, a⟩ ← translateAsTm e
       | throwError "type code should have level > 0{indentExpr e}"
@@ -87,7 +89,7 @@ partial def translateAsTp (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr)) :
     return ⟨max l l', q(.pi $l $l' $A $B)⟩
   | _ => throwError "internal error: should fail `isType`{indentExpr e}"
 
-partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr)) := do
+partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr $χ)) := do
   if isType e then
     let ⟨l, A⟩ ← translateAsTp e
     return ⟨l+1, q(.code $A)⟩
@@ -162,10 +164,10 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr)) :
     so maybe this is fine. -/
     let l ← getSortLevel l.succ
     let l' ← getSortLevel l'.succ
-    return ⟨max l l' + 1, mkSigma l l'⟩
+    return ⟨max l l' + 1, mkSigma χ l l'⟩
   | .const ``Id [l] =>
     let l ← getSortLevel l.succ
-    return ⟨l + 1, mkId l⟩
+    return ⟨l + 1, mkId χ l⟩
   | e => throwError "unsupported term{indentExpr e}"
 
 end
@@ -187,11 +189,11 @@ def envDiff (old new : Environment) : Array ConstantInfo := Id.run do
     ret := ret.push i
   return ret
 
-structure CheckedDef where
+structure CheckedDef.{u} {χ : Type u} (E : Env χ) where
   l : Nat
-  val : _root_.Expr
-  tp : _root_.Expr
-  wf : [] ⊢[l] val : tp
+  val : _root_.Expr χ
+  tp : _root_.Expr χ
+  wf : E ∣ [] ⊢[l] val : tp
 
 def elabDeclaration (stx : Syntax) : CommandElabM Unit := do
   -- TODO: should `hott def` have its own `consts` set stored in an environment extension?
@@ -201,23 +203,25 @@ def elabDeclaration (stx : Syntax) : CommandElabM Unit := do
     | throwError "expected exactly one definition, got {diff.size}:\
       {Lean.indentD ""}{diff.map (·.name)}"
   Command.liftTermElabM do
-    let ⟨l, T⟩ ← Translation.translateAsTp ci.type |>.run
-    let ⟨k, t⟩ ← Translation.translateAsTm ci.value! |>.run
+    let ⟨l, T⟩ ← Translation.translateAsTp q(Nat) ci.type |>.run
+    let ⟨k, t⟩ ← Translation.translateAsTm q(Nat) ci.value! |>.run
     if l != k then throwError "internal error: inferred level mismatch"
     trace[HoTT0.Translation] "translated (lvl {l}){Lean.indentD ""}{t} : {T}"
-    let Twf ← checkTp q([]) q($l) q($T)
-    let ⟨vT, vTeq⟩ ← evalTpId q([]) q($T)
-    let twf ← checkTm q([]) q($l) q($vT) q($t)
-    let val : Q(CheckedDef) := q({
+    let Twf ← checkTp q(Env.empty Nat) q(⟨Env.Wf.empty _⟩) q([]) q($l) q($T)
+    let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Nat from []) q($T)
+    let twf ← checkTm q(Env.empty Nat) q(⟨Env.Wf.empty _⟩) q([]) q($l) q($vT) q($t)
+    let val : Q(CheckedDef <| Env.empty Nat) := q({
       l := $l
       val := $t
       tp := $T
-      wf := $twf .nil <| $vTeq .nil <| $Twf .nil
+      wf :=
+        have : Fact (Env.empty Nat).Wf := ⟨Env.Wf.empty _⟩
+        $twf .nil <| $vTeq .nil <| $Twf .nil
     })
     addDecl <| .defnDecl {
       name := ci.name ++ `checked
       levelParams := []
-      type := q(CheckedDef)
+      type := q(CheckedDef <| Env.empty Nat)
       value := val
       hints := .regular 0 -- TODO: what height?
       safety := .safe
