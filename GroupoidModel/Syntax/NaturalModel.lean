@@ -821,10 +821,11 @@ protected def j : y(Γ) ⟶ i.iFunctor.obj M.Tm :=
   i.weakPullback.lift y(Γ) (reflCase a r) (motive i a C) (by
     simp [reflCase, motive]
     rw [UvPoly.Equiv.mk_comp_right]
+    have := r_tp
     sorry
   )
 
-lemma equivFst_eq : i.equivFst M (i.j a C r) = a := sorry
+lemma equivFst_eq : i.equivFst M (i.j a C r r_tp) = a := sorry
 
 /-- The elimination rule for identity types.
   `Γ ⊢ A` is the type with a term `Γ ⊢ a : A`.
@@ -833,13 +834,13 @@ lemma equivFst_eq : i.equivFst M (i.j a C r) = a := sorry
   `Γ (y : A) (h : Id(A,a,y)) ⊢ mkJ : A`
 -/
 def mkJ : y(i.motiveCtx a) ⟶ M.Tm :=
-  eqToHom (by rw [equivFst_eq]) ≫ i.equivSnd M (i.j a C r)
+  eqToHom (by rw [equivFst_eq]) ≫ i.equivSnd M (i.j a C r r_tp)
 
 /-- Typing for elimination rule `J` -/
-lemma mkJ_tp : mkJ i a C r ≫ M.tp = C := sorry
+lemma mkJ_tp : mkJ i a C r r_tp ≫ M.tp = C := sorry
 
 /-- β rule for identity types. Substituting `J` with `refl` gives the user-supplied value `r` -/
-lemma reflSubst_mkJ : ym(i.reflSubst a) ≫ mkJ i a C r = r := sorry
+lemma reflSubst_mkJ : ym(i.reflSubst a) ≫ mkJ i a C r r_tp = r := sorry
 
 variable (b : y(Γ) ⟶ M.Tm) (b_tp : b ≫ M.tp = a ≫ M.tp)
   (h : y(Γ) ⟶ M.Tm) (h_tp : h ≫ M.tp = i.isKernelPair.lift b a (by aesop) ≫ i.Id)
@@ -859,16 +860,17 @@ def endPtSubst : Γ ⟶ i.motiveCtx a :=
   Then `Γ ⊢ mkJ' : C [b/y,h/p]` is a term of the motive with `b` and `h` substituted
 -/
 def mkJ' : y(Γ) ⟶ M.Tm :=
-  ym(i.endPtSubst a b b_tp h h_tp) ≫ mkJ i a C r
+  ym(i.endPtSubst a b b_tp h h_tp) ≫ mkJ i a C r r_tp
 
 /-- Typing for elimination rule `J` -/
-lemma mkJ'_tp : mkJ' i a C r b b_tp h h_tp ≫ M.tp = ym(i.endPtSubst a b b_tp h h_tp) ≫ C := by
+lemma mkJ'_tp :
+    mkJ' i a C r r_tp b b_tp h h_tp ≫ M.tp = ym(i.endPtSubst a b b_tp h h_tp) ≫ C := by
   rw [mkJ', Category.assoc, mkJ_tp]
 
 /-- β rule for identity types. Substituting `J` with `refl` gives the user-supplied value `r` -/
-lemma mkJ'_refl : mkJ' i a C r a rfl (i.mkRefl a) (by aesop) = r :=
-  calc ym(i.endPtSubst a a rfl (i.mkRefl a) _) ≫ mkJ i a C r
-    _ = ym(i.reflSubst a) ≫ mkJ i a C r := rfl
+lemma mkJ'_refl : mkJ' i a C r r_tp a rfl (i.mkRefl a) (by aesop) = r :=
+  calc ym(i.endPtSubst a a rfl (i.mkRefl a) _) ≫ mkJ i a C r r_tp
+    _ = ym(i.reflSubst a) ≫ mkJ i a C r r_tp := rfl
     _ = r := by rw [reflSubst_mkJ]
 
 end Id

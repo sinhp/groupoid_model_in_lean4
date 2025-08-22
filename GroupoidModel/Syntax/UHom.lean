@@ -786,6 +786,13 @@ end Sigma
 
 /-! ## Identity types -/
 
+class IdSeq (s : UHomSeq Ctx) where
+  nmId (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) : NaturalModel.Id s[i]
+
+section Id
+open IdSeq
+variable [s.IdSeq]
+
 /--
 ```
 Γ ⊢ᵢ A  Γ ⊢ᵢ a0, a1 : A
@@ -795,7 +802,7 @@ end Sigma
 def mkId {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (a0 a1 : y(Γ) ⟶ s[i].Tm)
     (a0_tp : a0 ≫ s[i].tp = A) (a1_tp : a1 ≫ s[i].tp = A) :
     y(Γ) ⟶ s[i].Ty :=
-  sorry
+  (nmId i ilen).mkId a0 a1 (a1_tp ▸ a0_tp)
 
 theorem comp_mkId {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (σA) (eq : ym(σ) ≫ A = σA)
@@ -806,6 +813,17 @@ theorem comp_mkId {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
         (by simp [eq, a0_tp]) (by simp [eq, a1_tp]) := by
   sorry
 
+theorem mkId_lift {Γ : Ctx}
+    {i j} (ij : i ≤ j := by omega) (jlen : j < s.length + 1 := by get_elem_tactic)
+    (A : y(Γ) ⟶ (s[i]'(ij.trans_lt jlen)).Ty) (A') (eq : A ≫ (s.homOfLe i j).mapTy = A')
+    (a0 a1 : y(Γ) ⟶ (s[i]'(ij.trans_lt jlen)).Tm)
+    (a0_tp : a0 ≫ (s[i]'(ij.trans_lt jlen)).tp = A) (a1_tp : a1 ≫ (s[i]'(ij.trans_lt jlen)).tp = A) :
+    s.mkId (ij.trans_lt jlen) A a0 a1 a0_tp a1_tp ≫ (s.homOfLe i j).mapTy =
+    s.mkId jlen A' (a0 ≫ (s.homOfLe i j).mapTm) (a1 ≫ (s.homOfLe i j).mapTm)
+      (by simp [eq, (s.homOfLe i j).pb.w, reassoc_of% a0_tp])
+      (by simp [eq, (s.homOfLe i j).pb.w, reassoc_of% a1_tp]) := by
+  sorry
+
 /--
 ```
 Γ ⊢ᵢ t : A
@@ -813,7 +831,7 @@ theorem comp_mkId {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
 Γ ⊢ᵢ refl(t) : Id(A, t, t)
 ``` -/
 def mkRefl {Γ : Ctx} (t : y(Γ) ⟶ s[i].Tm) : y(Γ) ⟶ s[i].Tm :=
-  sorry
+  (nmId i ilen).mkRefl t
 
 theorem comp_mkRefl {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (t : y(Γ) ⟶ s[i].Tm) :
@@ -823,7 +841,15 @@ theorem comp_mkRefl {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
 @[simp]
 theorem mkRefl_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty)
     (t : y(Γ) ⟶ s[i].Tm) (t_tp : t ≫ s[i].tp = A) :
-    s.mkRefl ilen t ≫ s[i].tp = s.mkId ilen A t t t_tp t_tp := by
+    s.mkRefl ilen t ≫ s[i].tp = s.mkId ilen A t t t_tp t_tp :=
+  (nmId i ilen).mkRefl_tp t
+
+theorem mkRefl_lift {Γ : Ctx}
+    {i j} (ij : i ≤ j := by omega) (jlen : j < s.length + 1 := by get_elem_tactic)
+    (t : y(Γ) ⟶ (s[i]'(ij.trans_lt jlen)).Tm) :
+    s.mkRefl (ij.trans_lt jlen) t ≫ (s.homOfLe i j).mapTm =
+    s.mkRefl jlen (t ≫ (s.homOfLe i j).mapTm) := by
+  simp [mkRefl, IdIntro.mkRefl]; congr 1
   sorry
 
 /--
@@ -843,8 +869,69 @@ def mkIdRec {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty)
         (by> simp [comp_mkId, t_tp, ← B_eq])) ≫ M)
     (u : y(Γ) ⟶ s[i].Tm) (u_tp : u ≫ s[i].tp = A)
     (h : y(Γ) ⟶ s[i].Tm) (h_tp : h ≫ s[i].tp = s.mkId ilen A t u t_tp u_tp) :
-    y(Γ) ⟶ s[j].Tm :=
-  sorry
+    y(Γ) ⟶ s[j].Tm := by
+  haveI hi : i ≤ max i j := by omega
+  haveI hj : j ≤ max i j := by omega
+  haveI hm : max i j < s.length + 1 := by omega
+  letI si := s.homOfLe _ _ hi hm
+  letI sj := s.homOfLe _ _ hj hm
+  refine
+    let σ₁ := s[max i j].disp _ ≫ substCons _ (s[max i j].disp _) _
+      (s.unlift i _ hi hm (ym(s[max i j].disp _) ≫ A) (s[max i j].var _) ?_) ?_
+    s.unlift j _ hj hm
+      (ym(substCons _ (s[i].sec _ u u_tp) _ h (by> simp [h_tp, comp_mkId, ← B_eq])) ≫ M)
+      (ym(substCons _ (substCons _ (𝟙 _) _
+        (u ≫ si.mapTm) ?_) _
+        (h ≫ si.mapTm) ?_)
+        ≫ (nmId (s := s) _ hm).mkJ
+        (t ≫ si.mapTm)
+        (ym(substCons _ σ₁ _
+          (s.unlift i _ hi hm (ym(σ₁) ≫ B) (s[max i j].var _) ?_)
+          ?_)
+          ≫ M ≫ sj.mapTy)
+        (r ≫ sj.mapTm)
+        ?_)
+      ?_
+  · simp [si.pb.w, reassoc_of% t_tp, si]
+  · simp
+  · simp [si.pb.w, reassoc_of% t_tp, reassoc_of% u_tp]
+  · simp [si.pb.w, reassoc_of% h_tp, ← mkId.eq_def, si]
+    rw [comp_mkId, s.mkId_lift hi hm (eq := rfl)]; congr 1 <;> simp
+    simp [reassoc_of% t_tp]
+  · simp [← mkId.eq_def]
+    change let σ₂ := _; ym(σ₂) ≫ _ = _; intro σ₂
+    rw [← B_eq, comp_mkId]
+    slice_rhs 1 2 => rw [comp_mkId]
+    rw [s.mkId_lift hi hm (eq := rfl)]
+    congr 1 <;> simp only [← Category.assoc, ← Functor.map_comp, si]
+    · congr 3; simp [σ₁]; rfl
+    · simp [σ₁]; rfl
+    · slice_lhs 4 5 => apply si.pb.w
+      rw [reassoc_of% t_tp]
+      simp only [← Category.assoc, ← Functor.map_comp]; congr 3
+      simp [σ₁]; rfl
+  · simp
+  · simp [sj.pb.w, reassoc_of% r_tp, ← mkId.eq_def]
+    rw [← Functor.map_comp_assoc]; congr 1
+    refine (s[i].disp_pullback B).hom_ext ?_ ((s[i].disp_pullback A).hom_ext ?_ ?_) <;> simp
+    · apply si.pb.hom_ext <;> simp [si, IdIntro.reflSubst]
+      · conv_rhs => apply substCons_var
+        rw [s.mkRefl_lift]; rfl
+      · simp [← B_eq, comp_mkId]; congr 1 <;> simp [t_tp, σ₁]
+          <;> (repeat rw [substCons_disp_functor_map_assoc]) <;> try simp
+        apply si.pb.hom_ext <;> simp [si, t_tp]
+    · simp [σ₁]
+      apply si.pb.hom_ext <;> simp [si, IdIntro.reflSubst, t_tp]
+    · simp [σ₁, IdIntro.reflSubst]
+  · simp [Id.mkJ_tp]
+    rw [← Category.assoc]; congr 1
+    refine (s[i].disp_pullback B).hom_ext ?_ ((s[i].disp_pullback A).hom_ext ?_ ?_) <;> simp
+    · apply si.pb.hom_ext <;> simp [si, h_tp, ← B_eq, comp_mkId]
+      congr 1 <;> simp [σ₁] <;> (repeat rw [substCons_disp_functor_map_assoc]) <;> try simp
+      apply si.pb.hom_ext <;> simp [si, u_tp]
+    · simp [σ₁]
+      apply si.pb.hom_ext <;> simp [si, u_tp]
+    · simp [σ₁]
 
 theorem comp_mkIdRec {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (σA) (σA_eq : ym(σ) ≫ A = σA)
@@ -872,11 +959,22 @@ theorem mkIdRec_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty)
     (t t_tp B B_eq M) (r : y(Γ) ⟶ s[j].Tm) (r_tp u u_tp h h_tp) :
     s.mkIdRec ilen jlen A t t_tp B B_eq M r r_tp u u_tp h h_tp ≫ s[j].tp =
       ym(substCons _ (s[i].sec _ u u_tp) _ h (by> simp [h_tp, comp_mkId, ← B_eq])) ≫ M := by
-  sorry
+  simp [mkIdRec]
 
 @[simp]
 theorem mkIdRec_mkRefl {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty)
     (t t_tp B B_eq M) (r : y(Γ) ⟶ s[j].Tm) (r_tp) :
     s.mkIdRec ilen jlen A t t_tp B B_eq M r r_tp t t_tp
       (s.mkRefl ilen t) (s.mkRefl_tp ilen _ t t_tp) = r := by
-  sorry
+  haveI hi : i ≤ max i j := by omega
+  haveI hj : j ≤ max i j := by omega
+  haveI hm : max i j < s.length + 1 := by omega
+  letI si := s.homOfLe _ _ hi hm
+  letI sj := s.homOfLe _ _ hj hm
+  unfold mkIdRec; lift_lets; intro σ₁
+  apply sj.pb.hom_ext <;> simp [sj, r_tp]
+  convert Id.reflSubst_mkJ _ _ _ _ _ using 3
+  simp [IdIntro.reflSubst]; congr! 1
+  rw [s.mkRefl_lift]; rfl
+
+end Id

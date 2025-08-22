@@ -278,7 +278,7 @@ end
 
 /-! ## Interpretation -/
 
-variable [s.PiSeq] [s.SigSeq]
+variable [s.PiSeq] [s.SigSeq] [s.IdSeq]
 
 mutual
 
