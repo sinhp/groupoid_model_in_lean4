@@ -231,6 +231,20 @@ protected def tp {l : Nat} (Γ : s.CObj) (llen : l < s.length + 1) (i : ℕ) :
     Part (y(Γ.1) ⟶ s[l].Ty) :=
   Γ.2.tp llen i
 
+@[simp]
+theorem mem_var_zero {Γ : s.CObj} {l' l'len A l} {llen : l < s.length + 1} {x} :
+    x ∈ (Γ.snoc (l := l') l'len A).var llen 0 ↔
+    ∃ l'l : l' = l, x = l'l ▸ s[l'].var A := by
+  dsimp only [UHomSeq.CObj.var, UHomSeq.CObj.snoc, UHomSeq.ExtSeq.var]
+  simp_part; exact exists_congr fun _ => by subst l'; simp_part
+
+@[simp]
+theorem mem_var_succ {Γ : s.CObj} {l' l'len A l i} {llen : l < s.length + 1} {x} :
+    x ∈ (Γ.snoc (l := l') l'len A).var llen (i+1) ↔
+    ∃ a ∈ Γ.var llen i, x = ym(s[l'].disp A) ≫ a := by
+  dsimp only [UHomSeq.CObj.var, UHomSeq.CObj.snoc, UHomSeq.ExtSeq.var]
+  simp_part
+
 theorem var_tp {l : Nat} (Γ : s.CObj) (llen : l < s.length + 1) (i : ℕ) :
     (Γ.var llen i).map (· ≫ s[l].tp) = Γ.tp llen i :=
   Γ.2.var_tp llen i
@@ -262,13 +276,9 @@ theorem lt_slen_of_eqTm {Γ t u A l} (H : Γ ⊢[l] t ≡ u : A) : l < s.length 
 
 end
 
-end UHomSeq
-
 /-! ## Interpretation -/
 
-namespace UHomSeqPiSig
-
-variable {𝒞 : Type u} [SmallCategory 𝒞] [CartesianMonoidalCategory 𝒞] {s : UHomSeqPiSig 𝒞}
+variable [s.PiSeq] [s.SigSeq]
 
 mutual
 
@@ -372,12 +382,13 @@ def ofTerm (Γ : s.CObj) (l : Nat) :
 
 end
 
-def ofCtx (s : UHomSeqPiSig 𝒞) : Ctx → Part s.CObj
+variable (s) in
+def ofCtx : Ctx → Part s.CObj
   | [] => return s.nilCObj
   | (A,l) :: Γ => do
     Part.assert (l < s.length + 1) fun llen => do
-    let sΓ ← s.ofCtx Γ
-    let sA ← ofType sΓ l A
+    let sΓ ← ofCtx Γ
+    let sA ← ofType (s := s) sΓ l A
     return sΓ.snoc llen sA
 
 @[simp]
@@ -425,20 +436,6 @@ theorem mem_ofType_el {Γ l t} {llen : l < s.length + 1} {x} :
 @[simp]
 theorem ofTerm_bvar {Γ l i} {llen : l < s.length + 1} :
     s.ofTerm Γ l (.bvar i) llen = Γ.var llen i := rfl
-
-@[simp]
-theorem mem_var_zero {Γ : s.CObj} {l' l'len A l} {llen : l < s.length + 1} {x} :
-    x ∈ (Γ.snoc (l := l') l'len A).var llen 0 ↔
-    ∃ l'l : l' = l, x = l'l ▸ s[l'].var A := by
-  dsimp only [UHomSeq.CObj.var, UHomSeq.CObj.snoc, UHomSeq.ExtSeq.var]
-  simp_part; exact exists_congr fun _ => by subst l'; simp_part; rfl
-
-@[simp]
-theorem mem_var_succ {Γ : s.CObj} {l' l'len A l i} {llen : l < s.length + 1} {x} :
-    x ∈ (Γ.snoc (l := l') l'len A).var llen (i+1) ↔
-    ∃ a ∈ Γ.var llen i, x = ym(s[l'].disp A) ≫ a := by
-  dsimp only [UHomSeq.CObj.var, UHomSeq.CObj.snoc, UHomSeq.ExtSeq.var]
-  simp_part; rfl
 
 @[simp]
 theorem mem_ofTerm_lam {Γ l i j A e} {llen : l < s.length + 1} {x} :
@@ -674,7 +671,7 @@ theorem mem_ofType_ofTerm_subst' {full}
     simp [ofTerm_bvar] at H
     simp [Expr.subst]
     induction σ generalizing i with simp [CSb.toSb, *]
-    | wk => exact mem_var_succ.2 ⟨_, ‹_›, rfl⟩
+    | wk => exact CObj.mem_var_succ.2 ⟨_, ‹_›, rfl⟩
     | @comp _ _ _ _ _ full σ τ ih1 ih2 =>
       simp [Expr.comp]
       cases full with
@@ -692,7 +689,7 @@ theorem mem_ofType_ofTerm_subst' {full}
         obtain ⟨rfl, H⟩ := mem_var_zero.1 H
         simp at H; subst H; simpa
       | succ i ih2 =>
-        obtain ⟨_, H', rfl⟩ := mem_var_succ.1 H
+        obtain ⟨_, H', rfl⟩ := CObj.mem_var_succ.1 H
         simp [ih1 IH i H']
   case lam ihA ihB =>
     obtain ⟨rfl, H⟩ := mem_ofTerm_lam.1 H; simp at H llen
@@ -1195,7 +1192,7 @@ theorem ofType_ofTerm_sound :
     cases Part.mem_unique hA hA₂; clear hA₂
     cases Part.mem_unique hB hB₁; clear hB₁
     refine ⟨_, ‹_›, ‹_›, _, ⟨_, ‹_›, _, ‹_›, ‹_›⟩, _, ‹_›, ⟨_, ‹_›, _,
-      ⟨‹_›, _, mem_ofTerm_wk _ ‹_› .., _, (mem_var_zero (x := s[l].var _)).2 ⟨rfl, rfl⟩, _, rfl,
+      ⟨‹_›, _, mem_ofTerm_wk _ ‹_› .., _, (CObj.mem_var_zero (x := s[l].var _)).2 ⟨rfl, rfl⟩, _, rfl,
         _, (mem_ofType_ofTerm_subst _ (.up (.wk _ _) _ _ _ ?_) (CSb.up_toSb _)).1 ‹_›, ?_, ?_⟩,
       .symm (etaExpand_eq (f_tp := ‹_›) ..)⟩, rfl⟩
     · simp
@@ -1296,5 +1293,5 @@ theorem interpTerm_eq {Γ l t u A} (H : Γ ⊢[l] t ≡ u : A) (lt : l < s.lengt
   cases Part.mem_unique sΓ_mem h1
   exact H
 
-end UHomSeqPiSig
+end UHomSeq
 end NaturalModel

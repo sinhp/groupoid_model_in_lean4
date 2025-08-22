@@ -1005,5 +1005,8 @@ def uHomSeqSigs' (i : ℕ) (ilen : i < 4) :
   | 3 => smallUSig.{3, 4}
   | (n+4) => by omega
 
+instance uHomSeqSigma : uHomSeq.SigSeq where
+  nmSig := uHomSeqSigs'
+
 end GroupoidModel
 end
