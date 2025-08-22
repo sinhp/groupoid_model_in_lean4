@@ -208,9 +208,9 @@ theorem sec_var {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) (a : y(Γ) ⟶ M.Tm) (a_tp : a �
   simp [sec]
 
 @[functor_map (attr := reassoc)]
-theorem comp_sec {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty)
+theorem comp_sec {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (σA) (eq : ym(σ) ≫ A = σA)
     (a : y(Γ) ⟶ M.Tm) (a_tp : a ≫ M.tp = A) :
-    σ ≫ M.sec A a a_tp = M.sec (ym(σ) ≫ A) (ym(σ) ≫ a) (by simp [a_tp]) ≫ M.substWk σ A := by
+    σ ≫ M.sec A a a_tp = M.sec σA (ym(σ) ≫ a) (by simp [eq, a_tp]) ≫ M.substWk σ A _ eq := by
   apply Yoneda.fullyFaithful.map_injective
   apply (M.disp_pullback _).hom_ext <;>
     simp [sec, substWk_disp_functor_map]
@@ -291,11 +291,11 @@ theorem snd_comp_left {A} (eqA : fst M AB = A) {σA} (eqσ : ym(σ) ≫ A = σA)
   apply H1.hom_ext <;> simp [← Functor.map_comp, substWk]
 
 theorem mk_comp_left {Δ Γ : Ctx} (M : NaturalModel Ctx) (σ : Δ ⟶ Γ)
-    {X : Psh Ctx} (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
-    ym(σ) ≫ PtpEquiv.mk M A B = PtpEquiv.mk M (ym(σ) ≫ A) (ym(M.substWk σ A) ≫ B) := by
+    {X : Psh Ctx} (A : y(Γ) ⟶ M.Ty) (σA) (eq : ym(σ) ≫ A = σA) (B : y(M.ext A) ⟶ X) :
+    ym(σ) ≫ PtpEquiv.mk M A B = PtpEquiv.mk M σA (ym(M.substWk σ A _ eq) ≫ B) := by
   dsimp [PtpEquiv.mk]
   have h := UvPoly.Equiv.mk'_comp_left M.uvPolyTp X A (M.disp_pullback A).flip B ym(σ)
-    (M.disp_pullback (ym(σ) ≫ A)).flip
+    σA eq (M.disp_pullback σA).flip
   convert h
   apply (M.disp_pullback _).hom_ext
   · simp

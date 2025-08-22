@@ -381,21 +381,21 @@ lemma mk_comp_right (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
 
 theorem mk'_comp_left {Δ}
     (b : Γ ⟶ B) {R f g} (H : IsPullback (P := R) f g b P.p) (x : R ⟶ X) (σ : Δ ⟶ Γ)
-    {R' f' g'} (H' : IsPullback (P := R') f' g' (σ ≫ b) P.p) :
-    σ ≫ UvPoly.Equiv.mk' P X b H x =
-    UvPoly.Equiv.mk' P X (σ  ≫ b) H'
-    (H.lift (f' ≫ σ) g' (by simp [H'.w]) ≫ x) := by
-  apply ext' P (R := R') (f := f') (g := g') (H := by convert H'; simp [fst_eq])
-  · rw [snd'_comp_left (H := by convert H; rw [fst_mk']) (H' := by convert H'; rw [fst_mk'])]
+    (σb) (eq : σ ≫ b = σb)
+    {R' f' g'} (H' : IsPullback (P := R') f' g' σb P.p) :
+    σ ≫ UvPoly.Equiv.mk' P X b H x = UvPoly.Equiv.mk' P X σb H'
+    (H.lift (f' ≫ σ) g' (by simp [eq, H'.w]) ≫ x) := by
+  apply ext' P (R := R') (f := f') (g := g') (H := by convert H'; simp [eq, fst_eq])
+  · rw [snd'_comp_left (H := by convert H; rw [fst_mk']) (H' := by convert H'; rw [← eq, fst_mk'])]
     simp
-  · simp [fst_comp_left]
+  · simp [eq, fst_comp_left]
 
 theorem mk_comp_left {Δ} (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) (σ: Δ ⟶ Γ) :
     σ ≫ UvPoly.Equiv.mk P X b x =
-    UvPoly.Equiv.mk P X (σ  ≫ b)
-    (pullback.map _ _ _ _ σ (𝟙 _) (𝟙 _) (by simp) (by simp) ≫ x) := by
+    UvPoly.Equiv.mk P X (σ ≫ b)
+      (pullback.map _ _ _ _ σ (𝟙 _) (𝟙 _) (by simp) (by simp) ≫ x) := by
   simp only [mk_eq_mk']
-  rw [mk'_comp_left (H := IsPullback.of_hasPullback _ _) (H' := IsPullback.of_hasPullback _ _)]
+  rw [mk'_comp_left (H := .of_hasPullback _ _) (H' := .of_hasPullback _ _) (eq := rfl)]
   congr 2; ext <;> simp
 
 lemma mk'_comp_cartesianNatTrans_app {E' B' Γ X : C} {P' : UvPoly E' B'}
