@@ -167,9 +167,9 @@ theorem smallU_lift {Γ Δ : Ctx} (A : y(Γ) ⟶ smallU.{v}.Ty)
       smallU.disp]
     erw [(isPullback (yonedaCategoryEquiv A)).fac_right, AsSmall.down_map_up_map]
 
-def yonedaCategoryEquivPre (A : y(Γ) ⟶ smallU.{v}.Ty) :
-    ∫(yonedaCategoryEquiv (ym(σ) ≫ A)) ⥤ ∫(yonedaCategoryEquiv A) :=
-  map (eqToHom (by rw [yonedaCategoryEquiv_naturality_left]))
+def yonedaCategoryEquivPre (A : y(Γ) ⟶ smallU.{v}.Ty) (σA) (eq : ym(σ) ≫ A = σA) :
+    ∫(yonedaCategoryEquiv σA) ⥤ ∫(yonedaCategoryEquiv A) :=
+  map (eqToHom (by rw [← eq, yonedaCategoryEquiv_naturality_left]))
   ⋙ pre (yonedaCategoryEquiv A) (Ctx.toGrpd.map σ)
 
 namespace Ctx
@@ -193,8 +193,8 @@ theorem map_eqToHom_toPGrpd {Γ : Type*} [Category Γ] (A A' : Γ ⥤ Grpd) (h :
 
 end Grothendieck.Groupoidal
 
-theorem smallU_substWk (A : y(Γ) ⟶ smallU.{v}.Ty) : smallU.substWk σ A _ rfl =
-    (Ctx.ofGrpd.map $ Grpd.homOf $ yonedaCategoryEquivPre σ A) := by
+theorem smallU_substWk (A : y(Γ) ⟶ smallU.{v}.Ty) (σA eq) : smallU.substWk σ A σA eq =
+    (Ctx.ofGrpd.map $ Grpd.homOf $ yonedaCategoryEquivPre σ A σA eq) := by
   apply Yoneda.fullyFaithful.map_injective
   apply (smallU.disp_pullback A).hom_ext
   · conv => right; erw [← yonedaCategoryEquiv_symm_naturality_left]
@@ -308,7 +308,7 @@ A map `ab : y(Γ) ⟶ compDom` is equivalently three functors
 is `(a : A)` in `(a : A) × (b : B a)`.
 -/
 def fst : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v} :=
-  yonedaCategoryEquiv (NaturalModel.compDomEquiv.fst smallU ab)
+  yonedaCategoryEquiv (NaturalModel.compDomEquiv.fst ab)
 
 /-- Universal property of `compDom`, decomposition (part 2).
 
@@ -317,7 +317,7 @@ A map `ab : y(Γ) ⟶ compDom` is equivalently three functors
 is `B : A → Type` in `(a : A) × (b : B a)`.
 -/
 def dependent : ∫(fst ab ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v,v} :=
-  yonedaCategoryEquiv (NaturalModel.compDomEquiv.dependent smallU ab)
+  yonedaCategoryEquiv (NaturalModel.compDomEquiv.dependent ab)
 
 /-- Universal property of `compDom`, decomposition (part 3).
 
@@ -326,7 +326,7 @@ A map `ab : y(Γ) ⟶ compDom` is equivalently three functors
 is `(b : B a)` in `(a : A) × (b : B a)`.
 -/
 def snd : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v} :=
-  yonedaCategoryEquiv (NaturalModel.compDomEquiv.snd smallU ab)
+  yonedaCategoryEquiv (NaturalModel.compDomEquiv.snd ab)
 
 /-- Universal property of `compDom`, decomposition (part 4).
 
@@ -336,7 +336,7 @@ The equation `snd_forgetToGrpd` says that the type of `b : B a` agrees with
 the expression for `B a` obtained solely from `dependent`, or `B : A ⟶ Type`.
 -/
 theorem snd_forgetToGrpd : snd ab ⋙ PGrpd.forgetToGrpd = sec _ (fst ab) rfl ⋙ (dependent ab) := by
-  erw [← yonedaCategoryEquiv_naturality_right, NaturalModel.compDomEquiv.snd_tp smallU ab,
+  erw [← yonedaCategoryEquiv_naturality_right, NaturalModel.compDomEquiv.snd_tp ab,
     smallU_sec, yonedaCategoryEquiv_naturality_left]
   rfl
 
@@ -344,7 +344,7 @@ theorem snd_forgetToGrpd : snd ab ⋙ PGrpd.forgetToGrpd = sec _ (fst ab) rfl �
 def mk (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v}) (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v,v})
     (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v}) (h : β ⋙ PGrpd.forgetToGrpd = sec _ α rfl ⋙ B)
     : y(Γ) ⟶ compDom.{v} :=
-  NaturalModel.compDomEquiv.mk smallU (yonedaCategoryEquiv.symm α)
+  NaturalModel.compDomEquiv.mk (yonedaCategoryEquiv.symm α) rfl
     (yonedaCategoryEquiv.symm B) (yonedaCategoryEquiv.symm β) (by
       erw [← yonedaCategoryEquiv_symm_naturality_right, h,
         ← yonedaCategoryEquiv_symm_naturality_left, smallU_sec]
@@ -352,15 +352,16 @@ def mk (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v}) (B : ∫(α ⋙ PGrpd.forgetToGr
 
 theorem fst_forgetToGrpd : fst ab ⋙ PGrpd.forgetToGrpd =
     smallU.PtpEquiv.fst (ab ≫ comp.{v}) := by
-  erw [smallU.PtpEquiv.fst, ← compDomEquiv.fst_tp smallU ab, ← yonedaCategoryEquiv_naturality_right]
+  erw [smallU.PtpEquiv.fst, ← compDomEquiv.fst_tp ab, ← yonedaCategoryEquiv_naturality_right]
   rfl
 
 theorem dependent_eq : dependent ab =
     map (eqToHom (fst_forgetToGrpd ab)) ⋙ smallU.PtpEquiv.snd (ab ≫ comp.{v}) := by
   dsimp only [dependent, smallU.PtpEquiv.snd, NaturalModel.compDomEquiv.dependent]
-  rw [yonedaCategoryEquiv_naturality_left,
-    eqToHom_map, eqToHom_eq_homOf_map]
-  rfl
+  -- rw [yonedaCategoryEquiv_naturality_left,
+  --   eqToHom_map, eqToHom_eq_homOf_map]
+  -- rfl
+  sorry
 
 theorem dependent_heq : HEq (dependent ab) (smallU.PtpEquiv.snd (ab ≫ comp.{v})) := by
   rw [dependent_eq]
@@ -371,19 +372,22 @@ theorem dependent_heq : HEq (dependent ab) (smallU.PtpEquiv.snd (ab ≫ comp.{v}
 
 theorem fst_naturality : fst (ym(σ) ≫ ab) = Ctx.toGrpd.map σ ⋙ fst ab := by
   dsimp only [fst]
-  rw [NaturalModel.compDomEquiv.fst_naturality, yonedaCategoryEquiv_naturality_left]
+  rw [← NaturalModel.compDomEquiv.comp_fst, yonedaCategoryEquiv_naturality_left]
 
-theorem dependent_naturality : dependent (ym(σ) ≫ ab) = map (eqToHom (by rw [fst_naturality, Functor.assoc]))
+theorem dependent_naturality : dependent (ym(σ) ≫ ab) =
+    map (eqToHom (by rw [fst_naturality, Functor.assoc]))
     ⋙ pre _ (Ctx.toGrpd.map σ) ⋙ dependent ab := by
-  rw [dependent, dependent, NaturalModel.compDomEquiv.dependent_naturality,
-    smallU_substWk, yonedaCategoryEquiv_naturality_left, Functor.map_comp, eqToHom_map,
+  rw [dependent, dependent,
+    ← NaturalModel.compDomEquiv.comp_dependent (eq1 := rfl)
+      (eq2 := by simp [← compDomEquiv.comp_fst]),
+    smallU_substWk, yonedaCategoryEquiv_naturality_left,
     Ctx.toGrpd_map_ofGrpd_map, yonedaCategoryEquivPre, Grpd.homOf_comp, ← eqToHom_eq_homOf_map,
-    ← Category.assoc, eqToHom_trans, Grpd.comp_eq_comp, Grpd.homOf, eqToHom_eq_homOf_map]
-  rfl
+    Grpd.comp_eq_comp, Grpd.homOf]
+  sorry
 
 theorem snd_naturality : snd (ym(σ) ≫ ab) = Ctx.toGrpd.map σ ⋙ snd ab := by
   dsimp only [snd]
-  rw [NaturalModel.compDomEquiv.snd_naturality, yonedaCategoryEquiv_naturality_left]
+  rw [← NaturalModel.compDomEquiv.comp_snd, yonedaCategoryEquiv_naturality_left]
 
 /-- First component of the computation rule for `mk`. -/
 theorem fst_mk (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
