@@ -552,6 +552,13 @@ def mkId (a0 a1 : y(Γ) ⟶ M.Tm)
     y(Γ) ⟶ M.Ty :=
   idIntro.isKernelPair.lift a1 a0 (by rw [a0_tp_eq_a1_tp]) ≫ idIntro.Id
 
+theorem comp_mkId {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
+    (a0 a1 : y(Γ) ⟶ M.Tm) (eq : a0 ≫ M.tp = a1 ≫ M.tp) :
+    ym(σ) ≫ mkId idIntro a0 a1 eq =
+      mkId idIntro (ym(σ) ≫ a0) (ym(σ) ≫ a1) (by simp [eq]) := by
+  simp [mkId]; rw [← Category.assoc]; congr 1
+  apply idIntro.isKernelPair.hom_ext <;> simp
+
 def mkRefl (a : y(Γ) ⟶ M.Tm) : y(Γ) ⟶ M.Tm :=
   a ≫ idIntro.refl
 
@@ -572,6 +579,11 @@ theorem mkRefl_tp (a : y(Γ) ⟶ M.Tm) :
 def motiveCtx (a : y(Γ) ⟶ M.Tm) : Ctx :=
   M.ext (idIntro.mkId (ym(M.disp (a ≫ M.tp)) ≫ a) (M.var _) (by simp))
 
+def motiveSubst {Γ Δ} (σ : Δ ⟶ Γ) (a : y(Γ) ⟶ M.Tm) :
+    motiveCtx idIntro (ym(σ) ≫ a) ⟶ motiveCtx idIntro a := by
+  refine substWk _ (substWk _ σ _ _ (by simp)) _ _ ?_
+  simp [comp_mkId]; congr 1; simp only [← Functor.map_comp_assoc, substWk_disp]
+
 /-- The substitution `(a,refl)` appearing in identity elimination `J`
   `(a,refl) : y(Γ) ⟶ y(Γ.(x:A).(h:Id(A,a,x)))`
   so that we can write
@@ -582,6 +594,13 @@ def reflSubst (a : y(Γ) ⟶ M.Tm) : Γ ⟶ idIntro.motiveCtx a :=
     simp only [mkRefl_tp, mkId, ← Category.assoc]
     congr 1
     apply idIntro.isKernelPair.hom_ext <;> simp)
+
+@[reassoc]
+theorem comp_reflSubst {Γ Δ} (σ : Δ ⟶ Γ) (a : y(Γ) ⟶ M.Tm) :
+    ym(σ) ≫ ym(idIntro.reflSubst a) =
+    ym(idIntro.reflSubst (ym(σ) ≫ a)) ≫ ym(idIntro.motiveSubst σ a) := by
+  apply (M.disp_pullback _).hom_ext <;> simp [reflSubst, motiveSubst, mkRefl]
+  apply (M.disp_pullback _).hom_ext <;> simp [substWk]
 
 end IdIntro
 
@@ -597,9 +616,15 @@ idenity type lives in.
 protected structure Id (N : NaturalModel Ctx) (i : IdIntro M) where
   j {Γ} (a : y(Γ) ⟶ M.Tm) (C : y(IdIntro.motiveCtx _ a) ⟶ N.Ty) (r : y(Γ) ⟶ N.Tm)
     (r_tp : r ≫ N.tp = ym(i.reflSubst a) ≫ C) :
-    y(IdIntro.motiveCtx _ a) ⟶ N.Tm
+    y(i.motiveCtx a) ⟶ N.Tm
   j_tp {Γ} (a : y(Γ) ⟶ M.Tm) (C : y(IdIntro.motiveCtx _ a) ⟶ N.Ty) (r : y(Γ) ⟶ N.Tm)
     (r_tp : r ≫ N.tp = ym(i.reflSubst a) ≫ C) : j a C r r_tp ≫ N.tp = C
+  comp_j {Γ Δ} (σ : Δ ⟶ Γ)
+    (a : y(Γ) ⟶ M.Tm) (C : y(IdIntro.motiveCtx _ a) ⟶ N.Ty) (r : y(Γ) ⟶ N.Tm)
+    (r_tp : r ≫ N.tp = ym(i.reflSubst a) ≫ C) :
+    ym(i.motiveSubst σ _) ≫ j a C r r_tp =
+    j (ym(σ) ≫ a) (ym(i.motiveSubst σ _) ≫ C) (ym(σ) ≫ r) (by
+      simp [r_tp, IdIntro.comp_reflSubst_assoc])
   reflSubst_j {Γ} (a : y(Γ) ⟶ M.Tm) (C : y(IdIntro.motiveCtx _ a) ⟶ N.Ty) (r : y(Γ) ⟶ N.Tm)
     (r_tp : r ≫ N.tp = ym(i.reflSubst a) ≫ C) :
     ym(i.reflSubst a) ≫ j a C r r_tp = r
@@ -880,7 +905,7 @@ namespace Id'
 
 variable {M} (i : Id' M)
 
-variable {Γ : Ctx} (a : y(Γ) ⟶ M.Tm)
+variable {Γ Δ : Ctx} (σ : Δ ⟶ Γ) (a : y(Γ) ⟶ M.Tm)
   (C : y(i.motiveCtx a) ⟶ M.Ty) (r : y(Γ) ⟶ M.Tm)
   (r_tp : r ≫ M.tp = ym(i.reflSubst a) ≫ C)
 
@@ -936,6 +961,10 @@ def j : y(i.motiveCtx a) ⟶ M.Tm :=
 /-- Typing for elimination rule `J` -/
 lemma j_tp : j i a C r r_tp ≫ M.tp = C := sorry
 
+lemma comp_j : ym(i.motiveSubst σ _) ≫ j i a C r r_tp =
+    j i (ym(σ) ≫ a) (ym(i.motiveSubst σ _) ≫ C) (ym(σ) ≫ r) (by
+      simp [r_tp, IdIntro.comp_reflSubst_assoc]) := sorry
+
 /-- β rule for identity types. Substituting `J` with `refl` gives the user-supplied value `r` -/
 lemma reflSubst_j : ym(i.reflSubst a) ≫ j i a C r r_tp = r := sorry
 
@@ -954,6 +983,7 @@ def endPtSubst : Γ ⟶ i.motiveCtx a :=
 def toId : M.Id M i.toIdIntro where
   j := i.j
   j_tp := i.j_tp
+  comp_j := i.comp_j
   reflSubst_j := i.reflSubst_j
 -- TODO: prove the other half of the equivalence.
 -- Generalize this version so that the universe for elimination is not also `M`
