@@ -2,7 +2,6 @@ import GroupoidModel.Syntax.NaturalModel
 import GroupoidModel.ForMathlib
 import Mathlib.CategoryTheory.Limits.Shapes.StrictInitial
 import GroupoidModel.ForPoly
-import GroupoidModel.Tactic.PrintSorries
 
 /-! Morphisms of natural models, and Russell-universe embeddings. -/
 
