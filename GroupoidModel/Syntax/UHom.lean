@@ -651,7 +651,7 @@ def pair : UvPoly.compDom s[i].uvPolyTp s[j].uvPolyTp ⟶ s[max i j].Tm :=
 
 def Sig_pb : IsPullback
     (s.pair ilen jlen)
-  (s[i].uvPolyTp.comp s[j].uvPolyTp).p s[max i j].tp
+  (s[i].uvPolyTp.compP s[j].uvPolyTp) s[max i j].tp
     (s.Sig ilen jlen) :=
   (UvPoly.compDomMap_isPullback ..).paste_horiz (nmSig (max i j)).Sig_pullback
 
@@ -698,7 +698,7 @@ theorem mkPair_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j]
     (t : y(Γ) ⟶ s[i].Tm) (t_tp : t ≫ s[i].tp = A)
     (u : y(Γ) ⟶ s[j].Tm) (u_tp : u ≫ s[j].tp = ym(s[i].sec A t t_tp) ≫ B) :
     s.mkPair ilen jlen A B t t_tp u u_tp ≫ s[max i j].tp = s.mkSig ilen jlen A B := by
-  simp [mkPair, mkSig, (s.Sig_pb ilen jlen).w, compDomEquiv.mk]
+  simp [mkPair, mkSig, UvPoly.compP, (s.Sig_pb ilen jlen).w, compDomEquiv.mk]
 
 def mkFst {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (p : y(Γ) ⟶ s[max i j].Tm) (p_tp : p ≫ s[max i j].tp = s.mkSig ilen jlen A B) :
@@ -708,7 +708,8 @@ def mkFst {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
 @[simp]
 theorem mkFst_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (p : y(Γ) ⟶ s[max i j].Tm) (p_tp : p ≫ s[max i j].tp = s.mkSig ilen jlen A B) :
-    s.mkFst ilen jlen A B p p_tp ≫ s[i].tp = A := by simp [mkFst, compDomEquiv.fst_tp]
+    s.mkFst ilen jlen A B p p_tp ≫ s[i].tp = A := by
+  simp [mkFst, UvPoly.compP, compDomEquiv.fst_tp]
 
 @[simp]
 theorem mkFst_mkPair {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
@@ -717,7 +718,7 @@ theorem mkFst_mkPair {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s
     s.mkFst ilen jlen A B (s.mkPair ilen jlen A B t t_tp u u_tp) (by simp) = t := by
   simp [mkFst, mkPair]
   convert compDomEquiv.fst_mk t t_tp B u u_tp using 2
-  apply (s.Sig_pb ilen jlen).hom_ext <;> [simp; simp [compDomEquiv.mk]]
+  apply (s.Sig_pb ilen jlen).hom_ext <;> [simp; simp [compDomEquiv.mk, UvPoly.compP]]
 
 theorem comp_mkFst {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
@@ -742,7 +743,7 @@ theorem mkSnd_mkPair {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s
     s.mkSnd ilen jlen A B (s.mkPair ilen jlen A B t t_tp u u_tp) (by simp) = u := by
   simp [mkSnd, mkPair]
   convert compDomEquiv.snd_mk t t_tp B u u_tp using 2
-  apply (s.Sig_pb ilen jlen).hom_ext <;> [simp; simp [compDomEquiv.mk]]
+  apply (s.Sig_pb ilen jlen).hom_ext <;> [simp; simp [compDomEquiv.mk, UvPoly.compP]]
 
 protected theorem dependent_eq {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (p : y(Γ) ⟶ s[max i j].Tm) (p_tp : p ≫ s[max i j].tp = s.mkSig ilen jlen A B) :

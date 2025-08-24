@@ -366,7 +366,7 @@ def fst (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) : y(Γ) ⟶ M.Tm :=
 Namely the first projection `α ≫ tp` agrees.
 -/
 theorem fst_tp (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp) :
-    fst ab ≫ M.tp = PtpEquiv.fst M (ab ≫ (M.uvPolyTp.comp _).p) := by
+    fst ab ≫ M.tp = PtpEquiv.fst M (ab ≫ (M.uvPolyTp.compP _)) := by
   have : pullback.snd (M.uvPolyTp.fstProj N.Ty) M.tp ≫ M.tp =
     pullback.fst (M.uvPolyTp.fstProj N.Ty) M.tp ≫ M.uvPolyTp.fstProj N.Ty :=
       Eq.symm pullback.condition
@@ -387,7 +387,7 @@ Here `A` is implicit, derived by the typing of `fst`, or `(a : A)`.
 def dependent (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp)
     (A := fst ab ≫ M.tp) (eq : fst ab ≫ M.tp = A := by rfl) :
     y(M.ext A) ⟶ N.Ty :=
-  PtpEquiv.snd M (ab ≫ (M.uvPolyTp.comp _).p) _ (by rw [← eq, fst_tp])
+  PtpEquiv.snd M (ab ≫ (M.uvPolyTp.compP _)) _ (by rw [← eq, fst_tp])
 
 theorem comp_dependent (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp)
     {A} (eq1 : fst ab ≫ M.tp = A)
@@ -421,7 +421,7 @@ theorem snd_tp (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp)
     snd ab ≫ N.tp = ym(M.sec _ (fst ab) eq) ≫ dependent ab A eq := by
   simp [snd, pullback.condition, dependent, PtpEquiv.snd, Equiv.snd'_eq]
   simp only [← Category.assoc]; congr! 2
-  apply pullback.hom_ext <;> simp [fst]
+  apply pullback.hom_ext <;> simp [fst, UvPoly.compP]
 
 attribute [-simp] PartialProduct.fan_snd -- FIXME: upstream this to Poly
 
@@ -447,7 +447,7 @@ theorem dependent_mk (α : y(Γ) ⟶ M.Tm) {A} (eq : α ≫ M.tp = A)
     (B : y(M.ext A) ⟶ N.Ty) (β : y(Γ) ⟶ N.Tm)
     (h : β ≫ N.tp = ym(M.sec _ α eq) ≫ B) :
     dependent (mk α eq B β h) A (by simp [fst_mk, eq]) = B := by
-  simp [mk, dependent]
+  simp [mk, dependent, UvPoly.compP]
   convert PtpEquiv.snd_mk M A B using 2
   slice_lhs 1 2 => apply pullback.lift_snd
   simp
@@ -500,7 +500,7 @@ protected structure Pi where
 protected structure Sigma where
   Sig : M.Ptp.obj M.Ty ⟶ M.Ty
   pair : UvPoly.compDom (uvPolyTp M) (uvPolyTp M) ⟶ M.Tm
-  Sig_pullback : IsPullback pair ((uvPolyTp M).comp (uvPolyTp M)).p M.tp Sig
+  Sig_pullback : IsPullback pair ((uvPolyTp M).compP (uvPolyTp M)) M.tp Sig
 
 /--
 NaturalModelBase.IdBase consists of the following commutative square
