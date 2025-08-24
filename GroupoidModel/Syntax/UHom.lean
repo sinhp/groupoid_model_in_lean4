@@ -405,7 +405,7 @@ variable {i j : Nat} (ilen : i < s.length + 1) (jlen : j < s.length + 1)
 
 /-! ## Pi -/
 
-/-- The data of type and term formers at each universe `s[i].tp`.
+/-- The data of `Pi` and `lam` formers at each universe `s[i].tp`.
 
 This data is universe-monomorphic,
 but we can use it to construct universe-polymorphic formation
@@ -627,6 +627,7 @@ end Pi
 
 /-! ## Sigma -/
 
+/-- The data of `Sig` and `pair` formers at each universe `s[i].tp`.
 class SigSeq (s : UHomSeq Ctx) where
   nmSig (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) : NaturalModel.Sigma s[i]
 
