@@ -520,8 +520,7 @@ theorem comp_unLam {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
         (ym(σ) ≫ f) (by simp [eq, f_tp, comp_mkPi]) := by
   simp [unLam]
   rw [← PtpEquiv.snd_comp_left]
-  simp [PtpEquiv.snd, UvPoly.Equiv.snd'_eq]
-  simp only [← Category.assoc]; congr 2
+  simp [PtpEquiv.snd, UvPoly.Equiv.snd'_eq]; congr 1
   apply pullback.hom_ext <;> simp; congr 1
   apply (s.Pi_pb ilen jlen).hom_ext <;> simp
   rw [PtpEquiv.mk_comp_left]
@@ -877,7 +876,7 @@ theorem comp_mkIdRec {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
         · simp
         · rw [← Functor.map_comp_assoc, substWk_disp]; simp [σA_eq])
       (ym(s[i].substWk (s[i].substWk σ _ _ σA_eq) _ _ σB_eq) ≫ M)
-      (ym(σ) ≫ r) (by
+      (ym(σ) ≫ r) (by>
         simp [*]
         simp only [← Functor.map_comp_assoc]; congr! 2
         simp [comp_substCons, comp_sec, substWk, comp_mkRefl])

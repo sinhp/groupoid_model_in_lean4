@@ -11,7 +11,7 @@ package groupoid_model where
   ]
   -- add any additional package configuration options here
 
-require Poly from git "https://github.com/sinhp/Poly" @ "cartesian-nt"
+require Poly from git "https://github.com/sinhp/Poly" @ "master"
 
 
 @[default_target]

@@ -200,7 +200,7 @@ theorem ε_map {E B A E' B' A' : C} {P : UvPoly E B} {P' : UvPoly E' B'}
     slice_rhs 1 2 => apply by simpa using ((ev P.p).app ((Over.star E).obj A)).w
     slice_lhs 2 3 => apply by simpa using ((ev P'.p).app ((Over.star E').obj A')).w
     apply pullback.lift_snd
-  · simpa using fan_snd_map e b a hp
+  · simpa [fan_snd] using fan_snd_map e b a hp
 
 namespace Equiv
 
@@ -313,7 +313,7 @@ theorem snd'_comp_right (pair : Γ ⟶ P @ X)
     {R f1 f2} (H : IsPullback (P := R) f1 f2 (fst P X pair) P.p) :
     snd' P Y (pair ≫ P.functor.map f) (by rwa [fst_comp_right]) =
     snd' P X pair H ≫ f := by
-  simp [snd'_eq, ε]
+  simp [snd'_eq, fan_snd, ε]
   have := congr($((ExponentiableMorphism.ev P.p).naturality ((Over.star E).map f)).left ≫ prod.snd)
   dsimp at this; simp at this
   rw [← this]; clear this
