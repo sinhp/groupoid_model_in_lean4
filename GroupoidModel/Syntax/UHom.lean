@@ -627,7 +627,7 @@ end Pi
 
 /-! ## Sigma -/
 
-/-- The data of `Sig` and `pair` formers at each universe `s[i].tp`.
+/-- The data of `Sig` and `pair` formers at each universe `s[i].tp`. -/
 class SigSeq (s : UHomSeq Ctx) where
   nmSig (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) : NaturalModel.Sigma s[i]
 
