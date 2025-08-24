@@ -797,6 +797,10 @@ theorem var_sound {Γ i A l} (H : Lookup Γ i A l) {sΓ} (hΓ : sΓ ∈ ofCtx s 
   obtain ⟨_, h1, rfl⟩ := h1
   exact ⟨llen, _, h1, h2⟩
 
+/- The inductive soundness proof takes very long to typecheck,
+so we state the inductive hypotheses as definitions
+and break the inductive cases out into many small lemmas. -/
+
 def WfCtxIH Γ := ∃ sΓ, sΓ ∈ ofCtx s Γ
 def WfTpIH Γ l A := ∃ sΓ ∈ ofCtx s Γ, ∃ llen, ∃ sA, sA ∈ ofType sΓ l A llen
 def EqTpIH Γ l A B := ∃ sΓ ∈ ofCtx s Γ, ∃ llen, ∃ sA ∈ ofType sΓ l A llen, sA ∈ ofType sΓ l B llen
