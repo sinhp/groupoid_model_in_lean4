@@ -399,9 +399,13 @@ lemma code_el (s : UHomSeq Ctx) {Γ : Ctx} {i : Nat} (ilen : i < s.length)
     code s ilen (el s ilen a a_tp) = a := by
   simp [code, el]
 
-end UHomSeq
+-- Sadly, we have to spell out `ilen` and `jlen` due to
+-- https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/Optional.20implicit.20argument
+variable {i j : Nat} (ilen : i < s.length + 1) (jlen : j < s.length + 1)
 
-/-- The data of type and term formers at each universe `s[i].tp`.
+/-! ## Pi -/
+
+/-- The data of `Pi` and `lam` formers at each universe `s[i].tp`.
 
 This data is universe-monomorphic,
 but we can use it to construct universe-polymorphic formation
@@ -418,35 +422,19 @@ can be extended to
 --------------------------
 Γ ⊢ₘₐₓ₍ᵢ,ⱼ₎ ΠA. B type
 ``` -/
-structure UHomSeqPiSig (Ctx : Type u) [SmallCategory.{u} Ctx] [CartesianMonoidalCategory Ctx]
-    extends UHomSeq Ctx where
-  nmPi (i : Nat) (ilen : i < length + 1 := by get_elem_tactic) : NaturalModel.Pi toUHomSeq[i]
-  nmSig (i : Nat) (ilen : i < length + 1 := by get_elem_tactic) : NaturalModel.Sigma toUHomSeq[i]
+protected class PiSeq (s : UHomSeq Ctx) where
+  nmPi (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) : NaturalModel.Pi s[i]
 
-namespace UHomSeqPiSig
+section Pi
+open PiSeq
 
-variable {Ctx : Type u} [SmallCategory.{u} Ctx] [CartesianMonoidalCategory Ctx]
-
-instance : GetElem (UHomSeqPiSig Ctx) Nat (NaturalModel Ctx)
-    (fun s i => i < s.length + 1) where
-  getElem s i h := s.toUHomSeq[i]
-
-variable (s : UHomSeqPiSig Ctx)
-
-@[simp]
-theorem getElem_toUHomSeq (i : Nat) (ilen : i < s.length + 1) : s.toUHomSeq[i] = s[i] := rfl
-
--- Sadly, we have to spell out `ilen` and `jlen` due to
--- https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/Optional.20implicit.20argument
-variable {i j : Nat} (ilen : i < s.length + 1) (jlen : j < s.length + 1)
-
-/-! ## Pi -/
+variable [s.PiSeq]
 
 def Pi : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
-  s.cartesianNatTransTy i (max i j) j (max i j) ≫ (s.nmPi (max i j)).Pi
+  s.cartesianNatTransTy i (max i j) j (max i j) ≫ (nmPi (max i j)).Pi
 
 def lam : s[i].Ptp.obj s[j].Tm ⟶ s[max i j].Tm :=
-  s.cartesianNatTransTm i (max i j) j (max i j) ≫ (s.nmPi (max i j)).lam
+  s.cartesianNatTransTm i (max i j) j (max i j) ≫ (nmPi (max i j)).lam
 
 def Pi_pb :
     IsPullback (s.lam ilen jlen) (s[i].Ptp.map s[j].tp) s[max i j].tp (s.Pi ilen jlen) := by
@@ -460,7 +448,7 @@ def Pi_pb :
       (s[max i j].Ptp.map (s.homOfLe j (max i j)).mapTy) :=
     CategoryTheory.UvPoly.preservesPullbacks s[max i j].uvPolyTp _ _ _ _
     (s.homOfLe j (max i j)).pb
-  have q := IsPullback.paste_horiz pbB (s.nmPi (max i j)).Pi_pullback
+  have q := IsPullback.paste_horiz pbB (nmPi (max i j)).Pi_pullback
   apply CategoryTheory.IsPullback.paste_horiz (p1 s[j].tp).flip q
 
 /--
@@ -635,10 +623,20 @@ theorem mkApp_mkLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[
   rw [mkApp, unLam_mkLam]
   assumption
 
+end Pi
+
 /-! ## Sigma -/
 
+/-- The data of `Sig` and `pair` formers at each universe `s[i].tp`.
+class SigSeq (s : UHomSeq Ctx) where
+  nmSig (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) : NaturalModel.Sigma s[i]
+
+section Sigma
+open SigSeq
+variable [s.SigSeq]
+
 def Sig : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
-  s.cartesianNatTransTy i (max i j) j (max i j) ≫ (s.nmSig (max i j)).Sig
+  s.cartesianNatTransTy i (max i j) j (max i j) ≫ (nmSig (max i j)).Sig
 
 def pair : UvPoly.compDom s[i].uvPolyTp s[j].uvPolyTp ⟶ s[max i j].Tm :=
   let l : s[i].uvPolyTp.compDom s[j].uvPolyTp ⟶ s[max i j].uvPolyTp.compDom s[max i j].uvPolyTp :=
@@ -649,13 +647,13 @@ def pair : UvPoly.compDom s[i].uvPolyTp s[j].uvPolyTp ⟶ s[max i j].Tm :=
       (s.homOfLe j (max i j)).mapTy
       (s.homOfLe i (max i j)).pb.flip
       (s.homOfLe j (max i j)).pb.flip
-  l ≫ (s.nmSig (max i j)).pair
+  l ≫ (nmSig (max i j)).pair
 
 def Sig_pb : IsPullback
     (s.pair ilen jlen)
   (s[i].uvPolyTp.comp s[j].uvPolyTp).p s[max i j].tp
     (s.Sig ilen jlen) :=
-  (UvPoly.compDomMap_isPullback ..).paste_horiz (s.nmSig (max i j)).Sig_pullback
+  (UvPoly.compDomMap_isPullback ..).paste_horiz (nmSig (max i j)).Sig_pullback
 
 /--
 ```
@@ -784,6 +782,8 @@ theorem mkPair_mkFst_mkSnd {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A)
   conv at this => enter [1, 3]; apply s.dependent_eq
   simp [this]
 
+end Sigma
+
 /-! ## Identity types -/
 
 /--
@@ -880,5 +880,3 @@ theorem mkIdRec_mkRefl {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty)
     s.mkIdRec ilen jlen A t t_tp B B_eq M r r_tp t t_tp
       (s.mkRefl ilen t) (s.mkRefl_tp ilen _ t t_tp) = r := by
   sorry
-
-end UHomSeqPiSig

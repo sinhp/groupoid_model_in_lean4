@@ -231,6 +231,20 @@ protected def tp {l : Nat} (Γ : s.CObj) (llen : l < s.length + 1) (i : ℕ) :
     Part (y(Γ.1) ⟶ s[l].Ty) :=
   Γ.2.tp llen i
 
+@[simp]
+theorem mem_var_zero {Γ : s.CObj} {l' l'len A l} {llen : l < s.length + 1} {x} :
+    x ∈ (Γ.snoc (l := l') l'len A).var llen 0 ↔
+    ∃ l'l : l' = l, x = l'l ▸ s[l'].var A := by
+  dsimp only [UHomSeq.CObj.var, UHomSeq.CObj.snoc, UHomSeq.ExtSeq.var]
+  simp_part; exact exists_congr fun _ => by subst l'; simp_part
+
+@[simp]
+theorem mem_var_succ {Γ : s.CObj} {l' l'len A l i} {llen : l < s.length + 1} {x} :
+    x ∈ (Γ.snoc (l := l') l'len A).var llen (i+1) ↔
+    ∃ a ∈ Γ.var llen i, x = ym(s[l'].disp A) ≫ a := by
+  dsimp only [UHomSeq.CObj.var, UHomSeq.CObj.snoc, UHomSeq.ExtSeq.var]
+  simp_part
+
 theorem var_tp {l : Nat} (Γ : s.CObj) (llen : l < s.length + 1) (i : ℕ) :
     (Γ.var llen i).map (· ≫ s[l].tp) = Γ.tp llen i :=
   Γ.2.var_tp llen i
@@ -262,13 +276,9 @@ theorem lt_slen_of_eqTm {Γ t u A l} (H : Γ ⊢[l] t ≡ u : A) : l < s.length 
 
 end
 
-end UHomSeq
-
 /-! ## Interpretation -/
 
-namespace UHomSeqPiSig
-
-variable {𝒞 : Type u} [SmallCategory 𝒞] [CartesianMonoidalCategory 𝒞] {s : UHomSeqPiSig 𝒞}
+variable [s.PiSeq] [s.SigSeq]
 
 mutual
 
@@ -372,12 +382,13 @@ def ofTerm (Γ : s.CObj) (l : Nat) :
 
 end
 
-def ofCtx (s : UHomSeqPiSig 𝒞) : Ctx → Part s.CObj
+variable (s) in
+def ofCtx : Ctx → Part s.CObj
   | [] => return s.nilCObj
   | (A,l) :: Γ => do
     Part.assert (l < s.length + 1) fun llen => do
-    let sΓ ← s.ofCtx Γ
-    let sA ← ofType sΓ l A
+    let sΓ ← ofCtx Γ
+    let sA ← ofType (s := s) sΓ l A
     return sΓ.snoc llen sA
 
 @[simp]
@@ -425,20 +436,6 @@ theorem mem_ofType_el {Γ l t} {llen : l < s.length + 1} {x} :
 @[simp]
 theorem ofTerm_bvar {Γ l i} {llen : l < s.length + 1} :
     s.ofTerm Γ l (.bvar i) llen = Γ.var llen i := rfl
-
-@[simp]
-theorem mem_var_zero {Γ : s.CObj} {l' l'len A l} {llen : l < s.length + 1} {x} :
-    x ∈ (Γ.snoc (l := l') l'len A).var llen 0 ↔
-    ∃ l'l : l' = l, x = l'l ▸ s[l'].var A := by
-  dsimp only [UHomSeq.CObj.var, UHomSeq.CObj.snoc, UHomSeq.ExtSeq.var]
-  simp_part; exact exists_congr fun _ => by subst l'; simp_part; rfl
-
-@[simp]
-theorem mem_var_succ {Γ : s.CObj} {l' l'len A l i} {llen : l < s.length + 1} {x} :
-    x ∈ (Γ.snoc (l := l') l'len A).var llen (i+1) ↔
-    ∃ a ∈ Γ.var llen i, x = ym(s[l'].disp A) ≫ a := by
-  dsimp only [UHomSeq.CObj.var, UHomSeq.CObj.snoc, UHomSeq.ExtSeq.var]
-  simp_part; rfl
 
 @[simp]
 theorem mem_ofTerm_lam {Γ l i j A e} {llen : l < s.length + 1} {x} :
@@ -674,7 +671,7 @@ theorem mem_ofType_ofTerm_subst' {full}
     simp [ofTerm_bvar] at H
     simp [Expr.subst]
     induction σ generalizing i with simp [CSb.toSb, *]
-    | wk => exact mem_var_succ.2 ⟨_, ‹_›, rfl⟩
+    | wk => exact CObj.mem_var_succ.2 ⟨_, ‹_›, rfl⟩
     | @comp _ _ _ _ _ full σ τ ih1 ih2 =>
       simp [Expr.comp]
       cases full with
@@ -689,10 +686,10 @@ theorem mem_ofType_ofTerm_subst' {full}
     | snoc' _ _ _ _ _ _ _ ih1 =>
       induction i with
       | zero =>
-        obtain ⟨rfl, H⟩ := mem_var_zero.1 H
+        obtain ⟨rfl, H⟩ := CObj.mem_var_zero.1 H
         simp at H; subst H; simpa
       | succ i ih2 =>
-        obtain ⟨_, H', rfl⟩ := mem_var_succ.1 H
+        obtain ⟨_, H', rfl⟩ := CObj.mem_var_succ.1 H
         simp [ih1 IH i H']
   case lam ihA ihB =>
     obtain ⟨rfl, H⟩ := mem_ofTerm_lam.1 H; simp at H llen
@@ -800,9 +797,11 @@ theorem var_sound {Γ i A l} (H : Lookup Γ i A l) {sΓ} (hΓ : sΓ ∈ ofCtx s 
   obtain ⟨_, h1, rfl⟩ := h1
   exact ⟨llen, _, h1, h2⟩
 
+attribute [local irreducible] IsKernelPair.lift IsPullback.isLimit CategoryStruct.comp
+  Quiver.Hom yoneda mkId
 -- TODO: this proof is boring, repetitive exists-elim/exists-intro: automate!
 include slen in
-set_option maxHeartbeats 700000 in
+set_option maxHeartbeats 1600000 in
 theorem ofType_ofTerm_sound :
     (∀ {Γ}, WfCtx Γ → (ofCtx s Γ).Dom) ∧
     (∀ {Γ l A}, (Awf : Γ ⊢[l] A) → ∃ sΓ ∈ ofCtx s Γ, ∃ llen,
@@ -817,18 +816,18 @@ theorem ofType_ofTerm_sound :
   simp [Part.dom_iff_mem]
   mutual_induction WfCtx
 
-  case nil => simp
-  case snoc =>
+  case nil => as_aux_lemma => simp
+  case snoc => as_aux_lemma =>
     simp only [mem_ofCtx_snoc, forall_exists_index, and_imp]
     intros; rename_i hΓ llen _ hA
     exact ⟨_, _, hΓ, llen, _, hA, rfl⟩
 
-  case pi' | sigma' =>
+  case pi' | sigma' => as_aux_lemma =>
     simp only [mem_ofCtx_snoc, mem_ofType_pi, mem_ofType_sigma,
       sup_lt_iff, exists_true_left, forall_exists_index, and_imp]
     intros; subst_eqs
     exact ⟨_, ‹_›, ⟨‹_›, ‹_›⟩, _, _, ‹_›, _, ‹_›, rfl⟩
-  case Id' =>
+  case Id' => as_aux_lemma =>
     simp only [mem_ofType_Id, forall_exists_index, and_imp]
     intros; subst_eqs; rename_i hΓ _ _ hA _ hΓ' _ _ _ _ hΓ₁ _ _ _ hA₁ hA₂
     cases Part.mem_unique hΓ hΓ'
@@ -836,23 +835,23 @@ theorem ofType_ofTerm_sound :
     have := Part.mem_unique hA₁ hA
     have := Part.mem_unique hA₂ hA
     exact ⟨_, ‹_›, ‹_›, _, _, hA, _, ‹_›, _, ‹_›, ‹_›, ‹_›, rfl⟩
-  case univ =>
+  case univ => as_aux_lemma =>
     simp only [mem_ofType_univ, exists_true_left, forall_exists_index]
     intros; rename_i hΓ
     exact ⟨_, hΓ, by omega, _, rfl⟩
-  case el =>
+  case el => as_aux_lemma =>
     simp only [mem_ofType_univ, mem_ofType_el, forall_exists_index, and_imp]
     intros; subst_eqs
     exact ⟨_, ‹_›, by omega, _, by omega, _, ‹_›, ‹_›, rfl⟩
 
-  case cong_pi' | cong_sigma' =>
+  case cong_pi' | cong_sigma' => as_aux_lemma =>
     simp only [mem_ofCtx_snoc, mem_ofType_pi, mem_ofType_sigma,
       forall_exists_index, and_imp, exists_true_left, sup_lt_iff]
     intros; subst_eqs; rename_i hΓ _ _ hA _ _ hΓ' _ _ hA' _ _ _ _
     cases Part.mem_unique hΓ hΓ'
     cases Part.mem_unique hA hA'
     exact ⟨_, hΓ, ⟨‹_›, ‹_›⟩, _, ⟨_, hA, _, ‹_›, rfl⟩, ⟨_, ‹_›, _, ‹_›, rfl⟩⟩
-  case cong_Id =>
+  case cong_Id => as_aux_lemma =>
     simp only [mem_ofType_Id, forall_exists_index, and_imp]
     intros; subst_eqs; rename_i hΓ _ _ hA hA' _ hΓ' _ _ _ _ _ hΓ₁ _ _ _ _ hA₁ hA₂
     cases Part.mem_unique hΓ hΓ'
@@ -861,31 +860,31 @@ theorem ofType_ofTerm_sound :
     have := Part.mem_unique hA₂ hA
     exact ⟨_, hΓ, ‹_›, _,
       ⟨_, hA, _, ‹_›, _, ‹_›, ‹_›, ‹_›, rfl⟩, ⟨_, hA', _, ‹_›, _, ‹_›, ‹_›, ‹_›, rfl⟩⟩
-  case cong_el =>
+  case cong_el => as_aux_lemma =>
     simp only [mem_ofType_univ, mem_ofType_el, forall_exists_index, and_imp]
     intros; subst_eqs
     exact ⟨_, ‹_›, by omega, _, ⟨by omega, _, ‹_›, ‹_›, rfl⟩, ⟨by omega, _, ‹_›, ‹_›, rfl⟩⟩
-  case el_code =>
+  case el_code => as_aux_lemma =>
     simp only [mem_ofTerm_code, mem_ofType_el, forall_exists_index, and_imp,
       Nat.add_right_cancel_iff, exists_prop_eq']
     intros
     refine ⟨_, ‹_›, ‹_›, _, ⟨by omega, _, ⟨_, ‹_›, rfl⟩, ?_, rfl⟩, ?_⟩
     · apply s.code_tp
     · rwa [s.el_code]
-  case refl_tp | symm_tp => grind
-  case trans_tp =>
+  case refl_tp | symm_tp => as_aux_lemma => grind
+  case trans_tp => as_aux_lemma =>
     simp only [forall_exists_index, and_imp]
     intros; rename_i hΓ _ _ _ hA₁ _ hΓ' _ _ hA₂ _
     cases Part.mem_unique hΓ hΓ'
     cases Part.mem_unique hA₁ hA₂
     exact ⟨_, ‹_›, ‹_›, _, ‹_›, ‹_›⟩
 
-  case bvar =>
+  case bvar => as_aux_lemma =>
     simp only [ofTerm_bvar, forall_exists_index]
     intros
     obtain ⟨llen, _, h1, h2⟩ := var_sound ‹_› ‹_›
     exact ⟨_, ‹_›, llen, _, h2, _, h1, rfl⟩
-  case lam' =>
+  case lam' => as_aux_lemma =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_lam, mem_ofType_pi,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs; rename_i hΓ _ _ hA _ hΓ' _ _ hA' _ _ _ _
@@ -893,7 +892,7 @@ theorem ofType_ofTerm_sound :
     cases Part.mem_unique hA hA'
     refine ⟨_, ‹_›, ⟨‹_›, ‹_›⟩, _, ⟨_, ‹_›, _, ‹_›, rfl⟩, _, ⟨_, ‹_›, _, ‹_›, rfl⟩, ?_⟩
     apply mkLam_tp (t_tp := rfl)
-  case app' =>
+  case app' => as_aux_lemma =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_app, mem_ofType_pi,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs
@@ -907,7 +906,7 @@ theorem ofType_ofTerm_sound :
     refine ⟨_, ‹_›, ‹_›, _, ?_, _, ⟨‹_›, _, ‹_›, _, ‹_›, _, rfl, _, ‹_›, ‹_›, rfl⟩, rfl⟩
     rw [mkApp_tp]
     apply mem_ofType_toSb <;> assumption
-  case pair' =>
+  case pair' => as_aux_lemma =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_pair, mem_ofType_sigma,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs
@@ -922,7 +921,7 @@ theorem ofType_ofTerm_sound :
     · apply mkPair_tp
     · refine Part.mem_unique ‹_› ?_
       apply mem_ofType_toSb <;> assumption
-  case fst' =>
+  case fst' => as_aux_lemma =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_fst, mem_ofType_sigma,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs; rename_i hΓ _ _ hA _ hΓ' _ _ hA' _ _ hΓ₁ _ _ hA₁ _ hB _ _ _ hB' _
@@ -933,7 +932,7 @@ theorem ofType_ofTerm_sound :
     cases Part.mem_unique hB hB'; clear hB'
     refine ⟨_, ‹_›, ‹_›, _, ‹_›, _, ⟨‹_›, _, ‹_›, _, ‹_›, _, ‹_›, ‹_›, rfl⟩, ?_⟩
     apply mkFst_tp
-  case snd' =>
+  case snd' => as_aux_lemma =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_snd, mem_ofType_sigma,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs; rename_i hΓ _ _ hA _ hΓ' _ _ hA' _ _ hΓ₁ _ _ hA₁ _ hB _ _ _ hB' _
@@ -946,18 +945,18 @@ theorem ofType_ofTerm_sound :
     rw [mkSnd_tp]
     apply mem_ofType_toSb <;> simp only [mem_ofTerm_fst, exists_true_left, *]
     exact ⟨_, ‹_›, _, ‹_›, _, ‹_›, ‹_›, rfl⟩
-  case refl' =>
+  case refl' => as_aux_lemma =>
     simp only [mem_ofTerm_refl, mem_ofType_Id, forall_exists_index, and_imp]
     intros; subst_eqs
     refine ⟨_, ‹_›, ‹_›, _, ⟨_, ‹_›, _, ‹_›, _, ‹_›, rfl, rfl, rfl⟩, _, ⟨_, ‹_›, rfl⟩, ?_⟩
     apply mkRefl_tp
-  case idRec' =>
-    simp only [mem_ofCtx_snoc, mem_ofTerm_idRec, mem_ofType_Id,
+  case idRec' => as_aux_lemma =>
+    simp only [mem_ofCtx_snoc, mem_ofTerm_idRec, mem_ofType_Id, ofTerm_bvar,
       forall_exists_index, and_imp]
     intros; subst_eqs
     rename_i t' _ _ _ i _ _ _ _ _ _ _ _
       hΓ ilen A hA _ hΓ' _ t ht _ hΓ₁ _ _ hA₁ _ _ _ hΓ₂ llen r hr _ hΓ₃ _ u hu _ hΓ₄
-      _ _ ht₁ _ hu₁ h hh _ _ _ _ _ rtp hA₂ hA₃ utp _ _ _ M hM
+      _ _ ht₁ _ hu₁ h hh _ _ _ _ hv rtp hA₂ hA₃ utp _ _ _ M hM
     cases Part.mem_unique hΓ hΓ'
     cases Part.mem_unique hΓ hΓ₁
     cases Part.mem_unique hA hA₁
@@ -967,8 +966,10 @@ theorem ofType_ofTerm_sound :
     cases Part.mem_unique ht ht₁
     cases Part.mem_unique hu hu₁
     cases Part.mem_unique hA₃ hA
-    refine ⟨_, ‹_›, ‹_›, _, ?_, _, ⟨‹_›, _, ‹_›, _, rfl, _, rfl,
-      M, by convert hM using 1, _, ‹_›, ?_, _, ‹_›, ‹_›, _, ‹_›, ‹_›, rfl⟩, rfl⟩
+    cases Part.mem_unique (mem_ofTerm_wk ilen ht) ‹_›
+    simp only [CObj.mem_var_zero, exists_const] at hv; subst hv
+    refine ⟨_, ‹_›, ‹_›, _, ?_, _, ⟨‹_›, _, ‹_›, _, _, _, by simp,
+      M, hM, _, ‹_›, ?_, _, ‹_›, ‹_›, _, ‹_›, ‹_›, rfl⟩, rfl⟩
     · rw [mkIdRec_tp]
       refine (s.mem_ofType_ofTerm_subst llen (.snoc (.sub1 _ _ _ utp hu) _ _ _ ?_ hh) ?_).1 hM
       simp [*]
@@ -977,14 +978,14 @@ theorem ofType_ofTerm_sound :
         (.snoc (.sub1 _ _ _ rfl ht) _ _ (.refl i t') ?_ ?_) ?_).1 hM
       · exact mem_ofTerm_refl.2 ⟨_, ht, rfl⟩
       · rfl
-  case code =>
+  case code => as_aux_lemma =>
     simp only [mem_ofTerm_code, mem_ofType_univ,
       Nat.add_right_cancel_iff, exists_prop_eq', exists_eq_left, Nat.add_lt_add_iff_right,
       forall_exists_index, and_imp, exists_true_left]
     intros
     refine ⟨_, ‹_›, by omega, _, ⟨_, ‹_›, rfl⟩, ?_⟩
     apply UHomSeq.code_tp
-  case conv =>
+  case conv => as_aux_lemma =>
     simp only [forall_exists_index, and_imp]
     intros; subst_eqs
     rename_i hΓ _ _ _ _ hΓ' _ _ hA _ hA'
@@ -992,7 +993,7 @@ theorem ofType_ofTerm_sound :
     cases Part.mem_unique hA hA'; clear hA'
     exact ⟨_, ‹_›, ‹_›, _, ‹_›, _, ‹_›, rfl⟩
 
-  case cong_lam' =>
+  case cong_lam' => as_aux_lemma =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_lam, mem_ofType_pi,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs; rename_i hΓ _ _ hA _ hΓ' _ _ hA' _ hΓ₁ _ _ hA₁ hA'₁ _ hΓ₂ _ _ hA₂ _ _ _ _ _
@@ -1005,7 +1006,7 @@ theorem ofType_ofTerm_sound :
     refine ⟨_, ‹_›, ⟨‹_›, ‹_›⟩, _, ⟨_, ‹_›, _, ‹_›, rfl⟩, _,
       ⟨_, ‹_›, _, ‹_›, rfl⟩, ⟨_, ‹_›, _, ‹_›, rfl⟩, ?_⟩
     apply mkLam_tp (t_tp := rfl)
-  case cong_app' =>
+  case cong_app' => as_aux_lemma =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_app, mem_ofType_pi,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs
@@ -1021,7 +1022,7 @@ theorem ofType_ofTerm_sound :
       ⟨‹_›, _, ‹_›, _, ‹_›, _, rfl, _, ‹_›, ‹_›, rfl⟩, rfl⟩
     rw [mkApp_tp]
     apply mem_ofType_toSb <;> assumption
-  case cong_pair' =>
+  case cong_pair' => as_aux_lemma =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_pair, mem_ofType_sigma,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs
@@ -1036,7 +1037,7 @@ theorem ofType_ofTerm_sound :
     · apply mkPair_tp
     · refine Part.mem_unique ‹_› ?_
       apply mem_ofType_toSb <;> assumption
-  case cong_fst' =>
+  case cong_fst' => as_aux_lemma =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_fst, mem_ofType_sigma,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs
@@ -1051,7 +1052,7 @@ theorem ofType_ofTerm_sound :
     refine ⟨_, ‹_›, ‹_›, _, ‹_›, _, ⟨‹_›, _, ‹_›, _, ‹_›, _, ‹_›, ‹_›, rfl⟩,
       ⟨‹_›, _, ‹_›, _, ‹_›, _, ‹_›, ‹_›, rfl⟩, ?_⟩
     apply mkFst_tp
-  case cong_snd' =>
+  case cong_snd' => as_aux_lemma =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_snd, mem_ofType_sigma,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs
@@ -1068,19 +1069,19 @@ theorem ofType_ofTerm_sound :
     rw [mkSnd_tp]
     apply mem_ofType_toSb <;> simp only [mem_ofTerm_fst, exists_true_left, *]
     exact ⟨_, ‹_›, _, ‹_›, _, ‹_›, ‹_›, rfl⟩
-  case cong_refl' =>
+  case cong_refl' => as_aux_lemma =>
     simp only [mem_ofTerm_refl, mem_ofType_Id, forall_exists_index, and_imp]
     intros; subst_eqs
     refine ⟨_, ‹_›, ‹_›, _, ⟨_, ‹_›, _, ‹_›, _, ‹_›, rfl, rfl, rfl⟩, _,
       ⟨_, ‹_›, rfl⟩, ⟨_, ‹_›, rfl⟩, ?_⟩
     apply mkRefl_tp
-  case cong_idRec' =>
-    simp only [mem_ofCtx_snoc, mem_ofTerm_idRec, mem_ofType_Id,
+  case cong_idRec' => as_aux_lemma =>
+    simp only [mem_ofCtx_snoc, mem_ofTerm_idRec, mem_ofType_Id, ofTerm_bvar,
       forall_exists_index, and_imp]
     intros; subst_eqs
     rename_i et _ _ _ _ _ _ _ i _ _ _ _ _ _ _ _ _
       hΓ ilen A hA _ hΓ' _ t ht _ hΓ₁ _ _ ht₁ _ _ hΓ₂ _ _ hA₁ _ llen _ hΓ₃ u _ hr _ _ hΓ₄ _ _
-      hu _ _ hΓ₅ _ _ ht₂ _ hu₁ _ hh hh' _ _ _ _ _ _ rtp hA₂ hA₃ utp _ _ _ M hM hM'
+      hu _ _ hΓ₅ _ _ ht₂ _ hu₁ _ hh hh' _ _ _ _ _ hv rtp hA₂ hA₃ utp _ _ _ M hM hM'
     cases Part.mem_unique hΓ hΓ'
     cases Part.mem_unique hΓ hΓ₁
     cases Part.mem_unique hΓ hΓ₂
@@ -1092,11 +1093,11 @@ theorem ofType_ofTerm_sound :
     cases Part.mem_unique ht ht₂
     cases Part.mem_unique hu hu₁
     cases Part.mem_unique hA₃ hA
+    cases Part.mem_unique (mem_ofTerm_wk ilen ht) ‹_›
+    simp only [CObj.mem_var_zero, exists_const] at hv; subst hv
     refine ⟨_, ‹_›, ‹_›, _, ?_, _,
-      ⟨‹_›, _, ‹_›, _, rfl, _, rfl, M, by convert hM using 1,
-        _, ‹_›, ?h3, _, ‹_›, ‹_›, _, ‹_›, ‹_›, rfl⟩,
-      ⟨‹_›, _, ‹_›, _, rfl, _, rfl, M, by convert hM' using 1,
-        _, ‹_›, ?h3, _, ‹_›, ‹_›, _, ‹_›, ‹_›, rfl⟩, rfl⟩
+      ⟨‹_›, _, ‹_›, _, rfl, _, by simp, M, hM, _, ‹_›, ?h3, _, ‹_›, ‹_›, _, ‹_›, ‹_›, rfl⟩,
+      ⟨‹_›, _, ‹_›, _, rfl, _, by simp, M, hM', _, ‹_›, ?h3, _, ‹_›, ‹_›, _, ‹_›, ‹_›, rfl⟩, rfl⟩
     · rw [mkIdRec_tp]
       refine (s.mem_ofType_ofTerm_subst llen (.snoc (.sub1 _ _ _ utp hu) _ _ _ ?_ hh) ?_).1 hM
       simp [*]
@@ -1105,14 +1106,14 @@ theorem ofType_ofTerm_sound :
         (.snoc (.sub1 _ _ _ rfl ht) _ _ (.refl i et) ?_ ?_) ?_).1 hM
       · exact mem_ofTerm_refl.2 ⟨_, ht, rfl⟩
       · rfl
-  case cong_code =>
+  case cong_code => as_aux_lemma =>
     simp only [mem_ofTerm_code, mem_ofType_univ,
       Nat.add_right_cancel_iff, exists_prop_eq', exists_eq_left, Nat.add_lt_add_iff_right,
       forall_exists_index, and_imp, exists_true_left]
     intros
     refine ⟨_, ‹_›, by omega, _, ⟨_, ‹_›, rfl⟩, ⟨_, ‹_›, rfl⟩, ?_⟩
     apply UHomSeq.code_tp
-  case app_lam' =>
+  case app_lam' => as_aux_lemma =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_app, mem_ofTerm_lam,
       forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs
@@ -1131,7 +1132,7 @@ theorem ofType_ofTerm_sound :
     · apply mkLam_tp (t_tp := rfl)
     · rw [mkApp_mkLam (t_tp := rfl)]
       apply mem_ofTerm_toSb <;> assumption
-  case fst_pair' =>
+  case fst_pair' => as_aux_lemma =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_fst, mem_ofTerm_pair,
       forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs
@@ -1148,7 +1149,7 @@ theorem ofType_ofTerm_sound :
     · apply mkPair_tp
     · rwa [mkFst_mkPair]
     · rw [mkFst_mkPair]
-  case snd_pair' =>
+  case snd_pair' => as_aux_lemma =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_snd, mem_ofTerm_pair,
       forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs
@@ -1165,26 +1166,28 @@ theorem ofType_ofTerm_sound :
       apply mem_ofType_toSb <;> assumption
     · apply mkPair_tp
     · rwa [mkSnd_mkPair]
-  case idRec_refl' =>
-    simp only [mem_ofCtx_snoc, mem_ofTerm_idRec, mem_ofTerm_refl, mem_ofType_Id,
+  case idRec_refl' => as_aux_lemma =>
+    simp only [mem_ofCtx_snoc, mem_ofTerm_idRec, mem_ofTerm_refl, mem_ofType_Id, ofTerm_bvar,
       forall_exists_index, and_imp]
     intros; subst_eqs
     rename_i et _ i _ _ _ _ _ _ hΓ ilen _ hA _ hΓ' _ _ ht _ hΓ₁ _ _ hA₁ _ llen _ hΓ₂
-      _ _ hr hA₂ _ _ _ _ rtp _ utp M hM
+      _ _ hr hA₂ _ _ _ hv rtp _ utp M hM
     cases Part.mem_unique hΓ hΓ'
     cases Part.mem_unique hΓ hΓ₁
     cases Part.mem_unique hΓ hΓ₂
     cases Part.mem_unique hA hA₁
     cases Part.mem_unique hA hA₂
+    cases Part.mem_unique (mem_ofTerm_wk ilen ht) ‹_›
+    simp only [CObj.mem_var_zero, exists_const] at hv; subst hv
     refine ⟨_, ‹_›, ‹_›, _, ‹_›, _,
-      ⟨‹_›, _, ‹_›, _, rfl, _, rfl, M, by convert hM using 1, _, ‹_›, ?_,
+      ⟨‹_›, _, ‹_›, _, rfl, _, by simp, M, hM, _, ‹_›, ?_,
         _, ‹_›, rfl, _, ⟨_, ‹_›, rfl⟩, by simp⟩, ‹_›, rfl⟩
     refine Part.mem_unique rtp ?_
     refine (s.mem_ofType_ofTerm_subst llen
       (.snoc (.sub1 _ _ _ rfl ht) _ _ (.refl i et) ?_ ?_) ?_).1 hM
     · exact mem_ofTerm_refl.2 ⟨_, ht, rfl⟩
     · rfl
-  case lam_app' =>
+  case lam_app' => as_aux_lemma =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_app, mem_ofTerm_lam, mem_ofType_pi, ofTerm_bvar,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs
@@ -1195,14 +1198,12 @@ theorem ofType_ofTerm_sound :
     cases Part.mem_unique hA hA₂; clear hA₂
     cases Part.mem_unique hB hB₁; clear hB₁
     refine ⟨_, ‹_›, ‹_›, _, ⟨_, ‹_›, _, ‹_›, ‹_›⟩, _, ‹_›, ⟨_, ‹_›, _,
-      ⟨‹_›, _, mem_ofTerm_wk _ ‹_› .., _, (mem_var_zero (x := s[l].var _)).2 ⟨rfl, rfl⟩, _, rfl,
-        _, (mem_ofType_ofTerm_subst _ (.up (.wk _ _) _ _ _ ?_) (CSb.up_toSb _)).1 ‹_›, ?_, ?_⟩,
-      .symm (etaExpand_eq (f_tp := ‹_›) ..)⟩, rfl⟩
+      ⟨‹_›, _, mem_ofTerm_wk _ ‹_› .., _, (CObj.mem_var_zero (x := s[l].var _)).2 ⟨rfl, rfl⟩, _, _,
+        _, (mem_ofType_ofTerm_subst _ (.up (.wk _ _) _ _ _ ?_) (CSb.up_toSb _)).1 ‹_›, ?_, rfl⟩,
+      .symm (s.etaExpand_eq (f_tp := ‹_›) ..)⟩, rfl⟩
     · simp
     · simp [*, comp_mkPi, substWk]
-      congr! 1 <;> [simp; congr!]
-    · simp [substWk]; congr!
-  case pair_fst_snd' =>
+  case pair_fst_snd' => as_aux_lemma =>
     simp only [mem_ofCtx_snoc, mem_ofTerm_pair, mem_ofTerm_fst, mem_ofTerm_snd, mem_ofType_sigma,
       sup_lt_iff, forall_exists_index, and_imp, exists_true_left]
     intros; subst_eqs
@@ -1216,25 +1217,25 @@ theorem ofType_ofTerm_sound :
       ⟨_, ⟨‹_›, _, ‹_›, _, ‹_›, _, ‹_›, ‹_›, rfl⟩, A, by simp, _, ‹_›,
         _, ⟨‹_›, _, ‹_›, _, ‹_›, _, ‹_›, ‹_›, rfl⟩, by simp, ?_⟩, rfl⟩
     exact (mkPair_mkFst_mkSnd (p_tp := ‹_›) ..).symm
-  case code_el =>
+  case code_el => as_aux_lemma =>
     simp only [mem_ofType_univ, mem_ofTerm_code, mem_ofType_el,
       exists_const, exists_eq_left, Nat.add_lt_add_iff_right,
       Nat.add_right_cancel_iff, exists_prop_eq', forall_exists_index, and_imp]
     intros
     refine ⟨_, ‹_›, ‹_›, _, ‹_›, ⟨_, ⟨_, _, ‹_›, ‹_›, rfl⟩, ?_⟩, ‹_›⟩
     rw [UHomSeq.code_el]
-  case conv_eq =>
+  case conv_eq => as_aux_lemma =>
     rintro _ _ _ _ _ _ _ _ ⟨_, hΓ, _, _, hA, _, _, _, rfl⟩ ⟨_, hΓ', _, _, hA', _⟩
     cases Part.mem_unique hΓ hΓ'
     cases Part.mem_unique hA hA'
     exact ⟨_, ‹_›, ‹_›, _, ‹_›, _, ‹_›, ‹_›, rfl⟩
-  case refl_tm =>
+  case refl_tm => as_aux_lemma =>
     rintro _ _ _ _ _ ⟨_, _, _, _, _, _, _, _⟩
     exact ⟨_, ‹_›, ‹_›, _, ‹_›, _, ‹_›, ‹_›, ‹_›⟩
-  case symm_tm' =>
+  case symm_tm' => as_aux_lemma =>
     rintro _ _ _ _ _ _ _ _ ⟨_, _, _, _, _, _, _, _, _⟩
     exact ⟨_, ‹_›, ‹_›, _, ‹_›, _, ‹_›, ‹_›, ‹_›⟩
-  case trans_tm' =>
+  case trans_tm' => as_aux_lemma =>
     rintro _ _ _ _ _ _ _ _ _ _ ⟨_, hΓ, _, _, _, _, _, ht₁, _⟩ ⟨_, hΓ', _, _, _, _, ht₂, _, _⟩
     cases Part.mem_unique hΓ hΓ'
     cases Part.mem_unique ht₁ ht₂
@@ -1296,5 +1297,5 @@ theorem interpTerm_eq {Γ l t u A} (H : Γ ⊢[l] t ≡ u : A) (lt : l < s.lengt
   cases Part.mem_unique sΓ_mem h1
   exact H
 
-end UHomSeqPiSig
+end UHomSeq
 end NaturalModel

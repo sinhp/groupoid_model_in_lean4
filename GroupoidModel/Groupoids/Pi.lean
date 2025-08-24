@@ -1096,10 +1096,8 @@ def uHomSeqPis' (i : ℕ) (ilen : i < 4) :
   | 3 => smallUPi.{3,4}
   | (n+4) => by omega
 
-def uHomSeqPiSigma : UHomSeqPiSig Ctx where
-  __ := uHomSeq
+instance uHomSeqPi : uHomSeq.PiSeq where
   nmPi := uHomSeqPis'
-  nmSig := uHomSeqSigs'
 
 end
 
