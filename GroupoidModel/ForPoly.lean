@@ -11,6 +11,67 @@ open Limits PartialProduct
 universe v u
 variable {C : Type u} [Category.{v} C] [HasPullbacks C] [HasTerminal C] {E B : C}
 
+
+
+theorem η_naturality' {E B E' B' : C} {P : UvPoly E B} {P' : UvPoly E' B'}
+    (e : E ⟶ E') (b : B ⟶ B')
+    (hp : IsPullback P.p e b P'.p) :
+    let bmap := Over.map b
+    let emap := Over.map e
+    let pbk := Over.pullback P.p
+    let ebk := Over.pullback e
+    let bbk := Over.pullback b
+    let p'bk := Over.pullback P'.p
+    have α : pbk ⋙ emap ≅ bmap ⋙ p'bk := pullbackMapIsoSquare hp.flip
+    have bb : bbk ⋙ pbk ≅ p'bk ⋙ ebk :=
+      (Over.pullbackComp P.p b).symm.trans (eqToIso congr(Over.pullback $(hp.w)))
+        |>.trans (Over.pullbackComp e P'.p)
+    Functor.whiskerLeft pbk (Over.mapPullbackAdj e).unit ≫
+    Functor.whiskerRight α.hom ebk ≫
+    Functor.whiskerLeft bmap bb.inv =
+    Functor.whiskerRight (Over.mapPullbackAdj b).unit pbk := by
+  intro bmap emap pbk ebk bbk p'bk α bb
+  ext X
+  simp[bb,α,pullbackMapIsoSquare,pbk,bmap,ebk,emap,bbk,Category.assoc]
+  ext
+  · simp[← Category.assoc,← pullback_map_eq_eqToHom rfl (by sorry)]
+    simp[Over.pullbackComp]
+    slice_lhs 2 3 => apply pullback.lift_fst
+    simp[← Category.assoc]
+  · rw[← pullback_map_eq_eqToHom rfl (by sorry)]
+    simp[Over.pullbackComp]
+    slice_lhs 2 3 => apply pullback.lift_snd
+    simp[← Category.assoc,pullback.condition]
+  rw[← Category.assoc,← pullback_map_eq_eqToHom rfl (by sorry)]
+  simp[Over.pullbackComp,pullback.map]
+  slice_lhs 2 3 => apply pullback.lift_snd
+  simp
+
+
+
+
+theorem η_naturality {E B E' B' : C} {P : UvPoly E B} {P' : UvPoly E' B'}
+    (e : E ⟶ E') (b : B ⟶ B')
+    (hp : IsPullback P.p e b P'.p) :
+    let bmap := Over.map b
+    let emap := Over.map e
+    let pbk := Over.pullback P.p
+    let ebk := Over.pullback e
+    let bbk := Over.pullback b
+    let p'bk := Over.pullback P'.p
+    have α : pbk ⋙ emap ≅ bmap ⋙ p'bk := pullbackMapIsoSquare hp.flip
+    have bb : bbk ⋙ pbk ≅ p'bk ⋙ ebk :=
+      (Over.pullbackComp P.p b).symm.trans (eqToIso congr(Over.pullback $(hp.w)))
+        |>.trans (Over.pullbackComp e P'.p)
+    Functor.whiskerRight (Over.mapPullbackAdj b).unit pbk ≫
+    Functor.whiskerLeft bmap bb.hom ≫
+    Functor.whiskerRight α.inv ebk =
+    Functor.whiskerLeft pbk (Over.mapPullbackAdj e).unit := by
+  intro bmap emap pbk ebk bbk p'bk β bb
+  unfold pbk
+  sorry
+
+
 open ExponentiableMorphism in
 theorem ev_naturality {E B E' B' : C} {P : UvPoly E B} {P' : UvPoly E' B'}
     (e : E ⟶ E') (b : B ⟶ B')
