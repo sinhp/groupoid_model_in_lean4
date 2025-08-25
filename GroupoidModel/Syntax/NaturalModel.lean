@@ -610,7 +610,7 @@ There is an equivalent formulation of these extra conditions later in `Id'`
 that uses the language of polynomial endofunctors.
 
 Note that the universe/model `N` for the motive `C` is different from the universe `M` that the
-idenity type lives in.
+identity type lives in.
 -/
 protected structure Id (N : NaturalModel Ctx) (i : IdIntro M) where
   j {Γ} (a : y(Γ) ⟶ M.Tm) (C : y(IdIntro.motiveCtx _ a) ⟶ N.Ty) (r : y(Γ) ⟶ N.Tm)
