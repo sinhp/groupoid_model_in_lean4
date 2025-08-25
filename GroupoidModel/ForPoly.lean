@@ -200,7 +200,7 @@ theorem ε_map {E B A E' B' A' : C} {P : UvPoly E B} {P' : UvPoly E' B'}
     slice_rhs 1 2 => apply by simpa using ((ev P.p).app ((Over.star E).obj A)).w
     slice_lhs 2 3 => apply by simpa using ((ev P'.p).app ((Over.star E').obj A')).w
     apply pullback.lift_snd
-  · simpa using fan_snd_map e b a hp
+  · simpa [fan_snd] using fan_snd_map e b a hp
 
 namespace Equiv
 
@@ -313,7 +313,7 @@ theorem snd'_comp_right (pair : Γ ⟶ P @ X)
     {R f1 f2} (H : IsPullback (P := R) f1 f2 (fst P X pair) P.p) :
     snd' P Y (pair ≫ P.functor.map f) (by rwa [fst_comp_right]) =
     snd' P X pair H ≫ f := by
-  simp [snd'_eq, ε]
+  simp [snd'_eq, fan_snd, ε]
   have := congr($((ExponentiableMorphism.ev P.p).naturality ((Over.star E).map f)).left ≫ prod.snd)
   dsimp at this; simp at this
   rw [← this]; clear this
@@ -449,12 +449,15 @@ def compDomEquiv {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} :
       left_inv _ := rfl
       right_inv _ := rfl }
 
-@[simp] theorem compDomEquiv_symm_comp_p {Γ E B D A : 𝒞} {P : UvPoly E B}
+def compP {E B D A : C} (P : UvPoly E B) (Q : UvPoly D A) : compDom P Q ⟶ P @ A :=
+  pullback.snd Q.p (fan P A).snd ≫ pullback.fst (fan P A).fst P.p
+
+@[simp] theorem compDomEquiv_symm_compP {Γ E B D A : 𝒞} {P : UvPoly E B}
     {Q : UvPoly D A} (AB : Γ ⟶ P @ A) (α : Γ ⟶ E)
     (β : Γ ⟶ D) (w : AB ≫ P.fstProj A = α ≫ P.p)
     (h : β ≫ Q.p = pullback.lift AB α w ≫ (PartialProduct.fan P A).snd) :
-    compDomEquiv.symm ⟨AB, α, β, w, h⟩ ≫ (P.comp Q).p = AB := by
-   simp [compDomEquiv, Equiv.psigmaCongrProp, Equiv.sigmaCongrRight_symm,
+    compDomEquiv.symm ⟨AB, α, β, w, h⟩ ≫ P.compP Q = AB := by
+   simp [compDomEquiv, compP, Equiv.psigmaCongrProp, Equiv.sigmaCongrRight_symm,
     Equiv.coe_fn_symm_mk, pullbackHomEquiv]
 
 def compDomMap {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q : UvPoly D A}
@@ -473,7 +476,7 @@ theorem compDomMap_isPullback {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q :
     (hp : IsPullback P.p e b P'.p) (hq : IsPullback Q.p d a Q'.p) :
     IsPullback
       (UvPoly.compDomMap e d b a hp hq)
-      (P.comp Q).p (P'.comp Q').p
+      (P.compP Q) (P'.compP Q')
       ((P.cartesianNatTrans P' b e hp).app A ≫ P'.functor.map a) := by
   set p := P.cartesianNatTrans P' b e hp
   apply IsPullback.paste_vert

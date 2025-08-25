@@ -373,7 +373,7 @@ theorem dependent_eq : dependent ab =
   erw [eqToHom_refl, map_id_eq, Functor.id_comp]
   simp only [← heq_eq_eq, heq_eqRec_iff_heq, dependent, compDomEquiv.dependent, PtpEquiv.snd, comp]
   rw! (castMode := .all) [compDomEquiv.fst_tp]
-  simp
+  simp; rfl
 
 theorem dependent_heq : HEq (dependent ab) (smallU.PtpEquiv.snd (ab ≫ comp.{v})) := by
   rw [dependent_eq]
