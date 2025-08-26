@@ -9,9 +9,69 @@ namespace CategoryTheory.UvPoly
 open Limits PartialProduct
 
 universe v u
-variable {C : Type u} [Category.{v} C] [HasPullbacks C] [HasTerminal C] {E B : C}
+variable {C : Type u} [Category.{v} C] [HasPullbacks C]
+
+theorem η_naturality {E B E' B' : C} {P : UvPoly E B} {P' : UvPoly E' B'}
+    (e : E ⟶ E') (b : B ⟶ B') (hp : IsPullback P.p e b P'.p) :
+    Functor.whiskerLeft (Over.pullback P.p) (Over.mapPullbackAdj e).unit ≫
+    Functor.whiskerRight (pullbackMapIsoSquare hp.flip).hom (Over.pullback e) ≫
+    Functor.whiskerLeft (Over.map b)
+      ((Over.pullbackComp P.p b).symm.trans (eqToIso congr(Over.pullback $(hp.w)))
+        |>.trans (Over.pullbackComp e P'.p)).inv =
+    Functor.whiskerRight (Over.mapPullbackAdj b).unit (Over.pullback P.p) := by
+  ext X
+  simp [pullbackMapIsoSquare, ← pullback_map_eq_eqToHom rfl hp.w.symm, Over.pullbackComp]
+  ext <;> simp [pullback.condition]
+
+theorem η_naturality' {E B E' B' : C} {P : UvPoly E B} {P' : UvPoly E' B'}
+    (e : E ⟶ E') (b : B ⟶ B')
+    (hp : IsPullback P.p e b P'.p) :
+    let bmap := Over.map b
+    let emap := Over.map e
+    let pbk := Over.pullback P.p
+    let ebk := Over.pullback e
+    let bbk := Over.pullback b
+    let p'bk := Over.pullback P'.p
+    have α : pbk ⋙ emap ≅ bmap ⋙ p'bk := pullbackMapIsoSquare hp.flip
+    have bb : bbk ⋙ pbk ≅ p'bk ⋙ ebk :=
+      (Over.pullbackComp P.p b).symm.trans (eqToIso congr(Over.pullback $(hp.w)))
+        |>.trans (Over.pullbackComp e P'.p)
+    Functor.whiskerLeft pbk (Over.mapPullbackAdj e).unit ≫
+    Functor.whiskerRight α.hom ebk ≫
+    Functor.whiskerLeft bmap bb.inv =
+    Functor.whiskerRight (Over.mapPullbackAdj b).unit pbk := by
+  intro bmap emap pbk ebk bbk p'bk α bb
+  ext X
+  simp[bb,α,pullbackMapIsoSquare,pbk,bmap,ebk,emap,bbk,Category.assoc]
+  ext
+  · simp[← Category.assoc,← pullback_map_eq_eqToHom rfl hp.w.symm]
+    simp[Over.pullbackComp]
+    slice_lhs 2 3 => apply pullback.lift_fst
+    simp[← Category.assoc]
+  · rw[← pullback_map_eq_eqToHom rfl hp.w.symm]
+    simp[Over.pullbackComp]
+    slice_lhs 2 3 => apply pullback.lift_snd
+    simp[← Category.assoc,pullback.condition]
+  rw[← Category.assoc,← pullback_map_eq_eqToHom rfl hp.w.symm]
+  simp[Over.pullbackComp,pullback.map]
+  slice_lhs 2 3 => apply pullback.lift_snd
+  simp
+
 
 open ExponentiableMorphism in
+theorem pushforwardPullbackIsoSquare_eq {C} [Category C] [HasPullbacks C] {X Y Z W : C}
+    {h : X ⟶ Z} {f : X ⟶ Y} {g : Z ⟶ W} {k : Y ⟶ W} (pb : IsPullback h f g k)
+    [ExponentiableMorphism f] [ExponentiableMorphism g] :
+    haveI := pullbackMapTwoSquare_of_isPullback_isIso pb
+    pushforwardPullbackIsoSquare pb =
+    conjugateIsoEquiv
+      ((Over.mapPullbackAdj k).comp (adj g))
+      ((adj f).comp (Over.mapPullbackAdj h))
+      (asIso (Over.pullbackMapTwoSquare h f g k pb.toCommSq)) := by
+  simp [pushforwardPullbackIsoSquare, Over.pushforwardPullbackTwoSquare]
+  ext1; simp
+
+open ExponentiableMorphism Functor in
 theorem ev_naturality {E B E' B' : C} {P : UvPoly E B} {P' : UvPoly E' B'}
     (e : E ⟶ E') (b : B ⟶ B')
     (hp : IsPullback P.p e b P'.p) :
@@ -25,12 +85,44 @@ theorem ev_naturality {E B E' B' : C} {P : UvPoly E B} {P' : UvPoly E' B'}
     have bb : bbk ⋙ pbk ≅ p'bk ⋙ ebk :=
       (Over.pullbackComp P.p b).symm.trans (eqToIso congr(Over.pullback $(hp.w)))
         |>.trans (Over.pullbackComp e P'.p)
-    (Functor.whiskerRight β pbk ≫
-      Functor.whiskerLeft p'fwd bb.hom ≫
-      Functor.whiskerRight (ev P'.p) ebk : ebk ⋙ pfwd ⋙ pbk ⟶ ebk) =
-    Functor.whiskerLeft ebk (ev P.p) := by
+    whiskerRight β pbk ≫ whiskerLeft p'fwd bb.hom ≫ whiskerRight (ev P'.p) ebk =
+    whiskerLeft ebk (ev P.p) := by
   intro pfwd p'fwd pbk ebk bbk p'bk β bb
-  sorry
+  let bmap := Over.map b
+  let emap := Over.map e
+  let α : pbk ⋙ emap ≅ bmap ⋙ p'bk := pullbackMapIsoSquare hp.flip
+  have :
+    whiskerLeft pbk (Over.mapPullbackAdj e).unit ≫
+    whiskerRight α.hom ebk ≫ whiskerLeft bmap bb.inv =
+    whiskerRight (Over.mapPullbackAdj b).unit pbk :=
+    η_naturality e b hp
+  rw [← isoWhiskerLeft_inv, ← Category.assoc, Iso.comp_inv_eq,
+    ← isoWhiskerRight_hom, ← Iso.eq_comp_inv] at this
+  simp [β, pushforwardPullbackIsoSquare_eq, ev] at this ⊢
+  rw [show inv _ (I := _) = α.inv by simp [α, pullbackMapIsoSquare]]
+  generalize Over.mapPullbackAdj e = adje, Over.mapPullbackAdj b = adjb at *
+  ext X : 2; simp
+  have := congr(
+    $(whiskerLeft_comp_whiskerRight
+      (whiskerLeft ebk
+        (whiskerLeft pfwd α.inv ≫
+          whiskerRight (adj P.p).counit emap) ≫
+        adje.counit)
+      (whiskerLeft p'fwd bb.hom ≫
+        whiskerRight (adj P'.p).counit ebk)).app X)
+  simp at this; rw [← this]; clear this
+  have := congr(
+    $(whiskerLeft_comp_whiskerRight (adj P'.p).unit bb.hom)
+    |>.app ((ebk ⋙ pfwd ⋙ bmap).obj X))
+  simp at this; rw [← reassoc_of% this]; clear this
+  rw [← Functor.map_comp_assoc]; simp
+  have := congr($(this).app ((ebk ⋙ pfwd).obj X))
+  simp at this; rw [← reassoc_of% this]
+  have := congr($(whiskerLeft_comp_whiskerRight (adj P.p).counit adje.unit).app (ebk.obj X))
+  simp [-Adjunction.unit_naturality] at this; rw [reassoc_of% this]
+  have := congr($(adje.right_triangle).app X)
+  simp [-Adjunction.right_triangle, -Adjunction.right_triangle_components] at this
+  rw [this, Category.comp_id]
 
 theorem associator_eq_id {C D E E'} [Category C] [Category D] [Category E] [Category E']
     (F : C ⥤ D) (G : D ⥤ E) (H : E ⥤ E') : Functor.associator F G H = Iso.refl (F ⋙ G ⋙ H) := rfl
@@ -58,10 +150,12 @@ theorem whiskerRight_twice' {C D E B} [Category C] [Category D] [Category E] [Ca
     whiskerRight (whiskerRight α F) G = whiskerRight α (F ⋙ G) := by
   aesop_cat
 
+variable [HasTerminal C]
+
 open Over ExponentiableMorphism Functor in
 @[simp]
-lemma cartesianNatTrans_fstProj {B' E' : C} (P : UvPoly E B) (P' : UvPoly E' B')
-    (b : B ⟶ B') (e : E ⟶ E') (pb : IsPullback P.p e b P'.p) (X : C) :
+lemma cartesianNatTrans_fstProj {E B E' B' : C} (P : UvPoly E B) (P' : UvPoly E' B')
+    (e : E ⟶ E') (b : B ⟶ B') (pb : IsPullback P.p e b P'.p) (X : C) :
     (P.cartesianNatTrans P' b e pb).app X ≫ P'.fstProj X = P.fstProj X ≫ b := by
   let m := whiskerRight (Over.starPullbackIsoStar e).inv (pushforward P.p) ≫
     whiskerLeft (Over.star E') (pushforwardPullbackIsoSquare pb.flip).inv
@@ -204,7 +298,7 @@ theorem ε_map {E B A E' B' A' : C} {P : UvPoly E B} {P' : UvPoly E' B'}
 
 namespace Equiv
 
-variable (P : UvPoly E B) {Γ : C} (X Y : C) (f : X ⟶ Y)
+variable {E B : C} (P : UvPoly E B) {Γ : C} (X Y : C) (f : X ⟶ Y)
 
 def fst (pair : Γ ⟶ P @ X) :
     Γ ⟶ B :=
@@ -494,7 +588,7 @@ open TwoSquare
 
 section
 
-variable {F : C} (P : UvPoly E B) (Q : UvPoly F B) (ρ : E ⟶ F) (h : P.p = ρ ≫ Q.p)
+variable {E B F : C} (P : UvPoly E B) (Q : UvPoly F B) (ρ : E ⟶ F) (h : P.p = ρ ≫ Q.p)
 
 lemma fst_verticalNatTrans_app {Γ : C} (X : C) (pair : Γ ⟶ Q @ X) :
     Equiv.fst P X (pair ≫ (verticalNatTrans P Q ρ h).app X) = Equiv.fst Q X pair :=
