@@ -409,8 +409,4 @@ We'd need to rederive all typing rules for the latter,
 and this should be done using custom automation
 (do NOT write a million lemmas by hand). -/
 abbrev Env.Wf (E : Env χ) :=
-  ∀ {c : χ} {p}, E c = some p → E ∣ [] ⊢[p.val.2] p.val.1
-
-def Env.empty (χ) : Env χ := fun _ => none
-
-theorem Env.Wf.empty (χ) : (empty χ).Wf := nofun
+  ∀ ⦃c p⦄, E c = some p → E ∣ [] ⊢[p.val.2] p.val.1

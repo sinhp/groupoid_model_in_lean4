@@ -1,8 +1,9 @@
 import GroupoidModel.Syntax.Typechecker.Equate
+import GroupoidModel.Syntax.Env
 
 open Qq
 
-def traceClsTypechecker : Lean.Name := `HoTT0.Typechecker
+def traceClsTypechecker : Lean.Name := `Leanternal.Typechecker
 
 initialize
   Lean.registerTraceClass traceClsTypechecker
@@ -111,7 +112,24 @@ partial def synthTm (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (t : Q(Expr $χ)) :
     | .ok vT => return m!"✅️ {vΓ} ⊢[{l}] {t} ⇒ {vT}"
     | .error e => return m!"❌️ {vΓ} ⊢[{l}] {t} ⇒ _") do
   match t with
-  -- TODO: also handle *Lean* constants (refs to `Lean.Environment`)
+  | ~q(@CheckedDef.val _ $E' $defn) => do
+    -- Ensure the definition was well-formed in the same environment as us.
+    -- TODO: prove `LE` here, not equality;
+    -- equality requires all axioms to be declared upfront.
+    let ⟨_⟩ ← assertDefEqQ q($E) q($E')
+    let _ ← equateNat q($l) q(($defn).l)
+    return ⟨q(($defn).nfTp), q(by as_aux_lemma =>
+      introv vΓ; have Γwf := vΓ.wf_ctx; clear vΓ
+      subst_vars
+      induction Γ
+      . exact ⟨_, ($defn).wf_nfTp, ($defn).wf_val⟩
+      . rename_i ih
+        have B := Γwf.inv_snoc
+        have ⟨_, vA, t⟩ := ih B.wf_ctx
+        refine ⟨_, vA.wk B, ?_⟩
+        convert t.subst (WfSb.wk B) using 1
+        rw [Expr.subst_of_isClosed _ ($defn).wf_val.isClosed]
+    )⟩
   | ~q(.const $c) => do
     let Al : Q(Option { Al : Expr $χ × Nat // Al.1.isClosed ∧ Al.2 ≤ univMax }) ←
       Lean.Meta.whnf q($E $c)

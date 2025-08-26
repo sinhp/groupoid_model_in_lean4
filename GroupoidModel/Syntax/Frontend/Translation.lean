@@ -1,37 +1,30 @@
-import Lean
 import Qq
-import Mathlib.Util.WhatsNew
-import GroupoidModel.Syntax.Typechecker.Synth
+import GroupoidModel.Syntax.Env
 
-/-! ## Basic types -/
-
-namespace HoTT0
-
-inductive Id.{u} {α : Type u} : α → α → Type u where
-  | refl (a : α) : Id a a
-
-end HoTT0
-
-/-! ## Translation from Lean to HoTT0 -/
-
-namespace HoTT0.Translation
+namespace Leanternal
 
 open Qq Lean Meta
 
-def traceClsTranslation : Name := `HoTT0.Translation
+def traceClsTranslation : Name := `Leanternal.Translation
 
 initialize
   registerTraceClass traceClsTranslation
 
--- TODO: namespace `_root_.Expr` et al to `HoTT0`
+structure Context where
+  /-- Maps `FVarId`s to their de Bruijn index. -/
+  bvars : AssocList FVarId Nat := {}
+  /-- The ordinary (external) Lean environment. -/
+  extEnv : Environment
 
-/-- Maps fvarIds to their de Bruijn index. -/
-abbrev TranslateM := ReaderT (AssocList FVarId Nat) MetaM
+/-- `TranslateM` computations run in the internal environment
+(otherwise operations such as type inference on internal constants wouldn't work). -/
+abbrev TranslateM := ReaderT Context MetaM
 
-def TranslateM.run {α : Type} (x : TranslateM α) : MetaM α := ReaderT.run x {}
+def TranslateM.run {α : Type} (x : TranslateM α) (extEnv : Environment) : MetaM α :=
+  ReaderT.run x { extEnv }
 
 def withBinder {α : Type} (x : Lean.Expr) (k : TranslateM α) : TranslateM α := do
-  withReader (fun s => s.mapVal (· + 1) |>.insert x.fvarId! 0) k
+  withReader (fun s => { s with bvars := s.bvars.mapVal (· + 1) |>.insert x.fvarId! 0 }) k
 
 /-- Extract the level `u` in `Sort u`.
 It must be monomorphic, i.e., may not contain universe variables. -/
@@ -48,7 +41,7 @@ def isType : Lean.Expr → Bool
   | .sort .. | .forallE .. => true
   | _ => false
 
-/-- Make the HoTT0 term
+/-- Make the Leanternal term
 `fun (A : Type l) (B : A → Type l') : Type (max l l') => code (Σ (El A) (El (B #0)))`. -/
 def mkSigma {u : Level} (χ : Q(Type u)) (l l' : Nat) : Q(_root_.Expr $χ) :=
   q(.lam ($l + 1) (max $l $l' + 1) (.univ $l) <|
@@ -58,7 +51,7 @@ def mkSigma {u : Level} (χ : Q(Type u)) (l l' : Nat) : Q(_root_.Expr $χ) :=
           (.el <| .bvar 1)
           (.el <| .app $l ($l' + 1) (.univ $l') (.bvar 1) (.bvar 0)))
 
-/-- Make the HoTT0 term
+/-- Make the Leanternal term
 `fun (A : Type l) (a b : A) : Type l => code (.Id l a b)`. -/
 def mkId {u : Level} (χ : Q(Type u)) (l : Nat) : Q(_root_.Expr $χ) :=
   q(.lam ($l + 1) ($l + 1) (.univ $l) <|
@@ -67,11 +60,9 @@ def mkId {u : Level} (χ : Q(Type u)) (l : Nat) : Q(_root_.Expr $χ) :=
         .code <| .Id $l (.el <| .bvar 2) (.bvar 1) (.bvar 0))
 
 mutual
-variable {u : Level} (χ : Q(Type u))
-
 /-- Completeness: if the argument is well-formed in Lean,
-the output is well-typed in HoTT. -/
-partial def translateAsTp (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr $χ)) := do
+the output is well-typed in MLTT. -/
+partial def translateAsTp (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr Lean.Name)) := do
   if !isType e then
     let ⟨l+1, a⟩ ← translateAsTm e
       | throwError "type code should have level > 0{indentExpr e}"
@@ -89,7 +80,7 @@ partial def translateAsTp (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr $χ
     return ⟨max l l', q(.pi $l $l' $A $B)⟩
   | _ => throwError "internal error: should fail `isType`{indentExpr e}"
 
-partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr $χ)) := do
+partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr Lean.Name)) := do
   if isType e then
     let ⟨l, A⟩ ← translateAsTp e
     return ⟨l+1, q(.code $A)⟩
@@ -99,7 +90,7 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr $χ
     let eTp ← inferType e
     let .sort l ← inferType eTp | throwError "internal error (sort)"
     let n ← getSortLevel l
-    match (← read).find? f with
+    match (← read).bvars.find? f with
     | some i => return ⟨n, q(.bvar $i)⟩
     | none => throwError "unexpected fvar{indentExpr e}"
   | .lam _ A .. =>
@@ -133,11 +124,12 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr $χ
         withBinder x <| translateAsTp B
       let ⟨_, p⟩ ← translateAsTm p
       return ⟨l', q(.snd $l $l' $A $B $p)⟩
-    if e.isAppOfArity' ``Id.refl 2 then
+    -- Defined in `Syntax.Frontend.Prelude`.
+    if e.isAppOfArity' `Id.refl 2 then
       let #[_, a] := e.getAppArgs | throwError "internal error (Id.refl)"
       let ⟨l, a⟩ ← translateAsTm a
       return ⟨l, q(.refl $l $a)⟩
-    if e.isAppOfArity' ``Id.rec 6 then
+    if e.isAppOfArity' `Id.rec 6 then
       let #[_, a, M, r, b, h] := e.getAppArgs | throwError "internal error (Id.rec)"
       let ⟨l, a⟩ ← translateAsTm a
       let ⟨l', M⟩ ← lambdaBoundedTelescope M 2 fun xs M => do
@@ -164,88 +156,26 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr $χ
     so maybe this is fine. -/
     let l ← getSortLevel l.succ
     let l' ← getSortLevel l'.succ
-    return ⟨max l l' + 1, mkSigma χ l l'⟩
+    return ⟨max l l' + 1, mkSigma _ l l'⟩
   | .const ``Id [l] =>
     let l ← getSortLevel l.succ
-    return ⟨l + 1, mkId χ l⟩
+    return ⟨l + 1, mkId _ l⟩
+  | .const nm [] =>
+    let eTp ← inferType e
+    let .sort l ← inferType eTp | throwError "internal error (sort)"
+    let n ← getSortLevel l
+    -- Observe! We translate internal constants to projections of external constants!
+    -- But this is not correct! We must fetch the `E : Env χ`
+    -- with which the `CheckedDef` was declared here.
+    -- But we need the external env to do so!
+    -- Oh-oh!
+    withEnv (← read).extEnv do
+    withLCtx {} {} do
+      let ci ← getConstInfo nm
+      return ⟨n, ← mkAppM ``CheckedDef.val #[.const ci.name []]⟩
+  | .const .. => throwError "unsupported term (universe-polymorphic constant){indentExpr e}"
   | e => throwError "unsupported term{indentExpr e}"
 
 end
 
-end HoTT0.Translation
-
-/- ## Command elaborator -/
-
-namespace HoTT0.Dsl
-
-open Lean Elab Command
-open Qq
-
-def envDiff (old new : Environment) : Array ConstantInfo := Id.run do
-  let mut ret := #[]
-  for (c, i) in new.constants.map₂ do
-    if old.constants.map₂.contains c then continue
-    if c.isInternal then continue
-    ret := ret.push i
-  return ret
-
-structure CheckedDef.{u} {χ : Type u} (E : Env χ) where
-  l : Nat
-  val : _root_.Expr χ
-  tp : _root_.Expr χ
-  wf : E ∣ [] ⊢[l] val : tp
-
-def elabDeclaration (stx : Syntax) : CommandElabM Unit := do
-  -- TODO: should `hott def` have its own `consts` set stored in an environment extension?
-  let (_, newEnv) ← withoutModifyingEnv' <| Command.elabDeclaration stx
-  let diff := envDiff (← getEnv) newEnv
-  let #[ci] := diff
-    | throwError "expected exactly one definition, got {diff.size}:\
-      {Lean.indentD ""}{diff.map (·.name)}"
-  Command.liftTermElabM do
-    let ⟨l, T⟩ ← Translation.translateAsTp q(Nat) ci.type |>.run
-    let ⟨k, t⟩ ← Translation.translateAsTm q(Nat) ci.value! |>.run
-    if l != k then throwError "internal error: inferred level mismatch"
-    trace[HoTT0.Translation] "translated (lvl {l}){Lean.indentD ""}{t} : {T}"
-    let Twf ← checkTp q(Env.empty Nat) q(⟨Env.Wf.empty _⟩) q([]) q($l) q($T)
-    let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Nat from []) q($T)
-    let twf ← checkTm q(Env.empty Nat) q(⟨Env.Wf.empty _⟩) q([]) q($l) q($vT) q($t)
-    let val : Q(CheckedDef <| Env.empty Nat) := q({
-      l := $l
-      val := $t
-      tp := $T
-      wf :=
-        have : Fact (Env.empty Nat).Wf := ⟨Env.Wf.empty _⟩
-        $twf .nil <| $vTeq .nil <| $Twf .nil
-    })
-    addDecl <| .defnDecl {
-      name := ci.name ++ `checked
-      levelParams := []
-      type := q(CheckedDef <| Env.empty Nat)
-      value := val
-      hints := .regular 0 -- TODO: what height?
-      safety := .safe
-    }
-
-/--
-The command
-```lean
-hott def foo $params : $type := $body
-```
-operates by:
-
-1. Typechecking the definition using standard Lean rules.
-   The definition is not stored in the standard Lean environment.
-2. Translating the Lean expression into a HoTT0 expression.
-3. Typechecking the HoTT0 expression and producing a derivation tree.
-   Note: Originally we wanted to instrument the Lean typechecker to do this during step 1,
-   but it seemed strictly harder than implementing our own checker.
-4. Storing the `HoTT0.Expr` and its derivation tree in the Lean environment.
--/
-
-elab "hott " cmd:command : command => do
-  match cmd.raw[1].getKind with
-  | ``Parser.Command.definition => elabDeclaration cmd
-  | _ => throwError "unhandled command:{indentD cmd}"
-
-end HoTT0.Dsl
+end Leanternal

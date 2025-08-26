@@ -5,9 +5,13 @@ open Qq
 variable {_u : Lean.Level} {χ : Q(Type _u)}
 
 mutual
-partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT vU : Q(Val $χ)) :
+partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT' vU' : Q(Val $χ)) :
     Lean.MetaM Q(∀ {E Γ T U}, [Fact E.Wf] → $d = Γ.length →
-      ValEqTp E Γ $l $vT T → ValEqTp E Γ $l $vU U → E ∣ Γ ⊢[$l] T ≡ U) := do
+      ValEqTp E Γ $l $vT' T → ValEqTp E Γ $l $vU' U → E ∣ Γ ⊢[$l] T ≡ U) := do
+  let vT : Q(Val $χ) ← Lean.Meta.whnf vT'
+  have _ : $vT =Q $vT' := .unsafeIntro
+  let vU : Q(Val $χ) ← Lean.Meta.whnf vU'
+  have _ : $vU =Q $vU' := .unsafeIntro
   match vT, vU with
   | ~q(.pi $k $k' $vA $vB), ~q(.pi $m $m' $vA' $vB') => do
     let keq ← equateNat q($k) q($m)
