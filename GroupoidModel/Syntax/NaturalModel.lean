@@ -757,7 +757,7 @@ Tm ----> i
     VV
     Tm
 -/
-@[simp] def verticalNatTrans : idElimBase.iFunctor ⟶ (UvPoly.id M.Tm).functor :=
+def verticalNatTrans : idElimBase.iFunctor ⟶ (UvPoly.id M.Tm).functor :=
     UvPoly.verticalNatTrans (UvPoly.id M.Tm) idElimBase.iUvPoly
   idElimBase.comparison (by simp [iUvPoly])
 
@@ -827,6 +827,17 @@ def toK : y(M.ext (a ≫ M.tp)) ⟶ idElimBase.k :=
 
 lemma toK_comp_k1 : idElimBase.toK a ≫ idElimBase.k1 = M.var _ := by simp [toK]
 
+lemma toK_comp_left {Δ} (σ : Δ ⟶ Γ) : toK idElimBase (ym(σ) ≫ a) =
+    ym(M.substWk σ (a ≫ M.tp)) ≫ toK idElimBase a := by
+  dsimp [toK]
+  apply idElimBase.isKernelPair.hom_ext
+  · rw! [Category.assoc]
+    simp
+  · simp only [IsKernelPair.lift_snd, Category.assoc]
+    slice_rhs 1 2 => rw [← Functor.map_comp, substWk_disp]
+    rw! [Category.assoc]
+    simp
+
 lemma ext_a_tp_isPullback : IsPullback (toK idElimBase a) ym(M.disp _)
     idElimBase.k2 a :=
   IsPullback.of_right' (M.disp_pullback _) idElimBase.isKernelPair
@@ -839,6 +850,14 @@ lemma toI_comp_i1 : idElimBase.toI a ≫ idElimBase.i1 = M.var _ := by simp [toI
 
 lemma toI_comp_i2 : idElimBase.toI a ≫ idElimBase.i2 = ym(M.disp _) ≫ idElimBase.toK a :=
   by simp [toI]
+
+lemma toI_comp_left {Δ} (σ : Δ ⟶ Γ) : toI idElimBase (ym(σ) ≫ a) =
+    ym(idElimBase.motiveSubst σ a) ≫ toI idElimBase a := by
+  dsimp [toI]
+  apply idElimBase.i_isPullback.hom_ext
+  · simp [motiveSubst]
+  · simp [toK_comp_left, motiveSubst, substWk, substCons]
+    rfl
 
 theorem motiveCtx_isPullback :
     IsPullback (toI idElimBase a) ym(M.disp _) idElimBase.i2 (toK idElimBase a) :=
@@ -870,7 +889,7 @@ def equivSnd (pair : y(Γ) ⟶ idElimBase.iFunctor.obj X) :
 
 lemma equivSnd_comp_left (pair : y(Γ) ⟶ idElimBase.iFunctor.obj X)
     {Δ} (σ : Δ ⟶ Γ) :
-    idElimBase.equivSnd (ym(σ) ≫ pair) = eqToHom (by rw [idElimBase.equivFst_comp_left pair σ]) ≫
+    idElimBase.equivSnd (ym(σ) ≫ pair) =
     ym(idElimBase.motiveSubst σ _) ≫ idElimBase.equivSnd pair := by
   dsimp [equivSnd]
   -- rw [UvPoly.Equiv.snd'_comp_left]
@@ -880,7 +899,7 @@ lemma equivFst_verticalNatTrans_app {Γ : Ctx} {X : Psh Ctx}
     (pair : y(Γ) ⟶ idElimBase.iFunctor.obj X) :
     idElimBase.equivFst pair = UvPoly.Equiv.fst (UvPoly.id M.Tm) X
     (pair ≫ idElimBase.verticalNatTrans.app X) := by
-  dsimp [equivFst]
+  dsimp [equivFst, verticalNatTrans]
   rw [← UvPoly.fst_verticalNatTrans_app]
 
 lemma equivSnd_verticalNatTrans_app {Γ : Ctx} {X : Psh Ctx}
@@ -893,7 +912,7 @@ lemma equivSnd_verticalNatTrans_app {Γ : Ctx} {X : Psh Ctx}
       idElimBase.equivSnd pair :=
   calc _
   _ = _ ≫ idElimBase.equivSnd pair := by
-    dsimp [equivSnd]
+    dsimp [equivSnd, verticalNatTrans]
     rw [UvPoly.snd'_verticalNatTrans_app (UvPoly.id M.Tm) idElimBase.iUvPoly
       (idElimBase.comparison) _ _ pair _]
     apply reflCase_aux (idElimBase.equivFst pair)
@@ -1026,8 +1045,9 @@ lemma motive_comp_left : ym(σ) ≫ i.motive a C =
   rw [UvPoly.Equiv.mk'_comp_left (iUvPoly i.toIdElimBase) _ a
     (i.motiveCtx_isPullback' a).flip C ym(σ) _ rfl (i.motiveCtx_isPullback' _).flip]
   congr 2
-  simp [motiveSubst, substWk, substCons]
-  apply (M.disp_pullback _).hom_ext <;> simp
+  simp only [Functor.map_comp, iUvPoly_p, Category.assoc, motiveSubst, substWk, substCons,
+    Functor.FullyFaithful.map_preimage]
+  apply (M.disp_pullback _).hom_ext <;> simp only [IsPullback.lift_fst, IsPullback.lift_snd]
   · simp [← toI_comp_i1]
   · apply (M.disp_pullback _).hom_ext <;> simp
     · slice_lhs 3 4 => rw [← i.toK_comp_k1]
@@ -1100,7 +1120,7 @@ lemma comp_j : ym(i.motiveSubst σ _) ≫ j i a C r r_tp =
   simp only [j]
   conv => rhs; rw! [i.lift_comp_left a C r r_tp]
   rw [i.equivSnd_comp_left]
-  simp only [← Category.assoc, eqToHom_refl, Category.id_comp]
+  simp only [← Category.assoc]
   congr 1
   simp [← heq_eq_eq]
   rw [equivFst_lift_eq]
@@ -1158,12 +1178,35 @@ variable {Γ} (ar : y(Γ) ⟶ (UvPoly.id M.Tm).functor.obj N.Tm)
   (hrC : ar ≫ (UvPoly.id M.Tm).functor.map N.tp =
     aC ≫ (IdElimBase.verticalNatTrans base).app N.Ty)
 
-lemma fst_eq_fst : UvPoly.Equiv.fst _ _ ar = base.equivFst aC := by
-  sorry
+include hrC in
+lemma fst_eq_fst : UvPoly.Equiv.fst _ _ ar = base.equivFst aC :=
+  calc _
+  _ = UvPoly.Equiv.fst _ _ (ar ≫ (UvPoly.id M.Tm).functor.map N.tp) := by
+    rw [UvPoly.Equiv.fst_comp_right]
+  _ = UvPoly.Equiv.fst _ _  (aC ≫ (IdElimBase.verticalNatTrans base).app N.Ty) := by
+    rw [hrC]
+  _ = _ := by
+    rw [base.equivFst_verticalNatTrans_app]
 
-abbrev motive : y(base.motiveCtx (base.equivFst aC)) ⟶ N.Ty := base.equivSnd aC
+abbrev motive : y(base.motiveCtx (base.equivFst aC)) ⟶ N.Ty :=
+  base.equivSnd aC
+
+lemma comp_motive {Δ} (σ : Δ ⟶ Γ) : motive base (ym(σ) ≫ aC) =
+    ym(base.motiveSubst σ (base.equivFst aC)) ≫ motive base aC := by
+  simp only [motive, equivSnd_comp_left base aC σ]
 
 abbrev reflCase : y(Γ) ⟶ N.Tm := UvPoly.Equiv.snd' _ _ ar (Id'.reflCase_aux _)
+
+lemma comp_reflCase {Δ} (σ : Δ ⟶ Γ) : reflCase (ym(σ) ≫ ar) = ym(σ) ≫ reflCase ar := by
+  simp only [reflCase]
+  rw [UvPoly.Equiv.snd'_comp_left (UvPoly.id M.Tm) N.Tm ar
+    (Id'.reflCase_aux (UvPoly.Equiv.fst (UvPoly.id M.Tm) N.Tm ar)) ym(σ)
+    (Id'.reflCase_aux _)]
+  congr 1
+  apply (Id'.reflCase_aux (UvPoly.Equiv.fst (UvPoly.id M.Tm) N.Tm ar)).hom_ext
+  · simp only [IsPullback.lift_fst]
+    simp
+  · simp
 
 include hrC in
 lemma reflCase_comp_tp : reflCase ar ≫ N.tp =
@@ -1176,15 +1219,15 @@ lemma reflCase_comp_tp : reflCase ar ≫ N.tp =
     (H := (base.motiveCtx_isPullback' (base.equivFst aC)).flip)
     (R' := y(Γ)) (f' := 𝟙 _) (g' := UvPoly.Equiv.fst (UvPoly.id M.Tm) N.Tm ar)
     (H' := by
-    rw [fst_eq_fst base ar aC]
+    rw [fst_eq_fst base ar aC hrC]
     exact Id'.reflCase_aux _)]
   simp [equivSnd]
   congr 1
   apply (M.disp_pullback _).hom_ext <;>
     simp only [reflSubst, substCons_var, substCons_disp_functor_map, substCons_var]
-  · simp [← base.toI_comp_i1 (base.equivFst aC), fst_eq_fst base ar aC, mkRefl]
+  · simp [← base.toI_comp_i1 (base.equivFst aC), fst_eq_fst base ar aC hrC, mkRefl]
   · apply (M.disp_pullback _).hom_ext
-    · rw! [fst_eq_fst base ar aC]
+    · rw! [fst_eq_fst base ar aC hrC]
       slice_lhs 3 4 => rw [← base.toK_comp_k1]
       slice_lhs 2 3 => rw [← base.toI_comp_i2]
       simp
@@ -1194,14 +1237,56 @@ def lift : y(Γ) ⟶ (IdElimBase.iFunctor base).obj N.Tm :=
   base.equivMk (base.equivFst aC) (i.j (base.equivFst aC) (motive base aC)
    (reflCase ar) (reflCase_comp_tp base ar aC hrC))
 
+lemma lift_fst : lift base i ar aC hrC ≫ base.verticalNatTrans.app N.Tm = ar := by
+  dsimp only [lift]
+  rw [equivMk_comp_verticalNatTrans_app]
+  apply UvPoly.Equiv.ext' (UvPoly.id M.Tm) N.Tm (by convert reflCase_aux (base.equivFst aC); simp)
+  · rw! [i.reflSubst_j]
+    simp [reflCase, fst_eq_fst base ar aC hrC]
+  · simp [fst_eq_fst base ar aC hrC]
+
+lemma lift_snd : lift base i ar aC hrC ≫ base.iFunctor.map N.tp = aC := by
+  dsimp only [lift, equivMk]
+  rw [UvPoly.Equiv.mk'_comp_right]
+  apply UvPoly.Equiv.ext' base.iUvPoly N.Ty
+  · rw! [i.j_tp]
+    rw [UvPoly.Equiv.snd'_mk']
+    simp [motive, equivSnd]
+  · simp only [Functor.map_comp, UvPoly.Equiv.fst_mk', iUvPoly_p]
+    convert (base.motiveCtx_isPullback' _).flip
+    simp
+  · simp [equivFst]
+
+lemma comp_lift {Δ} (σ : Δ ⟶ Γ) : ym(σ) ≫ lift base i ar aC hrC =
+    lift base i (ym(σ) ≫ ar) (ym(σ) ≫ aC) (by simp [hrC]) := by
+  dsimp [lift, equivMk]
+  rw [UvPoly.Equiv.mk'_comp_left base.iUvPoly N.Tm (base.equivFst aC) _
+    (i.j (base.equivFst aC) (motive base aC) (reflCase ar) _) ym(σ) _ rfl
+    (by simp only [iUvPoly_p]; convert (base.motiveCtx_isPullback' _).flip)]
+  congr 1
+  have h := i.comp_j σ (base.equivFst aC) _ _ (reflCase_comp_tp base ar aC hrC)
+  rw! (castMode := .all) [← comp_motive, ← comp_reflCase, ← equivFst_comp_left] at h
+  rw [← h]
+  congr 1
+  simp only [Functor.map_comp, iUvPoly_p, Category.assoc]
+  apply (M.disp_pullback _).hom_ext
+  · simp [toI_comp_left, ← toI_comp_i1]
+  · apply (M.disp_pullback _).hom_ext
+    · slice_rhs 3 4 => rw [← toK_comp_k1 base]
+      slice_rhs 2 3 => rw [← toI_comp_i2]
+      slice_lhs 3 4 => rw [← toK_comp_k1 base]
+      slice_lhs 2 3 => rw [← toI_comp_i2]
+      simp [toI_comp_left]
+    · simp [motiveSubst, substWk]
+
 def toId' : M.Id' N where
   __ := base
   weakPullback := RepPullbackCone.WeakPullback.mk
     ((IdElimBase.verticalNatTrans base).naturality _).symm
     (fun s => lift base i s.fst s.snd s.condition)
-    sorry
-    sorry
-    sorry
+    (fun s => lift_fst base i s.fst s.snd s.condition)
+    (fun s => lift_snd base i s.fst s.snd s.condition)
+    (fun s _ σ => comp_lift base i s.fst s.snd s.condition σ)
 
 end Id
 
