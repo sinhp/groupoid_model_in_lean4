@@ -25,7 +25,7 @@ open scoped MonoidalCategory
 
 section univBounds
 variable {s : UHomSeq 𝒞} (slen : univMax ≤ s.length)
-variable {χ : Type*} {E : Env χ} {Γ : Ctx χ} {A B t u : Expr χ} {l : Nat}
+variable {χ : Type*} {E : Axioms χ} {Γ : Ctx χ} {A B t u : Expr χ} {l : Nat}
 include slen
 
 theorem _root_.EqTp.lt_slen (H : E ∣ Γ ⊢[l] A ≡ B) : l < s.length + 1 := by
@@ -263,10 +263,10 @@ end UHomSeq
 
 /-! ## Interpretation -/
 
-/-- An interpretation of a signature consists of a semantic term for each constant name.
+/-- An interpretation of a signature consists of a semantic term for each named axiom.
 This is the semantic equivalent of `Env χ`. -/
 structure Interpretation (χ : Type*) (s : UHomSeqPiSig 𝒞) where
-  const (c : χ) (l : Nat) (_ : l < s.length + 1 := by get_elem_tactic) :
+  ax (c : χ) (l : Nat) (_ : l < s.length + 1 := by get_elem_tactic) :
     Option (y(𝟙_ 𝒞) ⟶ s[l].Tm)
   -- We cannot state well-formedness yet: that needs `ofType`.
 
@@ -312,8 +312,8 @@ def ofType (Γ : s.CObj) (l : Nat) :
 
 def ofTerm (Γ : s.CObj) (l : Nat) :
     Expr χ → (_ : l < s.length + 1 := by get_elem_tactic) → Part (y(Γ.1) ⟶ s[l].Tm)
-  | .const c, llen => do
-    let some sc := I.const c l | Part.assert False nofun
+  | .ax c, llen => do
+    let some sc := I.ax c l | Part.assert False nofun
     return isTerminal_yUnit.from y(Γ.1) ≫ sc
   | .bvar i, llen => Γ.var llen i
   | .lam i j A e, _ => do
@@ -432,12 +432,12 @@ theorem ofTerm_bvar {Γ l i} {llen : l < s.length + 1} :
     I.ofTerm Γ l (.bvar i) llen = Γ.var llen i := rfl
 
 @[simp]
-theorem mem_ofTerm_const {Γ c l} {llen : l < s.length + 1} {x} :
-    x ∈ I.ofTerm Γ l (.const c) llen ↔
-    ∃ sc, I.const c l = some sc ∧
+theorem mem_ofTerm_ax {Γ c l} {llen : l < s.length + 1} {x} :
+    x ∈ I.ofTerm Γ l (.ax c) llen ↔
+    ∃ sc, I.ax c l = some sc ∧
     x = isTerminal_yUnit.from y(Γ.1) ≫ sc := by
   dsimp only [ofTerm]
-  cases I.const c l <;> simp
+  cases I.ax c l <;> simp
 
 @[simp]
 theorem mem_var_zero {Γ : s.CObj} {l' l'len A l} {llen : l < s.length + 1} {x} :
@@ -687,8 +687,8 @@ theorem mem_ofType_ofTerm_subst' {full}
     obtain ⟨rfl, H⟩ := I.mem_ofType_univ.1 H; simp at H llen; subst H
     simp only [Expr.subst, mem_ofType_univ, exists_true_left, UHom.comp_wkU]
 
-  case const =>
-    simp only [Expr.subst, mem_ofTerm_const] at H ⊢
+  case ax =>
+    simp only [Expr.subst, mem_ofTerm_ax] at H ⊢
     have ⟨_, ceq, ueq⟩ := H
     exact ⟨_, ceq, by simp [ueq]⟩
   case bvar i =>
@@ -833,16 +833,16 @@ theorem var_sound {Γ i A l} (H : Lookup Γ i A l) {sΓ} (hΓ : sΓ ∈ I.ofCtx 
   exact ⟨llen, _, h1, h2⟩
 
 /-- `I` is a well-formed interpretation of the constant environment `E`. -/
-structure Wf (I : Interpretation χ s) (E : Env χ) : Prop where
+structure Wf (I : Interpretation χ s) (E : Axioms χ) : Prop where
   const {c Al} (Ec : E c = some Al) :
-    ∃ sc, I.const c Al.1.2 = some sc ∧
+    ∃ sc, I.ax c Al.1.2 = some sc ∧
     ∃ sA : y(𝟙_ 𝒞) ⟶ s[Al.1.2].Ty,
       sA ∈ I.ofType s.nilCObj Al.1.2 Al.1.1 ∧
       sc ≫ s[Al.1.2].tp = sA
 
 namespace Wf
 -- FIXME: bundle `s : UHomSeqSigma` with `slen : univMax ≤ s.length`?
-variable {E : Env χ} {I : Interpretation χ s} {slen} (Iwf : Wf slen I E)
+variable {E : Axioms χ} {I : Interpretation χ s} {slen} (Iwf : Wf slen I E)
 include Iwf
 
 -- TODO: this proof is boring, repetitive exists-elim/exists-intro: automate!
@@ -925,8 +925,8 @@ theorem ofType_ofTerm_sound :
     cases Part.mem_unique hA₁ hA₂
     exact ⟨_, ‹_›, ‹_›, _, ‹_›, ‹_›⟩
 
-  case const =>
-    simp only [forall_exists_index, mem_ofTerm_const]
+  case ax =>
+    simp only [forall_exists_index, mem_ofTerm_ax]
     intros; rename_i Al _ Ec Γ hΓ
     refine ⟨_, hΓ, by omega, ?_⟩
     have ⟨_, eq, _, sA, sA_tp⟩ := Iwf.const Ec

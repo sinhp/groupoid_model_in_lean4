@@ -1,6 +1,6 @@
 import Lean
 import Qq
-import GroupoidModel.Syntax.Env
+import GroupoidModel.Syntax.Axioms
 
 /-!
 For all definitions added to a given theory, we must keep track of both
@@ -65,7 +65,7 @@ structure TheoryData where
 
   Equivalently, a cache for something like
   `env.filter (·.isAxiom) |>.fold q(Env.empty Name) fun acc ax => q($acc.snoc ax)`. -/
-  axioms : Q(Env Name)
+  axioms : Q(Axioms Name)
   wf_axioms : Q(($axioms).Wf)
 
 private abbrev TheoryExt := SimplePersistentEnvExtension TheoryEntry (NameMap TheoryData)
@@ -82,8 +82,8 @@ private def mkInitTheoryData (modNm mainModule : Name) : m TheoryData := do
   return {
     modNm
     env := thyEnv
-    axioms := q(Env.empty Name)
-    wf_axioms := q(Env.Wf.empty Name)
+    axioms := q(.empty Name)
+    wf_axioms := q(.empty Name)
   }
 
 private initialize theoryExt : TheoryExt ←
@@ -120,7 +120,7 @@ private initialize theoryExt : TheoryExt ←
               let .ok thyEnv := thyData.env.addDeclCore 0 (.axiomDecl i) none (doCheck := false)
                 | throwThe IO.Error "internal error" /- cannot happen with `doCheck := false` -/
 
-              have axioms : Q(Env Name) := thyData.axioms
+              have axioms : Q(Axioms Name) := thyData.axioms
               have wf_axioms : Q(($axioms).Wf) := thyData.wf_axioms
               have a : Q(CheckedAx $axioms) := .const ci.name []
               thyMap := thyMap.insert thyNm { thyData with

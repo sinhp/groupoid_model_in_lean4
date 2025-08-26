@@ -1,6 +1,6 @@
 import GroupoidModel.Syntax.Inversion
 
-variable {χ : Type*} {E : Env χ}
+variable {χ : Type*} {E : Axioms χ}
 
 /-! This module establishes consequences of typing inversion,
 namely inversion lemmas for type/term formers,
@@ -232,17 +232,17 @@ theorem WfTp.Id_bvar {Γ A t l} : E ∣ Γ ⊢[l] t : A →
 
 /-! ## Term former inversion -/
 
-theorem WfTm.inv_const {Γ C c l} : E ∣ Γ ⊢[l] .const c : C →
+theorem WfTm.inv_ax {Γ C c l} : E ∣ Γ ⊢[l] .ax c : C →
     ∃ Al, E c = some Al ∧ l = Al.val.2 ∧ (E ∣ Γ ⊢[l] C ≡ Al.val.1) := by
   suffices
-      ∀ {Γ l C t}, E ∣ Γ ⊢[l] t : C → ∀ {c}, t = .const c → ∃ Al,
+      ∀ {Γ l C t}, E ∣ Γ ⊢[l] t : C → ∀ {c}, t = .ax c → ∃ Al,
         E c = some Al ∧ l = Al.val.2 ∧ (E ∣ Γ ⊢[l] C ≡ Al.val.1) from
     fun h => this h rfl
   mutual_induction WfCtx
   all_goals try grind
-  case const =>
+  case ax =>
     intros; rename_i Γ Ec _ _ eq; cases eq
-    exact ⟨_, Ec, rfl, .refl_tp <| (WfTm.const Γ Ec).wf_tp⟩
+    exact ⟨_, Ec, rfl, .refl_tp <| (WfTm.ax Γ Ec).wf_tp⟩
   case conv => grind [EqTp.refl_tp, EqTp.symm_tp, EqTp.trans_tp]
 
 omit [Fact E.Wf] in

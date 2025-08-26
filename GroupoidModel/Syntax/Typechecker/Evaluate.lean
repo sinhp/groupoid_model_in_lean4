@@ -81,13 +81,13 @@ partial def evalTm (env : Q(List (Val $χ))) (t' : Q(Expr $χ)) : Lean.MetaM ((v
   let t : Q(Expr $χ) ← Lean.Meta.whnf t'
   have _ : $t =Q $t' := .unsafeIntro
   match t with
-  | ~q(.const $c) =>
-    return ⟨q(.const $c), q(by as_aux_lemma =>
+  | ~q(.ax $c) =>
+    return ⟨q(.ax $c), q(by as_aux_lemma =>
       introv _ env t
-      have ⟨Al, Ec, _, eq⟩ := t.inv_const
+      have ⟨Al, Ec, _, eq⟩ := t.inv_ax
       subst_vars
       apply ValEqTm.conv_tp _ (eq.subst env.wf_sb).symm_tp
-      convert ValEqTm.const env.wf_dom Ec using 1
+      convert ValEqTm.ax env.wf_dom Ec using 1
       simp [Expr.subst_of_isClosed _ Al.2.1]
     )⟩
   | ~q(.bvar $i) => do
@@ -271,14 +271,14 @@ partial def evalValTm (env : Q(List (Val $χ))) (vt : Q(Val $χ)) : Lean.MetaM (
     Q(∀ {E Γ Δ A t σ l}, [Fact E.Wf] → EnvEqSb E Δ $env σ Γ → ValEqTm E Γ l $vt t A →
       ValEqTm E Δ l $v (t.subst σ) (A.subst σ))) := do
   match vt with
-  | ~q(.const $c) =>
-    return ⟨q(.const $c), q(by as_aux_lemma =>
+  | ~q(.ax $c) =>
+    return ⟨q(.ax $c), q(by as_aux_lemma =>
       introv _ env vt
-      have ⟨Al, Ec, _, eqt, eq⟩ := vt.inv_const
+      have ⟨Al, Ec, _, eqt, eq⟩ := vt.inv_ax
       subst_vars
       apply ValEqTm.conv_tm _ (eqt.subst env.wf_sb).symm_tm
       apply ValEqTm.conv_tp _ (eq.subst env.wf_sb).symm_tp
-      convert ValEqTm.const env.wf_dom Ec using 1
+      convert ValEqTm.ax env.wf_dom Ec using 1
       simp [Expr.subst_of_isClosed _ Al.2.1]
     )⟩
   | ~q(.lam $k $k' $vA $b) =>

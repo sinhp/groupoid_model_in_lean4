@@ -1,12 +1,12 @@
 import GroupoidModel.Syntax.Inversion
 
-variable {χ : Type*} {E : Env χ} {Δ Δ' Γ Γ' Γ'' : Ctx χ}
+variable {χ : Type*} {E : Axioms χ} {Δ Δ' Γ Γ' Γ'' : Ctx χ}
   {A A' B B' t t' u : Expr χ} {σ : Nat → Expr χ}
   {i l l' : Nat}
 
 /-! ## Context equality -/
 
-variable (E : Env χ) in
+variable (E : Axioms χ) in
 /-- The two contexts are judgmentally equal. -/
 inductive EqCtx : Ctx χ → Ctx χ → Prop
   | nil : EqCtx [] []

@@ -3,10 +3,10 @@ import Lean.Meta.Tactic.Simp
 universe u
 
 variable (χ : Type u) in
-/-- A HoTT0 expression with constants indexed by `χ`. -/
+/-- A HoTT0 expression with axioms indexed by `χ`. -/
 inductive Expr where
-  /-- A closed term constant in the environment. -/
-  | const (c : χ)
+  /-- An axiom, i.e., a closed term constant in the theory. -/
+  | ax (c : χ)
   /-- De Bruijn index. -/
   | bvar (i : Nat)
   /-- Dependent product. -/

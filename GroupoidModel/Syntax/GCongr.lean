@@ -2,7 +2,7 @@ import GroupoidModel.Syntax.EqCtx
 import GroupoidModel.Syntax.InversionLemmas
 import Mathlib.Tactic.GCongr
 
-variable {χ : Type*} {E : Env χ}
+variable {χ : Type*} {E : Axioms χ}
 
 /-! # `gcongr` lemmas
 

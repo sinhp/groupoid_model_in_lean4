@@ -4,7 +4,7 @@ import GroupoidModel.Syntax.Typing
 import GroupoidModel.Tactic.MutualInduction
 import GroupoidModel.Tactic.GrindCases
 
-variable {χ : Type*} {E : Env χ} {Θ Δ Γ : Ctx χ}
+variable {χ : Type*} {E : Axioms χ} {Θ Δ Γ : Ctx χ}
   {A A' B B' t t' b b' u u' : Expr χ} {σ σ' σ'' : Nat → Expr χ} {ξ ξ' : Nat → Nat}
   {i l l' : Nat}
 
@@ -91,8 +91,8 @@ theorem rename_all :
   all_goals dsimp only; try intros
   all_goals try simp only [Expr.rename, ih_subst] at *
   -- Cases that don't go through by `grind_cases`.
-  case const p _ Ec _ _ _ Δ _ =>
-    simpa [Expr.rename_eq_subst_ofRen, Expr.subst_of_isClosed _ p.2.1] using WfTm.const Δ Ec
+  case ax p _ Ec _ _ _ Δ _ =>
+    simpa [Expr.rename_eq_subst_ofRen, Expr.subst_of_isClosed _ p.2.1] using WfTm.ax Δ Ec
   case bvar ξ => apply WfTm.bvar _ (ξ.lookup _) <;> assumption
   case lam_app' =>
     convert EqTm.lam_app' .. using 1
@@ -180,7 +180,7 @@ The additional data is an implementation detail;
 
 A common alternative is to use an inductive characterization. -/
 @[irreducible]
-def EqSb (E : Env χ) (Δ : Ctx χ) (σ σ' : Nat → Expr χ) (Γ : Ctx χ) :=
+def EqSb (E : Axioms χ) (Δ : Ctx χ) (σ σ' : Nat → Expr χ) (Γ : Ctx χ) :=
   WfCtx E Δ ∧ WfCtx E Γ ∧
     ∀ {i A l}, Lookup Γ i A l →
       (E ∣ Δ ⊢[l] A.subst σ) ∧ (E ∣ Δ ⊢[l] A.subst σ') ∧ (E ∣ Δ ⊢[l] A.subst σ ≡ A.subst σ') ∧
@@ -189,7 +189,7 @@ def EqSb (E : Env χ) (Δ : Ctx χ) (σ σ' : Nat → Expr χ) (Γ : Ctx χ) :=
 
 /-- The substitution `σ : Δ ⟶ Γ` is well-formed. -/
 @[irreducible]
-def WfSb (E : Env χ) (Δ : Ctx χ) (σ : Nat → Expr χ) (Γ : Ctx χ) := EqSb E Δ σ σ Γ
+def WfSb (E : Axioms χ) (Δ : Ctx χ) (σ : Nat → Expr χ) (Γ : Ctx χ) := EqSb E Δ σ σ Γ
 
 namespace EqSb
 
@@ -369,14 +369,14 @@ theorem subst_all :
   mutual_induction WfCtx
   all_goals dsimp; try intros
   all_goals try simp only [Expr.subst_toSb_subst, Expr.subst_snoc_toSb_subst, Expr.subst] at *
-  case const p _ Ec _ =>
+  case ax p _ Ec _ =>
     constructor
     . introv σ
       simpa [Expr.rename_eq_subst_ofRen, Expr.subst_of_isClosed _ p.2.1] using
-        WfTm.const σ.wf_dom Ec
+        WfTm.ax σ.wf_dom Ec
     . introv eq
       simpa [Expr.rename_eq_subst_ofRen, Expr.subst_of_isClosed _ p.2.1] using
-        EqTm.refl_tm <| WfTm.const eq.wf_dom Ec
+        EqTm.refl_tm <| WfTm.ax eq.wf_dom Ec
   case bvar => grind [EqSb.lookup, WfSb.lookup]
   case pi' => grind [WfTp.pi', EqTp.cong_pi']
   case sigma' => grind [WfTp.sigma', EqTp.cong_sigma']
@@ -563,9 +563,9 @@ theorem up : EqSb E Δ σ σ' Γ → E ∣ Γ ⊢[l] A →
 
 end EqSb
 
-/-- The type of any constant in the environment is closed,
+/-- The type of any axiom is closed,
 so can be used in any context without weakening. -/
-theorem Env.Wf.atCtx {c Al} : E.Wf → WfCtx E Γ → E c = some Al → E ∣ Γ ⊢[Al.val.2] Al.val.1 := by
+theorem Axioms.Wf.atCtx {c Al} : E.Wf → WfCtx E Γ → E c = some Al → E ∣ Γ ⊢[Al.val.2] Al.val.1 := by
   intro E Γwf Ec
   induction Γ
   . exact E Ec

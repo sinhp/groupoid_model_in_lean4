@@ -22,7 +22,7 @@ When set to `0`, types cannot be quantified over at all. -/
 -- If only we had parameterized modules..
 def univMax : Nat := 4
 
-/-- A *constant environment* is a (possibly infinite) set
+/-- An *axiom environment* is a (possibly infinite) set
 of closed term constants indexed by a type of names `χ`.
 `χ` is in general larger than necessary
 and not all names correspond to constants.
@@ -32,14 +32,14 @@ We do not support type constants directly:
 they are just term constants in a universe.
 This does mean we cannot have type constants at level `univMax`.
 
-We do *not* use `Env` for definitions;
+We do *not* use `Axioms` for definitions;
 the native Lean `Environment` is used instead. -/
-abbrev Env (χ : Type*) := χ → Option { Al : Expr χ × Nat // Al.1.isClosed ∧ Al.2 ≤ univMax }
+abbrev Axioms (χ : Type*) := χ → Option { Al : Expr χ × Nat // Al.1.isClosed ∧ Al.2 ≤ univMax }
 
 /-- A typing context consisting of type expressions and their universe levels. -/
 abbrev Ctx (χ : Type*) := List (Expr χ × Nat)
 
-variable {χ : Type*} (E : Env χ)
+variable {χ : Type*} (E : Axioms χ)
 
 /-- `Lookup Γ i A l` means that `A = A'[↑ⁱ⁺¹]` where `Γ[i] = (A', l)`.
 Together with `⊢ Γ`, this implies `Γ ⊢[l] .bvar i : A`. -/
@@ -159,10 +159,10 @@ inductive EqTp : Ctx χ → Nat → Expr χ → Expr χ → Prop
 Note: the type is the _first_ `Expr` argument. -/
 inductive WfTm : Ctx χ → Nat → Expr χ → Expr χ → Prop
   -- Term formers
-  | const {Γ c Al} :
+  | ax {Γ c Al} :
     WfCtx Γ →
     E c = some Al →
-    Γ ⊢[Al.val.2] .const c : Al.val.1
+    Γ ⊢[Al.val.2] .ax c : Al.val.1
 
   | bvar {Γ A i l} :
     WfCtx Γ →
@@ -393,20 +393,20 @@ def EqTm.unexpand : Unexpander
 
 end PrettyPrinting
 
-/-! ## Well-formed constant environments -/
+/-! ## Well-formed axiom environments -/
 
-/-- The given constant environment is well-formed.
+/-- The given axiom environment is well-formed.
 
 Unlike contexts that change via substitutions,
 most syntactic lemmas live 'over' a fixed environment.
-These all require an `Env.Wf` assumption
+These all require an `Axioms.Wf` assumption
 that cannot be eliminated using inversion (`E | Γ ⊢[l] 𝒥 ⇏ E.Wf`).
 We propagate this assumption using the typeclass `[Fact E.Wf]`. -/
-/- FIXME: Can't make inversion true by making `Env.Wf` mutual with typing
+/- FIXME: Can't make inversion true by making `Axioms.Wf` mutual with typing
 (that's not strictly positive),
 but we could redefine `E ∣ Γ ⊢[l] 𝒥` to mean `E.Wf ∧ E ∣ Γ ⊢[l] 𝒥`.
 We'd need to rederive all typing rules for the latter,
 and this should be done using custom automation
 (do NOT write a million lemmas by hand). -/
-abbrev Env.Wf (E : Env χ) :=
+abbrev Axioms.Wf (E : Axioms χ) :=
   ∀ ⦃c p⦄, E c = some p → E ∣ [] ⊢[p.val.2] p.val.1

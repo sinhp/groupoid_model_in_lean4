@@ -1,6 +1,6 @@
 import GroupoidModel.Syntax.EqCtx
 
-variable {χ : Type*} {E : Env χ}
+variable {χ : Type*} {E : Axioms χ}
 
 /-! ## Injectivity of type formers
 

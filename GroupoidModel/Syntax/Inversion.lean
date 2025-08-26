@@ -1,6 +1,6 @@
 import GroupoidModel.Syntax.Substitution
 
-variable {χ : Type*} {E : Env χ} {Θ Δ Γ : Ctx χ}
+variable {χ : Type*} {E : Axioms χ} {Θ Δ Γ : Ctx χ}
   {A A' B B' t t' b b' u u' : Expr χ}
   {σ σ' : Nat → Expr χ}
   {i l l' : Nat}
@@ -74,7 +74,7 @@ theorem inv_all (Ewf : E.Wf) :
       (WfCtx E Γ) ∧ (E ∣ Γ ⊢[l] A) ∧ (E ∣ Γ ⊢[l] t : A) ∧ (E ∣ Γ ⊢[l] u : A)) := by
   mutual_induction WfCtx
   all_goals dsimp; try intros
-  case const Γ Ec _ => exact ⟨Γ, Ewf.atCtx Γ Ec⟩
+  case ax Γ Ec _ => exact ⟨Γ, Ewf.atCtx Γ Ec⟩
   case bvar => grind [WfCtx.lookup_wf]
   case cong_pi' => grind [WfTp.pi']
   case cong_sigma' => grind [WfTp.sigma']

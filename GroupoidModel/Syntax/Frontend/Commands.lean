@@ -33,7 +33,7 @@ def elabAxiom (thyNm : Name) (stx : Syntax) : CommandElabM Unit := do
       "axiom.\{{l}} {ci.name} :\
           {Lean.indentExpr T |>.nest 2}"
 
-    have axioms : Q(Env Name) := thyData.axioms
+    have axioms : Q(Axioms Name) := thyData.axioms
     have wf_axioms : Q(($axioms).Wf) := thyData.wf_axioms
     have name : Q(Name) := toExpr ci.name
     -- TODO: smarter tactic for this equality
@@ -89,7 +89,7 @@ def elabDeclaration (thyNm : Name) (stx : Syntax) : CommandElabM Unit := do
       :=\
         {Lean.indentExpr t}"
 
-    have axioms : Q(Env Name) := thyData.axioms
+    have axioms : Q(Axioms Name) := thyData.axioms
     have wf_axioms : Q(($axioms).Wf) := thyData.wf_axioms
     let Twf ← checkTp q($axioms) q(⟨$wf_axioms⟩) q([]) q($l) q($T)
     let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Lean.Name from []) q($T)

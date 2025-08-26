@@ -1,5 +1,5 @@
 import Qq
-import GroupoidModel.Syntax.Env
+import GroupoidModel.Syntax.Axioms
 
 namespace Leanternal
 

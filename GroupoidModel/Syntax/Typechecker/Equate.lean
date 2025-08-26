@@ -176,12 +176,12 @@ partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val $χ)) :
     )
   | _ =>
     match vT, vt, vu with
-    | vT, ~q(.const $c), ~q(.const $c') =>
+    | vT, ~q(.ax $c), ~q(.ax $c') =>
       let ⟨_⟩ ← assertDefEqQ q($c) q($c')
       return q(by as_aux_lemma =>
         introv _ deq vT vt vu
-        have ⟨_, _, _, eqt, eq⟩ := vt.inv_const
-        have ⟨_, _, _, eqt', eq'⟩ := vu.inv_const
+        have ⟨_, _, _, eqt, eq⟩ := vt.inv_ax
+        have ⟨_, _, _, eqt', eq'⟩ := vu.inv_ax
         apply eqt.trans_tm _ |>.trans_tm eqt'.symm_tm
         apply EqTm.refl_tm eqt'.wf_right
       )

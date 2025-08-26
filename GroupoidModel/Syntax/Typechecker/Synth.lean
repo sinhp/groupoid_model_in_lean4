@@ -1,5 +1,5 @@
 import GroupoidModel.Syntax.Typechecker.Equate
-import GroupoidModel.Syntax.Env
+import GroupoidModel.Syntax.Axioms
 
 open Qq
 
@@ -32,7 +32,7 @@ partial def lookup (vΓ : Q(TpEnv $χ)) (i : Q(Nat)) : Lean.MetaM ((vA : Q(Val $
     )⟩
 
 mutual
-variable (E : Q(Env $χ)) (Ewf : Q(Fact ($E).Wf))
+variable (E : Q(Axioms $χ)) (Ewf : Q(Fact ($E).Wf))
 
 partial def checkTp (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (T : Q(Expr $χ)) :
     Lean.MetaM Q(∀ {Γ}, TpEnvEqCtx $E $vΓ Γ → $E ∣ Γ ⊢[$l] ($T)) :=
@@ -130,7 +130,7 @@ partial def synthTm (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (t : Q(Expr $χ)) :
         convert t.subst (WfSb.wk B) using 1
         rw [Expr.subst_of_isClosed _ ($defn).wf_val.isClosed]
     )⟩
-  | ~q(.const $c) => do
+  | ~q(.ax $c) => do
     let Al : Q(Option { Al : Expr $χ × Nat // Al.1.isClosed ∧ Al.2 ≤ univMax }) ←
       Lean.Meta.whnf q($E $c)
     let ~q(some $Al') := Al
@@ -145,9 +145,9 @@ partial def synthTm (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (t : Q(Expr $χ)) :
       introv vΓ
       subst_vars
       have Ec := ($this).symm
-      have := Env.Wf.atCtx ($Ewf).out vΓ.wf_ctx Ec
+      have := ($Ewf).out.atCtx vΓ.wf_ctx Ec
       refine ⟨_, $vApost vΓ this, ?_⟩
-      apply WfTm.const vΓ.wf_ctx Ec
+      apply WfTm.ax vΓ.wf_ctx Ec
     )⟩
   | ~q(.bvar $i) => do
     let ⟨vA, m, lk⟩ ← lookup q($vΓ) q($i)
