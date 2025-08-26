@@ -561,6 +561,10 @@ theorem comp_mkId {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
 def mkRefl (a : y(Γ) ⟶ M.Tm) : y(Γ) ⟶ M.Tm :=
   a ≫ idIntro.refl
 
+theorem comp_mkRefl {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (a : y(Γ) ⟶ M.Tm) :
+    ym(σ) ≫ idIntro.mkRefl a = idIntro.mkRefl (ym(σ) ≫ a) :=
+  rfl
+
 @[simp]
 theorem mkRefl_tp (a : y(Γ) ⟶ M.Tm) :
     idIntro.mkRefl a ≫ M.tp = idIntro.mkId a a rfl := by
@@ -595,11 +599,17 @@ def reflSubst (a : y(Γ) ⟶ M.Tm) : Γ ⟶ idIntro.motiveCtx a :=
     apply idIntro.isKernelPair.hom_ext <;> simp)
 
 @[reassoc]
-theorem comp_reflSubst {Γ Δ} (σ : Δ ⟶ Γ) (a : y(Γ) ⟶ M.Tm) :
+theorem comp_reflSubst' {Γ Δ} (σ : Δ ⟶ Γ) (a : y(Γ) ⟶ M.Tm) :
     ym(σ) ≫ ym(idIntro.reflSubst a) =
     ym(idIntro.reflSubst (ym(σ) ≫ a)) ≫ ym(idIntro.motiveSubst σ a) := by
   apply (M.disp_pullback _).hom_ext <;> simp [reflSubst, motiveSubst, mkRefl]
   apply (M.disp_pullback _).hom_ext <;> simp [substWk]
+
+@[simp, reassoc]
+lemma comp_reflSubst (a : y(Γ) ⟶ M.Tm) {Δ} (σ : Δ ⟶ Γ) :
+    reflSubst idIntro (ym(σ) ≫ a) ≫ idIntro.motiveSubst σ a = σ ≫ reflSubst idIntro a := by
+  apply Yoneda.fullyFaithful.map_injective
+  simp [Functor.map_comp, comp_reflSubst']
 
 end IdIntro
 
@@ -623,7 +633,7 @@ protected structure Id (N : NaturalModel Ctx) (i : IdIntro M) where
     (r_tp : r ≫ N.tp = ym(i.reflSubst a) ≫ C) :
     ym(i.motiveSubst σ _) ≫ j a C r r_tp =
     j (ym(σ) ≫ a) (ym(i.motiveSubst σ _) ≫ C) (ym(σ) ≫ r) (by
-      simp [r_tp, IdIntro.comp_reflSubst_assoc])
+      simp [r_tp, IdIntro.comp_reflSubst'_assoc])
   reflSubst_j {Γ} (a : y(Γ) ⟶ M.Tm) (C : y(IdIntro.motiveCtx _ a) ⟶ N.Ty) (r : y(Γ) ⟶ N.Tm)
     (r_tp : r ≫ N.tp = ym(i.reflSubst a) ≫ C) :
     ym(i.reflSubst a) ≫ j a C r r_tp = r
@@ -688,9 +698,6 @@ structure IdElimBase extends IdIntro M where
   i2 : i ⟶ k
   i_isPullback : IsPullback i1 i2 M.tp Id
 
-/-- The identity `𝟙 Tm` as the signature for a polynomial endofunctor on `Psh Ctx`. -/
-@[simps] def tmUvPoly : UvPoly M.Tm M.Tm := ⟨𝟙 M.Tm, inferInstance⟩
-
 namespace IdElimBase
 variable (idElimBase : IdElimBase M)
 
@@ -732,114 +739,10 @@ lemma comparison_comp_i2_k2 : comparison M idElimBase ≫ idElimBase.i2 ≫ idEl
 /-- The functor part of the polynomial endofunctor `iOverUvPoly` -/
 abbrev iFunctor : Psh Ctx ⥤ Psh Ctx := idElimBase.iUvPoly.functor
 
-section Equiv
-
-variable {Γ : Ctx} {X : Psh Ctx}
-
-
-section
-variable (a : y(Γ) ⟶ M.Tm)
-/-
-In the following lemmas we build the following diagram of pullbacks,
-where `pullback` is the pullback of `i₂ ≫ k₂` along `a` given by `HasPullback`.
-   ---------------->  X
-  |                   Λ
-  |                   |
-  |                   | x
-  |                   |
-pullback ----> y(Γ.a≫tp.Id(...)) ------> i ------> Tm
-  |                  |                   |         |
-  |                  |                   | i₂      V
-  |                  |                   |         Ty
-  |                  V                   V
-  |-----------> y(Γ.a≫tp) ----------->   k ------> Tm
-  |                  |                   |    k₁   |
-  |                  |                   |k₂       |tp
-  |                  |                   |         |
-  |                  V                   V         V
-  ----------------> y(Γ) ------------>   Tm -----> Ty
-                              a               tp
--/
-
-def toK : y(M.ext (a ≫ M.tp)) ⟶ idElimBase.k :=
-  idElimBase.isKernelPair.lift (M.var _) (ym(M.disp _) ≫ a) (by simp)
-
-lemma toK_comp_k1 : idElimBase.toK M a ≫ idElimBase.k1 = M.var _ := by simp [toK]
-
-lemma ext_a_tp_isPullback : IsPullback (toK M idElimBase a) ym(M.disp _)
-    idElimBase.k2 a :=
-  IsPullback.of_right' (M.disp_pullback _) idElimBase.isKernelPair
-
-def toExtATp : pullback a (iUvPoly M idElimBase).p ⟶ y(M.ext (a ≫ M.tp)) :=
-  (ext_a_tp_isPullback M idElimBase a).lift
-    (pullback.snd a (idElimBase.i2 ≫ idElimBase.k2) ≫ idElimBase.i2)
-    (pullback.fst a (idElimBase.i2 ≫ idElimBase.k2)) (by simp [pullback.condition])
-
-@[simp]
-lemma toExtATp_comp_disp : toExtATp M idElimBase a ≫ ym(M.disp (a ≫ M.tp)) =
-  pullback.fst a (idElimBase.i2 ≫ idElimBase.k2) := by
-  simp [toExtATp]
-
-lemma toExtATp_comp_var : toExtATp M idElimBase a ≫ M.var (a ≫ M.tp) =
-  pullback.snd a (idElimBase.i2 ≫ idElimBase.k2) ≫ idElimBase.i2 ≫ idElimBase.k1 := by
-  rw [← idElimBase.toK_comp_k1]
-  simp [toExtATp]
-
-theorem pullback_isPullback :
-    IsPullback (pullback.snd a (iUvPoly M idElimBase).p) (toExtATp M idElimBase a)
-    idElimBase.i2 (toK M idElimBase a) :=
-  IsPullback.of_bot' (IsPullback.of_hasPullback a (idElimBase.i2 ≫ idElimBase.k2)).flip
-    (ext_a_tp_isPullback M idElimBase a)
-
-def toI : y(idElimBase.motiveCtx a) ⟶ idElimBase.i :=
-  idElimBase.i_isPullback.lift (M.var _) (ym(M.disp _) ≫ toK M idElimBase a)
-  (by rw [(M.disp_pullback _).w]; simp [IdIntro.mkId, toK])
-
-lemma toI_comp_i1 : idElimBase.toI M a ≫ idElimBase.i1 = M.var _ := by simp [toI]
-
-theorem motiveCtx_isPullback :
-    IsPullback (toI M idElimBase a) ym(M.disp _) idElimBase.i2 (toK M idElimBase a) :=
-  IsPullback.of_right' (M.disp_pullback _) idElimBase.i_isPullback
-
-def pullbackIsoMotiveCtx :
-    pullback a (iUvPoly M idElimBase).p ≅ y(idElimBase.motiveCtx a) :=
-  IsPullback.isoIsPullback _ _ (pullback_isPullback M idElimBase a)
-    (motiveCtx_isPullback M idElimBase a)
-
-@[simp]
-theorem pullbackIsoMotiveCtx_hom_comp_var : (pullbackIsoMotiveCtx M idElimBase a).hom ≫ M.var _ =
-    pullback.snd _ _ ≫ idElimBase.i1 :=
-  calc _
-    _ = (pullbackIsoMotiveCtx M idElimBase a).hom ≫ toI _ _ _ ≫ idElimBase.i1 := by simp [toI]
-    _ = _ := by
-      simp [pullbackIsoMotiveCtx]
-
-@[simp]
-theorem pullbackIsoMotiveCtx_hom_comp_disp : (pullbackIsoMotiveCtx M idElimBase a).hom ≫ ym(M.disp _) =
-    toExtATp _ _ _ := by
-  simp [pullbackIsoMotiveCtx]
-
-def equivMk (x : y(idElimBase.motiveCtx a) ⟶ X) :
-    y(Γ) ⟶ idElimBase.iFunctor.obj X :=
-  UvPoly.Equiv.mk idElimBase.iUvPoly X a
-    ((pullbackIsoMotiveCtx M idElimBase a).hom ≫ x)
-
-end
-
-def equivFst (pair : y(Γ) ⟶ idElimBase.iFunctor.obj X) :
-    y(Γ) ⟶ M.Tm :=
-  UvPoly.Equiv.fst idElimBase.iUvPoly X pair
-
-def equivSnd (pair : y(Γ) ⟶ idElimBase.iFunctor.obj X) :
-    y(idElimBase.motiveCtx (equivFst M idElimBase pair)) ⟶ X :=
-  (pullbackIsoMotiveCtx _ _ _).inv ≫ UvPoly.Equiv.snd idElimBase.iUvPoly X pair
-
-end Equiv
-
 /-- Consider the comparison map `comparison : Tm ⟶ i` in the slice over `Tm`.
 Then the contravariant action `UVPoly.verticalNatTrans` of taking `UvPoly` on a slice
 results in a natural transformation `P_iOver ⟶ P_(𝟙 Tm)`
-between the polynomial endofunctors `iUvPoly` and `tmUvPoly` respectively.
+between the polynomial endofunctors `iUvPoly` and `UvPoly.id M.Tm` respectively.
   comparison
 Tm ----> i
  \      /
@@ -848,9 +751,179 @@ Tm ----> i
     VV
     Tm
 -/
-def verticalNatTrans : idElimBase.iFunctor ⟶ M.tmUvPoly.functor :=
-    UvPoly.verticalNatTrans M.tmUvPoly idElimBase.iUvPoly
+@[simp] def verticalNatTrans : idElimBase.iFunctor ⟶ (UvPoly.id M.Tm).functor :=
+    UvPoly.verticalNatTrans (UvPoly.id M.Tm) idElimBase.iUvPoly
   idElimBase.comparison (by simp [iUvPoly])
+
+section reflCase
+
+variable {M} (i : IdIntro M)
+
+variable {Γ : Ctx} (a : y(Γ) ⟶ M.Tm) (r : y(Γ) ⟶ M.Tm)
+
+lemma reflCase_aux : IsPullback (𝟙 y(Γ)) a a (UvPoly.id M.Tm).p :=
+  have : IsIso (UvPoly.id M.Tm).p := by simp; infer_instance
+  IsPullback.of_horiz_isIso (by simp)
+
+/-- The variable `r` witnesses the motive for the case `refl`,
+This gives a map `(a,r) : Γ ⟶ P_𝟙Tm Tm ≅ Tm × Tm` where
+```
+    fst ≫ r
+Tm <--   Γ  --------> Tm
+  <      ‖            ‖
+   \     ‖   (pb)     ‖ 𝟙_Tm
+  r \    ‖            ‖
+     \   ‖            ‖
+      \  Γ  --------> Tm
+              a
+```
+-/
+def reflCase : y(Γ) ⟶ (UvPoly.id M.Tm).functor.obj M.Tm :=
+  UvPoly.Equiv.mk' (UvPoly.id M.Tm) M.Tm a (R := y(Γ)) (f := 𝟙 _) (g := a)
+  (reflCase_aux a) r
+-- TODO: consider generalizing
+-- TODO: consider showing UvPoly on identity `(P_𝟙_Y X)` is isomorphic to product `Y × X`
+
+end reflCase
+
+open IdElimBase IdIntro
+
+section Equiv
+
+variable {Γ : Ctx} {X : Psh Ctx}
+
+section
+variable {M} (a : y(Γ) ⟶ M.Tm)
+/-
+In the following lemmas we build the following diagram of pullbacks,
+where `pullback` is the pullback of `i₂ ≫ k₂` along `a` given by `HasPullback`.
+  X
+  Λ
+  |
+  | x
+  |
+ y(Γ.a≫tp.Id(...)) ------> i ------> Tm
+  |                        |         |
+  |                        | i₂      V
+  |                        |         Ty
+  V                        V
+ y(Γ.a≫tp) ------------>   k ------> Tm
+  |                        |    k₁   |
+  |                        |k₂       |tp
+  |                        |         |
+  |                        V         V
+ y(Γ) ---------------->   Tm -----> Ty
+               a               tp
+-/
+
+def toK : y(M.ext (a ≫ M.tp)) ⟶ idElimBase.k :=
+  idElimBase.isKernelPair.lift (M.var _) (ym(M.disp _) ≫ a) (by simp)
+
+lemma toK_comp_k1 : idElimBase.toK a ≫ idElimBase.k1 = M.var _ := by simp [toK]
+
+lemma ext_a_tp_isPullback : IsPullback (toK idElimBase a) ym(M.disp _)
+    idElimBase.k2 a :=
+  IsPullback.of_right' (M.disp_pullback _) idElimBase.isKernelPair
+
+def toI : y(idElimBase.motiveCtx a) ⟶ idElimBase.i :=
+  idElimBase.i_isPullback.lift (M.var _) (ym(M.disp _) ≫ toK idElimBase a)
+  (by rw [(M.disp_pullback _).w]; simp [IdIntro.mkId, toK])
+
+lemma toI_comp_i1 : idElimBase.toI a ≫ idElimBase.i1 = M.var _ := by simp [toI]
+
+lemma toI_comp_i2 : idElimBase.toI a ≫ idElimBase.i2 = ym(M.disp _) ≫ idElimBase.toK a :=
+  by simp [toI]
+
+theorem motiveCtx_isPullback :
+    IsPullback (toI idElimBase a) ym(M.disp _) idElimBase.i2 (toK idElimBase a) :=
+  IsPullback.of_right' (M.disp_pullback _) idElimBase.i_isPullback
+
+theorem motiveCtx_isPullback' :
+    IsPullback (toI idElimBase a) ym(M.disp (idElimBase.mkId (ym(M.disp (a ≫ M.tp)) ≫ a)
+      (M.var (a ≫ M.tp)) (by simp)) ≫ M.disp (a ≫ M.tp)) (iUvPoly M idElimBase).p a := by
+  convert IsPullback.paste_vert (idElimBase.motiveCtx_isPullback a)
+    (idElimBase.ext_a_tp_isPullback a)
+  simp
+
+def equivMk (x : y(idElimBase.motiveCtx a) ⟶ X) : y(Γ) ⟶ idElimBase.iFunctor.obj X :=
+  UvPoly.Equiv.mk' idElimBase.iUvPoly X a (idElimBase.motiveCtx_isPullback' a).flip x
+
+def equivFst (pair : y(Γ) ⟶ idElimBase.iFunctor.obj X) :
+    y(Γ) ⟶ M.Tm :=
+  UvPoly.Equiv.fst idElimBase.iUvPoly X pair
+
+lemma equivFst_comp_left (pair : y(Γ) ⟶ idElimBase.iFunctor.obj X)
+    {Δ} (σ : Δ ⟶ Γ) :
+    idElimBase.equivFst (ym(σ) ≫ pair) = ym(σ) ≫ idElimBase.equivFst pair := by
+  dsimp [equivFst]
+  rw [UvPoly.Equiv.fst_comp_left]
+
+def equivSnd (pair : y(Γ) ⟶ idElimBase.iFunctor.obj X) :
+    y(idElimBase.motiveCtx (equivFst idElimBase pair)) ⟶ X :=
+  UvPoly.Equiv.snd' idElimBase.iUvPoly X pair (idElimBase.motiveCtx_isPullback' _).flip
+
+lemma equivSnd_comp_left (pair : y(Γ) ⟶ idElimBase.iFunctor.obj X)
+    {Δ} (σ : Δ ⟶ Γ) :
+    idElimBase.equivSnd (ym(σ) ≫ pair) = eqToHom (by rw [idElimBase.equivFst_comp_left pair σ]) ≫
+    ym(idElimBase.motiveSubst σ _) ≫ idElimBase.equivSnd pair := by
+  dsimp [equivSnd]
+  -- rw [UvPoly.Equiv.snd'_comp_left]
+  sorry
+
+lemma equivFst_verticalNatTrans_app {Γ : Ctx} {X : Psh Ctx}
+    (pair : y(Γ) ⟶ idElimBase.iFunctor.obj X) :
+    idElimBase.equivFst pair = UvPoly.Equiv.fst (UvPoly.id M.Tm) X
+    (pair ≫ idElimBase.verticalNatTrans.app X) := by
+  dsimp [equivFst]
+  rw [← UvPoly.fst_verticalNatTrans_app]
+
+lemma equivSnd_verticalNatTrans_app {Γ : Ctx} {X : Psh Ctx}
+    (pair : y(Γ) ⟶ idElimBase.iFunctor.obj X) :
+    UvPoly.Equiv.snd' (UvPoly.id M.Tm) X (pair ≫ idElimBase.verticalNatTrans.app X)
+      (R := y(Γ)) (f := 𝟙 _) (g := idElimBase.equivFst pair) (by
+        convert reflCase_aux (idElimBase.equivFst pair)
+        rw [equivFst_verticalNatTrans_app]) =
+      ym(idElimBase.reflSubst (idElimBase.equivFst pair)) ≫
+      idElimBase.equivSnd pair :=
+  calc _
+  _ = _ ≫ idElimBase.equivSnd pair := by
+    dsimp [equivSnd]
+    rw [UvPoly.snd'_verticalNatTrans_app (UvPoly.id M.Tm) idElimBase.iUvPoly
+      (idElimBase.comparison) _ _ pair _ (idElimBase.equivSnd pair)]
+    --   (idElimBase.comparison) sorry X pair sorry ]
+    apply reflCase_aux (idElimBase.equivFst pair)
+  _ = _ := by
+    congr 1
+    apply (M.disp_pullback _).hom_ext
+    · conv => lhs; rw [← toI_comp_i1]
+      simp [reflSubst, comparison, mkRefl]
+    · apply (M.disp_pullback _).hom_ext
+      · slice_lhs 3 4 => rw [← idElimBase.toK_comp_k1]
+        slice_lhs 2 3 => rw [← idElimBase.toI_comp_i2]
+        simp [reflSubst]
+      · simp [reflSubst]
+
+lemma equivMk_comp_verticalNatTrans_app {Γ : Ctx} {X : Psh Ctx} (a : y(Γ) ⟶ M.Tm)
+    (x : y(idElimBase.motiveCtx a) ⟶ X) :
+    idElimBase.equivMk a x ≫ (idElimBase.verticalNatTrans).app X =
+    UvPoly.Equiv.mk' (UvPoly.id M.Tm) X a (R := y(Γ)) (f := 𝟙 _) (g := a)
+    (reflCase_aux a) (ym(idElimBase.reflSubst a) ≫ x) := by
+  dsimp only [equivMk, verticalNatTrans]
+  rw [UvPoly.mk'_comp_verticalNatTrans_app (R' := y(Γ)) (f' := 𝟙 _) (g' := a)
+    (H' := reflCase_aux a)]
+  congr 2
+  apply (M.disp_pullback _).hom_ext
+  · conv => lhs; rw [← toI_comp_i1]
+    simp [reflSubst, comparison, mkRefl]
+  · apply (M.disp_pullback _).hom_ext
+    · slice_lhs 3 4 => rw [← idElimBase.toK_comp_k1]
+      slice_lhs 2 3 => rw [← idElimBase.toI_comp_i2]
+      simp [reflSubst]
+    · simp [reflSubst]
+
+end
+
+end Equiv
 
 end IdElimBase
 
@@ -859,9 +932,42 @@ end IdElimBase
 structure WeakPullback {C : Type*} [Category C]
     {P X Y Z : C} (fst : P ⟶ X) (snd : P ⟶ Y) (f : X ⟶ Z) (g : Y ⟶ Z)
     extends CommSq fst snd f g where
-  lift (W : C) (a : W ⟶ X) (b : W ⟶ Y) (h : a ≫ f = b ≫ g) : W ⟶ P
-  fac_left (W : C) (a : W ⟶ X) (b : W ⟶ Y) (h : a ≫ f = b ≫ g) : lift W a b h ≫ fst = a
-  fac_right (W : C) (a : W ⟶ X) (b : W ⟶ Y) (h : a ≫ f = b ≫ g) : lift W a b h ≫ snd = b
+  lift {W : C} (a : W ⟶ X) (b : W ⟶ Y) (h : a ≫ f = b ≫ g) : W ⟶ P
+  lift_fst' {W : C} (a : W ⟶ X) (b : W ⟶ Y) (h : a ≫ f = b ≫ g) : lift a b h ≫ fst = a
+  lift_snd' {W : C} (a : W ⟶ X) (b : W ⟶ Y) (h : a ≫ f = b ≫ g) : lift a b h ≫ snd = b
+
+namespace WeakPullback
+
+variable {C : Type*} [Category C]
+    {P X Y Z : C} {fst : P ⟶ X} {snd : P ⟶ Y} {f : X ⟶ Z} {g : Y ⟶ Z}
+    (wp : WeakPullback fst snd f g)
+
+variable {W : C} (a : W ⟶ X) (b : W ⟶ Y) (h : a ≫ f = b ≫ g)
+
+@[simp]
+lemma lift_fst : wp.lift a b h ≫ fst = a := lift_fst' _ _ _ _
+
+@[simp]
+lemma lift_snd : wp.lift a b h ≫ snd = b := lift_snd' _ _ _ _
+
+def coherentLift [HasPullbacks C] : W ⟶ P :=
+  pullback.lift a b h ≫ wp.lift (pullback.fst _ _) (pullback.snd _ _) pullback.condition
+
+@[simp]
+lemma coherentLift_fst [HasPullbacks C] : wp.coherentLift a b h ≫ fst = a := by
+  simp [coherentLift]
+
+@[simp]
+lemma coherentLift_snd [HasPullbacks C] : wp.coherentLift a b h ≫ snd = b := by
+  simp [coherentLift]
+
+lemma coherentLift_comp_left [HasPullbacks C] {W'} (σ : W' ⟶ W) :
+    σ ≫ wp.coherentLift a b h =
+    wp.coherentLift (σ ≫ a) (σ ≫ b) (by simp [h]) := by
+  simp only [coherentLift, ← Category.assoc]
+  congr 1; ext <;> simp
+
+end WeakPullback
 
 /-- The full structure interpreting the natural model semantics for identity types
 requires an `IdIntro`,
@@ -898,7 +1004,7 @@ structure Id' extends IdElimBase M where
   weakPullback : WeakPullback
     (toIdElimBase.verticalNatTrans.app M.Tm)
     (toIdElimBase.iFunctor.map M.tp)
-    (M.tmUvPoly.functor.map M.tp)
+    ((UvPoly.id M.Tm).functor.map M.tp)
     (toIdElimBase.verticalNatTrans.app M.Ty)
 
 namespace Id'
@@ -909,45 +1015,103 @@ variable {Γ Δ : Ctx} (σ : Δ ⟶ Γ) (a : y(Γ) ⟶ M.Tm)
   (C : y(i.motiveCtx a) ⟶ M.Ty) (r : y(Γ) ⟶ M.Tm)
   (r_tp : r ≫ M.tp = ym(i.reflSubst a) ≫ C)
 
+open IdElimBase IdIntro
+
+lemma reflCase_aux : IsPullback (𝟙 y(Γ)) a a (UvPoly.id M.Tm).p :=
+  have : IsIso (UvPoly.id M.Tm).p := by simp; infer_instance
+  IsPullback.of_horiz_isIso (by simp)
+
 /-- The variable `r` witnesses the motive for the case `refl`,
 This gives a map `(a,r) : Γ ⟶ P_𝟙Tm Tm ≅ Tm × Tm` where
 ```
     fst ≫ r
-Tm <-- pullback ----> Tm
-  <      |            ‖
-   \     |fst         ‖ 𝟙_Tm
-  r \    |            ‖
-     \   V            ‖
+Tm <--   Γ  --------> Tm
+  <      ‖            ‖
+   \     ‖   (pb)     ‖ 𝟙_Tm
+  r \    ‖            ‖
+     \   ‖            ‖
       \  Γ  --------> Tm
               a
 ```
 -/
-def reflCase : y(Γ) ⟶ M.tmUvPoly.functor.obj M.Tm :=
-  UvPoly.Equiv.mk M.tmUvPoly M.Tm a (pullback.fst _ _ ≫ r)
+def reflCase : y(Γ) ⟶ (UvPoly.id M.Tm).functor.obj M.Tm :=
+  UvPoly.Equiv.mk' (UvPoly.id M.Tm) M.Tm a (R := y(Γ)) (f := 𝟙 _) (g := a)
+  (reflCase_aux a) r
+-- TODO: consider generalizing
 -- TODO: consider showing UvPoly on identity `(P_𝟙_Y X)` is isomorphic to product `Y × X`
 
--- TODO: consider removing this definition
 /-- The variable `C` is the motive for elimination,
 This gives a map `(a, C) : Γ ⟶ iFunctor Ty`
 ```
     C
 Ty <-- y(motiveCtx) ----> i
-  <---       |            |
-      \      |            | i2 ≫ k2
-     r \     |            |
-        \    V            V
-          -- Γ  --------> Tm
+             |            |
+             |            | i2 ≫ k2
+             |            |
+             V            V
+             Γ  --------> Tm
                   a
 ```
 -/
-def motive : y(Γ) ⟶ i.iFunctor.obj M.Ty :=
-  i.equivMk M a C
+abbrev motive : y(Γ) ⟶ i.iFunctor.obj M.Ty :=
+  i.equivMk a C
+
+lemma motive_comp_left : ym(σ) ≫ i.motive a C =
+    i.motive (ym(σ) ≫ a) (ym(i.motiveSubst σ a) ≫ C) := by
+  dsimp [motive, equivMk]
+  rw [UvPoly.Equiv.mk'_comp_left (iUvPoly M i.toIdElimBase) M.Ty a
+    (i.motiveCtx_isPullback' a).flip C ym(σ) _ rfl (i.motiveCtx_isPullback' _).flip]
+  congr 2
+  simp [motiveSubst, substWk, substCons]
+  apply (M.disp_pullback _).hom_ext <;> simp
+  · simp [← toI_comp_i1]
+  · apply (M.disp_pullback _).hom_ext <;> simp
+    · slice_lhs 3 4 => rw [← i.toK_comp_k1]
+      slice_rhs 2 3 => rw [← i.toK_comp_k1]
+      slice_lhs 2 3 => rw [← i.toI_comp_i2]
+      slice_rhs 1 2 => rw [← i.toI_comp_i2]
+      simp
 
 def lift : y(Γ) ⟶ i.iFunctor.obj M.Tm :=
-  i.weakPullback.lift y(Γ) (reflCase a r) (motive i a C) (have := r_tp; sorry)
+  i.weakPullback.coherentLift (reflCase a r) (motive i a C) (by
+    dsimp only [motive, equivMk, verticalNatTrans, reflCase]
+    rw [UvPoly.mk'_comp_verticalNatTrans_app (UvPoly.id M.Tm) i.iUvPoly i.comparison
+      _ M.Ty a (i.motiveCtx_isPullback' a).flip C (reflCase_aux a),
+      UvPoly.Equiv.mk'_comp_right, r_tp, reflSubst]
+    congr
+    apply (M.disp_pullback _).hom_ext
+    · conv => right; rw [← toI_comp_i1]
+      simp [mkRefl, comparison]
+    · apply (M.disp_pullback _).hom_ext
+      · slice_rhs 3 4 => rw [← i.toK_comp_k1]
+        slice_rhs 2 3 => rw [← toI_comp_i2]
+        simp
+      · simp)
 
-lemma equivFst_lift_eq : i.equivFst M (i.lift a C r r_tp) = a :=
-  sorry
+lemma lift_comp_left {Δ} (σ : Δ ⟶ Γ) : i.lift (ym(σ) ≫ a) (ym(i.motiveSubst σ a) ≫ C)
+    (ym(σ) ≫ r) (by simp [r_tp, comp_reflSubst'_assoc]) =
+    ym(σ) ≫ i.lift a C r r_tp := by
+  dsimp [lift]
+  rw [WeakPullback.coherentLift_comp_left]
+  congr 1
+  · dsimp [reflCase]
+    rw [UvPoly.Equiv.mk'_comp_left (UvPoly.id M.Tm) M.Tm a (reflCase_aux a) r ym(σ) _ rfl
+      (reflCase_aux (ym(σ) ≫ a))]
+    congr 2
+    apply (reflCase_aux a).hom_ext
+    · simp only [IsPullback.lift_fst]
+      simp
+    · simp
+  · rw [motive_comp_left]
+
+lemma equivFst_lift_eq : i.equivFst (i.lift a C r r_tp) = a :=
+  calc i.equivFst (i.lift a C r r_tp)
+  _ = i.equivFst (i.lift a C r r_tp ≫ i.iFunctor.map M.tp) := by
+    dsimp [IdElimBase.equivFst]
+    rw [UvPoly.Equiv.fst_comp_right]
+  _ = _ := by
+    dsimp [lift, motive, IdElimBase.equivFst, IdElimBase.equivMk]
+    rw [WeakPullback.coherentLift_snd, UvPoly.Equiv.fst_mk']
 
 /-- The elimination rule for identity types.
   `Γ ⊢ A` is the type with a term `Γ ⊢ a : A`.
@@ -956,17 +1120,45 @@ lemma equivFst_lift_eq : i.equivFst M (i.lift a C r r_tp) = a :=
   `Γ (y : A) (h : Id(A,a,y)) ⊢ mkJ : A`
 -/
 def j : y(i.motiveCtx a) ⟶ M.Tm :=
-  eqToHom (by rw [equivFst_lift_eq]) ≫ i.equivSnd M (i.lift a C r r_tp)
+  eqToHom (by rw [equivFst_lift_eq]) ≫ i.equivSnd (i.lift a C r r_tp)
 
 /-- Typing for elimination rule `J` -/
-lemma j_tp : j i a C r r_tp ≫ M.tp = C := sorry
+lemma j_tp : j i a C r r_tp ≫ M.tp = C := by
+  simp only [j, Category.assoc, IdElimBase.equivSnd, ← UvPoly.Equiv.snd'_comp_right]
+  rw! [WeakPullback.coherentLift_snd]
+  simp only [IdElimBase.equivMk]
+  rw! [equivFst_lift_eq]
+  simp
 
 lemma comp_j : ym(i.motiveSubst σ _) ≫ j i a C r r_tp =
     j i (ym(σ) ≫ a) (ym(i.motiveSubst σ _) ≫ C) (ym(σ) ≫ r) (by
-      simp [r_tp, IdIntro.comp_reflSubst_assoc]) := sorry
+      simp [r_tp, IdIntro.comp_reflSubst'_assoc]) := by
+  simp only [j]
+  conv => rhs; rw! [i.lift_comp_left a C r r_tp]
+  rw [i.equivSnd_comp_left]
+  simp only [← Category.assoc, eqToHom_refl, Category.id_comp]
+  congr 1
+  simp [← heq_eq_eq]
+  rw [equivFst_lift_eq]
 
 /-- β rule for identity types. Substituting `J` with `refl` gives the user-supplied value `r` -/
-lemma reflSubst_j : ym(i.reflSubst a) ≫ j i a C r r_tp = r := sorry
+lemma reflSubst_j : ym(i.reflSubst a) ≫ j i a C r r_tp = r := by
+  have h := i.equivSnd_verticalNatTrans_app (i.lift a C r r_tp)
+  rw! [i.weakPullback.coherentLift_fst] at h
+  unfold reflCase at h
+  rw [UvPoly.Equiv.snd'_eq_snd', UvPoly.Equiv.snd'_mk', ← Iso.eq_inv_comp] at h
+  conv => right; rw [h]
+  simp only [j, ← Category.assoc, UvPoly.Equiv.fst_mk', UvPoly.id_p]
+  congr 1
+  have pb : IsPullback (𝟙 _) a a (𝟙 _) := IsPullback.of_id_fst
+  have : (IsPullback.isoIsPullback y(Γ) M.Tm pb pb).inv = 𝟙 _ := by
+    apply pb.hom_ext
+    · simp only [IsPullback.isoIsPullback_inv_fst]
+      simp
+    · simp
+  simp only [← heq_eq_eq, comp_eqToHom_heq_iff]
+  rw! [equivFst_lift_eq]
+  simp [this]
 
 variable (b : y(Γ) ⟶ M.Tm) (b_tp : b ≫ M.tp = a ≫ M.tp)
   (h : y(Γ) ⟶ M.Tm) (h_tp : h ≫ M.tp = i.isKernelPair.lift b a (by aesop) ≫ i.Id)

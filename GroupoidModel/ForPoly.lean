@@ -496,10 +496,25 @@ section
 
 variable {F : C} (P : UvPoly E B) (Q : UvPoly F B) (ρ : E ⟶ F) (h : P.p = ρ ≫ Q.p)
 
-lemma mk_comp_verticalNatTrans_app {Γ : C} (X : C) (b : Γ ⟶ B) (x : pullback b Q.p ⟶ X) :
-    Equiv.mk Q X b x ≫ (verticalNatTrans P Q ρ h).app X = Equiv.mk P X b
-    (pullback.lift (pullback.fst _ _) (pullback.snd _ _ ≫ ρ)
-    (by simp [pullback.condition, h]) ≫ x) :=
+lemma fst_verticalNatTrans_app {Γ : C} (X : C) (pair : Γ ⟶ Q @ X) :
+    Equiv.fst P X (pair ≫ (verticalNatTrans P Q ρ h).app X) = Equiv.fst Q X pair :=
+    sorry
+
+lemma snd'_verticalNatTrans_app {Γ : C} (X : C) (pair : Γ ⟶ Q @ X) {R f g}
+    (H : IsPullback (P := R) f g (Equiv.fst Q X pair) Q.p) (x : R ⟶ X) {R' f' g'}
+    (H' : IsPullback (P := R') f' g' (Equiv.fst Q X pair) P.p) :
+    Equiv.snd' P X (pair ≫ (verticalNatTrans P Q ρ h).app X) (by
+      rw [← fst_verticalNatTrans_app] at H'
+      exact H') =
+    (H.lift f' (g' ≫ ρ) (by simp [H'.w, h])) ≫
+    Equiv.snd' Q X pair H :=
+    sorry
+
+lemma mk'_comp_verticalNatTrans_app {Γ : C} (X : C) (b : Γ ⟶ B) {R f g}
+    (H : IsPullback (P := R) f g b Q.p) (x : R ⟶ X) {R' f' g'}
+    (H' : IsPullback (P := R') f' g' b P.p) :
+    Equiv.mk' Q X b H x ≫ (verticalNatTrans P Q ρ h).app X = Equiv.mk' P X b H'
+    (H.lift f' (g' ≫ ρ) (by simp [H'.w, h]) ≫ x) :=
   sorry
 
 end
