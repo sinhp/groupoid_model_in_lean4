@@ -1,5 +1,6 @@
 import Qq
 import GroupoidModel.Syntax.Axioms
+import GroupoidModel.Syntax.Frontend.Prelude
 
 namespace Leanternal
 
@@ -125,11 +126,11 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr Lea
       let ⟨_, p⟩ ← translateAsTm p
       return ⟨l', q(.snd $l $l' $A $B $p)⟩
     -- Defined in `Syntax.Frontend.Prelude`.
-    if e.isAppOfArity' `Id.refl 2 then
+    if e.isAppOfArity' ``Identity.refl 2 then
       let #[_, a] := e.getAppArgs | throwError "internal error (Id.refl)"
       let ⟨l, a⟩ ← translateAsTm a
       return ⟨l, q(.refl $l $a)⟩
-    if e.isAppOfArity' `Id.rec 6 then
+    if e.isAppOfArity' ``Identity.rec 6 then
       let #[_, a, M, r, b, h] := e.getAppArgs | throwError "internal error (Id.rec)"
       let ⟨l, a⟩ ← translateAsTm a
       let ⟨l', M⟩ ← lambdaBoundedTelescope M 2 fun xs M => do
@@ -157,7 +158,7 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr Lea
     let l ← getSortLevel l.succ
     let l' ← getSortLevel l'.succ
     return ⟨max l l' + 1, mkSigma _ l l'⟩
-  | .const ``Id [l] =>
+  | .const ``Identity [l] =>
     let l ← getSortLevel l.succ
     return ⟨l + 1, mkId _ l⟩
   | .const nm [] =>

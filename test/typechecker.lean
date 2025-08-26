@@ -1,56 +1,58 @@
-import GroupoidModel.Syntax.Typechecker.Frontend
+import GroupoidModel.Syntax.Frontend.Commands
 
-/- Tests to ensure the HoTT0 typechecker works. -/
+declare_theory mltt
+
+/-! Tests to ensure the typechecker works. -/
 
 /-! ## Universes -/
 
-hott def tp_univ : Type 1 := Type 0
+mltt def tp_univ : Type 1 := Type 0
 
 /-! ## Functions -/
 
-hott def tp_pi_nondep : Type 1 := Type 0 → Type 0
+mltt def tp_pi_nondep : Type 1 := Type 0 → Type 0
 
-hott def tm_lam_nondep : Type 0 → Type 0 := fun x => x
+mltt def tm_lam_nondep : Type 0 → Type 0 := fun x => x
 
-hott def tp_pi : Type 1 := (A : Type 0) → A → A
+mltt def tp_pi : Type 1 := (A : Type 0) → A → A
 
-hott def tm_lam : (A : Type 0) → A → A := fun _ a => a
+mltt def tm_lam : (A : Type 0) → A → A := fun _ a => a
 
-hott def tm_app : (A : Type 0) → A → (A → A) → A := fun _ a f => f a
+mltt def tm_app : (A : Type 0) → A → (A → A) → A := fun _ a f => f a
 
 /-! ## Products -/
 
-hott def tp_sigma : Type 1 :=
+mltt def tp_sigma : Type 1 :=
   (A : Type) × A
 
-hott def tp_sigma_partial : (A : Type) → (B : A → Type) → Type :=
+mltt def tp_sigma_partial : (A : Type) → (B : A → Type) → Type :=
   @Sigma
 
-hott def tm_pair_nondep : (_ : Type 1) × Type 1 :=
+mltt def tm_pair_nondep : (_ : Type 1) × Type 1 :=
   ⟨Type 0, Type 0⟩
 
 -- Noncomputable due to Lean issue https://github.com/leanprover/lean4/issues/9692
-hott noncomputable def tm_pair : (A : Type 2) × A :=
+mltt noncomputable def tm_pair : (A : Type 2) × A :=
   ⟨Type 1, Type 0⟩
 
-hott def tm_fst : Type 2 :=
+mltt def tm_fst : Type 2 :=
   { fst := Type 1, snd := Type 0 : (A : Type 2) × A }.fst
 
-hott def tm_snd : Type 1 :=
+mltt def tm_snd : Type 1 :=
   { fst := Type 1, snd := Type 0 : (A : Type 2) × A }.snd
 
 /-! ## Identity types -/
 
-hott def tp_id : Type 2 :=
-  @HoTT0.Id (Type 1) Type Type
+mltt def tp_id : Type 2 :=
+  @Identity (Type 1) Type Type
 
-hott def tm_refl : @HoTT0.Id (Type 1) Type Type :=
-  @HoTT0.Id.refl (Type 1) Type
+mltt def tm_refl : @Identity (Type 1) Type Type :=
+  @Identity.refl (Type 1) Type
 
-hott noncomputable def tm_idRec (A B : Type) (eq : @HoTT0.Id Type A B) (a : A) : B :=
-  @HoTT0.Id.rec Type A (fun T _ => T) a B eq
+mltt noncomputable def tm_idRec (A B : Type) (eq : @Identity Type A B) (a : A) : B :=
+  @Identity.rec Type A (fun T _ => T) a B eq
 
 /-! ## Definitional equalities -/
 
-hott def defeq_el_code {A : Type} (a : A) : A :=
+mltt def defeq_el_code {A : Type} (a : A) : A :=
   (fun (α : Type) (x : α) => x) ((fun (α : Type 1) (x : α) => x) Type A) a
