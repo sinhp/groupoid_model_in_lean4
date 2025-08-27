@@ -13,6 +13,7 @@ package groupoid_model where
 
 require Poly from git "https://github.com/sinhp/Poly" @ "cartesian-nt"
 
+require "chasenorman" / "Canonical"
 
 @[default_target]
 lean_lib GroupoidModel where
