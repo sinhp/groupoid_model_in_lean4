@@ -283,11 +283,12 @@ theorem snd_comp_right {Y} (σ : X ⟶ Y) {A} (eq : fst M AB = A) :
 theorem snd_comp_left {A} (eqA : fst M AB = A) {σA} (eqσ : ym(σ) ≫ A = σA) :
     snd M (ym(σ) ≫ AB) σA (by simp [fst_comp_left, eqA, eqσ]) =
     ym(M.substWk σ _ _ eqσ) ≫ snd M AB _ eqA := by
-  refine
-    have H1 := by rw [← fst, eqA]; exact (M.disp_pullback _).flip
-    have H2 := by rw [← fst, eqA, eqσ]; exact (M.disp_pullback _).flip
-    (UvPoly.Equiv.snd'_comp_left M.uvPolyTp X AB H1 _ H2).trans ?_
-  congr 1
+  have H1 : IsPullback ym(M.disp A) (M.var A) (UvPoly.Equiv.fst M.uvPolyTp X AB) M.uvPolyTp.p := by
+    rw [← fst, eqA]; exact (M.disp_pullback _).flip
+  have H2 : IsPullback ym(M.disp σA) (M.var σA)
+    (ym(σ) ≫ UvPoly.Equiv.fst M.uvPolyTp X AB) M.uvPolyTp.p := by
+    rw [← fst, eqA, eqσ]; exact (M.disp_pullback _).flip
+  convert UvPoly.Equiv.snd'_comp_left M.uvPolyTp X AB H1 _ H2
   apply H1.hom_ext <;> simp [← Functor.map_comp, substWk]
 
 theorem mk_comp_left {Δ Γ : Ctx} (M : NaturalModel Ctx) (σ : Δ ⟶ Γ)
@@ -864,11 +865,10 @@ theorem motiveCtx_isPullback :
   IsPullback.of_right' (M.disp_pullback _) idElimBase.i_isPullback
 
 theorem motiveCtx_isPullback' :
-    IsPullback (toI idElimBase a) ym(M.disp (idElimBase.mkId (ym(M.disp (a ≫ M.tp)) ≫ a)
-      (M.var (a ≫ M.tp)) (by simp)) ≫ M.disp (a ≫ M.tp)) (iUvPoly idElimBase).p a := by
-  convert IsPullback.paste_vert (idElimBase.motiveCtx_isPullback a)
+    IsPullback (toI idElimBase a) (ym(M.disp (idElimBase.mkId (ym(M.disp (a ≫ M.tp)) ≫ a)
+      (M.var (a ≫ M.tp)) (by simp))) ≫ ym(M.disp (a ≫ M.tp))) (iUvPoly idElimBase).p a :=
+  IsPullback.paste_vert (idElimBase.motiveCtx_isPullback a)
     (idElimBase.ext_a_tp_isPullback a)
-  simp
 
 def equivMk (x : y(idElimBase.motiveCtx a) ⟶ X) : y(Γ) ⟶ idElimBase.iFunctor.obj X :=
   UvPoly.Equiv.mk' idElimBase.iUvPoly X a (idElimBase.motiveCtx_isPullback' a).flip x
@@ -1213,15 +1213,21 @@ lemma reflCase_comp_tp : reflCase ar ≫ N.tp =
     ym(base.reflSubst (base.equivFst aC)) ≫ motive base aC := by
   dsimp [reflCase, motive]
   rw! [← UvPoly.Equiv.snd'_comp_right, hrC]
+  have H : IsPullback ym(M.disp (base.mkId
+      (ym(M.disp (base.equivFst aC ≫ M.tp)) ≫ base.equivFst aC)
+      (M.var (base.equivFst aC ≫ M.tp)) (by simp)) ≫
+      M.disp (base.equivFst aC ≫ M.tp))
+    (base.toI (base.equivFst aC)) (UvPoly.Equiv.fst base.iUvPoly N.Ty aC) base.iUvPoly.p := by
+    convert (base.motiveCtx_isPullback' (base.equivFst aC)).flip
+    simp
   rw! [UvPoly.snd'_verticalNatTrans_app
     (R := y(base.motiveCtx (base.equivFst aC)))
-    (f := ym(M.disp _ ≫ M.disp _)) (g := base.toI (base.equivFst aC))
-    (H := (base.motiveCtx_isPullback' (base.equivFst aC)).flip)
+    (H := H)
     (R' := y(Γ)) (f' := 𝟙 _) (g' := UvPoly.Equiv.fst (UvPoly.id M.Tm) N.Tm ar)
     (H' := by
     rw [fst_eq_fst base ar aC hrC]
     exact Id'.reflCase_aux _)]
-  simp [equivSnd]
+  simp only [Functor.map_comp, iUvPoly_p, equivSnd]
   congr 1
   apply (M.disp_pullback _).hom_ext <;>
     simp only [reflSubst, substCons_var, substCons_disp_functor_map, substCons_var]
@@ -1252,9 +1258,8 @@ lemma lift_snd : lift base i ar aC hrC ≫ base.iFunctor.map N.tp = aC := by
   · rw! [i.j_tp]
     rw [UvPoly.Equiv.snd'_mk']
     simp [motive, equivSnd]
-  · simp only [Functor.map_comp, UvPoly.Equiv.fst_mk', iUvPoly_p]
-    convert (base.motiveCtx_isPullback' _).flip
-    simp
+  · simp only [UvPoly.Equiv.fst_mk', iUvPoly_p]
+    exact (base.motiveCtx_isPullback' _).flip
   · simp [equivFst]
 
 lemma comp_lift {Δ} (σ : Δ ⟶ Γ) : ym(σ) ≫ lift base i ar aC hrC =
@@ -1262,7 +1267,7 @@ lemma comp_lift {Δ} (σ : Δ ⟶ Γ) : ym(σ) ≫ lift base i ar aC hrC =
   dsimp [lift, equivMk]
   rw [UvPoly.Equiv.mk'_comp_left base.iUvPoly N.Tm (base.equivFst aC) _
     (i.j (base.equivFst aC) (motive base aC) (reflCase ar) _) ym(σ) _ rfl
-    (by simp only [iUvPoly_p]; convert (base.motiveCtx_isPullback' _).flip)]
+    (by simp only [iUvPoly_p]; exact (base.motiveCtx_isPullback' _).flip)]
   congr 1
   have h := i.comp_j σ (base.equivFst aC) _ _ (reflCase_comp_tp base ar aC hrC)
   rw! (castMode := .all) [← comp_motive, ← comp_reflCase, ← equivFst_comp_left] at h
