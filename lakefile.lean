@@ -31,6 +31,6 @@ lean_lib Test.Typechecker where
   srcDir := "test"
   roots := #[`typechecker]
 
-lean_lib Bench.Sample where
-  srcDir := "test/bench"
-  roots := #[`sample]
+lean_lib Bench where
+  srcDir := "test"
+  roots := #[`bench]

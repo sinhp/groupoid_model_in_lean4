@@ -46,12 +46,44 @@ def instLevels (maxLvl : Nat) (e : Expr) (all : Bool := false) : MetaM (List Exp
     (attempt, carry) := incMAry attempt maxLvl
   return ret
 
-universe u v
-axiom app {A : Type u} {B : A → Type v} (f : (a : A) → B a) (a : A) : B a
-axiom fst {A : Type u} {B : A → Type v} (p : (a : A) × B a) : A
-axiom snd {A : Type u} {B : A → Type v} (p : (a : A) × B a) : B (fst p)
-axiom idRec {A : Type u} (t : A) (M : (y : A) → Identity t y → Type v) (r : M t (.refl t)) (u : A)
-    (h : Identity t u) : M u h
+axiom app.{u,v} {A : Type u} {B : A → Type v} (f : (a : A) → B a) (a : A) : B a
+axiom fst.{u,v} {A : Type u} {B : A → Type v} (p : (a : A) × B a) : A
+axiom snd.{u,v} {A : Type u} {B : A → Type v} (p : (a : A) × B a) : B (fst p)
+axiom idRec.{v,u} {A : Type u} (t : A) (M : (y : A) → Identity t y → Type v)
+    (r : M t (.refl t)) (u : A) (h : Identity t u) : M u h
+
+/-- Turn the axioms above into definable terms. -/
+partial def deaxiomatize : Expr → Expr :=
+  Expr.replace fun e =>
+    match_expr e with
+    | app _ _ f a =>
+      let f := deaxiomatize f
+      let a := deaxiomatize a
+      return .app f a
+    | fst α β p =>
+      let α := deaxiomatize α
+      let β := deaxiomatize β
+      let p := deaxiomatize p
+      let ls := e.getAppFn'.constLevels!
+      return mkApp3 (.const ``Sigma.fst ls) α β p
+    | snd α β p =>
+      let α := deaxiomatize α
+      let β := deaxiomatize β
+      let p := deaxiomatize p
+      let ls := e.getAppFn'.constLevels!
+      return mkApp3 (.const ``Sigma.snd ls) α β p
+    | idRec _ t M r u h => Id.run do
+      let t := deaxiomatize t
+      let M := deaxiomatize M
+      let r := deaxiomatize r
+      let u := deaxiomatize u
+      let h := deaxiomatize h
+      let [ℓ₁, ℓ₂] := e.getAppFn'.constLevels! | return none
+      -- `idRec` has a motive that eliminates into `Type`,
+      -- whereas `Identity.rec` eliminates into `Sort`
+      -- so bump the level by one.
+      return mkApp5 (.const ``Identity.rec [mkLevelSucc ℓ₁, ℓ₂]) t M r u h
+    | _ => none
 
 /-- Samples n terms of the given type using Canonical. -/
 elab "#sample" maxLvl:num n:num m:num : command => liftTermElabM do
@@ -59,11 +91,8 @@ elab "#sample" maxLvl:num n:num m:num : command => liftTermElabM do
     count := n.getNat.toUSize /- sample `n` types -/
     simp := false /- prevents adding extra definitions like `Eq.rec` -/
   }
-  let premises := #[
-    ``Canonical.Pi, ``Canonical.Pi.f, ``app,
-    ``Sigma.mk, ``fst, ``snd,
-    ``Identity.refl, ``idRec
-  ]
+  -- We sample NF types built out of Π/Σ/Id
+  let premises := #[ ``Canonical.Pi, ``Sigma, ``Identity ]
   -- Canonical has `Sort : Sort` and the level is ignored.
   let typ ← toCanonical (.sort 0) premises config
   -- dbg_trace typ
@@ -71,25 +100,27 @@ elab "#sample" maxLvl:num n:num m:num : command => liftTermElabM do
   let tps ← result.terms.mapM fun term => fromCanonical term (.sort 0)
   for _h : iTp in [0:tps.size] do
     let tp := tps[iTp]
-    -- We pass this type back to canonical; because canonical ignores universe levels,
-    -- we only need one instantiation.
-    let [tp] ← instLevels maxLvl.getNat tp | continue
-
-    let config := { config with
-      count := m.getNat.toUSize /- sample `m` terms -/
-    }
+    withLogging do
+    let config := { config with count := m.getNat.toUSize /- sample `m` terms -/ }
+    -- We sample terms that may use eliminators
+    let premises := premises ++ #[
+      ``Canonical.Pi.f,  ``app,
+      ``Sigma.mk, ``fst, ``snd,
+      ``Identity.refl, ``idRec
+    ]
     let typ ← toCanonical tp premises config
     -- dbg_trace typ
-    -- TODO: smaller timeout?
+    -- -- TODO: smaller timeout?
     let result ← canonical typ config.count.toUInt64 config.count
     let tms ← result.terms.mapM fun term => fromCanonical term tp
     for _h : iTm in [0:tms.size] do
       let tm := tms[iTm]
+      let tm := deaxiomatize tm
+
       let tms ← instLevels maxLvl.getNat tm (all := true)
       for _h : iTmInst in [0:tms.length] do
         let tm := tms[iTmInst]
         let name := `benchDef |>.num iTp |>.num iTm |>.num iTmInst
-        logInfo m!"found {name} := {tm}"
         addDecl <| .defnDecl {
           name
           levelParams := []
@@ -98,5 +129,9 @@ elab "#sample" maxLvl:num n:num m:num : command => liftTermElabM do
           hints := default
           safety := default
         }
+        logInfo m!"added {name} := {tm}"
 
-#sample 2 5 5
+-- Hack: `instLevels` tends to run out of heartbeats
+set_option pp.universes true in
+set_option maxHeartbeats 0 in
+#sample 3 3 1
