@@ -12,6 +12,7 @@ import bench.sample_llm
 -- 2. Read all the `benchDef.n constants from the environment
 
 open Lean Elab Meta Term Leanternal Command
+open System
 open Qq
 
 open Char
@@ -112,7 +113,9 @@ elab "#measure_rkernel" : command => liftTermElabM do
       -- now store the name + times in a JSON file
       -- (sz is the size of the term)
       let sz := ci.value!.size
-      IO.FS.withFile "sampletimes_rkernel.json" .append fun fTimes => do
+      let base : FilePath := "test" / "bench"
+      let file := base / "sampletimes_rkernel.json"
+      IO.FS.withFile file .append fun fTimes => do
         let j : Json := json%
           { name : $n,
             sz: $sz,
