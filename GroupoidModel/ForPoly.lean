@@ -543,12 +543,15 @@ def compDomEquiv {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} :
       left_inv _ := rfl
       right_inv _ := rfl }
 
-@[simp] theorem compDomEquiv_symm_comp_p {Γ E B D A : 𝒞} {P : UvPoly E B}
+def compP {E B D A : C} (P : UvPoly E B) (Q : UvPoly D A) : compDom P Q ⟶ P @ A :=
+  pullback.snd Q.p (fan P A).snd ≫ pullback.fst (fan P A).fst P.p
+
+@[simp] theorem compDomEquiv_symm_compP {Γ E B D A : 𝒞} {P : UvPoly E B}
     {Q : UvPoly D A} (AB : Γ ⟶ P @ A) (α : Γ ⟶ E)
     (β : Γ ⟶ D) (w : AB ≫ P.fstProj A = α ≫ P.p)
     (h : β ≫ Q.p = pullback.lift AB α w ≫ (PartialProduct.fan P A).snd) :
-    compDomEquiv.symm ⟨AB, α, β, w, h⟩ ≫ (P.comp Q).p = AB := by
-   simp [compDomEquiv, Equiv.psigmaCongrProp, Equiv.sigmaCongrRight_symm,
+    compDomEquiv.symm ⟨AB, α, β, w, h⟩ ≫ P.compP Q = AB := by
+   simp [compDomEquiv, compP, Equiv.psigmaCongrProp, Equiv.sigmaCongrRight_symm,
     Equiv.coe_fn_symm_mk, pullbackHomEquiv]
 
 def compDomMap {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q : UvPoly D A}
@@ -567,7 +570,7 @@ theorem compDomMap_isPullback {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q :
     (hp : IsPullback P.p e b P'.p) (hq : IsPullback Q.p d a Q'.p) :
     IsPullback
       (UvPoly.compDomMap e d b a hp hq)
-      (P.comp Q).p (P'.comp Q').p
+      (P.compP Q) (P'.compP Q')
       ((P.cartesianNatTrans P' b e hp).app A ≫ P'.functor.map a) := by
   set p := P.cartesianNatTrans P' b e hp
   apply IsPullback.paste_vert
@@ -587,10 +590,25 @@ section
 
 variable {E B F : C} (P : UvPoly E B) (Q : UvPoly F B) (ρ : E ⟶ F) (h : P.p = ρ ≫ Q.p)
 
-lemma mk_comp_verticalNatTrans_app {Γ : C} (X : C) (b : Γ ⟶ B) (x : pullback b Q.p ⟶ X) :
-    Equiv.mk Q X b x ≫ (verticalNatTrans P Q ρ h).app X = Equiv.mk P X b
-    (pullback.lift (pullback.fst _ _) (pullback.snd _ _ ≫ ρ)
-    (by simp [pullback.condition, h]) ≫ x) :=
+lemma fst_verticalNatTrans_app {Γ : C} (X : C) (pair : Γ ⟶ Q @ X) :
+    Equiv.fst P X (pair ≫ (verticalNatTrans P Q ρ h).app X) = Equiv.fst Q X pair :=
+  sorry
+
+lemma snd'_verticalNatTrans_app {Γ : C} (X : C) (pair : Γ ⟶ Q @ X) {R f g}
+    (H : IsPullback (P := R) f g (Equiv.fst Q X pair) Q.p) {R' f' g'}
+    (H' : IsPullback (P := R') f' g' (Equiv.fst Q X pair) P.p) :
+    Equiv.snd' P X (pair ≫ (verticalNatTrans P Q ρ h).app X) (by
+      rw [← fst_verticalNatTrans_app] at H'
+      exact H') =
+    (H.lift f' (g' ≫ ρ) (by simp [H'.w, h])) ≫
+    Equiv.snd' Q X pair H :=
+  sorry
+
+lemma mk'_comp_verticalNatTrans_app {Γ : C} (X : C) (b : Γ ⟶ B) {R f g}
+    (H : IsPullback (P := R) f g b Q.p) (x : R ⟶ X) {R' f' g'}
+    (H' : IsPullback (P := R') f' g' b P.p) :
+    Equiv.mk' Q X b H x ≫ (verticalNatTrans P Q ρ h).app X = Equiv.mk' P X b H'
+    (H.lift f' (g' ≫ ρ) (by simp [H'.w, h]) ≫ x) :=
   sorry
 
 end
