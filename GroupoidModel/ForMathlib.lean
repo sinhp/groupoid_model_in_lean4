@@ -132,11 +132,11 @@ abbrev homOf {C D : Type u} [Category.{v} C] [Category.{v} D] (F : C ⥤ D) :
     of (ULift.{u, u} C) ≅ of C := ULift_lte_iso_self
 
 def ofULift (C : Type u) [Category.{v} C] : Cat.{v, max u w} :=
-  of $ ULift.{w} C
+  of <| ULift.{w} C
 
 def uLiftFunctor : Cat.{v,u} ⥤ Cat.{v, max u w} where
   obj X := Cat.ofULift.{w} X
-  map F := Cat.homOf $ ULift.downFunctor ⋙ F ⋙ ULift.upFunctor
+  map F := Cat.homOf <| ULift.downFunctor ⋙ F ⋙ ULift.upFunctor
 
 end CategoryTheory.Cat
 
@@ -266,7 +266,7 @@ lemma homOf_comp {A B C : Type u} [Groupoid.{v} A] [Groupoid.{v} B] [Groupoid.{v
   rfl
 
 def asSmallFunctor : Grpd.{v, u} ⥤ Grpd.{max w v u, max w v u} where
-  obj Γ := Grpd.of $ AsSmall.{max w v u} Γ
+  obj Γ := Grpd.of <| AsSmall.{max w v u} Γ
   map F := AsSmall.down ⋙ F ⋙ AsSmall.up
 
 end Grpd

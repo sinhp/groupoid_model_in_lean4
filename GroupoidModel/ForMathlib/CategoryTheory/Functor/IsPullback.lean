@@ -44,8 +44,8 @@ variable {Egypt : Type*} [Category Egypt]
   Objects in this full subcategory are those whose two components are
   sent to equal objects in the base category `Sudan`.
 -/
-def ChosenObjects := ObjectProperty.FullSubcategory (
-  fun p : Egypt × Chad => east.obj p.1 = south.obj p.2 )
+def ChosenObjects :=
+  ObjectProperty.FullSubcategory fun p : Egypt × Chad => east.obj p.1 = south.obj p.2
 
 namespace ChosenObjects
 
@@ -59,8 +59,7 @@ end ChosenObjects
   whose two components are sent to equal maps in the base category `Sudan`.
 -/
 def morphismProperty : MorphismProperty (ChosenObjects east south) :=
-  fun {x y} f => east.map f.1
-    = eqToHom x.property ≫ south.map f.2 ≫ eqToHom y.property.symm
+  fun {x y} f => east.map f.1 = eqToHom x.property ≫ south.map f.2 ≫ eqToHom y.property.symm
 
 instance : MorphismProperty.IsMultiplicative (morphismProperty east south) where
   id_mem x := by
@@ -101,13 +100,14 @@ variable {Egypt : Type*} [Category Egypt]
   {Sudan : Type*} [Category Sudan]
   {east : Egypt ⥤ Sudan} {south : Chad ⥤ Sudan}
 
+variable (east south)
 def north : Chosen east south ⥤ Egypt :=
   wideSubcategoryInclusion _ ⋙ ObjectProperty.ι _ ⋙ Prod.fst _ _
 
 def west : Chosen east south ⥤ Chad :=
   wideSubcategoryInclusion _ ⋙ ObjectProperty.ι _ ⋙ Prod.snd _ _
 
-theorem comm_sq : @north _ _ _ _ _ _ east south ⋙ east = west ⋙ south := by
+theorem comm_sq : north east south ⋙ east = west .. ⋙ south := by
   fapply Functor.ext
   · intro x
     exact x.obj.property
@@ -127,26 +127,24 @@ variable {C : Type u} [Category.{v} C] (Cn : C ⥤ Egypt) (Cw : C ⥤ Chad)
 The universal lift of the chosen pullback `Chosen`.
 -/
 def lift : C ⥤ Chosen east south where
-  obj x := ⟨ ⟨ Cn.obj x , Cw.obj x ⟩ , congr_obj hC x ⟩
-  map f := ⟨ ⟨ Cn.map f , Cw.map f ⟩ , congr_hom hC f ⟩
+  obj x := ⟨⟨Cn.obj x, Cw.obj x⟩, congr_obj hC x⟩
+  map f := ⟨⟨Cn.map f, Cw.map f⟩, congr_hom hC f⟩
 
 /--
 The universal lift of the chosen pullback `Chosen` commutes with projections.
 -/
-theorem fac_left : lift Cn Cw hC ⋙ north = Cn :=
-  rfl
+theorem fac_left : lift Cn Cw hC ⋙ north .. = Cn := rfl
 
 /--
 The universal lift of the chosen pullback `Chosen` commutes with projections.
 -/
-theorem fac_right : lift Cn Cw hC ⋙ west = Cw :=
-  rfl
+theorem fac_right : lift Cn Cw hC ⋙ west .. = Cw := rfl
 
 /--
 Lifts of the chosen pullback `Chosen` are unique.
 -/
-theorem hom_ext {l0 l1 : C ⥤ Chosen east south} (hnorth : l0 ⋙ north = l1 ⋙ north)
-   (hwest : l0 ⋙ west = l1 ⋙ west) : l0 = l1 := by
+theorem hom_ext {l0 l1 : C ⥤ Chosen east south} (hnorth : l0 ⋙ north .. = l1 ⋙ north ..)
+    (hwest : l0 ⋙ west .. = l1 ⋙ west ..) : l0 = l1 := by
   fapply Functor.ext
   · intro x
     apply WideSubcategory.ext
@@ -185,13 +183,13 @@ structure IsPullback {Libya Egypt Chad Sudan : Type*}
     [Category Libya] [Category Egypt] [Category Chad] [Category Sudan]
     (north : Libya ⥤ Egypt) (west : Libya ⥤ Chad)
     (east : Egypt ⥤ Sudan) (south : Chad ⥤ Sudan) where
-  (comm_sq : north ⋙ east = west ⋙ south)
-  (toChosen : Libya ⥤ Chosen east south)
-  (fromChosen : Chosen east south ⥤ Libya)
-  (to_from_id : toChosen ⋙ fromChosen = 𝟭 _)
-  (from_to_id : fromChosen ⋙ toChosen = 𝟭 _)
-  (from_north : fromChosen ⋙ north = Chosen.north)
-  (from_west : fromChosen ⋙ west = Chosen.west)
+  comm_sq : north ⋙ east = west ⋙ south
+  toChosen : Libya ⥤ Chosen east south
+  fromChosen : Chosen east south ⥤ Libya
+  to_from_id : toChosen ⋙ fromChosen = 𝟭 _
+  from_to_id : fromChosen ⋙ toChosen = 𝟭 _
+  from_north : fromChosen ⋙ north = Chosen.north ..
+  from_west : fromChosen ⋙ west = Chosen.west ..
 
 namespace IsPullback
 
@@ -202,14 +200,13 @@ variable {Libya Egypt Chad Sudan : Type*} [Category Libya]
   (east : Egypt ⥤ Sudan) (south : Chad ⥤ Sudan)
 
 section
-variable {Libya'} [Category Libya']
+variable {north west east south Libya'} [Category Libya']
   (h : IsPullback north west east south)
 
 /--
 We can construct a pullback by only providing an isomorphism to the chosen pullback.
 -/
-def ofIso (to' : Libya' ⥤ Libya)
-    (from' : Libya ⥤ Libya')
+def ofIso (to' : Libya' ⥤ Libya) (from' : Libya ⥤ Libya')
     (htf : to' ⋙ from' = 𝟭 _) (hft: from' ⋙ to' = 𝟭 _) :
     IsPullback (to' ⋙ north) (to' ⋙ west) east south where
   comm_sq := by rw [Functor.assoc, h.comm_sq, Functor.assoc]
@@ -223,16 +220,15 @@ def ofIso (to' : Libya' ⥤ Libya)
     _ = 𝟭 _ := h.from_to_id
   from_north := calc h.fromChosen ⋙ (from' ⋙ to') ⋙ north
     _ = h.fromChosen ⋙ north := by rw [hft, Functor.id_comp]
-    _ = Chosen.north := h.from_north
+    _ = Chosen.north .. := h.from_north
   from_west := calc h.fromChosen ⋙ (from' ⋙ to') ⋙ west
     _ = h.fromChosen ⋙ west := by rw [hft, Functor.id_comp]
-    _ = Chosen.west := h.from_west
+    _ = Chosen.west .. := h.from_west
 
 end
 
-def Chosen.isPullback : IsPullback (@Chosen.north _ _ _ _ _ _ east south)
-    Chosen.west east south where
-  comm_sq := Chosen.comm_sq
+def Chosen.isPullback : IsPullback (Chosen.north east south) (Chosen.west ..) east south where
+  comm_sq := Chosen.comm_sq ..
   toChosen := 𝟭 _
   fromChosen := 𝟭 _
   to_from_id := rfl
@@ -245,21 +241,21 @@ We can construct a pullback by only providing an isomorphism to the chosen pullb
 -/
 def ofIsoChosen (toChosen : Libya ⥤ Chosen east south)
     (fromChosen : Chosen east south ⥤ Libya)
-    (htf : toChosen ⋙ fromChosen = 𝟭 _) (hft: fromChosen ⋙ toChosen = 𝟭 _) :
-    IsPullback (toChosen ⋙ Chosen.north) (toChosen ⋙ Chosen.west) east south :=
-  ofIso _ _ _ _ (Chosen.isPullback east south) toChosen fromChosen htf hft
+    (htf : toChosen ⋙ fromChosen = 𝟭 _) (hft : fromChosen ⋙ toChosen = 𝟭 _) :
+    IsPullback (toChosen ⋙ Chosen.north ..) (toChosen ⋙ Chosen.west ..) east south :=
+  ofIso (Chosen.isPullback east south) toChosen fromChosen htf hft
 
-variable {north} {east} {south} {west} (P : IsPullback north west east south)
+variable {north west east south} (P : IsPullback north west east south)
 /--
 Commuting conditions between a general pullback `P` and the chosen pullback.
 -/
-theorem toChosen_north : P.toChosen ⋙ Chosen.north = north := by
+theorem toChosen_north : P.toChosen ⋙ Chosen.north .. = north := by
   simp [← P.from_north, ← Functor.assoc, P.to_from_id, Functor.id_comp]
 
 /--
 Commuting conditions between a general pullback `P` and the chosen pullback.
 -/
-theorem toChosen_west : P.toChosen ⋙ Chosen.west = west := by
+theorem toChosen_west : P.toChosen ⋙ Chosen.west .. = west := by
   simp [← P.from_west, ← Functor.assoc, P.to_from_id, Functor.id_comp]
 
 variable {C : Type u} [Category.{v} C] (Cn : C ⥤ Egypt) (Cw : C ⥤ Chad)
@@ -314,28 +310,23 @@ section
 variable {Libya : Type u} {Egypt : Type u₁} {Chad : Type u₂} {Sudan : Type u₃}
   [Category.{v} Libya] [Category.{v₁} Egypt]
   [Category.{v₂} Chad] [Category.{v₃} Sudan]
-  (north : Libya ⥤ Egypt) (west : Libya ⥤ Chad)
-  (east : Egypt ⥤ Sudan) (south : Chad ⥤ Sudan)
+  {north : Libya ⥤ Egypt} {west : Libya ⥤ Chad}
+  {east : Egypt ⥤ Sudan} {south : Chad ⥤ Sudan}
   (comm_sq : north ⋙ east = west ⋙ south)
 
 variable (lChosen :
-  ∀ {C : Type (max u₁ u₂)} [Category.{max v₁ v₂} C]
-    (Cn : C ⥤ Egypt) (Cw : C ⥤ Chad),
+  ∀ {C : Type (max u₁ u₂)} [Category.{max v₁ v₂} C] {Cn : C ⥤ Egypt} {Cw : C ⥤ Chad},
     Cn ⋙ east = Cw ⋙ south →
-    (lift : C ⥤ Libya) ×'
-    (lift ⋙ north = Cn) ∧
-    (lift ⋙ west = Cw) ∧
-    (∀ {l0 l1 : C ⥤ Libya}, l0 ⋙ north = l1 ⋙ north → l0 ⋙ west = l1 ⋙ west → l0 = l1))
+    { lift : C ⥤ Libya // lift ⋙ north = Cn ∧ lift ⋙ west = Cw ∧
+      ∀ {l0 l1 : C ⥤ Libya}, l0 ⋙ north = l1 ⋙ north → l0 ⋙ west = l1 ⋙ west → l0 = l1 })
 
 variable (lLibya :
-  ∀ {C : Type u} [Category.{v} C]
-    (Cn : C ⥤ Egypt) (Cw : C ⥤ Chad),
+  ∀ {C : Type u} [Category.{v} C] {Cn : C ⥤ Egypt} {Cw : C ⥤ Chad},
     Cn ⋙ east = Cw ⋙ south →
-    (lift : C ⥤ Libya) ×'
-    (lift ⋙ north = Cn) ∧
-    (lift ⋙ west = Cw) ∧
-    (∀ {l0 l1 : C ⥤ Libya}, l0 ⋙ north = l1 ⋙ north →
-      l0 ⋙ west = l1 ⋙ west → l0 = l1))
+    { lift : C ⥤ Libya // lift ⋙ north = Cn ∧ lift ⋙ west = Cw ∧
+      ∀ {l0 l1 : C ⥤ Libya}, l0 ⋙ north = l1 ⋙ north →
+        l0 ⋙ west = l1 ⋙ west → l0 = l1 })
+
 /--
   To define a pullback structure on a category,
   rather than showing a category is isomorphic to the chosen pullback,
@@ -352,25 +343,24 @@ variable (lLibya :
   this problem does not arise.
   See `CategoryTheory.Functor.IsPullback.lift` etc.
 -/
-def ofUniversal : IsPullback north west east south := {
+def ofUniversal : IsPullback north west east south where
   comm_sq := comm_sq
   toChosen := Chosen.lift north west comm_sq
-  fromChosen := (lChosen Chosen.north Chosen.west Chosen.comm_sq).1
+  fromChosen := (lChosen (Chosen.comm_sq ..)).1
   to_from_id := by
-    apply (lLibya north west comm_sq).2.2.2
-    · rw [Functor.assoc, (lChosen _ _ Chosen.comm_sq).2.1,
+    apply (lLibya comm_sq).2.2.2
+    · rw [Functor.assoc, (lChosen (Chosen.comm_sq ..)).2.1,
         Chosen.fac_left, Functor.id_comp]
-    · rw [Functor.assoc, (lChosen _ _ Chosen.comm_sq).2.2.1,
+    · rw [Functor.assoc, (lChosen (Chosen.comm_sq ..)).2.2.1,
         Chosen.fac_right, Functor.id_comp]
   from_to_id := by
     apply Chosen.hom_ext
     · rw [Functor.assoc, Chosen.fac_left, Functor.id_comp,
-        (lChosen _ _ Chosen.comm_sq).2.1]
+        (lChosen (Chosen.comm_sq ..)).2.1]
     · rw [Functor.assoc, Chosen.fac_right, Functor.id_comp,
-        (lChosen _ _ Chosen.comm_sq).2.2.1]
-  from_north := (lChosen _ _ Chosen.comm_sq).2.1
-  from_west := (lChosen _ _ Chosen.comm_sq).2.2.1
-}
+        (lChosen (Chosen.comm_sq ..)).2.2.1]
+  from_north := (lChosen (Chosen.comm_sq ..)).2.1
+  from_west := (lChosen (Chosen.comm_sq ..)).2.2.1
 
 
 end
@@ -379,11 +369,10 @@ section
 
 variable {Libya Egypt Chad Sudan : Type*} [Category Libya]
   [Category Egypt] [Category Chad] [Category Sudan]
-  (north : Libya ⥤ Egypt) (west : Libya ⥤ Chad)
-  (east : Egypt ⥤ Sudan) (south : Chad ⥤ Sudan)
+  {north : Libya ⥤ Egypt} {west : Libya ⥤ Chad}
+  {east : Egypt ⥤ Sudan} {south : Chad ⥤ Sudan}
   (pb : IsPullback north west east south)
 
-variable {north} in
 lemma Iso.inv_comp_eq_comp_inv {north'} (lib : Iso Chad Libya) (egy : Iso Sudan Egypt)
 (hnorth : north' ⋙ egy.hom = lib.hom ⋙ north): lib.inv ⋙ north' = north ⋙ egy.inv
     ↔ north' ⋙ egy.hom = lib.hom ⋙ north := by
@@ -391,17 +380,14 @@ lemma Iso.inv_comp_eq_comp_inv {north'} (lib : Iso Chad Libya) (egy : Iso Sudan 
 
 variable {Libya' Egypt' Chad' Sudan' : Type*} [Category Libya']
   [Category Egypt'] [Category Chad'] [Category Sudan']
-  (north' : Libya' ⥤ Egypt') (west' : Libya' ⥤ Chad')
-  (east' : Egypt' ⥤ Sudan') (south' : Chad' ⥤ Sudan')
+  {north' : Libya' ⥤ Egypt'} {west' : Libya' ⥤ Chad'}
+  {east' : Egypt' ⥤ Sudan'} {south' : Chad' ⥤ Sudan'}
   (lib : Iso Libya' Libya) (egy : Iso Egypt' Egypt)
   (cha : Iso Chad' Chad) (sud : Iso Sudan' Sudan)
   (hnorth : north' ⋙ egy.hom = lib.hom ⋙ north) (hwest : lib.hom ⋙ west = west' ⋙ cha.hom)
   (heast : egy.hom ⋙ east = east' ⋙ sud.hom) (hsouth : south' ⋙ sud.hom = cha.hom ⋙ south)
 
-include hnorth in
-
-include north west east south pb north' west' east' south' lib egy cha
-  sud hnorth hwest heast hsouth in
+include pb hnorth hwest heast hsouth in
 theorem ofIso'_comm_sq : north' ⋙ east' = west' ⋙ south' :=
   calc north' ⋙ east'
   _ = lib.hom ⋙ north ⋙ egy.inv ⋙ east' := by rw [egy.eq_comp_inv.mpr hnorth]; rfl
@@ -418,26 +404,24 @@ def ofIso'Lift {C : Type*} [Category C] (Cn : C ⥤ Egypt') (Cw : C ⥤ Chad')
   ⋙ lib.inv
 
 def ofIso'Universal {C : Type*} [Category C]
-    (Cn : C ⥤ Egypt') (Cw : C ⥤ Chad') (hC : Cn ⋙ east' = Cw ⋙ south')
-    : (lift : C ⥤ Libya') ×' lift ⋙ north' = Cn ∧ lift ⋙ west' = Cw ∧
-    ∀ {l0 l1 : C ⥤ Libya'}, l0 ⋙ north' = l1 ⋙ north' → l0 ⋙ west' = l1 ⋙ west'
-    → l0 = l1 :=
-  ⟨ ofIso'Lift north west east south pb east' south' lib egy cha sud heast hsouth Cn Cw hC,
-    by rw [ofIso'Lift, Functor.assoc, (Iso.inv_comp_eq_comp_inv lib egy hnorth).mpr hnorth,
-        ← Functor.assoc, pb.fac_left, Functor.assoc, egy.hom_inv_id, Functor.comp_id],
-    by rw [ofIso'Lift, Functor.assoc, (Iso.inv_comp_eq_comp_inv lib cha hwest.symm).mpr hwest.symm,
-        ← Functor.assoc, pb.fac_right, Functor.assoc, cha.hom_inv_id, Functor.comp_id],
-    by
-      intro l0 l1 hn hw
-      have : l0 ⋙ lib.hom = l1 ⋙ lib.hom := by
-        apply pb.hom_ext
-        · rw [Functor.assoc, ← hnorth, ← Functor.assoc, hn, Functor.assoc, hnorth, Functor.assoc]
-        · rw [Functor.assoc, hwest, ← Functor.assoc, hw, Functor.assoc, ← hwest, Functor.assoc]
-      calc l0
-        _ = l0 ⋙ lib.hom ⋙ lib.inv := by aesop_cat
-        _ = l1 ⋙ lib.hom ⋙ lib.inv := by rw [← Functor.assoc, this, Functor.assoc]
-        _ = l1 := by aesop_cat
-  ⟩
+    {Cn : C ⥤ Egypt'} {Cw : C ⥤ Chad'} (hC : Cn ⋙ east' = Cw ⋙ south') :
+    { lift : C ⥤ Libya' // lift ⋙ north' = Cn ∧ lift ⋙ west' = Cw ∧
+      ∀ {l0 l1 : C ⥤ Libya'}, l0 ⋙ north' = l1 ⋙ north' → l0 ⋙ west' = l1 ⋙ west'
+        → l0 = l1} := by
+  refine ⟨ofIso'Lift pb lib egy cha sud heast hsouth Cn Cw hC, ?_, ?_, ?_⟩
+  · rw [ofIso'Lift, Functor.assoc, (Iso.inv_comp_eq_comp_inv lib egy hnorth).mpr hnorth,
+      ← Functor.assoc, pb.fac_left, Functor.assoc, egy.hom_inv_id, Functor.comp_id]
+  · rw [ofIso'Lift, Functor.assoc, (Iso.inv_comp_eq_comp_inv lib cha hwest.symm).mpr hwest.symm,
+      ← Functor.assoc, pb.fac_right, Functor.assoc, cha.hom_inv_id, Functor.comp_id]
+  · intro l0 l1 hn hw
+    have : l0 ⋙ lib.hom = l1 ⋙ lib.hom := by
+      apply pb.hom_ext
+      · rw [Functor.assoc, ← hnorth, ← Functor.assoc, hn, Functor.assoc, hnorth, Functor.assoc]
+      · rw [Functor.assoc, hwest, ← Functor.assoc, hw, Functor.assoc, ← hwest, Functor.assoc]
+    calc l0
+      _ = l0 ⋙ lib.hom ⋙ lib.inv := by aesop_cat
+      _ = l1 ⋙ lib.hom ⋙ lib.inv := by rw [← Functor.assoc, this, Functor.assoc]
+      _ = l1 := by aesop_cat
 
 /--
 Libya' --------------------------> Egypt'
@@ -449,19 +433,16 @@ Libya' --------------------------> Egypt'
   |          v              v        |
   |        Chad ---------> Sudan     |
   v      /^                     ^\   v
-Chad' ---------------------------> Sudan
+Chad' ---------------------------> Sudan'
 
 If the inner square is a pullback and all corners are isomorphic to the outer square,
 then the outer square is also a pullback.
 -/
 def ofIso' : IsPullback north' west' east' south' :=
-  ofUniversal north' west' east' south'
-  (ofIso'_comm_sq north west east south pb north' west' east' south' lib egy cha
-    sud hnorth hwest heast hsouth)
-  (fun Cn Cw hC => ofIso'Universal north west east south pb north' west' east' south' lib egy cha
-      sud hnorth hwest heast hsouth Cn Cw hC)
-  (fun Cn Cw hC => ofIso'Universal north west east south pb north' west' east' south' lib egy cha
-      sud hnorth hwest heast hsouth Cn Cw hC)
+  ofUniversal
+    (ofIso'_comm_sq pb lib egy cha sud hnorth hwest heast hsouth)
+    (ofIso'Universal pb lib egy cha sud hnorth hwest heast hsouth)
+    (ofIso'Universal pb lib egy cha sud hnorth hwest heast hsouth)
 
 end
 
@@ -497,29 +478,23 @@ variable (esah_pb : IsPullback rth sah east uth) (wsah_pb : IsPullback no west s
 
 namespace horiz
 
-variable {C : Type u} [Category.{v} C] (Cn : C ⥤ Egypt) (Cw : C ⥤ Niger)
+variable {C : Type u} [Category.{v} C] {Cn : C ⥤ Egypt} {Cw : C ⥤ Niger}
   (hC : Cn ⋙ east = Cw ⋙ so ⋙ uth)
 
 def lift : C ⥤ Algeria :=
   wsah_pb.lift (esah_pb.lift Cn (Cw ⋙ so) hC) Cw (esah_pb.fac_right _ _ _)
 
-def universal : (lift : C ⥤ Algeria) ×'
-    lift ⋙ no ⋙ rth = Cn ∧
-    lift ⋙ west = Cw ∧
+def universal :
+  { lift : C ⥤ Algeria // lift ⋙ no ⋙ rth = Cn ∧ lift ⋙ west = Cw ∧
     ∀ {l0 l1 : C ⥤ Algeria}, l0 ⋙ no ⋙ rth = l1 ⋙ no ⋙ rth →
-    l0 ⋙ west = l1 ⋙ west → l0 = l1 :=
-  ⟨ lift esah_pb wsah_pb Cn Cw hC,
-    by rw [lift, ← Functor.assoc, wsah_pb.fac_left, esah_pb.fac_left],
-    wsah_pb.fac_right _ _ _,
-    by
-      intro l0 l1 hnorth hwest
-      apply wsah_pb.hom_ext
-      · apply esah_pb.hom_ext
-        · exact hnorth
-        · conv => right; rw [Functor.assoc, wsah, ← Functor.assoc]
-          conv => left; rw [Functor.assoc, wsah, ← Functor.assoc, hwest]
-      · exact hwest
-  ⟩
+      l0 ⋙ west = l1 ⋙ west → l0 = l1 } := by
+  refine ⟨lift esah_pb wsah_pb hC, ?_, wsah_pb.fac_right .., ?_⟩
+  · rw [lift, ← Functor.assoc, wsah_pb.fac_left, esah_pb.fac_left]
+  · intro l0 l1 hnorth hwest
+    refine wsah_pb.hom_ext ?_ hwest
+    refine esah_pb.hom_ext hnorth ?_
+    conv_rhs => rw [Functor.assoc, wsah, ← Functor.assoc]
+    conv_lhs => rw [Functor.assoc, wsah, ← Functor.assoc, hwest]
 
 end horiz
 
@@ -537,10 +512,9 @@ are both pullbacks.
            so           uth
 -/
 def horiz : IsPullback (no ⋙ rth) west east (so ⋙ uth) :=
-  IsPullback.ofUniversal (no ⋙ rth) west east (so ⋙ uth)
-    (outer_comm_sq wsah esah)
-    (fun _ _ hC => horiz.universal wsah esah_pb wsah_pb _ _ hC)
-    (fun _ _ hC => horiz.universal wsah esah_pb wsah_pb _ _ hC)
+  .ofUniversal (outer_comm_sq wsah esah)
+    (horiz.universal wsah esah_pb wsah_pb)
+    (horiz.universal wsah esah_pb wsah_pb)
 
 end horiz
 
@@ -561,35 +535,31 @@ variable (esah_pb : IsPullback rth sah east uth)
 
 namespace ofRight
 
-  variable {C : Type u} [Category.{v} C] (Cn : C ⥤ Libya) (Cw : C ⥤ Niger)
+variable {C : Type u} [Category.{v} C] {Cn : C ⥤ Libya} {Cw : C ⥤ Niger}
   (hC : Cn ⋙ sah = Cw ⋙ so)
 
-  def hCLeft : (Cn ⋙ rth) ⋙ east = Cw ⋙ so ⋙ uth :=
-    by calc
-      (Cn ⋙ rth) ⋙ east = Cn ⋙ (sah ⋙ uth) := by rw [Functor.assoc, esah]
-      _ = (Cn ⋙ sah) ⋙ uth := by rw[← Functor.assoc]
-      _ = (Cw ⋙ so) ⋙ uth := by rw [hC]
-      _ = Cw ⋙ so ⋙ uth := by rw [Functor.assoc]
+include sah esah hC in
+theorem hCLeft : (Cn ⋙ rth) ⋙ east = Cw ⋙ so ⋙ uth := calc
+  (Cn ⋙ rth) ⋙ east = Cn ⋙ (sah ⋙ uth) := by rw [Functor.assoc, esah]
+  _ = (Cn ⋙ sah) ⋙ uth := by rw [← Functor.assoc]
+  _ = (Cw ⋙ so) ⋙ uth := by rw [hC]
+  _ = Cw ⋙ so ⋙ uth := by rw [Functor.assoc]
 
-  def lift : C ⥤ Algeria :=
-    outer_pb.lift (Cn ⋙ rth) Cw (hCLeft esah Cn Cw hC)
+def lift : C ⥤ Algeria := outer_pb.lift (Cn ⋙ rth) Cw (hCLeft esah hC)
 
-  def universal : (lift : C ⥤ Algeria) ×'
-    lift ⋙ no = Cn ∧ lift ⋙ west = Cw ∧
-    ∀ {l0 l1 : C ⥤ Algeria}, l0 ⋙ no = l1 ⋙ no → l0 ⋙ west = l1 ⋙ west → l0 = l1 :=
-  ⟨ lift esah_pb.comm_sq outer_pb Cn Cw hC,
-  by constructor
-     . apply esah_pb.hom_ext
-       . exact outer_pb.fac_left _ _ _
-       . rw [Functor.assoc, wsah, ← Functor.assoc, hC]
-         rw! [outer_pb.fac_right (Cn⋙rth) Cw (hCLeft esah Cn Cw hC)]
-     . constructor
-       . exact outer_pb.fac_right (Cn⋙rth) Cw (hCLeft esah Cn Cw hC)
-       . intro l0 l1 hln hlw
-         apply outer_pb.hom_ext
-         . rw[← Functor.assoc, ← Functor.assoc, hln]
-         . exact hlw
-    ⟩
+def universal :
+  { lift : C ⥤ Algeria // lift ⋙ no = Cn ∧ lift ⋙ west = Cw ∧
+    ∀ {l0 l1 : C ⥤ Algeria}, l0 ⋙ no = l1 ⋙ no → l0 ⋙ west = l1 ⋙ west → l0 = l1 } := by
+refine ⟨lift esah_pb.comm_sq outer_pb hC, ?_, ?_, ?_⟩
+. apply esah_pb.hom_ext
+  · exact outer_pb.fac_left _ _ _
+  · rw [Functor.assoc, wsah, ← Functor.assoc, hC]
+    rw! [outer_pb.fac_right (Cn ⋙ rth) Cw (hCLeft esah hC)]
+. exact outer_pb.fac_right (Cn ⋙ rth) Cw (hCLeft esah hC)
+. intro l0 l1 hln hlw
+  apply outer_pb.hom_ext
+  · rw [← Functor.assoc, ← Functor.assoc, hln]
+  · exact hlw
 
 end ofRight
 
@@ -607,10 +577,9 @@ are both pullbacks.
            so           uth
 -/
 def ofRight : IsPullback no west sah so :=
-  IsPullback.ofUniversal no west sah so
-  wsah
-  (fun Cn Cw hC => ofRight.universal wsah esah esah_pb outer_pb Cn Cw hC)
-  (fun Cn Cw hC => ofRight.universal wsah esah esah_pb outer_pb Cn Cw hC)
+  .ofUniversal wsah
+    (ofRight.universal wsah esah esah_pb outer_pb)
+    (ofRight.universal wsah esah esah_pb outer_pb)
 
 
 
@@ -643,41 +612,39 @@ variable (esah_pb : IsPullback rth sah east uth)
 
 namespace ofRight'
 
-variable {C : Type u} [Category.{v} C] (Cn : C ⥤ Libya) (Cw : C ⥤ Niger)
+variable {C : Type u} [Category.{v} C] {Cn : C ⥤ Libya} {Cw : C ⥤ Niger}
   (hC : Cn ⋙ sah = Cw ⋙ so)
 
-def universal : (lift : C ⥤ Algeria) ×'
-  lift ⋙ esah_pb.lift north (west ⋙ so) outer = Cn ∧
-  lift ⋙ west = Cw ∧
-  ∀ {l0 l1 : C ⥤ Algeria},
-    l0 ⋙ esah_pb.lift north (west ⋙ so) outer = l1 ⋙ esah_pb.lift north (west ⋙ so) outer →
-      l0 ⋙ west = l1 ⋙ west → l0 = l1 :=
-  ⟨ lift outer_pb (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC),
-  by constructor
-     . apply esah_pb.hom_ext
-       . calc
-          (outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ esah_pb.lift north (west ⋙ so) outer) ⋙ rth =
-            outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ esah_pb.lift north (west ⋙ so) outer ⋙ rth := by rw[Functor.assoc]
-          _ = outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ north := by rw[esah_pb.fac_left north (west ⋙ so) outer]
-          _ = Cn ⋙ rth := by rw[outer_pb.fac_left (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC)]
-       . calc
-          (outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ esah_pb.lift north (west ⋙ so) outer) ⋙ sah =
-            outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ esah_pb.lift north (west ⋙ so) outer ⋙ sah := by rw[Functor.assoc]
-          _ = outer_pb.lift (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC) ⋙ (west ⋙ so) := by rw[esah_pb.fac_right north (west ⋙ so) outer]
-          _ = Cw ⋙ so := by rw[← Functor.assoc, outer_pb.fac_right (Cn ⋙ rth) Cw (ofRight.hCLeft esah Cn Cw hC)]
-          _ = Cn ⋙ sah := by rw[hC]
-     . constructor
-       . exact outer_pb.fac_right (Cn⋙rth) Cw (ofRight.hCLeft esah Cn Cw hC)
-       . intro l0 l1 hll hlw
-         apply outer_pb.hom_ext
-         . calc
-            l0 ⋙ north = l0 ⋙ (esah_pb.lift north (west ⋙ so) outer ⋙ rth) :=
-              by rw [esah_pb.fac_left north (west ⋙ so) outer ]
-            _ = (l0 ⋙ esah_pb.lift north (west ⋙ so) outer) ⋙ rth := by rw [Functor.assoc]
-            _ = (l1 ⋙ esah_pb.lift north (west ⋙ so) outer) ⋙ rth := by rw [hll]
-            _ = l1 ⋙ north := by rw [Functor.assoc, esah_pb.fac_left north (west ⋙ so) outer]
-         . exact hlw
-    ⟩
+def universal :
+    { lift : C ⥤ Algeria //
+      lift ⋙ esah_pb.lift north (west ⋙ so) outer = Cn ∧
+      lift ⋙ west = Cw ∧
+      ∀ {l0 l1 : C ⥤ Algeria},
+        l0 ⋙ esah_pb.lift north (west ⋙ so) outer = l1 ⋙ esah_pb.lift north (west ⋙ so) outer →
+          l0 ⋙ west = l1 ⋙ west → l0 = l1 } := by
+  let f := lift outer_pb (Cn ⋙ rth) Cw (ofRight.hCLeft esah hC)
+  refine ⟨f, ?_, ?_, ?_⟩
+  · apply esah_pb.hom_ext
+    · calc (f ⋙ esah_pb.lift north (west ⋙ so) outer) ⋙ rth
+      _ = f ⋙ esah_pb.lift north (west ⋙ so) outer ⋙ rth := by rw [Functor.assoc]
+      _ = f ⋙ north := by rw [esah_pb.fac_left north (west ⋙ so) outer]
+      _ = Cn ⋙ rth := by rw [outer_pb.fac_left (Cn ⋙ rth) Cw (ofRight.hCLeft esah hC)]
+    · calc (f ⋙ esah_pb.lift north (west ⋙ so) outer) ⋙ sah
+      _ = f ⋙ esah_pb.lift north (west ⋙ so) outer ⋙ sah := by rw [Functor.assoc]
+      _ = f ⋙ (west ⋙ so) := by rw [esah_pb.fac_right north (west ⋙ so) outer]
+      _ = Cw ⋙ so := by
+        rw [← Functor.assoc, outer_pb.fac_right (Cn ⋙ rth) Cw (ofRight.hCLeft esah hC)]
+      _ = Cn ⋙ sah := by rw [hC]
+  · exact outer_pb.fac_right (Cn ⋙ rth) Cw (ofRight.hCLeft esah hC)
+  · intro l0 l1 hll hlw
+    apply outer_pb.hom_ext
+    · calc
+      l0 ⋙ north = l0 ⋙ (esah_pb.lift north (west ⋙ so) outer ⋙ rth) := by
+        rw [esah_pb.fac_left north (west ⋙ so) outer]
+      _ = (l0 ⋙ esah_pb.lift north (west ⋙ so) outer) ⋙ rth := by rw [Functor.assoc]
+      _ = (l1 ⋙ esah_pb.lift north (west ⋙ so) outer) ⋙ rth := by rw [hll]
+      _ = l1 ⋙ north := by rw [Functor.assoc, esah_pb.fac_left north (west ⋙ so) outer]
+    · exact hlw
 
 end ofRight'
 
@@ -699,17 +666,16 @@ are both pullbacks.
            so           uth
 -/
 def ofRight' {north : Algeria ⥤ Egypt} {rth : Libya ⥤ Egypt}
-  {west : Algeria ⥤ Niger} {sah : Libya ⥤ Chad} {east : Egypt ⥤ Sudan}
-  {so : Niger ⥤ Chad} {uth : Chad ⥤ Sudan}
-  (outer : north ⋙ east = west ⋙ so ⋙ uth)
-  (outer_pb : IsPullback north west east (so ⋙ uth))
-  (esah : rth ⋙ east = sah ⋙ uth)
-  (esah_pb : IsPullback rth sah east uth) :
-  IsPullback (esah_pb.lift north (west ⋙ so) outer) west sah so :=
-  IsPullback.ofUniversal (esah_pb.lift north (west ⋙ so) outer) west sah so
-  (esah_pb.fac_right _ _ _)
-  (fun Cn Cw hC => ofRight'.universal outer esah esah_pb outer_pb Cn Cw hC)
-  (fun Cn Cw hC => ofRight'.universal outer esah esah_pb outer_pb Cn Cw hC)
+    {west : Algeria ⥤ Niger} {sah : Libya ⥤ Chad} {east : Egypt ⥤ Sudan}
+    {so : Niger ⥤ Chad} {uth : Chad ⥤ Sudan}
+    (outer : north ⋙ east = west ⋙ so ⋙ uth)
+    (outer_pb : IsPullback north west east (so ⋙ uth))
+    (esah : rth ⋙ east = sah ⋙ uth)
+    (esah_pb : IsPullback rth sah east uth) :
+    IsPullback (esah_pb.lift north (west ⋙ so) outer) west sah so :=
+  .ofUniversal (esah_pb.fac_right _ _ _)
+    (ofRight'.universal outer esah esah_pb outer_pb)
+    (ofRight'.universal outer esah esah_pb outer_pb)
 
 
 
@@ -733,29 +699,26 @@ variable {Libya Egypt Chad Sudan : Type u} [Category.{v} Libya]
   [Category.{v} Egypt] [Category.{v} Chad] [Category.{v} Sudan]
   {north : Libya ⥤ Egypt} {west : Libya ⥤ Chad}
   {east : Egypt ⥤ Sudan} {south : Chad ⥤ Sudan}
-  {comm_sq : north ⋙ east = west ⋙ south}
   (h : Functor.IsPullback north west east south)
   (s : Limits.PullbackCone (homOf east) (homOf south))
 
 def lift : s.pt ⟶ of Libya := h.lift s.fst s.snd s.condition
 
-def fac_left : lift h s ≫ (homOf north) = s.fst :=
+theorem fac_left : lift h s ≫ (homOf north) = s.fst :=
   h.fac_left _ _ _
 
-def fac_right : lift h s ≫ (homOf west) = s.snd :=
+theorem fac_right : lift h s ≫ (homOf west) = s.snd :=
   h.fac_right _ _ _
 
-def uniq (m : s.pt ⟶ of Libya) (hl : m ≫ homOf north = s.fst)
+theorem uniq (m : s.pt ⟶ of Libya) (hl : m ≫ homOf north = s.fst)
     (hr : m ≫ homOf west = s.snd) : m = lift h s := by
   apply h.hom_ext
   · convert (fac_left h s).symm
   · convert (fac_right h s).symm
 
-variable (comm_sq) in
-def isPullback : IsPullback (homOf north) (homOf west) (homOf east)
-    (homOf south) :=
-  IsPullback.of_isLimit (PullbackCone.IsLimit.mk
-    comm_sq (lift h) (fac_left _) (fac_right _) (uniq _))
+include h in
+theorem isPullback : IsPullback (homOf north) (homOf west) (homOf east) (homOf south) :=
+  .of_isLimit (PullbackCone.IsLimit.mk h.comm_sq (lift h) (fac_left _) (fac_right _) (uniq _))
 
 end
 

@@ -1,9 +1,6 @@
 import GroupoidModel.Groupoids.NaturalModelBase
-
 import GroupoidModel.Syntax.NaturalModel
-
 import GroupoidModel.ForMathlib.CategoryTheory.RepPullbackCone
-
 import SEq.Tactic.DepRewrite
 
 universe w v u v₁ u₁ v₂ u₂
@@ -476,8 +473,8 @@ def Id' : y(GroupoidModel.U.ext (GroupoidModel.π.{u,u})) ⟶ smallU.Ty.{u,u} :=
   -- rw[<-h]
   -- exact Grothendieck.Groupoidal.pre PGrpd.forgetToGrpd F
 
-def Refl' : GroupoidModel.E.{u,u} ⟶ GroupoidModel.E.{u,u} :=
-  AsSmall.up.map (𝟭 (Core (AsSmall PGrpd)))
+def Refl' : GroupoidModel.E.{u,u} ⟶ GroupoidModel.E.{u, u} :=
+  ULiftHom.up.map (𝟭 (Core (AsSmall PGrpd)))
 
 /- Lean is gas lighting me -/
 def Diag' : GroupoidModel.E.{v,u} ⟶ GroupoidModel.U.ext (GroupoidModel.π.{v,u}) := by
@@ -492,9 +489,9 @@ namespace smallUId
 
 def id : Limits.pullback smallU.{v}.tp smallU.{v}.tp ⟶ smallU.{v}.Ty := sorry
 
-def refl: smallU.{v}.Tm ⟶ smallU.{v}.Tm := sorry
+def refl : smallU.{v}.Tm ⟶ smallU.{v}.Tm := sorry
 
-def comm: Limits.pullback.lift (𝟙 smallU.Tm) (𝟙 smallU.Tm) rfl ≫ id = refl ≫ smallU.tp := sorry
+def comm : Limits.pullback.lift (𝟙 smallU.Tm) (𝟙 smallU.Tm) rfl ≫ id = refl ≫ smallU.tp := sorry
 
 -- TODO: make sure universe levels are most general
 -- TODO: make namespaces consistent with Sigma file

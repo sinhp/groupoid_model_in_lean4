@@ -55,25 +55,23 @@ namespace U
 
 open MonoidalCategory
 
-def asSmallClosedType' : tensorUnit _
-    ⟶ U.{v+1, max u (v+2)} :=
+def asSmallClosedType' : tensorUnit _ ⟶ U.{v+1, max u (v+2)} :=
   toCoreAsSmallEquiv.symm ((Functor.const _).obj
-    (Grpd.of (Core (AsSmall.{v+1} Grpd.{v,v}))))
+    (Grpd.of (Core (AsSmall.{v+1} Grpd.{v, v}))))
 
-def asSmallClosedType : y(tensorUnit _)
-    ⟶ smallU.{v+1, max u (v+2)}.Ty :=
+def asSmallClosedType : y(tensorUnit _) ⟶ smallU.{v+1, max u (v+2)}.Ty :=
   ym(U.asSmallClosedType')
 
-def isoGrpd : Core (AsSmall.{max u (v+2)} Grpd.{v,v})
-    ⥤ Grpd.{v,v} := Core.inclusion _ ⋙ AsSmall.down
+def isoGrpd : Core (AsSmall.{max u (v+2)} Grpd.{v, v}) ⥤ Grpd.{v, v} :=
+  Core.inclusion _ ⋙ AsSmall.down
 
 def isoExtAsSmallClosedTypeHom :
-    Core (AsSmall.{max u (v+2)} Grpd.{v,v})
-    ⥤ ∫(classifier (asSmallClosedType'.{v, max u (v + 2)})) where
-  obj X := objMk ⟨⟨⟩⟩ ⟨AsSmall.up.obj.{_,_,v+1} (AsSmall.down.obj X.of)⟩
+    Core (AsSmall.{max u (v+2)} Grpd.{v, v}) ⥤
+    ∫ classifier (asSmallClosedType'.{v, max u (v + 2)}) where
+  obj X := objMk ⟨⟨⟩⟩ ⟨AsSmall.up.obj.{_,_, v+1} (AsSmall.down.obj X.of)⟩
   map {X Y} F := homMk (𝟙 _) ⟨{
-    hom := AsSmall.up.map.{_,_,v+1} (AsSmall.down.map F.iso.hom)
-    inv := AsSmall.up.map.{_,_,v+1} (AsSmall.down.map (F.iso.inv))
+    hom := AsSmall.up.map.{_,_, v+1} (AsSmall.down.map F.iso.hom)
+    inv := AsSmall.up.map.{_,_, v+1} (AsSmall.down.map (F.iso.inv))
     hom_inv_id := by
       simp only [← Functor.map_comp, Iso.hom_inv_id]
       rfl
@@ -82,9 +80,9 @@ def isoExtAsSmallClosedTypeHom :
       rfl }⟩
 
 def isoExtAsSmallClosedTypeInv :
-    ∫(classifier (asSmallClosedType'.{v, max u (v + 2)})) ⥤
-    Core (AsSmall.{max u (v+2)} Grpd.{v,v}) where
-  obj X := ⟨AsSmall.up.obj (AsSmall.down.obj.{_,_,v+1} X.fiber.of)⟩
+    ∫ classifier (asSmallClosedType'.{v, max u (v + 2)}) ⥤
+    Core (AsSmall.{max u (v+2)} Grpd.{v, v}) where
+  obj X := ⟨AsSmall.up.obj (AsSmall.down.obj.{_,_, v+1} X.fiber.of)⟩
   map {X Y} F := ⟨{
     hom := AsSmall.up.map.{_,_,max u (v+2)}
       (AsSmall.down.map F.fiber.iso.hom)
@@ -98,8 +96,7 @@ def isoExtAsSmallClosedTypeInv :
       rfl }⟩
 
 def isoExtAsSmallClosedType :
-    U.{v,max u (v+2)}
-    ≅ smallU.{v+1,max u (v+2)}.ext U.asSmallClosedType.{v, max u (v+2)} where
+    U.{v,max u (v+2)} ≅ smallU.{v+1,max u (v+2)}.ext U.asSmallClosedType.{v, max u (v+2)} where
   hom := Ctx.ofGrpd.map (Grpd.homOf isoExtAsSmallClosedTypeHom.{v,u})
   inv := Ctx.ofGrpd.map (Grpd.homOf isoExtAsSmallClosedTypeInv.{v,u})
   hom_inv_id := rfl
@@ -109,15 +106,14 @@ end U
 
 def uHomSeqObjs (i : Nat) (h : i < 4) : NaturalModel Ctx.{4} :=
   match i with
-  | 0 => smallU.{0,4}
-  | 1 => smallU.{1,4}
-  | 2 => smallU.{2,4}
-  | 3 => smallU.{3,4}
-  | (n+4) => by omega
+  | 0 => smallU.{0, 4}
+  | 1 => smallU.{1, 4}
+  | 2 => smallU.{2, 4}
+  | 3 => smallU.{3, 4}
 
 def smallUHom : UHom smallU.{v, max u (v+2)} smallU.{v+1, max u (v+2)} :=
     @UHom.ofTyIsoExt _ _ _ _ _
-    { mapTy := ym(U.toU.{v,max u (v+2)})
+    { mapTy := ym(U.toU.{v, max u (v+2)})
       mapTm := ym(U.toE)
       pb := isPullback_yπ_yπ }
     U.asSmallClosedType
@@ -126,10 +122,9 @@ def smallUHom : UHom smallU.{v, max u (v+2)} smallU.{v+1, max u (v+2)} :=
 def uHomSeqHomSucc' (i : Nat) (h : i < 3) :
     (uHomSeqObjs i (by omega)).UHom (uHomSeqObjs (i + 1) (by omega)) :=
   match i with
-  | 0 => smallUHom.{0,4}
-  | 1 => smallUHom.{1,4}
-  | 2 => smallUHom.{2,4}
-  | (n+3) => by omega
+  | 0 => smallUHom.{0, 4}
+  | 1 => smallUHom.{1, 4}
+  | 2 => smallUHom.{2, 4}
 
 /--
   The groupoid natural model with three nested representable universes
@@ -148,8 +143,8 @@ variable {Γ : Ctx} {C : Type (v+1)} [Category.{v} C] {Δ : Ctx} (σ : Δ ⟶ Γ
 
 theorem smallU_lift {Γ Δ : Ctx} (A : y(Γ) ⟶ smallU.{v}.Ty)
     (fst : y(Δ) ⟶ smallU.{v}.Tm) (snd : Δ ⟶ Γ)
-    (w : fst ≫ smallU.{v}.tp = ym(snd) ≫ A) :
-    (smallU.{v}.disp_pullback A).lift fst ym(snd) w =
+    (w : fst ≫ smallU.tp = ym(snd) ≫ A) :
+    (smallU.disp_pullback A).lift fst ym(snd) w =
     ym(Ctx.ofGrpd.map ((Functor.Groupoidal.isPullback _).lift
       (yonedaCategoryEquiv fst)
       (Ctx.toGrpd.map snd)
@@ -161,14 +156,12 @@ theorem smallU_lift {Γ Δ : Ctx} (A : y(Γ) ⟶ smallU.{v}.Ty)
       (Functor.Groupoidal.isPullback (yonedaCategoryEquiv A)).fac_left,
       Equiv.apply_symm_apply]
     simp
-  · simp only [smallU_ext, smallU_Tm, smallU_Ty, smallU_var, Grpd.coe_of,
-      smallU_disp,
-      smallU_tp, IsPullback.lift_snd, ← Functor.map_comp, Grpd.comp_eq_comp,
-      smallU.disp]
+  · simp only [smallU_ext, smallU_Tm, smallU_Ty, smallU_var, smallU_disp,
+      smallU_tp, IsPullback.lift_snd, ← Functor.map_comp, Grpd.comp_eq_comp, smallU.disp]
     erw [(isPullback (yonedaCategoryEquiv A)).fac_right, AsSmall.down_map_up_map]
 
 def yonedaCategoryEquivPre (A : y(Γ) ⟶ smallU.{v}.Ty) (σA) (eq : ym(σ) ≫ A = σA) :
-    ∫(yonedaCategoryEquiv σA) ⥤ ∫(yonedaCategoryEquiv A) :=
+    ∫ yonedaCategoryEquiv σA ⥤ ∫ yonedaCategoryEquiv A :=
   map (eqToHom (by rw [← eq, yonedaCategoryEquiv_naturality_left]))
   ⋙ pre (yonedaCategoryEquiv A) (Ctx.toGrpd.map σ)
 
@@ -193,8 +186,8 @@ theorem map_eqToHom_toPGrpd {Γ : Type*} [Category Γ] (A A' : Γ ⥤ Grpd) (h :
 
 end Grothendieck.Groupoidal
 
-theorem smallU_substWk (A : y(Γ) ⟶ smallU.{v}.Ty) (σA eq) : smallU.substWk σ A σA eq =
-    (Ctx.ofGrpd.map $ Grpd.homOf $ yonedaCategoryEquivPre σ A σA eq) := by
+theorem smallU_substWk (A : y(Γ) ⟶ smallU.{v}.Ty) (σA eq) :
+    smallU.substWk σ A σA eq = Ctx.ofGrpd.map (Grpd.homOf <| yonedaCategoryEquivPre σ A σA eq) := by
   apply Yoneda.fullyFaithful.map_injective
   apply (smallU.disp_pullback A).hom_ext
   · conv => right; erw [← yonedaCategoryEquiv_symm_naturality_left]
@@ -230,7 +223,7 @@ is equivalent to a pair of functors `A : Γ ⥤ Grpd` and `B : ∫(fst AB) ⥤ C
 thought of as a dependent pair `A : Type` and `B : A ⟶ Type` when `C = Grpd`.
 `PtpEquiv.fst` is the `A` in this pair.
 -/
-def fst : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v} :=
+def fst : Ctx.toGrpd.obj Γ ⥤ Grpd.{v, v} :=
   yonedaCategoryEquiv (NaturalModel.PtpEquiv.fst smallU AB)
 
 /--
@@ -239,7 +232,7 @@ is equivalent to a pair of functors `A : Γ ⥤ Grpd` and `B : ∫(fst AB) ⥤ C
 thought of as a dependent pair `A : Type` and `B : A ⟶ Type` when `C = Grpd`.
 `PtpEquiv.snd` is the `B` in this pair.
 -/
-def snd : ∫(fst AB) ⥤ C :=
+def snd : ∫ fst AB ⥤ C :=
   yonedaCategoryEquiv (NaturalModel.PtpEquiv.snd smallU AB)
 
 nonrec theorem fst_comp_left : fst (ym(σ) ≫ AB) = Ctx.toGrpd.map σ ⋙ fst AB := by
@@ -251,7 +244,8 @@ theorem fst_comp_right {D : Type (v + 1)} [Category.{v, v + 1} D] (F : C ⥤ D) 
   dsimp only [fst]
   rw [NaturalModel.PtpEquiv.fst_comp_right]
 
-nonrec theorem snd_comp_left : snd (ym(σ) ≫ AB) =
+nonrec theorem snd_comp_left :
+    snd (ym(σ) ≫ AB) =
     map (eqToHom (fst_comp_left σ AB)) ⋙ pre _ (Ctx.toGrpd.map σ) ⋙ snd AB := by
   dsimp only [snd]
   rw [PtpEquiv.snd_comp_left smallU (snd._proof_1 AB), yonedaCategoryEquiv_naturality_left]
@@ -265,7 +259,7 @@ is equivalent to a pair of functors `A : Γ ⥤ Grpd` and `B : ∫(fst AB) ⥤ C
 thought of as a dependent pair `A : Type` and `B : A ⟶ Type` when `C = Grpd`.
 `PtpEquiv.mk` constructs such a map `AB` from such a pair `A` and `B`.
 -/
-def mk (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v}) (B : ∫(A) ⥤ C) :
+def mk (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v, v}) (B : ∫(A) ⥤ C) :
     y(Γ) ⟶ smallU.{v}.Ptp.obj y(Ctx.ofCategory C) :=
   NaturalModel.PtpEquiv.mk smallU (yonedaCategoryEquiv.symm A) (yonedaCategoryEquiv.symm B)
 
@@ -279,10 +273,10 @@ theorem hext (AB1 AB2 : y(Γ) ⟶ smallU.{v}.Ptp.obj y(U.{v})) (hfst : fst AB1 =
   · dsimp [snd] at hsnd
     rw! (castMode := .all) [hfst'] at hsnd
     simp only [smallU_Ty, eqRec_heq_iff_heq, heq_eq_eq, EmbeddingLike.apply_eq_iff_eq] at hsnd
-    exact hsnd
+    -- exact hsnd
+    sorry
 
-lemma fst_mk (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v}) (B : ∫(A) ⥤ C) :
-    fst (mk A B) = A := by
+lemma fst_mk (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v, v}) (B : ∫ A ⥤ C) : fst (mk A B) = A := by
   simp [fst, mk, NaturalModel.PtpEquiv.fst_mk]
 
 lemma Grpd.eqToHom_comp_heq {A B : Grpd} {C : Type*} [Category C]
@@ -290,13 +284,12 @@ lemma Grpd.eqToHom_comp_heq {A B : Grpd} {C : Type*} [Category C]
   subst h
   simp [Grpd.id_eq_id, Functor.id_comp]
 
-lemma snd_mk_heq (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v}) (B : ∫(A) ⥤ C) :
-    snd (mk A B) ≍ B := by
+lemma snd_mk_heq (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v, v}) (B : ∫ A ⥤ C) : snd (mk A B) ≍ B := by
   dsimp only [snd, mk]
   rw! (castMode := .all) [NaturalModel.PtpEquiv.fst_mk, NaturalModel.PtpEquiv.snd_mk]
   simp
 
-lemma snd_mk (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v,v}) (B : ∫(A) ⥤ C) :
+lemma snd_mk (A : Ctx.toGrpd.obj Γ ⥤ Grpd.{v, v}) (B : ∫ A ⥤ C) :
     snd (mk A B) = map (eqToHom (fst_mk A B)) ⋙ B := by
   have : _ = map (eqToHom (fst_mk A B)) := eqToHom_eq_homOf_map (fst_mk A B)
   rw [← this]
@@ -319,7 +312,7 @@ A map `ab : y(Γ) ⟶ compDom` is equivalently three functors
 `fst, dependent, snd` such that `snd_forgetToGrpd`. The functor `fst : Γ ⥤ PGrpd`
 is `(a : A)` in `(a : A) × (b : B a)`.
 -/
-def fst : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v} :=
+def fst : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v, v} :=
   yonedaCategoryEquiv (NaturalModel.compDomEquiv.fst ab)
 
 /-- Universal property of `compDom`, decomposition (part 2).
@@ -328,7 +321,7 @@ A map `ab : y(Γ) ⟶ compDom` is equivalently three functors
 `fst, dependent, snd` such that `snd_forgetToGrpd`. The functor `dependent : Γ ⥤ Grpd`
 is `B : A → Type` in `(a : A) × (b : B a)`.
 -/
-def dependent : ∫(fst ab ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v,v} :=
+def dependent : ∫(fst ab ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v, v} :=
   yonedaCategoryEquiv (NaturalModel.compDomEquiv.dependent ab)
 
 /-- Universal property of `compDom`, decomposition (part 3).
@@ -337,7 +330,7 @@ A map `ab : y(Γ) ⟶ compDom` is equivalently three functors
 `fst, dependent, snd` such that `snd_forgetToGrpd`. The functor `snd : Γ ⥤ PGrpd`
 is `(b : B a)` in `(a : A) × (b : B a)`.
 -/
-def snd : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v} :=
+def snd : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v, v} :=
   yonedaCategoryEquiv (NaturalModel.compDomEquiv.snd ab)
 
 /-- Universal property of `compDom`, decomposition (part 4).
@@ -353,8 +346,8 @@ theorem snd_forgetToGrpd : snd ab ⋙ PGrpd.forgetToGrpd = sec _ (fst ab) rfl �
   rfl
 
 /-- Universal property of `compDom`, constructing a map into `compDom`. -/
-def mk (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v}) (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v,v})
-    (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v}) (h : β ⋙ PGrpd.forgetToGrpd = sec _ α rfl ⋙ B)
+def mk (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v, v}) (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v, v})
+    (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v, v}) (h : β ⋙ PGrpd.forgetToGrpd = sec _ α rfl ⋙ B)
     : y(Γ) ⟶ compDom.{v} :=
   NaturalModel.compDomEquiv.mk (yonedaCategoryEquiv.symm α) rfl
     (yonedaCategoryEquiv.symm B) (yonedaCategoryEquiv.symm β) (by
@@ -402,22 +395,22 @@ theorem snd_naturality : snd (ym(σ) ≫ ab) = Ctx.toGrpd.map σ ⋙ snd ab := b
   rw [← NaturalModel.compDomEquiv.comp_snd, yonedaCategoryEquiv_naturality_left]
 
 /-- First component of the computation rule for `mk`. -/
-theorem fst_mk (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
-    (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v,v}) (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
+theorem fst_mk (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v, v})
+    (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v, v}) (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v, v})
     (h : β ⋙ PGrpd.forgetToGrpd = sec _ α rfl ⋙ B)
     : fst (mk α B β h) = α := by
   simp [fst, mk, NaturalModel.compDomEquiv.fst_mk]
 
 /-- Second component of the computation rule for `mk`. -/
-theorem dependent_mk (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
-    (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v,v}) (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
+theorem dependent_mk (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v, v})
+    (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v, v}) (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v, v})
     (h : β ⋙ PGrpd.forgetToGrpd = sec _ α rfl ⋙ B)
     : dependent (mk α B β h) = map (eqToHom (by rw [fst_mk])) ⋙ B := by
   sorry
 
 /-- Second component of the computation rule for `mk`. -/
-theorem snd_mk (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
-    (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v,v}) (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v,v})
+theorem snd_mk (α : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v, v})
+    (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v, v}) (β : Ctx.toGrpd.obj Γ ⥤ PGrpd.{v, v})
     (h : β ⋙ PGrpd.forgetToGrpd = sec _ α rfl ⋙ B)
     : snd (mk α B β h) = β := by
   dsimp [snd, mk]

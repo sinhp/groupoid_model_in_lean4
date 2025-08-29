@@ -152,14 +152,12 @@ theorem hom_ext {m n : C ⥤ Grothendieck A}
   . show m ⋙ (toPCat A ⋙ PCat.forgetToCat) = _
     rw [toPCat_forgetToCat, Functor.assoc]
 
-def aux {C : Type*} [inst : Category C] (Cn : C ⥤ PCat) (Cw : C ⥤ Γ)
+def aux {C : Type*} [inst : Category C] {Cn : C ⥤ PCat} {Cw : C ⥤ Γ}
     (hC : Cn ⋙ forget (𝟭 Cat) = Cw ⋙ A) :
-    (lift : C ⥤ Grothendieck A) ×'
-    lift ⋙ toPCat A = Cn ∧
-    lift ⋙ forget A = Cw ∧
-    ∀ {l0 l1 : C ⥤ Grothendieck A}, l0 ⋙ toPCat A = l1 ⋙ toPCat A →
-    l0 ⋙ forget A = l1 ⋙ forget A → l0 = l1 :=
-  ⟨ lift Cn Cw hC, fac_left _ _ _, fac_right _ _ _, hom_ext ⟩
+    {lift : C ⥤ Grothendieck A // lift ⋙ toPCat A = Cn ∧ lift ⋙ forget A = Cw ∧
+      ∀ {l0 l1 : C ⥤ Grothendieck A}, l0 ⋙ toPCat A = l1 ⋙ toPCat A →
+        l0 ⋙ forget A = l1 ⋙ forget A → l0 = l1 } :=
+  ⟨lift Cn Cw hC, fac_left .., fac_right .., hom_ext⟩
 
 end IsPullback
 
@@ -176,9 +174,7 @@ The following square is a (meta-theoretic) pullback of functors
         Γ--------------A---------> Cat
 -/
 def isPullback : Functor.IsPullback (toPCat A) (forget _) (forget _) A :=
-  ofUniversal (toPCat A) (forget _) (forget _) A (toPCat_forgetToCat _)
-  (fun Cn Cw hC => aux Cn Cw hC)
-  (fun Cn Cw hC => aux Cn Cw hC)
+  ofUniversal (toPCat_forgetToCat _) aux aux
 
 end
 

@@ -17,7 +17,7 @@ attribute [local simp] eqToHom_map Grpd.id_eq_id Grpd.comp_eq_comp Functor.id_co
 
 open Functor
 
-abbrev PCat := ∫ 𝟭 Cat.{v,u}
+abbrev PCat := ∫ 𝟭 Cat.{v, u}
 
 namespace PCat
 
@@ -25,8 +25,7 @@ open Grothendieck
 
 -- TODO remove this
 /-- The functor that takes PCat to Cat by forgetting the points-/
-abbrev forgetToCat : PCat.{v,u} ⥤ Cat.{v,u} :=
-  Grothendieck.forget _
+abbrev forgetToCat : PCat.{v, u} ⥤ Cat.{v, u} := Grothendieck.forget _
 
 -- write using `\d=`
 prefix:max "⇓" => forgetToCat.obj
@@ -77,13 +76,13 @@ theorem comp_map {C D E : PCat} (F : C ⟶ D) (G : D ⟶ E) {X Y : C.base}
   simp
 
 /-- This is the proof of equality used in the eqToHom in `PCat.eqToHom_point` -/
-theorem eqToHom_point_aux {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
+theorem eqToHom_point_aux {P1 P2 : PCat.{v, u}} (eq : P1 = P2) :
     (eqToHom eq)⟱.obj P1.fiber = P2.fiber := by
   subst eq
   simp
 
 /-- This shows that the fiber map of an eqToHom in PCat is an eqToHom-/
-theorem eqToHom_fiber {P1 P2 : PCat.{v,u}} (eq : P1 = P2) :
+theorem eqToHom_fiber {P1 P2 : PCat.{v, u}} (eq : P1 = P2) :
     (eqToHom eq).fiber = (eqToHom (eqToHom_point_aux eq)) := by
   subst eq
   simp
@@ -129,7 +128,7 @@ end
 
 def asSmallFunctor : PCat.{v, u} ⥤ PCat.{max w v u, max w v u} :=
   Grothendieck.functorTo
-    (Grothendieck.forget _ ⋙ Cat.asSmallFunctor.{w,v,u})
+    (Grothendieck.forget _ ⋙ Cat.asSmallFunctor.{w, v, u})
     (fun x => ⟨x.fiber⟩)
     (fun f => ⟨f.fiber⟩)
     (fun _ => rfl)
@@ -142,7 +141,7 @@ end PCat
   the underlying `Grothendieck` definitions
 -/
 
-abbrev PGrpd := Grothendieck Grpd.forgetToCat.{v,u}
+abbrev PGrpd := Grothendieck Grpd.forgetToCat.{v, u}
 
 namespace PGrpd
 
@@ -150,11 +149,11 @@ open Grothendieck Grpd
 
 -- TODO remove this
 /-- The functor that takes PGrpd to Grpd by forgetting the points -/
-abbrev forgetToGrpd : PGrpd.{v,u} ⥤ Grpd.{v,u} :=
+abbrev forgetToGrpd : PGrpd.{v, u} ⥤ Grpd.{v, u} :=
   Grothendieck.forget _
 
 /-- The forgetful functor from PGrpd to PCat -/
-def forgetToPCat : PGrpd.{v,u} ⥤ PCat.{v,u} :=
+def forgetToPCat : PGrpd.{v, u} ⥤ PCat.{v, u} :=
   pre (Functor.id Cat) forgetToCat
 
 -- write using `\d=`
@@ -208,13 +207,13 @@ theorem comp_map {C D E : PGrpd} (F : C ⟶ D) (G : D ⟶ E) {X Y : C.base}
   rfl
 
 /-- This is the proof of equality used in the eqToHom in `PGrpd.eqToHom_point` -/
-theorem eqToHom_point_aux {P1 P2 : PGrpd.{v,u}} (eq : P1 = P2) :
+theorem eqToHom_point_aux {P1 P2 : PGrpd.{v, u}} (eq : P1 = P2) :
     (eqToHom eq)⟱.obj P1.fiber = P2.fiber := by
   subst eq
   simp
 
 /-- This shows that the fiber map of an eqToHom in PGrpd is an eqToHom-/
-theorem eqToHom_fiber {P1 P2 : PGrpd.{v,u}} (eq : P1 = P2) :
+theorem eqToHom_fiber {P1 P2 : PGrpd.{v, u}} (eq : P1 = P2) :
     (eqToHom eq).fiber = (eqToHom (eqToHom_point_aux eq)) := by
   subst eq
   simp [forgetToCat]

@@ -144,12 +144,13 @@ namespace IsPullback
 variable {C : Type u} [Category.{v} C] {D : Type u} [Category.{v} D]
   (F : C ⥤ D) [F.ReflectsIsomorphisms]
 
-variable {E : Type*} [Category E] (En : E ⥤ C) (Ew : E ⥤ Core D)
+variable {E : Type*} [Category E] {En : E ⥤ C} {Ew : E ⥤ Core D}
   (hE : En ⋙ F = Ew ⋙ inclusion D)
 
 def lift : E ⥤ Core C where
-  obj x := ⟨ En.obj x ⟩
-  map {x y} f := ⟨ @asIso _ _ _ _ (En.map f) $ by
+  obj x := ⟨En.obj x⟩
+  map {x y} f := by
+    refine ⟨@asIso _ _ _ _ (En.map f) ?_⟩
     let f' : F.obj (En.obj x) ≅ F.obj (En.obj y) :=
       (eqToIso hE).app x ≪≫ (Ew.map f).iso ≪≫ (eqToIso hE.symm).app y
     have hnat : F.map (En.map f) ≫ _
@@ -159,11 +160,11 @@ def lift : E ⥤ Core C where
       simp only [eqToHom_app, comp_eqToHom_iff] at hnat
       simp [hnat, f', Core.inclusion]
     have : IsIso (F.map (En.map f)) := by rw [h]; exact Iso.isIso_hom f'
-    exact Functor.ReflectsIsomorphisms.reflects F (En.map f) ⟩
+    exact Functor.ReflectsIsomorphisms.reflects F (En.map f)
 
-def fac_left : lift F En Ew hE ⋙ inclusion C = En := rfl
+def fac_left : lift F hE ⋙ inclusion C = En := rfl
 
-def fac_right : lift F En Ew hE ⋙ F.core = Ew := by
+def fac_right : lift F hE ⋙ F.core = Ew := by
   fapply Functor.ext
   · intro x
     ext
@@ -173,10 +174,11 @@ def fac_right : lift F En Ew hE ⋙ F.core = Ew := by
     convert Functor.congr_hom hE f
     simp
 
-def universal : (lift : E ⥤ Core C) ×' lift ⋙ inclusion C = En ∧ lift ⋙ F.core = Ew ∧
-    ∀ {l0 l1 : E ⥤ Core C}, l0 ⋙ inclusion C = l1 ⋙ inclusion C → l0 ⋙ F.core = l1 ⋙ F.core → l0 = l1 :=
-  ⟨ lift F En Ew hE, fac_left _ _ _ _, fac_right _ _ _ _,
-    fun hl _ => comp_inclusion_injective hl ⟩
+def universal :
+    { lift : E ⥤ Core C // lift ⋙ inclusion C = En ∧ lift ⋙ F.core = Ew ∧
+      ∀ {l0 l1 : E ⥤ Core C}, l0 ⋙ inclusion C = l1 ⋙ inclusion C →
+        l0 ⋙ F.core = l1 ⋙ F.core → l0 = l1 } :=
+  ⟨lift F hE, fac_left .., fac_right .., fun hl _ => comp_inclusion_injective hl⟩
 
 end IsPullback
 
@@ -201,7 +203,7 @@ open IsPullback
   Core D ---- inclusion -----> D
 -/
 def isPullback_map'_self : Functor.IsPullback (inclusion C) F.core F (inclusion D) :=
-  Functor.IsPullback.ofUniversal _ _ _ _ rfl (universal F) (universal F)
+  Functor.IsPullback.ofUniversal rfl (universal F) (universal F)
 
 end Core
 
@@ -211,9 +213,7 @@ namespace Core
 variable {C : Type u} [Category.{v} C]
 
 -- FIXME could be generalized?
-def isoCoreULift :
-    Cat.of (ULift.{w} (Core C)) ≅
-      Cat.of (Core (ULift.{w} C)) where
+def isoCoreULift : Cat.of (ULift.{w} (Core C)) ≅ Cat.of (Core (ULift.{w} C)) where
   hom := Cat.homOf (downFunctor ⋙ upFunctor.core)
   inv := Cat.homOf (downFunctor.core ⋙ upFunctor)
 

@@ -67,20 +67,18 @@ def toPGrpd : ∫(A) ⥤ PGrpd.{v₁,u₁} :=
 @[simp] theorem toPGrpd_map_fiber {x y} (f : x ⟶ y) :
     ((toPGrpd A).map f).fiber = f.fiber := rfl
 
-theorem toPGrpd_forgetToGrpd : toPGrpd A ⋙ PGrpd.forgetToGrpd = forget ⋙ A :=
-  rfl
+theorem toPGrpd_forgetToGrpd : toPGrpd A ⋙ PGrpd.forgetToGrpd = forget ⋙ A := rfl
 
-theorem toPGrpd_forgetToPCat : toPGrpd A ⋙ PGrpd.forgetToPCat = (Grothendieck.toPCat _) :=
-  rfl
+theorem toPGrpd_forgetToPCat : toPGrpd A ⋙ PGrpd.forgetToPCat = (Grothendieck.toPCat _) := rfl
 
 /--
 We also provide a definition of `toPGrpd` as the universal lift
 of the pullback `PGrpd`.
 -/
-def toPGrpd' : ∫(A) ⥤ PGrpd.{v₁,u₁} :=
-  PGrpd.isPullback.lift (Grothendieck.toPCat (A ⋙ Grpd.forgetToCat)) (forget ⋙ A) (by
+def toPGrpd' : ∫ A ⥤ PGrpd.{v₁,u₁} :=
+  PGrpd.isPullback.lift (Grothendieck.toPCat (A ⋙ Grpd.forgetToCat)) (forget ⋙ A) <| by
     rw [Grothendieck.toPCat_forgetToCat]
-    rfl)
+    rfl
 
 /--
 The left square is a pullback since the right square and outer square are.
@@ -128,25 +126,20 @@ variable (A : Γ ⥤ Grpd.{v₁,u₁}) (α : Γ ⥤ PGrpd.{v₁,u₁}) (h : α �
  ‖      V                        V
   ===== Γ --α ≫ forgetToGrpd--> Grpd
 -/
-def sec : Γ ⥤ ∫(A) :=
+def sec : Γ ⥤ ∫ A :=
   Groupoidal.functorTo (𝟭 _) (fun x => PGrpd.objFiber' h x) (fun f => PGrpd.mapFiber' h f)
   (fun x => by simp) (fun f g => by
     subst h
     simp [PGrpd.mapFiber', PGrpd.mapFiber'EqToHom])
 
-@[simp] lemma sec_obj_base (x) : ((sec A α h).obj x).base = x :=
-  rfl
+@[simp] lemma sec_obj_base (x) : ((sec A α h).obj x).base = x := rfl
 
-@[simp] lemma sec_obj_fiber (x) :
-    ((sec A α h).obj x).fiber = PGrpd.objFiber' h x :=
-  rfl
+@[simp] lemma sec_obj_fiber (x) : ((sec A α h).obj x).fiber = PGrpd.objFiber' h x := rfl
 
-@[simp] lemma sec_map_base {x y} {f : x ⟶ y} : ((sec A α h).map f).base = f :=
-  rfl
+@[simp] lemma sec_map_base {x y} {f : x ⟶ y} : ((sec A α h).map f).base = f := rfl
 
 @[simp] lemma sec_map_fiber {x y} {f : x ⟶ y} :
-    ((sec A α h).map f).fiber = PGrpd.mapFiber' h f :=
-  rfl
+    ((sec A α h).map f).fiber = PGrpd.mapFiber' h f := rfl
 
 @[simp] def sec_toPGrpd : sec A α h ⋙ toPGrpd _ = α := by
   apply Grothendieck.FunctorTo.hext
@@ -161,13 +154,10 @@ def sec : Γ ⥤ ∫(A) :=
     rw! [eqToHom_comp_heq]
     simp
 
-@[simp] def sec_forget : sec A α h ⋙ forget = 𝟭 _ :=
-  rfl
+@[simp] def sec_forget : sec A α h ⋙ forget = 𝟭 _ := rfl
 
 theorem sec_eq_lift : sec A α h = (isPullback A).lift α (𝟭 _) (by simp [h, Functor.id_comp]) := by
-  apply (Groupoidal.isPullback _).lift_uniq
-  · simp
-  · simp
+  apply (Groupoidal.isPullback _).lift_uniq <;> simp
 
 section naturality
 variable {Δ : Type u₃} [Category.{v₃} Δ] (σ : Δ ⥤ Γ)
@@ -190,12 +180,8 @@ section ι
 variable {C : Type u} [Category.{v} C] (F : C ⥤ Grpd.{v₁,u₁})
 
 theorem ι_eq_lift (c : C) : ι F c =
-    (Groupoidal.isPullback F).lift
-    (ι F c ⋙ toPGrpd F)
-    (ι F c ⋙ forget) rfl := by
-  apply (Groupoidal.isPullback F).lift_uniq
-  · simp
-  · simp
+    (Groupoidal.isPullback F).lift (ι F c ⋙ toPGrpd F) (ι F c ⋙ forget) rfl := by
+  apply (Groupoidal.isPullback F).lift_uniq <;> simp
 
 end ι
 
@@ -203,13 +189,11 @@ section
 variable {C : Type u} [Category.{v} C] {D : Type u₁} [Category.{v₁} D]
   (F : C ⥤ Grpd) {G H : D ⥤ C} (α : G ≅ H)
 
-@[simp] theorem preNatIso_hom_app_base (x) :
-    ((preNatIso F α).hom.app x).base = α.hom.app x.base :=
-  Grothendieck.preNatIso_hom_app_base _ _ _
+@[simp] theorem preNatIso_hom_app_base (x) : ((preNatIso F α).hom.app x).base = α.hom.app x.base :=
+  Grothendieck.preNatIso_hom_app_base ..
 
-@[simp] theorem preNatIso_hom_app_fiber (x) :
-    ((preNatIso F α).hom.app x).fiber = 𝟙 _ :=
-  Grothendieck.preNatIso_hom_app_fiber _ _ _
+@[simp] theorem preNatIso_hom_app_fiber (x) : ((preNatIso F α).hom.app x).fiber = 𝟙 _ :=
+  Grothendieck.preNatIso_hom_app_fiber ..
 
 end
 
