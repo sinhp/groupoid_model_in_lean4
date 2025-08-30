@@ -516,8 +516,7 @@ theorem comp_mk
     (e2 : β ≫ V.tp = U.sec A α e1 ≫ B)
     (σ : Δ ⟶ Γ) {σA} (e3 : σ ≫ A = σA) :
     (σ) ≫ mk α e1 B β e2 =
-    mk (σ ≫ α) (by simp [e1, e3])
-      ((U.substWk A σ _ e3) ≫ B) ((σ) ≫ β)
+    mk (σ ≫ α) (by simp [e1, e3]) ((U.substWk A σ _ e3) ≫ B) ((σ) ≫ β)
       (by simp [e2]; rw [comp_sec_assoc]) := by
   apply ext (A := σA) (by simp [← comp_fst, e1, e3]) <;> simp [← comp_fst, ← comp_snd]
   rw [← comp_dependent, dependent_mk]
