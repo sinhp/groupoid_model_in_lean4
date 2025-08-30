@@ -131,6 +131,3 @@ elab "#measure_rkernel" : command => liftTermElabM do
 
 set_option maxHeartbeats 0
 #measure_rkernel
-
--- def main : IO Unit := do
---   IO.println "Benchmarking completed"
