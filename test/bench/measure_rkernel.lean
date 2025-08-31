@@ -6,7 +6,7 @@ import Lean.Elab.Command
 import GroupoidModel.Syntax.Frontend.Commands
 
 -- 1. Load the .olean file with samples into the environment
-import bench.sample_llm
+import bench.sample_id
 
 
 -- 2. Read all the `benchDef.n constants from the environment
@@ -16,15 +16,16 @@ open System
 open Qq
 
 open Char
-def isSampleBenchDef (n : Name) : Bool :=
+def isSampleBenchDefId (n : Name) : Bool :=
   match n with
-  | .str (.str _ s1) s2 =>
+  | .str (.str (.str _ s1) s2) s3=>
     -- components come as: ... → "sample<n>" (s1) ← "benchDef_<m>" (s2) ← _ (rest)
     let ok1 := s1.startsWith "sample"
       && isDigit ((s1.drop 6).get 0)
     let ok2 := s2.startsWith "benchDef_"
       && isDigit ((s2.drop 9).get 0)
-    ok1 && ok2
+    let ok3 := s3.startsWith "id_"
+    ok1 && ok2 && ok3
   | _ => false
 
 open Name
@@ -37,7 +38,7 @@ def name_string (n : Name) : String :=
 elab "#measure_rkernel" : command => liftTermElabM do
   let env ← getEnv
   for (n, ci) in env.constants do
-    if !isSampleBenchDef n then continue
+    if !isSampleBenchDefId n then continue
     let .defnInfo d := ci | continue
     try
       let term := d.value
