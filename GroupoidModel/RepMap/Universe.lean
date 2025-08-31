@@ -245,7 +245,7 @@ variable (a : Γ ⟶ U.Tm) (a_tp : a ≫ U.tp = A)
   ===== Γ ------ A -----> U.Ty -/
 def sec : Γ ⟶ U.ext A := U.substCons A (𝟙 Γ) a (by simp [a_tp])
 
-@[functor_map (attr := reassoc (attr := simp))]
+@[reassoc (attr := simp)]
 theorem sec_disp : U.sec A a a_tp ≫ U.disp A = 𝟙 _ := by
   simp [sec]
 
@@ -253,7 +253,7 @@ theorem sec_disp : U.sec A a a_tp ≫ U.disp A = 𝟙 _ := by
 theorem sec_var : U.sec A a a_tp ≫ U.var A = a := by
   simp [sec]
 
-@[functor_map (attr := reassoc)]
+@[reassoc]
 theorem comp_sec {Δ : Ctx} (σ : Δ ⟶ Γ) (σA) (eq : σ ≫ A = σA) :
     σ ≫ U.sec A a a_tp = U.sec σA (σ ≫ a) (by simp [eq, a_tp]) ≫ U.substWk A σ _ eq := by
   apply (U.disp_pullback _).hom_ext <;> simp [sec, substWk_disp]
@@ -541,12 +541,12 @@ set_option linter.dupNamespace false in
 protected structure Pi where
   Pi : U.Ptp.obj U.Ty ⟶ U.Ty
   lam : U.Ptp.obj U.Tm ⟶ U.Tm
-  Pi_pullback : IsPullback lam (U.Ptp.map U.tp) U.tp Pi
+  Pi_pullback : IsPullback (U.Ptp.map U.tp) lam Pi U.tp
 
 protected structure Sigma where
   Sig : U.Ptp.obj U.Ty ⟶ U.Ty
   pair : UvPoly.compDom (uvPolyTp U) (uvPolyTp U) ⟶ U.Tm
-  Sig_pullback : IsPullback pair ((uvPolyTp U).compP (uvPolyTp U)) U.tp Sig
+  Sig_pullback : IsPullback ((uvPolyTp U).compP (uvPolyTp U)) pair Sig U.tp
 
 end Universe
 

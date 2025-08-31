@@ -564,15 +564,15 @@ def compDomMap {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q : UvPoly D A}
   let r := pullback.map (P.fstProj A) P.p (P'.fstProj A') P'.p pa e b (by simp [pa, p]) hp.w
   refine pullback.map _ _ _ _ d r a hq.w (fan_snd_map _ _ _ hp).symm
 
+-- TODO remove all the flips
 theorem compDomMap_isPullback {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q : UvPoly D A}
     {P' : UvPoly E' B'} {Q' : UvPoly D' A'}
     (e : E ⟶ E') (d : D ⟶ D') (b : B ⟶ B') (a : A ⟶ A')
     (hp : IsPullback P.p e b P'.p) (hq : IsPullback Q.p d a Q'.p) :
-    IsPullback
-      (UvPoly.compDomMap e d b a hp hq)
-      (P.compP Q) (P'.compP Q')
-      ((P.cartesianNatTrans P' b e hp).app A ≫ P'.functor.map a) := by
+    IsPullback (P.compP Q) (UvPoly.compDomMap e d b a hp hq)
+      ((P.cartesianNatTrans P' b e hp).app A ≫ P'.functor.map a) (P'.compP Q') := by
   set p := P.cartesianNatTrans P' b e hp
+  apply IsPullback.flip
   apply IsPullback.paste_vert
     (h₂₁ := pullback.map _ _ _ _ (p.app A ≫ P'.functor.map a) _ _ (by simp [p]) hp.w)
   · refine hq.flip.back_face_of_comm_cube _ _ _ _ _ _ _ _ _ _ _ _ (by simp [compDomMap]) ?_ ?_
