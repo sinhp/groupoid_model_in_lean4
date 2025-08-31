@@ -4,7 +4,7 @@ import Mathlib.CategoryTheory.Category.Cat.Limit
 import Mathlib.CategoryTheory.Monoidal.Cartesian.Cat
 
 import GroupoidModel.ForMathlib.CategoryTheory.Core
-import GroupoidModel.Syntax.RepMap
+import GroupoidModel.RepMap.Universe
 import GroupoidModel.Grothendieck.Groupoidal.IsPullback
 
 /-!
@@ -131,16 +131,13 @@ def tp : Tm.{v} ⟶ Ty.{v} :=
 
 variable {Γ : Ctx} (A : Γ ⟶ Ty.{v})
 
-def classifier : Γ ⥤ Grpd.{v,v} :=
-  toCoreAsSmallEquiv A
+def ext : Ctx := Grpd.of (∫ toCoreAsSmallEquiv A)
 
-def ext : Ctx := Grpd.of (∫ classifier A)
-
-@[reducible]
+@[reducible, simp]
 def disp : ext A ⟶ Γ := forget
 
 def var : ext A ⟶ Tm.{v} :=
-  toCoreAsSmallEquiv.symm (toPGrpd (classifier A))
+  toCoreAsSmallEquiv.symm (toPGrpd (toCoreAsSmallEquiv A))
 
 /-- `liftTy` is the base map between two `v`-small universes
                toE
@@ -161,7 +158,7 @@ def liftTm : Tm.{v, max u (v+2)} ⟶ Tm.{v+1,max u (v+2)} :=
 end U
 
 def repMap : RepMap Ctx where
-  Representable := sorry -- isofibrations? coherent isofibrations?
+  Representable := sorry -- isofibrations
   exponentiableMorphism := sorry
   pullback_stable := sorry
 

@@ -90,7 +90,7 @@ variable [CartesianMonoidalCategory Ctx]
 /-- A Russell universe embedding is a hom of natural models `M ⟶ N`
 such that types in `M` correspond to terms of a universe `U` in `N`.
 
-These don't form a category since `UHom.id M` is essentially `Type : Type` in `M`.
+These don't form a category since `Lift.id M` would essentially be `Type : Type` in `M`.
 
 Note this doesn't need to extend `Hom` as none of its fields are used;
 it's just convenient to pack up the data. -/

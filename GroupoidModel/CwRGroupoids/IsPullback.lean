@@ -1,7 +1,6 @@
 import Mathlib.CategoryTheory.Limits.Preserves.FunctorCategory
 import Mathlib.CategoryTheory.Category.Cat.Limit
 
-import GroupoidModel.Syntax.NaturalModel
 import GroupoidModel.Grothendieck.Groupoidal.IsPullback
 import GroupoidModel.CwRGroupoids.Basic
 
@@ -15,25 +14,25 @@ universe w v u v₁ u₁ v₂ u₂ v₃ u₃
 
 noncomputable section
 open CategoryTheory ULift Functor.Groupoidal
-  Limits NaturalModel GroupoidModel.Ctx GroupoidModel.U
+  Limits GroupoidModel.Ctx GroupoidModel.U PGrpd
 
 namespace GroupoidModel
 namespace IsPullback
 
-def liftTy'' : AsSmall.{max u (v+2)} Grpd.{v,v}
+def liftTy' : AsSmall.{max u (v+2)} Grpd.{v,v}
     ⥤ AsSmall.{max u (v+2)} Grpd.{v+1,v+1} :=
   AsSmall.down ⋙ Grpd.asSmallFunctor.{v+1} ⋙ AsSmall.up
 
-def liftTm'' : AsSmall.{max u (v+2)} PGrpd.{v,v}
+def liftTm' : AsSmall.{max u (v+2)} PGrpd.{v,v}
     ⥤ AsSmall.{max u (v+2)} PGrpd.{v+1,v+1} :=
   AsSmall.down ⋙ PGrpd.asSmallFunctor.{v+1} ⋙ AsSmall.up
 
-def tp'' : AsSmall.{max u (v+1)} PGrpd.{v,v}
+def tp' : AsSmall.{max u (v+1)} PGrpd.{v,v}
     ⥤ AsSmall.{max u (v+1)} Grpd.{v,v} :=
   AsSmall.down ⋙ PGrpd.forgetToGrpd ⋙ AsSmall.up
 
-theorem liftTm''_tp'' : Cat.homOf liftTm''.{v,u} ≫ Cat.homOf tp''.{v+1, max u (v+2)} =
-  Cat.homOf tp''.{v, max u (v+2)} ≫ Cat.homOf liftTy''.{v,u} := rfl
+theorem liftTm'_tp' : Cat.homOf liftTm'.{v,u} ≫ Cat.homOf tp'.{v+1, max u (v+2)} =
+  Cat.homOf tp'.{v, max u (v+2)} ≫ Cat.homOf liftTy'.{v,u} := rfl
 
 /--
 The following square is a meta-theoretic pullback
@@ -64,62 +63,55 @@ def isPullback_forgetToGrpd_forgetToGrpd :
 /--
 The following square is a pullback
 
- AsSmall PGrpd.{v} ------- liftTm'' ------> AsSmall PGrpd.{v+1}
+ AsSmall PGrpd.{v} ------- liftTm' ------> AsSmall PGrpd.{v+1}
         |                                     |
         |                                     |
-        tp''                                   tp''
+        tp'                                   tp'
         |                                     |
         |                                     |
         v                                     v
- AsSmall Grpd.{v}  ------- liftTy'' -----> AsSmall Grpd.{v+1}
+ AsSmall Grpd.{v}  ------- liftTy' -----> AsSmall Grpd.{v+1}
 
 in the category `Cat.{max u (v+2), max u (v+2)}`.
 Note that these `AsSmall`s are bringing two different sized
 categories into the same category.
 -/
-def isPullback_tp''_tp'' : Functor.IsPullback
-    liftTm''.{v,max u (v+2)}
-    tp''.{_,max u (v+2)}
-    tp''.{v+1,max u (v+2)}
-    liftTy''.{v,max u (v+2)} :=
+def isPullback_liftTm' : Functor.IsPullback
+    liftTm'.{v,max u (v+2)}
+    tp'.{_,max u (v+2)}
+    tp'.{v+1,max u (v+2)}
+    liftTy'.{v,max u (v+2)} :=
   Functor.IsPullback.ofIso' PGrpd.asSmallFunctor.{v+1} PGrpd.forgetToGrpd.{v}
     PGrpd.forgetToGrpd.{v+1} Grpd.asSmallFunctor.{v+1} isPullback_forgetToGrpd_forgetToGrpd
-    liftTm''.{v,max u (v+2)} tp''.{_,max u (v+2)} tp''.{v+1,max u (v+2)} liftTy''.{v,max u (v+2)}
+    liftTm'.{v,max u (v+2)} tp'.{_,max u (v+2)} tp'.{v+1,max u (v+2)} liftTy'.{v,max u (v+2)}
     AsSmall.downIso AsSmall.downIso AsSmall.downIso AsSmall.downIso rfl rfl rfl rfl
 
-  --   AsSmall.downIso AsSmall.downIso AsSmall.downIso AsSmall.downIso rfl rfl rfl rfl
--- /--
--- The following square is a pullback
+theorem isPullback_liftTm'_in_Cat : IsPullback
+    (Cat.homOf liftTm'.{v,max u (v+2)})
+    tp'.{_,max u (v+2)}
+    tp'.{v+1,max u (v+2)}
+    (Cat.homOf liftTy'.{v,max u (v+2)}) :=
+  Cat.isPullback isPullback_liftTm'
 
---  coreAsSmall PGrpd.{v} ------- liftTm''.core ------> coreAsSmall PGrpd.{v+1}
---         |                                     |
---         |                                     |
---  coreAsSmallFunctor forget             coreAsSmallFunctor forget
---         |                                     |
---         |                                     |
---         v                                     v
---  coreAsSmall Grpd.{v}  ------- liftTy''.core -----> coreAsSmall Grpd.{v+1}
-
--- in the category `Cat.{max u (v+2), max u (v+2)}`.
--- Note that these `AsSmall`s are bringing two different sized
--- categories into the same category.
--- -/
--- def isPullback_tp''_tp'' : Functor.IsPullback
---     liftTm''.{v,max u (v+2)}
---     tp''.{_,max u (v+2)}
---     tp''.{v+1,max u (v+2)}
---     liftTy''.{v,max u (v+2)} :=
---   Functor.IsPullback.ofIso' PGrpd.asSmallFunctor.{v+1} PGrpd.forgetToGrpd.{v}
---     PGrpd.forgetToGrpd.{v+1} Grpd.asSmallFunctor.{v+1} isPullback_forgetToGrpd_forgetToGrpd
---     liftTm''.{v,max u (v+2)} tp''.{_,max u (v+2)} tp''.{v+1,max u (v+2)} liftTy''.{v,max u (v+2)}
---     AsSmall.downIso AsSmall.downIso AsSmall.downIso AsSmall.downIso rfl rfl rfl rfl
-
-open PGrpd
+/--
+The small universes form pullbacks
+      Tm.{v} ------------ liftTm ---------> Tm.{v+1}
+        |                                     |
+        |                                     |
+      tp.{v}                                tp.{v+1}
+        |                                     |
+        v                                     v
+      Ty.{v} ------------ liftTy ---------> Ty.{v+1}
+-/
+theorem liftTm_isPullback : IsPullback U.tp.{v, max u (v+2)} liftTm.{v,max u (v+2)}
+    liftTy.{v,max u (v+2)} U.tp.{v+1, max u (v+2)} := by
+  apply IsPullback.flip
+  convert Functor.map_isPullback Core.map isPullback_liftTm'_in_Cat.{v,u}
 
 variable {Γ : Ctx} (A : Γ ⥤ Grpd)
 
 /--
-∫ classifier A ----> PGrpd
+∫ toCor...iv A ----> PGrpd
      |                  |
      |                  |
      |                  |
@@ -145,7 +137,7 @@ def isPullbackAsSmall :
   CategoryTheory.AsSmall.isPullback _
 
 /--
-∫ classifier A ----> AsSmall PGrpd
+∫ toCore...iv A ----> AsSmall PGrpd
      |                  |
      |                  |
      |                  |
@@ -176,7 +168,7 @@ def isPullbackCoreAsSmall :
   Core.isPullback_map'_self _
 
 /--
-∫ classifier A ----> coreAsSmall PGrpd
+∫ toCo...iv A ----> coreAsSmall PGrpd
      |                  |
      |                  |
      |                  |
@@ -184,14 +176,14 @@ def isPullbackCoreAsSmall :
      Γ ------------> coreAsSmall Grpd
 -/
 def isPullbackClassifierOfCoreAsSmall (A : Γ ⟶ Ty) :
-    Functor.IsPullback (var A) forget tp (toCoreAsSmallEquiv.symm (classifier A)) :=
-  Functor.IsPullback.Paste.ofRight' (so := toCoreAsSmallEquiv.symm (classifier A))
+    Functor.IsPullback (var A) forget tp (toCoreAsSmallEquiv.symm (toCoreAsSmallEquiv A)) :=
+  Functor.IsPullback.Paste.ofRight' (so := toCoreAsSmallEquiv.symm (toCoreAsSmallEquiv A))
   (by
-    dsimp [functorToAsSmallEquiv, toCoreAsSmallEquiv]
-    convert_to (toPGrpd (classifier A) ⋙ forgetToGrpd) ⋙ AsSmall.up = _
+    dsimp [functorToAsSmallEquiv]
+    convert_to (toPGrpd (toCoreAsSmallEquiv A) ⋙ forgetToGrpd) ⋙ AsSmall.up = _
     erw [toPGrpd_forgetToGrpd, Core.functorToCoreEquiv_apply, Core.functorToCore_comp_inclusion,
       Functor.assoc])
-  (isPullbackClassifierOfAsSmall (classifier A))
+  (isPullbackClassifierOfAsSmall (toCoreAsSmallEquiv A))
   (by
     dsimp [Ctx.coreAsSmallFunctor, Grpd.homOf]
     rw [Core.core_comp_inclusion])
@@ -218,7 +210,7 @@ def isPullbackClassifierOfCoreAsSmall (A : Γ ⟶ Ty) :
 -/
 theorem disp_pullback (A : Γ ⟶ Ty) : IsPullback (var A) forget tp A := by
   convert Grpd.isPullback (isPullbackClassifierOfCoreAsSmall A)
-  simp [classifier]
+  simp
 
 end IsPullback
 end GroupoidModel
