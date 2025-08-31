@@ -32,15 +32,6 @@ def comp_inclusion_injective {l0 l1 : D ⥤ Core C} (hl : l0 ⋙ inclusion C = l
     convert Functor.congr_hom hl f
     simp
 
--- @[simp]
--- theorem id_inv (X : Core C) :
---     (𝟙 X : X ⟶ X).iso.inv = 𝟙 X.of := by
---   simp only [coreCategory_id_iso_inv]
-
--- @[simp] theorem comp_iso_inv {X Y Z : Core C} (f : X ⟶ Y) (g : Y ⟶ Z) :
---     (f ≫ g).iso.inv = g.iso.inv ≫ f.iso.inv :=
---   rfl
-
 lemma core_comp_inclusion (F : C ⥤ D) :
     F.core ⋙ inclusion D = inclusion C ⋙ F :=
   rfl
@@ -51,8 +42,9 @@ def map : Cat.{v,u} ⥤ Grpd.{v,u} where
 
 variable {Γ : Type u} [Groupoid.{v} Γ]
 
-/-  A functor from a groupoid into a category is equivalent
+/--  A functor from a groupoid into a category is equivalent
     to a functor from the groupoid into the core -/
+@[simps apply]
 def functorToCoreEquiv : Γ ⥤ D ≃ Γ ⥤ Core D where
   toFun := functorToCore
   invFun := forgetFunctorToCore.obj
@@ -62,6 +54,34 @@ def functorToCoreEquiv : Γ ⥤ D ≃ Γ ⥤ Core D where
     · aesop_cat
     · aesop_cat
 
+variable {C : Type u₁} [Category.{v₁} C]
+variable {G : Type u₂} [Groupoid.{v₂} G]
+variable {G' : Type u₃} [Groupoid.{v₃} G']
+variable {C' : Type u₃} [Category.{v₃} C']
+
+@[simp]
+theorem functorToCore_comp_inclusion (H : G ⥤ C) :
+  functorToCore H ⋙ inclusion _ = H := rfl
+
+theorem functorToCore_comp_left (H : G ⥤ C) (F : G' ⥤ G) :
+    functorToCore (F ⋙ H) = F ⋙ functorToCore H := by
+  apply Functor.ext
+  · simp [functorToCore]
+  · intro
+    rfl
+
+theorem functorToCore_comp_right (H : G ⥤ C) (F : C ⥤ C') :
+    functorToCore (H ⋙ F) = functorToCore H ⋙ F.core := by
+  rfl
+
+theorem functorToCoreEquiv_symm_apply_comp_left (H : G ⥤ Core C) (F : G' ⥤ G) :
+    functorToCoreEquiv.symm (F ⋙ H) = F ⋙ functorToCoreEquiv.symm H :=
+  rfl
+
+theorem functorToCoreEquiv_symm_apply_comp_right (H : G ⥤ Core C) (F : C ⥤ C') :
+    functorToCoreEquiv.symm (H ⋙ F.core) = functorToCoreEquiv.symm H ⋙ F :=
+  rfl
+
 theorem eqToIso_iso_hom {a b : Core C} (h1 : a = b)
   (h2 : (inclusion C).obj a = (inclusion C).obj b) :
     (eqToHom h1).iso.hom = eqToHom h2 := by
@@ -70,34 +90,13 @@ theorem eqToIso_iso_hom {a b : Core C} (h1 : a = b)
 
 section Adjunction
 
-variable {C : Type u₁} [Category.{v₁} C]
-variable {G : Type u₂} [Groupoid.{v₂} G]
-variable {G' : Type u₃} [Groupoid.{v₃} G']
-variable {C' : Type u₃} [Category.{v₃} C']
-
-theorem functorToCore_naturality_left
-    (H : G ⥤ C) (F : G' ⥤ G) :
-    functorToCore (F ⋙ H) = F ⋙ functorToCore H := by
-  apply Functor.ext
-  · simp [functorToCore]
-  · intro
-    rfl
-
-theorem functorToCore_naturality_right
-    (H : G ⥤ C) (F : C ⥤ C') :
-    functorToCore (H ⋙ F)
-    = functorToCore H ⋙ F.core := by
-  fapply Functor.ext
-  · aesop_cat
-  · aesop_cat
-
 def adjunction : Grpd.forgetToCat ⊣ Core.map where
   unit := {
     app G := Grpd.homOf (Core.functorToCore (Functor.id _))
     naturality _ _ F := by
       simp [Core.map, Grpd.comp_eq_comp,
-        ← functorToCore_naturality_left,
-        ← functorToCore_naturality_right,
+        ← functorToCore_comp_left,
+        ← functorToCore_comp_right,
         Functor.id_comp, Functor.comp_id, Grpd.forgetToCat]}
   counit := {app C := Cat.homOf (Core.inclusion C)}
 
