@@ -515,44 +515,107 @@ variable {𝒞} [Category 𝒞] [HasTerminal 𝒞] [HasPullbacks 𝒞]
 
 variable {E B : 𝒞} (P : UvPoly E B) (A : 𝒞)
 
-def compDomEquiv {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} :
-    (Γ ⟶ compDom P Q) ≃
-      (AB : Γ ⟶ P @ A) × (α : Γ ⟶ E) × (β : Γ ⟶ D) ×'
-      (w : AB ≫ P.fstProj A = α ≫ P.p) ×'
-      (β ≫ Q.p = pullback.lift AB α w ≫ (PartialProduct.fan P A).snd) :=
-  calc
-  _ ≃ (β : Γ ⟶ D) × (αB : Γ ⟶ pullback (PartialProduct.fan P A).fst P.p) ×'
-      β ≫ Q.p = αB ≫ (PartialProduct.fan P A).snd :=
-    pullbackHomEquiv
-  _ ≃ (β : Γ ⟶ D) × (αB : (AB : Γ ⟶ P @ A) × (α : Γ ⟶ E) ×'
-        AB ≫ P.fstProj A = α ≫ P.p) ×'
-      β ≫ Q.p = pullback.lift αB.1 αB.2.1 αB.2.2 ≫ (PartialProduct.fan P A).snd :=
-    Equiv.sigmaCongrRight (fun β => calc
-      _ ≃ (αB : (AB : Γ ⟶ P @ A) × (α : Γ ⟶ E) ×' (AB ≫ P.fstProj A = α ≫ P.p)) ×'
-          (β ≫ Q.p = pullback.lift αB.1 αB.2.1 αB.2.2 ≫ (PartialProduct.fan P A).snd) :=
-        Equiv.psigmaCongrProp pullbackHomEquiv (fun αB => by
-          apply Eq.congr_right
-          congr 1
-          apply pullback.hom_ext
-          · simp [pullbackHomEquiv]
-          · simp [pullbackHomEquiv]))
-  _ ≃ _ := {
-      -- TODO should be general tactic for this?
-      toFun x := ⟨ x.2.1.1, x.2.1.2.1 , x.1 , x.2.1.2.2, x.2.2 ⟩
-      invFun x := ⟨ x.2.2.1 , ⟨ x.1, x.2.1 , x.2.2.2.1 ⟩ , x.2.2.2.2 ⟩
-      left_inv _ := rfl
-      right_inv _ := rfl }
+namespace compDomEquiv
+
+variable {Γ E B E' B' : 𝒞} {P : UvPoly E B} {P' : UvPoly E' B'}
+
+def fst (triple : Γ ⟶ compDom P P') : Γ ⟶ E :=
+  triple ≫ pullback.snd _ _ ≫ pullback.snd _ _
+
+theorem fst_comp_p (triple : Γ ⟶ compDom P P') :
+    fst triple ≫ P.p = Equiv.fst P B' (triple ≫ (P.comp P').p) := by
+  rw [fst, Equiv.fst_comp_left, Equiv.fst_eq]
+  simp [UvPoly.comp, pullback.condition]
+
+theorem comp_fst (triple : Γ ⟶ compDom P P') {Δ} (σ : Δ ⟶ Γ) :
+    σ ≫ fst triple = fst (σ ≫ triple) := by simp [fst]
+
+def dependent (triple : Γ ⟶ compDom P P')
+    (T) (f : T ⟶ Γ) (g : T ⟶ E) (H : IsPullback f g (fst triple ≫ P.p) P.p) :
+    T ⟶ B' :=
+  Equiv.snd' P B' (triple ≫ (P.comp P').p) (by convert H; simp only [fst_comp_p])
+
+def snd (triple : Γ ⟶ compDom P P') : Γ ⟶ E' :=
+  triple ≫ pullback.fst _ _
+
+theorem comp_snd (triple : Γ ⟶ compDom P P') {Δ} (σ : Δ ⟶ Γ) :
+    σ ≫ snd triple = snd (σ ≫ triple) := by simp [snd]
+
+theorem snd_comp_p (triple : Γ ⟶ compDom P P')
+    (T) (f : T ⟶ Γ) (g : T ⟶ E) (H : IsPullback f g (fst triple ≫ P.p) P.p) :
+    snd triple ≫ P'.p =
+    H.lift (𝟙 Γ) (fst triple) (by simp) ≫ dependent triple T f g H :=
+  calc (triple ≫ pullback.fst _ _) ≫ P'.p
+  _ = triple ≫ pullback.snd _ _ ≫ (fan P B').snd := by
+    simp [pullback.condition]
+  _ = H.lift (𝟙 Γ) (fst triple) (by simp) ≫ dependent triple T f g H := by
+    simp only [fan_pt, fan_fst, fan_snd, ← Category.assoc, dependent, comp_p, Equiv.snd'_eq]
+    congr 2
+    ext
+    · simp
+    · simp [fst, fan]
+
+def mk (e : Γ ⟶ E) (T) (f : T ⟶ Γ) (g : T ⟶ E) (HT : IsPullback f g (e ≫ P.p) P.p)
+    (b : T ⟶ B') (e' : Γ ⟶ E') (he' : e' ≫ P'.p = HT.lift (𝟙 Γ) e (by simp) ≫ b) :
+    Γ ⟶ P.compDom P' :=
+  pullback.lift e' (pullback.lift (Equiv.mk' P B' (e ≫ P.p) HT b) e (by simp)) (by
+    let l : Γ ⟶ pullback (e ≫ P.p) P.p := pullback.lift (𝟙 Γ) e (by simp)
+    have h := Equiv.snd'_eq P B' (Equiv.mk' P B' (e ≫ P.p) HT b) (IsPullback.of_hasPullback (Equiv.fst P B' (Equiv.mk' P B' (e ≫ P.p) HT b)) P.p)
+    rw! [Equiv.snd'_eq_snd' (H' := by convert HT; simp), Equiv.fst_mk', Equiv.snd'_mk'] at h
+    generalize_proofs p1 p2 p3 p4 p5 at h
+    calc _
+    _ = l ≫ (IsPullback.isoIsPullback Γ E p2 HT).hom ≫ b := by
+      simp [he', ← Category.assoc]
+      congr 1
+      apply HT.hom_ext <;> simp [l]
+    _ = l ≫ pullback.lift (pullback.fst (e ≫ P.p) P.p ≫ Equiv.mk' P B' (e ≫ P.p) HT b) (pullback.snd (e ≫ P.p) P.p) p4 ≫
+      (fan P B').snd := by rw [h]
+    _ = _ := by
+      simp [← Category.assoc]
+      congr 2
+      ext <;> simp [l]
+    )
+
+@[simp]
+theorem fst_mk (e : Γ ⟶ E) (T) (f : T ⟶ Γ) (g : T ⟶ E) (HT : IsPullback f g (e ≫ P.p) P.p)
+    (b : T ⟶ B') (e' : Γ ⟶ E') (he' : e' ≫ P'.p = HT.lift (𝟙 Γ) e (by simp) ≫ b) :
+    fst (mk e T f g HT b e' he') = e := by
+  simp [mk, fst]
+
+@[simp]
+theorem dependent_mk (e : Γ ⟶ E) (T) (f : T ⟶ Γ) (g : T ⟶ E) (HT : IsPullback f g (e ≫ P.p) P.p)
+    (b : T ⟶ B') (e' : Γ ⟶ E') (he' : e' ≫ P'.p = HT.lift (𝟙 Γ) e (by simp) ≫ b) :
+    dependent (mk e T f g HT b e' he') T f g (by convert HT; simp) = b := by
+  simp [mk, dependent]
+
+@[simp]
+theorem snd_mk (e : Γ ⟶ E) (T) (f : T ⟶ Γ) (g : T ⟶ E) (HT : IsPullback f g (e ≫ P.p) P.p)
+    (b : T ⟶ B') (e' : Γ ⟶ E') (he' : e' ≫ P'.p = HT.lift (𝟙 Γ) e (by simp) ≫ b) :
+    snd (mk e T f g HT b e' he') = e' := by
+  simp [mk, snd]
+
+theorem ext {triple₁ triple₂ : Γ ⟶ P.compDom P'}
+    (T) (f : T ⟶ Γ) (g : T ⟶ E) (H : IsPullback f g (fst triple₁ ≫ P.p) P.p)
+    (h1 : fst triple₁ = fst triple₂)
+    (h2 : dependent triple₁ T f g H = dependent triple₂ T f g (by rw [← h1]; exact H))
+    (h3 : snd triple₁ = snd triple₂) : triple₁ = triple₂ := by
+  apply pullback.hom_ext h3
+  simp only [fst] at h1
+  simp only [dependent] at h2
+  apply pullback.hom_ext
+  · simp only [PartialProduct.fan_pt, PartialProduct.fan_fst, Category.assoc]
+    generalize_proofs H0 H1 at h2
+    apply Equiv.ext' P B' H0 _ h2
+    simp only [Equiv.fst, comp_p, Fan.extend_fst, fan_pt, fan_fst, Category.assoc,
+      pullback.condition]
+    simp only [← Category.assoc]; congr 1
+    simpa
+  · simpa
+
+end compDomEquiv
 
 def compP {E B D A : C} (P : UvPoly E B) (Q : UvPoly D A) : compDom P Q ⟶ P @ A :=
   pullback.snd Q.p (fan P A).snd ≫ pullback.fst (fan P A).fst P.p
-
-@[simp] theorem compDomEquiv_symm_compP {Γ E B D A : 𝒞} {P : UvPoly E B}
-    {Q : UvPoly D A} (AB : Γ ⟶ P @ A) (α : Γ ⟶ E)
-    (β : Γ ⟶ D) (w : AB ≫ P.fstProj A = α ≫ P.p)
-    (h : β ≫ Q.p = pullback.lift AB α w ≫ (PartialProduct.fan P A).snd) :
-    compDomEquiv.symm ⟨AB, α, β, w, h⟩ ≫ P.compP Q = AB := by
-   simp [compDomEquiv, compP, Equiv.psigmaCongrProp, Equiv.sigmaCongrRight_symm,
-    Equiv.coe_fn_symm_mk, pullbackHomEquiv]
 
 def compDomMap {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q : UvPoly D A}
     {P' : UvPoly E' B'} {Q' : UvPoly D' A'}
