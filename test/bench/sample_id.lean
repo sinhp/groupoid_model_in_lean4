@@ -4,11 +4,13 @@ open Lean Meta Elab Term Command
 
 
 elab "#gen_ids" num:num : command => liftTermElabM do
-  let mut acc := Lean.mkConst ``id [Zero.zero]
+  -- fun (x : Type 1) => x
+  let idFn := Expr.lam `x (.sort 2) (.bvar 0) default
+  let mut acc := .sort 1 -- Type 0
   for i in [0 : num.getNat] do
     let name : Name := Name.str .anonymous s!"BenchDef_id_{i}"
     if i != 0 then do
-      acc ← mkAppM ``id #[acc]
+      acc := .app idFn acc
     let accPP ← ppExpr acc
     logInfo m!"acc[{i}] := {accPP}"
     addDecl <| .defnDecl
