@@ -15,16 +15,22 @@ open System
 open Qq
 
 open Char
+-- def isSampleBenchDefId (n : Name) : Bool :=
+--   match n with
+--   | .str (.str (.str _ s1) s2) s3=>
+--     -- components come as: ... → "sample<n>" (s1) ← "benchDef_<m>" (s2) ← _ (rest)
+--     let ok1 := s1.startsWith "sample"
+--       && isDigit ((s1.drop 6).get 0)
+--     let ok2 := s2.startsWith "benchDef_"
+--       && isDigit ((s2.drop 9).get 0)
+--     let ok3 := s3.startsWith "id_"
+--     ok1 && ok2 && ok3
+--   | _ => false
+
 def isSampleBenchDefId (n : Name) : Bool :=
   match n with
-  | .str (.str (.str _ s1) s2) s3=>
-    -- components come as: ... → "sample<n>" (s1) ← "benchDef_<m>" (s2) ← _ (rest)
-    let ok1 := s1.startsWith "sample"
-      && isDigit ((s1.drop 6).get 0)
-    let ok2 := s2.startsWith "benchDef_"
-      && isDigit ((s2.drop 9).get 0)
-    let ok3 := s3.startsWith "id_"
-    ok1 && ok2 && ok3
+  | .str .anonymous s1=>
+    s1.startsWith "BenchDef_id_" && isDigit ((s1.drop 12).get 0)
   | _ => false
 
 open Name
