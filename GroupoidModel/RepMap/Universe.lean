@@ -391,8 +391,6 @@ is the `(a : A)` in `(a : A) × (b : B a)`.
 -/
 def fst (ab : Γ ⟶ U.uvPolyTp.compDom V.uvPolyTp) : Γ ⟶ U.Tm :=
   UvPoly.compDomEquiv.fst ab
-  -- ab ≫ pullback.snd V.tp (UvPoly.PartialProduct.fan U.uvPolyTp V.Ty).snd ≫
-  --   pullback.snd (U.uvPolyTp.fstProj V.Ty) U.uvPolyTp.p
 
 /-- Computation of `comp` (part 1).
 
@@ -409,12 +407,6 @@ V.mely the first projection `α ≫ tp` agrees.
 theorem fst_tp (ab : Γ ⟶ U.uvPolyTp.compDom V.uvPolyTp) :
     fst ab ≫ U.tp = PtpEquiv.fst U (ab ≫ (U.uvPolyTp.compP _)) :=
   UvPoly.compDomEquiv.fst_comp_p ab
-  -- have : pullback.snd (U.uvPolyTp.fstProj V.Ty) U.tp ≫ U.tp =
-  --   pullback.fst (U.uvPolyTp.fstProj V.Ty) U.tp ≫ U.uvPolyTp.fstProj V.Ty :=
-  --     Eq.symm pullback.condition
-  -- simp only [fst, uvPolyTp_p, PartialProduct.fan_pt, PartialProduct.fan_fst, Category.assoc, this,
-  --   PtpEquiv.fst_comp_left]
-  -- simp [compP, PtpEquiv.fst, Equiv.fst_eq]
 
 theorem comp_fst (ab : Γ ⟶ U.uvPolyTp.compDom V.uvPolyTp) (σ : Δ ⟶ Γ) :
     σ ≫ fst ab = fst (σ ≫ ab) := by
@@ -432,7 +424,16 @@ def dependent (ab : Γ ⟶ U.uvPolyTp.compDom V.uvPolyTp)
     (A := fst ab ≫ U.tp) (eq : fst ab ≫ U.tp = A := by rfl) :
     U.ext A ⟶ V.Ty :=
   UvPoly.compDomEquiv.dependent ab (U.ext A) (U.disp A) (U.var _) (by convert U.disp_pullback A)
-  -- PtpEquiv.snd U (ab ≫ (U.uvPolyTp.compP _)) _ (by rw [← eq, fst_tp])
+
+theorem dependent_eq (ab : Γ ⟶ U.uvPolyTp.compDom V.uvPolyTp) : dependent ab =
+    eqToHom (by rw [fst_tp]) ≫ PtpEquiv.snd U (ab ≫ (U.uvPolyTp.compP _)) := by
+  simp only [dependent, UvPoly.compDomEquiv.dependent_eq, comp_p, uvPolyTp_p, PtpEquiv.snd]
+  rw [Equiv.snd'_eq_snd']
+  congr 1
+  rw! [fst_tp]
+  apply (U.disp_pullback _).hom_ext
+  · simp
+  · simp
 
 theorem comp_dependent (ab : Γ ⟶ U.uvPolyTp.compDom V.uvPolyTp)
     {A} (eq1 : fst ab ≫ U.tp = A)

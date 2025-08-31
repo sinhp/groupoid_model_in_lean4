@@ -535,6 +535,12 @@ def dependent (triple : Γ ⟶ compDom P P')
     T ⟶ B' :=
   Equiv.snd' P B' (triple ≫ (P.comp P').p) (by convert H; simp only [fst_comp_p])
 
+theorem dependent_eq (triple : Γ ⟶ compDom P P')
+    (T) (f : T ⟶ Γ) (g : T ⟶ E) (H : IsPullback f g (fst triple ≫ P.p) P.p) :
+    dependent triple T f g H =
+    Equiv.snd' P B' (triple ≫ (P.comp P').p) (by convert H; rw [fst_comp_p]) := by
+  simp [dependent]
+
 def snd (triple : Γ ⟶ compDom P P') : Γ ⟶ E' :=
   triple ≫ pullback.fst _ _
 

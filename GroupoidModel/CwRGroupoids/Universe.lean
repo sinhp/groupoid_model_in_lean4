@@ -234,8 +234,9 @@ end PtpEquiv
 
 def compDom := U.{v}.uvPolyTp.compDom U.{v}.uvPolyTp
 
+@[simp]
 def comp : compDom.{v} ⟶ U.{v}.Ptp.obj Ty.{v} :=
-  (U.{v}.uvPolyTp.comp U.{v}.uvPolyTp).p
+  U.uvPolyTp.compP U.uvPolyTp
 
 namespace compDom
 
@@ -299,15 +300,10 @@ theorem fst_forgetToGrpd : fst ab ⋙ PGrpd.forgetToGrpd =
 
 theorem dependent_eq : dependent ab =
     map (eqToHom (fst_forgetToGrpd ab)) ⋙ U.PtpEquiv.snd (ab ≫ comp.{v}) := by
-  -- conv => rhs; rw! (castMode := .all) [← fst_forgetToGrpd]
-  -- erw [eqToHom_refl, map_id_eq, Functor.id_comp]
-  simp [dependent, compDomEquiv.dependent]
-
-  -- simp only [← heq_eq_eq, heq_eqRec_iff_heq, dependent, compDomEquiv.dependent, PtpEquiv.snd, comp]
-  -- rw! (castMode := .all) [compDomEquiv.fst_tp]
-  -- simp
-
-  sorry
+  dsimp only [dependent]
+  rw! [compDomEquiv.dependent_eq]
+  rw [Grpd.comp_eq_comp, toCoreAsSmallEquiv_apply_comp_left, eqToHom_eq_homOf_map, PtpEquiv.snd]
+  rfl
 
 theorem dependent_heq : HEq (dependent ab) (U.PtpEquiv.snd (ab ≫ comp.{v})) := by
   rw [dependent_eq]
@@ -348,7 +344,12 @@ theorem dependent_mk (α : Γ ⥤ PGrpd.{v,v})
     (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v,v}) (β : Γ ⥤ PGrpd.{v,v})
     (h : β ⋙ PGrpd.forgetToGrpd = sec _ α rfl ⋙ B)
     : dependent (mk α B β h) = map (eqToHom (by rw [fst_mk])) ⋙ B := by
-  sorry
+  dsimp [dependent, mk]
+  rw [Equiv.apply_eq_iff_eq_symm_apply, toCoreAsSmallEquiv_symm_apply_comp_left]
+  rw! (castMode := .all) [compDomEquiv.fst_mk, compDomEquiv.dependent_mk]
+  simp only [U_Tm, U_ext, U_Ty, ← heq_eq_eq, eqRec_heq_iff_heq]
+  symm
+  apply map_eqToHom_comp_heq
 
 /-- Second component of the computation rule for `mk`. -/
 theorem snd_mk (α : Γ ⥤ PGrpd.{v,v})
@@ -359,9 +360,20 @@ theorem snd_mk (α : Γ ⥤ PGrpd.{v,v})
   rw [RepMap.Universe.compDomEquiv.snd_mk]
   simp
 
-theorem U.compDom.hext (ab1 ab2 : (Γ) ⟶ U.compDom.{v}) (hfst : fst ab1 = fst ab2)
-    (hdependent : HEq (dependent ab1) (dependent ab2)) (hsnd : snd ab1 = snd ab2) : ab1 = ab2 := by
-  sorry
+theorem hext (ab1 ab2 : Γ ⟶ U.compDom.{v})
+    (hfst : fst ab1 = fst ab2) (hdependent : HEq (dependent ab1) (dependent ab2))
+    (hsnd : snd ab1 = snd ab2) : ab1 = ab2 := by
+  dsimp only [compDom] at ab1
+  have h1 : compDomEquiv.fst ab1 = compDomEquiv.fst ab2 := by
+    apply toCoreAsSmallEquiv.injective
+    assumption
+  fapply compDomEquiv.ext rfl h1
+  · dsimp [dependent] at hdependent
+    apply toCoreAsSmallEquiv.injective
+    rw! (castMode := .all) [hdependent, h1]
+    simp [← heq_eq_eq]; rfl
+  · apply toCoreAsSmallEquiv.injective
+    assumption
 
 end compDom
 

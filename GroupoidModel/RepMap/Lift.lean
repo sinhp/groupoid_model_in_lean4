@@ -693,7 +693,8 @@ theorem mkPair_tp {Γ : Ctx} (A : Γ ⟶ s[i].Ty) (B : (s[i].ext A) ⟶ s[j].Ty)
     (t : Γ ⟶ s[i].Tm) (t_tp : t ≫ s[i].tp = A)
     (u : Γ ⟶ s[j].Tm) (u_tp : u ≫ s[j].tp = (s[i].sec A t t_tp) ≫ B) :
     s.mkPair ilen jlen A B t t_tp u u_tp ≫ s[max i j].tp = s.mkSig ilen jlen A B := by
-  simp [mkPair, mkSig, UvPoly.compP, ← (s.Sig_pb ilen jlen).w, compDomEquiv.mk]
+  simp [mkPair, mkSig, ← (s.Sig_pb ilen jlen).w, compDomEquiv.mk,
+    UvPoly.compDomEquiv.mk, UvPoly.compP, PtpEquiv.mk, t_tp]
 
 section
 
@@ -718,9 +719,10 @@ def mkSnd : Γ ⟶ s[j].Tm :=
 protected theorem dependent_eq :
     compDomEquiv.dependent ((s.Sig_pb ilen jlen).lift (PtpEquiv.mk s[i] A B) p p_tp) A
     (by simp [compDomEquiv.fst_tp]) = B := by
-  simp only [compDomEquiv.dependent]
+  simp only [compDomEquiv.dependent, UvPoly.compDomEquiv.dependent]
   convert PtpEquiv.snd_mk s[i] A B using 2
   simp
+  sorry
 
 @[simp]
 theorem mkSnd_tp : s.mkSnd ilen jlen A B p p_tp ≫ s[j].tp =
@@ -755,6 +757,7 @@ theorem mkFst_mkPair {Γ : Ctx} (A : Γ ⟶ s[i].Ty) (B : (s[i].ext A) ⟶ s[j].
   simp [mkFst, mkPair]
   convert compDomEquiv.fst_mk t t_tp B u u_tp using 2
   apply (s.Sig_pb ilen jlen).hom_ext <;> simp; simp [compDomEquiv.mk, UvPoly.compP]
+  sorry
 
 @[simp]
 theorem mkSnd_mkPair {Γ : Ctx} (A : Γ ⟶ s[i].Ty) (B : (s[i].ext A) ⟶ s[j].Ty)
@@ -764,6 +767,7 @@ theorem mkSnd_mkPair {Γ : Ctx} (A : Γ ⟶ s[i].Ty) (B : (s[i].ext A) ⟶ s[j].
   simp [mkSnd, mkPair]
   convert compDomEquiv.snd_mk t t_tp B u u_tp using 2
   apply (s.Sig_pb ilen jlen).hom_ext <;> simp; simp [compDomEquiv.mk, UvPoly.compP]
+  sorry
 
 end Sigma
 
