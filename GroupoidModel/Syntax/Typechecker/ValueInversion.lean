@@ -2,7 +2,7 @@ import GroupoidModel.Syntax.Typechecker.Value
 
 /-! ## Inversion for value relations -/
 
-variable {χ : Type*} {E : Axioms χ} [Ewf : Fact E.Wf]
+variable {χ : Type*} {E : Axioms χ}
 
 attribute [local grind]
   EqTp.refl_tp EqTp.symm_tp EqTp.trans_tp
@@ -46,7 +46,6 @@ theorem ValEqTp.inv_Id {Γ C vA vt vu l k} : ValEqTp E Γ l (.Id k vA vt vu) C �
     grind [EqTp.refl_tp]
   all_goals grind
 
-omit [Fact E.Wf] in
 theorem ValEqTp.inv_univ {Γ l k t} : ValEqTp E Γ l (.univ k) t → l = k + 1 ∧
     (E ∣ Γ ⊢[k + 1] t ≡ .univ k) := by
   suffices ∀ {Γ l vt t}, ValEqTp E Γ l vt t → ∀ {k}, vt = .univ k → l = k + 1 ∧
@@ -64,21 +63,6 @@ theorem ValEqTp.inv_el {Γ l na A} : ValEqTp E Γ l (.el na) A →
     fun h => this h rfl
   mutual_induction ValEqTp
   all_goals grind [WfTp.el, NeutEqTm.wf_tm]
-
-theorem ValEqTm.inv_ax {Γ C c t l₀} : ValEqTm E Γ l₀ (.ax c) t C → ∃ Al,
-    E c = some Al ∧ l₀ = Al.val.2 ∧ (E ∣ Γ ⊢[l₀] t ≡ .ax c : C) ∧
-    (E ∣ Γ ⊢[l₀] C ≡ Al.val.1) := by
-  suffices ∀ {Γ l₀ vt t C}, ValEqTm E Γ l₀ vt t C → ∀ {c}, vt = .ax c → ∃ Al,
-      E c = some Al ∧ l₀ = Al.val.2 ∧ (E ∣ Γ ⊢[l₀] t ≡ .ax c : C) ∧
-      (E ∣ Γ ⊢[l₀] C ≡ Al.val.1) from
-    fun h => this h rfl
-  mutual_induction ValEqTm
-  all_goals intros; try exact True.intro
-  all_goals rename_i eq; cases eq
-  case conv_nf => grind [EqTm.conv_eq]
-  case ax _ Γ Ec =>
-    refine ⟨_, Ec, rfl, EqTm.refl_tm <| WfTm.ax Γ Ec, EqTp.refl_tp <| ?_⟩
-    exact Ewf.out.atCtx Γ Ec
 
 theorem ValEqTm.inv_lam {Γ C vA vb t l₀ l l'} : ValEqTm E Γ l₀ (.lam l l' vA vb) t C →
     l₀ = max l l' ∧ ∃ A B b,
@@ -130,30 +114,6 @@ theorem ValEqTm.inv_refl {Γ C vt r l₀ l} : ValEqTm E Γ l₀ (.refl l vt) r C
     grind [WfTm.refl, WfTp.Id]
   all_goals grind [EqTm.conv_eq]
 
-theorem NeutEqTm.inv_idRec {Γ C vA cM va vr nh j l₀ l l'} :
-    NeutEqTm E Γ l₀ (.idRec l l' vA va cM vr nh) j C → l₀ = l' ∧ ∃ A M t r u h,
-      (ValEqTp E Γ l vA A) ∧
-      (ValEqTm E Γ l va t A) ∧
-      (Clos₂EqTp E Γ A l (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0)) l l' cM M) ∧
-      (ValEqTm E Γ l' vr r (M.subst (.snoc t.toSb <| .refl l t))) ∧
-      (NeutEqTm E Γ l nh h (.Id l A t u)) ∧
-      (E ∣ Γ ⊢[l'] j ≡ .idRec l l' t M r u h : C) ∧
-      (E ∣ Γ ⊢[l'] C ≡ M.subst (.snoc u.toSb h)) := by
-  suffices
-    ∀ {Γ l₀ vj j C}, NeutEqTm E Γ l₀ vj j C → ∀ {vA cM va vr nh l l'},
-      vj = .idRec l l' vA va cM vr nh → l₀ = l' ∧ ∃ A M t r u h,
-        (ValEqTp E Γ l vA A) ∧
-        (ValEqTm E Γ l va t A) ∧
-        (Clos₂EqTp E Γ A l (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0)) l l' cM M) ∧
-        (ValEqTm E Γ l' vr r (M.subst (.snoc t.toSb <| .refl l t))) ∧
-        (NeutEqTm E Γ l nh h (.Id l A t u)) ∧
-        (E ∣ Γ ⊢[l'] j ≡ .idRec l l' t M r u h : C) ∧
-        (E ∣ Γ ⊢[l'] C ≡ M.subst (.snoc u.toSb h)) from
-    fun h => this h rfl
-  mutual_induction ValEqTm
-  case idRec => grind [NeutEqTm.wf_tm, WfTm.wf_tp, → NeutEqTm.idRec]
-  all_goals grind [EqTm.conv_eq]
-
 theorem ValEqTm.inv_code {Γ C vA c l₀} : ValEqTm E Γ l₀ (.code vA) c C →
     ∃ l A, l₀ = l + 1 ∧
       (ValEqTp E Γ l vA A) ∧ (E ∣ Γ ⊢[l₀] c ≡ .code A : C) ∧ (E ∣ Γ ⊢[l₀] C ≡ .univ l) := by
@@ -168,7 +128,6 @@ theorem ValEqTm.inv_code {Γ C vA c l₀} : ValEqTm E Γ l₀ (.code vA) c C →
   case conv_nf => grind [EqTm.conv_eq]
   case code => grind [WfTp.univ, WfTm.code, ValEqTp.wf_tp, WfTp.wf_ctx]
 
-omit [Fact E.Wf] in
 theorem ValEqTm.inv_neut {Γ vA A vt t l} : ValEqTm E Γ l (.neut vt vA) t A →
     ValEqTp E Γ l vA A ∧ NeutEqTm E Γ l vt t A := by
   suffices ∀ {Γ l vt t A}, ValEqTm E Γ l vt t A → ∀ {n vA}, vt = .neut n vA →
@@ -176,6 +135,23 @@ theorem ValEqTm.inv_neut {Γ vA A vt t l} : ValEqTm E Γ l (.neut vt vA) t A →
     fun h => this h rfl
   mutual_induction ValEqTm
   all_goals grind [NeutEqTm.conv_neut, ValEqTp.conv_tp]
+
+theorem NeutEqTm.inv_ax {Γ C c vA t l₀} : NeutEqTm E Γ l₀ (.ax c vA) t C → ∃ Al,
+   l₀ = Al.val.2 ∧ E c = some Al ∧ ValEqTp E Γ Al.val.2 vA Al.val.1 ∧
+    (E ∣ Γ ⊢[l₀] t ≡ .ax c Al.val.1 : C) ∧ (E ∣ Γ ⊢[l₀] C ≡ Al.val.1) := by
+  suffices ∀ {Γ l₀ vt t C}, NeutEqTm E Γ l₀ vt t C → ∀ {c vA}, vt = .ax c vA → ∃ Al,
+      l₀ = Al.val.2 ∧ E c = some Al ∧ ValEqTp E Γ Al.val.2 vA Al.val.1 ∧
+        (E ∣ Γ ⊢[l₀] t ≡ .ax c Al.val.1 : C) ∧ (E ∣ Γ ⊢[l₀] C ≡ Al.val.1) from
+    fun h => this h rfl
+  mutual_induction ValEqTm
+  all_goals intros; try exact True.intro
+  all_goals rename_i eq; cases eq
+  case conv_neut ih =>
+    have ⟨Al,  _⟩ := ih rfl
+    refine ⟨Al, ?_⟩
+    grind [EqTm.conv_eq]
+  case ax Γ Ec vA _ =>
+    exact ⟨_, rfl, Ec, vA, EqTm.refl_tm <| WfTm.ax Γ Ec vA.wf_tp, EqTp.refl_tp vA.wf_tp⟩
 
 theorem NeutEqTm.inv_bvar {Γ A t i l} : NeutEqTm E Γ l (.bvar i) t A →
     ∃ A', Lookup Γ (Γ.length - i - 1) A' l ∧
@@ -236,3 +212,27 @@ theorem NeutEqTm.inv_snd {Γ C vp s l₀ l l'} : NeutEqTm E Γ l₀ (.snd l l' v
   case conv_neut => grind [EqTm.conv_eq]
   case snd =>
     grind [WfTm.snd, NeutEqTm.wf_tm, WfTm.wf_tp, WfTp.inv_sigma, WfTp.wf_ctx, WfCtx.inv_snoc]
+
+theorem NeutEqTm.inv_idRec {Γ C vA cM va vr nh j l₀ l l'} :
+    NeutEqTm E Γ l₀ (.idRec l l' vA va cM vr nh) j C → l₀ = l' ∧ ∃ A M t r u h,
+      (ValEqTp E Γ l vA A) ∧
+      (ValEqTm E Γ l va t A) ∧
+      (Clos₂EqTp E Γ A l (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0)) l l' cM M) ∧
+      (ValEqTm E Γ l' vr r (M.subst (.snoc t.toSb <| .refl l t))) ∧
+      (NeutEqTm E Γ l nh h (.Id l A t u)) ∧
+      (E ∣ Γ ⊢[l'] j ≡ .idRec l l' t M r u h : C) ∧
+      (E ∣ Γ ⊢[l'] C ≡ M.subst (.snoc u.toSb h)) := by
+  suffices
+    ∀ {Γ l₀ vj j C}, NeutEqTm E Γ l₀ vj j C → ∀ {vA cM va vr nh l l'},
+      vj = .idRec l l' vA va cM vr nh → l₀ = l' ∧ ∃ A M t r u h,
+        (ValEqTp E Γ l vA A) ∧
+        (ValEqTm E Γ l va t A) ∧
+        (Clos₂EqTp E Γ A l (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0)) l l' cM M) ∧
+        (ValEqTm E Γ l' vr r (M.subst (.snoc t.toSb <| .refl l t))) ∧
+        (NeutEqTm E Γ l nh h (.Id l A t u)) ∧
+        (E ∣ Γ ⊢[l'] j ≡ .idRec l l' t M r u h : C) ∧
+        (E ∣ Γ ⊢[l'] C ≡ M.subst (.snoc u.toSb h)) from
+    fun h => this h rfl
+  mutual_induction ValEqTm
+  case idRec => grind [NeutEqTm.wf_tm, WfTm.wf_tp, → NeutEqTm.idRec]
+  all_goals grind [EqTm.conv_eq]

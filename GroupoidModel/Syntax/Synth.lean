@@ -37,11 +37,11 @@ without using any of the level annotations.
 Furthermore, the correctness proof `eq_synthLvl` needs zero metatheory.
 Does this imply we could omit level annotations from the syntax?
 In the interpretation function, we'd invoke `synthLvl.go` on `ExtSeq`.  -/
-noncomputable def synthLvl (E : Axioms χ) (Γ : Ctx χ) (e : Expr χ) : Nat :=
+noncomputable def synthLvl (Γ : Ctx χ) (e : Expr χ) : Nat :=
   go (Γ.map (·.2)) e
 where
   go (Γ : List Nat) : Expr χ → Nat
-  | .ax c => (E c).map (·.val.2) |>.getD 0
+  | .ax _ A => go Γ A
   | .bvar i => Γ[i]? |>.getD default
   | .pi _ _ A B | .sigma _ _ A B =>
     let l := go Γ A
@@ -65,18 +65,17 @@ where
   | .code A => go Γ A + 1
 
 theorem eq_synthLvl :
-    (∀ {Γ l A}, E ∣ Γ ⊢[l] A → l = synthLvl E Γ A) ∧
-    (∀ {Γ l A t}, E ∣ Γ ⊢[l] t : A → l = synthLvl E Γ t) := by
+    (∀ {Γ l A}, E ∣ Γ ⊢[l] A → l = synthLvl Γ A) ∧
+    (∀ {Γ l A t}, E ∣ Γ ⊢[l] t : A → l = synthLvl Γ t) := by
   mutual_induction WfTp
   all_goals intros; try exact True.intro
-  case ax Ec c => simp [synthLvl, synthLvl.go, Ec]
   case bvar lk _ => simp [synthLvl, synthLvl.go, lk.lt_length, lk.lvl_eq]
   all_goals grind [synthLvl, synthLvl.go]
 
-theorem WfTp.lvl_eq_synthLvl : E ∣ Γ ⊢[l] A → l = synthLvl E Γ A :=
+theorem WfTp.lvl_eq_synthLvl : E ∣ Γ ⊢[l] A → l = synthLvl Γ A :=
   fun A => _root_.eq_synthLvl.1 A
 
-theorem WfTm.lvl_eq_synthLvl : E ∣ Γ ⊢[l] t : A → l = synthLvl E Γ t :=
+theorem WfTm.lvl_eq_synthLvl : E ∣ Γ ⊢[l] t : A → l = synthLvl Γ t :=
   fun t => _root_.eq_synthLvl.2 t
 
 /-- A type's universe level is unique. -/
@@ -89,7 +88,6 @@ theorem WfTm.uniq_lvl : E ∣ Γ ⊢[l] t : A → E ∣ Γ ⊢[l'] t : A' → l 
 
 /-! ## Type synthesis and uniqueness -/
 
-variable (E : Axioms χ) in
 /-- Synthesize the type of a term.
 
 This function is marked `noncomputable`
@@ -98,7 +96,7 @@ it is only defined for mathematical modelling,
 in particular to prove unique typing.
 For executable type synthesis, see `Typechecker.Synth`. -/
 noncomputable def synthTp (Γ : Ctx χ) : Expr χ → Expr χ
-  | .ax c => (E c).map (·.val.1) |>.getD default
+  | .ax _ A => A
   | .bvar 0 => Γ[0]? |>.getD default |>.1.subst Expr.wk
   | .bvar (i+1) => synthTp (Γ.drop 1) (.bvar i) |>.subst Expr.wk
   | .lam l l' A b => .pi l l' A (synthTp ((A, l) :: Γ) b)
@@ -108,18 +106,16 @@ noncomputable def synthTp (Γ : Ctx χ) : Expr χ → Expr χ
   | .snd l l' A B p => B.subst (Expr.fst l l' A B p).toSb
   | .refl l t => .Id l (synthTp Γ t) t t
   | .idRec _ _ _ M _ u h => M.subst (.snoc u.toSb h)
-  | .code A => .univ (synthLvl E Γ A)
+  | .code A => .univ (synthLvl Γ A)
   | _ => default
 
-variable [Ewf : Fact E.Wf]
-
 attribute [local grind] synthTp EqTp.symm_tp EqTp.trans_tp EqTp.refl_tp in
-theorem WfTm.tp_eq_synthTp : ∀ {Γ l A t}, E ∣ Γ ⊢[l] t : A → E ∣ Γ ⊢[l] A ≡ synthTp E Γ t := by
+theorem WfTm.tp_eq_synthTp : ∀ {Γ l A t}, E ∣ Γ ⊢[l] t : A → E ∣ Γ ⊢[l] A ≡ synthTp Γ t := by
   mutual_induction WfTm
   all_goals intros; try exact True.intro
-  case ax Γ Ec _ =>
-    simp only [synthTp, Ec, Option.map_some, Option.getD_some]
-    apply EqTp.refl_tp (Ewf.out.atCtx Γ Ec)
+  case ax A _ _ =>
+    simp only [synthTp]
+    apply EqTp.refl_tp A
   case bvar Γ lk _ =>
     induction lk
     . simp only [synthTp, List.getElem?_cons_zero, Option.getD_some]
@@ -143,7 +139,7 @@ theorem WfTm.tp_eq_synthTp : ∀ {Γ l A t}, E ∣ Γ ⊢[l] t : A → E ∣ Γ 
   case code => grind [WfTp.lvl_eq_synthLvl, WfTp.univ, WfTp.wf_ctx]
   case conv => grind
 
-theorem WfTm.with_synthTp : E ∣ Γ ⊢[l] t : A → E ∣ Γ ⊢[l] t : synthTp E Γ t :=
+theorem WfTm.with_synthTp : E ∣ Γ ⊢[l] t : A → E ∣ Γ ⊢[l] t : synthTp Γ t :=
   fun t => t.conv t.tp_eq_synthTp
 
 /-- A term's type is unique up to conversion. -/

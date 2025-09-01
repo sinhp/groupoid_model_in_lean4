@@ -6,7 +6,7 @@ variable {_u : Lean.Level} {χ : Q(Type _u)}
 
 mutual
 partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT' vU' : Q(Val $χ)) :
-    Lean.MetaM Q(∀ {E Γ T U}, [Fact E.Wf] → $d = Γ.length →
+    Lean.MetaM Q(∀ {E Γ T U}, $d = Γ.length →
       ValEqTp E Γ $l $vT' T → ValEqTp E Γ $l $vU' U → E ∣ Γ ⊢[$l] T ≡ U) := do
   let vT : Q(Val $χ) ← Lean.Meta.whnf vT'
   have _ : $vT =Q $vT' := .unsafeIntro
@@ -21,7 +21,7 @@ partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT' vU' : Q(Val $χ)) :
     let ⟨Bx', Bxpost'⟩ ← forceClosTp q($d) q($vA') q($vB')
     let Beq ← equateTp q($d + 1) q($k') q($Bx) q($Bx')
     return q(by as_aux_lemma =>
-      introv _ _ vT vU
+      introv _ vT vU
       have ⟨_, _, _, vA, vB, eq⟩ := vT.inv_pi
       have ⟨_, _, _, vA', vB', eq'⟩ := vU.inv_pi
       subst_vars
@@ -40,7 +40,7 @@ partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT' vU' : Q(Val $χ)) :
     let ⟨Bx', Bxpost'⟩ ← forceClosTp q($d) q($vA') q($vB')
     let Beq ← equateTp q($d + 1) q($k') q($Bx) q($Bx')
     return q(by as_aux_lemma =>
-      introv _ _ vT vU
+      introv _ vT vU
       have ⟨_, _, _, vA, vB, eq⟩ := vT.inv_sigma
       have ⟨_, _, _, vA', vB', eq'⟩ := vU.inv_sigma
       subst_vars
@@ -57,7 +57,7 @@ partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT' vU' : Q(Val $χ)) :
     let aeq ← equateTm q($d) q($k) q($vA) q($va) q($va')
     let beq ← equateTm q($d) q($k) q($vA) q($vb) q($vb')
     return q(by as_aux_lemma =>
-      introv _ _ vT vU
+      introv _ vT vU
       have ⟨_, _, _, _, vA, va, vb, eq⟩ := vT.inv_Id
       have ⟨_, _, _, _, vA', va', vb', eq'⟩ := vU.inv_Id
       subst_vars
@@ -69,7 +69,7 @@ partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT' vU' : Q(Val $χ)) :
     )
   | ~q(.univ _), ~q(.univ _) => do
     return q(by as_aux_lemma =>
-      introv _ _ vT vU
+      introv _ vT vU
       have ⟨_, eq⟩ := vT.inv_univ
       have ⟨h, eq'⟩ := vU.inv_univ
       subst_vars; cases h
@@ -80,7 +80,7 @@ partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT' vU' : Q(Val $χ)) :
   | ~q(.el $na), ~q(.el $na') => do
     let aeq ← equateNeutTm q($d) q($na) q($na')
     return q(by as_aux_lemma =>
-      introv _ deq vT vU
+      introv deq vT vU
       have ⟨_, na, eq⟩ := vT.inv_el
       have ⟨_, na', eq'⟩ := vU.inv_el
       apply eq.trans_tp _ |>.trans_tp eq'.symm_tp
@@ -89,10 +89,13 @@ partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT' vU' : Q(Val $χ)) :
       gcongr
     )
   | vT, vU =>
-    throwError "cannot prove normal types are equal{Lean.indentExpr vT}\n≡?≡{Lean.indentExpr vU}"
+    throwError "cannot prove normal types are equal\
+        {Lean.indentExpr vT |>.nest 2}\
+      {Lean.indentD "≡?≡"}\
+        {Lean.indentExpr vU |>.nest 2}"
 
 partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val $χ)) :
-    Lean.MetaM Q(∀ {E Γ T t u}, [Fact E.Wf] → $d = Γ.length →
+    Lean.MetaM Q(∀ {E Γ T t u}, $d = Γ.length →
       ValEqTp E Γ $l $vT T → ValEqTm E Γ $l $vt t T → ValEqTm E Γ $l $vu u T →
       E ∣ Γ ⊢[$l] t ≡ u : T) := do
   match vT with
@@ -103,7 +106,7 @@ partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val $χ)) :
     let ⟨Bx, Bxpost⟩ ← forceClosTp q($d) q($vA) q($vB)
     let tueq ← equateTm q($d + 1) q($k') q($Bx) q($tx) q($ux)
     return q(by as_aux_lemma =>
-      introv _ _ vT vt vu
+      introv _ vT vt vu
       have ⟨_, _, _, vA, vB, eq⟩ := vT.inv_pi
       subst_vars
 
@@ -133,7 +136,7 @@ partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val $χ)) :
     let ⟨Btf, Btfpost⟩ ← evalClosTp q($vB) q($tf)
     let seq ← equateTm q($d) q($k') q($Btf) q($ts) q($us)
     return q(by as_aux_lemma =>
-      introv _ deq vT vt vu
+      introv deq vT vt vu
       have ⟨_, _, _, vA, vB, eq⟩ := vT.inv_sigma
       subst_vars
 
@@ -160,7 +163,7 @@ partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val $χ)) :
     let ⟨vA', vApost'⟩ ← evalEl q($vu)
     let Aeq ← equateTp q($d) q($k) q($vA) q($vA')
     return q(by as_aux_lemma =>
-      introv _ deq vT vt vu
+      introv deq vT vt vu
       have ⟨_, eq⟩ := vT.inv_univ
       subst_vars
 
@@ -176,18 +179,9 @@ partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val $χ)) :
     )
   | _ =>
     match vT, vt, vu with
-    | vT, ~q(.ax $c), ~q(.ax $c') =>
-      let ⟨_⟩ ← assertDefEqQ q($c) q($c')
-      return q(by as_aux_lemma =>
-        introv _ deq vT vt vu
-        have ⟨_, _, _, eqt, eq⟩ := vt.inv_ax
-        have ⟨_, _, _, eqt', eq'⟩ := vu.inv_ax
-        apply eqt.trans_tm _ |>.trans_tm eqt'.symm_tm
-        apply EqTm.refl_tm eqt'.wf_right
-      )
     | ~q(.Id $k $vA $va $vb), ~q(.refl _ _), ~q(.refl _ _) =>
       return q(by as_aux_lemma =>
-        introv _ deq vT vt vu
+        introv deq vT vt vu
         have ⟨_, _, _, _, eqt, eq⟩ := vt.inv_refl
         have ⟨_, _, _, _, eqt', eq'⟩ := vu.inv_refl
         subst_vars
@@ -199,26 +193,41 @@ partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val $χ)) :
     | vT, ~q(.neut $nt _), ~q(.neut $nu _) => do
       let eq ← equateNeutTm q($d) q($nt) q($nu)
       return q(by as_aux_lemma =>
-        introv _ deq vT vt vu
+        introv deq vT vt vu
         have ⟨_, nt⟩ := vt.inv_neut
         have ⟨_, nu⟩ := vu.inv_neut
         exact $eq deq nt nu |>.2
       )
     | _, vt, vu =>
       throwError "cannot prove normal terms are equal\
-        {Lean.indentExpr vt}\n≡?≡{Lean.indentExpr vu}\n\
-        at type\
-        {Lean.indentExpr vT}"
+          {Lean.indentExpr vt |>.nest 2}\
+        {Lean.indentD "≡?≡"}\
+          {Lean.indentExpr vu |>.nest 2}\
+        {Lean.indentD "at type"}\
+          {Lean.indentExpr vT |>.nest 2}"
 
 partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut $χ)) :
-    Lean.MetaM Q(∀ {E Γ T U t u l}, [Fact E.Wf] → $d = Γ.length →
+    Lean.MetaM Q(∀ {E Γ T U t u l}, $d = Γ.length →
       NeutEqTm E Γ l $nt t T → NeutEqTm E Γ l $nu u U →
       (E ∣ Γ ⊢[l] T ≡ U) ∧ (E ∣ Γ ⊢[l] t ≡ u : T)) :=
   match nt, nu with
+  | ~q(.ax $c _), ~q(.ax $c' _) => do
+    let ⟨_⟩ ← assertDefEqQ q($c) q($c')
+    return q(by as_aux_lemma =>
+      introv deq nt nu
+      have ⟨_, _, Ec, _, eqt, eq⟩ := nt.inv_ax
+      have ⟨_, _, Ec', _, eqt', eq'⟩ := nu.inv_ax
+      cases Ec.symm.trans Ec'
+      subst_vars
+      have TUeq := eq.trans_tp eq'.symm_tp; refine ⟨TUeq, ?_⟩
+      apply eqt.trans_tm _ |>.trans_tm (eqt'.conv_eq TUeq.symm_tp).symm_tm
+      apply EqTm.conv_eq _ eq.symm_tp
+      apply EqTm.refl_tm (eqt.wf_right.conv eq)
+    )
   | ~q(.bvar $i), ~q(.bvar $j) => do
     let ij ← equateNat q($i) q($j)
     return q(by as_aux_lemma =>
-      introv _ deq nt nu
+      introv deq nt nu
       have ⟨_, lk, eqt, eq⟩ := nt.inv_bvar
       have ⟨_, lk', eqt', eq'⟩ := nu.inv_bvar
       subst_vars
@@ -232,7 +241,7 @@ partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut $χ)) :
     let feq ← equateNeutTm q($d) q($nf) q($nf')
     let aeq ← equateTm q($d) q($k) q($vA) q($va) q($va')
     return q(by as_aux_lemma =>
-      introv _ _ nt nu
+      introv _ nt nu
       have ⟨_, _, _, _, _, vA, nf, va, eqt, eq⟩ := nt.inv_app
       have ⟨_, _, _, _, _, vA', nf', va', eqt', eq'⟩ := nu.inv_app
       subst_vars
@@ -250,7 +259,7 @@ partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut $χ)) :
     let km' ← equateNat q($k') q($m')
     let peq ← equateNeutTm q($d) q($p) q($p')
     return q(by as_aux_lemma =>
-      introv _ deq nt nu
+      introv deq nt nu
       have ⟨_, _, _, _, p, eqt, eq⟩ := nt.inv_fst
       have ⟨_, _, _, _, p', eqt', eq'⟩ := nu.inv_fst
       subst_vars
@@ -266,7 +275,7 @@ partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut $χ)) :
     let km ← equateNat q($k) q($m)
     let peq ← equateNeutTm q($d) q($p) q($p')
     return q(by as_aux_lemma =>
-      introv _ deq nt nu
+      introv deq nt nu
       have ⟨_, _, _, _, p, eqt, eq⟩ := nt.inv_snd
       have ⟨_, _, _, _, p', eqt', eq'⟩ := nu.inv_snd
       subst_vars
@@ -291,7 +300,7 @@ partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut $χ)) :
     let ⟨Mrfl, Mrflpost⟩ ← evalClos₂Tp q($cM) q($va) q(.refl $k $va)
     let req ← equateTm q($d) q($k') q($Mrfl) q($vr) q($vr')
     return q(by as_aux_lemma =>
-      introv _ _ nt nu
+      introv _ nt nu
       have ⟨_, _, _, _, _, _, _, vA, va, cM, vr, nh, eqt, eq⟩ := nt.inv_idRec
       have ⟨_, _, _, _, _, _, _, vA', va', cM', vr', nh', eqt', eq'⟩ := nu.inv_idRec
       subst_vars
@@ -322,5 +331,8 @@ partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut $χ)) :
         gcongr
     )
   | nt, nu =>
-    throwError "cannot prove neutral terms are equal{Lean.indentExpr nt}\n≡?≡{Lean.indentExpr nu}"
+    throwError "cannot prove neutral terms are equal\
+        {Lean.indentExpr nt |>.nest 2}\
+      {Lean.indentD "≡?≡"}\
+        {Lean.indentExpr nu |>.nest 2}"
 end

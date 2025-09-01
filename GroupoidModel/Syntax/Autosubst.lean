@@ -39,7 +39,7 @@ theorem upr_id : upr id = id := by
 
 /-- Rename the de Bruijn indices in an expression. -/
 def rename (ξ : Nat → Nat) : Expr χ → Expr χ
-  | .ax c => .ax c
+  | .ax c A => .ax c (A.rename ξ)
   | .bvar i => .bvar (ξ i)
   | .pi l l' A B => .pi l l' (A.rename ξ) (B.rename (upr ξ))
   | .sigma l l' A B => .sigma l l' (A.rename ξ) (B.rename (upr ξ))
@@ -78,7 +78,7 @@ theorem up_bvar (χ) : up (χ := χ) Expr.bvar = Expr.bvar := by
 
 /-- Apply a substitution to an expression. -/
 def subst (σ : Nat → Expr χ) : Expr χ → Expr χ
-  | .ax c => .ax c
+  | .ax c A => .ax c (A.subst σ)
   | .bvar i => σ i
   | .pi l l' A B => .pi l l' (A.subst σ) (B.subst (up σ))
   | .sigma l l' A B => .sigma l l' (A.subst σ) (B.subst (up σ))
@@ -291,7 +291,8 @@ theorem subst_snoc_toSb_subst (B a b : Expr χ) σ :
 
 /-- The expression uses only indices up to `k`. -/
 def isClosed (k : Nat := 0) : Expr χ → Bool
-  | .ax _ | .univ _ => true
+  | .univ _ => true
+  | .ax _ A => A.isClosed k
   | .bvar i => i < k
   | .refl _ t | .el t | .code t => t.isClosed k
   | .pi _ _ t b | .sigma _ _ t b | .lam _ _ t b =>

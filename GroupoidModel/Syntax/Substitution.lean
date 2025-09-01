@@ -89,10 +89,12 @@ theorem rename_all :
       (B.subst a.toSb).rename ξ = (B.rename (Expr.upr ξ)).subst (a.rename ξ).toSb := by autosubst
   mutual_induction WfCtx
   all_goals dsimp only; try intros
-  all_goals try simp only [Expr.rename, ih_subst] at *
+  all_goals try simp only [Expr.rename, ih_subst] at *; clear ih_subst
   -- Cases that don't go through by `grind_cases`.
-  case ax p _ Ec _ _ _ Δ _ =>
-    simpa [Expr.rename_eq_subst_ofRen, Expr.subst_of_isClosed _ p.2.1] using WfTm.ax Δ Ec
+  case ax p _ Ec _ _ ihA _ _ Δ ξ =>
+    have := ihA Δ ξ
+    simp only [Expr.rename_eq_subst_ofRen, Expr.subst_of_isClosed _ p.2.1] at this ⊢
+    apply WfTm.ax Δ Ec this
   case bvar ξ => apply WfTm.bvar _ (ξ.lookup _) <;> assumption
   case lam_app' =>
     convert EqTm.lam_app' .. using 1
@@ -369,14 +371,16 @@ theorem subst_all :
   mutual_induction WfCtx
   all_goals dsimp; try intros
   all_goals try simp only [Expr.subst_toSb_subst, Expr.subst_snoc_toSb_subst, Expr.subst] at *
-  case ax p _ Ec _ =>
+  case ax p _ Ec _ _ ihA =>
     constructor
     . introv σ
-      simpa [Expr.rename_eq_subst_ofRen, Expr.subst_of_isClosed _ p.2.1] using
-        WfTm.ax σ.wf_dom Ec
+      have := ihA.1 σ
+      simp only [Expr.subst_of_isClosed _ p.2.1] at this ⊢
+      apply WfTm.ax σ.wf_dom Ec this
     . introv eq
-      simpa [Expr.rename_eq_subst_ofRen, Expr.subst_of_isClosed _ p.2.1] using
-        EqTm.refl_tm <| WfTm.ax eq.wf_dom Ec
+      have := ihA.1 eq.wf_left
+      simp [Expr.subst_of_isClosed _ p.2.1] at this ⊢
+      apply EqTm.refl_tm <| WfTm.ax eq.wf_dom Ec this
   case bvar => grind [EqSb.lookup, WfSb.lookup]
   case pi' => grind [WfTp.pi', EqTp.cong_pi']
   case sigma' => grind [WfTp.sigma', EqTp.cong_sigma']

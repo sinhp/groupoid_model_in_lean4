@@ -162,7 +162,8 @@ inductive WfTm : Ctx χ → Nat → Expr χ → Expr χ → Prop
   | ax {Γ c Al} :
     WfCtx Γ →
     E c = some Al →
-    Γ ⊢[Al.val.2] .ax c : Al.val.1
+    Γ ⊢[Al.val.2] Al.val.1 →
+    Γ ⊢[Al.val.2] .ax c Al.val.1 : Al.val.1
 
   | bvar {Γ A i l} :
     WfCtx Γ →
@@ -398,11 +399,9 @@ end PrettyPrinting
 /-- The given axiom environment is well-formed.
 
 Unlike contexts that change via substitutions,
-most syntactic lemmas live 'over' a fixed environment.
-These all require an `Axioms.Wf` assumption
-that cannot be eliminated using inversion (`E | Γ ⊢[l] 𝒥 ⇏ E.Wf`).
-We propagate this assumption using the typeclass `[Fact E.Wf]`. -/
-/- FIXME: Can't make inversion true by making `Axioms.Wf` mutual with typing
+there is usually one fixed axiom environment that definitions 'live' over. -/
+/- FIXME: Can't make inversion (`E | Γ ⊢[l] 𝒥 ⇏ E.Wf`) true
+by making `Axioms.Wf` mutual with typing
 (that's not strictly positive),
 but we could redefine `E ∣ Γ ⊢[l] 𝒥` to mean `E.Wf ∧ E ∣ Γ ⊢[l] 𝒥`.
 We'd need to rederive all typing rules for the latter,

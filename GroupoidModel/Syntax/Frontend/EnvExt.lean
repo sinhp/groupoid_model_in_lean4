@@ -97,7 +97,9 @@ private initialize theoryExt : TheoryExt ←
         let mod := mods[iMod]
         -- We assume `mods` is ordered by `ModuleIdx`.
         let modNm := env.header.moduleNames[iMod]!
-        for entry in mod do
+        for h : iEntry in [0:mod.size] do
+          -- See comment on `exportEntriesFnEx`.
+          let entry := mod[mod.size - iEntry - 1]'(by have := h.upper; grind)
           match entry with
           | .thy thyNm =>
             if let some thyData := thyMap.find? thyNm then
@@ -126,12 +128,15 @@ private initialize theoryExt : TheoryExt ←
               thyMap := thyMap.insert thyNm { thyData with
                 env := thyEnv,
                 axioms := q(($a).snocAxioms)
-                wf_axioms := q(($a).wf_snocAxioms)
+                wf_axioms := q(($a).wf_snocAxioms $wf_axioms)
               }
             | _ => throwThe IO.Error s!"unexpected constant info kind at '{ci.name}'"
       return ([], thyMap)
     /- We update only the list of entries; theory data needs a monadic computation to update. -/
     addEntryFn s e := (e :: s.1, s.2)
+    -- Note: because we `cons` local entries onto the list,
+    -- this array has the latest entry first
+    -- and has to be read in reverse order when imported.
     exportEntriesFnEx _ s _ := s.1.toArray
     -- TODO: statsFn, asyncMode, replay?
   }

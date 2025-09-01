@@ -24,8 +24,6 @@ attribute [trans] EqTm.trans_tm
 
 attribute [gcongr] EqTp.cong_pi
 
-variable [Fact E.Wf]
-
 @[gcongr]
 theorem EqTp.cong_pi_dom {Γ A A' B l l'} :
     E ∣ Γ ⊢[l] A ≡ A' →
@@ -56,7 +54,6 @@ theorem EqTp.cong_sigma_cod {Γ A B B' l l'} :
 
 attribute [gcongr] EqTp.cong_el
 
-omit [Fact E.Wf] in
 @[gcongr]
 theorem EqTp.cong_Id_tp {Γ A A' t u l} :
     E ∣ Γ ⊢[l] A ≡ A' →

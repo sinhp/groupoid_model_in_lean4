@@ -38,16 +38,14 @@ def elabAxiom (thyNm : Name) (stx : Syntax) : CommandElabM Unit := do
 
     have axioms : Q(Axioms Name) := thyData.axioms
     have wf_axioms : Q(($axioms).Wf) := thyData.wf_axioms
-    have : Q(Fact ($axioms).Wf) := q(⟨$wf_axioms⟩)
     have name : Q(Name) := toExpr ci.name
-    let .inr _ ← decideAxiomsGet q($axioms) q($name)
+    let .inr _ ← lookupAxiom q($axioms) q($name)
       | throwError "internal error: axiom '{ci.name}' has already been added, \
         but elaboration succeeded"
-    let Twf ← checkTp q($axioms) q(⟨$wf_axioms⟩) q([]) q($l) q($T)
+    let Twf ← checkTp q($axioms) q($wf_axioms) q([]) q($l) q($T)
     let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Lean.Name from []) q($T)
     let value : Q(CheckedAx $axioms) := q(
-      { wf_axioms := $wf_axioms
-        name := $name
+      { name := $name
         get_name := ‹_›
         l := $l
         tp := $T
@@ -70,8 +68,8 @@ def elabAxiom (thyNm : Name) (stx : Syntax) : CommandElabM Unit := do
     saveShallowTheoryConst thyNm (.axiomInfo ci)
     setTheoryData thyNm { thyData with
       env := thyEnv'
-      axioms := q(have : Fact ($axioms).Wf := ⟨$wf_axioms⟩; ($a).snocAxioms)
-      wf_axioms := q(have : Fact ($axioms).Wf := ⟨$wf_axioms⟩; ($a).wf_snocAxioms)
+      axioms := q(($a).snocAxioms)
+      wf_axioms := q(($a).wf_snocAxioms $wf_axioms)
     }
 
 def elabDeclaration (thyNm : Name) (stx : Syntax) : CommandElabM Unit := do
@@ -102,13 +100,11 @@ def elabDeclaration (thyNm : Name) (stx : Syntax) : CommandElabM Unit := do
 
     have axioms : Q(Axioms Name) := thyData.axioms
     have wf_axioms : Q(($axioms).Wf) := thyData.wf_axioms
-    have : Q(Fact ($axioms).Wf) := q(⟨$wf_axioms⟩)
-    let Twf ← checkTp q($axioms) q(⟨$wf_axioms⟩) q([]) q($l) q($T)
+    let Twf ← checkTp q($axioms) q($wf_axioms) q([]) q($l) q($T)
     let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Lean.Name from []) q($T)
-    let twf ← checkTm q($axioms) q(⟨$wf_axioms⟩) q([]) q($l) q($vT) q($t)
+    let twf ← checkTm q($axioms) q($wf_axioms) q([]) q($l) q($vT) q($t)
     let value : Q(CheckedDef $axioms) := q(
-      { wf_axioms := $wf_axioms
-        l := $l
+      { l := $l
         tp := $T
         nfTp := $vT
         wf_nfTp := $vTeq .nil <| $Twf .nil

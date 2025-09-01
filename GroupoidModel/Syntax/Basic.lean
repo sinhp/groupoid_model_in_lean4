@@ -5,8 +5,8 @@ universe u
 variable (χ : Type u) in
 /-- A HoTT0 expression with axioms indexed by `χ`. -/
 inductive Expr where
-  /-- An axiom, i.e., a closed term constant in the theory. -/
-  | ax (c : χ)
+  /-- An axiom (i.e., a closed term constant in the theory) of the given type. -/
+  | ax (c : χ) (A : Expr)
   /-- De Bruijn index. -/
   | bvar (i : Nat)
   /-- Dependent product. -/

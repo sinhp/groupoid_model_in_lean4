@@ -46,8 +46,6 @@ theorem WfTp.inv_el {Γ a l} : E ∣ Γ ⊢[l] .el a → E ∣ Γ ⊢[l+1] a : .
 
 -- FIXME: write a generator for these lemmas.
 
-variable [Ewf : Fact E.Wf]
-
 theorem WfTp.pi {Γ A B l l'} :
     E ∣ (A, l) :: Γ ⊢[l'] B →
     E ∣ Γ ⊢[max l l'] .pi l l' A B :=
@@ -232,20 +230,19 @@ theorem WfTp.Id_bvar {Γ A t l} : E ∣ Γ ⊢[l] t : A →
 
 /-! ## Term former inversion -/
 
-theorem WfTm.inv_ax {Γ C c l} : E ∣ Γ ⊢[l] .ax c : C →
-    ∃ Al, E c = some Al ∧ l = Al.val.2 ∧ (E ∣ Γ ⊢[l] C ≡ Al.val.1) := by
+theorem WfTm.inv_ax {Γ A C c l₀} : E ∣ Γ ⊢[l₀] .ax c A : C →
+    ∃ Al, E c = some Al ∧ A = Al.val.1 ∧ l₀ = Al.val.2 ∧ (E ∣ Γ ⊢[l₀] C ≡ Al.val.1) := by
   suffices
-      ∀ {Γ l C t}, E ∣ Γ ⊢[l] t : C → ∀ {c}, t = .ax c → ∃ Al,
-        E c = some Al ∧ l = Al.val.2 ∧ (E ∣ Γ ⊢[l] C ≡ Al.val.1) from
+      ∀ {Γ l₀ C t}, E ∣ Γ ⊢[l₀] t : C → ∀ {c A}, t = .ax c A → ∃ Al,
+        E c = some Al ∧ A = Al.val.1 ∧ l₀ = Al.val.2 ∧ (E ∣ Γ ⊢[l₀] C ≡ Al.val.1) from
     fun h => this h rfl
   mutual_induction WfCtx
   all_goals try grind
   case ax =>
-    intros; rename_i Γ Ec _ _ eq; cases eq
-    exact ⟨_, Ec, rfl, .refl_tp <| (WfTm.ax Γ Ec).wf_tp⟩
+    intros; rename_i Γ Ec A _ _ _ _ eq; cases eq
+    exact ⟨_, Ec, rfl, rfl, .refl_tp A⟩
   case conv => grind [EqTp.refl_tp, EqTp.symm_tp, EqTp.trans_tp]
 
-omit [Fact E.Wf] in
 theorem WfTm.inv_bvar {Γ A i l} : E ∣ Γ ⊢[l] .bvar i : A →
     ∃ B, Lookup Γ i B l ∧ (E ∣ Γ ⊢[l] A ≡ B) := by
   suffices
@@ -293,7 +290,6 @@ theorem WfTm.inv_pair {Γ B C t u l₀ l l'} : E ∣ Γ ⊢[l₀] .pair l l' B t
     fun h => this h rfl
   mutual_induction WfCtx <;> grind [WfTp.sigma, WfTm.wf_tp, EqTp.refl_tp, EqTp.symm_tp, EqTp.trans_tp]
 
-omit [Fact E.Wf] in
 theorem WfTm.inv_fst {Γ A B C p l₀ l l'} : E ∣ Γ ⊢[l₀] .fst l l' A B p : C →
     l₀ = l ∧ (E ∣ Γ ⊢[max l l'] p : .sigma l l' A B) ∧ (E ∣ Γ ⊢[l₀] C ≡ A) := by
   suffices

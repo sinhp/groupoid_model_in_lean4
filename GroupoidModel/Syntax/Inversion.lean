@@ -63,7 +63,7 @@ theorem eqtp_inst : WfCtx E Γ → E ∣ Γ ⊢[l] A →
   all_goals (try autosubst); grind [WfSb.id, EqSb.refl, EqTp.refl_tp]
 
 attribute [local grind] tp_conv_binder tm_conv_binder WfCtx.snoc in
-theorem inv_all (Ewf : E.Wf) :
+theorem inv_all :
     (∀ {Γ l A}, E ∣ Γ ⊢[l] A →
       WfCtx E Γ) ∧
     (∀ {Γ l A B}, E ∣ Γ ⊢[l] A ≡ B →
@@ -74,7 +74,6 @@ theorem inv_all (Ewf : E.Wf) :
       (WfCtx E Γ) ∧ (E ∣ Γ ⊢[l] A) ∧ (E ∣ Γ ⊢[l] t : A) ∧ (E ∣ Γ ⊢[l] u : A)) := by
   mutual_induction WfCtx
   all_goals dsimp; try intros
-  case ax Γ Ec _ => exact ⟨Γ, Ewf.atCtx Γ Ec⟩
   case bvar => grind [WfCtx.lookup_wf]
   case cong_pi' => grind [WfTp.pi']
   case cong_sigma' => grind [WfTp.sigma']
@@ -206,18 +205,17 @@ theorem WfCtx.inv_snoc : WfCtx E ((A, l) :: Γ) → E ∣ Γ ⊢[l] A | .snoc _ 
 
 section
 open InvProof
-variable [Ewf : Fact E.Wf]
 
-theorem WfTp.wf_ctx : E ∣ Γ ⊢[l] A → WfCtx E Γ := inv_all Ewf.out |>.1
-theorem EqTp.wf_left : E ∣ Γ ⊢[l] A ≡ B → E ∣ Γ ⊢[l] A := fun h => (inv_all Ewf.out |>.2.1 h).2.1
-theorem EqTp.wf_right : E ∣ Γ ⊢[l] A ≡ B → E ∣ Γ ⊢[l] B := fun h => (inv_all Ewf.out |>.2.1 h).2.2
+theorem WfTp.wf_ctx : E ∣ Γ ⊢[l] A → WfCtx E Γ := inv_all.1
+theorem EqTp.wf_left : E ∣ Γ ⊢[l] A ≡ B → E ∣ Γ ⊢[l] A := fun h => (inv_all.2.1 h).2.1
+theorem EqTp.wf_right : E ∣ Γ ⊢[l] A ≡ B → E ∣ Γ ⊢[l] B := fun h => (inv_all.2.1 h).2.2
 theorem EqTp.wf_ctx : E ∣ Γ ⊢[l] A ≡ B → WfCtx E Γ := fun h => h.wf_left.wf_ctx
-theorem WfTm.wf_tp : E ∣ Γ ⊢[l] t : A → E ∣ Γ ⊢[l] A := fun h => (inv_all Ewf.out |>.2.2.1 h).2
+theorem WfTm.wf_tp : E ∣ Γ ⊢[l] t : A → E ∣ Γ ⊢[l] A := fun h => (inv_all.2.2.1 h).2
 theorem WfTm.wf_ctx : E ∣ Γ ⊢[l] t : A → WfCtx E Γ := fun h => h.wf_tp.wf_ctx
 theorem EqTm.wf_left : E ∣ Γ ⊢[l] t ≡ u : A → E ∣ Γ ⊢[l] t : A :=
-  fun h => (inv_all Ewf.out |>.2.2.2 h).2.2.1
+  fun h => (inv_all.2.2.2 h).2.2.1
 theorem EqTm.wf_right : E ∣ Γ ⊢[l] t ≡ u : A → E ∣ Γ ⊢[l] u : A :=
-  fun h => (inv_all Ewf.out |>.2.2.2 h).2.2.2
+  fun h => (inv_all.2.2.2 h).2.2.2
 theorem EqTm.wf_tp : E ∣ Γ ⊢[l] t ≡ u : A → E ∣ Γ ⊢[l] A := fun h => h.wf_left.wf_tp
 theorem EqTm.wf_ctx : E ∣ Γ ⊢[l] t ≡ u : A → WfCtx E Γ := fun h => h.wf_tp.wf_ctx
 theorem WfTp.wf_binder : E ∣ (A, l) :: Γ ⊢[l'] B → E ∣ Γ ⊢[l] A :=
@@ -233,7 +231,6 @@ end
 /-! ## Substitution -/
 
 namespace WfSb
-variable [Fact E.Wf]
 
 theorem mk : WfCtx E Δ → WfCtx E Γ → (∀ {i A l}, Lookup Γ i A l → E ∣ Δ ⊢[l] σ i : A.subst σ) →
     WfSb E Δ σ Γ := by
@@ -261,7 +258,6 @@ theorem toSb : E ∣ Γ ⊢[l] t : A → WfSb E Γ t.toSb ((A, l) :: Γ) :=
 end WfSb
 
 namespace EqSb
-variable [Fact E.Wf]
 
 theorem mk : WfCtx E Δ → WfCtx E Γ →
     (∀ {i A l}, Lookup Γ i A l →

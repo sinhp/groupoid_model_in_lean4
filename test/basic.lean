@@ -1,8 +1,10 @@
 import GroupoidModel.Syntax.Frontend.Commands
 
-declare_theory mltt
+/-! Test basic typechecker functionality. -/
 
-/-! Tests to ensure the typechecker works. -/
+/-! ## Declaring a theory -/
+
+declare_theory mltt
 
 /-! ## Universes -/
 
@@ -56,3 +58,23 @@ mltt noncomputable def tm_idRec (A B : Type) (eq : @Identity Type A B) (a : A) :
 
 mltt def defeq_el_code {A : Type} (a : A) : A :=
   (fun (α : Type) (x : α) => x) ((fun (α : Type 1) (x : α) => x) Type A) a
+
+/-! ## Using previous definitions -/
+
+mltt def tm_refl' : tp_id := tm_refl
+
+/-! ## Adding axioms -/
+
+mltt axiom B : Type
+
+mltt axiom b : B
+
+mltt axiom C : B → Type
+
+mltt axiom c : C b
+
+/-! ## Using axioms -/
+
+mltt def Cb : Type := C b
+
+mltt noncomputable def c' : Cb := c

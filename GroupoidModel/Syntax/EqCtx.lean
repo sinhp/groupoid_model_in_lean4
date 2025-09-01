@@ -31,8 +31,6 @@ theorem EqCtx.inv_snoc {A l} : EqCtx E ((A, l) :: Γ) Γ' →
     ∃ Γ'' A', Γ' = ((A', l) :: Γ'') ∧ EqCtx E Γ Γ'' ∧ (E ∣ Γ ⊢[l] A ≡ A') := by
   grind [cases EqCtx]
 
-variable [Fact E.Wf]
-
 theorem EqCtx.wf_left : EqCtx E Γ Γ' → WfCtx E Γ := by
   intro eq; induction eq <;> grind [WfCtx.nil, WfCtx.snoc, EqTp.wf_ctx, EqTp.wf_left]
 

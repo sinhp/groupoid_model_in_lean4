@@ -71,8 +71,8 @@ theorem of_le_all {E E' : Axioms χ} (le : E ≤ E') :
     (∀ {Γ l A t u}, E ∣ Γ ⊢[l] t ≡ u : A → E' ∣ Γ ⊢[l] t ≡ u : A) := by
   mutual_induction WfCtx
   case ax =>
-    intros; rename_i Ec Γ
-    apply WfTm.ax Γ (le Ec)
+    intros; rename_i Ec _ Γ ihA
+    apply WfTm.ax Γ (le Ec) ihA
   grind_cases
 
 end Axioms

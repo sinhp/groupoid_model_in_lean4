@@ -47,7 +47,6 @@ by uniqueness of typing, lemmas like the following can be proven
 ```
 and hence it suffices to compare the value parts (in this case `p`). -/
 inductive Val where
-  | ax (c : χ)
   | pi (l l' : Nat) (A : Val) (B : Clos)
   | sigma (l l' : Nat) (A : Val) (B : Clos)
   | Id (l : Nat) (A t u : Val)
@@ -68,6 +67,7 @@ inductive Val where
 /-- Neutral forms are elimination forms that are 'stuck',
 i.e., contain no β-reducible subterm. -/
 inductive Neut where
+  | ax (c : χ) (A : Val)
   /-- A de Bruijn *level*. -/
   | bvar (i : Nat)
   /-- Application at the specified argument type. -/
@@ -128,10 +128,6 @@ inductive ValEqTp : Ctx χ → Nat → Val χ → Expr χ → Prop
 -- Note: neutral types are embedded in `Val` directly and don't need a `NeutEqTp` relation.
 
 inductive ValEqTm : Ctx χ → Nat → Val χ → Expr χ → Expr χ → Prop
-  | ax {Γ c Al} :
-    WfCtx E Γ →
-    E c = some Al →
-    ValEqTm Γ Al.val.2 (.ax c) (.ax c) Al.val.1
   | lam {Γ A B vA vb b l l'} :
     ValEqTp Γ l vA A →
     ClosEqTm Γ l l' A B vb b →
@@ -159,6 +155,11 @@ inductive ValEqTm : Ctx χ → Nat → Val χ → Expr χ → Expr χ → Prop
     ValEqTm Γ l vt t' A'
 
 inductive NeutEqTm : Ctx χ → Nat → Neut χ → Expr χ → Expr χ → Prop
+  | ax {Γ c vA Al} :
+    WfCtx E Γ →
+    E c = some Al →
+    ValEqTp Γ Al.val.2 vA Al.val.1 →
+    NeutEqTm Γ Al.val.2 (.ax c vA) (.ax c Al.val.1) Al.val.1
   | bvar {Γ A i l} :
     WfCtx E Γ →
     Lookup Γ i A l →
@@ -303,8 +304,6 @@ end EnvEqSb
 
 /-! ## Values are well-typed as expressions -/
 
-variable [Fact E.Wf]
-
 private theorem wf_expr :
     (∀ {Γ l vA A}, ValEqTp E Γ l vA A → E ∣ Γ ⊢[l] A) ∧
     (∀ {Γ l vt t A}, ValEqTm E Γ l vt t A → E ∣ Γ ⊢[l] t : A) ∧
@@ -409,7 +408,7 @@ private theorem conv_ctx :
     (∀ {Γ Eᵥ σ Δ}, EnvEqSb E Γ Eᵥ σ Δ → ∀ {Γ'}, EqCtx E Γ Γ' → EnvEqSb E Γ' Eᵥ σ Δ) := by
   mutual_induction ValEqTp
   all_goals intros
-  case ax => apply ValEqTm.ax <;> grind [EqCtx.wf_right]
+  case ax => apply NeutEqTm.ax <;> grind [EqCtx.wf_right]
   case univ => grind [ValEqTp.univ, EqCtx.wf_right]
   case pair B _ _ _ _ _ eq =>
     apply ValEqTm.pair (B.conv_ctx (eq.snoc <| EqTp.refl_tp B.wf_binder)) <;> grind
@@ -484,9 +483,10 @@ private theorem wk_all :
       EnvEqSb E ((C,k) :: Γ) Eᵥ (Expr.comp Expr.wk σ) Δ) := by
   mutual_induction ValEqTp
   all_goals intros; try dsimp [Expr.subst] at *
-  case ax Al _ _ _ _ _ =>
-    rw [Expr.subst_of_isClosed _ Al.2.1]
-    apply ValEqTm.ax <;> grind [WfCtx.snoc]
+  case ax Al _ _ _ ihA _ _ C =>
+    have := ihA C
+    rw [Expr.subst_of_isClosed _ Al.2.1] at this ⊢
+    apply NeutEqTm.ax <;> grind [WfCtx.snoc]
   case univ => grind [ValEqTp.univ, WfCtx.snoc]
   case conv_tp => grind [ValEqTp.conv_tp, EqTp.subst, WfSb.wk]
   case pair B _ _ iht ihu _ _ C =>
@@ -584,15 +584,12 @@ namespace TpEnvEqCtx
 theorem wf_ctx {vΓ Γ} : TpEnvEqCtx E vΓ Γ → WfCtx E Γ := by
   intro vΓ; induction vΓ <;> grind [WfCtx.nil, WfCtx.snoc, ValEqTp.wf_tp]
 
-omit [Fact E.Wf] in
 theorem length_eq {vΓ Γ} : TpEnvEqCtx E vΓ Γ → vΓ.length = Γ.length := by
   intro vΓ; induction vΓ <;> simp [*]
 
-omit [Fact E.Wf] in
 theorem lt_length {vΓ Γ i A l} : TpEnvEqCtx E vΓ Γ → Lookup Γ i A l → i < vΓ.length :=
   fun vΓ lk => vΓ.length_eq ▸ lk.lt_length
 
-omit [Fact E.Wf] in
 theorem lvl_eq {vΓ Γ i A l} : (h : TpEnvEqCtx E vΓ Γ) → (lk : Lookup Γ i A l) →
     (vΓ[i]'(h.lt_length lk)).2 = l := by
   intro h lk
@@ -651,7 +648,7 @@ private theorem of_axioms_le {E E' : Axioms χ} (le : E ≤ E') :
     (∀ {Γ l l' A B vb b}, ClosEqTm E Γ l l' A B vb b → ClosEqTm E' Γ l l' A B vb b) ∧
     (∀ {Γ Eᵥ σ Δ}, EnvEqSb E Γ Eᵥ σ Δ → EnvEqSb E' Γ Eᵥ σ Δ) := by
   mutual_induction ValEqTp
-  case ax => introv _ Ec; apply ValEqTm.ax _ (le Ec); grind
+  case ax => introv _ Ec _ ihA; apply NeutEqTm.ax _ (le Ec) ihA; grind
   grind_cases
 
 theorem ValEqTp.of_axioms_le {E E' : Axioms χ} (le : E ≤ E') {Γ l vA A} :

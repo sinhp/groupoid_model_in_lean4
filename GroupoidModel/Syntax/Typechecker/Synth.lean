@@ -12,30 +12,30 @@ def traceClsTypechecker : Lean.Name := `Leanternal.Typechecker
 initialize
   Lean.registerTraceClass traceClsTypechecker
 
-partial def lookup (vΓ : Q(TpEnv Lean.Name)) (i : Q(Nat)) :
+partial def lookupVar (vΓ : Q(TpEnv Lean.Name)) (i : Q(Nat)) :
     Lean.MetaM ((vA : Q(Val Lean.Name)) × (l : Q(Nat)) ×
-      Q(∀ {E Γ}, [Fact E.Wf] → TpEnvEqCtx E $vΓ Γ → ∃ A,
+      Q(∀ {E Γ}, TpEnvEqCtx E $vΓ Γ → ∃ A,
         ValEqTp E Γ $l $vA A ∧ Lookup Γ $i A $l)) :=
   match i, vΓ with
   | _, ~q([]) => throwError "bvar {i} out of range in type environment{Lean.indentExpr vΓ}"
   | ~q(.zero), ~q(($vA, $l) :: _) => do
     return ⟨q($vA), q($l), q(by as_aux_lemma =>
-      introv _ vΓ
+      introv vΓ
       simp +zetaDelta only at vΓ
       rcases vΓ with _ | ⟨vΓ, vA⟩
       exact ⟨_, vA.wk vA.wf_tp, Lookup.zero ..⟩
     )⟩
   | ~q($i' + 1), ~q(_ :: $vΓ') => do
-    let ⟨vA, l, pf⟩ ← lookup q($vΓ') q($i')
+    let ⟨vA, l, pf⟩ ← lookupVar q($vΓ') q($i')
     return ⟨q($vA), q($l), q(by as_aux_lemma =>
-      introv _ vΓ
+      introv vΓ
       simp +zetaDelta only at vΓ ⊢
       rcases vΓ with _ | ⟨vΓ', vB⟩
       have ⟨_, vA, lk⟩ := $pf vΓ'
       exact ⟨_, vA.wk vB.wf_tp, lk.succ ..⟩
     )⟩
 
-partial def decideAxiomsGet (E : Q(Axioms Lean.Name)) (c : Q(Lean.Name)) : Lean.MetaM
+partial def lookupAxiom (E : Q(Axioms Lean.Name)) (c : Q(Lean.Name)) : Lean.MetaM
     ((A : Q(Expr Lean.Name)) × (l : Q(Nat)) × Q(∃ h, $E $c = some ⟨($A, $l), h⟩) ⊕
       Q($E $c = none)) := do
   match E with
@@ -50,7 +50,7 @@ partial def decideAxiomsGet (E : Q(Axioms Lean.Name)) (c : Q(Lean.Name)) : Lean.
         simp +zetaDelta [CheckedAx.snocAxioms, this, ($ax).wf_tp.isClosed, ($ax).wf_tp.le_univMax]
       )⟩
     | ~q(false) =>
-      match ← decideAxiomsGet q($E') q($c) with
+      match ← lookupAxiom q($E') q($c) with
       | .inl ⟨A, l, h⟩ =>
         return .inl ⟨A, l, q(by as_aux_lemma =>
           have : ($ax).name ≠ $c := by rwa [decide_eq_false_iff_not] at *
@@ -75,7 +75,7 @@ partial def checkAxiomsLe (E E' : Q(Axioms Lean.Name)) : Lean.MetaM Q($E ≤ $E'
   | ~q(.empty _) => return q(($E').empty_le)
   | ~q(@CheckedAx.snocAxioms _ $E₀ $ax) =>
     let le ← checkAxiomsLe q($E₀) q($E')
-    let .inl ⟨A, l, En⟩ ← decideAxiomsGet q($E') q(($ax).name)
+    let .inl ⟨A, l, En⟩ ← lookupAxiom q($E') q(($ax).name)
       | throwError "could not prove that '{q(($ax).name)}' is contained in{Lean.indentExpr E'}"
     let ⟨_⟩ ← assertDefEqQ q($A) q(($ax).tp)
     let ⟨_⟩ ← assertDefEqQ q($l) q(($ax).l)
@@ -91,7 +91,7 @@ partial def checkAxiomsLe (E E' : Q(Axioms Lean.Name)) : Lean.MetaM Q($E ≤ $E'
         {Lean.indentExpr E' |>.nest 2}"
 
 mutual
-variable (E : Q(Axioms Lean.Name)) (Ewf : Q(Fact ($E).Wf))
+variable (E : Q(Axioms Lean.Name)) (Ewf : Q(($E).Wf))
 
 partial def checkTp (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (T : Q(Expr Lean.Name)) :
     Lean.MetaM Q(∀ {Γ}, TpEnvEqCtx $E $vΓ Γ → $E ∣ Γ ⊢[$l] ($T)) :=
@@ -202,30 +202,26 @@ partial def synthTm (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (t : Q(Expr Lean.Nam
         have ⟨_, vA, t⟩ := ih B.wf_ctx
         refine ⟨_, vA.wk B, ?_⟩
         have := t.subst (WfSb.wk B)
-        -- `this` has the wrong type?!
-        exact this
+        rwa [Expr.subst_of_isClosed _ ($ax).wf_val.isClosed] at this
     )⟩
-  | ~q(.ax $c) => do
-    let Al : Q(Option { Al : Expr Lean.Name × Nat // Al.1.isClosed ∧ Al.2 ≤ univMax }) ←
-      Lean.Meta.whnf q($E $c)
-    let ~q(some $Al') := Al
-      | throwError "could not find constant '{c}' in environment{Lean.indentExpr E}\n\
-         note: expected 'some _', got{Lean.indentExpr Al}"
-    have : $Al =Q $E $c := .unsafeIntro -- FIXME: `whnfQ`?
-    let leq ← equateNat q($l) q(($Al').val.2)
+  | ~q(.ax $c $A) => do
+    let .inl ⟨A', l', get⟩ ← lookupAxiom q($E) q($c)
+      | throwError "could not find constant '{c}' in environment{Lean.indentExpr E}"
+    let leq ← equateNat q($l) q($l')
+    -- TODO: relax to a defeq check?
+    let ⟨_⟩ ← assertDefEqQ q($A) q($A')
     -- NOTE: could also evaluate in empty environment here and then weaken `ValEqTp`;
     -- I think it makes no difference.
-    let ⟨vA, vApost⟩ ← evalTpId q($vΓ) q(($Al').val.1)
+    let ⟨vA, vApost⟩ ← evalTpId q($vΓ) q($A)
     return ⟨vA, q(by as_aux_lemma =>
       introv vΓ
       subst_vars
-      have Ec := ($this).symm
-      have := ($Ewf).out.atCtx vΓ.wf_ctx Ec
-      refine ⟨_, $vApost vΓ this, ?_⟩
-      apply WfTm.ax vΓ.wf_ctx Ec
+      have ⟨_, Ec⟩ := $get
+      have := $vApost vΓ (($Ewf).atCtx vΓ.wf_ctx Ec)
+      refine ⟨_, this, .ax vΓ.wf_ctx Ec this.wf_tp⟩
     )⟩
   | ~q(.bvar $i) => do
-    let ⟨vA, m, lk⟩ ← lookup q($vΓ) q($i)
+    let ⟨vA, m, lk⟩ ← lookupVar q($vΓ) q($i)
     let lm ← equateNat q($l) q($m)
     return ⟨vA, q(by as_aux_lemma =>
       introv vΓ

@@ -17,8 +17,6 @@ require "chasenorman" / "Canonical"
 
 @[default_target]
 lean_lib GroupoidModel where
-  globs := #[`GroupoidModel]
-  -- add any library configuration options here
 
 require checkdecls from git "https://github.com/PatrickMassot/checkdecls.git"
 
@@ -27,9 +25,7 @@ require «doc-gen4» from git
   "https://github.com/leanprover/doc-gen4" @ "v4.22.0-rc3"
 
 @[test_driver]
-lean_lib Test.Typechecker where
-  srcDir := "test"
-  roots := #[`typechecker]
+lean_lib test where
 
 lean_lib Bench where
   srcDir := "test"
