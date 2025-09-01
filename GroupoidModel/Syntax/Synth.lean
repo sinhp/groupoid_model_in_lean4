@@ -1,6 +1,34 @@
 import GroupoidModel.Syntax.Inversion
 import GroupoidModel.Syntax.GCongr
 
+variable {χ : Type*} {E : Axioms χ} {Γ : Ctx χ}
+  {A A' t : Expr χ} {i l l' : Nat}
+
+/-! ## Lookup well-formedness -/
+
+namespace Lookup
+
+theorem lt_length : Lookup Γ i A l → i < Γ.length := by
+  intro lk; induction lk <;> (dsimp; omega)
+
+theorem lvl_eq (lk : Lookup Γ i A l) : l = (Γ[i]'lk.lt_length).2 := by
+  induction lk <;> grind
+
+theorem tp_uniq (lk : Lookup Γ i A l) (lk' : Lookup Γ i A' l) : A = A' := by
+  induction lk generalizing A' <;> grind [cases Lookup]
+
+theorem of_lt_length : i < Γ.length → ∃ A l, Lookup Γ i A l := by
+  intro lt
+  induction Γ generalizing i
+  · cases lt
+  · cases i
+    · exact ⟨_, _, Lookup.zero ..⟩
+    · rename_i ih _
+      have ⟨A, l, h⟩ := ih <| Nat.succ_lt_succ_iff.mp lt
+      exact ⟨A.subst Expr.wk, l, Lookup.succ _ _ h⟩
+
+end Lookup
+
 /-! ## Level synthesis and uniqueness -/
 
 /-- Synthesize the universe level of a type or term. -/
@@ -9,10 +37,11 @@ without using any of the level annotations.
 Furthermore, the correctness proof `eq_synthLvl` needs zero metatheory.
 Does this imply we could omit level annotations from the syntax?
 In the interpretation function, we'd invoke `synthLvl.go` on `ExtSeq`.  -/
-noncomputable def synthLvl (Γ : Ctx) (e : Expr) : Nat :=
+noncomputable def synthLvl (Γ : Ctx χ) (e : Expr χ) : Nat :=
   go (Γ.map (·.2)) e
 where
-  go (Γ : List Nat) : Expr → Nat
+  go (Γ : List Nat) : Expr χ → Nat
+  | .ax _ A => go Γ A
   | .bvar i => Γ[i]? |>.getD default
   | .pi _ _ A B | .sigma _ _ A B =>
     let l := go Γ A
@@ -36,21 +65,25 @@ where
   | .code A => go Γ A + 1
 
 theorem eq_synthLvl :
-    (∀ {Γ l A}, Γ ⊢[l] A → l = synthLvl Γ A) ∧
-    (∀ {Γ l A t}, Γ ⊢[l] t : A → l = synthLvl Γ t) := by
+    (∀ {Γ l A}, E ∣ Γ ⊢[l] A → l = synthLvl Γ A) ∧
+    (∀ {Γ l A t}, E ∣ Γ ⊢[l] t : A → l = synthLvl Γ t) := by
   mutual_induction WfTp
   all_goals intros; try exact True.intro
-  case bvar lk _  => simp [synthLvl, synthLvl.go, lk.lt_length, lk.lvl_eq]
+  case bvar lk _ => simp [synthLvl, synthLvl.go, lk.lt_length, lk.lvl_eq]
   all_goals grind [synthLvl, synthLvl.go]
 
-theorem WfTp.lvl_eq_synthLvl {Γ A l} : Γ ⊢[l] A → l = synthLvl Γ A :=
+theorem WfTp.lvl_eq_synthLvl : E ∣ Γ ⊢[l] A → l = synthLvl Γ A :=
   fun A => _root_.eq_synthLvl.1 A
 
-theorem WfTm.lvl_eq_synthLvl {Γ A t l} : Γ ⊢[l] t : A → l = synthLvl Γ t :=
+theorem WfTm.lvl_eq_synthLvl : E ∣ Γ ⊢[l] t : A → l = synthLvl Γ t :=
   fun t => _root_.eq_synthLvl.2 t
 
 /-- A type's universe level is unique. -/
-theorem WfTp.uniq_lvl {Γ A l l'} : Γ ⊢[l] A → Γ ⊢[l'] A → l = l' :=
+theorem WfTp.uniq_lvl : E ∣ Γ ⊢[l] A → E ∣ Γ ⊢[l'] A → l = l' :=
+  fun h h' => h.lvl_eq_synthLvl.trans h'.lvl_eq_synthLvl.symm
+
+/-- A term's universe level is unique. -/
+theorem WfTm.uniq_lvl : E ∣ Γ ⊢[l] t : A → E ∣ Γ ⊢[l'] t : A' → l = l' :=
   fun h h' => h.lvl_eq_synthLvl.trans h'.lvl_eq_synthLvl.symm
 
 /-! ## Type synthesis and uniqueness -/
@@ -62,7 +95,8 @@ because it is not supposed to be executed;
 it is only defined for mathematical modelling,
 in particular to prove unique typing.
 For executable type synthesis, see `Typechecker.Synth`. -/
-noncomputable def synthTp (Γ : Ctx) : Expr → Expr
+noncomputable def synthTp (Γ : Ctx χ) : Expr χ → Expr χ
+  | .ax _ A => A
   | .bvar 0 => Γ[0]? |>.getD default |>.1.subst Expr.wk
   | .bvar (i+1) => synthTp (Γ.drop 1) (.bvar i) |>.subst Expr.wk
   | .lam l l' A b => .pi l l' A (synthTp ((A, l) :: Γ) b)
@@ -76,9 +110,12 @@ noncomputable def synthTp (Γ : Ctx) : Expr → Expr
   | _ => default
 
 attribute [local grind] synthTp EqTp.symm_tp EqTp.trans_tp EqTp.refl_tp in
-theorem WfTm.tp_eq_synthTp : ∀ {Γ l A t}, Γ ⊢[l] t : A → Γ ⊢[l] A ≡ synthTp Γ t := by
+theorem WfTm.tp_eq_synthTp : ∀ {Γ l A t}, E ∣ Γ ⊢[l] t : A → E ∣ Γ ⊢[l] A ≡ synthTp Γ t := by
   mutual_induction WfTm
   all_goals intros; try exact True.intro
+  case ax A _ _ =>
+    simp only [synthTp]
+    apply EqTp.refl_tp A
   case bvar Γ lk _ =>
     induction lk
     . simp only [synthTp, List.getElem?_cons_zero, Option.getD_some]
@@ -102,13 +139,9 @@ theorem WfTm.tp_eq_synthTp : ∀ {Γ l A t}, Γ ⊢[l] t : A → Γ ⊢[l] A ≡
   case code => grind [WfTp.lvl_eq_synthLvl, WfTp.univ, WfTp.wf_ctx]
   case conv => grind
 
-theorem WfTm.with_synthTp {Γ l A t} : Γ ⊢[l] t : A → Γ ⊢[l] t : synthTp Γ t :=
+theorem WfTm.with_synthTp : E ∣ Γ ⊢[l] t : A → E ∣ Γ ⊢[l] t : synthTp Γ t :=
   fun t => t.conv t.tp_eq_synthTp
 
-/-- A term's universe level is unique. -/
-theorem WfTm.uniq_lvl {Γ A B t l l'} : Γ ⊢[l] t : A → Γ ⊢[l'] t : B → l = l' :=
-  fun h h' => h.lvl_eq_synthLvl.trans h'.lvl_eq_synthLvl.symm
-
 /-- A term's type is unique up to conversion. -/
-theorem WfTm.uniq_tp {Γ A B t l l'} : Γ ⊢[l] t : A → Γ ⊢[l'] t : B → Γ ⊢[l] A ≡ B :=
+theorem WfTm.uniq_tp : E ∣ Γ ⊢[l] t : A → E ∣ Γ ⊢[l'] t : A' → E ∣ Γ ⊢[l] A ≡ A' :=
   fun tA tB => tA.tp_eq_synthTp.trans_tp (tA.uniq_lvl tB ▸ tB).tp_eq_synthTp.symm_tp
