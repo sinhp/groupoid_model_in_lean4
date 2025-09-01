@@ -1,6 +1,7 @@
 import Qq
 import GroupoidModel.Syntax.Axioms
 import GroupoidModel.Syntax.Frontend.Prelude
+import GroupoidModel.Syntax.Frontend.Checked
 
 namespace Leanternal
 
@@ -165,16 +166,15 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr Lea
     let eTp ← inferType e
     let .sort l ← inferType eTp | throwError "internal error (sort)"
     let n ← getSortLevel l
-    -- Observe! We translate internal constants to projections of external constants!
-    -- But this is not correct! We must fetch the `E : Env χ`
-    -- with which the `CheckedDef` was declared here.
-    -- But we need the external env to do so!
-    -- Oh-oh!
+    -- We translate internal constants to projections from external constants.
+    let ci ← getConstInfo nm
     withEnv (← read).extEnv do
     withLCtx {} {} do
-      let ci ← getConstInfo nm
-      return ⟨n, ← mkAppM ``CheckedDef.val #[.const ci.name []]⟩
-  | .const .. => throwError "unsupported term (universe-polymorphic constant){indentExpr e}"
+      match ci with
+      | .defnInfo i => return ⟨n, ← mkAppM ``CheckedDef.val #[.const i.name []]⟩
+      | .axiomInfo i => return ⟨n, ← mkAppM ``CheckedAx.val #[.const i.name []]⟩
+      | _ => throwError "unsupported constant (not a `def` or an `axiom`){indentExpr e}"
+  | .const .. => throwError "unsupported constant (universe-polymorphic){indentExpr e}"
   | e => throwError "unsupported term{indentExpr e}"
 
 end

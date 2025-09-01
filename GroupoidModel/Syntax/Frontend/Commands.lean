@@ -28,21 +28,26 @@ def elabAxiom (thyNm : Name) (stx : Syntax) : CommandElabM Unit := do
       {Lean.indentD ""}{diff.map (·.name)}"
   Command.liftTermElabM do
     let env ← getEnv
-    let (l, T) ← withEnv thyData.env <| translateAsTp ci.type |>.run env
+    let (l, T) ←
+      try withEnv thyData.env <| translateAsTp ci.type |>.run env
+      catch e =>
+        throwError "failed to translate type{Lean.indentExpr ci.type}\nerror: {e.toMessageData}"
     trace[Leanternal.Translation]
       "axiom.\{{l}} {ci.name} :\
           {Lean.indentExpr T |>.nest 2}"
 
     have axioms : Q(Axioms Name) := thyData.axioms
     have wf_axioms : Q(($axioms).Wf) := thyData.wf_axioms
+    have : Q(Fact ($axioms).Wf) := q(⟨$wf_axioms⟩)
     have name : Q(Name) := toExpr ci.name
-    -- TODO: smarter tactic for this equality
-    let ⟨_⟩ ← assertDefEqQ q($axioms $name) q(none)
+    let .inr _ ← decideAxiomsGet q($axioms) q($name)
+      | throwError "internal error: axiom '{ci.name}' has already been added, \
+        but elaboration succeeded"
     let Twf ← checkTp q($axioms) q(⟨$wf_axioms⟩) q([]) q($l) q($T)
     let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Lean.Name from []) q($T)
     let value : Q(CheckedAx $axioms) := q(
-      have : Fact ($axioms).Wf := ⟨$wf_axioms⟩
-      { name := $name
+      { wf_axioms := $wf_axioms
+        name := $name
         get_name := ‹_›
         l := $l
         tp := $T
@@ -65,8 +70,8 @@ def elabAxiom (thyNm : Name) (stx : Syntax) : CommandElabM Unit := do
     saveShallowTheoryConst thyNm (.axiomInfo ci)
     setTheoryData thyNm { thyData with
       env := thyEnv'
-      axioms := q(have : Fact ($axioms).Wf := ⟨$wf_axioms⟩; ($a).snocEnv)
-      wf_axioms := q(have : Fact ($axioms).Wf := ⟨$wf_axioms⟩; ($a).wf_snocEnv)
+      axioms := q(have : Fact ($axioms).Wf := ⟨$wf_axioms⟩; ($a).snocAxioms)
+      wf_axioms := q(have : Fact ($axioms).Wf := ⟨$wf_axioms⟩; ($a).wf_snocAxioms)
     }
 
 def elabDeclaration (thyNm : Name) (stx : Syntax) : CommandElabM Unit := do
@@ -80,9 +85,15 @@ def elabDeclaration (thyNm : Name) (stx : Syntax) : CommandElabM Unit := do
       {Lean.indentD ""}{diff.map (·.name)}"
   Command.liftTermElabM do
     let env ← getEnv
-    let (l, T) ← withEnv thyData.env <| translateAsTp ci.type |>.run env
-    let (k, t) ← withEnv thyData.env <| translateAsTm ci.value |>.run env
-     if l != k then throwError "internal error: inferred level mismatch"
+    let (l, T) ←
+      try withEnv thyData.env <| translateAsTp ci.type |>.run env
+      catch e =>
+        throwError "failed to translate type{Lean.indentExpr ci.type}\nerror: {e.toMessageData}"
+    let (k, t) ←
+      try withEnv thyData.env <| translateAsTm ci.value |>.run env
+      catch e =>
+        throwError "failed to translate term{Lean.indentExpr ci.value}\nerror: {e.toMessageData}"
+    if l != k then throwError "internal error: inferred level mismatch"
     trace[Leanternal.Translation]
       "def.\{{l}} {ci.name} :\
           {Lean.indentExpr T |>.nest 2}\n\
@@ -91,12 +102,13 @@ def elabDeclaration (thyNm : Name) (stx : Syntax) : CommandElabM Unit := do
 
     have axioms : Q(Axioms Name) := thyData.axioms
     have wf_axioms : Q(($axioms).Wf) := thyData.wf_axioms
+    have : Q(Fact ($axioms).Wf) := q(⟨$wf_axioms⟩)
     let Twf ← checkTp q($axioms) q(⟨$wf_axioms⟩) q([]) q($l) q($T)
     let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Lean.Name from []) q($T)
     let twf ← checkTm q($axioms) q(⟨$wf_axioms⟩) q([]) q($l) q($vT) q($t)
     let value : Q(CheckedDef $axioms) := q(
-      have : Fact ($axioms).Wf := ⟨$wf_axioms⟩
-      { l := $l
+      { wf_axioms := $wf_axioms
+        l := $l
         tp := $T
         nfTp := $vT
         wf_nfTp := $vTeq .nil <| $Twf .nil

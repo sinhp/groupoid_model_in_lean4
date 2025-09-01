@@ -747,20 +747,20 @@ end
 def evalTpId (vΓ : Q(TpEnv $χ)) (T : Q(Expr $χ)) : Lean.MetaM ((v : Q(Val $χ)) ×
     Q(∀ {E Γ l}, [Fact E.Wf] → TpEnvEqCtx E $vΓ Γ → (E ∣ Γ ⊢[l] ($T)) →
       ValEqTp E Γ l $v $T)) := do
-  -- TODO: WHNF `envOfTpEnv`? I think not; it will need WHNFing later anyway
+  -- TODO: WHNF `toEnv`? I think not; it will need WHNFing later anyway
   -- (WHNF doesn't eval the args). Lean essentially forces us to lazily WHNF.
-  let ⟨vT, vTpost⟩ ← evalTp q(envOfTpEnv $vΓ) q($T)
+  let ⟨vT, vTpost⟩ ← evalTp q(($vΓ).toEnv) q($T)
   return ⟨vT, q(by as_aux_lemma =>
     introv _ vΓ T
-    convert ($vTpost (envOfTpEnv_wf vΓ) T) using 1; autosubst
+    convert ($vTpost vΓ.toEnv_wf T) using 1; autosubst
   )⟩
 
 /-- Evaluate a term in the identity evaluation environment. -/
 def evalTmId (vΓ : Q(TpEnv $χ)) (t : Q(Expr $χ)) : Lean.MetaM ((v : Q(Val $χ)) ×
     Q(∀ {E Γ A l}, [Fact E.Wf] → TpEnvEqCtx E $vΓ Γ → (E ∣ Γ ⊢[l] ($t) : A) →
       ValEqTm E Γ l $v $t A)) := do
-  let ⟨vt, vtpost⟩ ← evalTm q(envOfTpEnv $vΓ) q($t)
+  let ⟨vt, vtpost⟩ ← evalTm q(($vΓ).toEnv) q($t)
   return ⟨vt, q(by as_aux_lemma =>
     introv _ vΓ t
-    convert ($vtpost (envOfTpEnv_wf vΓ) t) using 1 <;> autosubst
+    convert ($vtpost vΓ.toEnv_wf t) using 1 <;> autosubst
   )⟩

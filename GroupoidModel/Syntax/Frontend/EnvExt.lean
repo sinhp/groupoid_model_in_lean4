@@ -1,6 +1,6 @@
 import Lean
 import Qq
-import GroupoidModel.Syntax.Axioms
+import GroupoidModel.Syntax.Frontend.Checked
 
 /-!
 For all definitions added to a given theory, we must keep track of both
@@ -83,7 +83,7 @@ private def mkInitTheoryData (modNm mainModule : Name) : m TheoryData := do
     modNm
     env := thyEnv
     axioms := q(.empty Name)
-    wf_axioms := q(.empty Name)
+    wf_axioms := q(Axioms.empty_wf Name)
   }
 
 private initialize theoryExt : TheoryExt ←
@@ -125,14 +125,8 @@ private initialize theoryExt : TheoryExt ←
               have a : Q(CheckedAx $axioms) := .const ci.name []
               thyMap := thyMap.insert thyNm { thyData with
                 env := thyEnv,
-                axioms := q(
-                  have : Fact ($axioms).Wf := ⟨$wf_axioms⟩
-                  ($a).snocEnv
-                )
-                wf_axioms := q(
-                  have : Fact ($axioms).Wf := ⟨$wf_axioms⟩
-                  ($a).wf_snocEnv
-                )
+                axioms := q(($a).snocAxioms)
+                wf_axioms := q(($a).wf_snocAxioms)
               }
             | _ => throwThe IO.Error s!"unexpected constant info kind at '{ci.name}'"
       return ([], thyMap)

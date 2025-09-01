@@ -1,6 +1,7 @@
 import GroupoidModel.Syntax.GCongr
 import GroupoidModel.Syntax.Injectivity
 import GroupoidModel.Syntax.Synth
+import GroupoidModel.Syntax.Axioms
 
 variable {χ : Type*} {E : Axioms χ}
 
@@ -304,7 +305,7 @@ end EnvEqSb
 
 variable [Fact E.Wf]
 
-theorem wf_expr :
+private theorem wf_expr :
     (∀ {Γ l vA A}, ValEqTp E Γ l vA A → E ∣ Γ ⊢[l] A) ∧
     (∀ {Γ l vt t A}, ValEqTm E Γ l vt t A → E ∣ Γ ⊢[l] t : A) ∧
     (∀ {Γ l vt t A}, NeutEqTm E Γ l vt t A → E ∣ Γ ⊢[l] t : A) ∧
@@ -392,7 +393,7 @@ theorem NeutEqTm.conv_tp {Γ A A' vt t l} :
 /-! ## Values are closed under context conversion -/
 
 attribute [local grind →] EqCtx.length_eq WfTp.conv_ctx EqTp.conv_ctx WfTm.conv_ctx EqTm.conv_ctx in
-theorem conv_ctx :
+private theorem conv_ctx :
     (∀ {Γ l vA A}, ValEqTp E Γ l vA A → ∀ {Γ'},
       EqCtx E Γ Γ' → ValEqTp E Γ' l vA A) ∧
     (∀ {Γ l vt t A}, ValEqTm E Γ l vt t A → ∀ {Γ'},
@@ -464,7 +465,7 @@ theorem EnvEqSb.conv_dom {Δ Δ' Eᵥ σ Γ} : EnvEqSb E Δ Eᵥ σ Γ → EqCtx
 
 /-! ## Weakening is free -/
 
-theorem wk_all :
+private theorem wk_all :
     (∀ {Γ l vA A}, ValEqTp E Γ l vA A → ∀ {C k}, E ∣ Γ ⊢[k] C →
       ValEqTp E ((C,k) :: Γ) l vA (A.subst Expr.wk)) ∧
     (∀ {Γ l vt t A}, ValEqTm E Γ l vt t A → ∀ {C k}, E ∣ Γ ⊢[k] C →
@@ -607,31 +608,79 @@ end TpEnvEqCtx
 
 /-! ## Type environments from contexts -/
 
+namespace TpEnv
+
 /-- An identity evaluation environment (i.e., bvars remain themselves)
 for the given type environment. -/
-def envOfTpEnv (vΓ : TpEnv χ) : List (Val χ) :=
+def toEnv (vΓ : TpEnv χ) : List (Val χ) :=
   vΓ.mapIdx fun i (vA, _) => .neut (.bvar <| vΓ.length - i - 1) vA
 
 @[simp]
-theorem length_envOfTpEnv (vΓ : TpEnv χ) : (envOfTpEnv vΓ).length = vΓ.length := by
-  simp [envOfTpEnv]
+theorem length_toEnv (vΓ : TpEnv χ) : vΓ.toEnv.length = vΓ.length := by
+  simp [toEnv]
 
 @[simp]
-theorem envOfTpEnv_cons (vA : Val χ) (l : Nat) (vΓ : TpEnv χ) :
-    envOfTpEnv ((vA, l) :: vΓ) = .neut (.bvar vΓ.length) vA :: envOfTpEnv vΓ := by
-  simp [envOfTpEnv, List.mapIdx_cons]
+theorem toEnv_cons (vA : Val χ) (l : Nat) (vΓ : TpEnv χ) :
+    toEnv ((vA, l) :: vΓ) = .neut (.bvar vΓ.length) vA :: vΓ.toEnv := by
+  simp [toEnv, List.mapIdx_cons]
 
-theorem envOfTpEnv_wf {vΓ Γ} : TpEnvEqCtx E vΓ Γ → EnvEqSb E Γ (envOfTpEnv vΓ) Expr.bvar Γ := by
+end TpEnv
+
+theorem TpEnvEqCtx.toEnv_wf {vΓ Γ} : TpEnvEqCtx E vΓ Γ → EnvEqSb E Γ vΓ.toEnv Expr.bvar Γ := by
   intro vΓ
   have Γ := vΓ.wf_ctx
   refine EnvEqSb.mk Γ Γ ?_ fun lk => ?_
-  . rw [length_envOfTpEnv, vΓ.length_eq]
-  . simp only [envOfTpEnv, List.getElem_mapIdx]
+  . rw [TpEnv.length_toEnv, vΓ.length_eq]
+  . simp only [TpEnv.toEnv, List.getElem_mapIdx]
     apply ValEqTm.neut_tm
     . exact autosubst% vΓ.lookup_wf lk
     . rw [vΓ.length_eq]
       apply NeutEqTm.bvar Γ
       exact autosubst% lk
+
+/-! ## Monotonicity w.r.t. axioms -/
+
+attribute [local grind] WfCtx.of_axioms_le WfTp.of_axioms_le WfTm.of_axioms_le EqTp.of_axioms_le
+  EqTm.of_axioms_le in
+private theorem of_axioms_le {E E' : Axioms χ} (le : E ≤ E') :
+    (∀ {Γ l vA A}, ValEqTp E Γ l vA A → ValEqTp E' Γ l vA A) ∧
+    (∀ {Γ l vt t A}, ValEqTm E Γ l vt t A → ValEqTm E' Γ l vt t A) ∧
+    (∀ {Γ l vt t A}, NeutEqTm E Γ l vt t A → NeutEqTm E' Γ l vt t A) ∧
+    (∀ {Γ l l' A vB B}, ClosEqTp E Γ l l' A vB B → ClosEqTp E' Γ l l' A vB B) ∧
+    (∀ {Γ A l B l' l'' vC C}, Clos₂EqTp E Γ A l B l' l'' vC C → Clos₂EqTp E' Γ A l B l' l'' vC C) ∧
+    (∀ {Γ l l' A B vb b}, ClosEqTm E Γ l l' A B vb b → ClosEqTm E' Γ l l' A B vb b) ∧
+    (∀ {Γ Eᵥ σ Δ}, EnvEqSb E Γ Eᵥ σ Δ → EnvEqSb E' Γ Eᵥ σ Δ) := by
+  mutual_induction ValEqTp
+  case ax => introv _ Ec; apply ValEqTm.ax _ (le Ec); grind
+  grind_cases
+
+theorem ValEqTp.of_axioms_le {E E' : Axioms χ} (le : E ≤ E') {Γ l vA A} :
+    ValEqTp E Γ l vA A → ValEqTp E' Γ l vA A :=
+  fun h => _root_.of_axioms_le le |>.1 h
+
+theorem ValEqTm.of_axioms_le {E E' : Axioms χ} (le : E ≤ E') {Γ l vt t A} :
+    ValEqTm E Γ l vt t A → ValEqTm E' Γ l vt t A :=
+  fun h => _root_.of_axioms_le le |>.2.1 h
+
+theorem NeutEqTm.of_axioms_le {E E' : Axioms χ} (le : E ≤ E') {Γ l vn n A} :
+    NeutEqTm E Γ l vn n A → NeutEqTm E' Γ l vn n A :=
+  fun h => _root_.of_axioms_le le |>.2.2.1 h
+
+theorem ClosEqTp.of_axioms_le {E E' : Axioms χ} (le : E ≤ E') {Γ l l' A vB B} :
+    ClosEqTp E Γ l l' A vB B → ClosEqTp E' Γ l l' A vB B :=
+  fun h => _root_.of_axioms_le le |>.2.2.2.1 h
+
+theorem Clos₂EqTp.of_axioms_le {E E' : Axioms χ} (le : E ≤ E') {Γ A l B l' l'' vC C} :
+    Clos₂EqTp E Γ A l B l' l'' vC C → Clos₂EqTp E' Γ A l B l' l'' vC C :=
+  fun h => _root_.of_axioms_le le |>.2.2.2.2.1 h
+
+theorem ClosEqTm.of_axioms_le {E E' : Axioms χ} (le : E ≤ E') {Γ l l' A B vb b} :
+    ClosEqTm E Γ l l' A B vb b → ClosEqTm E' Γ l l' A B vb b :=
+  fun h => _root_.of_axioms_le le |>.2.2.2.2.2.1 h
+
+theorem EnvEqSb.of_axioms_le {E E' : Axioms χ} (le : E ≤ E') {Δ Eᵥ σ Γ} :
+    EnvEqSb E Δ Eᵥ σ Γ → EnvEqSb E' Δ Eᵥ σ Γ :=
+  fun h => _root_.of_axioms_le le |>.2.2.2.2.2.2 h
 
 /-! ## Misc lemmas -/
 

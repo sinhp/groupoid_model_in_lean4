@@ -1,17 +1,21 @@
 import GroupoidModel.Syntax.Typechecker.Equate
-import GroupoidModel.Syntax.Axioms
+import GroupoidModel.Syntax.Frontend.Checked
 
 open Qq
+
+/-! This module contains the top-level typechecker implementation.
+
+For now it is specialized to axioms named by `Lean.Name`. -/
 
 def traceClsTypechecker : Lean.Name := `Leanternal.Typechecker
 
 initialize
   Lean.registerTraceClass traceClsTypechecker
 
-variable {_u : Lean.Level} {χ : Q(Type _u)}
-
-partial def lookup (vΓ : Q(TpEnv $χ)) (i : Q(Nat)) : Lean.MetaM ((vA : Q(Val $χ)) × (l : Q(Nat)) ×
-    Q(∀ {E Γ}, [Fact E.Wf] → TpEnvEqCtx E $vΓ Γ → ∃ A, ValEqTp E Γ $l $vA A ∧ Lookup Γ $i A $l)) :=
+partial def lookup (vΓ : Q(TpEnv Lean.Name)) (i : Q(Nat)) :
+    Lean.MetaM ((vA : Q(Val Lean.Name)) × (l : Q(Nat)) ×
+      Q(∀ {E Γ}, [Fact E.Wf] → TpEnvEqCtx E $vΓ Γ → ∃ A,
+        ValEqTp E Γ $l $vA A ∧ Lookup Γ $i A $l)) :=
   match i, vΓ with
   | _, ~q([]) => throwError "bvar {i} out of range in type environment{Lean.indentExpr vΓ}"
   | ~q(.zero), ~q(($vA, $l) :: _) => do
@@ -31,10 +35,65 @@ partial def lookup (vΓ : Q(TpEnv $χ)) (i : Q(Nat)) : Lean.MetaM ((vA : Q(Val $
       exact ⟨_, vA.wk vB.wf_tp, lk.succ ..⟩
     )⟩
 
-mutual
-variable (E : Q(Axioms $χ)) (Ewf : Q(Fact ($E).Wf))
+partial def decideAxiomsGet (E : Q(Axioms Lean.Name)) (c : Q(Lean.Name)) : Lean.MetaM
+    ((A : Q(Expr Lean.Name)) × (l : Q(Nat)) × Q(∃ h, $E $c = some ⟨($A, $l), h⟩) ⊕
+      Q($E $c = none)) := do
+  match E with
+  | ~q(.empty _) => return .inr q(by rfl)
+  | ~q(@CheckedAx.snocAxioms _ $E' $ax) =>
+    let b : Q(Bool) ← Lean.Meta.whnf q(decide (($ax).name = $c))
+    have : $b =Q decide (($ax).name = $c) := .unsafeIntro
+    match b with
+    | ~q(true) =>
+      return Sum.inl ⟨q($(ax).tp), q(($ax).l), q(by as_aux_lemma =>
+        have : ($ax).name = $c := by rwa [decide_eq_true_iff] at *
+        simp +zetaDelta [CheckedAx.snocAxioms, this, ($ax).wf_tp.isClosed, ($ax).wf_tp.le_univMax]
+      )⟩
+    | ~q(false) =>
+      match ← decideAxiomsGet q($E') q($c) with
+      | .inl ⟨A, l, h⟩ =>
+        return .inl ⟨A, l, q(by as_aux_lemma =>
+          have : ($ax).name ≠ $c := by rwa [decide_eq_false_iff_not] at *
+          have ⟨h, eq⟩ := $h
+          refine ⟨h, ?_⟩
+          simpa +zetaDelta [CheckedAx.snocAxioms, Axioms.snoc, this.symm] using eq
+        )⟩
+      | .inr h =>
+        return .inr q(by as_aux_lemma =>
+          have : ($ax).name ≠ $c := by rwa [decide_eq_false_iff_not] at *
+          simpa +zetaDelta [CheckedAx.snocAxioms, Axioms.snoc, this.symm] using $h
+        )
+    | _ =>
+      throwError "could not determine whether\
+          {Lean.indentExpr q(($ax).name) |>.nest 2}\
+        {Lean.indentD "="}\
+          {Lean.indentExpr c |>.nest 2}"
+  | _ => throwError "unsupported axiom environment{Lean.indentExpr E}"
 
-partial def checkTp (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (T : Q(Expr $χ)) :
+partial def checkAxiomsLe (E E' : Q(Axioms Lean.Name)) : Lean.MetaM Q($E ≤ $E') := do
+  match E with
+  | ~q(.empty _) => return q(($E').empty_le)
+  | ~q(@CheckedAx.snocAxioms _ $E₀ $ax) =>
+    let le ← checkAxiomsLe q($E₀) q($E')
+    let .inl ⟨A, l, En⟩ ← decideAxiomsGet q($E') q(($ax).name)
+      | throwError "could not prove that '{q(($ax).name)}' is contained in{Lean.indentExpr E'}"
+    let ⟨_⟩ ← assertDefEqQ q($A) q(($ax).tp)
+    let ⟨_⟩ ← assertDefEqQ q($l) q(($ax).l)
+    return q(by as_aux_lemma =>
+      dsimp +zetaDelta only [CheckedAx.snocAxioms]
+      have ⟨_, h⟩ := $En
+      apply Axioms.snoc_le $le _ _ _ _ _ h
+    )
+  | _ =>
+    throwError "could not prove\
+        {Lean.indentExpr E |>.nest 2}\
+      {Lean.indentD "≤"}\
+        {Lean.indentExpr E' |>.nest 2}"
+
+mutual
+variable (E : Q(Axioms Lean.Name)) (Ewf : Q(Fact ($E).Wf))
+
+partial def checkTp (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (T : Q(Expr Lean.Name)) :
     Lean.MetaM Q(∀ {Γ}, TpEnvEqCtx $E $vΓ Γ → $E ∣ Γ ⊢[$l] ($T)) :=
   Lean.withTraceNode traceClsTypechecker (fun e =>
     return m!"{Lean.exceptEmoji e} {vΓ} ⊢[{l}] {T}") do
@@ -89,7 +148,8 @@ partial def checkTp (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (T : Q(Expr $χ)) :
     )
   | T => throwError "expected a type, got{Lean.indentExpr T}"
 
-partial def checkTm (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (vT : Q(Val $χ)) (t : Q(Expr $χ)) :
+partial def checkTm (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat))
+    (vT : Q(Val Lean.Name)) (t : Q(Expr Lean.Name)) :
     Lean.MetaM Q(∀ {Γ T}, TpEnvEqCtx $E $vΓ Γ → ValEqTp $E Γ $l $vT T →
       $E ∣ Γ ⊢[$l] ($t) : T) := do
   Lean.withTraceNode traceClsTypechecker (fun e =>
@@ -105,24 +165,22 @@ partial def checkTm (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (vT : Q(Val $χ)) (t : Q(E
   )
 
 -- TODO: infer rather than check universe level?
-partial def synthTm (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (t : Q(Expr $χ)) :
-    Lean.MetaM ((vT : Q(Val $χ)) × Q(∀ {Γ}, TpEnvEqCtx $E $vΓ Γ →
+partial def synthTm (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (t : Q(Expr Lean.Name)) :
+    Lean.MetaM ((vT : Q(Val Lean.Name)) × Q(∀ {Γ}, TpEnvEqCtx $E $vΓ Γ →
       ∃ T, ValEqTp $E Γ $l $vT T ∧ ($E ∣ Γ ⊢[$l] ($t) : T))) :=
   Lean.withTraceNode (ε := Lean.Exception) traceClsTypechecker (fun
-    | .ok vT => return m!"✅️ {vΓ} ⊢[{l}] {t} ⇒ {vT}"
+    | .ok ⟨vT, _⟩ => return m!"✅️ {vΓ} ⊢[{l}] {t} ⇒ {vT}"
     | .error e => return m!"❌️ {vΓ} ⊢[{l}] {t} ⇒ _") do
   match t with
   | ~q(@CheckedDef.val _ $E' $defn) => do
-    -- Ensure the definition was well-formed in the same environment as us.
-    -- TODO: prove `LE` here, not equality;
-    -- equality requires all axioms to be declared upfront.
-    let ⟨_⟩ ← assertDefEqQ q($E) q($E')
+    -- Ensure the definition uses a subset of the available axioms.
+    let le ← checkAxiomsLe q($E') q($E)
     let _ ← equateNat q($l) q(($defn).l)
     return ⟨q(($defn).nfTp), q(by as_aux_lemma =>
       introv vΓ; have Γwf := vΓ.wf_ctx; clear vΓ
       subst_vars
       induction Γ
-      . exact ⟨_, ($defn).wf_nfTp, ($defn).wf_val⟩
+      . exact ⟨_, ($defn).wf_nfTp.of_axioms_le $le, ($defn).wf_val.of_axioms_le $le⟩
       . rename_i ih
         have B := Γwf.inv_snoc
         have ⟨_, vA, t⟩ := ih B.wf_ctx
@@ -130,8 +188,25 @@ partial def synthTm (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (t : Q(Expr $χ)) :
         convert t.subst (WfSb.wk B) using 1
         rw [Expr.subst_of_isClosed _ ($defn).wf_val.isClosed]
     )⟩
+  | ~q(CheckedAx.val $ax) => do
+    let le ← checkAxiomsLe q(($ax).snocAxioms) q($E)
+    let _ ← equateNat q($l) q(($ax).l)
+    return ⟨q(($ax).nfTp), q(by as_aux_lemma =>
+      introv vΓ; have Γwf := vΓ.wf_ctx; clear vΓ
+      subst_vars
+      have le' := Trans.trans ($ax).le_snocAxioms $le
+      induction Γ
+      . exact ⟨_, ($ax).wf_nfTp.of_axioms_le le', ($ax).wf_val.of_axioms_le $le⟩
+      . rename_i ih
+        have B := Γwf.inv_snoc
+        have ⟨_, vA, t⟩ := ih B.wf_ctx
+        refine ⟨_, vA.wk B, ?_⟩
+        have := t.subst (WfSb.wk B)
+        -- `this` has the wrong type?!
+        exact this
+    )⟩
   | ~q(.ax $c) => do
-    let Al : Q(Option { Al : Expr $χ × Nat // Al.1.isClosed ∧ Al.2 ≤ univMax }) ←
+    let Al : Q(Option { Al : Expr Lean.Name × Nat // Al.1.isClosed ∧ Al.2 ≤ univMax }) ←
       Lean.Meta.whnf q($E $c)
     let ~q(some $Al') := Al
       | throwError "could not find constant '{c}' in environment{Lean.indentExpr E}\n\
@@ -163,7 +238,7 @@ partial def synthTm (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (t : Q(Expr $χ)) :
     let ⟨vA, vAeq⟩ ← evalTpId q($vΓ) q($A)
     let ⟨vB, bB⟩ ← synthTm q(($vA, $k) :: $vΓ) q($k') q($b)
     let lmax ← equateNat q($l) q(max $k $k')
-    return ⟨q(.pi $k $k' $vA (.of_val (envOfTpEnv $vΓ) $vB)), q(by as_aux_lemma =>
+    return ⟨q(.pi $k $k' $vA (.of_val ($vΓ).toEnv $vB)), q(by as_aux_lemma =>
       introv vΓ
       subst_vars
       have A := $Awf vΓ
@@ -171,7 +246,7 @@ partial def synthTm (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (t : Q(Expr $χ)) :
       have ⟨B, vB, b⟩ := $bB (vΓ.snoc vA)
       refine ⟨.pi $k $k' $A B, ?_, WfTm.lam b⟩
       apply ValEqTp.pi vA
-      convert ClosEqTp.clos_val_tp (envOfTpEnv_wf vΓ) _ vB using 1
+      convert ClosEqTp.clos_val_tp vΓ.toEnv_wf _ vB using 1
       . autosubst
       . autosubst; apply EqTp.refl_tp A
     )⟩
@@ -179,17 +254,17 @@ partial def synthTm (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (t : Q(Expr $χ)) :
     let lk' ← equateNat q($l) q($k')
     let ⟨vA, vApost⟩ ← synthTm q($vΓ) q($k) q($a)
     let Bwf ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
-    let fwf ← checkTm q($vΓ) q(max $k $k') q(.pi $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B)) q($f)
+    let fwf ← checkTm q($vΓ) q(max $k $k') q(.pi $k $k' $vA (.of_expr ($vΓ).toEnv $B)) q($f)
     let ⟨va, vaeq⟩ ← evalTmId q($vΓ) q($a)
-    let ⟨vBa, vBaeq⟩ ← evalTp q($va :: envOfTpEnv $vΓ) q($B)
+    let ⟨vBa, vBaeq⟩ ← evalTp q($va :: ($vΓ).toEnv) q($B)
     return ⟨vBa, q(by as_aux_lemma =>
       introv vΓ
       have ⟨_, vA, a⟩ := $vApost vΓ
       have B := $Bwf <| vΓ.snoc vA
       have f := $fwf vΓ <| ValEqTp.pi vA <|
-        ClosEqTp.clos_tp (envOfTpEnv_wf vΓ) (by convert EqTp.refl_tp a.wf_tp using 1; autosubst) B
+        ClosEqTp.clos_tp vΓ.toEnv_wf (by convert EqTp.refl_tp a.wf_tp using 1; autosubst) B
       have va := $vaeq vΓ a
-      have := (envOfTpEnv_wf vΓ).snoc va.wf_tm.wf_tp (by convert va using 1; autosubst)
+      have := vΓ.toEnv_wf.snoc va.wf_tm.wf_tp (by convert va using 1; autosubst)
       subst_vars
       refine ⟨_, $vBaeq this B, ?_⟩
       convert WfTm.app f a using 1 <;> simp +zetaDelta only [autosubst]
@@ -199,18 +274,18 @@ partial def synthTm (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (t : Q(Expr $χ)) :
     let ⟨vA, fA⟩ ← synthTm q($vΓ) q($k) q($f)
     let Bwf ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
     let ⟨vf, vfpost⟩ ← evalTmId q($vΓ) q($f)
-    let ⟨vBf, vBfpost⟩ ← evalTp q($vf :: envOfTpEnv $vΓ) q($B)
+    let ⟨vBf, vBfpost⟩ ← evalTp q($vf :: ($vΓ).toEnv) q($B)
     let swf ← checkTm q($vΓ) q($k') q($vBf) q($s)
-    return ⟨q(.sigma $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B)), q(by as_aux_lemma =>
+    return ⟨q(.sigma $k $k' $vA (.of_expr ($vΓ).toEnv $B)), q(by as_aux_lemma =>
       introv vΓ
       subst_vars
       have ⟨_, vA, f⟩ := $fA vΓ
       have B := $Bwf <| vΓ.snoc vA
       have vf := $vfpost vΓ f
-      have vBf := $vBfpost ((envOfTpEnv_wf vΓ).snoc f.wf_tp (by convert vf using 1; autosubst)) B
+      have vBf := $vBfpost (vΓ.toEnv_wf.snoc f.wf_tp (by convert vf using 1; autosubst)) B
       have s := $swf vΓ vBf
       have := ValEqTp.sigma vA <|
-        ClosEqTp.clos_tp (envOfTpEnv_wf vΓ) (by convert EqTp.refl_tp vA.wf_tp using 1; autosubst) B
+        ClosEqTp.clos_tp vΓ.toEnv_wf (by convert EqTp.refl_tp vA.wf_tp using 1; autosubst) B
       refine ⟨_, this, ?_⟩
       simp +zetaDelta only [autosubst]
       apply WfTm.pair B f s
@@ -221,7 +296,7 @@ partial def synthTm (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (t : Q(Expr $χ)) :
     let ⟨vA, vApost⟩ ← evalTpId q($vΓ) q($A)
     let Bwf ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
     let pwf ← checkTm
-      q($vΓ) q(max $k $k') q(.sigma $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B)) q($p)
+      q($vΓ) q(max $k $k') q(.sigma $k $k' $vA (.of_expr ($vΓ).toEnv $B)) q($p)
     return ⟨vA, q(by as_aux_lemma =>
       introv vΓ
       subst_vars
@@ -229,7 +304,7 @@ partial def synthTm (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (t : Q(Expr $χ)) :
       have vA := $vApost vΓ A
       have B := $Bwf <| vΓ.snoc vA
       have p := $pwf vΓ <| ValEqTp.sigma vA <|
-        ClosEqTp.clos_tp (envOfTpEnv_wf vΓ) (by convert EqTp.refl_tp vA.wf_tp using 1; autosubst) B
+        ClosEqTp.clos_tp vΓ.toEnv_wf (by convert EqTp.refl_tp vA.wf_tp using 1; autosubst) B
       refine ⟨_, vA, ?_⟩
       simp +zetaDelta only [autosubst] at p ⊢
       apply WfTm.fst p
@@ -240,10 +315,10 @@ partial def synthTm (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (t : Q(Expr $χ)) :
     let ⟨vA, vApost⟩ ← evalTpId q($vΓ) q($A)
     let Bwf ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
     let pwf ←
-      checkTm q($vΓ) q(max $k $k') q(.sigma $k $k' $vA (.of_expr (envOfTpEnv $vΓ) $B)) q($p)
+      checkTm q($vΓ) q(max $k $k') q(.sigma $k $k' $vA (.of_expr ($vΓ).toEnv $B)) q($p)
     let ⟨vp, vppost⟩ ← evalTmId q($vΓ) q($p)
     let ⟨vf, vfpost⟩ ← evalFst q($vp)
-    let ⟨vBf, vBfpost⟩ ← evalTp q($vf :: envOfTpEnv $vΓ) q($B)
+    let ⟨vBf, vBfpost⟩ ← evalTp q($vf :: ($vΓ).toEnv) q($B)
     return ⟨vBf, q(by as_aux_lemma =>
       introv vΓ
       subst_vars
@@ -251,11 +326,11 @@ partial def synthTm (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (t : Q(Expr $χ)) :
       have vA := $vApost vΓ A
       have B := $Bwf <| vΓ.snoc vA
       have p := $pwf vΓ <| ValEqTp.sigma vA <|
-        ClosEqTp.clos_tp (envOfTpEnv_wf vΓ) (by convert EqTp.refl_tp vA.wf_tp using 1; autosubst) B
+        ClosEqTp.clos_tp vΓ.toEnv_wf (by convert EqTp.refl_tp vA.wf_tp using 1; autosubst) B
       have vp := $vppost vΓ p
       have vf := $vfpost vp
       have vBf :=
-        $vBfpost ((envOfTpEnv_wf vΓ).snoc vf.wf_tm.wf_tp (by convert vf using 1; autosubst)) B
+        $vBfpost (vΓ.toEnv_wf.snoc vf.wf_tm.wf_tp (by convert vf using 1; autosubst)) B
       refine ⟨_, vBf, ?_⟩
       simp +zetaDelta only [autosubst] at p ⊢
       apply WfTm.snd p
@@ -277,13 +352,13 @@ partial def synthTm (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (t : Q(Expr $χ)) :
     let ⟨va, vapost⟩ ← evalTmId q($vΓ) q($a)
     let Mwf ← checkTp
       q((.Id $k $vA $va (.neut (.bvar ($vΓ).length) $vA), $k) :: ($vA, $k) :: $vΓ) q($k') q($M)
-    let ⟨vMa, vMapost⟩ ← evalTp q((.refl $k $va) :: $va :: envOfTpEnv $vΓ) q($M)
+    let ⟨vMa, vMapost⟩ ← evalTp q((.refl $k $va) :: $va :: ($vΓ).toEnv) q($M)
     let rwf ← checkTm q($vΓ) q($k') q($vMa) q($r)
     let bwf ← checkTm q($vΓ) q($k) q($vA) q($b)
     let ⟨vb, vbpost⟩ ← evalTmId q($vΓ) q($b)
     let hwf ← checkTm q($vΓ) q($k) q(.Id $k $vA $va $vb) q($h)
     let ⟨vh, vhpost⟩ ← evalTmId q($vΓ) q($h)
-    let ⟨vMb, vMbpost⟩ ← evalTp q($vh :: $vb :: envOfTpEnv $vΓ) q($M)
+    let ⟨vMb, vMbpost⟩ ← evalTp q($vh :: $vb :: ($vΓ).toEnv) q($M)
     return ⟨q($vMb), q(by as_aux_lemma =>
       introv vΓ
       subst_vars
@@ -292,7 +367,7 @@ partial def synthTm (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (t : Q(Expr $χ)) :
       have := ValEqTp.Id_bvar vA va
       rw [← vΓ.length_eq] at this
       have M := $Mwf (vΓ.snoc vA |>.snoc this)
-      have := envOfTpEnv_wf vΓ
+      have := vΓ.toEnv_wf
         |>.snoc a.wf_tp (autosubst% va)
         |>.snoc (WfTp.Id_bvar a) (autosubst% ValEqTm.refl va)
       have vMa := $vMapost this M
@@ -301,7 +376,7 @@ partial def synthTm (vΓ : Q(TpEnv $χ)) (l : Q(Nat)) (t : Q(Expr $χ)) :
       have vb := $vbpost vΓ b
       have h := $hwf vΓ (ValEqTp.Id vA va vb)
       have vh := $vhpost vΓ h
-      have := envOfTpEnv_wf vΓ
+      have := vΓ.toEnv_wf
         |>.snoc a.wf_tp (autosubst% vb)
         |>.snoc (WfTp.Id_bvar a) (autosubst% vh)
       have vMb := $vMbpost this M

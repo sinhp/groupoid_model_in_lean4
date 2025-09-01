@@ -61,7 +61,7 @@ elab "#measure_rkernel" : command => liftTermElabM do
 
       --typechecking
       let axioms : Q(Axioms Name) := q(Axioms.empty Name)
-      have wf_axioms : Q(($axioms).Wf) := q(.empty Name)
+      have wf_axioms : Q(($axioms).Wf) := q(Axioms.empty_wf Name)
       have : Q(Fact ($axioms).Wf) := q(⟨$wf_axioms⟩)
 
       -- let t_tpchk0 ← IO.monoNanosNow
@@ -77,7 +77,8 @@ elab "#measure_rkernel" : command => liftTermElabM do
           let twf ← checkTm q($axioms) q(⟨$wf_axioms⟩) q([]) q($l) q($vT) q($t)
           let t_tpchk1 ← IO.monoNanosNow
           let value : Q(CheckedDef $axioms) := q(
-            { l := $l
+            { wf_axioms := $wf_axioms
+              l := $l
               tp := $T
               nfTp := $vT
               wf_nfTp := $vTeq .nil <| $Twf .nil

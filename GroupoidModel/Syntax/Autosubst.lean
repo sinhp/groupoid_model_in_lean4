@@ -302,11 +302,11 @@ def isClosed (k : Nat := 0) : Expr χ → Bool
   | .idRec _ _ t M r u h =>
     t.isClosed k && M.isClosed (k + 2) && r.isClosed k && u.isClosed k && h.isClosed k
 
-/-- The substitution acts via identity on indices strictly below `k`. -/
-def SbIsBvar (σ : Nat → Expr χ) (k : Nat) :=
-  ∀ ⦃i⦄, i < k → σ i = .bvar i
+/-- The substitution acts via identity on indices strictly below `n`. -/
+def SbIsBvar (σ : Nat → Expr χ) (n : Nat) :=
+  ∀ ⦃i⦄, i < n → σ i = .bvar i
 
-theorem SbIsBvar.up {σ : Nat → Expr χ} {k} : SbIsBvar σ k → SbIsBvar (Expr.up σ) (k + 1) := by
+theorem SbIsBvar.up {σ : Nat → Expr χ} {n} : SbIsBvar σ n → SbIsBvar (Expr.up σ) (n + 1) := by
   rintro σk ⟨⟩ lt
   . simp [Expr.up_eq_snoc]
   . have := σk (Nat.succ_lt_succ_iff.mp lt)
