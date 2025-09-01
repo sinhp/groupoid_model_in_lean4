@@ -399,9 +399,13 @@ lemma code_el (s : UHomSeq Ctx) {Γ : Ctx} {i : Nat} (ilen : i < s.length)
     code s ilen (el s ilen a a_tp) = a := by
   simp [code, el]
 
-end UHomSeq
+-- Sadly, we have to spell out `ilen` and `jlen` due to
+-- https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/Optional.20implicit.20argument
+variable {i j : Nat} (ilen : i < s.length + 1) (jlen : j < s.length + 1)
 
-/-- The data of type and term formers at each universe `s[i].tp`.
+/-! ## Pi -/
+
+/-- The data of `Pi` and `lam` formers at each universe `s[i].tp`.
 
 This data is universe-monomorphic,
 but we can use it to construct universe-polymorphic formation
@@ -418,35 +422,19 @@ can be extended to
 --------------------------
 Γ ⊢ₘₐₓ₍ᵢ,ⱼ₎ ΠA. B type
 ``` -/
-structure UHomSeqPiSig (Ctx : Type u) [SmallCategory.{u} Ctx] [CartesianMonoidalCategory Ctx]
-    extends UHomSeq Ctx where
-  nmPi (i : Nat) (ilen : i < length + 1 := by get_elem_tactic) : NaturalModel.Pi toUHomSeq[i]
-  nmSig (i : Nat) (ilen : i < length + 1 := by get_elem_tactic) : NaturalModel.Sigma toUHomSeq[i]
+protected class PiSeq (s : UHomSeq Ctx) where
+  nmPi (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) : NaturalModel.Pi s[i]
 
-namespace UHomSeqPiSig
+section Pi
+open PiSeq
 
-variable {Ctx : Type u} [SmallCategory.{u} Ctx] [CartesianMonoidalCategory Ctx]
-
-instance : GetElem (UHomSeqPiSig Ctx) Nat (NaturalModel Ctx)
-    (fun s i => i < s.length + 1) where
-  getElem s i h := s.toUHomSeq[i]
-
-variable (s : UHomSeqPiSig Ctx)
-
-@[simp]
-theorem getElem_toUHomSeq (i : Nat) (ilen : i < s.length + 1) : s.toUHomSeq[i] = s[i] := rfl
-
--- Sadly, we have to spell out `ilen` and `jlen` due to
--- https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/Optional.20implicit.20argument
-variable {i j : Nat} (ilen : i < s.length + 1) (jlen : j < s.length + 1)
-
-/-! ## Pi -/
+variable [s.PiSeq]
 
 def Pi : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
-  s.cartesianNatTransTy i (max i j) j (max i j) ≫ (s.nmPi (max i j)).Pi
+  s.cartesianNatTransTy i (max i j) j (max i j) ≫ (nmPi (max i j)).Pi
 
 def lam : s[i].Ptp.obj s[j].Tm ⟶ s[max i j].Tm :=
-  s.cartesianNatTransTm i (max i j) j (max i j) ≫ (s.nmPi (max i j)).lam
+  s.cartesianNatTransTm i (max i j) j (max i j) ≫ (nmPi (max i j)).lam
 
 def Pi_pb :
     IsPullback (s.lam ilen jlen) (s[i].Ptp.map s[j].tp) s[max i j].tp (s.Pi ilen jlen) := by
@@ -460,7 +448,7 @@ def Pi_pb :
       (s[max i j].Ptp.map (s.homOfLe j (max i j)).mapTy) :=
     CategoryTheory.UvPoly.preservesPullbacks s[max i j].uvPolyTp _ _ _ _
     (s.homOfLe j (max i j)).pb
-  have q := IsPullback.paste_horiz pbB (s.nmPi (max i j)).Pi_pullback
+  have q := IsPullback.paste_horiz pbB (nmPi (max i j)).Pi_pullback
   apply CategoryTheory.IsPullback.paste_horiz (p1 s[j].tp).flip q
 
 /--
@@ -473,9 +461,10 @@ def mkPi {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty) : y(
   PtpEquiv.mk s[i] A B ≫ s.Pi ilen jlen
 
 theorem comp_mkPi {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
-    (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty) :
-    ym(σ) ≫ s.mkPi ilen jlen A B = s.mkPi ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ B) := by
-  simp [mkPi, ← Category.assoc, PtpEquiv.mk_comp_left]
+    (A : y(Γ) ⟶ s[i].Ty) (σA) (eq : ym(σ) ≫ A = σA)
+    (B : y(s[i].ext A) ⟶ s[j].Ty) :
+    ym(σ) ≫ s.mkPi ilen jlen A B = s.mkPi ilen jlen σA (ym(s[i].substWk σ A _ eq) ≫ B) := by
+  simp [mkPi, ← Category.assoc, PtpEquiv.mk_comp_left (eq := eq)]
 
 /--
 ```
@@ -493,9 +482,9 @@ theorem mkLam_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].
   simp [mkLam, mkPi, (s.Pi_pb ilen jlen).w, PtpEquiv.mk_map_assoc, t_tp]
 
 theorem comp_mkLam {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
-    (A : y(Γ) ⟶ s[i].Ty) (t : y(s[i].ext A) ⟶ s[j].Tm) :
-    ym(σ) ≫ s.mkLam ilen jlen A t = s.mkLam ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ t) := by
-  simp [mkLam, ← Category.assoc, PtpEquiv.mk_comp_left]
+    (A : y(Γ) ⟶ s[i].Ty) (σA) (eq : ym(σ) ≫ A = σA) (t : y(s[i].ext A) ⟶ s[j].Tm) :
+    ym(σ) ≫ s.mkLam ilen jlen A t = s.mkLam ilen jlen σA (ym(s[i].substWk σ A _ eq) ≫ t) := by
+  simp [mkLam, ← Category.assoc, PtpEquiv.mk_comp_left (eq := eq)]
 
 
 /--
@@ -524,15 +513,14 @@ theorem unLam_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].
   convert PtpEquiv.snd_mk s[i] A B using 2; simp
 
 theorem comp_unLam {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
-    (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
+    (A : y(Γ) ⟶ s[i].Ty) (σA) (eq : ym(σ) ≫ A = σA) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (f : y(Γ) ⟶ s[max i j].Tm) (f_tp : f ≫ s[max i j].tp = s.mkPi ilen jlen A B) :
-    ym(s[i].substWk σ A) ≫ s.unLam ilen jlen A B f f_tp =
-      s.unLam ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ B)
-        (ym(σ) ≫ f) (by simp [f_tp, comp_mkPi]) := by
+    ym(s[i].substWk σ A _ eq) ≫ s.unLam ilen jlen A B f f_tp =
+      s.unLam ilen jlen σA (ym(s[i].substWk σ A _ eq) ≫ B)
+        (ym(σ) ≫ f) (by simp [eq, f_tp, comp_mkPi]) := by
   simp [unLam]
   rw [← PtpEquiv.snd_comp_left]
-  simp [PtpEquiv.snd, UvPoly.Equiv.snd'_eq]
-  simp only [← Category.assoc]; congr 2
+  simp [PtpEquiv.snd, UvPoly.Equiv.snd'_eq]; congr 1
   apply pullback.hom_ext <;> simp; congr 1
   apply (s.Pi_pb ilen jlen).hom_ext <;> simp
   rw [PtpEquiv.mk_comp_left]
@@ -556,14 +544,15 @@ theorem mkApp_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].
   simp [mkApp]
 
 theorem comp_mkApp {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
-    (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
+    (A : y(Γ) ⟶ s[i].Ty) (σA) (eq : ym(σ) ≫ A = σA) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (f : y(Γ) ⟶ s[max i j].Tm) (f_tp : f ≫ s[max i j].tp = s.mkPi ilen jlen A B)
     (a : y(Γ) ⟶ s[i].Tm) (a_tp : a ≫ s[i].tp = A) :
     ym(σ) ≫ s.mkApp ilen jlen A B f f_tp a a_tp =
-      s.mkApp ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ B)
-        (ym(σ) ≫ f) (by simp [f_tp, comp_mkPi])
-        (ym(σ) ≫ a) (by simp [a_tp]) := by
-  unfold mkApp; rw [← Functor.map_comp_assoc, comp_sec, Functor.map_comp_assoc, comp_unLam]
+      s.mkApp ilen jlen σA (ym(s[i].substWk σ A _ eq) ≫ B)
+        (ym(σ) ≫ f) (by simp [f_tp, comp_mkPi (eq := eq)])
+        (ym(σ) ≫ a) (by simp [a_tp, eq]) := by
+  unfold mkApp; rw [← Functor.map_comp_assoc,
+    comp_sec (eq := eq), Functor.map_comp_assoc, comp_unLam (eq := eq)]
 
 @[simp]
 theorem mkLam_unLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
@@ -633,10 +622,20 @@ theorem mkApp_mkLam {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[
   rw [mkApp, unLam_mkLam]
   assumption
 
+end Pi
+
 /-! ## Sigma -/
 
+/-- The data of `Sig` and `pair` formers at each universe `s[i].tp`. -/
+class SigSeq (s : UHomSeq Ctx) where
+  nmSig (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) : NaturalModel.Sigma s[i]
+
+section Sigma
+open SigSeq
+variable [s.SigSeq]
+
 def Sig : s[i].Ptp.obj s[j].Ty ⟶ s[max i j].Ty :=
-  s.cartesianNatTransTy i (max i j) j (max i j) ≫ (s.nmSig (max i j)).Sig
+  s.cartesianNatTransTy i (max i j) j (max i j) ≫ (nmSig (max i j)).Sig
 
 def pair : UvPoly.compDom s[i].uvPolyTp s[j].uvPolyTp ⟶ s[max i j].Tm :=
   let l : s[i].uvPolyTp.compDom s[j].uvPolyTp ⟶ s[max i j].uvPolyTp.compDom s[max i j].uvPolyTp :=
@@ -647,13 +646,13 @@ def pair : UvPoly.compDom s[i].uvPolyTp s[j].uvPolyTp ⟶ s[max i j].Tm :=
       (s.homOfLe j (max i j)).mapTy
       (s.homOfLe i (max i j)).pb.flip
       (s.homOfLe j (max i j)).pb.flip
-  l ≫ (s.nmSig (max i j)).pair
+  l ≫ (nmSig (max i j)).pair
 
 def Sig_pb : IsPullback
     (s.pair ilen jlen)
-  (s[i].uvPolyTp.comp s[j].uvPolyTp).p s[max i j].tp
+  (s[i].uvPolyTp.compP s[j].uvPolyTp) s[max i j].tp
     (s.Sig ilen jlen) :=
-  (UvPoly.compDomMap_isPullback ..).paste_horiz (s.nmSig (max i j)).Sig_pullback
+  (UvPoly.compDomMap_isPullback ..).paste_horiz (nmSig (max i j)).Sig_pullback
 
 /--
 ```
@@ -680,30 +679,8 @@ theorem comp_mkSig {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
 def mkPair {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (t : y(Γ) ⟶ s[i].Tm) (t_tp : t ≫ s[i].tp = A)
     (u : y(Γ) ⟶ s[j].Tm) (u_tp : u ≫ s[j].tp = ym(s[i].sec A t t_tp) ≫ B) :
-    y(Γ) ⟶ s[max i j].Tm := by
-  -- have ht : (t ≫ (s.homOfLe i (max i j)).mapTm) ≫ s[max i j].tp =
-  --     A ≫ (s.homOfLe i (max i j)).mapTy := by
-  --   have := (s.homOfLe i (max i j)).pb.w; dsimp at this
-  --   rw [Category.assoc, this, ← Category.assoc, t_tp]
-  -- refine compDomEquiv.mk _
-  --   (t ≫ (s.homOfLe i (max i j)).mapTm)
-  --   (ym(substCons _ (s[max i j].disp _) _
-  --       (s.unliftVar i (max i j) (by omega) _ A (by simp [*]))
-  --       (by have := @s.unliftVar_tp; simp_all))
-  --     ≫ B ≫ (s.homOfLe j (max i j)).mapTy)
-  --   (u ≫ (s.homOfLe j (max i j)).mapTm)
-  --   ?_
-  --   ≫ (s.nmSigma (max i j)).pair
-  -- have hu : (u ≫ (s.homOfLe j (max i j)).mapTm) ≫ s[max i j].tp =
-  --     ym(s[i].sec A t t_tp) ≫ B ≫ (s.homOfLe j (max i j)).mapTy := by
-  --   have := (s.homOfLe j (max i j)).pb.w; dsimp at this
-  --   rw [Category.assoc, this, ← Category.assoc, u_tp, Category.assoc]
-  -- dsimp; rw [hu, ← Functor.map_comp_assoc]; congr! 2
-  -- rw [comp_substCons, sec]; congr!
-  -- · simp
-  -- · symm; apply s.substCons_unliftVar; simp [t_tp]
-  refine compDomEquiv.mk _ t (ym(eqToHom congr(s[i].ext $t_tp)) ≫ B) u ?_ ≫ s.pair ilen jlen
-  rw [u_tp, ← Functor.map_comp_assoc]; subst A; simp
+    y(Γ) ⟶ s[max i j].Tm :=
+  compDomEquiv.mk t t_tp B u u_tp ≫ s.pair ilen jlen
 
 theorem comp_mkPair {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
@@ -713,45 +690,25 @@ theorem comp_mkPair {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
       s.mkPair ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ B)
         (ym(σ) ≫ t) (by simp [t_tp])
         (ym(σ) ≫ u) (by simp [u_tp, comp_sec_functor_map_assoc]) := by
-  simp only [← Category.assoc,eqToHom_map,mkPair]
-  congr
-  apply NaturalModel.compDomEquiv.mk_naturality (A := A) (e1 := t_tp)
-  · simp [u_tp]
-  · simp only [u_tp]
-    rw! [t_tp]
-    rfl
+  simp only [← Category.assoc, mkPair]; rw [compDomEquiv.comp_mk]
 
 @[simp]
 theorem mkPair_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (t : y(Γ) ⟶ s[i].Tm) (t_tp : t ≫ s[i].tp = A)
     (u : y(Γ) ⟶ s[j].Tm) (u_tp : u ≫ s[j].tp = ym(s[i].sec A t t_tp) ≫ B) :
     s.mkPair ilen jlen A B t t_tp u u_tp ≫ s[max i j].tp = s.mkSig ilen jlen A B := by
-  unfold mkPair mkSig Sig
-  sorry -- equiv theorems
+  simp [mkPair, mkSig, UvPoly.compP, (s.Sig_pb ilen jlen).w, compDomEquiv.mk]
 
 def mkFst {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (p : y(Γ) ⟶ s[max i j].Tm) (p_tp : p ≫ s[max i j].tp = s.mkSig ilen jlen A B) :
     y(Γ) ⟶ s[i].Tm :=
-  -- s.unlift i (max i j) (by omega) (by omega) A
-  --   (compDomEquiv.fst s[max i j]
-  --     ((s.nmSig (max i j)).Sig_pullback.lift p
-  --       (PtpEquiv.mk s[max i j]
-  --         (A ≫ (s.homOfLe i (max i j)).mapTy)
-  --         (ym(substCons _ (s[max i j].disp _) _
-  --           (s.unliftVar i (max i j) (by omega) _ A (by simp [*]))
-  --           (by have' := @s.unliftVar_tp; simp_all))
-  --         ≫ B ≫ (s.homOfLe j (max i j)).mapTy))
-  --       (by
-  --         simp [mkSig, *, Sig]
-  --         rw [← Category.assoc]; congr! 1
-  --         apply s.mk_cartesianNatTransTy)))
-  --   (by simp [compDomEquiv.fst_tp])
-  compDomEquiv.fst s[j] ((s.Sig_pb ilen jlen).lift p (PtpEquiv.mk _ A B) p_tp)
+  compDomEquiv.fst ((s.Sig_pb ilen jlen).lift p (PtpEquiv.mk _ A B) p_tp)
 
 @[simp]
 theorem mkFst_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (p : y(Γ) ⟶ s[max i j].Tm) (p_tp : p ≫ s[max i j].tp = s.mkSig ilen jlen A B) :
-    s.mkFst ilen jlen A B p p_tp ≫ s[i].tp = A := by simp [mkFst, compDomEquiv.fst_tp]
+    s.mkFst ilen jlen A B p p_tp ≫ s[i].tp = A := by
+  simp [mkFst, UvPoly.compP, compDomEquiv.fst_tp]
 
 @[simp]
 theorem mkFst_mkPair {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
@@ -759,9 +716,8 @@ theorem mkFst_mkPair {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s
     (u : y(Γ) ⟶ s[j].Tm) (u_tp : u ≫ s[j].tp = ym(s[i].sec A t t_tp) ≫ B) :
     s.mkFst ilen jlen A B (s.mkPair ilen jlen A B t t_tp u u_tp) (by simp) = t := by
   simp [mkFst, mkPair]
-  apply (s.homOfLe i (max i j)).pb.hom_ext <;> simp
-  · sorry
-  · sorry
+  convert compDomEquiv.fst_mk t t_tp B u u_tp using 2
+  apply (s.Sig_pb ilen jlen).hom_ext <;> [simp; simp [compDomEquiv.mk, UvPoly.compP]]
 
 theorem comp_mkFst {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
@@ -769,40 +725,40 @@ theorem comp_mkFst {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     ym(σ) ≫ s.mkFst ilen jlen A B p p_tp =
       s.mkFst ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ B) (ym(σ) ≫ p)
         (by simp [p_tp, comp_mkSig]) := by
-  sorry
+  simp [mkFst]
+  rw [compDomEquiv.comp_fst]; congr 1
+  apply (s.Sig_pb ilen jlen).hom_ext <;> simp
+  rw [PtpEquiv.mk_comp_left]
 
 def mkSnd {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (p : y(Γ) ⟶ s[max i j].Tm) (p_tp : p ≫ s[max i j].tp = s.mkSig ilen jlen A B) :
-    y(Γ) ⟶ s[j].Tm := by
-  let := (s.nmSig (max i j)).Sig_pullback.lift p
-    (PtpEquiv.mk s[max i j]
-      (A ≫ (s.homOfLe i (max i j)).mapTy)
-      (ym(substCons _ (s[max i j].disp _) _
-        (s.unliftVar i (max i j) (by omega) _ A (by simp [*]))
-        (by have' := @s.unliftVar_tp; simp_all))
-      ≫ B ≫ (s.homOfLe j (max i j)).mapTy))
-    (by
-      simp [mkSig, *, Sig]
-      rw [← Category.assoc]; congr! 1
-      apply s.mk_comp_cartesianNatTransTy)
-  refine s.unlift j (max i j) (by omega) (by omega)
-    (ym(s[i].sec _ (s.mkFst ilen jlen A B p p_tp) (by simp)) ≫ B)
-    (compDomEquiv.snd s[max i j] this) ?_
-  simp [compDomEquiv.snd_tp]
-  sorry
+    y(Γ) ⟶ s[j].Tm :=
+  compDomEquiv.snd ((s.Sig_pb ilen jlen).lift p (PtpEquiv.mk _ A B) p_tp)
 
 @[simp]
 theorem mkSnd_mkPair {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (t : y(Γ) ⟶ s[i].Tm) (t_tp : t ≫ s[i].tp = A)
     (u : y(Γ) ⟶ s[j].Tm) (u_tp : u ≫ s[j].tp = ym(s[i].sec A t t_tp) ≫ B) :
     s.mkSnd ilen jlen A B (s.mkPair ilen jlen A B t t_tp u u_tp) (by simp) = u := by
-  sorry
+  simp [mkSnd, mkPair]
+  convert compDomEquiv.snd_mk t t_tp B u u_tp using 2
+  apply (s.Sig_pb ilen jlen).hom_ext <;> [simp; simp [compDomEquiv.mk, UvPoly.compP]]
+
+protected theorem dependent_eq {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
+    (p : y(Γ) ⟶ s[max i j].Tm) (p_tp : p ≫ s[max i j].tp = s.mkSig ilen jlen A B) :
+    compDomEquiv.dependent ((s.Sig_pb ilen jlen).lift p (PtpEquiv.mk s[i] A B) p_tp) A
+      (by simp [compDomEquiv.fst_tp]) = B := by
+  simp [compDomEquiv.dependent, -UvPoly.comp_p]
+  convert PtpEquiv.snd_mk s[i] A B using 2
+  simp
 
 @[simp]
 theorem mkSnd_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
     (p : y(Γ) ⟶ s[max i j].Tm) (p_tp : p ≫ s[max i j].tp = s.mkSig ilen jlen A B) :
     s.mkSnd ilen jlen A B p p_tp ≫ s[j].tp =
-      ym(s[i].sec A (s.mkFst ilen jlen A B p p_tp) (by simp)) ≫ B := s.unlift_tp ..
+      ym(s[i].sec A (s.mkFst ilen jlen A B p p_tp) (by simp)) ≫ B := by
+  generalize_proofs h
+  simp [mkSnd, compDomEquiv.snd_tp (eq := h), s.dependent_eq]; rfl
 
 theorem comp_mkSnd {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
@@ -810,7 +766,9 @@ theorem comp_mkSnd {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     ym(σ) ≫ s.mkSnd ilen jlen A B p p_tp =
       s.mkSnd ilen jlen (ym(σ) ≫ A) (ym(s[i].substWk σ A) ≫ B) (ym(σ) ≫ p)
         (by simp [p_tp, comp_mkSig]) := by
-  sorry
+  simp [mkSnd, compDomEquiv.comp_snd]; congr 1
+  apply (s.Sig_pb ilen jlen).hom_ext <;> simp
+  rw [PtpEquiv.mk_comp_left]
 
 @[simp]
 theorem mkPair_mkFst_mkSnd {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A) ⟶ s[j].Ty)
@@ -818,9 +776,24 @@ theorem mkPair_mkFst_mkSnd {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A)
     s.mkPair ilen jlen A B
       (s.mkFst ilen jlen A B p p_tp) (by simp)
       (s.mkSnd ilen jlen A B p p_tp) (by simp) = p := by
-  sorry
+  simp [mkFst, mkSnd, mkPair]
+  have := compDomEquiv.eta ((s.Sig_pb ilen jlen).lift p (PtpEquiv.mk _ A B) p_tp)
+    (eq := by rw [← mkFst.eq_def, mkFst_tp])
+  conv at this => enter [1, 3]; apply s.dependent_eq
+  simp [this]
+
+end Sigma
 
 /-! ## Identity types -/
+
+class IdSeq (s : UHomSeq Ctx) where
+  nmII (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) : NaturalModel.IdIntro s[i]
+  nmId (i j : Nat) (ilen : i < s.length + 1 := by get_elem_tactic)
+    (jlen : j < s.length + 1 := by get_elem_tactic) : NaturalModel.Id s[i] s[j] (nmII i ilen)
+
+section Id
+open IdSeq
+variable [s.IdSeq]
 
 /--
 ```
@@ -831,15 +804,18 @@ theorem mkPair_mkFst_mkSnd {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (B : y(s[i].ext A)
 def mkId {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty) (a0 a1 : y(Γ) ⟶ s[i].Tm)
     (a0_tp : a0 ≫ s[i].tp = A) (a1_tp : a1 ≫ s[i].tp = A) :
     y(Γ) ⟶ s[i].Ty :=
-  sorry
+  (nmII i).mkId a0 a1 (a1_tp ▸ a0_tp)
 
 theorem comp_mkId {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
-    (A : y(Γ) ⟶ s[i].Ty) (a0 a1 : y(Γ) ⟶ s[i].Tm)
+    (A : y(Γ) ⟶ s[i].Ty) (σA) (eq : ym(σ) ≫ A = σA)
+    (a0 a1 : y(Γ) ⟶ s[i].Tm)
     (a0_tp : a0 ≫ s[i].tp = A) (a1_tp : a1 ≫ s[i].tp = A) :
     ym(σ) ≫ s.mkId ilen A a0 a1 a0_tp a1_tp =
-      s.mkId ilen (ym(σ) ≫ A) (ym(σ) ≫ a0) (ym(σ) ≫ a1)
-        (by simp [a0_tp]) (by simp [a1_tp]) := by
-  sorry
+      s.mkId ilen σA (ym(σ) ≫ a0) (ym(σ) ≫ a1)
+        (by simp [eq, a0_tp]) (by simp [eq, a1_tp]) := by
+  simp [mkId, IdIntro.mkId]
+  rw [← Category.assoc]; congr 1
+  apply (nmII i).isKernelPair.hom_ext <;> simp
 
 /--
 ```
@@ -848,18 +824,18 @@ theorem comp_mkId {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
 Γ ⊢ᵢ refl(t) : Id(A, t, t)
 ``` -/
 def mkRefl {Γ : Ctx} (t : y(Γ) ⟶ s[i].Tm) : y(Γ) ⟶ s[i].Tm :=
-  sorry
+  (nmII i).mkRefl t
 
 theorem comp_mkRefl {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
     (t : y(Γ) ⟶ s[i].Tm) :
     ym(σ) ≫ s.mkRefl ilen t = s.mkRefl ilen (ym(σ) ≫ t) := by
-  sorry
+  simp [mkRefl, IdIntro.mkRefl]
 
 @[simp]
 theorem mkRefl_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty)
     (t : y(Γ) ⟶ s[i].Tm) (t_tp : t ≫ s[i].tp = A) :
-    s.mkRefl ilen t ≫ s[i].tp = s.mkId ilen A t t t_tp t_tp := by
-  sorry
+    s.mkRefl ilen t ≫ s[i].tp = s.mkId ilen A t t t_tp t_tp :=
+  (nmII i).mkRefl_tp t
 
 /--
 ```
@@ -869,44 +845,82 @@ theorem mkRefl_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty)
 ``` -/
 def mkIdRec {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty)
     (t : y(Γ) ⟶ s[i].Tm) (t_tp : t ≫ s[i].tp = A)
-    (M : y(s[i].ext (s.mkId ilen (ym(s[i].disp A) ≫ A)
-      (ym(s[i].disp A) ≫ t) (s[i].var A) (by> simp [*]) (by> simp))) ⟶ s[j].Ty)
+    (B : y(s[i].ext A) ⟶ s[i].Ty)
+    (B_eq : s.mkId ilen (ym(s[i].disp A) ≫ A)
+      (ym(s[i].disp A) ≫ t) (s[i].var A) (by> simp [*]) (var_tp ..) = B)
+    (M : y(s[i].ext B) ⟶ s[j].Ty)
     (r : y(Γ) ⟶ s[j].Tm) (r_tp : r ≫ s[j].tp =
       ym(substCons _ (s[i].sec A t t_tp) _ (s.mkRefl ilen t)
-        (by> subst t_tp; simp [comp_mkId])) ≫ M)
+        (by> simp [comp_mkId, t_tp, ← B_eq])) ≫ M)
     (u : y(Γ) ⟶ s[i].Tm) (u_tp : u ≫ s[i].tp = A)
     (h : y(Γ) ⟶ s[i].Tm) (h_tp : h ≫ s[i].tp = s.mkId ilen A t u t_tp u_tp) :
-    y(Γ) ⟶ s[j].Tm :=
-  sorry
+    y(Γ) ⟶ s[j].Tm := by
+  refine (nmId i j).mkJ t
+    (ym(substWk _ (substWk _ (𝟙 _) _ _ (by simp [t_tp])) _ _ ?_) ≫ M)
+    r ?_ u (t_tp ▸ u_tp) h ?_
+  · simp [← B_eq, comp_mkId, ← mkId.eq_def]; congr 1 <;> simp [t_tp, substWk]
+  · simp [r_tp]; rw [← Functor.map_comp_assoc]; congr 1
+    apply (s[i].disp_pullback _).hom_ext <;> simp [IdIntro.reflSubst, mkRefl, substWk, sec]
+  · simp [h_tp, mkId, IdIntro.mkId]
 
 theorem comp_mkIdRec {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
-    (A : y(Γ) ⟶ s[i].Ty) (t t_tp M) (r : y(Γ) ⟶ s[j].Tm) (r_tp u u_tp h h_tp) :
-    ym(σ) ≫ s.mkIdRec ilen jlen A t t_tp M r r_tp u u_tp h h_tp =
-    s.mkIdRec ilen jlen (ym(σ) ≫ A) (ym(σ) ≫ t) (by> simp [*])
-       (ym(s[i].substWk (s[i].substWk σ _) _ _ (by>
-            simp [comp_mkId]
-            congr! 1 <;> rw [← Functor.map_comp_assoc, substWk_disp] <;> simp))
-          ≫ M)
-       (ym(σ) ≫ r) (by>
+    (A : y(Γ) ⟶ s[i].Ty) (σA) (σA_eq : ym(σ) ≫ A = σA)
+    (t t_tp B B_eq σB) (σB_eq : ym(s[i].substWk σ _ _ σA_eq) ≫ B = σB)
+    (M) (r : y(Γ) ⟶ (s[j]'jlen).Tm) (r_tp u u_tp h h_tp) :
+    ym(σ) ≫ s.mkIdRec ilen jlen A t t_tp B B_eq M r r_tp u u_tp h h_tp =
+    s.mkIdRec ilen jlen σA (ym(σ) ≫ t) (by> simp [t_tp, ← σA_eq])
+      σB (by>
+        simp [← σB_eq, ← B_eq]
+        rw [comp_mkId]; congr! 1
+        · rw [← Functor.map_comp_assoc, ← Functor.map_comp_assoc, substWk_disp]
+        · simp
+        · rw [← Functor.map_comp_assoc, substWk_disp]; simp [σA_eq])
+      (ym(s[i].substWk (s[i].substWk σ _ _ σA_eq) _ _ σB_eq) ≫ M)
+      (ym(σ) ≫ r) (by>
         simp [*]
         simp only [← Functor.map_comp_assoc]; congr! 2
         simp [comp_substCons, comp_sec, substWk, comp_mkRefl])
-       (ym(σ) ≫ u) (by> simp [*])
-       (ym(σ) ≫ h) (by> simp [*, comp_mkId]) := by
-  sorry
+      (ym(σ) ≫ u) (by> simp [*])
+      (ym(σ) ≫ h) (by> simp [*, comp_mkId]) := by
+  simp [mkIdRec, Id.mkJ]
+  change let σ' := _; _ = ym(σ') ≫ _; intro σ'
+  convert congr(ym(σ') ≫ $((nmId i j).comp_j σ t (ym(_) ≫ M) r _)) using 1; swap
+  case convert_1 =>
+    exact s[i].substWk (s[i].substWk (𝟙 _) _ _ (by simp [t_tp])) _ _ (by
+      simp [← B_eq, comp_mkId, ← mkId.eq_def]
+      congr! 1 <;>
+      · subst t_tp; rw [substWk_disp_functor_map_assoc]; simp)
+  · congr 2; simp only [← Category.assoc]; congr 1
+    apply (s[i].disp_pullback _).hom_ext <;> simp [IdIntro.motiveSubst]
+    apply (s[i].disp_pullback _).hom_ext <;> simp
+    · simp [substWk_disp_functor_map_assoc]
+    · simp [substWk_disp_functor_map, substWk_disp_functor_map_assoc]
+  · simp [← Category.assoc]; congr 1
+    apply (s[i].disp_pullback _).hom_ext <;> simp [IdIntro.motiveSubst]
+    · dsimp [Id.endPtSubst, σ']
+      simp only [substCons_var]
+    · rw [substWk_disp_functor_map]
+      apply (s[i].disp_pullback _).hom_ext <;> simp [Id.endPtSubst, σ', substWk_disp_functor_map]
+  · simp [r_tp]
+    simp [← Category.assoc]; congr 1
+    apply (s[i].disp_pullback _).hom_ext <;> simp [IdIntro.reflSubst]; rfl
+    rw [substWk_disp_functor_map, substCons_disp_functor_map_assoc]
+    apply (s[i].disp_pullback _).hom_ext <;> simp
+    simp [substWk_disp_functor_map]
 
 @[simp]
 theorem mkIdRec_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty)
-    (t t_tp M) (r : y(Γ) ⟶ s[j].Tm) (r_tp u u_tp h h_tp) :
-    s.mkIdRec ilen jlen A t t_tp M r r_tp u u_tp h h_tp ≫ s[j].tp =
-      ym(substCons _ (s[i].sec _ u u_tp) _ h (by> simp [*, comp_mkId])) ≫ M := by
-  sorry
+    (t t_tp B B_eq M) (r : y(Γ) ⟶ s[j].Tm) (r_tp u u_tp h h_tp) :
+    s.mkIdRec ilen jlen A t t_tp B B_eq M r r_tp u u_tp h h_tp ≫ s[j].tp =
+      ym(substCons _ (s[i].sec _ u u_tp) _ h (by> simp [h_tp, comp_mkId, ← B_eq])) ≫ M := by
+  simp [mkIdRec, Id.mkJ_tp]; rw [← Functor.map_comp_assoc]; congr 1
+  apply (s[i].disp_pullback _).hom_ext <;> simp [Id.endPtSubst, sec, substWk]
 
 @[simp]
 theorem mkIdRec_mkRefl {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty)
-    (t t_tp M) (r : y(Γ) ⟶ s[j].Tm) (r_tp) :
-    s.mkIdRec ilen jlen A t t_tp M r r_tp t t_tp
+    (t t_tp B B_eq M) (r : y(Γ) ⟶ s[j].Tm) (r_tp) :
+    s.mkIdRec ilen jlen A t t_tp B B_eq M r r_tp t t_tp
       (s.mkRefl ilen t) (s.mkRefl_tp ilen _ t t_tp) = r := by
-  sorry
+  simp [mkIdRec, mkRefl, Id.mkJ_refl]
 
-end UHomSeqPiSig
+end Id

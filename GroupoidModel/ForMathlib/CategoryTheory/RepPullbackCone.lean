@@ -2,6 +2,7 @@ import Mathlib.CategoryTheory.Limits.Yoneda
 import Mathlib.CategoryTheory.Functor.KanExtension.Adjunction
 import Mathlib.CategoryTheory.Limits.Preserves.Finite
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
+import GroupoidModel.ForMathlib.CategoryTheory.WeakPullback
 
 /-!
   This file builds API for showing that a presheaf diagram is a pullback
@@ -54,8 +55,8 @@ structure RepIsLimit (t : Cone F) where
     aesop_cat
 
 def repConeOfConeMap (s : Cone F) (c : C) (x' : yoneda.obj c ⟶ s.pt) : RepCone F :=
-    { pt := c
-      π := {app := λ j ↦ x' ≫ s.π.app j}}
+  { pt := c
+    π := {app := λ j ↦ x' ≫ s.π.app j}}
 
 namespace RepIsLimit
 
@@ -153,6 +154,18 @@ abbrev fst : yoneda.obj t.pt ⟶ X :=
 abbrev snd : yoneda.obj t.pt ⟶ Y :=
   t.pullbackCone.snd
 
+@[simp]
+lemma fst_mk (W : C) (fst : yoneda.obj W ⟶ X) (snd : yoneda.obj W ⟶ Y)
+    (h : fst ≫ f = snd ≫ g) :
+    (mk W fst snd h).pullbackCone.fst = fst :=
+  rfl
+
+@[simp]
+lemma snd_mk (W : C) (fst : yoneda.obj W ⟶ X) (snd : yoneda.obj W ⟶ Y)
+    (h : fst ≫ f = snd ≫ g) :
+    (mk W fst snd h).pullbackCone.snd = snd :=
+  rfl
+
 @[reassoc]
 theorem condition : t.fst ≫ f = t.snd ≫ g :=
   t.pullbackCone.condition
@@ -199,7 +212,70 @@ theorem is_pullback {fst : W ⟶ X} {snd : W ⟶ Y} (eq : fst ≫ f = snd ≫ g)
     IsPullback fst snd f g :=
   IsPullback.of_isLimit' ⟨ eq ⟩ (RepIsLimit.mk eq lift fac_left fac_right uniq)
 
-end RepPullbackCone
+namespace WeakPullback
 
+variable {fst : W ⟶ X} {snd : W ⟶ Y} (eq : fst ≫ f = snd ≫ g)
+    (lift : ∀ s : RepPullbackCone f g, yoneda.obj s.pt ⟶ W)
+    (fac_left : ∀ s : RepPullbackCone f g, lift s ≫ fst = s.fst)
+    (fac_right : ∀ s : RepPullbackCone f g, lift s ≫ snd = s.snd)
+    (lift_naturality : ∀ (s : RepPullbackCone f g) {c} (σ : c ⟶ s.pt),
+      yoneda.map σ ≫ lift s = lift (.mk c (yoneda.map σ ≫ s.fst) (yoneda.map σ ≫ s.snd)
+      (by simp [s.condition])))
+
+section
+variable {G : Cᵒᵖ ⥤ Type v₃} (a : G ⟶ X) (b : G ⟶ Y) (hab : a ≫ f = b ≫ g)
+
+open Opposite
+
+def repPullbackCone (c : C) (x : G.obj (op c)) : RepPullbackCone f g :=
+  .mk c (yonedaEquiv.symm $ a.app (op c) x) (yonedaEquiv.symm $ b.app (op c) x) (by
+    simpa [yonedaEquiv_symm_naturality_right] using congr_fun (NatTrans.congr_app hab (op c)) x)
+
+def lift'.app (c : C) : G.obj (op c) ⟶ W.obj (op c) :=
+  fun x => yonedaEquiv (lift (repPullbackCone a b hab c x))
+
+include lift_naturality in
+lemma lift'.naturality ⦃c d : C⦄ (σ : c ⟶ d) : G.map σ.op ≫ lift'.app lift a b hab c =
+    lift'.app lift a b hab d ≫ W.map σ.op := by
+  ext x
+  dsimp only [types_comp_apply, app]
+  rw [yonedaEquiv_naturality, lift_naturality (repPullbackCone a b hab d x) σ]
+  dsimp only [repPullbackCone, π_app_left, fst_mk, π_app_right, snd_mk]
+  congr 3
+  · rw [yonedaEquiv_symm_naturality_left σ]
+    simpa using congr_fun (a.naturality σ.op) x
+  · rw [yonedaEquiv_symm_naturality_left σ]
+    simpa using congr_fun (b.naturality σ.op) x
+
+include lift_naturality in
+def lift' : G ⟶ W where
+  app c := lift'.app lift a b hab c.unop
+  naturality _ _ σ := lift'.naturality lift lift_naturality a b hab σ.unop
+
+end
+
+def mk : WeakPullback fst snd f g where
+  w := eq
+  lift a b hab := lift' lift lift_naturality a b hab
+  lift_fst' a b hab := by
+    ext c x
+    dsimp [lift', lift'.app]
+    have h := fac_left (repPullbackCone a b hab (c.unop) x)
+    simp only [π_app_left, π_app_right, repPullbackCone, Opposite.op_unop, fst_mk] at *
+    erw [Equiv.eq_symm_apply] at h
+    exact h
+  lift_snd' a b hab := by
+    ext c x
+    dsimp [lift', lift'.app]
+    have h := fac_right (repPullbackCone a b hab (c.unop) x)
+    simp only [π_app_left, π_app_right, repPullbackCone, Opposite.op_unop, snd_mk] at *
+    erw [Equiv.eq_symm_apply] at h
+    exact h
+
+end WeakPullback
+
+open WeakPullback
+
+end RepPullbackCone
 
 end Limits
