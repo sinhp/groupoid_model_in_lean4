@@ -3,7 +3,6 @@ import Mathlib.CategoryTheory.MorphismProperty.LiftingProperty
 import Mathlib.CategoryTheory.CodiscreteCategory
 import Mathlib.CategoryTheory.Monad.Limits
 import Mathlib.CategoryTheory.Category.Cat.Limit
-import Mathlib.CategoryTheory.Groupoid.FreeGroupoid
 
 universe w v u v₁ u₁ v₂ u₂ v₃ u₃
 
@@ -161,38 +160,4 @@ def IsIsofibration : MorphismProperty Grpd :=
 
 end Grpd
 
-def free : Cat.{u,u} ⥤ Grpd.{u,u} where
-  obj C := Grpd.of $ FreeGroupoid C
-  map {C D} F := Grpd.homOf $ freeGroupoidFunctor F.toPrefunctor
-  map_id C := by
-    simp [Grpd.id_eq_id, ← Groupoid.Free.freeGroupoidFunctor_id]
-    rfl
-  map_comp F G := by
-    simp [Grpd.comp_eq_comp, ← Groupoid.Free.freeGroupoidFunctor_comp]
-    rfl
-
-def freeForgetAdjunction : free ⊣ Grpd.forgetToCat where
-  unit := {
-    app X := by
-      dsimp
-      have h := Groupoid.Free.of X
-      sorry
-    naturality := sorry
-  }
-  counit := sorry
-  left_triangle_components := sorry
-  right_triangle_components := sorry
-
-namespace Grpd
-
-open Limits
-
-instance : Reflective forgetToCat where
-  L := free
-  adj := freeForgetAdjunction
-
-instance : HasLimits Grpd.{u,u} := hasLimits_of_reflective forgetToCat
-
-
-end Grpd
 end CategoryTheory
