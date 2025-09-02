@@ -1,4 +1,9 @@
 import GroupoidModel.ForMathlib
+import Mathlib.CategoryTheory.MorphismProperty.LiftingProperty
+import Mathlib.CategoryTheory.CodiscreteCategory
+import Mathlib.CategoryTheory.Monad.Limits
+import Mathlib.CategoryTheory.Category.Cat.Limit
+import Mathlib.CategoryTheory.Groupoid.FreeGroupoid
 
 universe w v u v₁ u₁ v₂ u₂ v₃ u₃
 
@@ -128,6 +133,66 @@ theorem eqToHom_hom {C1 C2 : Grpd.{v,u}} {x y: C1} (f : x ⟶ y) (eq : C1 = C2) 
     (eqToHom h).app X = eqToHom (by subst h; rfl) := by
   subst h
   simp
+
+open MonoidalCategory MorphismProperty
+
+def Interval : Type u := Codiscrete (ULift Bool)
+
+instance : Groupoid (Codiscrete Bool) where
+  inv f := ⟨⟩
+  inv_comp := by aesop
+  comp_inv := by aesop
+
+namespace IsIsofibration
+
+def generatingTrivialCofibrationHom : 𝟙_ Grpd ⟶ Grpd.of $ AsSmall $ Codiscrete Bool where
+  obj X := ⟨⟨.false⟩⟩
+  map _ := ⟨⟨⟩⟩
+  map_id := by aesop
+  map_comp := by aesop
+
+def generatingTrivialCofibration : MorphismProperty Grpd.{u,u} :=
+  ofHoms (fun _ : Unit => generatingTrivialCofibrationHom)
+
+end IsIsofibration
+
+def IsIsofibration : MorphismProperty Grpd :=
+  rlp $ IsIsofibration.generatingTrivialCofibration
+
+end Grpd
+
+def free : Cat.{u,u} ⥤ Grpd.{u,u} where
+  obj C := Grpd.of $ FreeGroupoid C
+  map {C D} F := Grpd.homOf $ freeGroupoidFunctor F.toPrefunctor
+  map_id C := by
+    simp [Grpd.id_eq_id, ← Groupoid.Free.freeGroupoidFunctor_id]
+    rfl
+  map_comp F G := by
+    simp [Grpd.comp_eq_comp, ← Groupoid.Free.freeGroupoidFunctor_comp]
+    rfl
+
+def freeForgetAdjunction : free ⊣ Grpd.forgetToCat where
+  unit := {
+    app X := by
+      dsimp
+      have h := Groupoid.Free.of X
+      sorry
+    naturality := sorry
+  }
+  counit := sorry
+  left_triangle_components := sorry
+  right_triangle_components := sorry
+
+namespace Grpd
+
+open Limits
+
+instance : Reflective forgetToCat where
+  L := free
+  adj := freeForgetAdjunction
+
+instance : HasLimits Grpd.{u,u} := hasLimits_of_reflective forgetToCat
+
 
 end Grpd
 end CategoryTheory

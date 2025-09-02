@@ -1,4 +1,4 @@
-import GroupoidModel.RepMap.Universe
+import GroupoidModel.RepresentableMap.Universe
 import GroupoidModel.ForMathlib
 import Mathlib.CategoryTheory.Limits.Shapes.StrictInitial
 import GroupoidModel.ForPoly
@@ -9,12 +9,13 @@ universe v u
 
 noncomputable section
 
-open CategoryTheory Limits Opposite MonoidalCategory RepMap.Universe
+open CategoryTheory Limits Opposite MonoidalCategory MorphismProperty.Universe
 
-namespace RepMap
+namespace MorphismProperty
 namespace Universe
 
-variable {Ctx : Type u} [Category.{v} Ctx] [HasFiniteLimits Ctx] {CwR : RepMap Ctx}
+variable {Ctx : Type u} [Category.{v} Ctx] [HasFiniteLimits Ctx]
+  {CwR : MorphismProperty Ctx} [CwR.RepresentableMap]
 
 macro "by>" s:tacticSeq : term => `(by as_aux_lemma => $s)
 
@@ -420,7 +421,8 @@ can be extended to
 Γ ⊢ₘₐₓ₍ᵢ,ⱼ₎ ΠA. B type
 ``` -/
 protected class PiSeq (s : LiftSeq CwR) where
-  nmPi (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) : RepMap.Universe.Pi s[i]
+  nmPi (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) :
+  MorphismProperty.Universe.Pi s[i]
 
 section Pi
 open PiSeq
@@ -626,7 +628,8 @@ end Pi
 
 /-- The data of `Sig` and `pair` formers at each universe `s[i].tp`. -/
 class SigSeq (s : LiftSeq CwR) where
-  nmSig (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) : RepMap.Universe.Sigma s[i]
+  nmSig (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) :
+  MorphismProperty.Universe.Sigma s[i]
 
 section Sigma
 open SigSeq
@@ -911,3 +914,7 @@ end Sigma
 --   simp [mkIdRec, mkRefl, Id.mkJ_refl]
 
 -- end Id
+
+end LiftSeq
+end Universe
+end MorphismProperty

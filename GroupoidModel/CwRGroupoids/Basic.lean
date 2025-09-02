@@ -4,7 +4,7 @@ import Mathlib.CategoryTheory.Category.Cat.Limit
 import Mathlib.CategoryTheory.Monoidal.Cartesian.Cat
 
 import GroupoidModel.ForMathlib.CategoryTheory.Core
-import GroupoidModel.RepMap.Universe
+import GroupoidModel.RepresentableMap.Universe
 import GroupoidModel.Grothendieck.Groupoidal.IsPullback
 
 /-!
@@ -16,7 +16,7 @@ universe w v u v₁ u₁ v₂ u₂ v₃ u₃
 noncomputable section
 
 open CategoryTheory ULift Functor Groupoidal
-  Limits RepMap Universe CategoryTheory.Functor
+  Limits MorphismProperty Universe CategoryTheory.Functor
 
 namespace CategoryTheory.PGrpd
 def pGrpdToGroupoidalAsSmallFunctor : PGrpd.{v, v} ⥤
@@ -157,10 +157,11 @@ def liftTm : Tm.{v, max u (v+2)} ⟶ Tm.{v+1,max u (v+2)} :=
 
 end U
 
-def repMap : RepMap Ctx where
-  Representable := sorry -- isofibrations
+def Ctx.IsIsofibration : MorphismProperty Ctx := Grpd.IsIsofibration
+
+instance : IsIsofibration.RepresentableMap where
+  __ := rlp_isStableUnderBaseChange _
   exponentiableMorphism := sorry
-  pullback_stable := sorry
 
 end GroupoidModel
 

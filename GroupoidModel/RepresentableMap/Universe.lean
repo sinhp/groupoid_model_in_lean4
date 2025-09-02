@@ -2,6 +2,7 @@ import SEq.Tactic.DepRewrite
 import Poly.ForMathlib.CategoryTheory.LocallyCartesianClosed.Presheaf
 import Poly.UvPoly.UPFan
 import Mathlib.CategoryTheory.Limits.Shapes.KernelPair
+import Mathlib.CategoryTheory.MorphismProperty.Limits
 
 import GroupoidModel.ForPoly
 import GroupoidModel.ForMathlib.Tactic.CategoryTheory.FunctorMap
@@ -32,15 +33,15 @@ For compatibility with `Poly` we draw representable maps `g` horizontally, for e
       g
 ```
 -/
-structure RepMap (C : Type u) [Category.{v} C] [HasFiniteLimits C] where
-  Representable : MorphismProperty C
-  exponentiableMorphism : ∀ {X Y} {f : X ⟶ Y}, Representable f → ExponentiableMorphism f
-  pullback_stable : ∀ {P X Y Z : C} (fst : P ⟶ X) (snd : P ⟶ Y) (f : X ⟶ Z) (g : Y ⟶ Z),
-    IsPullback fst snd f g → Representable g → Representable fst
+class MorphismProperty.RepresentableMap {C : Type u} [Category.{v} C] [HasFiniteLimits C]
+    (R : MorphismProperty C) extends R.IsStableUnderBaseChange where
+  exponentiableMorphism : ∀ {X Y} {f : X ⟶ Y}, R f → ExponentiableMorphism f
+-- FIXME: syntax to make Lean infer [ExponentiableMorphism f]?
 
-namespace RepMap
+namespace MorphismProperty
 
-variable {Ctx : Type u} [Category Ctx] [HasFiniteLimits Ctx] (CwR : RepMap Ctx)
+variable {Ctx : Type u} [Category Ctx] [HasFiniteLimits Ctx]
+  (CwR : MorphismProperty Ctx) [CwR.RepresentableMap]
 
 /-- A universe is a representable map that can (furthermore) be treated as a strict model of type
 theory. To interpret context extension strictly, a chosen pullback `ext` is given for every
@@ -65,19 +66,23 @@ structure Universe where
   var {Γ : Ctx} (A : Γ ⟶ Ty) : ext A ⟶ Tm
   disp_pullback {Γ : Ctx} (A : Γ ⟶ Ty) :
     IsPullback (disp A) (var A) A tp
-  tp_representable : CwR.Representable tp
+  tp_representable : CwR tp
 
 namespace Universe
 
 variable {CwR} (U : Universe CwR) {Γ} (A : Γ ⟶ U.Ty)
+
+-- FIXME should be automatic
+instance : ExponentiableMorphism U.tp :=
+  MorphismProperty.RepresentableMap.exponentiableMorphism U.tp_representable
 
 @[reassoc (attr := simp)]
 theorem var_tp : U.var A ≫ U.tp = U.disp A ≫ A := by
   simp [(U.disp_pullback A).w]
 
 theorem disp_representable :
-    CwR.Representable (U.disp A) :=
-  CwR.pullback_stable _ _ _ _ (U.disp_pullback A) U.tp_representable
+    CwR (U.disp A) :=
+  CwR.of_isPullback (U.disp_pullback A).flip U.tp_representable
 
 @[simps! hom inv]
 def pullbackIsoExt {Γ : Ctx} (A : Γ ⟶ U.Ty) :
@@ -133,7 +138,7 @@ def ofIsPullback {U' E' : Ctx} {π' : E' ⟶ U'}
   disp A := U.disp (A ≫ toTy)
   var A := pb.lift ((U.disp (A ≫ toTy)) ≫ A) (U.var (A ≫ toTy)) (by simp)
   disp_pullback A := IsPullback.of_bot' (U.disp_pullback (A ≫ toTy)) pb
-  tp_representable := CwR.pullback_stable _ _ _ _ pb U.tp_representable
+  tp_representable := CwR.of_isPullback pb.flip U.tp_representable
 
 section substitution
 /-! ## Substitutions -/
@@ -261,9 +266,6 @@ theorem comp_sec {Δ : Ctx} (σ : Δ ⟶ Γ) (σA) (eq : σ ≫ A = σA) :
 end
 
 end substitution
-
-instance : ExponentiableMorphism U.tp :=
-  CwR.exponentiableMorphism U.tp_representable
 
 /-! ## Polynomial functor on `tp`
 
@@ -546,6 +548,6 @@ protected structure Sigma where
 
 end Universe
 
-end RepMap
+end MorphismProperty
 
 end CategoryTheory

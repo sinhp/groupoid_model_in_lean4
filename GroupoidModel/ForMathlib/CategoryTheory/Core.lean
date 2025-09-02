@@ -218,3 +218,5 @@ def isoCoreULift :
 
 end Core
 end ULift
+
+end CategoryTheory

@@ -26,7 +26,7 @@ open Grothendieck
 -- TODO remove this
 /-- The functor that takes PCat to Cat by forgetting the points-/
 abbrev forgetToCat : PCat.{v,u} ⥤ Cat.{v,u} :=
-  Grothendieck.forget _
+  Functor.Grothendieck.forget _
 
 -- write using `\d=`
 prefix:max "⇓" => forgetToCat.obj
@@ -129,7 +129,7 @@ end
 
 def asSmallFunctor : PCat.{v, u} ⥤ PCat.{max w v u, max w v u} :=
   Grothendieck.functorTo
-    (Grothendieck.forget _ ⋙ Cat.asSmallFunctor.{w,v,u})
+    (Functor.Grothendieck.forget _ ⋙ Cat.asSmallFunctor.{w,v,u})
     (fun x => ⟨x.fiber⟩)
     (fun f => ⟨f.fiber⟩)
     (fun _ => rfl)
@@ -142,7 +142,7 @@ end PCat
   the underlying `Grothendieck` definitions
 -/
 
-abbrev PGrpd := Grothendieck Grpd.forgetToCat.{v,u}
+abbrev PGrpd := Functor.Grothendieck Grpd.forgetToCat.{v,u}
 
 namespace PGrpd
 
@@ -151,7 +151,7 @@ open Grothendieck Grpd
 -- TODO remove this
 /-- The functor that takes PGrpd to Grpd by forgetting the points -/
 abbrev forgetToGrpd : PGrpd.{v,u} ⥤ Grpd.{v,u} :=
-  Grothendieck.forget _
+  Functor.Grothendieck.forget _
 
 /-- The forgetful functor from PGrpd to PCat -/
 def forgetToPCat : PGrpd.{v,u} ⥤ PCat.{v,u} :=
@@ -409,7 +409,7 @@ def functorTo : Γ ⥤ PGrpd := Grothendieck.functorTo A fibObj fibMap map_id ma
 
 variable {A} {fibObj} {fibMap} {map_id} {map_comp}
 @[simp] theorem functorTo_forget :
-    functorTo _ _ _ map_id map_comp ⋙ Grothendieck.forget _ = A :=
+    functorTo _ _ _ map_id map_comp ⋙ Functor.Grothendieck.forget _ = A :=
   rfl
 
 end

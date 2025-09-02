@@ -1,7 +1,7 @@
 import Mathlib.CategoryTheory.Limits.Preserves.FunctorCategory
 import Mathlib.CategoryTheory.Category.Cat.Limit
 
-import GroupoidModel.RepMap.Lift
+import GroupoidModel.RepresentableMap.Lift
 import GroupoidModel.Grothendieck.Groupoidal.IsPullback
 import GroupoidModel.CwRGroupoids.IsPullback
 
@@ -12,7 +12,8 @@ Here we construct universes for the groupoid natural model.
 universe w v u v₁ u₁ v₂ u₂ v₃ u₃
 
 noncomputable section
-open CategoryTheory Limits Functor.Groupoidal RepMap Universe
+open CategoryTheory Limits Functor.Groupoidal MorphismProperty Universe
+  GroupoidModel.Ctx
 
 namespace GroupoidModel
 
@@ -24,7 +25,7 @@ open U
   but since representables are `Ctx`-large,
   its representable fibers can be larger (in terms of universe levels) than itself.
 -/
-@[simps] def U : Universe repMap where
+@[simps] def U : Ctx.IsIsofibration.Universe where
   Ty := Ty.{v}
   Tm := Tm.{v}
   tp := tp
@@ -82,7 +83,7 @@ def isoExtAsSmallClosedType :
 
 end U
 
-def uHomSeqObjs (i : Nat) (h : i < 4) : Universe repMap.{4} :=
+def uHomSeqObjs (i : Nat) (h : i < 4) : IsIsofibration.Universe.{4} :=
   match i with
   | 0 => U.{0,4}
   | 1 => U.{1,4}
@@ -91,7 +92,7 @@ def uHomSeqObjs (i : Nat) (h : i < 4) : Universe repMap.{4} :=
   | (n+4) => by omega
 
 def lift : Lift U.{v, max u (v+2)} U.{v+1, max u (v+2)} :=
-    @Lift.ofTyIsoExt _ _ _ _ _ _ _
+    @Lift.ofTyIsoExt _ _ _ _ _ _
     { mapTy := U.liftTy.{v,max u (v+2)}
       mapTm := U.liftTm
       pb := IsPullback.liftTm_isPullback }
@@ -110,7 +111,7 @@ def liftSeqHomSucc' (i : Nat) (h : i < 3) :
   The groupoid natural model with three nested representable universes
   within the ambient natural model.
 -/
-def liftSeq : LiftSeq repMap.{4} where
+def liftSeq : LiftSeq IsIsofibration.{4} where
   length := 3
   objs := uHomSeqObjs
   homSucc' := liftSeqHomSucc'
@@ -154,7 +155,7 @@ thought of as a dependent pair `A : Type` and `B : A ⟶ Type` when `C = Grpd`.
 `PtpEquiv.fst` is the `A` in this pair.
 -/
 def fst : Γ ⥤ Grpd.{v,v} :=
-  toCoreAsSmallEquiv (RepMap.Universe.PtpEquiv.fst U AB)
+  toCoreAsSmallEquiv (Universe.PtpEquiv.fst U AB)
 
 /--
 A map `(AB : (Γ) ⟶ U.{v}.Ptp.obj (Ctx.ofCategory C))`
@@ -163,7 +164,7 @@ thought of as a dependent pair `A : Type` and `B : A ⟶ Type` when `C = Grpd`.
 `PtpEquiv.snd` is the `B` in this pair.
 -/
 def snd : ∫(fst AB) ⥤ C :=
-  toCoreAsSmallEquiv (RepMap.Universe.PtpEquiv.snd U AB)
+  toCoreAsSmallEquiv (Universe.PtpEquiv.snd U AB)
 
 nonrec theorem fst_comp_left : fst (σ ≫ AB) = σ ⋙ fst AB := by
   dsimp only [fst]
@@ -172,7 +173,7 @@ nonrec theorem fst_comp_left : fst (σ ≫ AB) = σ ⋙ fst AB := by
 theorem fst_comp_right {D : Type (v + 1)} [Category.{v, v + 1} D] (F : C ⥤ D) :
     fst (AB ≫ U.Ptp.map (Ctx.coreAsSmallFunctor F)) = fst AB := by
   dsimp only [fst]
-  rw [RepMap.Universe.PtpEquiv.fst_comp_right]
+  rw [Universe.PtpEquiv.fst_comp_right]
 
 nonrec theorem snd_comp_left : snd (σ ≫ AB) =
     map (eqToHom (fst_comp_left σ AB)) ⋙ pre _ σ ⋙ snd AB := by
@@ -285,7 +286,7 @@ theorem snd_forgetToGrpd : snd ab ⋙ PGrpd.forgetToGrpd = sec _ (fst ab) rfl �
 def mk (α : Γ ⥤ PGrpd.{v,v}) (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v,v})
     (β : Γ ⥤ PGrpd.{v,v}) (h : β ⋙ PGrpd.forgetToGrpd = sec _ α rfl ⋙ B)
     : (Γ) ⟶ compDom.{v} :=
-  RepMap.Universe.compDomEquiv.mk (toCoreAsSmallEquiv.symm α) rfl
+  Universe.compDomEquiv.mk (toCoreAsSmallEquiv.symm α) rfl
     (toCoreAsSmallEquiv.symm B) (toCoreAsSmallEquiv.symm β) (by
       simp only [U_Ty, U_Tm, U_tp, tp, Grpd.comp_eq_comp, U_ext]
       erw [← toCoreAsSmallEquiv_symm_apply_comp_right, h,
@@ -314,14 +315,14 @@ theorem dependent_heq : HEq (dependent ab) (U.PtpEquiv.snd (ab ≫ comp.{v})) :=
 
 theorem fst_naturality : fst ((σ) ≫ ab) = σ ⋙ fst ab := by
   dsimp only [fst]
-  rw [← RepMap.Universe.compDomEquiv.comp_fst, Grpd.comp_eq_comp,
+  rw [← Universe.compDomEquiv.comp_fst, Grpd.comp_eq_comp,
     toCoreAsSmallEquiv_apply_comp_left]
 
 theorem dependent_naturality : dependent ((σ) ≫ ab) =
     map (eqToHom (by rw [fst_naturality, Functor.assoc]))
     ⋙ pre _ σ ⋙ dependent ab := by
   rw [dependent, dependent,
-    ← RepMap.Universe.compDomEquiv.comp_dependent (eq1 := rfl)
+    ← Universe.compDomEquiv.comp_dependent (eq1 := rfl)
       (eq2 := by simp [← compDomEquiv.comp_fst]),
     substWk_eq]
   rw! [Grpd.comp_eq_comp, toCoreAsSmallEquiv_apply_comp_left]
@@ -329,7 +330,7 @@ theorem dependent_naturality : dependent ((σ) ≫ ab) =
 
 theorem snd_naturality : snd (σ ≫ ab) = σ ⋙ snd ab := by
   dsimp only [snd]
-  rw [← RepMap.Universe.compDomEquiv.comp_snd, Grpd.comp_eq_comp,
+  rw [← Universe.compDomEquiv.comp_snd, Grpd.comp_eq_comp,
     toCoreAsSmallEquiv_apply_comp_left]
 
 /-- First component of the computation rule for `mk`. -/
@@ -337,7 +338,7 @@ theorem fst_mk (α : Γ ⥤ PGrpd.{v,v})
     (B : ∫(α ⋙ PGrpd.forgetToGrpd) ⥤ Grpd.{v,v}) (β : Γ ⥤ PGrpd.{v,v})
     (h : β ⋙ PGrpd.forgetToGrpd = sec _ α rfl ⋙ B)
     : fst (mk α B β h) = α := by
-  simp [fst, mk, RepMap.Universe.compDomEquiv.fst_mk]
+  simp [fst, mk, Universe.compDomEquiv.fst_mk]
 
 /-- Second component of the computation rule for `mk`. -/
 theorem dependent_mk (α : Γ ⥤ PGrpd.{v,v})
@@ -357,7 +358,7 @@ theorem snd_mk (α : Γ ⥤ PGrpd.{v,v})
     (h : β ⋙ PGrpd.forgetToGrpd = sec _ α rfl ⋙ B)
     : snd (mk α B β h) = β := by
   dsimp [snd, mk]
-  rw [RepMap.Universe.compDomEquiv.snd_mk]
+  rw [Universe.compDomEquiv.snd_mk]
   simp
 
 theorem hext (ab1 ab2 : Γ ⟶ U.compDom.{v})
