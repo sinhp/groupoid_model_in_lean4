@@ -62,28 +62,28 @@ and size u hom sets (functors).
 We want our context category to be a small category so we will use
 `ULiftHom.{u+1}` for some large enough `u`
 -/
-def Ctx := ULiftHom.{u+1} Grpd.{u,u}
+def Ctx := ULiftHom.{u+1} Grpd.{u, u}
 
 instance : SmallCategory Ctx :=
-  inferInstanceAs (SmallCategory (ULiftHom.{u+1} Grpd.{u,u}))
+  inferInstanceAs (SmallCategory (ULiftHom.{u+1} Grpd.{u, u}))
 
 namespace Ctx
 
-def equivalence : CategoryTheory.Equivalence Grpd.{u,u} Ctx.{u} where
+def equivalence : CategoryTheory.Equivalence Grpd.{u, u} Ctx.{u} where
   functor := ULiftHom.up
   inverse := ULiftHom.down
   unitIso := eqToIso rfl
   counitIso := eqToIso rfl
 
-abbrev ofGrpd : Grpd.{u,u} ⥤ Ctx.{u} := equivalence.functor
+abbrev ofGrpd : Grpd.{u, u} ⥤ Ctx.{u} := equivalence.functor
 
-abbrev toGrpd : Ctx.{u} ⥤ Grpd.{u,u} := equivalence.inverse
+abbrev toGrpd : Ctx.{u} ⥤ Grpd.{u, u} := equivalence.inverse
 
 def ofGroupoid (Γ : Type u) [Groupoid.{u} Γ] : Ctx.{u} :=
   ofGrpd.obj (Grpd.of Γ)
 
 def ofCategory (C : Type (v+1)) [Category.{v} C] : Ctx.{max u (v+1)} :=
-  Ctx.ofGrpd.obj <| Grpd.of (Core (AsSmall.{u} C))
+  ofGroupoid (Core (AsSmall.{u} C))
 
 def homOfFunctor {C : Type (v+1)} [Category.{v} C] {D : Type (w+1)} [Category.{w} D]
     (F : C ⥤ D) :
@@ -94,7 +94,7 @@ instance : CartesianMonoidalCategory Ctx := equivalence.chosenFiniteProducts
 
 end Ctx
 
-@[simps] def catLift : Cat.{u,u} ⥤ Cat.{u,u+1} where
+@[simps] def catLift : Cat.{u, u} ⥤ Cat.{u, u+1} where
   obj x := Cat.of (ULift.{u + 1, u} x)
   map {x y} f := downFunctor ⋙ f ⋙ upFunctor
 
@@ -109,14 +109,14 @@ variable (C D) [Category.{u} C] [Category.{u} D]
   takes a groupoid and forgets it to a category
   (with appropriate universe level adjustments)
 -/
-def yonedaCat : Cat.{u,u+1} ⥤ Ctx.{u}ᵒᵖ ⥤ Type (u + 1) :=
+def yonedaCat : Cat.{u, u+1} ⥤ Ctx.{u}ᵒᵖ ⥤ Type (u + 1) :=
   yoneda ⋙ (whiskeringLeft _ _ _).obj
     (ULiftHom.down ⋙ Grpd.forgetToCat ⋙ catLift).op
 
 instance yonedaCatPreservesLimits : PreservesLimits yonedaCat :=
   comp_preservesLimits _ _
 
-variable {Γ Δ : Ctx.{u}} {C D : Cat.{u,u+1}}
+variable {Γ Δ : Ctx.{u}} {C D : Cat.{u, u+1}}
 
 def yonedaCatEquivAux : (yonedaCat.obj C).obj (Opposite.op Γ)
     ≃ (Ctx.toGrpd.obj Γ) ⥤ C where
@@ -166,8 +166,7 @@ section
 variable {Γ Δ : Ctx} (σ : Δ ⟶ Γ) {C : Type (v+1)} [Category.{v} C]
     {D : Type (v+1)} [Category.{v} D]
 
-def toCoreAsSmallEquiv :
-    (Γ ⟶ Ctx.ofGrpd.obj (Grpd.of (Core (AsSmall C)))) ≃ (Ctx.toGrpd.obj Γ ⥤ C) :=
+def toCoreAsSmallEquiv : (Γ ⟶ Ctx.ofCategory C) ≃ (Ctx.toGrpd.obj Γ ⥤ C) :=
   Ctx.homGrpdEquivFunctor.trans (Core.functorToCoreEquiv.symm.trans functorToAsSmallEquiv)
 
 theorem toCoreAsSmallEquiv_symm_naturality_left {A : Ctx.toGrpd.obj Γ ⥤ C} :
@@ -178,37 +177,37 @@ theorem toCoreAsSmallEquiv_naturality_left (A : Γ ⟶ Ctx.ofCategory C) :
     toCoreAsSmallEquiv (σ ≫ A) = Ctx.toGrpd.map σ ⋙ toCoreAsSmallEquiv A := by
   sorry
 
-/- The bijection y(Γ) → y[-,C]   ≃   Γ ⥤ C -/
-def yonedaCategoryEquiv {Γ : Ctx} {C : Type (v+1)} [Category.{v} C] :
-    (y(Γ) ⟶ y(Ctx.ofCategory C)) ≃ Ctx.toGrpd.obj Γ ⥤ C :=
-  Yoneda.fullyFaithful.homEquiv.symm.trans toCoreAsSmallEquiv
+-- /- The bijection y(Γ) → y[-,C]   ≃   Γ ⥤ C -/
+-- def yonedaCategoryEquiv {Γ : Ctx} {C : Type (v+1)} [Category.{v} C] :
+--     (y(Γ) ⟶ y(Ctx.ofCategory C)) ≃ Ctx.toGrpd.obj Γ ⥤ C :=
+--   Yoneda.fullyFaithful.homEquiv.symm.trans toCoreAsSmallEquiv
 
-theorem yonedaCategoryEquiv_naturality_left (A : y(Γ) ⟶ y(Ctx.ofCategory C)) :
-    yonedaCategoryEquiv (ym(σ) ≫ A) = Ctx.toGrpd.map σ ⋙ yonedaCategoryEquiv A :=
-  sorry
+-- theorem yonedaCategoryEquiv_naturality_left (A : y(Γ) ⟶ y(Ctx.ofCategory C)) :
+--     yonedaCategoryEquiv (ym(σ) ≫ A) = Ctx.toGrpd.map σ ⋙ yonedaCategoryEquiv A :=
+--   sorry
 
-theorem yonedaCategoryEquiv_naturality_left' (A : y(Γ) ⟶ y(Ctx.ofCategory C)) {σ : y(Δ) ⟶ y(Γ)} :
-    yonedaCategoryEquiv (σ ≫ A) =
-    Ctx.toGrpd.map (Yoneda.fullyFaithful.preimage σ) ⋙ yonedaCategoryEquiv A := by
-  have h : σ = ym(Yoneda.fullyFaithful.preimage σ) := by simp
-  rw [h, yonedaCategoryEquiv_naturality_left]
-  rfl
+-- theorem yonedaCategoryEquiv_naturality_left' (A : y(Γ) ⟶ y(Ctx.ofCategory C)) {σ : y(Δ) ⟶ y(Γ)} :
+--     yonedaCategoryEquiv (σ ≫ A) =
+--     Ctx.toGrpd.map (Yoneda.fullyFaithful.preimage σ) ⋙ yonedaCategoryEquiv A := by
+--   have h : σ = ym(Yoneda.fullyFaithful.preimage σ) := by simp
+--   rw [h, yonedaCategoryEquiv_naturality_left]
+--   rfl
 
-theorem yonedaCategoryEquiv_symm_naturality_left {A : Ctx.toGrpd.obj Γ ⥤ C} :
-    yonedaCategoryEquiv.symm (Ctx.toGrpd.map σ ⋙ A) = ym(σ) ≫ yonedaCategoryEquiv.symm A := by
-  rw [yonedaCategoryEquiv.symm_apply_eq, yonedaCategoryEquiv_naturality_left,
-    Equiv.apply_symm_apply]
+-- theorem yonedaCategoryEquiv_symm_naturality_left {A : Ctx.toGrpd.obj Γ ⥤ C} :
+--     yonedaCategoryEquiv.symm (Ctx.toGrpd.map σ ⋙ A) = ym(σ) ≫ yonedaCategoryEquiv.symm A := by
+--   rw [yonedaCategoryEquiv.symm_apply_eq, yonedaCategoryEquiv_naturality_left,
+--     Equiv.apply_symm_apply]
 
-theorem yonedaCategoryEquiv_naturality_right {D : Type (v+1)} [Category.{v} D]
-    (A : y(Γ) ⟶ y(Ctx.ofCategory C)) (F : C ⥤ D) :
-    yonedaCategoryEquiv (A ≫ ym(Ctx.homOfFunctor F)) = yonedaCategoryEquiv A ⋙ F :=
-  sorry
+-- theorem yonedaCategoryEquiv_naturality_right {D : Type (v+1)} [Category.{v} D]
+--     (A : y(Γ) ⟶ y(Ctx.ofCategory C)) (F : C ⥤ D) :
+--     yonedaCategoryEquiv (A ≫ ym(Ctx.homOfFunctor F)) = yonedaCategoryEquiv A ⋙ F :=
+--   sorry
 
-theorem yonedaCategoryEquiv_symm_naturality_right
-    {A : Ctx.toGrpd.obj Γ ⥤ C} (F : C ⥤ D):
-    yonedaCategoryEquiv.symm (A ⋙ F) =
-    yonedaCategoryEquiv.symm A ≫ ym(Ctx.homOfFunctor F) := by
-  sorry
+-- theorem yonedaCategoryEquiv_symm_naturality_right
+--     {A : Ctx.toGrpd.obj Γ ⥤ C} (F : C ⥤ D):
+--     yonedaCategoryEquiv.symm (A ⋙ F) =
+--     yonedaCategoryEquiv.symm A ≫ ym(Ctx.homOfFunctor F) := by
+--   sorry
 
 end
 

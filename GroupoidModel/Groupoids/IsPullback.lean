@@ -280,33 +280,8 @@ theorem isPullback_disp'_π' :
      V                     V
      Γ --------- A ------> U
 -/
-theorem isPullback_disp_π :
-  IsPullback
-    (U.var A)
-    (U.disp A)
-    π
-    A :=
+theorem isPullback_disp_π : IsPullback (U.var A) (U.disp A) π A :=
   Functor.map_isPullback Ctx.ofGrpd (isPullback_disp'_π' A)
-
-/--
-  The following square is a pullback in `Psh Ctx`
-  y(U.ext A) --- ym(U.var A) ---> y(E)
-     |                              |
-     |                              |
-     |                              |
-  ym(U.disp A)                   ym(π)
-     |                              |
-     |                              |
-     V                              V
-   y(Γ) ------------- ym(A) ----> y(U)
--/
-theorem isPullback_yonedaDisp_yonedaπ :
-  IsPullback
-    ym(U.var A)
-    ym(U.disp A)
-    ym(π)
-    ym(A) :=
-  Functor.map_isPullback yoneda (isPullback_disp_π A)
 
 end SmallU
 

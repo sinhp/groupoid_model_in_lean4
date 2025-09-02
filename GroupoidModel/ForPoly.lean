@@ -300,14 +300,12 @@ namespace Equiv
 
 variable {E B : C} (P : UvPoly E B) {Γ : C} (X Y : C) (f : X ⟶ Y)
 
-def fst (pair : Γ ⟶ P @ X) :
-    Γ ⟶ B :=
+def fst (pair : Γ ⟶ P @ X) : Γ ⟶ B :=
   fan P X |>.extend pair |>.fst
 
 lemma fst_eq (pair : Γ ⟶ P @ X) : fst P X pair = pair ≫ P.fstProj X := by simp [fst]
 
-def snd (pair : Γ ⟶ P @ X) :
-    pullback (fst P X pair) P.p ⟶ X :=
+def snd (pair : Γ ⟶ P @ X) : pullback (fst P X pair) P.p ⟶ X :=
   fan P X |>.extend pair |>.snd
 
 def snd' (pair : Γ ⟶ P @ X) {R f g} (H : IsPullback (P := R) f g (fst P X pair) P.p) : R ⟶ X :=
@@ -316,8 +314,7 @@ def snd' (pair : Γ ⟶ P @ X) {R f g} (H : IsPullback (P := R) f g (fst P X pai
 theorem snd_eq_snd' (pair : Γ ⟶ P @ X) :
     snd P X pair = snd' P X pair (.of_hasPullback ..) := by simp [snd']
 
-def mk (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
-    Γ ⟶ P @ X :=
+def mk (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) : Γ ⟶ P @ X :=
   P.lift (Γ := Γ) (X := X) b x
 
 def mk' (b : Γ ⟶ B) {R f g} (H : IsPullback (P := R) f g b P.p) (x : R ⟶ X) : Γ ⟶ P @ X :=
@@ -327,8 +324,7 @@ theorem mk_eq_mk' (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
     mk P X b x = mk' P X b (.of_hasPullback ..) x := by simp [mk']
 
 @[simp]
-lemma fst_mk (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) :
-    fst P X (mk P X b x) = b := by
+lemma fst_mk (b : Γ ⟶ B) (x : pullback b P.p ⟶ X) : fst P X (mk P X b x) = b := by
   simp [fst, mk]
 
 @[simp]

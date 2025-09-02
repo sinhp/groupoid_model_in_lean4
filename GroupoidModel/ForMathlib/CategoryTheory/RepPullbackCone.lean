@@ -46,24 +46,22 @@ end RepCone
 variable {F : J ⥤ Cᵒᵖ ⥤ Type v₃}
 
 structure RepIsLimit (t : Cone F) where
-  lift : ∀ s : RepCone F, s.cone.pt ⟶ t.pt
-  fac : ∀ (s : RepCone F) (j : J),
-    lift s ≫ t.π.app j = (s.cone).π.app j := by aesop_cat
+  lift (s : RepCone F) : s.cone.pt ⟶ t.pt
+  fac s j : lift s ≫ t.π.app j = s.cone.π.app j := by aesop_cat
   /-- It is the unique such map to do this -/
-  uniq : ∀ (s : RepCone F) (m : s.cone.pt ⟶ t.pt)
-    (_ : ∀ j : J, m ≫ t.π.app j = s.cone.π.app j), m = lift s := by
-    aesop_cat
+  uniq (s : RepCone F) (m : s.cone.pt ⟶ t.pt) :
+    (∀ j : J, m ≫ t.π.app j = s.cone.π.app j) → m = lift s := by aesop_cat
 
-def repConeOfConeMap (s : Cone F) (c : C) (x' : yoneda.obj c ⟶ s.pt) : RepCone F :=
-  { pt := c
-    π := {app := λ j ↦ x' ≫ s.π.app j}}
+def repConeOfConeMap (s : Cone F) (c : C) (x' : yoneda.obj c ⟶ s.pt) : RepCone F where
+  pt := c
+  π.app j := x' ≫ s.π.app j
 
 namespace RepIsLimit
 
 variable {t : Cone F} (P : RepIsLimit t) {s : Cone F}
 
 def lift' (c : C) (x' : yoneda.obj c ⟶ s.pt) : yoneda.obj c ⟶ t.pt :=
-  P.lift $ repConeOfConeMap s c x'
+  P.lift <| repConeOfConeMap s c x'
 
 @[simp] lemma lift'_naturality {s : Cone F} {c d : C}
     (f : c ⟶ d) (x' : yoneda.obj d ⟶ s.pt) :
@@ -72,34 +70,29 @@ def lift' (c : C) (x' : yoneda.obj c ⟶ s.pt) : yoneda.obj c ⟶ t.pt :=
   apply P.uniq (repConeOfConeMap s c (yoneda.map f ≫ x')) (yoneda.map f ≫ lift' P d x')
   intro j
   have h := P.fac (repConeOfConeMap s d x') j
-  dsimp[repConeOfConeMap]
-  dsimp[repConeOfConeMap] at h
-  rw[Category.assoc, Category.assoc, ← h]
+  dsimp [repConeOfConeMap] at h ⊢
+  rw [Category.assoc, Category.assoc, ← h]
   rfl
 
-def lift''_app (s : Cone F) (c : C) :
-    s.pt.obj (Opposite.op c) → t.pt.obj (Opposite.op c) :=
+def lift''_app (s : Cone F) (c : C) : s.pt.obj (Opposite.op c) → t.pt.obj (Opposite.op c) :=
   yonedaEquiv ∘ lift' P c ∘ yonedaEquiv.symm
 
 theorem lift''_app_naturality {c d : C} (f : c ⟶ d) :
     s.pt.map (f.op) ≫ lift''_app P s c
       = lift''_app P s d ≫ t.pt.map (Opposite.op f) := by
   ext x
-  simp[lift''_app, lift']
-  rw[yonedaEquiv_naturality']
+  simp [lift''_app, lift']
+  rw [yonedaEquiv_naturality']
   have h := lift'_naturality P f (yonedaEquiv.symm x)
-  simp[lift'] at h
+  simp [lift'] at h
   simp
-  rw[← h, yonedaEquiv_symm_naturality_left]
+  rw [← h, yonedaEquiv_symm_naturality_left]
 
 variable (s)
 
-def lift'' : s.pt ⟶ t.pt := {
-  app := λ c ↦ lift''_app P s c.unop
-  naturality := by
-    intros
-    apply lift''_app_naturality
-  }
+def lift'' : s.pt ⟶ t.pt where
+  app c := lift''_app P s c.unop
+  naturality _ _ _ := lift''_app_naturality ..
 
 theorem fac_ext (j : J) (c : C) (x) :
     (lift'' P s ≫ t.π.app j).app (Opposite.op c) x
@@ -118,14 +111,10 @@ theorem uniq_ext (m : s.pt ⟶ t.pt)
   dsimp [lift'', lift''_app, lift']
   rw [← h, yonedaEquiv_comp, Equiv.apply_symm_apply yonedaEquiv x]
 
-def IsLimit {t : Cone F} (P : RepIsLimit t) : IsLimit t where
+def isLimit {t : Cone F} (P : RepIsLimit t) : IsLimit t where
   lift := lift'' P
-  fac := λ s j ↦ by
-    ext c x
-    apply fac_ext
-  uniq := λ s m hm ↦ by
-    ext c x
-    apply uniq_ext P s m hm
+  fac s j := by ext c x; apply fac_ext
+  uniq s m hm := by ext c x; apply uniq_ext P s m hm
 
 end RepIsLimit
 
@@ -138,8 +127,7 @@ variable {W X Y Z : Cᵒᵖ ⥤ Type v₃}
   {f : X ⟶ Z} {g : Y ⟶ Z} (t : RepPullbackCone f g)
 
 def mk (W : C) (fst : yoneda.obj W ⟶ X) (snd : yoneda.obj W ⟶ Y)
-    (h : fst ≫ f = snd ≫ g) :
-    RepPullbackCone f g :=
+    (h : fst ≫ f = snd ≫ g) : RepPullbackCone f g :=
   repConeOfConeMap (PullbackCone.mk fst snd h) W (𝟙 _)
 
 def pullbackCone : PullbackCone f g where
@@ -147,36 +135,29 @@ def pullbackCone : PullbackCone f g where
   π  := t.π
 
 /-- The first projection of a pullback cone. -/
-abbrev fst : yoneda.obj t.pt ⟶ X :=
-  t.pullbackCone.fst
+abbrev fst : yoneda.obj t.pt ⟶ X := t.pullbackCone.fst
 
 /-- The second projection of a pullback cone. -/
-abbrev snd : yoneda.obj t.pt ⟶ Y :=
-  t.pullbackCone.snd
+abbrev snd : yoneda.obj t.pt ⟶ Y := t.pullbackCone.snd
 
 @[simp]
 lemma fst_mk (W : C) (fst : yoneda.obj W ⟶ X) (snd : yoneda.obj W ⟶ Y)
-    (h : fst ≫ f = snd ≫ g) :
-    (mk W fst snd h).pullbackCone.fst = fst :=
-  rfl
+    (h : fst ≫ f = snd ≫ g) : (mk W fst snd h).pullbackCone.fst = fst := rfl
 
 @[simp]
 lemma snd_mk (W : C) (fst : yoneda.obj W ⟶ X) (snd : yoneda.obj W ⟶ Y)
-    (h : fst ≫ f = snd ≫ g) :
-    (mk W fst snd h).pullbackCone.snd = snd :=
-  rfl
+    (h : fst ≫ f = snd ≫ g) : (mk W fst snd h).pullbackCone.snd = snd := rfl
 
 @[reassoc]
-theorem condition : t.fst ≫ f = t.snd ≫ g :=
-  t.pullbackCone.condition
+theorem condition : t.fst ≫ f = t.snd ≫ g := t.pullbackCone.condition
 
 open WalkingSpan.Hom WalkingCospan.Hom WidePullbackShape.Hom WidePushoutShape.Hom Limits.PullbackCone
 
 def repIsLimitAux (t : PullbackCone f g) (lift : ∀ s : RepPullbackCone f g, yoneda.obj s.pt ⟶ t.pt)
     (fac_left : ∀ s : RepPullbackCone f g, lift s ≫ t.fst = s.fst)
     (fac_right : ∀ s : RepPullbackCone f g, lift s ≫ t.snd = s.snd)
-    (uniq : ∀ (s : RepPullbackCone f g) (m : yoneda.obj s.pt ⟶ t.pt)
-      (_ : ∀ j : WalkingCospan, m ≫ t.π.app j = s.π.app j), m = lift s) : RepIsLimit t :=
+    (uniq : ∀ (s : RepPullbackCone f g) (m : yoneda.obj s.pt ⟶ t.pt),
+      (∀ j : WalkingCospan, m ≫ t.π.app j = s.π.app j) → m = lift s) : RepIsLimit t :=
   { lift
     fac := fun s j => Option.casesOn j (by
         rw [← s.cone.w inl, ← t.w inl, ← Category.assoc]
@@ -192,12 +173,10 @@ def RepIsLimit.mk {fst : W ⟶ X} {snd : W ⟶ Y} (eq : fst ≫ f = snd ≫ g)
     (lift : ∀ s : RepPullbackCone f g, yoneda.obj s.pt ⟶ W)
     (fac_left : ∀ s : RepPullbackCone f g, lift s ≫ fst = s.fst)
     (fac_right : ∀ s : RepPullbackCone f g, lift s ≫ snd = s.snd)
-    (uniq :
-      ∀ (s : RepPullbackCone f g) (m : yoneda.obj s.pt ⟶ W)
-      (_ : m ≫ fst = s.fst) (_ : m ≫ snd = s.snd),
-        m = lift s) :
+    (uniq : ∀ (s : RepPullbackCone f g) (m : yoneda.obj s.pt ⟶ W),
+      m ≫ fst = s.fst → m ≫ snd = s.snd → m = lift s) :
     IsLimit (PullbackCone.mk fst snd eq) :=
-  RepIsLimit.IsLimit $
+  RepIsLimit.isLimit <|
   repIsLimitAux _ lift fac_left fac_right fun s m w =>
   uniq s m (w WalkingCospan.left) (w WalkingCospan.right)
 
@@ -205,12 +184,18 @@ theorem is_pullback {fst : W ⟶ X} {snd : W ⟶ Y} (eq : fst ≫ f = snd ≫ g)
     (lift : ∀ s : RepPullbackCone f g, yoneda.obj s.pt ⟶ W)
     (fac_left : ∀ s : RepPullbackCone f g, lift s ≫ fst = s.fst)
     (fac_right : ∀ s : RepPullbackCone f g, lift s ≫ snd = s.snd)
-    (uniq :
-      ∀ (s : RepPullbackCone f g) (m : yoneda.obj s.pt ⟶ W)
-      (_ : m ≫ fst = s.fst) (_ : m ≫ snd = s.snd),
-        m = lift s) :
+    (uniq : ∀ (s : RepPullbackCone f g) (m : yoneda.obj s.pt ⟶ W),
+      m ≫ fst = s.fst → m ≫ snd = s.snd → m = lift s) :
     IsPullback fst snd f g :=
-  IsPullback.of_isLimit' ⟨ eq ⟩ (RepIsLimit.mk eq lift fac_left fac_right uniq)
+  .of_isLimit' ⟨eq⟩ (RepIsLimit.mk eq lift fac_left fac_right uniq)
+
+theorem is_pullback' {fst : W ⟶ X} {snd : W ⟶ Y} (eq : fst ≫ f = snd ≫ g)
+    (lift : ∀ s : RepPullbackCone f g,
+      { lift : yoneda.obj s.pt ⟶ W // lift ≫ fst = s.fst ∧ lift ≫ snd = s.snd ∧
+        ∀ (m : yoneda.obj s.pt ⟶ W), m ≫ fst = s.fst → m ≫ snd = s.snd → m = lift }) :
+    IsPullback fst snd f g :=
+  is_pullback eq (fun s => (lift s).1) (fun s => (lift s).2.1)
+    (fun s => (lift s).2.2.1) (fun s => (lift s).2.2.2)
 
 namespace WeakPullback
 
@@ -219,8 +204,8 @@ variable {fst : W ⟶ X} {snd : W ⟶ Y} (eq : fst ≫ f = snd ≫ g)
     (fac_left : ∀ s : RepPullbackCone f g, lift s ≫ fst = s.fst)
     (fac_right : ∀ s : RepPullbackCone f g, lift s ≫ snd = s.snd)
     (lift_naturality : ∀ (s : RepPullbackCone f g) {c} (σ : c ⟶ s.pt),
-      yoneda.map σ ≫ lift s = lift (.mk c (yoneda.map σ ≫ s.fst) (yoneda.map σ ≫ s.snd)
-      (by simp [s.condition])))
+      yoneda.map σ ≫ lift s =
+      lift (.mk c (yoneda.map σ ≫ s.fst) (yoneda.map σ ≫ s.snd) (by simp [s.condition])))
 
 section
 variable {G : Cᵒᵖ ⥤ Type v₃} (a : G ⟶ X) (b : G ⟶ Y) (hab : a ≫ f = b ≫ g)
@@ -228,11 +213,11 @@ variable {G : Cᵒᵖ ⥤ Type v₃} (a : G ⟶ X) (b : G ⟶ Y) (hab : a ≫ f 
 open Opposite
 
 def repPullbackCone (c : C) (x : G.obj (op c)) : RepPullbackCone f g :=
-  .mk c (yonedaEquiv.symm $ a.app (op c) x) (yonedaEquiv.symm $ b.app (op c) x) (by
-    simpa [yonedaEquiv_symm_naturality_right] using congr_fun (NatTrans.congr_app hab (op c)) x)
+  .mk c (yonedaEquiv.symm <| a.app (op c) x) (yonedaEquiv.symm <| b.app (op c) x) <| by
+    simpa [yonedaEquiv_symm_naturality_right] using congr_fun (NatTrans.congr_app hab (op c)) x
 
-def lift'.app (c : C) : G.obj (op c) ⟶ W.obj (op c) :=
-  fun x => yonedaEquiv (lift (repPullbackCone a b hab c x))
+def lift'.app (c : C) (x : G.obj (op c)) : W.obj (op c) :=
+  yonedaEquiv (lift (repPullbackCone a b hab c x))
 
 include lift_naturality in
 lemma lift'.naturality ⦃c d : C⦄ (σ : c ⟶ d) : G.map σ.op ≫ lift'.app lift a b hab c =

@@ -316,6 +316,32 @@ theorem ext {AB AB' : y(Γ) ⟶ M.Ptp.obj X}
 theorem eta (AB : y(Γ) ⟶ M.Ptp.obj X) : mk M (fst M AB) (snd M AB) = AB :=
   .symm <| ext _ _ rfl (by simp) (by simp)
 
+def lift {Y} (mk : ∀ {Γ} {A : y(Γ) ⟶ M.Ty}, (y(M.ext A) ⟶ X) → (y(Γ) ⟶ Y))
+    (comp_mk : ∀ {Γ Δ} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) {σA} (eq) (B : y(M.ext A) ⟶ X),
+      ym(σ) ≫ mk B = mk (A := σA) (ym(M.substWk σ A σA eq) ≫ B))
+    : M.Ptp.obj X ⟶ Y where
+  app Γ' A := yonedaEquiv (mk (snd M (yonedaEquiv.symm A)))
+  naturality A B σ := by
+    ext C; dsimp
+    set σC := (M.Ptp.obj X).map σ C
+    set C' := yonedaEquiv.symm C
+    set σC' := yonedaEquiv.symm σC
+    have : σC' = ym(σ.unop) ≫ C' := (yonedaEquiv_symm_naturality_left _ _ _).symm
+    rw [yonedaEquiv_naturality', comp_mk σ.unop (fst M C') (σA := fst M σC') _ (snd M C'),
+      ← snd_comp_left]
+    · congr! 3
+    · rw [← fst_comp_left, this]
+
+theorem comp_lift {Y} (mk comp_mk) {Γ} (ab : y(Γ) ⟶ M.Ptp.obj X)
+    (A := fst M ab) (eq : fst M ab = A := by rfl) :
+    ab ≫ lift M (Y := Y) mk comp_mk = mk (snd M ab A eq) := by
+  cases eq
+  obtain ⟨ab, rfl⟩ := yonedaEquiv.symm.surjective ab
+  apply yonedaEquiv.injective
+  trans (lift M mk comp_mk).app ⟨Γ⟩ ab
+  · simp [yonedaEquiv_symm_naturality_right]
+  · simp [lift]
+
 end
 
 end PtpEquiv
@@ -486,6 +512,54 @@ theorem eta (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp)
     mk (fst ab) eq (dependent ab A eq) (snd ab) (snd_tp ab eq) = ab := by
   symm; apply ext (eq := eq) <;> simp
 
+def lift {Y}
+    (mk : ∀ {Γ} (α : y(Γ) ⟶ M.Tm) {A} (eq : α ≫ M.tp = A)
+      (B : y(M.ext A) ⟶ N.Ty) (β : y(Γ) ⟶ N.Tm),
+      β ≫ N.tp = ym(M.sec A α eq) ≫ B → (y(Γ) ⟶ Y))
+    (comp_mk : ∀ {Γ Δ} (σ : Δ ⟶ Γ)
+      (α : y(Γ) ⟶ M.Tm) {A} (eq : α ≫ M.tp = A) {σA} (eqA : ym(σ) ≫ A = σA)
+      (B : y(M.ext A) ⟶ N.Ty)
+      (β : y(Γ) ⟶ N.Tm)
+      (eqB : β ≫ N.tp = ym(M.sec A α eq) ≫ B),
+      ym(σ) ≫ mk α eq B β eqB =
+      mk (ym(σ) ≫ α) (by simp [eq, eqA])
+        (ym(M.substWk σ A _ eqA) ≫ B) (ym(σ) ≫ β)
+        (by simp [eqB]; rw [← Functor.map_comp_assoc, comp_sec]; simp; congr!))
+    : M.uvPolyTp.compDom N.uvPolyTp ⟶ Y where
+  app Γ' A :=
+    have A := yonedaEquiv.symm A
+    yonedaEquiv (mk (fst A) rfl (dependent A) (snd A) (snd_tp A rfl))
+  naturality A B σ := by
+    ext C; dsimp
+    set σC := (M.uvPolyTp.compDom N.uvPolyTp).map σ C
+    set C' := yonedaEquiv.symm C
+    set σC' := yonedaEquiv.symm σC
+    have : σC' = ym(σ.unop) ≫ C' := (yonedaEquiv_symm_naturality_left _ _ _).symm
+    have : fst σC' = ym(σ.unop) ≫ fst C' := by simp [this, comp_fst]
+    have : ym(σ.unop) ≫ fst C' ≫ M.tp = fst σC' ≫ M.tp := by simp [this]
+    rw [yonedaEquiv_naturality', comp_mk σ.unop (σA := fst σC' ≫ M.tp)]
+    congr! 2
+    · rw [comp_dependent]; congr! 1; assumption
+    · simp [comp_snd, *]
+
+theorem comp_lift {Y} (mk comp_mk) {Γ} (ab : y(Γ) ⟶ M.uvPolyTp.compDom N.uvPolyTp)
+    (A := fst ab ≫ M.tp) (eq : fst ab ≫ M.tp = A := by rfl)
+    (B := dependent ab A eq) (eqB : dependent ab A eq = B := by rfl) :
+    ab ≫ lift (M := M) (N := N) (Y := Y) mk comp_mk =
+    mk (fst ab) eq B (snd ab) (eqB ▸ snd_tp ab eq) := by
+  cases eq
+  obtain ⟨ab, rfl⟩ := yonedaEquiv.symm.surjective ab
+  apply yonedaEquiv.injective
+  trans (lift mk comp_mk).app ⟨Γ⟩ ab
+  · simp [yonedaEquiv_symm_naturality_right]
+  · simp [eqB, lift]
+
+theorem comp_lift_mk {Y} (mk' comp_mk) {Γ}
+    (α : y(Γ) ⟶ M.Tm) {A} (eq : α ≫ M.tp = A) (B : y(M.ext A) ⟶ N.Ty) (β : y(Γ) ⟶ N.Tm)
+    (h : β ≫ N.tp = ym(M.sec _ α eq) ≫ B) :
+    mk α eq B β h ≫ lift (M := M) (N := N) (Y := Y) mk' comp_mk =
+    mk' α eq B β h := by rw [comp_lift (A := A) (eq := by simp [eq])]; simp
+
 end compDomEquiv
 
 /-! ## Pi and Sigma types -/
@@ -500,6 +574,90 @@ protected structure Sigma where
   Sig : M.Ptp.obj M.Ty ⟶ M.Ty
   pair : UvPoly.compDom (uvPolyTp M) (uvPolyTp M) ⟶ M.Tm
   Sig_pullback : IsPullback pair ((uvPolyTp M).compP (uvPolyTp M)) M.tp Sig
+
+open compDomEquiv in
+def Sigma.mk'
+    (Sig : ∀ {Γ} {A : y(Γ) ⟶ M.Ty}, (y(M.ext A) ⟶ M.Ty) → (y(Γ) ⟶ M.Ty))
+    (comp_Sig : ∀ {Γ Δ} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) {σA} (eq) (B : y(M.ext A) ⟶ M.Ty),
+      ym(σ) ≫ Sig B = Sig (ym(M.substWk σ A σA eq) ≫ B))
+    (assoc : ∀ {Γ} {A : y(Γ) ⟶ M.Ty} (B : y(M.ext A) ⟶ M.Ty), M.ext B ≅ M.ext (Sig B))
+    (comp_assoc : ∀ {Γ Δ} (σ : Δ ⟶ Γ) {A : y(Γ) ⟶ M.Ty} {σA} (eq) (B : y(M.ext A) ⟶ M.Ty),
+      substWk _ (substWk _ σ _ _ eq) _ ≫ (assoc B).hom =
+      (assoc (ym(substWk M σ A σA eq) ≫ B)).hom ≫ substWk M σ _ _ (comp_Sig ..))
+    (assoc_disp : ∀ {Γ} {A : y(Γ) ⟶ M.Ty} (B : y(M.ext A) ⟶ M.Ty),
+      (assoc B).hom ≫ M.disp _ = M.disp _ ≫ M.disp _)
+    : M.Sigma where
+  Sig := PtpEquiv.lift M Sig comp_Sig
+  pair := by
+    fapply NaturalModel.compDomEquiv.lift
+    · intro Γ α A eq B β eqB
+      refine ym(?_ ≫ (assoc B).hom) ≫ M.var _
+      exact substCons _ (substCons _ (𝟙 _) _ α (by simp [eq])) _ β eqB
+    · as_aux_lemma =>
+      intro Γ Δ σ α A eq σA eqA B β eqB
+      have := comp_assoc σ eqA B
+      replace := congr(ym($this) ≫ M.var _)
+      simp at this ⊢; rw [← this]; clear this
+      simp only [← Category.assoc]; congr! 2
+      apply (M.disp_pullback _).hom_ext <;> simp
+      apply (M.disp_pullback _).hom_ext <;> simp [substWk_disp_functor_map]
+  Sig_pullback := by
+    fapply RepPullbackCone.is_pullback'
+    · refine hom_ext_yoneda fun Γ A => ?_
+      rw [reassoc_of% compDomEquiv.comp_lift, ← Category.assoc A, PtpEquiv.comp_lift]
+      have := assoc_disp (dependent A _ rfl)
+      simp; simp only [← Functor.map_comp_assoc]; rw [this, comp_Sig]; congr! 1
+      case eq => simp [fst_tp]
+      rw [comp_dependent, dependent]; congr! 2
+      simp [substCons_disp]
+    · intro s
+      let A := PtpEquiv.fst M s.snd
+      let B : y(M.ext A) ⟶ M.Ty := PtpEquiv.snd M s.snd
+      have ptp := s.condition
+      simp [PtpEquiv.comp_lift] at ptp; change _ = Sig B at ptp
+      let σ := M.sec (Sig B) _ ptp ≫ (assoc B).inv
+      have := assoc_disp B
+      rw [← Iso.eq_inv_comp, eq_comm] at this
+      replace : σ ≫ M.disp B ≫ M.disp A = M.sec (Sig B) .. ≫ _ :=
+        (Category.assoc ..).trans congr(M.sec _ _ ptp ≫ $this)
+      replace := congr(ym($this)); simp at this
+      refine
+        let t := compDomEquiv.mk (ym(σ ≫ M.disp _) ≫ M.var _) ?_ B (ym(σ) ≫ M.var _) ?_
+        ⟨t, ?_⟩
+      · simp [reassoc_of% this]
+      · simp; rw [← Category.assoc]; congr! 1
+        apply (M.disp_pullback A).hom_ext <;> simp [this]
+      · have ttp : fst t ≫ M.tp = A := by simp [t, reassoc_of% this]
+        have t1 : fst t = ym(σ ≫ M.disp _) ≫ M.var _ := fst_mk ..
+        have td : dependent t _ ttp = B := dependent_mk ..
+        have t2 : snd t = ym(σ) ≫ M.var _ := snd_mk ..
+        refine ⟨?_, ?_, fun m h1 h2 => ?_⟩
+        · rw [comp_lift_mk]
+          convert (show ym(M.sec _ _ ptp) ≫ M.var _ = s.fst by simp) using 3
+          rw [← Iso.eq_comp_inv]
+          apply Yoneda.yoneda_faithful.1
+          apply (M.disp_pullback _).hom_ext <;> simp [σ]
+          apply (M.disp_pullback _).hom_ext <;> simp
+          simpa [σ] using this.symm
+        · symm; fapply PtpEquiv.ext (A := A)
+          · rw [← fst_tp, ttp]
+          · exact (dependent_mk ..).symm
+        · have mtp : fst m ≫ M.tp = A := by rw [fst_tp]; unfold A; congr! 1
+          have md : dependent m _ mtp = B := by unfold dependent B; congr! 1
+          rw [comp_lift (A := A) (eq := mtp) (B := B) (eqB := md)] at h1
+          refine let σ' := _; have h1 : ym(σ' ≫ _) ≫ _ = _ := h1; ?_
+          have H : σ' ≫ (assoc B).hom = M.sec _ s.fst ptp := by
+            apply Yoneda.yoneda_faithful.1
+            apply (M.disp_pullback _).hom_ext
+            · rw [h1]; simp
+            · simp; rw [← Functor.map_comp, assoc_disp]; simp [σ']
+          simp [← Iso.eq_comp_inv, σ'] at H
+          have m1 : fst m = ym(σ ≫ M.disp B) ≫ M.var A := by
+            simpa [σ] using congr(ym($H ≫ M.disp _) ≫ M.var _)
+          symm; fapply compDomEquiv.ext (A := A) (eq := by simp [t, reassoc_of% this])
+          · simp [m1, t1]
+          · simp [md, td]
+          · simpa [σ, t2] using congr(ym($H.symm) ≫ M.var _)
 
 /--
 NaturalModel.IdIntro consists of the following commutative square

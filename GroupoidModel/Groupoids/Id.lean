@@ -455,7 +455,7 @@ This is the equivelant of Id above
 
 -- TODO tidy up this definition. remove tactic mode + use yonedaCategoryEquiv
 def Id' : y(GroupoidModel.U.ext (GroupoidModel.π.{u,u})) ⟶ smallU.Ty.{u,u} :=
-  yonedaCategoryEquiv.symm (sorry)
+  ym(sorry)
   -- dsimp[GroupoidModel.U.ext,GroupoidModel.U,GroupoidModel.Ctx.ofCategory]
   -- refine AsSmall.up.map ?_
   -- dsimp [Quiver.Hom]
