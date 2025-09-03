@@ -26,9 +26,6 @@ def addCheckedAx (thyNm : Name) (ci : AxiomVal) : MetaM Unit := do
     try withEnv thyData.env <| translateAsTp ci.type |>.run env
     catch e =>
       throwError "failed to translate type{Lean.indentExpr ci.type}\nerror: {e.toMessageData}"
-  trace[Leanternal.Translation]
-    "axiom.\{{l}} {ci.name} :\
-        {Lean.indentExpr T |>.nest 2}"
 
   have axioms : Q(Axioms Name) := thyData.axioms
   have wf_axioms : Q(($axioms).Wf) := thyData.wf_axioms
@@ -78,11 +75,6 @@ def addCheckedDef (thyNm : Name) (ci : DefinitionVal) : MetaM Unit := do
     catch e =>
       throwError "failed to translate term{Lean.indentExpr ci.value}\nerror: {e.toMessageData}"
   if l != k then throwError "internal error: inferred level mismatch"
-  trace[Leanternal.Translation]
-    "def.\{{l}} {ci.name} :\
-        {Lean.indentExpr T |>.nest 2}\n\
-    :=\
-      {Lean.indentExpr t}"
 
   have axioms : Q(Axioms Name) := thyData.axioms
   have wf_axioms : Q(($axioms).Wf) := thyData.wf_axioms
