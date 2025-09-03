@@ -61,12 +61,6 @@ structure TheoryData where
 
   New definitions and axioms are elaborated in this environment. -/
   env : Environment
-  /-- The deeply embedded set of theory axioms.
-
-  Equivalently, a cache for something like
-  `env.filter (·.isAxiom) |>.fold q(Env.empty Name) fun acc ax => q($acc.snoc ax)`. -/
-  axioms : Q(Axioms Name)
-  wf_axioms : Q(($axioms).Wf)
 
 private abbrev TheoryExt := SimplePersistentEnvExtension TheoryEntry (NameMap TheoryData)
 
@@ -74,7 +68,7 @@ private abbrev TheoryExt := SimplePersistentEnvExtension TheoryEntry (NameMap Th
 
 For the initial shallow environment,
 we pull in a custom prelude with `Type`-valued identity types. -/
-private def mkInitTheoryData (modNm mainModule : Name) : m TheoryData := do
+def mkInitTheoryData (modNm mainModule : Name) : m TheoryData := do
   -- TODO: check if the `.olean` exists and print a better error if not.
   let mut thyEnv ← importModules #[{ module := `GroupoidModel.Syntax.Frontend.Prelude }]
     (← getOptions) (leakEnv := true) (loadExts := true)
@@ -82,8 +76,6 @@ private def mkInitTheoryData (modNm mainModule : Name) : m TheoryData := do
   return {
     modNm
     env := thyEnv
-    axioms := q(.empty Name)
-    wf_axioms := q(Axioms.empty_wf Name)
   }
 
 private initialize theoryExt : TheoryExt ←
@@ -111,26 +103,13 @@ private initialize theoryExt : TheoryExt ←
             let some thyData := thyMap.find? thyNm
               | throwThe IO.Error
                   s!"corrupt olean: appending '{ci.name}' to non-existent theory '{thyNm}'"
-            match ci with
-            | .defnInfo i =>
-              -- Q: no extension entries added after the prelude; will this break elaboration?
-              let .ok thyEnv := thyData.env.addDeclCore 0 (.defnDecl i) none (doCheck := false)
-                | throwThe IO.Error "internal error" /- cannot happen with `doCheck := false` -/
-
-              thyMap := thyMap.insert thyNm { thyData with env := thyEnv }
-            | .axiomInfo i =>
-              let .ok thyEnv := thyData.env.addDeclCore 0 (.axiomDecl i) none (doCheck := false)
-                | throwThe IO.Error "internal error" /- cannot happen with `doCheck := false` -/
-
-              have axioms : Q(Axioms Name) := thyData.axioms
-              have wf_axioms : Q(($axioms).Wf) := thyData.wf_axioms
-              have a : Q(CheckedAx $axioms) := .const ci.name []
-              thyMap := thyMap.insert thyNm { thyData with
-                env := thyEnv,
-                axioms := q(($a).snocAxioms)
-                wf_axioms := q(($a).wf_snocAxioms $wf_axioms)
-              }
-            | _ => throwThe IO.Error s!"unexpected constant info kind at '{ci.name}'"
+            let decl ← match ci with
+              | .axiomInfo i => pure <| .axiomDecl i | .defnInfo i => pure <| .defnDecl i
+              | _ => throwThe IO.Error s!"unsupported constant kind at '{ci.name}'"
+            -- Q: no extension entries added after the prelude; will this break elaboration?
+            let .ok thyEnv := thyData.env.addDeclCore 0 decl none (doCheck := false)
+              | throwThe IO.Error "internal error" /- cannot happen with `doCheck := false` -/
+            thyMap := thyMap.insert thyNm { thyData with env := thyEnv }
       return ([], thyMap)
     /- We update only the list of entries; theory data needs a monadic computation to update. -/
     addEntryFn s e := (e :: s.1, s.2)
@@ -176,9 +155,5 @@ def setTheoryData (thyNm : Name) (thyData : TheoryData) : m Unit := do
   if !thyMap.contains thyNm then
     throwError "trying to write non-existent theory '{thyNm}'"
   setEnv <| theoryExt.modifyState env fun ds => ds.insert thyNm thyData
-
-def modifyTheoryData (thyNm : Name) (f : TheoryData → TheoryData) : m Unit := do
-  let thyData ← getTheoryData thyNm
-  setTheoryData thyNm <| f thyData
 
 end Leanternal

@@ -2,9 +2,11 @@ import GroupoidModel.Syntax.Frontend.Commands
 
 /-! Test basic typechecker functionality. -/
 
-/-! ## Declaring a theory -/
+/-! ## Declaring theories -/
 
 declare_theory mltt
+
+declare_theory anothertt
 
 /-! ## Universes -/
 
@@ -78,3 +80,9 @@ mltt axiom c : C b
 mltt def Cb : Type := C b
 
 mltt noncomputable def c' : Cb := c
+
+/-! ## Using `sorry` -/
+
+/-- warning: declaration uses 'sorry' -/
+#guard_msgs in
+mltt def foo : Type := sorry
