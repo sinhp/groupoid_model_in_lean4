@@ -198,7 +198,6 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr Lea
     -- We translate internal constants to projections from external constants.
     let ci ← getConstInfo nm
     withEnv (← read).extEnv do
-    withLCtx {} {} do
       match ci with
       | .defnInfo i => return ⟨n, ← mkAppM ``CheckedDef.val #[.const i.name []]⟩
       | .axiomInfo i => return ⟨n, ← mkAppM ``CheckedAx.val #[.const i.name []]⟩

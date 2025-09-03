@@ -103,8 +103,8 @@ def computeAxioms (thyEnv : Environment) (constNm : Name) : MetaM ((E : Q(Axioms
 to the Lean environment as a `CheckedAx`. -/
 def addCheckedAx (thyEnv : Environment) (ci : AxiomVal) : MetaM Unit := do
   let env ← getEnv
-  let (l, T) ←
-    try withEnv thyEnv <| translateAsTp ci.type |>.run env
+  let (l, T) ← withEnv thyEnv do
+    try translateAsTp ci.type |>.run env
     catch e =>
       throwError "failed to translate type{Lean.indentExpr ci.type}\nerror: {e.toMessageData}"
 
@@ -139,12 +139,12 @@ def addCheckedAx (thyEnv : Environment) (ci : AxiomVal) : MetaM Unit := do
 to the Lean environment as a `CheckedDef`. -/
 def addCheckedDef (thyEnv : Environment) (ci : DefinitionVal) : MetaM Unit := do
   let env ← getEnv
-  let (l, T) ←
-    try withEnv thyEnv <| translateAsTp ci.type |>.run env
+  let (l, T) ← withEnv thyEnv do
+    try translateAsTp ci.type |>.run env
     catch e =>
       throwError "failed to translate type{Lean.indentExpr ci.type}\nerror: {e.toMessageData}"
-  let (k, t) ←
-    try withEnv thyEnv <| translateAsTm ci.value |>.run env
+  let (k, t) ← withEnv thyEnv do
+    try translateAsTm ci.value |>.run env
     catch e =>
       throwError "failed to translate term{Lean.indentExpr ci.value}\nerror: {e.toMessageData}"
   if l != k then throwError "internal error: inferred level mismatch"
