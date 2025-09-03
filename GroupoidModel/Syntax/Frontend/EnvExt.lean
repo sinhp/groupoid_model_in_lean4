@@ -141,7 +141,9 @@ private initialize theoryExt : TheoryExt ←
     -- TODO: statsFn, asyncMode, replay?
   }
 
-/-- Persistently store a new theory declaration. -/
+/-- Initialize the data of a new theory,
+importing `Frontend.Prelude` into the initial shallow environment,
+and persistently store the theory declaration. -/
 def saveTheoryDecl (thyNm : Name) : m Unit := do
   let mut env ← getEnv
   let st := PersistentEnvExtension.getState theoryExt env
@@ -161,7 +163,6 @@ def saveShallowTheoryConst (thyNm : Name) (ci : ConstantInfo) : m Unit := do
     throwError "trying to modify non-existent theory '{thyNm}'"
   setEnv <| theoryExt.addEntry env (.const thyNm ci)
 
-/-- Retrieve cached data for the given theory. -/
 def getTheoryData (thyNm : Name) : m TheoryData := do
   let env ← getEnv
   let thyMap := theoryExt.getState env
@@ -169,12 +170,15 @@ def getTheoryData (thyNm : Name) : m TheoryData := do
     | throwError "trying to read non-existent theory '{thyNm}'"
   return thyData
 
-/-- Set cached data for the given theory. -/
 def setTheoryData (thyNm : Name) (thyData : TheoryData) : m Unit := do
   let env ← getEnv
   let thyMap := theoryExt.getState env
   if !thyMap.contains thyNm then
     throwError "trying to write non-existent theory '{thyNm}'"
   setEnv <| theoryExt.modifyState env fun ds => ds.insert thyNm thyData
+
+def modifyTheoryData (thyNm : Name) (f : TheoryData → TheoryData) : m Unit := do
+  let thyData ← getTheoryData thyNm
+  setTheoryData thyNm <| f thyData
 
 end Leanternal

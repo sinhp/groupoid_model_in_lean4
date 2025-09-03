@@ -14,3 +14,10 @@ inductive Identity {α : Type u} : α → α → Type u where
 
 @[match_pattern] def Identity.rfl {α : Type u} {a : α} : Identity a a :=
   Identity.refl a
+
+-- Rudimentary support for `sorry`.
+-- FIXME: add universe polymorphism via `(l : Nat) → { d : CheckedAx .. // d.l = l }`
+axiom sorryAx₀ (A : Type 0) : A
+axiom sorryAx₁ (A : Type 1) : A
+axiom sorryAx₂ (A : Type 2) : A
+axiom sorryAx₃ (A : Type 3) : A

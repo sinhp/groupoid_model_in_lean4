@@ -17,6 +17,97 @@ def envDiff (old new : Environment) : Array ConstantInfo := Id.run do
     ret := ret.push i
   return ret
 
+/-- Add an axiom `ci` in the given theory
+to the Lean environment as a `CheckedAx`. -/
+def addCheckedAx (thyNm : Name) (ci : AxiomVal) : MetaM Unit := do
+  let thyData ← getTheoryData thyNm
+  let env ← getEnv
+  let (l, T) ←
+    try withEnv thyData.env <| translateAsTp ci.type |>.run env
+    catch e =>
+      throwError "failed to translate type{Lean.indentExpr ci.type}\nerror: {e.toMessageData}"
+  trace[Leanternal.Translation]
+    "axiom.\{{l}} {ci.name} :\
+        {Lean.indentExpr T |>.nest 2}"
+
+  have axioms : Q(Axioms Name) := thyData.axioms
+  have wf_axioms : Q(($axioms).Wf) := thyData.wf_axioms
+  have name : Q(Name) := toExpr ci.name
+  let .inr _ ← lookupAxiom q($axioms) q($name)
+    | throwError "internal error: axiom '{ci.name}' has already been added, \
+      but elaboration succeeded"
+  let Twf ← checkTp q($axioms) q($wf_axioms) q([]) q($l) q($T)
+  let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Lean.Name from []) q($T)
+  let value : Q(CheckedAx $axioms) := q(
+    { name := $name
+      get_name := ‹_›
+      l := $l
+      tp := $T
+      nfTp := $vT
+      wf_nfTp := $vTeq .nil <| $Twf .nil
+    }
+  )
+
+  -- TODO: `addDeclQ`
+  addDecl <| .defnDecl {
+    name := ci.name
+    levelParams := []
+    type := q(CheckedAx $axioms)
+    value
+    hints := .regular 0 -- TODO: what height?
+    safety := .safe
+  }
+  have a : Q(CheckedAx $axioms) := .const ci.name []
+
+  setTheoryData thyNm { thyData with
+    axioms := q(($a).snocAxioms)
+    wf_axioms := q(($a).wf_snocAxioms $wf_axioms)
+  }
+
+/-- Add a definition `ci` in the given theory
+to the Lean environment as a `CheckedDef`. -/
+def addCheckedDef (thyNm : Name) (ci : DefinitionVal) : MetaM Unit := do
+  let thyData ← getTheoryData thyNm
+  let env ← getEnv
+  let (l, T) ←
+    try withEnv thyData.env <| translateAsTp ci.type |>.run env
+    catch e =>
+      throwError "failed to translate type{Lean.indentExpr ci.type}\nerror: {e.toMessageData}"
+  let (k, t) ←
+    try withEnv thyData.env <| translateAsTm ci.value |>.run env
+    catch e =>
+      throwError "failed to translate term{Lean.indentExpr ci.value}\nerror: {e.toMessageData}"
+  if l != k then throwError "internal error: inferred level mismatch"
+  trace[Leanternal.Translation]
+    "def.\{{l}} {ci.name} :\
+        {Lean.indentExpr T |>.nest 2}\n\
+    :=\
+      {Lean.indentExpr t}"
+
+  have axioms : Q(Axioms Name) := thyData.axioms
+  have wf_axioms : Q(($axioms).Wf) := thyData.wf_axioms
+  let Twf ← checkTp q($axioms) q($wf_axioms) q([]) q($l) q($T)
+  let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Lean.Name from []) q($T)
+  let twf ← checkTm q($axioms) q($wf_axioms) q([]) q($l) q($vT) q($t)
+  let value : Q(CheckedDef $axioms) := q(
+    { l := $l
+      tp := $T
+      nfTp := $vT
+      wf_nfTp := $vTeq .nil <| $Twf .nil
+      val := $t
+      wf_val := $twf .nil <| $vTeq .nil <| $Twf .nil
+    }
+  )
+
+  addDecl <| .defnDecl {
+    name := ci.name
+    levelParams := []
+    type := q(CheckedDef $axioms)
+    value
+    hints := .regular 0 -- TODO: what height?
+    safety := .safe
+  }
+
 def elabAxiom (thyNm : Name) (stx : Syntax) : CommandElabM Unit := do
   let thyData ← getTheoryData thyNm
   let thyEnv' ← withEnv thyData.env do Command.elabDeclaration stx; getEnv
@@ -26,51 +117,9 @@ def elabAxiom (thyNm : Name) (stx : Syntax) : CommandElabM Unit := do
   let #[.axiomInfo ci] := diff
     | throwError "expected exactly one axiom, got {diff.size}:\
       {Lean.indentD ""}{diff.map (·.name)}"
-  Command.liftTermElabM do
-    let env ← getEnv
-    let (l, T) ←
-      try withEnv thyData.env <| translateAsTp ci.type |>.run env
-      catch e =>
-        throwError "failed to translate type{Lean.indentExpr ci.type}\nerror: {e.toMessageData}"
-    trace[Leanternal.Translation]
-      "axiom.\{{l}} {ci.name} :\
-          {Lean.indentExpr T |>.nest 2}"
-
-    have axioms : Q(Axioms Name) := thyData.axioms
-    have wf_axioms : Q(($axioms).Wf) := thyData.wf_axioms
-    have name : Q(Name) := toExpr ci.name
-    let .inr _ ← lookupAxiom q($axioms) q($name)
-      | throwError "internal error: axiom '{ci.name}' has already been added, \
-        but elaboration succeeded"
-    let Twf ← checkTp q($axioms) q($wf_axioms) q([]) q($l) q($T)
-    let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Lean.Name from []) q($T)
-    let value : Q(CheckedAx $axioms) := q(
-      { name := $name
-        get_name := ‹_›
-        l := $l
-        tp := $T
-        nfTp := $vT
-        wf_nfTp := $vTeq .nil <| $Twf .nil
-      }
-    )
-
-    -- TODO: `addDeclQ`
-    addDecl <| .defnDecl {
-      name := ci.name
-      levelParams := []
-      type := q(CheckedAx $axioms)
-      value
-      hints := .regular 0 -- TODO: what height?
-      safety := .safe
-    }
-    have a : Q(CheckedAx $axioms) := .const ci.name []
-
-    saveShallowTheoryConst thyNm (.axiomInfo ci)
-    setTheoryData thyNm { thyData with
-      env := thyEnv'
-      axioms := q(($a).snocAxioms)
-      wf_axioms := q(($a).wf_snocAxioms $wf_axioms)
-    }
+  Command.liftTermElabM <| addCheckedAx thyNm ci
+  saveShallowTheoryConst thyNm (.axiomInfo ci)
+  modifyTheoryData thyNm fun d => { d with env := thyEnv' }
 
 def elabDeclaration (thyNm : Name) (stx : Syntax) : CommandElabM Unit := do
   let thyData ← getTheoryData thyNm
@@ -81,49 +130,9 @@ def elabDeclaration (thyNm : Name) (stx : Syntax) : CommandElabM Unit := do
   let #[.defnInfo ci] := diff
     | throwError "expected exactly one definition, got {diff.size}:\
       {Lean.indentD ""}{diff.map (·.name)}"
-  Command.liftTermElabM do
-    let env ← getEnv
-    let (l, T) ←
-      try withEnv thyData.env <| translateAsTp ci.type |>.run env
-      catch e =>
-        throwError "failed to translate type{Lean.indentExpr ci.type}\nerror: {e.toMessageData}"
-    let (k, t) ←
-      try withEnv thyData.env <| translateAsTm ci.value |>.run env
-      catch e =>
-        throwError "failed to translate term{Lean.indentExpr ci.value}\nerror: {e.toMessageData}"
-    if l != k then throwError "internal error: inferred level mismatch"
-    trace[Leanternal.Translation]
-      "def.\{{l}} {ci.name} :\
-          {Lean.indentExpr T |>.nest 2}\n\
-      :=\
-        {Lean.indentExpr t}"
-
-    have axioms : Q(Axioms Name) := thyData.axioms
-    have wf_axioms : Q(($axioms).Wf) := thyData.wf_axioms
-    let Twf ← checkTp q($axioms) q($wf_axioms) q([]) q($l) q($T)
-    let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Lean.Name from []) q($T)
-    let twf ← checkTm q($axioms) q($wf_axioms) q([]) q($l) q($vT) q($t)
-    let value : Q(CheckedDef $axioms) := q(
-      { l := $l
-        tp := $T
-        nfTp := $vT
-        wf_nfTp := $vTeq .nil <| $Twf .nil
-        val := $t
-        wf_val := $twf .nil <| $vTeq .nil <| $Twf .nil
-      }
-    )
-
-    addDecl <| .defnDecl {
-      name := ci.name
-      levelParams := []
-      type := q(CheckedDef $axioms)
-      value
-      hints := .regular 0 -- TODO: what height?
-      safety := .safe
-    }
-
-    saveShallowTheoryConst thyNm (.defnInfo ci)
-    setTheoryData thyNm { thyData with env := thyEnv' }
+  Command.liftTermElabM <| addCheckedDef thyNm ci
+  saveShallowTheoryConst thyNm (.defnInfo ci)
+  modifyTheoryData thyNm fun d => { d with env := thyEnv' }
 
 /-- Declare a new Leanternal theory with the given name.
 Theories start off with no axioms or definitions.
@@ -132,6 +141,12 @@ where `<theory>` is your chosen name. -/
 elab "declare_theory " thy:ident : command => do
   let thyNm := thy.getId
   saveTheoryDecl thyNm
+  let thyData ← getTheoryData thyNm
+  for i in [0:univMax] do
+    let nm := Name.anonymous.str s!"sorryAx{Nat.subDigitChar i}"
+    let .axiomInfo ci ← withEnv thyData.env <| getConstInfo nm
+      | throwError "internal error: could not find axiom '{nm}' in theory environment"
+    Command.liftTermElabM <| addCheckedAx thyNm ci
   let pre : TSyntax `str := quote s!"{thyNm} "
   -- Bug: `command` written directly inside the quotation is hygienized,
   -- and then the quoted command fails to run.

@@ -170,7 +170,7 @@ partial def synthTm (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (t : Q(Expr Lean.Nam
       ∃ T, ValEqTp $E Γ $l $vT T ∧ ($E ∣ Γ ⊢[$l] ($t) : T))) :=
   Lean.withTraceNode (ε := Lean.Exception) traceClsTypechecker (fun
     | .ok ⟨vT, _⟩ => return m!"✅️ {vΓ} ⊢[{l}] {t} ⇒ {vT}"
-    | .error e => return m!"❌️ {vΓ} ⊢[{l}] {t} ⇒ _") do
+    | .error _ => return m!"❌️ {vΓ} ⊢[{l}] {t} ⇒ _") do
   match t with
   | ~q(@CheckedDef.val _ $E' $defn) => do
     -- Ensure the definition uses a subset of the available axioms.
