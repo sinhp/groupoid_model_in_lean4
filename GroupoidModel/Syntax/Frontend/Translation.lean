@@ -1,6 +1,5 @@
 import Qq
 import GroupoidModel.Syntax.Axioms
-import GroupoidModel.Syntax.Frontend.Prelude
 import GroupoidModel.Syntax.Frontend.Checked
 
 namespace Leanternal
@@ -11,6 +10,8 @@ def traceClsTranslation : Name := `Leanternal.Translation
 
 initialize
   registerTraceClass traceClsTranslation
+  registerTraceClass (traceClsTranslation ++ `tp) (inherited := true)
+  registerTraceClass (traceClsTranslation ++ `tm) (inherited := true)
 
 structure Context where
   /-- Maps `FVarId`s to their de Bruijn index. -/
@@ -65,6 +66,11 @@ mutual
 /-- Completeness: if the argument is well-formed in Lean,
 the output is well-typed in MLTT. -/
 partial def translateAsTp (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr Lean.Name)) := do
+  Lean.withTraceNode (ε := Lean.Exception) (traceClsTranslation ++ `tp) (fun
+    | .ok ⟨l, A⟩ => do
+      let mA : MessageData ← withEnv (← read).extEnv <| addMessageContextPartial A
+      return m!"✅️ {e} [{l}]⇒ {mA}"
+    | .error _ => return m!"❌️ {e} ⇒ _") do
   if !isType e then
     let ⟨l+1, a⟩ ← translateAsTm e
       | throwError "type code should have level > 0{indentExpr e}"
@@ -83,6 +89,11 @@ partial def translateAsTp (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr Lea
   | _ => throwError "internal error: should fail `isType`{indentExpr e}"
 
 partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr Lean.Name)) := do
+  Lean.withTraceNode (ε := Lean.Exception) (traceClsTranslation ++ `tm) (fun
+    | .ok ⟨l, a⟩ => do
+      let ma : MessageData ← withEnv (← read).extEnv <| addMessageContextPartial a
+      return m!"✅️ {e} [{l}]⇒ {ma}"
+    | .error _ => return m!"❌️ {e} ⇒ _") do
   if isType e then
     let ⟨l, A⟩ ← translateAsTp e
     return ⟨l+1, q(.code $A)⟩
@@ -102,6 +113,24 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr Lea
       withBinder x <| translateAsTm b
     return ⟨max l l', q(.lam $l $l' $A $b)⟩
   | .app fn arg => do
+    if e.isAppOfArity' ``sorryAx 3 then
+      let #[A, _, _] := e.getAppArgs | throwError "internalError"
+      -- Recent versions of Lean generate ``sorryAx (Name → ActualType) `«sourceLocation»``.
+      -- In `Frontend.Prelude` we have defined `sorryAxₗ` for `l < univMax`.
+      -- We translate the former to the latter.
+      let ⟨l, A⟩ ← forallBoundedTelescope A (some 1) fun xs A' => do
+        let #[x] := xs | throwError "internal error (sorryAx)"
+        let tp ← inferType x
+        if !(← isDefEq tp q(Lean.Name)) then
+          throwError "unexpected type of sorryAx{Lean.indentExpr A}"
+        translateAsTp A'
+      let sl : Nat := l + 1
+      let name : Q(Lean.Name) := toExpr <|
+        Lean.Name.anonymous.str s!"sorryAx{Nat.subDigitChar l}"
+      return ⟨l,
+        q(.app $sl $l (.el <| .bvar 0)
+          (.ax $name (.pi $sl $l (.univ $l) (.el <| .bvar 0)))
+          (.code $A))⟩
     if e.isAppOfArity' ``Sigma.mk 4 then
       let #[_, B, f, s] := e.getAppArgs | throwError "internal error"
       let ⟨l', B⟩ ← lambdaBoundedTelescope B 1 fun xs B => do
@@ -114,7 +143,7 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr Lea
       let #[A, B, p] := e.getAppArgs | throwError "internal error"
       let ⟨l, A⟩ ← translateAsTp A
       let ⟨l', B⟩ ← lambdaBoundedTelescope B 1 fun xs B => do
-        let #[x] := xs | throwError "internal error (Sigma.mk)"
+        let #[x] := xs | throwError "internal error (Sigma.fst)"
         withBinder x <| translateAsTp B
       let ⟨_, p⟩ ← translateAsTm p
       return ⟨l, q(.fst $l $l' $A $B $p)⟩
@@ -122,20 +151,20 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr Lea
       let #[A, B, p] := e.getAppArgs | throwError "internal error"
       let ⟨l, A⟩ ← translateAsTp A
       let ⟨l', B⟩ ← lambdaBoundedTelescope B 1 fun xs B => do
-        let #[x] := xs | throwError "internal error (Sigma.mk)"
+        let #[x] := xs | throwError "internal error (Sigma.snd)"
         withBinder x <| translateAsTp B
       let ⟨_, p⟩ ← translateAsTm p
       return ⟨l', q(.snd $l $l' $A $B $p)⟩
     -- Defined in `Syntax.Frontend.Prelude`.
-    if e.isAppOfArity' ``Identity.refl 2 then
+    if e.isAppOfArity' `Identity.refl 2 then
       let #[_, a] := e.getAppArgs | throwError "internal error (Id.refl)"
       let ⟨l, a⟩ ← translateAsTm a
       return ⟨l, q(.refl $l $a)⟩
-    if e.isAppOfArity' ``Identity.rec 6 then
+    if e.isAppOfArity' `Identity.rec 6 then
       let #[_, a, M, r, b, h] := e.getAppArgs | throwError "internal error (Id.rec)"
       let ⟨l, a⟩ ← translateAsTm a
       let ⟨l', M⟩ ← lambdaBoundedTelescope M 2 fun xs M => do
-        let #[x, h] := xs | throwError "internal error (Id.rec)"
+        let #[x, h] := xs | throwError "internal error (Id.rec motive)"
         withBinder x <| withBinder h <| translateAsTp M
       let ⟨_, r⟩ ← translateAsTm r
       let ⟨_, b⟩ ← translateAsTm b
@@ -159,7 +188,7 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr Lea
     let l ← getSortLevel l.succ
     let l' ← getSortLevel l'.succ
     return ⟨max l l' + 1, mkSigma _ l l'⟩
-  | .const ``Identity [l] =>
+  | .const `Identity [l] =>
     let l ← getSortLevel l.succ
     return ⟨l + 1, mkId _ l⟩
   | .const nm [] =>
@@ -169,7 +198,6 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr Lea
     -- We translate internal constants to projections from external constants.
     let ci ← getConstInfo nm
     withEnv (← read).extEnv do
-    withLCtx {} {} do
       match ci with
       | .defnInfo i => return ⟨n, ← mkAppM ``CheckedDef.val #[.const i.name []]⟩
       | .axiomInfo i => return ⟨n, ← mkAppM ``CheckedAx.val #[.const i.name []]⟩

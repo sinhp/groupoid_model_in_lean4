@@ -15,6 +15,7 @@ structure CheckedAx (E : Axioms χ) where
   wf_nfTp : ValEqTp E [] l nfTp tp
 
 namespace CheckedAx
+
 theorem wf_tp (a : CheckedAx E) : E ∣ [] ⊢[a.l] a.tp :=
   a.wf_nfTp.wf_tp
 

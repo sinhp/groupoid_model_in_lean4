@@ -344,6 +344,9 @@ partial def evalNeutTm (env : Q(List (Val $χ))) (nt : Q(Neut $χ)) :
         ValEqTm E Δ l $v (t.subst σ) (A.subst σ))) := do
   match nt with
   | ~q(.ax $c $vA) =>
+    -- FIXME: should be possible to skip reevaluating `vA` as it's closed,
+    -- so should be WF in any context.
+    let ⟨vA, vApost⟩ ← evalValTp q($env) q($vA)
     return ⟨q(.neut (.ax $c $vA) $vA), q(by as_aux_lemma =>
       introv env nt
       have ⟨Al, _, Ec, vA, eqt, eq⟩ := nt.inv_ax
@@ -352,8 +355,7 @@ partial def evalNeutTm (env : Q(List (Val $χ))) (nt : Q(Neut $χ)) :
       apply ValEqTm.conv_tp _ (eq.subst env.wf_sb).symm_tp
       simp only [Expr.subst, Expr.subst_of_isClosed _ Al.2.1]
       refine have h := ?_; ValEqTm.neut_tm h (.ax env.wf_dom Ec h)
-      -- TODO: `vA` is closed, so WF in any context
-      sorry
+      simpa [Expr.subst_of_isClosed _ Al.2.1] using $vApost env vA
     )⟩
   | ~q(.bvar $i) =>
     let v : Q(Option (Val $χ)) ← Lean.Meta.whnf q($env[($env).length - $i - 1]?)
