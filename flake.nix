@@ -4,10 +4,10 @@
       pkgs = nixpkgs.legacyPackages.${system};
     in {
       devShells.default = pkgs.mkShell {
-        packages = with pkgs; [ 
+        packages = with pkgs; [
           bashInteractive
           typst
-          python3
+          (python3.withPackages (ps: with ps; [ matplotlib jupyter ipykernel ]))
           graphviz
           nodejs
         ];
