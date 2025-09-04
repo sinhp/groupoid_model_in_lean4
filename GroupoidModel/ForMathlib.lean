@@ -319,12 +319,36 @@ end Equivalence
 
 section equivalence
 
-def functorToAsSmallEquiv {D : Type u₁} [Category.{v₁} D] {C : Type u} [Category.{v} C]
-    : D ⥤ AsSmall.{w} C ≃ D ⥤ C where
+def functorToAsSmallEquiv {D : Type u₁} [Category.{v₁} D] {C : Type u} [Category.{v} C] :
+    D ⥤ AsSmall.{w} C ≃ D ⥤ C where
   toFun A := A ⋙ AsSmall.down
   invFun A := A ⋙ AsSmall.up
   left_inv _ := rfl
   right_inv _ := rfl
+
+section
+
+variable {D : Type u₁} [Category.{v₁} D] {C : Type u} [Category.{v} C]
+  {E : Type u₂} [Category.{v₂} E] (A : D ⥤ AsSmall.{w} C) (B : D ⥤ C)
+
+lemma functorToAsSmallEquiv_apply_comp_left (F : E ⥤ D) :
+    functorToAsSmallEquiv (F ⋙ A) = F ⋙ functorToAsSmallEquiv A :=
+  rfl
+
+lemma functorToAsSmallEquiv_symm_apply_comp_left (F : E ⥤ D) :
+    functorToAsSmallEquiv.symm (F ⋙ B) = F ⋙ functorToAsSmallEquiv.symm B :=
+  rfl
+
+lemma functorToAsSmallEquiv_apply_comp_right (F : C ⥤ E) :
+    functorToAsSmallEquiv (A ⋙ AsSmall.down ⋙ F ⋙ AsSmall.up) = functorToAsSmallEquiv A ⋙ F :=
+  rfl
+
+lemma functorToAsSmallEquiv_symm_apply_comp_right (F : C ⥤ E) :
+    functorToAsSmallEquiv.symm (B ⋙ F) =
+    functorToAsSmallEquiv.symm B ⋙ AsSmall.down ⋙ F ⋙ AsSmall.up :=
+  rfl
+
+end
 
 open ULift
 
