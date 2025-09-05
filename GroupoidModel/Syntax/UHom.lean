@@ -788,8 +788,10 @@ end Sigma
 
 class IdSeq (s : UHomSeq Ctx) where
   nmII (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) : NaturalModel.IdIntro s[i]
+  nmIEB (i : Nat) (ilen : i < s.length + 1 := by get_elem_tactic) :
+    NaturalModel.IdElimBase (nmII i ilen)
   nmId (i j : Nat) (ilen : i < s.length + 1 := by get_elem_tactic)
-    (jlen : j < s.length + 1 := by get_elem_tactic) : NaturalModel.Id s[i] s[j] (nmII i ilen)
+    (jlen : j < s.length + 1 := by get_elem_tactic) : NaturalModel.Id (nmIEB i ilen) s[j]
 
 section Id
 open IdSeq
@@ -855,7 +857,7 @@ def mkIdRec {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty)
     (u : y(Γ) ⟶ s[i].Tm) (u_tp : u ≫ s[i].tp = A)
     (h : y(Γ) ⟶ s[i].Tm) (h_tp : h ≫ s[i].tp = s.mkId ilen A t u t_tp u_tp) :
     y(Γ) ⟶ s[j].Tm := by
-  refine (nmId i j).mkJ t
+  refine (nmId i j).toId'.mkJ t
     (ym(substWk _ (substWk _ (𝟙 _) _ _ (by simp [t_tp])) _ _ ?_) ≫ M)
     r ?_ u (t_tp ▸ u_tp) h ?_
   · simp [← B_eq, comp_mkId, ← mkId.eq_def]; congr 1 <;> simp [t_tp, substWk]
@@ -882,9 +884,10 @@ theorem comp_mkIdRec {Δ Γ : Ctx} (σ : Δ ⟶ Γ)
         simp [comp_substCons, comp_sec, substWk, comp_mkRefl])
       (ym(σ) ≫ u) (by> simp [*])
       (ym(σ) ≫ h) (by> simp [*, comp_mkId]) := by
-  simp [mkIdRec, Id.mkJ]
+  simp [mkIdRec, Id'.mkJ]
   change let σ' := _; _ = ym(σ') ≫ _; intro σ'
-  convert congr(ym(σ') ≫ $((nmId i j).comp_j σ t (ym(_) ≫ M) r _)) using 1; swap
+  stop
+  convert congr(ym(σ') ≫ $((nmId i j).toId'.comp_j σ t (ym(_) ≫ M) r _)) using 1; swap
   case convert_1 =>
     exact s[i].substWk (s[i].substWk (𝟙 _) _ _ (by simp [t_tp])) _ _ (by
       simp [← B_eq, comp_mkId, ← mkId.eq_def]
@@ -913,14 +916,14 @@ theorem mkIdRec_tp {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty)
     (t t_tp B B_eq M) (r : y(Γ) ⟶ s[j].Tm) (r_tp u u_tp h h_tp) :
     s.mkIdRec ilen jlen A t t_tp B B_eq M r r_tp u u_tp h h_tp ≫ s[j].tp =
       ym(substCons _ (s[i].sec _ u u_tp) _ h (by> simp [h_tp, comp_mkId, ← B_eq])) ≫ M := by
-  simp [mkIdRec, Id.mkJ_tp]; rw [← Functor.map_comp_assoc]; congr 1
-  apply (s[i].disp_pullback _).hom_ext <;> simp [Id.endPtSubst, sec, substWk]
+  simp [mkIdRec, Id'.mkJ_tp]; rw [← Functor.map_comp_assoc]; congr 1
+  apply (s[i].disp_pullback _).hom_ext <;> simp [Id'.endPtSubst, sec, substWk]
 
 @[simp]
 theorem mkIdRec_mkRefl {Γ : Ctx} (A : y(Γ) ⟶ s[i].Ty)
     (t t_tp B B_eq M) (r : y(Γ) ⟶ s[j].Tm) (r_tp) :
     s.mkIdRec ilen jlen A t t_tp B B_eq M r r_tp t t_tp
       (s.mkRefl ilen t) (s.mkRefl_tp ilen _ t t_tp) = r := by
-  simp [mkIdRec, mkRefl, Id.mkJ_refl]
+  simp [mkIdRec, mkRefl, Id'.mkJ_refl]
 
 end Id
