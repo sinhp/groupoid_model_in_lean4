@@ -130,7 +130,7 @@ def addCheckedAx (thyEnv : Environment) (ci : AxiomVal) : MetaM Unit := do
     name := ci.name
     levelParams := []
     type := q(CheckedAx $axioms)
-    value
+    value := ShareCommon.shareCommon' value
     hints := .regular 0 -- TODO: what height?
     safety := .safe
   }
@@ -167,7 +167,11 @@ def addCheckedDef (thyEnv : Environment) (ci : DefinitionVal) : MetaM Unit := do
     name := ci.name
     levelParams := []
     type := q(CheckedDef $axioms)
-    value
+    /- The kernel does not max-share terms before checking them,
+    and our tactics are currently bad at producing highly shared terms.
+    Maximal sharing improves checking time asymptotically on some benchmarks (`bench.samplers.id`)
+    and by a constant factor on others (`bench.samplers.fn`). -/
+    value := ShareCommon.shareCommon' value
     hints := .regular 0 -- TODO: what height?
     safety := .safe
   }
