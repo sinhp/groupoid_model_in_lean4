@@ -3,6 +3,7 @@ import Qq
 import GroupoidModel.Syntax.Synth
 import GroupoidModel.Syntax.Typechecker.ValueInversion
 import GroupoidModel.Syntax.Typechecker.Util
+import GroupoidModel.Syntax.Typechecker.Cache
 
 open Qq
 
@@ -17,9 +18,13 @@ mutual
 
 Note: we use `as_aux_lemma` pervasively to minimize the size of produced proof terms. -/
 partial def evalTp (env : Q(List (Val $χ))) (T' : Q(Expr $χ)) :
-    Lean.MetaM ((v : Q(Val $χ)) ×
+    TypecheckerM ((v : Q(Val $χ)) ×
       Q(∀ {E Γ Δ σ l}, EnvEqSb E Δ $env σ Γ → (E ∣ Γ ⊢[l] ($T')) →
         ValEqTp E Δ l $v (($T').subst σ))) := do
+  let key := (⟨env⟩, ⟨T'⟩)
+  if let some (v, pf) := (← get).evalTp[key]? then return ⟨v, pf⟩
+  eventually (fun ⟨v, pf⟩ =>
+    modify fun st => { st with evalTp := st.evalTp.insert key (v, pf) }) do
   /- TODO: establish a convention for when inputs are supposed to be in WHNF.
   Should `evalTp` reject types not in WHNF?
   Then we'd need to evaluate them in `lookup`,
@@ -76,9 +81,13 @@ partial def evalTp (env : Q(List (Val $χ))) (T' : Q(Expr $χ)) :
 
 /-- Evaluate a term in an environment of values. -/
 partial def evalTm (env : Q(List (Val $χ))) (t' : Q(Expr $χ)) :
-    Lean.MetaM ((v : Q(Val $χ)) ×
+    TypecheckerM ((v : Q(Val $χ)) ×
       Q(∀ {E Γ Δ σ A l}, EnvEqSb E Δ $env σ Γ → (E ∣ Γ ⊢[l] ($t') : A) →
         ValEqTm E Δ l $v (($t').subst σ) (A.subst σ))) := do
+  let key := (⟨env⟩, ⟨t'⟩)
+  if let some (v, pf) := (← get).evalTm[key]? then return ⟨v, pf⟩
+  eventually (fun ⟨v, pf⟩ =>
+    modify fun st => { st with evalTm := st.evalTm.insert key (v, pf) }) do
   -- TODO: see comment at `evalTp`.
   let t : Q(Expr $χ) ← Lean.Meta.whnf t'
   have _ : $t =Q $t' := .unsafeIntro
@@ -212,9 +221,13 @@ we store `Clos.of_val`.
 However, that means we may later need to evaluate the stored value in a new environment,
 and `evalValTp` does that. -/
 partial def evalValTp (env : Q(List (Val $χ))) (vT : Q(Val $χ)) :
-    Lean.MetaM ((v : Q(Val $χ)) ×
+    TypecheckerM ((v : Q(Val $χ)) ×
       Q(∀ {E Γ Δ A σ l}, EnvEqSb E Δ $env σ Γ → ValEqTp E Γ l $vT A →
         ValEqTp E Δ l $v (A.subst σ))) := do
+  let key := (⟨env⟩, ⟨vT⟩)
+  if let some (v, pf) := (← get).evalValTp[key]? then return ⟨v, pf⟩
+  eventually (fun ⟨v, pf⟩ =>
+    modify fun st => { st with evalValTp := st.evalValTp.insert key (v, pf) }) do
   match vT with
   | ~q(.pi $k $k' $vA $vB) =>
     let ⟨vB, vBpost⟩ ← forceClosTp q(($env).length) q($vA) q($vB)
@@ -274,9 +287,13 @@ partial def evalValTp (env : Q(List (Val $χ))) (vT : Q(Val $χ)) :
 
 /-- Evaluate a term value in a new environment. -/
 partial def evalValTm (env : Q(List (Val $χ))) (vt : Q(Val $χ)) :
-    Lean.MetaM ((v : Q(Val $χ)) ×
+    TypecheckerM ((v : Q(Val $χ)) ×
       Q(∀ {E Γ Δ A t σ l}, EnvEqSb E Δ $env σ Γ → ValEqTm E Γ l $vt t A →
         ValEqTm E Δ l $v (t.subst σ) (A.subst σ))) := do
+  let key := (⟨env⟩, ⟨vt⟩)
+  if let some (v, pf) := (← get).evalValTm[key]? then return ⟨v, pf⟩
+  eventually (fun ⟨v, pf⟩ =>
+    modify fun st => { st with evalValTm := st.evalValTm.insert key (v, pf) }) do
   match vt with
   | ~q(.lam $k $k' $vA $b) =>
     -- NOTE: the binder type argument to `forceClosTm` is the only reason we annotate `Val.lam`.
@@ -339,9 +356,13 @@ partial def evalValTm (env : Q(List (Val $χ))) (vt : Q(Val $χ)) :
 
 /-- Evaluate a neutral term in a new environment. -/
 partial def evalNeutTm (env : Q(List (Val $χ))) (nt : Q(Neut $χ)) :
-    Lean.MetaM ((v : Q(Val $χ)) ×
+    TypecheckerM ((v : Q(Val $χ)) ×
       Q(∀ {E Γ Δ A t σ l}, EnvEqSb E Δ $env σ Γ → NeutEqTm E Γ l $nt t A →
         ValEqTm E Δ l $v (t.subst σ) (A.subst σ))) := do
+  let key := (⟨env⟩, ⟨nt⟩)
+  if let some (v, pf) := (← get).evalNeutTm[key]? then return ⟨v, pf⟩
+  eventually (fun ⟨v, pf⟩ =>
+    modify fun st => { st with evalNeutTm := st.evalNeutTm.insert key (v, pf) }) do
   match nt with
   | ~q(.ax $c $vA) =>
     -- FIXME: should be possible to skip reevaluating `vA` as it's closed,
@@ -440,9 +461,13 @@ partial def evalNeutTm (env : Q(List (Val $χ))) (nt : Q(Neut $χ)) :
 
 /-- Evaluate a type closure on an argument. -/
 partial def evalClosTp (vB : Q(Clos $χ)) (vt : Q(Val $χ)) :
-    Lean.MetaM ((v : Q(Val $χ)) ×
+    TypecheckerM ((v : Q(Val $χ)) ×
       Q(∀ {E Γ A B t l l'}, ClosEqTp E Γ l l' A $vB B → ValEqTm E Γ l $vt t A →
         ValEqTp E Γ l' $v (B.subst t.toSb))) := do
+  let key := (⟨vB⟩, ⟨vt⟩)
+  if let some (v, pf) := (← get).evalClosTp[key]? then return ⟨v, pf⟩
+  eventually (fun ⟨v, pf⟩ =>
+    modify fun st => { st with evalClosTp := st.evalClosTp.insert key (v, pf) }) do
   match vB with
   | ~q(.of_expr $env $B) => do
     let ⟨v, vpost⟩ ← evalTp q($vt :: $env) q($B)
@@ -467,10 +492,14 @@ partial def evalClosTp (vB : Q(Clos $χ)) (vt : Q(Val $χ)) :
 
 /-- Evaluate a type closure on a fresh variable. -/
 partial def forceClosTp (d : Q(Nat)) (vA : Q(Val $χ)) (vB : Q(Clos $χ)) :
-    Lean.MetaM ((v : Q(Val $χ)) × Q(∀ {E Γ A B l l'}, $d = Γ.length →
+    TypecheckerM ((v : Q(Val $χ)) × Q(∀ {E Γ A B l l'}, $d = Γ.length →
       ValEqTp E Γ l $vA A →
       ClosEqTp E Γ l l' A $vB B →
       ValEqTp E ((A, l) :: Γ) l' $v B)) := do
+  let key := (⟨d⟩, ⟨vA⟩, ⟨vB⟩)
+  if let some (v, pf) := (← get).forceClosTp[key]? then return ⟨v, pf⟩
+  eventually (fun ⟨v, pf⟩ =>
+    modify fun st => { st with forceClosTp := st.forceClosTp.insert key (v, pf) }) do
   let ⟨v, vpost⟩ ← evalClosTp q($vB) q(.neut (.bvar $d) $vA)
   return ⟨v, q(by as_aux_lemma =>
     introv deq vA vB
@@ -485,11 +514,15 @@ partial def forceClosTp (d : Q(Nat)) (vA : Q(Val $χ)) (vB : Q(Clos $χ)) :
 
 /-- Evaluate a type closure on two arguments. -/
 partial def evalClos₂Tp (vC : Q(Clos $χ)) (vt vu : Q(Val $χ)) :
-    Lean.MetaM ((v : Q(Val $χ)) ×
+    TypecheckerM ((v : Q(Val $χ)) ×
       Q(∀ {E Γ A B C t u l l' l''}, Clos₂EqTp E Γ A l B l' l'' $vC C →
         ValEqTm E Γ l $vt t A →
         ValEqTm E Γ l' $vu u (B.subst t.toSb) →
         ValEqTp E Γ l'' $v (C.subst (.snoc t.toSb u)))) := do
+  let key := (⟨vC⟩, ⟨vt⟩, ⟨vu⟩)
+  if let some (v, pf) := (← get).evalClos₂Tp[key]? then return ⟨v, pf⟩
+  eventually (fun ⟨v, pf⟩ =>
+    modify fun st => { st with evalClos₂Tp := st.evalClos₂Tp.insert key (v, pf) }) do
   match vC with
   | ~q(.of_expr $env $C) => do
     let ⟨v, vpost⟩ ← evalTp q($vu :: $vt :: $env) q($C)
@@ -520,11 +553,15 @@ partial def evalClos₂Tp (vC : Q(Clos $χ)) (vt vu : Q(Val $χ)) :
   | vB => throwError "expected a type closure₂, got{Lean.indentExpr vC}"
 
 partial def forceClos₂Tp (d : Q(Nat)) (vA vB : Q(Val $χ)) (vC : Q(Clos $χ)) :
-    Lean.MetaM ((v : Q(Val $χ)) × Q(∀ {E Γ A B C l l' l''}, $d = Γ.length →
+    TypecheckerM ((v : Q(Val $χ)) × Q(∀ {E Γ A B C l l' l''}, $d = Γ.length →
       ValEqTp E Γ l $vA A →
       ValEqTp E ((A, l) :: Γ) l' $vB B →
       Clos₂EqTp E Γ A l B l' l'' $vC C →
       ValEqTp E ((B, l') :: (A, l) :: Γ) l'' $v C)) := do
+  let key := (⟨d⟩, ⟨vA⟩, ⟨vB⟩, ⟨vC⟩)
+  if let some (v, pf) := (← get).forceClos₂Tp[key]? then return ⟨v, pf⟩
+  eventually (fun ⟨v, pf⟩ =>
+    modify fun st => { st with forceClos₂Tp := st.forceClos₂Tp.insert key (v, pf) }) do
   let ⟨v, vpost⟩ ← evalClos₂Tp q($vC) q(.neut (.bvar $d) $vA) q(.neut (.bvar ($d + 1)) $vB)
   return ⟨v, q(by as_aux_lemma =>
     introv deq vA vB vC
@@ -540,9 +577,13 @@ partial def forceClos₂Tp (d : Q(Nat)) (vA vB : Q(Val $χ)) (vC : Q(Clos $χ)) 
 
 /-- Evaluate a term closure on an argument. -/
 partial def evalClosTm (vb : Q(Clos $χ)) (vt : Q(Val $χ)) :
-    Lean.MetaM ((v : Q(Val $χ)) ×
+    TypecheckerM ((v : Q(Val $χ)) ×
       Q(∀ {E Γ A B b t l l'}, ClosEqTm E Γ l l' A B $vb b → ValEqTm E Γ l $vt t A →
         ValEqTm E Γ l' $v (b.subst t.toSb) (B.subst t.toSb))) := do
+  let key := (⟨vb⟩, ⟨vt⟩)
+  if let some (v, pf) := (← get).evalClosTm[key]? then return ⟨v, pf⟩
+  eventually (fun ⟨v, pf⟩ =>
+    modify fun st => { st with evalClosTm := st.evalClosTm.insert key (v, pf) }) do
   match vb with
   | ~q(.of_expr $env $b) => do
     let ⟨v, vpost⟩ ← evalTm q($vt :: $env) q($b)
@@ -570,9 +611,13 @@ partial def evalClosTm (vb : Q(Clos $χ)) (vt : Q(Val $χ)) :
 
 /-- Evaluate a term closure on a fresh variable. -/
 partial def forceClosTm (d : Q(Nat)) (vA : Q(Val $χ)) (vb : Q(Clos $χ)) :
-    Lean.MetaM ((v : Q(Val $χ)) × Q(∀ {E Γ A B b l l'}, $d = Γ.length →
+    TypecheckerM ((v : Q(Val $χ)) × Q(∀ {E Γ A B b l l'}, $d = Γ.length →
         ValEqTp E Γ l $vA A → ClosEqTm E Γ l l' A B $vb b →
         ValEqTm E ((A, l) :: Γ) l' $v b B)) := do
+  let key := (⟨d⟩, ⟨vA⟩, ⟨vb⟩)
+  if let some (v, pf) := (← get).forceClosTm[key]? then return ⟨v, pf⟩
+  eventually (fun ⟨v, pf⟩ =>
+    modify fun st => { st with forceClosTm := st.forceClosTm.insert key (v, pf) }) do
   let ⟨v, vpost⟩ ← evalClosTm q($vb) q(.neut (.bvar $d) $vA)
   return ⟨v, q(by as_aux_lemma =>
     introv deq vA vb
@@ -584,9 +629,13 @@ partial def forceClosTm (d : Q(Nat)) (vA : Q(Val $χ)) (vb : Q(Clos $χ)) :
     convert ($vpost vb this) using 1 <;> autosubst
   )⟩
 
-partial def evalEl (va : Q(Val $χ)) : Lean.MetaM ((v : Q(Val $χ)) ×
+partial def evalEl (va : Q(Val $χ)) : TypecheckerM ((v : Q(Val $χ)) ×
     Q(∀ {E Δ a l}, ValEqTm E Δ (l + 1) $va a (.univ l) →
-      ValEqTp E Δ l $v (.el a))) :=
+      ValEqTp E Δ l $v (.el a))) := do
+  let key := (⟨va⟩)
+  if let some (v, pf) := (← get).evalEl[key]? then return ⟨v, pf⟩
+  eventually (fun ⟨v, pf⟩ =>
+    modify fun st => { st with evalEl := st.evalEl.insert key (v, pf) }) do
   match va with
   | ~q(.code $vA) =>
     return ⟨vA, q(by as_aux_lemma =>
@@ -607,10 +656,14 @@ partial def evalEl (va : Q(Val $χ)) : Lean.MetaM ((v : Q(Val $χ)) ×
     )⟩
   | va => throwError "expected a normal form at type Univ, got{Lean.indentExpr va}"
 
-partial def evalApp (vf va : Q(Val $χ)) : Lean.MetaM ((v : Q(Val $χ)) ×
+partial def evalApp (vf va : Q(Val $χ)) : TypecheckerM ((v : Q(Val $χ)) ×
     Q(∀ {E Δ A B f a l l'}, ValEqTm E Δ (max l l') $vf f (.pi l l' A B) →
       ValEqTm E Δ l $va a A →
-      ValEqTm E Δ l' $v (.app l l' B f a) (B.subst a.toSb))) :=
+      ValEqTm E Δ l' $v (.app l l' B f a) (B.subst a.toSb))) := do
+  let key := (⟨vf⟩, ⟨va⟩)
+  if let some (v, pf) := (← get).evalApp[key]? then return ⟨v, pf⟩
+  eventually (fun ⟨v, pf⟩ =>
+    modify fun st => { st with evalApp := st.evalApp.insert key (v, pf) }) do
   match vf with
   | ~q(.lam $k $k' _ $vb) => do
     let ⟨v, vpost⟩ ← evalClosTm q($vb) q($va)
@@ -642,9 +695,13 @@ partial def evalApp (vf va : Q(Val $χ)) : Lean.MetaM ((v : Q(Val $χ)) ×
     )⟩
   | vf => throwError "expected a normal form at type Π, got{Lean.indentExpr vf}"
 
-partial def evalFst (vp : Q(Val $χ)) : Lean.MetaM ((v : Q(Val $χ)) ×
+partial def evalFst (vp : Q(Val $χ)) : TypecheckerM ((v : Q(Val $χ)) ×
     Q(∀ {E Δ A B p l l'}, ValEqTm E Δ (max l l') $vp p (.sigma l l' A B) →
-      ValEqTm E Δ l $v (.fst l l' A B p) A)) :=
+      ValEqTm E Δ l $v (.fst l l' A B p) A)) := do
+  let key := (⟨vp⟩)
+  if let some (v, pf) := (← get).evalFst[key]? then return ⟨v, pf⟩
+  eventually (fun ⟨v, pf⟩ =>
+    modify fun st => { st with evalFst := st.evalFst.insert key (v, pf) }) do
   match vp with
   | ~q(.pair _ _ $v _) =>
     return ⟨v, q(by as_aux_lemma =>
@@ -672,9 +729,13 @@ partial def evalFst (vp : Q(Val $χ)) : Lean.MetaM ((v : Q(Val $χ)) ×
     )⟩
   | vp => throwError "expected a normal form at type Σ, got{Lean.indentExpr vp}"
 
-partial def evalSnd (vp : Q(Val $χ)) : Lean.MetaM ((v : Q(Val $χ)) ×
+partial def evalSnd (vp : Q(Val $χ)) : TypecheckerM ((v : Q(Val $χ)) ×
     Q(∀ {E Δ A B p l l'}, ValEqTm E Δ (max l l') $vp p (.sigma l l' A B) →
-      ValEqTm E Δ l' $v (.snd l l' A B p) (B.subst (Expr.fst l l' A B p).toSb))) :=
+      ValEqTm E Δ l' $v (.snd l l' A B p) (B.subst (Expr.fst l l' A B p).toSb))) := do
+  let key := (⟨vp⟩)
+  if let some (v, pf) := (← get).evalSnd[key]? then return ⟨v, pf⟩
+  eventually (fun ⟨v, pf⟩ =>
+    modify fun st => { st with evalSnd := st.evalSnd.insert key (v, pf) }) do
   match vp with
   | ~q(.pair _ _ _ $w) =>
     return ⟨w, q(by as_aux_lemma =>
@@ -715,11 +776,15 @@ partial def evalSnd (vp : Q(Val $χ)) : Lean.MetaM ((v : Q(Val $χ)) ×
   | vp => throwError "expected a normal form at type Σ, got{Lean.indentExpr vp}"
 
 partial def evalIdRec (l' : Q(Nat)) (cM : Q(Clos $χ)) (vr vh : Q(Val $χ)) :
-    Lean.MetaM ((v : Q(Val $χ)) × Q(∀ {E Δ A M t r u h l},
+    TypecheckerM ((v : Q(Val $χ)) × Q(∀ {E Δ A M t r u h l},
       Clos₂EqTp E Δ A l (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0)) l $l' $cM M →
       ValEqTm E Δ $l' $vr r (M.subst (.snoc t.toSb <| .refl l t)) →
       ValEqTm E Δ l $vh h (.Id l A t u) →
-      ValEqTm E Δ $l' $v (.idRec l $l' t M r u h) (M.subst (.snoc u.toSb h)))) :=
+      ValEqTm E Δ $l' $v (.idRec l $l' t M r u h) (M.subst (.snoc u.toSb h)))) := do
+  let key := (⟨l'⟩, ⟨cM⟩, ⟨vr⟩, ⟨vh⟩)
+  if let some (v, pf) := (← get).evalIdRec[key]? then return ⟨v, pf⟩
+  eventually (fun ⟨v, pf⟩ =>
+    modify fun st => { st with evalIdRec := st.evalIdRec.insert key (v, pf) }) do
   match vh with
   | ~q(.refl $l $va) =>
     return ⟨vr, q(by as_aux_lemma =>
@@ -760,7 +825,7 @@ end
 
 /-- Evaluate a type in the identity evaluation environment. -/
 def evalTpId (vΓ : Q(TpEnv $χ)) (T : Q(Expr $χ)) :
-    Lean.MetaM ((v : Q(Val $χ)) ×
+    TypecheckerM ((v : Q(Val $χ)) ×
       Q(∀ {E Γ l}, TpEnvEqCtx E $vΓ Γ → (E ∣ Γ ⊢[l] ($T)) →
         ValEqTp E Γ l $v $T)) := do
   -- TODO: WHNF `toEnv`? I think not; it will need WHNFing later anyway
@@ -773,7 +838,7 @@ def evalTpId (vΓ : Q(TpEnv $χ)) (T : Q(Expr $χ)) :
 
 /-- Evaluate a term in the identity evaluation environment. -/
 def evalTmId (vΓ : Q(TpEnv $χ)) (t : Q(Expr $χ)) :
-    Lean.MetaM ((v : Q(Val $χ)) ×
+    TypecheckerM ((v : Q(Val $χ)) ×
       Q(∀ {E Γ A l}, TpEnvEqCtx E $vΓ Γ → (E ∣ Γ ⊢[l] ($t) : A) →
         ValEqTm E Γ l $v $t A)) := do
   let ⟨vt, vtpost⟩ ← evalTm q(($vΓ).toEnv) q($t)

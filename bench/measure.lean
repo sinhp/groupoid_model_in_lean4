@@ -1,7 +1,9 @@
 import Lean
-import GroupoidModel.Syntax.Frontend.Commands
+import GroupoidModel.Syntax.Typechecker.Synth
+import GroupoidModel.Syntax.Frontend.Translation
 
-open Lean Elab Meta Term Leanternal Command
+open Lean Elab Meta Term Command
+open Leanternal
 open Qq
 
 inductive Measurement where
@@ -20,8 +22,8 @@ def timedSection {α : Type} {m : Type → Type} [Monad m] [MonadError m] [Monad
   catch ex =>
     throwError "{title} failed: {ex.toMessageData}"
 
-def shareQ {u : Level} {α : Q(Sort u)} (e : Q($α)) : Q($α) :=
-  ShareCommon.shareCommon' e
+def shareQ {u : Level} {α : Q(Sort u)} (e : Q($α)) : (e' : Q($α)) ×' $e' =Q $e :=
+  ⟨ShareCommon.shareCommon' e, .unsafeIntro⟩
 
 /-- Measure effort taken by various components on definition `n`
 and append them to the NDJSON file `f`.
@@ -59,21 +61,22 @@ elab "#measure" n:ident f:str b:num : command => liftTermElabM do
   have wf_axioms : Q(($axioms).Wf) := q(Axioms.empty_wf Name)
 
   let ((value, vT, wf_nfTp, wf_val), dt_typecheck) ← timedSection "typechecking" meas do
-    let Twf ← checkTp q($axioms) q($wf_axioms) q([]) q($l) q($T)
-    let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Lean.Name from []) q($T)
-    let twf ← checkTm q($axioms) q($wf_axioms) q([]) q($l) q($vT) q($t)
-    have wf_nfTp := q($vTeq .nil <| $Twf .nil)
-    have wf_val := q($twf .nil $wf_nfTp)
-    let value : Q(CheckedDef $axioms) := q(
-      { l := $l
-        tp := $T
-        nfTp := $vT
-        wf_nfTp := $wf_nfTp
-        val := $t
-        wf_val := $wf_val
-      }
-    )
-    pure (value, vT, wf_nfTp, wf_val)
+    TypecheckerM.run do
+      let Twf ← checkTp q($axioms) q($wf_axioms) q([]) q($l) q($T)
+      let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Lean.Name from []) q($T)
+      let twf ← checkTm q($axioms) q($wf_axioms) q([]) q($l) q($vT) q($t)
+      have wf_nfTp := q($vTeq .nil <| $Twf .nil)
+      have wf_val := q($twf .nil $wf_nfTp)
+      let value : Q(CheckedDef $axioms) := q(
+        { l := $l
+          tp := $T
+          nfTp := $vT
+          wf_nfTp := $wf_nfTp
+          val := $t
+          wf_val := $wf_val
+        }
+      )
+      pure (value, vT, wf_nfTp, wf_val)
 
   let (_, dt_rkernel) ← timedSection "rkernel" meas do
     -- Important option: ensures that addDecl will wait for the kernel.
@@ -94,7 +97,7 @@ elab "#measure" n:ident f:str b:num : command => liftTermElabM do
       name := d.name ++ `benchl
       levelParams := []
       type := q(CheckedDef $axioms)
-      value := shareQ q($value)
+      value := ShareCommon.shareCommon' value
       hints := .regular 0 -- TODO: what height?
       safety := .safe
     }

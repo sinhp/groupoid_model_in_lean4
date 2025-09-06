@@ -113,6 +113,7 @@ def addCheckedAx (thyEnv : Environment) (ci : AxiomVal) : MetaM Unit := do
   let .inr _ ← lookupAxiom q($axioms) q($name)
     | throwError "internal error: axiom '{ci.name}' has already been added, \
       but elaboration succeeded"
+  TypecheckerM.run do
   let Twf ← checkTp q($axioms) q($wf_axioms) q([]) q($l) q($T)
   let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Lean.Name from []) q($T)
   let value : Q(CheckedAx $axioms) := q(
@@ -150,6 +151,7 @@ def addCheckedDef (thyEnv : Environment) (ci : DefinitionVal) : MetaM Unit := do
   if l != k then throwError "internal error: inferred level mismatch"
 
   let ⟨axioms, wf_axioms⟩ ← computeAxioms thyEnv ci.name
+  TypecheckerM.run do
   let Twf ← checkTp q($axioms) q($wf_axioms) q([]) q($l) q($T)
   let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Lean.Name from []) q($T)
   let twf ← checkTm q($axioms) q($wf_axioms) q([]) q($l) q($vT) q($t)

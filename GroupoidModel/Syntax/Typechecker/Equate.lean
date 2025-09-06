@@ -6,8 +6,12 @@ variable {_u : Lean.Level} {χ : Q(Type _u)}
 
 mutual
 partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT' vU' : Q(Val $χ)) :
-    Lean.MetaM Q(∀ {E Γ T U}, $d = Γ.length →
+    TypecheckerM Q(∀ {E Γ T U}, $d = Γ.length →
       ValEqTp E Γ $l $vT' T → ValEqTp E Γ $l $vU' U → E ∣ Γ ⊢[$l] T ≡ U) := do
+  let key := (⟨d⟩, ⟨l⟩, ⟨vT'⟩, ⟨vU'⟩)
+  if let some pf := (← get).equateTp[key]? then return pf
+  eventually (fun pf =>
+    modify fun st => { st with equateTp := st.equateTp.insert key pf }) do
   let vT : Q(Val $χ) ← Lean.Meta.whnf vT'
   have _ : $vT =Q $vT' := .unsafeIntro
   let vU : Q(Val $χ) ← Lean.Meta.whnf vU'
@@ -95,9 +99,13 @@ partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT' vU' : Q(Val $χ)) :
         {Lean.indentExpr vU |>.nest 2}"
 
 partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val $χ)) :
-    Lean.MetaM Q(∀ {E Γ T t u}, $d = Γ.length →
+    TypecheckerM Q(∀ {E Γ T t u}, $d = Γ.length →
       ValEqTp E Γ $l $vT T → ValEqTm E Γ $l $vt t T → ValEqTm E Γ $l $vu u T →
       E ∣ Γ ⊢[$l] t ≡ u : T) := do
+  let key := (⟨d⟩, ⟨l⟩, ⟨vT⟩, ⟨vt⟩, ⟨vu⟩)
+  if let some pf := (← get).equateTm[key]? then return pf
+  eventually (fun pf =>
+    modify fun st => { st with equateTm := st.equateTm.insert key pf }) do
   match vT with
   | ~q(.pi _ $k' $vA $vB) => do
     let x : Q(Val $χ) := q(.neut (.bvar $d) $vA)
@@ -207,9 +215,13 @@ partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val $χ)) :
           {Lean.indentExpr vT |>.nest 2}"
 
 partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut $χ)) :
-    Lean.MetaM Q(∀ {E Γ T U t u l}, $d = Γ.length →
+    TypecheckerM Q(∀ {E Γ T U t u l}, $d = Γ.length →
       NeutEqTm E Γ l $nt t T → NeutEqTm E Γ l $nu u U →
-      (E ∣ Γ ⊢[l] T ≡ U) ∧ (E ∣ Γ ⊢[l] t ≡ u : T)) :=
+      (E ∣ Γ ⊢[l] T ≡ U) ∧ (E ∣ Γ ⊢[l] t ≡ u : T)) := do
+  let key := (⟨d⟩, ⟨nt⟩, ⟨nu⟩)
+  if let some pf := (← get).equateNeutTm[key]? then return pf
+  eventually (fun pf =>
+    modify fun st => { st with equateNeutTm := st.equateNeutTm.insert key pf }) do
   match nt, nu with
   | ~q(.ax $c _), ~q(.ax $c' _) => do
     let ⟨_⟩ ← assertDefEqQ q($c) q($c')
