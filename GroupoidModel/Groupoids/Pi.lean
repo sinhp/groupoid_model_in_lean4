@@ -181,7 +181,7 @@ end CategoryTheory
 
 namespace GroupoidModel
 
-open CategoryTheory NaturalModel Opposite Functor.Groupoidal
+open CategoryTheory NaturalModel Universe Opposite Functor.Groupoidal
 
 lemma smallU.PtpEquiv.fst_app_comp_map_tp {Γ : Ctx} (ab : y(Γ) ⟶ smallU.Ptp.obj smallU.Tm) :
     smallU.PtpEquiv.fst (ab ≫ smallU.Ptp.map smallU.tp) = smallU.PtpEquiv.fst ab := by
@@ -201,7 +201,7 @@ end ForOther
 -- NOTE content for this doc starts here
 namespace GroupoidModel
 
-open CategoryTheory NaturalModel Opposite Functor.Groupoidal
+open CategoryTheory NaturalModel Universe Opposite Functor.Groupoidal
 
 attribute [local simp] eqToHom_map Grpd.id_eq_id Grpd.comp_eq_comp Functor.id_comp Functor.comp_id
 
@@ -1082,13 +1082,13 @@ theorem isPullback : IsPullback lam.{v, max u (v+1)}
 
 end smallUPi
 
-def smallUPi : NaturalModel.Pi smallU.{v} where
+def smallUPi : Universe.Pi smallU.{v} where
   Pi := smallUPi.Pi.{v}
   lam := smallUPi.lam.{v}
   Pi_pullback := smallUPi.isPullback.{v}
 
 def uHomSeqPis' (i : ℕ) (ilen : i < 4) :
-    NaturalModel.Pi (uHomSeqObjs i ilen) :=
+    Universe.Pi (uHomSeqObjs i ilen) :=
   match i with
   | 0 => smallUPi.{0,4}
   | 1 => smallUPi.{1,4}
