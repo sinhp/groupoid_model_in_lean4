@@ -1,7 +1,12 @@
 import Lean.Meta.Tactic.Simp
 
-/-- A HoTT0 expression. -/
+universe u
+
+variable (χ : Type u) in
+/-- A HoTT0 expression with axioms indexed by `χ`. -/
 inductive Expr where
+  /-- An axiom (i.e., a closed term constant in the theory) of the given type. -/
+  | ax (c : χ) (A : Expr)
   /-- De Bruijn index. -/
   | bvar (i : Nat)
   /-- Dependent product. -/
@@ -28,13 +33,13 @@ inductive Expr where
   /-- A type universe. -/
   | univ (l : Nat)
   /-- Type from a code. -/
-  | el (a : Expr) : Expr
+  | el (a : Expr)
   /-- Code from a type. -/
-  | code (A : Expr) : Expr
+  | code (A : Expr)
   deriving Inhabited, Repr, Lean.ToExpr
 
 @[simp]
-theorem Expr.sizeOf_pos (e : Expr) : 0 < sizeOf e := by
+theorem Expr.sizeOf_pos {χ} (e : Expr χ) : 0 < sizeOf e := by
   induction e <;> { dsimp; omega }
 
 /-- A convergent rewriting system for the HoTT0 σ-calculus. -/

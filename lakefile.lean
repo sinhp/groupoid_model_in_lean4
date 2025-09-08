@@ -13,11 +13,18 @@ package groupoid_model where
 
 require Poly from git "https://github.com/sinhp/Poly" @ "master"
 
+require "chasenorman" / "Canonical"
+
+/-- We must ensure the theory prelude gets built
+so that theory environments can be created from its `.olean`.
+But we should not import the theory prelude into any Lean environment.
+So it is built manually. -/
+lean_lib Prelude where
+  roots := #[`GroupoidModel.Syntax.Frontend.Prelude]
 
 @[default_target]
 lean_lib GroupoidModel where
-  globs := #[`GroupoidModel]
-  -- add any library configuration options here
+  needs := #[Prelude]
 
 require checkdecls from git "https://github.com/PatrickMassot/checkdecls.git"
 
@@ -26,6 +33,8 @@ require «doc-gen4» from git
   "https://github.com/leanprover/doc-gen4" @ "v4.22.0-rc3"
 
 @[test_driver]
-lean_lib Test.Typechecker where
+lean_lib test where
+
+lean_lib Bench where
   srcDir := "test"
-  roots := #[`typechecker]
+  roots := #[`bench]

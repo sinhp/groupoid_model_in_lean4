@@ -1049,9 +1049,34 @@ lemma equivSnd_comp_left (pair : y(Γ) ⟶ idElimBase.iFunctor.obj X)
     {Δ} (σ : Δ ⟶ Γ) :
     idElimBase.equivSnd (ym(σ) ≫ pair) =
     ym(idElimBase.motiveSubst σ _) ≫ idElimBase.equivSnd pair := by
-  dsimp [equivSnd]
-  -- rw [UvPoly.Equiv.snd'_comp_left]
-  sorry
+  dsimp only [equivSnd]
+  let a := idElimBase.equivFst pair
+  have H : IsPullback (idElimBase.toI a)
+    (ym(M.disp (idElimBase.mkId (ym(M.disp (a ≫ M.tp)) ≫ a) (M.var (a ≫ M.tp)) _)) ≫
+    ym(M.disp (a ≫ M.tp))) idElimBase.iUvPoly.p
+    (UvPoly.Equiv.fst idElimBase.iUvPoly X pair) := (motiveCtx_isPullback' _ _)
+  have H' : IsPullback (ym(M.disp
+      (idElimBase.mkId (ym(M.disp (idElimBase.equivFst (ym(σ) ≫ pair) ≫ M.tp)) ≫
+      idElimBase.equivFst (ym(σ) ≫ pair))
+      (M.var (idElimBase.equivFst (ym(σ) ≫ pair) ≫ M.tp)) _)) ≫
+      ym(M.disp (idElimBase.equivFst (ym(σ) ≫ pair) ≫ M.tp)))
+      (idElimBase.toI (idElimBase.equivFst (ym(σ) ≫ pair)))
+      (ym(σ) ≫ UvPoly.Equiv.fst idElimBase.iUvPoly X pair)
+      idElimBase.iUvPoly.p :=
+    (motiveCtx_isPullback' _ _).flip
+  rw [UvPoly.Equiv.snd'_comp_left (H := H.flip) (H' := H')]
+  · congr 1
+    have h : idElimBase.toI (idElimBase.equivFst (ym(σ) ≫ pair)) =
+        ym(idElimBase.motiveSubst σ (idElimBase.equivFst pair)) ≫ idElimBase.toI a :=
+      idElimBase.toI_comp_left a σ
+    apply (IsPullback.flip H).hom_ext
+    · simp only [iUvPoly_p, Category.assoc, IsPullback.lift_fst]
+      simp [motiveSubst, substWk, substCons, a]; rfl
+    · apply idElimBase.i_isPullback.hom_ext
+      · simp [IsPullback.lift_snd, h]
+      · apply idElimBase.isKernelPair.hom_ext
+        · simp [IsPullback.lift_snd, h]
+        · simp only [iUvPoly_p, IsPullback.lift_snd, IdElimBase.toI_comp_i2, ← h, toI_comp_i2]
 
 lemma equivFst_verticalNatTrans_app {Γ : Ctx} {X : Psh Ctx}
     (pair : y(Γ) ⟶ idElimBase.iFunctor.obj X) :
@@ -1431,7 +1456,7 @@ lemma comp_lift {Δ} (σ : Δ ⟶ Γ) : ym(σ) ≫ lift base i ar aC hrC =
   rw! (castMode := .all) [← comp_motive, ← comp_reflCase, ← equivFst_comp_left] at h
   rw [← h]
   congr 1
-  simp only [iUvPoly_p, Category.assoc]
+  simp only [Functor.map_comp, iUvPoly_p, Category.assoc]
   apply (M.disp_pullback _).hom_ext
   · simp [toI_comp_left, ← toI_comp_i1]
   · apply (M.disp_pullback _).hom_ext

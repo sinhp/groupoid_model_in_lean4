@@ -138,7 +138,8 @@ def pullbackCone : PullbackCone f g where
 abbrev fst : yoneda.obj t.pt ⟶ X := t.pullbackCone.fst
 
 /-- The second projection of a pullback cone. -/
-abbrev snd : yoneda.obj t.pt ⟶ Y := t.pullbackCone.snd
+abbrev snd : yoneda.obj t.pt ⟶ Y :=
+  t.pullbackCone.snd
 
 @[simp]
 lemma fst_mk (W : C) (fst : yoneda.obj W ⟶ X) (snd : yoneda.obj W ⟶ Y)
@@ -213,8 +214,8 @@ variable {G : Cᵒᵖ ⥤ Type v₃} (a : G ⟶ X) (b : G ⟶ Y) (hab : a ≫ f 
 open Opposite
 
 def repPullbackCone (c : C) (x : G.obj (op c)) : RepPullbackCone f g :=
-  .mk c (yonedaEquiv.symm <| a.app (op c) x) (yonedaEquiv.symm <| b.app (op c) x) <| by
-    simpa [yonedaEquiv_symm_naturality_right] using congr_fun (NatTrans.congr_app hab (op c)) x
+  .mk c (yonedaEquiv.symm $ a.app (op c) x) (yonedaEquiv.symm $ b.app (op c) x) (by
+    simpa [yonedaEquiv_symm_naturality_right] using congr_fun (NatTrans.congr_app hab (op c)) x)
 
 def lift'.app (c : C) (x : G.obj (op c)) : W.obj (op c) :=
   yonedaEquiv (lift (repPullbackCone a b hab c x))
