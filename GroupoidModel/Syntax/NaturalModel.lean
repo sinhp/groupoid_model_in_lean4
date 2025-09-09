@@ -107,7 +107,7 @@ def ofIsPullback {U E : Psh Ctx} {π : E ⟶ U}
 def substCons {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty)
     (t : y(Δ) ⟶ M.Tm) (t_tp : t ≫ M.tp = ym(σ) ≫ A) :
     Δ ⟶ M.ext A :=
-  Yoneda.fullyFaithful.1 <| (M.disp_pullback A).lift t ym(σ) t_tp
+  uy((M.disp_pullback A).lift t ym(σ) t_tp)
 
 @[functor_map (attr := reassoc (attr := simp))]
 theorem substCons_disp {Δ Γ : Ctx} (σ : Δ ⟶ Γ) (A : y(Γ) ⟶ M.Ty) (t : y(Δ) ⟶ M.Tm)
@@ -575,6 +575,7 @@ protected structure Sigma where
   pair : UvPoly.compDom (uvPolyTp M) (uvPolyTp M) ⟶ M.Tm
   Sig_pullback : IsPullback pair ((uvPolyTp M).compP (uvPolyTp M)) M.tp Sig
 
+variable {M} in
 open compDomEquiv in
 def Sigma.mk'
     (Sig : ∀ {Γ} {A : y(Γ) ⟶ M.Ty}, (y(M.ext A) ⟶ M.Ty) → (y(Γ) ⟶ M.Ty))

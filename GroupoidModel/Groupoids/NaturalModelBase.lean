@@ -30,10 +30,10 @@ namespace GroupoidModel
   Ty := y(U.{v})
   Tm := y(E)
   tp := ym(π)
-  ext A := Ctx.ofGroupoid (∫ toCoreAsSmallEquiv (Yoneda.fullyFaithful.homEquiv.symm A))
+  ext A := Ctx.ofGroupoid (∫ toCoreAsSmallEquiv uy(A))
   disp A := Ctx.ofGrpd.map forget
   var A := ym(toCoreAsSmallEquiv.symm <|
-    toPGrpd (toCoreAsSmallEquiv (Yoneda.fullyFaithful.homEquiv.symm A)))
+    toPGrpd (toCoreAsSmallEquiv uy(A)))
   disp_pullback A := by
     obtain ⟨A, rfl⟩ := Yoneda.fullyFaithful.map_surjective A
     exact Functor.map_isPullback yoneda (isPullback_disp_π A)

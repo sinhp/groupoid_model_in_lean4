@@ -991,10 +991,21 @@ theorem smallUSig.isPullback : IsPullback smallUSig.pair.{v,u} smallU.comp.{v,u}
     (fun s => fac_right.{v,u} _ _ s.condition)
     (fun s m fac_left fac_right => uniq.{v,u} _ _ s.condition m fac_right fac_left)
 
-def smallUSig : NaturalModel.Sigma smallU.{v} where
-  Sig := smallUSig.Sig
-  pair := smallUSig.pair
-  Sig_pullback := smallUSig.isPullback
+def smallUSig : NaturalModel.Sigma smallU.{v} :=
+  .mk'
+    (Sig := fun {Γ A} B => ym(toCoreAsSmallEquiv.symm
+      (sigma (toCoreAsSmallEquiv uy(A)) (toCoreAsSmallEquiv uy(B)))))
+    (comp_Sig := sorry)
+    (assoc := fun {Γ A} B => by
+      dsimp
+      fapply Ctx.mkIso'
+
+      )
+    (comp_assoc := sorry)
+    (assoc_disp := sorry)
+  -- Sig := smallUSig.Sig
+  -- pair := smallUSig.pair
+  -- Sig_pullback := smallUSig.isPullback
 
 def uHomSeqSigs' (i : ℕ) (ilen : i < 4) :
     NaturalModel.Sigma (uHomSeqObjs i ilen) :=

@@ -90,6 +90,35 @@ def homOfFunctor {C : Type (v+1)} [Category.{v} C] {D : Type (w+1)} [Category.{w
     Ctx.ofCategory.{v, max u (v+1) (w+1)} C ⟶ Ctx.ofCategory.{w, max u (v+1) (w+1)} D :=
   Ctx.ofGrpd.map <| Grpd.homOf <| Functor.core <| AsSmall.down ⋙ F ⋙ AsSmall.up
 
+def mkIso {C : Type u} [Groupoid.{u} C] {D : Type u} [Groupoid.{u} D]
+    (F : C ⥤ D) (G : D ⥤ C) (F_G : F ⋙ G = 𝟭 _) (G_F : G ⋙ F = 𝟭 _) :
+    Ctx.ofGroupoid C ≅ Ctx.ofGroupoid D :=
+  Ctx.ofGrpd.mapIso <| .mk (Grpd.homOf F) (Grpd.homOf G) F_G G_F
+
+def mkIso' {C : Type u} [Groupoid.{u} C] {D : Type u} [Groupoid.{u} D]
+    (F : C ⥤ D)
+    (G_obj : D → C)
+    (G_F_obj : ∀ x, G_obj (F.obj x) = x)
+    (F_G_obj : ∀ x, F.obj (G_obj x) = x)
+    (G_map : ∀ {x y}, (x ⟶ y) → (G_obj x ⟶ G_obj y))
+    (G_F_map : ∀ {x y} (f : x ⟶ y),
+      G_map (F.map f) = eqToHom (G_F_obj _) ≫ f ≫ eqToHom (G_F_obj _).symm)
+    (F_G_map : ∀ {x y} (f : x ⟶ y),
+      F.map (G_map f) = eqToHom (F_G_obj _) ≫ f ≫ eqToHom (F_G_obj _).symm)
+    : Ctx.ofGroupoid C ≅ Ctx.ofGroupoid D := by
+  refine mkIso F { obj := G_obj, map := G_map, map_id X := ?_, map_comp {X Y Z} f g := ?_ } ?_ ?_
+  · have := G_F_map (𝟙 (G_obj X))
+    simp at this; rwa [F_G_obj] at this
+  · suffices ∀ {X' Z'} (h1 : X' = X) (h2 : Z = Z'),
+        G_map (eqToHom h1 ≫ f ≫ g ≫ eqToHom h2) =
+        eqToHom (congrArg G_obj h1) ≫ G_map f ≫ G_map g ≫ eqToHom (congrArg G_obj h2) →
+        G_map (f ≫ g) = G_map f ≫ G_map g by
+      have H := G_F_map (G_map f ≫ G_map g)
+      simp [F_G_map] at H; exact this _ _ H
+    rintro _ _ rfl rfl; simp
+  · exact CategoryTheory.Functor.ext G_F_obj
+  · exact CategoryTheory.Functor.ext F_G_obj
+
 instance : CartesianMonoidalCategory Ctx := equivalence.chosenFiniteProducts
 
 end Ctx
@@ -188,8 +217,8 @@ theorem yonedaCategoryEquiv_naturality_left (A : y(Γ) ⟶ y(Ctx.ofCategory C)) 
 
 theorem yonedaCategoryEquiv_naturality_left' (A : y(Γ) ⟶ y(Ctx.ofCategory C)) {σ : y(Δ) ⟶ y(Γ)} :
     yonedaCategoryEquiv (σ ≫ A) =
-    Ctx.toGrpd.map (Yoneda.fullyFaithful.preimage σ) ⋙ yonedaCategoryEquiv A := by
-  have h : σ = ym(Yoneda.fullyFaithful.preimage σ) := by simp
+    Ctx.toGrpd.map uy(σ) ⋙ yonedaCategoryEquiv A := by
+  have h : σ = ym(uy(σ)) := by simp
   rw [h, yonedaCategoryEquiv_naturality_left]
   rfl
 

@@ -6,6 +6,7 @@ namespace CategoryTheory
 
 notation:max "y(" Γ ")" => yoneda.obj Γ
 notation:max "ym(" f ")" => yoneda.map f
+notation:max "uy(" f ")" => Yoneda.fullyFaithful.preimage f
 
 open Lean PrettyPrinter in
 @[app_unexpander Prefunctor.obj]
