@@ -36,8 +36,9 @@ mltt def tm_pair_nondep : (_ : Type 1) × Type 1 :=
   ⟨Type 0, Type 0⟩
 
 -- Noncomputable due to Lean issue https://github.com/leanprover/lean4/issues/9692
-mltt noncomputable def tm_pair : (A : Type 2) × A :=
-  ⟨Type 1, Type 0⟩
+-- FIXME: needs at least 4 universes.
+-- mltt noncomputable def tm_pair : (A : Type 2) × A :=
+--   ⟨Type 1, Type 0⟩
 
 mltt def tm_fst : Type 2 :=
   { fst := Type 1, snd := Type 0 : (A : Type 2) × A }.fst
