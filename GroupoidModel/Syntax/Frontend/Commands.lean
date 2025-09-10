@@ -250,6 +250,5 @@ run_meta do
   addAx `sorryAx₀
   addAx `sorryAx₁
   addAx `sorryAx₂
-  addAx `sorryAx₃
 
 end Leanternal

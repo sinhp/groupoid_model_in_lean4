@@ -220,14 +220,16 @@ instead of reading back and storing `Clos.of_expr`,
 we store `Clos.of_val`.
 However, that means we may later need to evaluate the stored value in a new environment,
 and `evalValTp` does that. -/
-partial def evalValTp (env : Q(List (Val $χ))) (vT : Q(Val $χ)) :
+partial def evalValTp (env : Q(List (Val $χ))) (vT' : Q(Val $χ)) :
     TypecheckerM ((v : Q(Val $χ)) ×
-      Q(∀ {E Γ Δ A σ l}, EnvEqSb E Δ $env σ Γ → ValEqTp E Γ l $vT A →
+      Q(∀ {E Γ Δ A σ l}, EnvEqSb E Δ $env σ Γ → ValEqTp E Γ l $vT' A →
         ValEqTp E Δ l $v (A.subst σ))) := do
-  let key := (⟨env⟩, ⟨vT⟩)
+  let key := (⟨env⟩, ⟨vT'⟩)
   if let some (v, pf) := (← get).evalValTp[key]? then return ⟨v, pf⟩
   eventually (fun ⟨v, pf⟩ =>
     modify fun st => { st with evalValTp := st.evalValTp.insert key (v, pf) }) do
+  let vT : Q(Val $χ) ← Lean.Meta.whnf vT'
+  have _ : $vT =Q $vT' := .unsafeIntro
   match vT with
   | ~q(.pi $k $k' $vA $vB) =>
     let ⟨vB, vBpost⟩ ← forceClosTp q(($env).length) q($vA) q($vB)
