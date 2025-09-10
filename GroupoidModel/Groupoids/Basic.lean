@@ -15,7 +15,7 @@ universe w v u v₁ u₁ v₂ u₂ v₃ u₃
 
 noncomputable section
 open CategoryTheory ULift Functor Groupoidal
-  Limits NaturalModel CategoryTheory.Functor
+  Limits CategoryTheory.Functor
 
 namespace CategoryTheory.PGrpd
 set_option pp.universes true

@@ -16,7 +16,7 @@ open CategoryTheory Limits
 
 noncomputable section
 
-namespace NaturalModel
+namespace NaturalModel.Universe
 
 variable {𝒞 : Type u} [SmallCategory 𝒞] [CartesianMonoidalCategory 𝒞]
 open scoped MonoidalCategory
@@ -113,7 +113,7 @@ theorem substWk_length {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : s.ExtSeq Γ Γ')
 @[functor_map (attr := reassoc)]
 theorem substWk_disp {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : s.ExtSeq Γ Γ') :
     (d.substWk σ).2.2 ≫ d.disp = (d.substWk σ).2.1.disp ≫ σ := by
-  induction d generalizing σ <;> simp [substWk, NaturalModel.substWk_disp_assoc, *]
+  induction d generalizing σ <;> simp [substWk, NaturalModel.Universe.substWk_disp_assoc, *]
 
 /-- `Γ.Aₖ.….A₀ ⊢ vₙ : Aₙ[↑ⁿ⁺¹]` -/
 protected def var {Γ Γ' : 𝒞} {l : Nat} (llen : l < s.length + 1) :
@@ -193,7 +193,7 @@ theorem var_substWk_of_lt_length {l i} {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : 
       obtain ⟨a, amem, rfl⟩ := st_mem
       refine ⟨_, ih amem h, ?_⟩
       simp only [← Functor.map_comp_assoc]
-      simp [NaturalModel.substWk_disp]
+      simp [NaturalModel.Universe.substWk_disp]
 
 end ExtSeq
 
@@ -1320,4 +1320,4 @@ theorem interpTm_eq (H : E ∣ Γ ⊢[l] t ≡ u : A) :
   exact h2
 
 end Interpretation
-end NaturalModel
+end NaturalModel.Universe

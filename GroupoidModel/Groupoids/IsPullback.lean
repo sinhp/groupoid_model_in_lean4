@@ -87,7 +87,7 @@ theorem isPullback_π''_π'' :
       (Cat.homOf π''.{_,max u (v+2)})
       (Cat.homOf π''.{v+1,max u (v+2)})
       (Cat.homOf toU''.{v,max u (v+2)}) :=
-  Cat.isPullback <|
+  Cat.isPullback (comm_sq := rfl) <|
   Functor.IsPullback.ofIso' isPullback_forgetToGrpd_forgetToGrpd
     AsSmall.downIso AsSmall.downIso AsSmall.downIso AsSmall.downIso rfl rfl rfl rfl
 
@@ -189,7 +189,7 @@ theorem isPullback_disp'_asSmallForgetToGrpd :
       (Cat.homOf <| AsSmall.down ⋙ forgetToGrpd ⋙ AsSmall.up)
       (Cat.homOf (Ctx.toGrpd.map A ⋙
         Core.inclusion (AsSmall Grpd))) :=
-  Cat.isPullback <| Functor.IsPullback.ofIso'
+  Cat.isPullback (comm_sq := rfl) <| Functor.IsPullback.ofIso'
     (Functor.Groupoidal.isPullback (classifier A))
     (Functor.Iso.refl _) AsSmall.downIso (Functor.Iso.refl _) AsSmall.downIso rfl rfl rfl rfl
 

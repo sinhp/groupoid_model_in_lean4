@@ -530,7 +530,7 @@ theorem map_obj_objMk (xb : C) (xf : F.obj xb) :
 theorem map_id_eq : map (𝟙 F) = Functor.id (Cat.of <| Groupoidal <| F) :=
   Grothendieck.map_id_eq
 
-theorem map_forget (α : F ⟶ G) : map α ⋙ forget = forget :=
+theorem map_comp_forget (α : F ⟶ G) : map α ⋙ forget = forget :=
   rfl
 
 @[simp] theorem map_obj_base (X) : ((map α).obj X).base = X.base :=

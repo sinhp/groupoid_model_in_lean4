@@ -15,10 +15,12 @@ noncomputable section
 
 open CategoryTheory Limits Opposite
 
+namespace NaturalModel
+
 /-- A natural model with support for dependent types (and nothing more).
 The data is a natural transformation with representable fibers,
 stored as a choice of representative for each fiber. -/
-structure NaturalModel (Ctx : Type u) [Category Ctx] where
+structure Universe (Ctx : Type u) [Category Ctx] where
   Tm : Psh Ctx
   Ty : Psh Ctx
   tp : Tm ⟶ Ty
@@ -28,9 +30,9 @@ structure NaturalModel (Ctx : Type u) [Category Ctx] where
   disp_pullback {Γ : Ctx} (A : y(Γ) ⟶ Ty) :
     IsPullback (var A) ym(disp A) tp A
 
-namespace NaturalModel
+namespace Universe
 
-variable {Ctx : Type u} [SmallCategory Ctx] (M : NaturalModel Ctx)
+variable {Ctx : Type u} [SmallCategory Ctx] (M : Universe Ctx)
 
 @[simps! hom inv]
 def pullbackIsoExt {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) :
@@ -41,7 +43,7 @@ def pullbackIsoExt {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) :
 /-! ## Pullback of representable natural transformation -/
 
 /-- Pull a natural model back along a type. -/
-protected def pullback {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) : NaturalModel Ctx where
+protected def pullback {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) : Universe Ctx where
   Tm := y(M.ext A)
   Ty := y(Γ)
   tp := ym(M.disp A)
@@ -71,7 +73,7 @@ protected def pullback {Γ : Ctx} (A : y(Γ) ⟶ M.Ty) : NaturalModel Ctx where
 def ofIsPullback {U E : Psh Ctx} {π : E ⟶ U}
     {toTy : U ⟶ M.Ty} {toTm : E ⟶ M.Tm}
     (pb : IsPullback toTm π M.tp toTy) :
-    NaturalModel Ctx where
+    Universe Ctx where
   Ty := U
   Tm := E
   tp := π
@@ -291,7 +293,7 @@ theorem snd_comp_left {A} (eqA : fst M AB = A) {σA} (eqσ : ym(σ) ≫ A = σA)
   convert UvPoly.Equiv.snd'_comp_left M.uvPolyTp X AB H1 _ H2
   apply H1.hom_ext <;> simp [← Functor.map_comp, substWk]
 
-theorem mk_comp_left {Δ Γ : Ctx} (M : NaturalModel Ctx) (σ : Δ ⟶ Γ)
+theorem mk_comp_left {Δ Γ : Ctx} (M : Universe Ctx) (σ : Δ ⟶ Γ)
     {X : Psh Ctx} (A : y(Γ) ⟶ M.Ty) (σA) (eq : ym(σ) ≫ A = σA) (B : y(M.ext A) ⟶ X) :
     ym(σ) ≫ PtpEquiv.mk M A B = PtpEquiv.mk M σA (ym(M.substWk σ A _ eq) ≫ B) := by
   dsimp [PtpEquiv.mk]
@@ -302,7 +304,7 @@ theorem mk_comp_left {Δ Γ : Ctx} (M : NaturalModel Ctx) (σ : Δ ⟶ Γ)
   · simp
   · simp [← Functor.map_comp, substWk_disp]
 
-theorem mk_comp_right {Γ : Ctx} (M : NaturalModel Ctx)
+theorem mk_comp_right {Γ : Ctx} (M : Universe Ctx)
     {X Y : Psh Ctx} (σ : X ⟶ Y) (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
     PtpEquiv.mk M A B ≫ M.Ptp.map σ = PtpEquiv.mk M A (B ≫ σ) :=
   UvPoly.Equiv.mk'_comp_right M.uvPolyTp X Y σ A (M.disp_pullback A).flip B
@@ -355,7 +357,7 @@ theorem PtpEquiv.mk_map {Γ : Ctx} {X Y : Psh Ctx}
 /-! ## Polynomial composition `M.tp ▸ N.tp` -/
 
 -- -- `private` lemma for the equivalence below.
--- private lemma lift_ev {Γ : Ctx} {N : NaturalModel Ctx}
+-- private lemma lift_ev {Γ : Ctx} {N : Universe Ctx}
 --     {AB : y(Γ) ⟶ M.Ptp.obj N.Ty} {α : y(Γ) ⟶ M.Tm}
 --     (hA : AB ≫ M.uvPolyTp.fstProj N.Ty = α ≫ M.tp) :
 --     pullback.lift AB α hA ≫ (UvPoly.PartialProduct.fan M.uvPolyTp N.Ty).snd =
@@ -368,7 +370,7 @@ theorem PtpEquiv.mk_map {Γ : Ctx} {X Y : Psh Ctx}
 namespace compDomEquiv
 open UvPoly
 
-variable {M N : NaturalModel Ctx} {Γ Δ : Ctx} (σ : Δ ⟶ Γ)
+variable {M N : Universe Ctx} {Γ Δ : Ctx} (σ : Δ ⟶ Γ)
 
 /-- Universal property of `compDom`, decomposition (part 1).
 
@@ -590,7 +592,7 @@ def Sigma.mk'
     : M.Sigma where
   Sig := PtpEquiv.lift M Sig comp_Sig
   pair := by
-    fapply NaturalModel.compDomEquiv.lift
+    fapply compDomEquiv.lift
     · intro Γ α A eq B β eqB
       refine ym(?_ ≫ (assoc B).hom) ≫ M.var _
       exact substCons _ (substCons _ (𝟙 _) _ α (by simp [eq])) _ β eqB
@@ -661,7 +663,7 @@ def Sigma.mk'
           · simpa [σ, t2] using congr(ym($H.symm) ≫ M.var _)
 
 /--
-NaturalModel.IdIntro consists of the following commutative square
+Universe.IdIntro consists of the following commutative square
        refl
 M.Tm ------> M.Tm
  |            |
@@ -782,7 +784,7 @@ that uses the language of polynomial endofunctors.
 Note that the universe/model `N` for the motive `C` is different from the universe `M` that the
 identity type lives in.
 -/
-protected structure Id (N : NaturalModel Ctx) (i : IdIntro M) where
+protected structure Id (N : Universe Ctx) (i : IdIntro M) where
   j {Γ} (a : y(Γ) ⟶ M.Tm) (C : y(IdIntro.motiveCtx _ a) ⟶ N.Ty) (r : y(Γ) ⟶ N.Tm)
     (r_tp : r ≫ N.tp = ym(i.reflSubst a) ≫ C) :
     y(i.motiveCtx a) ⟶ N.Tm
@@ -800,7 +802,7 @@ protected structure Id (N : NaturalModel Ctx) (i : IdIntro M) where
 
 namespace Id
 
-variable {M} {N : NaturalModel Ctx} {ii : M.IdIntro} (i : M.Id N ii) {Γ : Ctx} (a : y(Γ) ⟶ M.Tm)
+variable {M} {N : Universe Ctx} {ii : M.IdIntro} (i : M.Id N ii) {Γ : Ctx} (a : y(Γ) ⟶ M.Tm)
   (C : y(ii.motiveCtx a) ⟶ N.Ty) (r : y(Γ) ⟶ N.Tm)
   (r_tp : r ≫ N.tp = ym(ii.reflSubst a) ≫ C) (b : y(Γ) ⟶ M.Tm) (b_tp : b ≫ M.tp = a ≫ M.tp)
   (h : y(Γ) ⟶ M.Tm) (h_tp : h ≫ M.tp = ii.isKernelPair.lift b a (by aesop) ≫ ii.Id)
@@ -835,7 +837,7 @@ lemma mkJ_refl : i.mkJ a C r r_tp a rfl (ii.mkRefl a) (by aesop) = r :=
 end Id
 
 /--
-`NaturalModelBase.IdElimBase` extends the structure `NaturalModelBase.IdIntro`
+`UniverseBase.IdElimBase` extends the structure `UniverseBase.IdIntro`
 with a chosen pullback of `Id`
        i1
  i --------> M.Tm
@@ -923,7 +925,7 @@ def verticalNatTrans : idElimBase.iFunctor ⟶ (UvPoly.id M.Tm).functor :=
 
 section reflCase
 
-variable (i : IdIntro M) {N : NaturalModel Ctx}
+variable (i : IdIntro M) {N : Universe Ctx}
 
 variable {Γ : Ctx} (a : y(Γ) ⟶ M.Tm) (r : y(Γ) ⟶ N.Tm)
 
@@ -1167,7 +1169,7 @@ Here we are thinking
 This witnesses the elimination principle for identity types since
 we can take `J (y.p.C;x.r) := c`.
 -/
-structure Id' (N : NaturalModel Ctx) extends IdElimBase M where
+structure Id' (N : Universe Ctx) extends IdElimBase M where
   weakPullback : WeakPullback
     (toIdElimBase.verticalNatTrans.app N.Tm)
     (toIdElimBase.iFunctor.map N.tp)
@@ -1176,7 +1178,7 @@ structure Id' (N : NaturalModel Ctx) extends IdElimBase M where
 
 namespace Id'
 
-variable {M} {N : NaturalModel Ctx} (i : Id' M N)
+variable {M} {N : Universe Ctx} (i : Id' M N)
 
 variable {Γ Δ : Ctx} (σ : Δ ⟶ Γ) (a : y(Γ) ⟶ M.Tm)
   (C : y(i.motiveCtx a) ⟶ N.Ty) (r : y(Γ) ⟶ N.Tm)
@@ -1352,7 +1354,7 @@ end Id'
 
 namespace Id
 
-variable {M} (base : M.IdElimBase) {N : NaturalModel Ctx}
+variable {M} (base : M.IdElimBase) {N : Universe Ctx}
   (i : M.Id N base.toIdIntro)
 
 open IdIntro IdElimBase
@@ -1457,7 +1459,7 @@ lemma comp_lift {Δ} (σ : Δ ⟶ Γ) : ym(σ) ≫ lift base i ar aC hrC =
   rw! (castMode := .all) [← comp_motive, ← comp_reflCase, ← equivFst_comp_left] at h
   rw [← h]
   congr 1
-  simp only [Functor.map_comp, iUvPoly_p, Category.assoc]
+  simp only [iUvPoly_p, Category.assoc]
   apply (M.disp_pullback _).hom_ext
   · simp [toI_comp_left, ← toI_comp_i1]
   · apply (M.disp_pullback _).hom_ext
@@ -1478,5 +1480,7 @@ def toId' : M.Id' N where
     (fun s _ σ => comp_lift base i s.fst s.snd s.condition σ)
 
 end Id
+
+end Universe
 
 end NaturalModel
