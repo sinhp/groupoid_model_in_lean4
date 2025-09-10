@@ -100,9 +100,13 @@ mutual
 variable (E : Q(Axioms Lean.Name)) (Ewf : Q(($E).Wf))
 
 partial def checkTp (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (T : Q(Expr Lean.Name)) :
-    Lean.MetaM Q(∀ {Γ}, TpEnvEqCtx $E $vΓ Γ → $E ∣ Γ ⊢[$l] ($T)) :=
+    TypecheckerM Q(∀ {Γ}, TpEnvEqCtx $E $vΓ Γ → $E ∣ Γ ⊢[$l] ($T)) :=
   Lean.withTraceNode traceClsTypechecker (fun e =>
     return m!"{Lean.exceptEmoji e} {vΓ} ⊢[{l}] {T}") do
+  let key := (⟨vΓ⟩, ⟨l⟩, ⟨T⟩)
+  if let some pf := (← get).checkTp[key]? then return pf
+  eventually (fun pf =>
+    modify fun st => { st with checkTp := st.checkTp.insert key pf }) do
   match T with
   | ~q(.pi $k $k' $A $B) => do
     let leq ← equateNat q($l) q(max $k $k')
@@ -156,10 +160,14 @@ partial def checkTp (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (T : Q(Expr Lean.Nam
 
 partial def checkTm (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat))
     (vT : Q(Val Lean.Name)) (t : Q(Expr Lean.Name)) :
-    Lean.MetaM Q(∀ {Γ T}, TpEnvEqCtx $E $vΓ Γ → ValEqTp $E Γ $l $vT T →
+    TypecheckerM Q(∀ {Γ T}, TpEnvEqCtx $E $vΓ Γ → ValEqTp $E Γ $l $vT T →
       $E ∣ Γ ⊢[$l] ($t) : T) := do
   Lean.withTraceNode traceClsTypechecker (fun e =>
     return m!"{Lean.exceptEmoji e} {vΓ} ⊢[{l}] {t} ⇐ {vT}") do
+  let key := (⟨vΓ⟩, ⟨l⟩, ⟨vT⟩, ⟨t⟩)
+  if let some pf := (← get).checkTm[key]? then return pf
+  eventually (fun pf =>
+    modify fun st => { st with checkTm := st.checkTm.insert key pf }) do
   /- We could do something more bidirectional,
   but all terms synthesize (thanks to extensive annotations). -/
   let ⟨vU, tU⟩ ← synthTm q($vΓ) q($l) q($t)
@@ -172,11 +180,15 @@ partial def checkTm (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat))
 
 -- TODO: infer rather than check universe level?
 partial def synthTm (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (t : Q(Expr Lean.Name)) :
-    Lean.MetaM ((vT : Q(Val Lean.Name)) × Q(∀ {Γ}, TpEnvEqCtx $E $vΓ Γ →
+    TypecheckerM ((vT : Q(Val Lean.Name)) × Q(∀ {Γ}, TpEnvEqCtx $E $vΓ Γ →
       ∃ T, ValEqTp $E Γ $l $vT T ∧ ($E ∣ Γ ⊢[$l] ($t) : T))) :=
   Lean.withTraceNode (ε := Lean.Exception) traceClsTypechecker (fun
     | .ok ⟨vT, _⟩ => return m!"✅️ {vΓ} ⊢[{l}] {t} ⇒ {vT}"
     | .error _ => return m!"❌️ {vΓ} ⊢[{l}] {t} ⇒ _") do
+  let key := (⟨vΓ⟩, ⟨l⟩, ⟨t⟩)
+  if let some (v, pf) := (← get).synthTm[key]? then return ⟨v, pf⟩
+  eventually (fun ⟨v, pf⟩ =>
+    modify fun st => { st with synthTm := st.synthTm.insert key (v, pf) }) do
   match t with
   | ~q(@CheckedDef.val _ $E' $defn) => do
     -- Ensure the definition uses a subset of the available axioms.

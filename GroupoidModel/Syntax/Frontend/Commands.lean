@@ -113,6 +113,7 @@ def addCheckedAx (thyEnv : Environment) (ci : AxiomVal) : MetaM Unit := do
   let .inr _ ← lookupAxiom q($axioms) q($name)
     | throwError "internal error: axiom '{ci.name}' has already been added, \
       but elaboration succeeded"
+  TypecheckerM.run do
   let Twf ← checkTp q($axioms) q($wf_axioms) q([]) q($l) q($T)
   let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Lean.Name from []) q($T)
   let value : Q(CheckedAx $axioms) := q(
@@ -130,7 +131,7 @@ def addCheckedAx (thyEnv : Environment) (ci : AxiomVal) : MetaM Unit := do
     name := ci.name
     levelParams := []
     type := q(CheckedAx $axioms)
-    value
+    value := ShareCommon.shareCommon' value
     hints := .regular 0 -- TODO: what height?
     safety := .safe
   }
@@ -150,6 +151,7 @@ def addCheckedDef (thyEnv : Environment) (ci : DefinitionVal) : MetaM Unit := do
   if l != k then throwError "internal error: inferred level mismatch"
 
   let ⟨axioms, wf_axioms⟩ ← computeAxioms thyEnv ci.name
+  TypecheckerM.run do
   let Twf ← checkTp q($axioms) q($wf_axioms) q([]) q($l) q($T)
   let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Lean.Name from []) q($T)
   let twf ← checkTm q($axioms) q($wf_axioms) q([]) q($l) q($vT) q($t)
@@ -167,7 +169,11 @@ def addCheckedDef (thyEnv : Environment) (ci : DefinitionVal) : MetaM Unit := do
     name := ci.name
     levelParams := []
     type := q(CheckedDef $axioms)
-    value
+    /- The kernel does not max-share terms before checking them,
+    and our tactics are currently bad at producing highly shared terms.
+    Maximal sharing improves checking time asymptotically on some benchmarks (`bench.samplers.id`)
+    and by a constant factor on others (`bench.samplers.fn`). -/
+    value := ShareCommon.shareCommon' value
     hints := .regular 0 -- TODO: what height?
     safety := .safe
   }
@@ -244,6 +250,5 @@ run_meta do
   addAx `sorryAx₀
   addAx `sorryAx₁
   addAx `sorryAx₂
-  addAx `sorryAx₃
 
 end Leanternal

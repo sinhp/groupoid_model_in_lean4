@@ -1319,5 +1319,13 @@ theorem interpTm_eq (H : E ∣ Γ ⊢[l] t ≡ u : A) :
   cases Part.mem_unique (I.interpCtx_mem H.wf_ctx) h1
   exact h2
 
+def empty (χ : Type*) (s : UHomSeq 𝒞) : Interpretation χ s where
+  ax _ _ _ := none
+
+def snoc [DecidableEq χ] (I : Interpretation χ s) (c : χ) (l : Nat) (l_lt : l < s.length)
+    (sc : y(𝟙_ 𝒞) ⟶ s[l].Tm) :
+    Interpretation χ s where
+  ax d k _ := if h : c = d ∧ k = l then some (h.2 ▸ sc) else I.ax d k
+
 end Interpretation
 end NaturalModel.Universe

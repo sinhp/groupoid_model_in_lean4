@@ -35,6 +35,4 @@ require «doc-gen4» from git
 @[test_driver]
 lean_lib test where
 
-lean_lib Bench where
-  srcDir := "test"
-  roots := #[`bench]
+lean_lib bench where

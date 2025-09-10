@@ -41,4 +41,3 @@ end Identity
 axiom sorryAx₀ (A : Type 0) : A
 axiom sorryAx₁ (A : Type 1) : A
 axiom sorryAx₂ (A : Type 2) : A
-axiom sorryAx₃ (A : Type 3) : A
