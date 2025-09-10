@@ -2,10 +2,16 @@ import GroupoidModel.Syntax.Typechecker.Evaluate
 
 open Qq
 
+variable {_u : Lean.Level} {χ : Q(Type _u)}
+
 mutual
-partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT vU : Q(Val)) :
-    Lean.MetaM Q(∀ {Γ T U},
-      $d = Γ.length → ValEqTp Γ $l $vT T → ValEqTp Γ $l $vU U → Γ ⊢[$l] T ≡ U) := do
+partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT' vU' : Q(Val $χ)) :
+    Lean.MetaM Q(∀ {E Γ T U}, $d = Γ.length →
+      ValEqTp E Γ $l $vT' T → ValEqTp E Γ $l $vU' U → E ∣ Γ ⊢[$l] T ≡ U) := do
+  let vT : Q(Val $χ) ← Lean.Meta.whnf vT'
+  have _ : $vT =Q $vT' := .unsafeIntro
+  let vU : Q(Val $χ) ← Lean.Meta.whnf vU'
+  have _ : $vU =Q $vU' := .unsafeIntro
   match vT, vU with
   | ~q(.pi $k $k' $vA $vB), ~q(.pi $m $m' $vA' $vB') => do
     let keq ← equateNat q($k) q($m)
@@ -83,14 +89,18 @@ partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT vU : Q(Val)) :
       gcongr
     )
   | vT, vU =>
-    throwError "cannot prove normal types are equal{Lean.indentExpr vT}\n≡?≡{Lean.indentExpr vU}"
+    throwError "cannot prove normal types are equal\
+        {Lean.indentExpr vT |>.nest 2}\
+      {Lean.indentD "≡?≡"}\
+        {Lean.indentExpr vU |>.nest 2}"
 
-partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val)) : Lean.MetaM Q(∀ {Γ T t u},
-    $d = Γ.length → ValEqTp Γ $l $vT T → ValEqTm Γ $l $vt t T → ValEqTm Γ $l $vu u T →
-      Γ ⊢[$l] t ≡ u : T) := do
+partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val $χ)) :
+    Lean.MetaM Q(∀ {E Γ T t u}, $d = Γ.length →
+      ValEqTp E Γ $l $vT T → ValEqTm E Γ $l $vt t T → ValEqTm E Γ $l $vu u T →
+      E ∣ Γ ⊢[$l] t ≡ u : T) := do
   match vT with
   | ~q(.pi _ $k' $vA $vB) => do
-    let x : Q(Val) := q(.neut (.bvar $d) $vA)
+    let x : Q(Val $χ) := q(.neut (.bvar $d) $vA)
     let ⟨tx, txpost⟩ ← evalApp q($vt) q($x)
     let ⟨ux, uxpost⟩ ← evalApp q($vu) q($x)
     let ⟨Bx, Bxpost⟩ ← forceClosTp q($d) q($vA) q($vB)
@@ -190,14 +200,30 @@ partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val)) : Lean.MetaM 
       )
     | _, vt, vu =>
       throwError "cannot prove normal terms are equal\
-        {Lean.indentExpr vt}\n≡?≡{Lean.indentExpr vu}\n\
-        at type\
-        {Lean.indentExpr vT}"
+          {Lean.indentExpr vt |>.nest 2}\
+        {Lean.indentD "≡?≡"}\
+          {Lean.indentExpr vu |>.nest 2}\
+        {Lean.indentD "at type"}\
+          {Lean.indentExpr vT |>.nest 2}"
 
-partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut)) : Lean.MetaM Q(∀ {Γ T U t u l},
-    $d = Γ.length → NeutEqTm Γ l $nt t T → NeutEqTm Γ l $nu u U →
-      (Γ ⊢[l] T ≡ U) ∧ (Γ ⊢[l] t ≡ u : T)) :=
+partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut $χ)) :
+    Lean.MetaM Q(∀ {E Γ T U t u l}, $d = Γ.length →
+      NeutEqTm E Γ l $nt t T → NeutEqTm E Γ l $nu u U →
+      (E ∣ Γ ⊢[l] T ≡ U) ∧ (E ∣ Γ ⊢[l] t ≡ u : T)) :=
   match nt, nu with
+  | ~q(.ax $c _), ~q(.ax $c' _) => do
+    let ⟨_⟩ ← assertDefEqQ q($c) q($c')
+    return q(by as_aux_lemma =>
+      introv deq nt nu
+      have ⟨_, _, Ec, _, eqt, eq⟩ := nt.inv_ax
+      have ⟨_, _, Ec', _, eqt', eq'⟩ := nu.inv_ax
+      cases Ec.symm.trans Ec'
+      subst_vars
+      have TUeq := eq.trans_tp eq'.symm_tp; refine ⟨TUeq, ?_⟩
+      apply eqt.trans_tm _ |>.trans_tm (eqt'.conv_eq TUeq.symm_tp).symm_tm
+      apply EqTm.conv_eq _ eq.symm_tp
+      apply EqTm.refl_tm (eqt.wf_right.conv eq)
+    )
   | ~q(.bvar $i), ~q(.bvar $j) => do
     let ij ← equateNat q($i) q($j)
     return q(by as_aux_lemma =>
@@ -301,8 +327,12 @@ partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut)) : Lean.MetaM Q(∀ {Γ T
           apply EqTm.cong_refl aeq.symm_tm |>.conv_eq
           autosubst; gcongr
           exact aeq.wf_right
+          exact aeq.symm_tm
         gcongr
     )
   | nt, nu =>
-    throwError "cannot prove neutral terms are equal{Lean.indentExpr nt}\n≡?≡{Lean.indentExpr nu}"
+    throwError "cannot prove neutral terms are equal\
+        {Lean.indentExpr nt |>.nest 2}\
+      {Lean.indentD "≡?≡"}\
+        {Lean.indentExpr nu |>.nest 2}"
 end

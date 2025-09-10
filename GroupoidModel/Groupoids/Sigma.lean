@@ -9,7 +9,7 @@ noncomputable section
 
 namespace GroupoidModel
 
-open CategoryTheory NaturalModel Opposite Functor.Groupoidal PGrpd
+open CategoryTheory NaturalModel Universe Opposite Functor.Groupoidal PGrpd
 
 attribute [local simp] eqToHom_map Grpd.id_eq_id Grpd.comp_eq_comp Functor.id_comp
 
@@ -474,7 +474,7 @@ def fst : ∫(sigma A B) ⥤ PGrpd :=
 theorem fst_forgetToGrpd : fst B ⋙ forgetToGrpd = forget ⋙ A := by
   dsimp only [fst, fstAux']
   rw [Functor.assoc, (Functor.Groupoidal.isPullback A).comm_sq,
-    ← Functor.assoc, map_forget]
+    ← Functor.assoc, map_comp_forget]
 
 end
 
@@ -524,7 +524,7 @@ def snd : ∫(sigma A B) ⥤ PGrpd :=
 theorem ι_sigma_comp_map_fstAux (x) : ι (sigma A B) x ⋙ map (fstAux B)
     = forget ⋙ ι A x := by
   apply FunctorTo.hext
-  · rw [Functor.assoc, map_forget]
+  · rw [Functor.assoc, map_comp_forget]
     rfl
   · intro x
     simp
@@ -991,13 +991,13 @@ theorem smallUSig.isPullback : IsPullback smallUSig.pair.{v,u} smallU.comp.{v,u}
     (fun s => fac_right.{v,u} _ _ s.condition)
     (fun s m fac_left fac_right => uniq.{v,u} _ _ s.condition m fac_right fac_left)
 
-def smallUSig : NaturalModel.Sigma smallU.{v} where
+def smallUSig : Universe.Sigma smallU.{v} where
   Sig := smallUSig.Sig
   pair := smallUSig.pair
   Sig_pullback := smallUSig.isPullback
 
 def uHomSeqSigs' (i : ℕ) (ilen : i < 4) :
-    NaturalModel.Sigma (uHomSeqObjs i ilen) :=
+    Universe.Sigma (uHomSeqObjs i ilen) :=
   match i with
   | 0 => smallUSig.{0, 4}
   | 1 => smallUSig.{1, 4}

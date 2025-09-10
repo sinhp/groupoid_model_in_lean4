@@ -1,6 +1,15 @@
 import GroupoidModel.Syntax.Substitution
 
-/-! ## Inversion of typing -/
+variable {χ : Type*} {E : Axioms χ} {Θ Δ Γ : Ctx χ}
+  {A A' B B' t t' b b' u u' : Expr χ}
+  {σ σ' : Nat → Expr χ}
+  {i l l' : Nat}
+
+/-! ## Inversion of typing
+
+In this module we prove that presuppositions hold of typing judgments:
+e.g. if `E ∣ Γ ⊢[l] t : A` then `WfCtx Γ` and `E ∣ Γ ⊢[l] A`.
+Note that `E.Wf` does not necessarily hold. -/
 
 /- We hide proof-specific lemmas in a namespace analogous to `SubstProof`. -/
 namespace InvProof
@@ -8,17 +17,14 @@ open SubstProof
 
 /-! ## Helper lemmas -/
 
-theorem eqSb_snoc' {Δ Γ A t t' σ σ' l} : EqSb Δ σ σ' Γ →
-    Γ ⊢[l] A → Δ ⊢[l] t : A.subst σ → Δ ⊢[l] t' : A.subst σ' → Δ ⊢[l] t ≡ t' : A.subst σ →
-    EqSb Δ (Expr.snoc σ t) (Expr.snoc σ' t') ((A,l) :: Γ) := by
+theorem eqSb_snoc' : EqSb E Δ σ σ' Γ → E ∣ Γ ⊢[l] A →
+    E ∣ Δ ⊢[l] t : A.subst σ → E ∣ Δ ⊢[l] t' : A.subst σ' → E ∣ Δ ⊢[l] t ≡ t' : A.subst σ →
+    EqSb E Δ (Expr.snoc σ t) (Expr.snoc σ' t') ((A,l) :: Γ) := by
   intro σσ' A t t' tt'
   apply eqSb_snoc σσ' A (A.subst σσ'.wf_left) (A.subst σσ'.wf_right) (A.subst_eq σσ') t t' tt'
 
-theorem wfSb_wk {Γ A l} : WfCtx Γ → Γ ⊢[l] A → WfSb ((A,l) :: Γ) Expr.wk Γ :=
-  fun h h' => WfSb.ofRen (h.snoc h') h (WfRen.wk ..)
-
-theorem wfSb_conv_binder {Γ A A' l} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] A' → Γ ⊢[l] A ≡ A' →
-    WfSb ((A', l) :: Γ) Expr.bvar ((A, l) :: Γ) := by
+theorem wfSb_conv_binder : WfCtx E Γ → E ∣ Γ ⊢[l] A → E ∣ Γ ⊢[l] A' → E ∣ Γ ⊢[l] A ≡ A' →
+    WfSb E ((A', l) :: Γ) Expr.bvar ((A, l) :: Γ) := by
   intro Γ A A' AA'
   rw [show Expr.bvar = Expr.up Expr.bvar by autosubst, Expr.up_eq_snoc]
   apply WfSb.snoc
@@ -27,50 +33,47 @@ theorem wfSb_conv_binder {Γ A A' l} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] A'
   . apply WfTm.conv (WfTm.bvar (WfCtx.snoc Γ A') (Lookup.zero ..))
     apply eqTp_wk Γ A' AA'.symm_tp
 
-theorem tp_conv_binder {Γ A A' B l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] A' → Γ ⊢[l] A ≡ A' →
-    (A, l) :: Γ ⊢[l'] B → (A', l) :: Γ ⊢[l'] B := by
+theorem tp_conv_binder : WfCtx E Γ → E ∣ Γ ⊢[l] A → E ∣ Γ ⊢[l] A' → E ∣ Γ ⊢[l] A ≡ A' →
+    E ∣ (A, l) :: Γ ⊢[l'] B → E ∣ (A', l) :: Γ ⊢[l'] B := by
   intro Γ A A' AA' B
   exact autosubst% B.subst (wfSb_conv_binder Γ A A' AA')
 
-theorem tm_conv_binder {Γ A A' B t l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] A' → Γ ⊢[l] A ≡ A' →
-    (A, l) :: Γ ⊢[l'] t : B → (A', l) :: Γ ⊢[l'] t : B := by
+theorem tm_conv_binder : WfCtx E Γ → E ∣ Γ ⊢[l] A → E ∣ Γ ⊢[l] A' → E ∣ Γ ⊢[l] A ≡ A' →
+    E ∣ (A, l) :: Γ ⊢[l'] t : B → E ∣ (A', l) :: Γ ⊢[l'] t : B := by
   intro Γ A A' AA' t
   exact autosubst% t.subst (wfSb_conv_binder Γ A A' AA')
 
 /-! ## Instantiation -/
 
-theorem tp_inst {Γ A B t l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] t : A → (A, l) :: Γ ⊢[l'] B →
-    Γ ⊢[l'] B.subst t.toSb :=
-  fun Γ A t B =>
-    subst_all.1 B |>.1 ((WfSb.id Γ).snoc A (autosubst% t))
+theorem tp_inst : WfCtx E Γ → E ∣ Γ ⊢[l] A → E ∣ Γ ⊢[l] t : A → E ∣ (A, l) :: Γ ⊢[l'] B →
+    E ∣ Γ ⊢[l'] B.subst t.toSb :=
+  fun Γ A t B => subst_all.1 B |>.1 ((WfSb.id Γ).snoc A (autosubst% t))
 
-theorem tm_inst {Γ A B b t l l'} : WfCtx Γ → Γ ⊢[l] A → Γ ⊢[l] t : A →
-    (A, l) :: Γ ⊢[l'] b : B →
-    Γ ⊢[l'] b.subst t.toSb : B.subst t.toSb :=
-  fun Γ A t b =>
-    subst_all.2.2.1 b |>.1 ((WfSb.id Γ).snoc A (autosubst% t))
+theorem tm_inst : WfCtx E Γ → E ∣ Γ ⊢[l] A → E ∣ Γ ⊢[l] t : A →
+    E ∣ (A, l) :: Γ ⊢[l'] b : B →
+    E ∣ Γ ⊢[l'] b.subst t.toSb : B.subst t.toSb :=
+  fun Γ A t b => subst_all.2.2.1 b |>.1 ((WfSb.id Γ).snoc A (autosubst% t))
 
-theorem eqtp_inst {Γ A B B' t t' l l'} : WfCtx Γ → Γ ⊢[l] A →
-    Γ ⊢[l] t : A → Γ ⊢[l] t' : A → Γ ⊢[l] t ≡ t' : A →
-    ((A, l) :: Γ) ⊢[l'] B ≡ B' →
-    Γ ⊢[l'] B.subst t.toSb ≡ B'.subst t'.toSb := by
+theorem eqtp_inst : WfCtx E Γ → E ∣ Γ ⊢[l] A →
+    E ∣ Γ ⊢[l] t : A → E ∣ Γ ⊢[l] t' : A → E ∣ Γ ⊢[l] t ≡ t' : A →
+    E ∣ ((A, l) :: Γ) ⊢[l'] B ≡ B' →
+    E ∣ Γ ⊢[l'] B.subst t.toSb ≡ B'.subst t'.toSb := by
   intro Γ A t t' tt' BB'
   apply subst_all.2.1 BB' (eqSb_snoc ..)
   all_goals (try autosubst); grind [WfSb.id, EqSb.refl, EqTp.refl_tp]
 
 attribute [local grind] tp_conv_binder tm_conv_binder WfCtx.snoc in
 theorem inv_all :
-    (∀ {Γ l A}, Γ ⊢[l] A →
-      WfCtx Γ) ∧
-    (∀ {Γ l A B}, Γ ⊢[l] A ≡ B →
-      (WfCtx Γ) ∧ (Γ ⊢[l] A) ∧ (Γ ⊢[l] B)) ∧
-    (∀ {Γ l A t}, Γ ⊢[l] t : A →
-      (WfCtx Γ) ∧ (Γ ⊢[l] A)) ∧
-    (∀ {Γ l A t u}, Γ ⊢[l] t ≡ u : A →
-      (WfCtx Γ) ∧ (Γ ⊢[l] A) ∧ (Γ ⊢[l] t : A) ∧ (Γ ⊢[l] u : A)) := by
+    (∀ {Γ l A}, E ∣ Γ ⊢[l] A →
+      WfCtx E Γ) ∧
+    (∀ {Γ l A B}, E ∣ Γ ⊢[l] A ≡ B →
+      (WfCtx E Γ) ∧ (E ∣ Γ ⊢[l] A) ∧ (E ∣ Γ ⊢[l] B)) ∧
+    (∀ {Γ l A t}, E ∣ Γ ⊢[l] t : A →
+      (WfCtx E Γ) ∧ (E ∣ Γ ⊢[l] A)) ∧
+    (∀ {Γ l A t u}, E ∣ Γ ⊢[l] t ≡ u : A →
+      (WfCtx E Γ) ∧ (E ∣ Γ ⊢[l] A) ∧ (E ∣ Γ ⊢[l] t : A) ∧ (E ∣ Γ ⊢[l] u : A)) := by
   mutual_induction WfCtx
   all_goals dsimp; try intros
-  case snoc => exact True.intro
   case bvar => grind [WfCtx.lookup_wf]
   case cong_pi' => grind [WfTp.pi']
   case cong_sigma' => grind [WfTp.sigma']
@@ -180,7 +183,9 @@ theorem inv_all :
           apply WfSb.snoc _ Awf
           . apply WfTm.bvar _ _
             . grind [WfCtx.snoc, tp_wk]
-            . exact autosubst% Lookup.zero _ _ _
+            . rw [show ∀ (A : Expr χ), A.subst (Expr.comp Expr.wk Expr.wk) =
+                (A.subst Expr.wk).subst Expr.wk by intro; autosubst]
+              apply Lookup.zero
           . apply WfSb.ofRen
             . grind [tp_wk, WfCtx.snoc]
             . assumption
@@ -196,63 +201,68 @@ end InvProof
 
 /-! ## General inversion lemmas -/
 
+theorem WfCtx.inv_snoc : WfCtx E ((A, l) :: Γ) → E ∣ Γ ⊢[l] A | .snoc _ hA => hA
+
+section
 open InvProof
-theorem WfCtx.inv_snoc {Γ A l} : WfCtx ((A, l) :: Γ) → Γ ⊢[l] A | .snoc _ hA => hA
-theorem WfTp.wf_ctx {Γ l A} : Γ ⊢[l] A → WfCtx Γ := inv_all.1
-theorem EqTp.wf_left {Γ l A B} : Γ ⊢[l] A ≡ B → Γ ⊢[l] A := fun h => (inv_all.2.1 h).2.1
-theorem EqTp.wf_right {Γ l A B} : Γ ⊢[l] A ≡ B → Γ ⊢[l] B := fun h => (inv_all.2.1 h).2.2
-theorem EqTp.wf_ctx {Γ l A B} : Γ ⊢[l] A ≡ B → WfCtx Γ := fun h => h.wf_left.wf_ctx
-theorem WfTm.wf_tp {Γ l t A} : Γ ⊢[l] t : A → Γ ⊢[l] A := fun h => (inv_all.2.2.1 h).2
-theorem WfTm.wf_ctx {Γ l t A} : Γ ⊢[l] t : A → WfCtx Γ := fun h => h.wf_tp.wf_ctx
-theorem EqTm.wf_left {Γ l t u A} : Γ ⊢[l] t ≡ u : A → Γ ⊢[l] t : A :=
+
+theorem WfTp.wf_ctx : E ∣ Γ ⊢[l] A → WfCtx E Γ := inv_all.1
+theorem EqTp.wf_left : E ∣ Γ ⊢[l] A ≡ B → E ∣ Γ ⊢[l] A := fun h => (inv_all.2.1 h).2.1
+theorem EqTp.wf_right : E ∣ Γ ⊢[l] A ≡ B → E ∣ Γ ⊢[l] B := fun h => (inv_all.2.1 h).2.2
+theorem EqTp.wf_ctx : E ∣ Γ ⊢[l] A ≡ B → WfCtx E Γ := fun h => h.wf_left.wf_ctx
+theorem WfTm.wf_tp : E ∣ Γ ⊢[l] t : A → E ∣ Γ ⊢[l] A := fun h => (inv_all.2.2.1 h).2
+theorem WfTm.wf_ctx : E ∣ Γ ⊢[l] t : A → WfCtx E Γ := fun h => h.wf_tp.wf_ctx
+theorem EqTm.wf_left : E ∣ Γ ⊢[l] t ≡ u : A → E ∣ Γ ⊢[l] t : A :=
   fun h => (inv_all.2.2.2 h).2.2.1
-theorem EqTm.wf_right {Γ l t u A} : Γ ⊢[l] t ≡ u : A → Γ ⊢[l] u : A :=
+theorem EqTm.wf_right : E ∣ Γ ⊢[l] t ≡ u : A → E ∣ Γ ⊢[l] u : A :=
   fun h => (inv_all.2.2.2 h).2.2.2
-theorem EqTm.wf_tp {Γ l t u A} : Γ ⊢[l] t ≡ u : A → Γ ⊢[l] A := fun h => h.wf_left.wf_tp
-theorem EqTm.wf_ctx {Γ l t u A} : Γ ⊢[l] t ≡ u : A → WfCtx Γ := fun h => h.wf_tp.wf_ctx
-theorem WfTp.wf_binder {Γ A B l l'} : (A, l) :: Γ ⊢[l'] B → Γ ⊢[l] A := fun h => h.wf_ctx.inv_snoc
-theorem EqTp.wf_binder {Γ A B B' l l'} : (A, l) :: Γ ⊢[l'] B ≡ B' → Γ ⊢[l] A :=
+theorem EqTm.wf_tp : E ∣ Γ ⊢[l] t ≡ u : A → E ∣ Γ ⊢[l] A := fun h => h.wf_left.wf_tp
+theorem EqTm.wf_ctx : E ∣ Γ ⊢[l] t ≡ u : A → WfCtx E Γ := fun h => h.wf_tp.wf_ctx
+theorem WfTp.wf_binder : E ∣ (A, l) :: Γ ⊢[l'] B → E ∣ Γ ⊢[l] A :=
   fun h => h.wf_ctx.inv_snoc
-theorem WfTm.wf_binder {Γ A B t l l'} : (A, l) :: Γ ⊢[l'] t : B → Γ ⊢[l] A :=
+theorem EqTp.wf_binder : E ∣ (A, l) :: Γ ⊢[l'] B ≡ B' → E ∣ Γ ⊢[l] A :=
   fun h => h.wf_ctx.inv_snoc
-theorem EqTm.wf_binder {Γ A B t u l l'} : (A, l) :: Γ ⊢[l'] t ≡ u : B → Γ ⊢[l] A :=
+theorem WfTm.wf_binder : E ∣ (A, l) :: Γ ⊢[l'] t : B → E ∣ Γ ⊢[l] A :=
   fun h => h.wf_ctx.inv_snoc
+theorem EqTm.wf_binder : E ∣ (A, l) :: Γ ⊢[l'] t ≡ u : B → E ∣ Γ ⊢[l] A :=
+  fun h => h.wf_ctx.inv_snoc
+end
 
 /-! ## Substitution -/
 
 namespace WfSb
 
-theorem mk {Δ Γ σ} : WfCtx Δ → WfCtx Γ → (∀ {i A l}, Lookup Γ i A l → Δ ⊢[l] σ i : A.subst σ) →
-    WfSb Δ σ Γ := by
+theorem mk : WfCtx E Δ → WfCtx E Γ → (∀ {i A l}, Lookup Γ i A l → E ∣ Δ ⊢[l] σ i : A.subst σ) →
+    WfSb E Δ σ Γ := by
   unfold WfSb EqSb
   intro Δ Γ h
   refine ⟨Δ, Γ, fun lk => ?_⟩
   replace h := h lk
   exact ⟨h.wf_tp, h.wf_tp, EqTp.refl_tp h.wf_tp, h, h, EqTm.refl_tm h⟩
 
-theorem wk {Γ A l} : Γ ⊢[l] A → WfSb ((A, l) :: Γ) Expr.wk Γ :=
-  fun A => InvProof.wfSb_wk A.wf_ctx A
+theorem wk : E ∣ Γ ⊢[l] A → WfSb E ((A, l) :: Γ) Expr.wk Γ :=
+  fun A => SubstProof.wfSb_wk A.wf_ctx A
 
-theorem terminal {Δ} (σ) : WfCtx Δ → WfSb Δ σ [] :=
+theorem terminal (σ) : WfCtx E Δ → WfSb E Δ σ [] :=
   fun Δ => mk Δ .nil nofun
 
-theorem comp {Θ Δ Γ σ τ} : WfSb Θ σ Δ → WfSb Δ τ Γ → WfSb Θ (Expr.comp σ τ) Γ := by
-  intro σ τ
-  apply mk σ.wf_dom τ.wf_cod
+theorem comp : WfSb E Θ σ Δ → WfSb E Δ σ' Γ → WfSb E Θ (Expr.comp σ σ') Γ := by
+  intro σ σ'
+  apply mk σ.wf_dom σ'.wf_cod
   intro _ _ _ lk
-  exact autosubst% τ.lookup lk |>.subst σ
+  exact autosubst% σ'.lookup lk |>.subst σ
 
-theorem toSb {Γ A t l} : Γ ⊢[l] t : A → WfSb Γ t.toSb ((A, l) :: Γ) :=
+theorem toSb : E ∣ Γ ⊢[l] t : A → WfSb E Γ t.toSb ((A, l) :: Γ) :=
   fun t => SubstProof.wfSb_toSb t.wf_ctx t.wf_tp t
 
 end WfSb
 
 namespace EqSb
 
-theorem mk {Δ Γ σ σ'} : WfCtx Δ → WfCtx Γ →
+theorem mk : WfCtx E Δ → WfCtx E Γ →
     (∀ {i A l}, Lookup Γ i A l →
-      (Δ ⊢[l] A.subst σ ≡ A.subst σ') ∧ (Δ ⊢[l] σ i ≡ σ' i : A.subst σ)) →
-    EqSb Δ σ σ' Γ := by
+      (E ∣ Δ ⊢[l] A.subst σ ≡ A.subst σ') ∧ (E ∣ Δ ⊢[l] σ i ≡ σ' i : A.subst σ)) →
+    EqSb E Δ σ σ' Γ := by
   unfold EqSb
   intro Δ Γ h
   refine ⟨Δ, Γ, fun lk => ?_⟩
@@ -260,346 +270,16 @@ theorem mk {Δ Γ σ σ'} : WfCtx Δ → WfCtx Γ →
   have A := Γ.lookup_wf lk
   exact ⟨h.1.wf_left, h.1.wf_right, h.1, h.2.wf_left, WfTm.conv h.2.wf_right h.1, h.2⟩
 
-theorem snoc {Δ Γ A t t' σ σ' l} : EqSb Δ σ σ' Γ → Γ ⊢[l] A → Δ ⊢[l] t ≡ t' : A.subst σ →
-    EqSb Δ (Expr.snoc σ t) (Expr.snoc σ' t') ((A,l) :: Γ) := by
+theorem snoc : EqSb E Δ σ σ' Γ → E ∣ Γ ⊢[l] A → E ∣ Δ ⊢[l] t ≡ t' : A.subst σ →
+    EqSb E Δ (Expr.snoc σ t) (Expr.snoc σ' t') ((A,l) :: Γ) := by
   intro σσ' A tt'
   apply SubstProof.eqSb_snoc σσ' A (A.subst σσ'.wf_left) (A.subst σσ'.wf_right)
     (A.subst_eq σσ') tt'.wf_left (tt'.wf_right.conv (A.subst_eq σσ')) tt'
 
-theorem terminal {Δ} (σ σ') : WfCtx Δ → EqSb Δ σ σ' [] :=
+theorem terminal (σ σ') : WfCtx E Δ → EqSb E Δ σ σ' [] :=
   fun Δ => mk Δ .nil nofun
 
-theorem toSb {Γ t t' A l} : Γ ⊢[l] t ≡ t' : A → EqSb Γ t.toSb t'.toSb ((A, l) :: Γ) :=
+theorem toSb : E ∣ Γ ⊢[l] t ≡ t' : A → EqSb E Γ t.toSb t'.toSb ((A, l) :: Γ) :=
   fun tt' => snoc (EqSb.refl <| WfSb.id tt'.wf_ctx) tt'.wf_tp (autosubst% tt')
 
 end EqSb
-
-/-! ## Type former inversion -/
-
-theorem WfTp.inv_pi {Γ A B l₀ l l'} : Γ ⊢[l₀] .pi l l' A B →
-    l₀ = max l l' ∧ ((A,l) :: Γ ⊢[l'] B) := by
-  suffices
-      ∀ {Γ l A}, Γ ⊢[l] A → ∀ {A' B l₁ l₂}, A = .pi l₁ l₂ A' B →
-        l = max l₁ l₂ ∧ ((A', l₁) :: Γ ⊢[l₂] B) from
-    fun h => this h rfl
-  mutual_induction WfCtx <;> grind
-
-theorem WfTp.inv_sigma {Γ A B l₀ l l'} : Γ ⊢[l₀] .sigma l l' A B →
-    l₀ = max l l' ∧ ((A,l) :: Γ ⊢[l'] B) := by
-  suffices
-      ∀ {Γ l A}, Γ ⊢[l] A → ∀ {A' B l₁ l₂}, A = .sigma l₁ l₂ A' B →
-        l = max l₁ l₂ ∧ ((A', l₁) :: Γ ⊢[l₂] B) from
-    fun h => this h rfl
-  mutual_induction WfCtx <;> grind
-
-theorem WfTp.inv_Id {Γ A t u l₀ l} : Γ ⊢[l₀] .Id l A t u →
-    l₀ = l ∧ (Γ ⊢[l] t : A) ∧ (Γ ⊢[l] u : A) := by
-  suffices
-      ∀ {Γ l₀ T}, Γ ⊢[l₀] T → ∀ {l t u}, T = .Id l A t u →
-        l₀ = l ∧ (Γ ⊢[l] t : A) ∧ (Γ ⊢[l] u : A) from
-    fun h => this h rfl
-  mutual_induction WfCtx <;> grind
-
-theorem WfTp.inv_univ {Γ l₀ l} : Γ ⊢[l₀] .univ l → l₀ = l+1 := by
-  suffices ∀ {Γ l A}, Γ ⊢[l] A → ∀ {l₁}, A = .univ l₁ → l = l₁+1 from
-    fun h => this h rfl
-  mutual_induction WfCtx <;> grind
-
-theorem WfTp.inv_el {Γ a l} : Γ ⊢[l] .el a → Γ ⊢[l+1] a : .univ l := by
-  suffices ∀ {Γ l A}, Γ ⊢[l] A → ∀ {a}, A = .el a → Γ ⊢[l+1] a : .univ l from
-    fun h => this h rfl
-  mutual_induction WfCtx <;> grind
-
-/-! ## Smart constructors -/
-
-theorem WfTp.pi {Γ A B l l'} : (A, l) :: Γ ⊢[l'] B → Γ ⊢[max l l'] .pi l l' A B :=
-  fun h => WfTp.pi' h.wf_binder h
-
-theorem WfTp.sigma {Γ A B l l'} :
-    (A, l) :: Γ ⊢[l'] B →
-    Γ ⊢[max l l'] .sigma l l' A B :=
-  fun h => WfTp.sigma' h.wf_binder h
-
-theorem WfTp.Id {Γ A t u l} :
-    Γ ⊢[l] t : A →
-    Γ ⊢[l] u : A →
-    Γ ⊢[l] .Id l A t u :=
-  fun t u => WfTp.Id' t.wf_tp t u
-
-theorem EqTp.cong_pi {Γ A A' B B' l l'} :
-    Γ ⊢[l] A ≡ A' →
-    (A, l) :: Γ ⊢[l'] B ≡ B' →
-    Γ ⊢[max l l'] .pi l l' A B ≡ .pi l l' A' B' :=
-  fun hAA' hBB' => EqTp.cong_pi' hAA'.wf_left hAA'.wf_right hAA' hBB'
-
-theorem EqTp.cong_sigma {Γ A A' B B' l l'} :
-    Γ ⊢[l] A ≡ A' →
-    (A, l) :: Γ ⊢[l'] B ≡ B' →
-    Γ ⊢[max l l'] .sigma l l' A B ≡ .sigma l l' A' B' :=
-  fun hAA' hBB' => EqTp.cong_sigma' hAA'.wf_left hAA'.wf_right hAA' hBB'
-
-theorem WfTm.lam {Γ A B t l l'} :
-    (A, l) :: Γ ⊢[l'] t : B →
-    Γ ⊢[max l l'] .lam l l' A t : .pi l l' A B :=
-  fun h => WfTm.lam' h.wf_binder h
-
-theorem WfTm.app {Γ A B f a l l'} :
-    Γ ⊢[max l l'] f : .pi l l' A B →
-    Γ ⊢[l] a : A →
-    Γ ⊢[l'] .app l l' B f a : B.subst a.toSb :=
-  fun hf ha =>
-    have ⟨_, hB⟩ := hf.wf_tp.inv_pi
-    WfTm.app' hB.wf_binder hB hf ha
-
-theorem WfTm.pair {Γ A B t u l l'} :
-    (A, l) :: Γ ⊢[l'] B →
-    Γ ⊢[l] t : A →
-    Γ ⊢[l'] u : B.subst t.toSb →
-    Γ ⊢[max l l'] .pair l l' B t u : .sigma l l' A B :=
-  fun hB ht hu => WfTm.pair' ht.wf_tp hB ht hu
-
-theorem WfTm.fst {Γ A B p l l'} :
-    Γ ⊢[max l l'] p : .sigma l l' A B →
-    Γ ⊢[l] .fst l l' A B p : A :=
-  fun hp =>
-    have ⟨_, hB⟩ := hp.wf_tp.inv_sigma
-    WfTm.fst' hB.wf_binder hB hp
-
-theorem WfTm.snd {Γ A B p l l'} :
-    Γ ⊢[max l l'] p : .sigma l l' A B →
-    Γ ⊢[l'] .snd l l' A B p : B.subst (Expr.fst l l' A B p).toSb :=
-  fun hp =>
-    have ⟨_, hB⟩ := hp.wf_tp.inv_sigma
-    WfTm.snd' hB.wf_binder hB hp
-
-theorem WfTm.refl {Γ A t l} :
-    Γ ⊢[l] t : A →
-    Γ ⊢[l] .refl l t : .Id l A t t :=
-  fun t => .refl' t.wf_tp t
-
-theorem WfTm.idRec {Γ A M t r u h l l'} :
-    (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M →
-    Γ ⊢[l'] r : M.subst (.snoc t.toSb <| .refl l t) →
-    Γ ⊢[l] h : .Id l A t u →
-    Γ ⊢[l'] .idRec l l' t M r u h : M.subst (.snoc u.toSb h) :=
-  fun M r h =>
-    have ⟨_, t, u⟩ := h.wf_tp.inv_Id
-    .idRec' t.wf_tp t M r u h
-
-theorem EqTm.cong_lam {Γ A A' B t t' l l'} :
-    Γ ⊢[l] A ≡ A' →
-    (A, l) :: Γ ⊢[l'] t ≡ t' : B →
-    Γ ⊢[max l l'] .lam l l' A t ≡ .lam l l' A' t' : .pi l l' A B :=
-  fun hAA' htt' => EqTm.cong_lam' hAA'.wf_left hAA'.wf_right hAA' htt'
-
-theorem EqTm.cong_app {Γ A B B' f f' a a' l l'} :
-    (A, l) :: Γ ⊢[l'] B ≡ B' →
-    Γ ⊢[max l l'] f ≡ f' : .pi l l' A B →
-    Γ ⊢[l] a ≡ a' : A →
-    Γ ⊢[l'] .app l l' B f a ≡ .app l l' B' f' a' : B.subst a.toSb :=
-  fun hBB' hff' haa' => EqTm.cong_app' haa'.wf_tp hBB' hff' haa'
-
-theorem EqTm.cong_pair {Γ A B B' t t' u u' l l'} :
-    (A, l) :: Γ ⊢[l'] B ≡ B' →
-    Γ ⊢[l] t ≡ t' : A →
-    Γ ⊢[l'] u ≡ u' : B.subst t.toSb →
-    Γ ⊢[max l l'] .pair l l' B t u ≡ .pair l l' B' t' u' : .sigma l l' A B :=
-  fun hBB' htt' huu' => EqTm.cong_pair' htt'.wf_tp hBB' htt' huu'
-
-theorem EqTm.cong_fst {Γ A A' B B' p p' l l'} :
-    Γ ⊢[l] A ≡ A' →
-    (A, l) :: Γ ⊢[l'] B ≡ B' →
-    Γ ⊢[max l l'] p ≡ p' : .sigma l l' A B →
-    Γ ⊢[l] .fst l l' A B p ≡ .fst l l' A' B' p' : A :=
-  fun hAA' hBB' hpp' => EqTm.cong_fst' hAA'.wf_left hAA' hBB' hpp'
-
-theorem EqTm.cong_snd {Γ A A' B B' p p' l l'} :
-    Γ ⊢[l] A ≡ A' →
-    (A, l) :: Γ ⊢[l'] B ≡ B' →
-    Γ ⊢[max l l'] p ≡ p' : .sigma l l' A B →
-    Γ ⊢[l'] .snd l l' A B p ≡ .snd l l' A' B' p' : B.subst (Expr.fst l l' A B p).toSb :=
-  fun hAA' hBB' hpp' => EqTm.cong_snd' hAA'.wf_left hAA' hBB' hpp'
-
-theorem EqTm.cong_idRec {Γ A M M' t t' r r' u u' h h' l l'} :
-    Γ ⊢[l] t ≡ t' : A →
-    (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M ≡ M' →
-    Γ ⊢[l'] r ≡ r' : M.subst (.snoc t.toSb <| .refl l t) →
-    Γ ⊢[l] u ≡ u' : A →
-    Γ ⊢[l] h ≡ h' : .Id l A t u →
-    Γ ⊢[l'] .idRec l l' t M r u h ≡ .idRec l l' t' M' r' u' h' : M.subst (.snoc u.toSb h) :=
-  fun teq Meq req ueq heq => .cong_idRec' teq.wf_tp teq.wf_left teq Meq req ueq heq
-
-theorem EqTm.app_lam {Γ A B t u l l'} :
-    (A, l) :: Γ ⊢[l'] t : B →
-    Γ ⊢[l] u : A →
-    Γ ⊢[l'] .app l l' B (.lam l l' A t) u ≡ t.subst u.toSb : B.subst u.toSb :=
-  fun ht hu => EqTm.app_lam' hu.wf_tp ht.wf_tp ht hu
-
-theorem EqTm.fst_pair {Γ A B t u l l'} :
-    (A, l) :: Γ ⊢[l'] B →
-    Γ ⊢[l] t : A →
-    Γ ⊢[l'] u : B.subst t.toSb →
-    Γ ⊢[l] .fst l l' A B (.pair l l' B t u) ≡ t : A :=
-  fun hB ht hu => EqTm.fst_pair' ht.wf_tp hB ht hu
-
-theorem EqTm.snd_pair {Γ A B t u l l'} :
-    (A, l) :: Γ ⊢[l'] B →
-    Γ ⊢[l] t : A →
-    Γ ⊢[l'] u : B.subst t.toSb →
-    Γ ⊢[l'] .snd l l' A B (.pair l l' B t u) ≡ u : B.subst t.toSb :=
-  fun hB ht hu => EqTm.snd_pair' ht.wf_tp hB ht hu
-
-theorem EqTm.cong_refl {Γ A t t' l} :
-    Γ ⊢[l] t ≡ t' : A →
-    Γ ⊢[l] .refl l t ≡ .refl l t' : .Id l A t t :=
-  fun t => .cong_refl' t.wf_tp t
-
-theorem EqTm.idRec_refl {Γ A M t r l l'} :
-    Γ ⊢[l] t : A →
-    (.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M →
-    Γ ⊢[l'] r : M.subst (.snoc t.toSb <| .refl l t) →
-    Γ ⊢[l'] .idRec l l' t M r t (.refl l t) ≡ r : M.subst (.snoc t.toSb <| .refl l t) :=
-  fun t M r => .idRec_refl' t.wf_tp t M r
-
-theorem EqTm.lam_app {Γ A B f l l'} :
-    Γ ⊢[max l l'] f : .pi l l' A B →
-    Γ ⊢[max l l'] f ≡
-      .lam l l' A (.app l l' (B.subst (Expr.up Expr.wk)) (f.subst Expr.wk) (.bvar 0)) :
-      .pi l l' A B :=
-  fun hf =>
-    have ⟨_, hB⟩ := hf.wf_tp.inv_pi
-    EqTm.lam_app' hB.wf_binder hB hf
-
-theorem EqTm.pair_fst_snd {Γ A B p l l'} :
-    Γ ⊢[max l l'] p : .sigma l l' A B →
-    Γ ⊢[max l l'] p ≡ .pair l l' B (.fst l l' A B p) (.snd l l' A B p) : .sigma l l' A B :=
-  fun hp =>
-    have ⟨_, hB⟩ := hp.wf_tp.inv_sigma
-    EqTm.pair_fst_snd' hB.wf_binder hB hp
-
-theorem EqTm.symm_tm {Γ A t t' l} :
-    Γ ⊢[l] t ≡ t' : A →
-    Γ ⊢[l] t' ≡ t : A :=
-  fun htt' => EqTm.symm_tm' htt'.wf_tp htt'
-
-theorem EqTm.trans_tm {Γ A t t' t'' l} :
-    Γ ⊢[l] t ≡ t' : A →
-    Γ ⊢[l] t' ≡ t'' : A →
-    Γ ⊢[l] t ≡ t'' : A :=
-  fun htt' ht't'' => EqTm.trans_tm' htt'.wf_tp htt' ht't''
-
-theorem WfTp.Id_bvar {Γ A t l} : Γ ⊢[l] t : A →
-    (A, l) :: Γ ⊢[l] .Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0) :=
-  fun t => WfTp.Id (t.subst (WfSb.wk t.wf_tp)) (.bvar (t.wf_ctx.snoc t.wf_tp) (.zero ..))
-
-/-! ## Term former inversion -/
-
-theorem WfTm.inv_bvar {Γ A i l} : Γ ⊢[l] .bvar i : A →
-  ∃ B, Lookup Γ i B l ∧ (Γ ⊢[l] A ≡ B) := by
-  suffices
-    ∀ {Γ l C t}, Γ ⊢[l] t : C → ∀ {i}, t = .bvar i → ∃ B, Lookup Γ i B l ∧ (Γ ⊢[l] C ≡ B) from
-  fun h => this h rfl
-  mutual_induction WfCtx <;>
-    grind [EqTp.refl_tp, EqTp.symm_tp, EqTp.trans_tp, WfCtx.lookup_wf]
-
-theorem WfTm.inv_lam {Γ A C b l₀ l l'} : Γ ⊢[l₀] .lam l l' A b : C →
-    l₀ = max l l' ∧ ∃ B,
-      ((A, l) :: Γ ⊢[l'] b : B) ∧ (Γ ⊢[max l l'] C ≡ .pi l l' A B) := by
-  suffices
-      ∀ {Γ l C t}, Γ ⊢[l] t : C → ∀ {A b l₁ l₂}, t = .lam l₁ l₂ A b →
-        l = max l₁ l₂ ∧ ∃ B,
-          ((A, l₁) :: Γ ⊢[l₂] b : B) ∧ (Γ ⊢[max l₁ l₂] C ≡ .pi l₁ l₂ A B) from
-    fun h => this h rfl
-  mutual_induction WfCtx <;>
-    try grind [WfTp.pi, WfTm.wf_tp, EqTp.refl_tp, EqTp.symm_tp, EqTp.trans_tp]
-
-theorem WfTm.inv_app {Γ B C f a l₀ l l'} : Γ ⊢[l₀] .app l l' B f a : C →
-    l₀ = l' ∧ ∃ A,
-      (Γ ⊢[max l l'] f : .pi l l' A B) ∧ (Γ ⊢[l] a : A) ∧ (Γ ⊢[l'] C ≡ B.subst a.toSb) := by
-  suffices
-      ∀ {Γ l₀ C t}, Γ ⊢[l₀] t : C → ∀ {B f a l l'}, t = .app l l' B f a →
-        l₀ = l' ∧ ∃ A,
-          (Γ ⊢[max l l'] f : .pi l l' A B) ∧ (Γ ⊢[l] a : A) ∧ (Γ ⊢[l'] C ≡ B.subst a.toSb) from
-    fun h => this h rfl
-  mutual_induction WfCtx <;>
-    grind [InvProof.tp_inst, WfTp.wf_ctx, EqTp.refl_tp, EqTp.symm_tp, EqTp.trans_tp]
-
-theorem WfTm.inv_pair {Γ B C t u l₀ l l'} : Γ ⊢[l₀] .pair l l' B t u : C →
-    l₀ = max l l' ∧ ∃ A,
-      (Γ ⊢[l] t : A) ∧
-      (Γ ⊢[l'] u : B.subst t.toSb) ∧
-      (Γ ⊢[l₀] C ≡ .sigma l l' A B) := by
-  suffices
-    ∀ {Γ l C t}, Γ ⊢[l] t : C → ∀ {B t' u' l₁ l₂}, t = .pair l₁ l₂ B t' u' →
-      l = max l₁ l₂ ∧ ∃ A,
-        (Γ ⊢[l₁] t' : A) ∧
-        (Γ ⊢[l₂] u' : B.subst t'.toSb) ∧
-        (Γ ⊢[l] C ≡ .sigma l₁ l₂ A B) from
-  fun h => this h rfl
-  mutual_induction WfCtx <;> grind [WfTp.sigma, WfTm.wf_tp, EqTp.refl_tp, EqTp.symm_tp, EqTp.trans_tp]
-
-theorem WfTm.inv_fst {Γ A B C p l₀ l l'} : Γ ⊢[l₀] .fst l l' A B p : C →
-    l₀ = l ∧ (Γ ⊢[max l l'] p : .sigma l l' A B) ∧ (Γ ⊢[l₀] C ≡ A) := by
-  suffices
-      ∀ {Γ l C t}, Γ ⊢[l] t : C → ∀ {A B p l₁ l₂}, t = .fst l₁ l₂ A B p →
-        l = l₁ ∧ (Γ ⊢[max l₁ l₂] p : .sigma l₁ l₂ A B) ∧ (Γ ⊢[l] C ≡ A) from
-    fun h => this h rfl
-  mutual_induction WfCtx <;> grind [EqTp.refl_tp, EqTp.symm_tp, EqTp.trans_tp]
-
-theorem WfTm.inv_snd {Γ A B C p l₀ l l'} : Γ ⊢[l₀] .snd l l' A B p : C →
-    l₀ = l' ∧ (Γ ⊢[max l l'] p : .sigma l l' A B) ∧
-      (Γ ⊢[l₀] C ≡ B.subst (Expr.fst l l' A B p).toSb) := by
-  suffices
-      ∀ {Γ l C t}, Γ ⊢[l] t : C → ∀ {A B p l₁ l₂}, t = .snd l₁ l₂ A B p →
-        l = l₂ ∧ (Γ ⊢[max l₁ l₂] p : .sigma l₁ l₂ A B) ∧
-        (Γ ⊢[l] C ≡ B.subst (Expr.fst l₁ l₂ A B p).toSb) from
-    fun h => this h rfl
-  mutual_induction WfCtx <;>
-    grind [InvProof.tp_inst, EqTp.refl_tp, EqTp.symm_tp, EqTp.trans_tp, WfTm.fst, WfTp.wf_ctx]
-
-theorem WfTm.inv_refl {Γ C t l₀ l} : Γ ⊢[l₀] .refl l t : C →
-    l₀ = l ∧ ∃ A, (Γ ⊢[l] t : A) ∧ (Γ ⊢[l] C ≡ .Id l A t t) := by
-  suffices
-      ∀ {Γ l₀ C t'}, Γ ⊢[l₀] t' : C → ∀ {l t}, t' = .refl l t →
-        l₀ = l ∧ ∃ A, (Γ ⊢[l] t : A) ∧ (Γ ⊢[l] C ≡ .Id l A t t) from
-    fun h => this h rfl
-  mutual_induction WfCtx <;> grind [WfTp.Id,  EqTp.refl_tp, EqTp.symm_tp, EqTp.trans_tp]
-
-theorem WfTm.inv_idRec {Γ M C t r u h l₀ l l'} : Γ ⊢[l₀] .idRec l l' t M r u h : C →
-    l₀ = l' ∧ ∃ A,
-      (Γ ⊢[l] t : A) ∧
-      ((.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M) ∧
-      (Γ ⊢[l'] r : M.subst (.snoc t.toSb <| .refl l t)) ∧
-      (Γ ⊢[l] u : A) ∧
-      (Γ ⊢[l] h : .Id l A t u) ∧
-      (Γ ⊢[l'] C ≡ M.subst (.snoc u.toSb h)) := by
-  suffices ∀ {Γ l₀ C t'}, Γ ⊢[l₀] t' : C → ∀ {t M r u h l l'}, t' = .idRec l l' t M r u h →
-      l₀ = l' ∧ ∃ A,
-        (Γ ⊢[l] t : A) ∧
-        ((.Id l (A.subst Expr.wk) (t.subst Expr.wk) (.bvar 0), l) :: (A, l) :: Γ ⊢[l'] M) ∧
-        (Γ ⊢[l'] r : M.subst (.snoc t.toSb <| .refl l t)) ∧
-        (Γ ⊢[l] u : A) ∧
-        (Γ ⊢[l] h : .Id l A t u) ∧
-        (Γ ⊢[l'] C ≡ M.subst (.snoc u.toSb h)) from
-    fun h => this h rfl
-  mutual_induction WfCtx
-  all_goals intros; try exact True.intro
-  all_goals rename_i eq; cases eq
-  case refl t M r u h _ _ _ _ _ _ =>
-    refine ⟨rfl, _, t, M, r, u, h, ?_⟩
-    apply EqTp.refl_tp <| M.subst (WfSb.snoc (WfSb.toSb u) _ _)
-    . grind [WfTp.Id_bvar, WfTp.wf_ctx]
-    . autosubst; assumption
-  case conv => grind [EqTp.trans_tp, EqTp.symm_tp]
-
-theorem WfTm.inv_code {Γ A C l₀} : Γ ⊢[l₀] .code A : C →
-    ∃ l, l₀ = l+1 ∧ (Γ ⊢[l] A) ∧ (Γ ⊢[l+1] C ≡ .univ l) := by
-  suffices
-      ∀ {Γ l C t}, Γ ⊢[l] t : C → ∀ {A}, t = .code A →
-        ∃ l₁, l = l₁+1 ∧ (Γ ⊢[l₁] A) ∧ (Γ ⊢[l₁+1] C ≡ .univ l₁) from
-    fun h => this h rfl
-  mutual_induction WfCtx <;> try grind [EqTp.refl_tp, WfTp.univ, WfTp.wf_ctx]
-  case conv =>
-    intros; rename_i ih _ _ eq
-    obtain ⟨_, rfl, _⟩ := ih eq
-    grind [EqTp.trans_tp, EqTp.symm_tp]

@@ -7,9 +7,9 @@
         packages = with pkgs; [ 
           bashInteractive
           typst
-          texlive.combined.scheme-full
           python3
           graphviz
+          nodejs
         ];
       };
     });
