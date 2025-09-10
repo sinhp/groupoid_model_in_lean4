@@ -6,6 +6,8 @@
 ## Python
 __pycache__
 venv
+## JavaScript
+node_modules
 ## Blueprint
 blueprint/web/
 blueprint/src/chapter/auto

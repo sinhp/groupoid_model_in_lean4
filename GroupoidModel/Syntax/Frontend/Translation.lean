@@ -14,8 +14,8 @@ initialize
   registerTraceClass (traceClsTranslation ++ `tm) (inherited := true)
 
 structure Context where
-  /-- Maps `FVarId`s to their de Bruijn index. -/
-  bvars : AssocList FVarId Nat := {}
+  /-- The position of an `FVarId` is its de Bruijn index. -/
+  bvars : List FVarId := []
   /-- The ordinary (external) Lean environment. -/
   extEnv : Environment
 
@@ -27,7 +27,7 @@ def TranslateM.run {α : Type} (x : TranslateM α) (extEnv : Environment) : Meta
   ReaderT.run x { extEnv }
 
 def withBinder {α : Type} (x : Lean.Expr) (k : TranslateM α) : TranslateM α := do
-  withReader (fun s => { s with bvars := s.bvars.mapVal (· + 1) |>.insert x.fvarId! 0 }) k
+  withReader (fun s => { s with bvars := x.fvarId! :: s.bvars }) k
 
 /-- Extract the level `u` in `Sort u`.
 It must be monomorphic, i.e., may not contain universe variables. -/
@@ -103,7 +103,7 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr Lea
     let eTp ← inferType e
     let .sort l ← inferType eTp | throwError "internal error (sort)"
     let n ← getSortLevel l
-    match (← read).bvars.find? f with
+    match (← read).bvars.findIdx? (· == f) with
     | some i => return ⟨n, q(.bvar $i)⟩
     | none => throwError "unexpected fvar{indentExpr e}"
   | .lam _ A .. =>
