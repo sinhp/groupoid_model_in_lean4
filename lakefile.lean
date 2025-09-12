@@ -34,5 +34,3 @@ require «doc-gen4» from git
 
 @[test_driver]
 lean_lib test where
-
-lean_lib bench where
