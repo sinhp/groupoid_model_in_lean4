@@ -85,14 +85,9 @@ theorem Hom.mk_comp_cartesianNatTrans {M N : Universe Ctx} (h : Hom M N)
 
 /- We have a 'nice', specific terminal object in `Ctx`,
 and this instance allows use to use it directly
-rather than through an isomorphism with `Limits.terminal`.
-`ChosenTerminal` would suffice but is not defined in mathlib,
-so we use `ChosenFiniteProducts`. -/
-variable [CartesianMonoidalCategory Ctx]
-
--- Should be in mathlib?
-def isTerminal_yUnit : IsTerminal y(𝟙_ Ctx) :=
-  (IsTerminal.ofUnique (𝟙_ Ctx)).isTerminalObj yoneda (𝟙_ Ctx)
+rather than through an isomorphism with `Limits.terminal`. -/
+variable [ChosenTerminal Ctx]
+open ChosenTerminal
 
 /-- A Russell universe embedding is a hom of natural models `M ⟶ N`
 such that types in `M` correspond to terms of a universe `U` in `N`.
@@ -102,7 +97,7 @@ These don't form a category since `UHom.id M` is essentially `Type : Type` in `M
 Note this doesn't need to extend `Hom` as none of its fields are used;
 it's just convenient to pack up the data. -/
 structure UHom (M N : Universe Ctx) extends Hom M N where
-  U : y(𝟙_ Ctx) ⟶ N.Ty
+  U : y(𝟭_ Ctx) ⟶ N.Ty
   asTm : M.Ty ⟶ N.Tm
   U_pb : IsPullback
             /- m.Ty -/           asTm /- N.Tm -/
@@ -111,7 +106,7 @@ structure UHom (M N : Universe Ctx) extends Hom M N where
 
 def UHom.ofTyIsoExt
     {M N : Universe Ctx}
-    (H : Hom M N) {U : y(𝟙_ Ctx) ⟶ N.Ty} (i : M.Ty ≅ y(N.ext U)) :
+    (H : Hom M N) {U : y(𝟭_ Ctx) ⟶ N.Ty} (i : M.Ty ≅ y(N.ext U)) :
     UHom M N where
   __ := H
   U := U
@@ -140,7 +135,7 @@ theorem UHom.comp_wkU {M N : Universe Ctx} {Δ Γ : Ctx} (α : UHom M N) (f : y(
 
 /- Sanity check:
 construct a `UHom` into a natural model with a Tarski universe. -/
-def UHom.ofTarskiU (M : Universe Ctx) (U : y(𝟙_ Ctx) ⟶ M.Ty) (El : y(M.ext U) ⟶ M.Ty) :
+def UHom.ofTarskiU (M : Universe Ctx) (U : y(𝟭_ Ctx) ⟶ M.Ty) (El : y(M.ext U) ⟶ M.Ty) :
     UHom (M.pullback El) M where
   __ := M.pullbackHom El
   U
@@ -157,7 +152,7 @@ def UHom.ofTarskiU (M : Universe Ctx) (U : y(𝟙_ Ctx) ⟶ M.Ty) (El : y(M.ext 
 
 variable (Ctx) in
 /-- A sequence of Russell universe embeddings. -/
-structure UHomSeq [CartesianMonoidalCategory Ctx] where
+structure UHomSeq where
   /-- Number of embeddings in the sequence,
   or one less than the number of models in the sequence. -/
   length : Nat

@@ -18,8 +18,8 @@ noncomputable section
 
 namespace NaturalModel.Universe
 
-variable {𝒞 : Type u} [SmallCategory 𝒞] [CartesianMonoidalCategory 𝒞]
-open scoped MonoidalCategory
+variable {𝒞 : Type u} [SmallCategory 𝒞] [ChosenTerminal 𝒞]
+open ChosenTerminal
 
 /-! ## Universe level bound helpers -/
 
@@ -140,15 +140,15 @@ protected def tp {Γ Γ' : 𝒞} {l : Nat} (llen : l < s.length + 1) :
 theorem var_tp {Γ Γ' : 𝒞} {l : Nat} (d : s.ExtSeq Γ Γ') (llen : l < s.length + 1) (n : ℕ) :
     (d.var llen n).map (· ≫ s[l].tp) = d.tp llen n := by
   induction d generalizing n
-  . simp [ExtSeq.var, ExtSeq.tp]
+  · simp [ExtSeq.var, ExtSeq.tp]
   next l' _ _ _ ih =>
     cases n
-    . dsimp [ExtSeq.var, ExtSeq.tp]
+    · dsimp [ExtSeq.var, ExtSeq.tp]
       by_cases eq : l' = l
-      . cases eq
+      · cases eq
         simp [Part.assert_pos rfl]
-      . simp [Part.assert_neg eq]
-    . simp [ExtSeq.var, ExtSeq.tp, ← ih]
+      · simp [Part.assert_neg eq]
+    · simp [ExtSeq.var, ExtSeq.tp, ← ih]
 
 theorem var_eq_of_lt_length {l i} {llen : l < s.length + 1} {sΓ sΓ' sΓ'' : 𝒞}
     (d : s.ExtSeq sΓ sΓ') (e : s.ExtSeq sΓ' sΓ'') :
@@ -158,8 +158,8 @@ theorem var_eq_of_lt_length {l i} {llen : l < s.length + 1} {sΓ sΓ' sΓ'' : �
   | snoc _ _ _ ih =>
     intro h
     cases i
-    . simp [ExtSeq.var]
-    . simp only [length, Nat.add_lt_add_iff_right] at h
+    · simp [ExtSeq.var]
+    · simp only [length, Nat.add_lt_add_iff_right] at h
       simp [ExtSeq.var, ih h]
 
 theorem var_append_add_length {l i} {llen : l < s.length + 1} {sΓ sΓ' sΓ'' : 𝒞}
@@ -182,12 +182,12 @@ theorem var_substWk_of_lt_length {l i} {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : 
   | snoc _ _ _ ih =>
     intro h
     cases i
-    . clear ih
+    · clear ih
       dsimp [ExtSeq.var] at st_mem ⊢
       simp_part at st_mem ⊢
       obtain ⟨rfl, rfl⟩ := st_mem
       simp
-    . simp only [length, Nat.add_lt_add_iff_right] at h
+    · simp only [length, Nat.add_lt_add_iff_right] at h
       dsimp [ExtSeq.var] at st_mem ⊢
       simp_part at st_mem ⊢
       obtain ⟨a, amem, rfl⟩ := st_mem
@@ -205,10 +205,10 @@ i.e., one of the form `1.Aₙ₋₁.….A₀`,
 together with the extension sequence `[Aₙ₋₁ :: … :: A₀]`.
 
 This kind of object can be destructured. -/
-def CObj (s : UHomSeq 𝒞) : Type u := Σ Γ : 𝒞, s.ExtSeq (𝟙_ 𝒞) Γ
+def CObj (s : UHomSeq 𝒞) : Type u := Σ Γ : 𝒞, s.ExtSeq (𝟭_ 𝒞) Γ
 
 def nilCObj (s : UHomSeq 𝒞) : s.CObj :=
-  ⟨𝟙_ 𝒞, .nil⟩
+  ⟨𝟭_ 𝒞, .nil⟩
 
 namespace CObj
 variable {s : UHomSeq 𝒞}
@@ -279,7 +279,7 @@ end UHomSeq
 This is the semantic equivalent of `Axioms χ`. -/
 structure Interpretation (χ : Type*) (s : UHomSeq 𝒞) where
   ax (c : χ) (l : Nat) (_ : l < s.length + 1 := by get_elem_tactic) :
-    Option (y(𝟙_ 𝒞) ⟶ s[l].Tm)
+    Option (y(𝟭_ 𝒞) ⟶ s[l].Tm)
   -- We cannot state well-formedness yet: that needs `ofType`.
 
 namespace Interpretation
@@ -795,8 +795,8 @@ theorem mem_ofType_of_isClosed {e l} (e_cl : e.isClosed)
     isTerminal_yUnit.from y(Γ.1) ≫ se ∈ I.ofType Γ l e hl := by
   rcases Γ with ⟨_, ext⟩
   induction ext
-  . convert se_mem; simp
-  . rename_i X se_mem
+  · convert se_mem; simp
+  · rename_i X se_mem
     have := I.mem_ofType_wk (X := X) (by omega) se_mem
     convert this using 1 <;>
       simp [e.subst_of_isClosed _ e_cl, UHomSeq.CObj.snoc]
@@ -1194,7 +1194,7 @@ theorem EqTmIH.trans {Γ A t t' t'' l} :
 structure Wf (I : Interpretation χ s) (E : Axioms χ) : Prop where
   ax {c Al} (Ec : E c = some Al) :
     ∃ sc, I.ax c Al.1.2 = some sc ∧
-    ∃ sA : y(𝟙_ 𝒞) ⟶ s[Al.1.2].Ty,
+    ∃ sA : y(𝟭_ 𝒞) ⟶ s[Al.1.2].Ty,
       sA ∈ I.ofType s.nilCObj Al.1.2 Al.1.1 ∧
       sc ≫ s[Al.1.2].tp = sA
 
@@ -1323,7 +1323,7 @@ def empty (χ : Type*) (s : UHomSeq 𝒞) : Interpretation χ s where
   ax _ _ _ := none
 
 def snoc [DecidableEq χ] (I : Interpretation χ s) (c : χ) (l : Nat) (l_lt : l < s.length)
-    (sc : y(𝟙_ 𝒞) ⟶ s[l].Tm) :
+    (sc : y(𝟭_ 𝒞) ⟶ s[l].Tm) :
     Interpretation χ s where
   ax d k _ := if h : c = d ∧ k = l then some (h.2 ▸ sc) else I.ax d k
 
