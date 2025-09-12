@@ -116,43 +116,42 @@ theorem substWk_disp {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : s.ExtSeq Γ Γ') :
   induction d generalizing σ <;> simp [substWk, NaturalModel.Universe.substWk_disp_assoc, *]
 
 /-- `Γ.Aₖ.….A₀ ⊢ vₙ : Aₙ[↑ⁿ⁺¹]` -/
-protected def var {Γ Γ' : 𝒞} {l : Nat} (llen : l < s.length + 1) :
-    s.ExtSeq Γ Γ' → ℕ → Part (y(Γ') ⟶ s[l].Tm)
+protected def var {Γ Γ' : 𝒞} :
+    s.ExtSeq Γ Γ' → ℕ → Part (Σ' (l : ℕ) (llen : l < s.length + 1), y(Γ') ⟶ s[l].Tm)
   | .nil, _ => .none
-  | snoc (l := l') _ _ A, 0 =>
-    Part.assert (l' = l) fun l'l =>
-    return l'l ▸ s[l'].var A
-  | snoc (l := l') d _ A, n+1 => do
-    let v ← d.var llen n
-    return ym(s[l'].disp A) ≫ v
+  | snoc (l := l) _ llen A, 0 =>
+    return ⟨l, llen, s[l].var A⟩
+  | snoc (l := l') d llen A, n+1 => do
+    let ⟨l, llen, v⟩ ← d.var n
+    return ⟨l, llen, ym(s[l'].disp A) ≫ v⟩
 
-/-- `Γ.Aₖ.….A₀ ⊢ Aₙ[↑ⁿ⁺¹]` -/
-protected def tp {Γ Γ' : 𝒞} {l : Nat} (llen : l < s.length + 1) :
-    s.ExtSeq Γ Γ' → ℕ → Part (y(Γ') ⟶ s[l].Ty)
-  | .nil, _ => .none
-  | snoc (l := l') _ _ A, 0 =>
-    Part.assert (l' = l) fun l'l =>
-    return l'l ▸ ym(s[l'].disp A) ≫ A
-  | snoc (l := l') d _ A, n+1 => do
-    let v ← d.tp llen n
-    return ym(s[l'].disp A) ≫ v
+-- /-- `Γ.Aₖ.….A₀ ⊢ Aₙ[↑ⁿ⁺¹]` -/
+-- protected def tp {Γ Γ' : 𝒞} {l : Nat} (llen : l < s.length + 1) :
+--     s.ExtSeq Γ Γ' → ℕ → Part (y(Γ') ⟶ s[l].Ty)
+--   | .nil, _ => .none
+--   | snoc (l := l') _ _ A, 0 =>
+--     Part.assert (l' = l) fun l'l =>
+--     return l'l ▸ ym(s[l'].disp A) ≫ A
+--   | snoc (l := l') d _ A, n+1 => do
+--     let v ← d.tp llen n
+--     return ym(s[l'].disp A) ≫ v
 
-theorem var_tp {Γ Γ' : 𝒞} {l : Nat} (d : s.ExtSeq Γ Γ') (llen : l < s.length + 1) (n : ℕ) :
-    (d.var llen n).map (· ≫ s[l].tp) = d.tp llen n := by
-  induction d generalizing n
-  · simp [ExtSeq.var, ExtSeq.tp]
-  next l' _ _ _ ih =>
-    cases n
-    · dsimp [ExtSeq.var, ExtSeq.tp]
-      by_cases eq : l' = l
-      · cases eq
-        simp [Part.assert_pos rfl]
-      · simp [Part.assert_neg eq]
-    · simp [ExtSeq.var, ExtSeq.tp, ← ih]
+-- theorem var_tp {Γ Γ' : 𝒞} (d : s.ExtSeq Γ Γ') (n : ℕ) :
+--     (d.var n).map (· ≫ s[l].tp) = d.tp llen n := by
+--   induction d generalizing n
+--   · simp [ExtSeq.var, ExtSeq.tp]
+--   next l' _ _ _ ih =>
+--     cases n
+--     · dsimp [ExtSeq.var, ExtSeq.tp]
+--       by_cases eq : l' = l
+--       · cases eq
+--         simp [Part.assert_pos rfl]
+--       · simp [Part.assert_neg eq]
+--     · simp [ExtSeq.var, ExtSeq.tp, ← ih]
 
-theorem var_eq_of_lt_length {l i} {llen : l < s.length + 1} {sΓ sΓ' sΓ'' : 𝒞}
+theorem var_eq_of_lt_length {i} {sΓ sΓ' sΓ'' : 𝒞}
     (d : s.ExtSeq sΓ sΓ') (e : s.ExtSeq sΓ' sΓ'') :
-    i < e.length → (d.append e).var llen i = e.var llen i := by
+    i < e.length → (d.append e).var i = e.var i := by
   induction e generalizing i with
   | nil => simp
   | snoc _ _ _ ih =>
@@ -162,38 +161,39 @@ theorem var_eq_of_lt_length {l i} {llen : l < s.length + 1} {sΓ sΓ' sΓ'' : �
     · simp only [length, Nat.add_lt_add_iff_right] at h
       simp [ExtSeq.var, ih h]
 
-theorem var_append_add_length {l i} {llen : l < s.length + 1} {sΓ sΓ' sΓ'' : 𝒞}
+theorem var_append_add_length {i} {sΓ sΓ' sΓ'' : 𝒞}
     (d : s.ExtSeq sΓ sΓ') (e : s.ExtSeq sΓ' sΓ'') :
-    (d.append e).var llen (i + e.length) = (d.var llen i).map (ym(e.disp) ≫ ·) := by
+    (d.append e).var (i + e.length) =
+    (d.var i).map (fun ⟨l, llen, v⟩ => ⟨l, llen, ym(e.disp) ≫ v⟩) := by
   induction e <;> (simp [ExtSeq.var, Part.bind_some_eq_map, Part.map_map, *]; rfl)
 
-theorem var_substWk_add_length {l i} {llen : l < s.length + 1} {sΔ sΔ' sΓ sΓ' : 𝒞}
-    (d : s.ExtSeq sΔ sΔ') (σ : sΔ' ⟶ sΓ) (e : s.ExtSeq sΓ sΓ') :
-    let ⟨_, d', _⟩ := e.substWk σ
-    (d.append d').var llen (i + e.length) = (d.var llen i).map (ym(d'.disp) ≫ ·) := by
-  rw [← e.substWk_length σ]
-  apply var_append_add_length
+-- theorem var_substWk_add_length {l i} {llen : l < s.length + 1} {sΔ sΔ' sΓ sΓ' : 𝒞}
+--     (d : s.ExtSeq sΔ sΔ') (σ : sΔ' ⟶ sΓ) (e : s.ExtSeq sΓ sΓ') :
+--     let ⟨_, d', _⟩ := e.substWk σ
+--     (d.append d').var llen (i + e.length) = (d.var llen i).map (ym(d'.disp) ≫ ·) := by
+--   rw [← e.substWk_length σ]
+--   apply var_append_add_length
 
-theorem var_substWk_of_lt_length {l i} {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : s.ExtSeq Γ Γ')
-    (llen : l < s.length + 1) {st} (st_mem : st ∈ d.var llen i) :
-    i < d.length → ym((substWk σ d).2.2) ≫ st ∈ (substWk σ d).2.1.var llen i := by
-  induction d generalizing i with
-  | nil => simp
-  | snoc _ _ _ ih =>
-    intro h
-    cases i
-    · clear ih
-      dsimp [ExtSeq.var] at st_mem ⊢
-      simp_part at st_mem ⊢
-      obtain ⟨rfl, rfl⟩ := st_mem
-      simp
-    · simp only [length, Nat.add_lt_add_iff_right] at h
-      dsimp [ExtSeq.var] at st_mem ⊢
-      simp_part at st_mem ⊢
-      obtain ⟨a, amem, rfl⟩ := st_mem
-      refine ⟨_, ih amem h, ?_⟩
-      simp only [← Functor.map_comp_assoc]
-      simp [NaturalModel.Universe.substWk_disp]
+-- theorem var_substWk_of_lt_length {l i} {Δ Γ Γ' : 𝒞} (σ : Δ ⟶ Γ) (d : s.ExtSeq Γ Γ')
+--     (llen : l < s.length + 1) {st} (st_mem : st ∈ d.var llen i) :
+--     i < d.length → ym((substWk σ d).2.2) ≫ st ∈ (substWk σ d).2.1.var llen i := by
+--   induction d generalizing i with
+--   | nil => simp
+--   | snoc _ _ _ ih =>
+--     intro h
+--     cases i
+--     · clear ih
+--       dsimp [ExtSeq.var] at st_mem ⊢
+--       simp_part at st_mem ⊢
+--       obtain ⟨rfl, rfl⟩ := st_mem
+--       simp
+--     · simp only [length, Nat.add_lt_add_iff_right] at h
+--       dsimp [ExtSeq.var] at st_mem ⊢
+--       simp_part at st_mem ⊢
+--       obtain ⟨a, amem, rfl⟩ := st_mem
+--       refine ⟨_, ih amem h, ?_⟩
+--       simp only [← Functor.map_comp_assoc]
+--       simp [NaturalModel.Universe.substWk_disp]
 
 end ExtSeq
 
@@ -244,31 +244,32 @@ theorem substWk_snoc {sΓ sΓ' : 𝒞} {l} (Δ : s.CObj) (σ : Δ.1 ⟶ sΓ) (d 
       let ⟨Δ', σ'⟩ := Δ.substWk σ d
      ⟨Δ'.snoc llen (ym(σ') ≫ A), s[l].substWk σ' A⟩ := rfl
 
-protected def var {l : Nat} (Γ : s.CObj) (llen : l < s.length + 1) (i : ℕ) :
-    Part (y(Γ.1) ⟶ s[l].Tm) :=
-  Γ.2.var llen i
+protected def var (Γ : s.CObj) (i : ℕ) :
+    Part (Σ' (l : ℕ) (llen : l < s.length + 1), y(Γ.1) ⟶ s[l].Tm) :=
+  Γ.2.var i
 
-protected def tp {l : Nat} (Γ : s.CObj) (llen : l < s.length + 1) (i : ℕ) :
-    Part (y(Γ.1) ⟶ s[l].Ty) :=
-  Γ.2.tp llen i
+-- protected def tp {l : Nat} (Γ : s.CObj) (llen : l < s.length + 1) (i : ℕ) :
+--     Part (y(Γ.1) ⟶ s[l].Ty) :=
+--   Γ.2.tp llen i
 
 @[simp]
 theorem mem_var_zero {Γ : s.CObj} {l' l'len A l} {llen : l < s.length + 1} {x} :
-    x ∈ (Γ.snoc (l := l') l'len A).var llen 0 ↔
+    ⟨l, llen, x⟩ ∈ (Γ.snoc (l := l') l'len A).var 0 ↔
     ∃ l'l : l' = l, x = l'l ▸ s[l'].var A := by
   dsimp only [UHomSeq.CObj.var, UHomSeq.CObj.snoc, UHomSeq.ExtSeq.var]
-  simp_part; exact exists_congr fun _ => by subst l'; simp_part
+  simp_part; rw [eq_comm]; by_cases h : l' = l <;> simp [*]
+  subst l'; simp [eq_comm]
 
-@[simp]
-theorem mem_var_succ {Γ : s.CObj} {l' l'len A l i} {llen : l < s.length + 1} {x} :
-    x ∈ (Γ.snoc (l := l') l'len A).var llen (i+1) ↔
-    ∃ a ∈ Γ.var llen i, x = ym(s[l'].disp A) ≫ a := by
-  dsimp only [UHomSeq.CObj.var, UHomSeq.CObj.snoc, UHomSeq.ExtSeq.var]
-  simp_part
+-- @[simp]
+-- theorem mem_var_succ {Γ : s.CObj} {l' l'len A l i} {llen : l < s.length + 1} {x} :
+--     ⟨l, llen, x⟩ ∈ (Γ.snoc (l := l') l'len A).var (i+1) ↔
+--     ∃ a, ⟨l, llen, a⟩ ∈ Γ.var i ∧ x = ym(s[l'].disp A) ≫ a := by
+--   dsimp only [UHomSeq.CObj.var, UHomSeq.CObj.snoc, UHomSeq.ExtSeq.var]
+--   simp_part; refine exists_congr fun _ => ?_
 
-theorem var_tp {l : Nat} (Γ : s.CObj) (llen : l < s.length + 1) (i : ℕ) :
-    (Γ.var llen i).map (· ≫ s[l].tp) = Γ.tp llen i :=
-  Γ.2.var_tp llen i
+-- theorem var_tp {l : Nat} (Γ : s.CObj) (llen : l < s.length + 1) (i : ℕ) :
+--     (Γ.var llen i).map (· ≫ s[l].tp) = Γ.tp llen i :=
+--   Γ.2.var_tp llen i
 
 end CObj
 end UHomSeq
@@ -278,8 +279,7 @@ end UHomSeq
 /-- An interpretation of a signature consists of a semantic term for each named axiom.
 This is the semantic equivalent of `Axioms χ`. -/
 structure Interpretation (χ : Type*) (s : UHomSeq 𝒞) where
-  ax (c : χ) (l : Nat) (_ : l < s.length + 1 := by get_elem_tactic) :
-    Option (y(𝟭_ 𝒞) ⟶ s[l].Tm)
+  ax (c : χ) : Option (Σ' (l : Nat) (h : l < s.length + 1), y(𝟭_ 𝒞) ⟶ s[l].Tm)
   -- We cannot state well-formedness yet: that needs `ofType`.
 
 namespace Interpretation
@@ -287,107 +287,107 @@ namespace Interpretation
 variable {s : UHomSeq 𝒞} {χ : Type*} (I : Interpretation χ s)
 variable [s.PiSeq] [s.SigSeq] [s.IdSeq]
 
+def atLevel {A : ∀ (l : Nat), l < s.length + 1 → Type*}
+    (p : Part (Σ' (l : Nat) (h : l < s.length + 1), A l h))
+    (l : Nat) (h : l < s.length + 1 := by get_elem_tactic) :
+    Part (A l h) := do
+  let ⟨i, ilen, x⟩ ← p
+  Part.assert (l = i) fun h => do
+  return h ▸ x
+
+def decLevel {A : ∀ (l : Nat), l < s.length + 1 → Type*}
+    (p : Part (Σ' (l : Nat) (h : l < s.length + 1), A l h)) :
+    Part (Σ' (l : Nat) (h : l < s.length), A (l+1) (by omega)) := do
+  let ⟨l, llen, x⟩ ← p
+  Part.assert (l ≠ 0) fun _ => do
+  return ⟨l - 1, by omega, cast (by simp [show l - 1 + 1 = l by omega]) x⟩
+
 mutual
 /- Recall: cannot have `ofCtx` appearing in the output types
 (that would be induction-recursion or something like it),
 thus the context must be an *input*. -/
-def ofType (Γ : s.CObj) (l : Nat) :
-    Expr χ → (_ : l < s.length + 1 := by get_elem_tactic) → Part (y(Γ.1) ⟶ s[l].Ty)
-  | .pi i j A B, _ =>
-    Part.assert (l = max i j) fun lij => do
-    have ilen : i < s.length + 1 := by omega
-    have jlen : j < s.length + 1 := by omega
-    let A ← ofType Γ i A
-    let B ← ofType (Γ.snoc ilen A) j B
-    return lij ▸ s.mkPi ilen jlen A B
-  | .sigma i j A B, _ =>
-    Part.assert (l = max i j) fun lij => do
-    have ilen : i < s.length + 1 := by omega
-    have jlen : j < s.length + 1 := by omega
-    let A ← ofType Γ i A
-    let B ← ofType (Γ.snoc ilen A) j B
-    return lij ▸ s.mkSig ilen jlen A B
-  | .Id _ A a0 a1, llen => do
-    let A ← ofType Γ l A
-    let a0 ← ofTerm Γ l a0
-    let a1 ← ofTerm Γ l a1
+def ofType (Γ : s.CObj) : Expr χ → Part (Σ' (l : Nat) (_ : l < s.length + 1), y(Γ.1) ⟶ s[l].Ty)
+  | .pi _ _ A B => do
+    -- Part.assert (l = max i j) fun lij => do
+    -- have ilen : i < s.length + 1 := by omega
+    -- have jlen : j < s.length + 1 := by omega
+    let ⟨i, ilen, A⟩ ← ofType Γ A
+    let ⟨j, jlen, B⟩ ← ofType (Γ.snoc ilen A) B
+    return ⟨max i j, by omega, s.mkPi ilen jlen A B⟩
+  | .sigma _ _ A B => do
+    let ⟨i, ilen, A⟩ ← ofType Γ A
+    let ⟨j, jlen, B⟩ ← ofType (Γ.snoc ilen A) B
+    return ⟨max i j, by omega, s.mkSig ilen jlen A B⟩
+  | .Id _ A a0 a1 => do
+    let ⟨l, llen, A⟩ ← ofType Γ A
+    let a0 ← atLevel (ofTerm Γ a0) l
+    let a1 ← atLevel (ofTerm Γ a1) l
     Part.assert (a0 ≫ s[l].tp = A) fun eq0 => do
     Part.assert (a1 ≫ s[l].tp = A) fun eq1 => do
-    return s.mkId llen A a0 a1 eq0 eq1
-  | .univ i, _ =>
-    Part.assert (l = i + 1) fun li => do
-    return li ▸ (s.homSucc i).wkU Γ.1
-  | .el t, _ => do
-    Part.assert (l < s.length) fun llen => do
-    let A ← ofTerm Γ (l+1) t
+    return ⟨l, llen, s.mkId llen A a0 a1 eq0 eq1⟩
+  | .univ i =>
+    Part.assert (i < s.length) fun _ => do
+    return ⟨i + 1, by omega, (s.homSucc i).wkU Γ.1⟩
+  | .el t => do
+    let ⟨l, llen, A⟩ ← decLevel (ofTerm Γ t)
     Part.assert (A ≫ s[l+1].tp = (s.homSucc l).wkU Γ.1) fun A_tp => do
-    return s.el llen A A_tp
-  | _, _ => .none
+    return ⟨l, by omega, s.el (by omega) A A_tp⟩
+  | _ => .none
 
-def ofTerm (Γ : s.CObj) (l : Nat) :
-    Expr χ → (_ : l < s.length + 1 := by get_elem_tactic) → Part (y(Γ.1) ⟶ s[l].Tm)
-  | .ax c _, llen => do
-    let some sc := I.ax c l | Part.assert False nofun
-    return isTerminal_yUnit.from y(Γ.1) ≫ sc
-  | .bvar i, llen => Γ.var llen i
-  | .lam i j A e, _ => do
-    Part.assert (l = max i j) fun lij => do
-    have ilen : i < s.length + 1 := by omega
-    have jlen : j < s.length + 1 := by omega
-    let A ← ofType Γ i A
-    let e ← ofTerm (Γ.snoc ilen A) j e
-    return lij ▸ s.mkLam ilen jlen A e
-  | .app i _ B f a, llen => do
-    Part.assert (i < s.length + 1) fun ilen => do
-    let f ← ofTerm Γ (max i l) f
-    let a ← ofTerm Γ i a
-    let B ← ofType (Γ.snoc ilen (a ≫ s[i].tp)) l B
+def ofTerm (Γ : s.CObj) : Expr χ → Part (Σ' (l : Nat) (_ : l < s.length + 1), y(Γ.1) ⟶ s[l].Tm)
+  | .ax c _ => do
+    let some ⟨l, llen, sc⟩ := I.ax c | Part.assert False nofun
+    return ⟨l, llen, isTerminal_yUnit.from y(Γ.1) ≫ sc⟩
+  | .bvar i => Γ.var i
+  | .lam _ _ A e => do
+    let ⟨i, ilen, A⟩ ← ofType Γ A
+    let ⟨j, jlen, e⟩ ← ofTerm (Γ.snoc ilen A) e
+    return ⟨max i j, by omega, s.mkLam ilen jlen A e⟩
+  | .app _ _ B f a => do
+    let ⟨i, ilen, a⟩ ← ofTerm Γ a
+    let ⟨l, llen, B⟩ ← ofType (Γ.snoc ilen (a ≫ s[i].tp)) B
+    let f ← atLevel (ofTerm Γ f) (max i l)
     Part.assert (f ≫ s[max i l].tp = s.mkPi ilen llen (a ≫ s[i].tp) B) fun h =>
-    return s.mkApp ilen llen _ B f h a rfl
-  | .pair i j B t u, _ => do
-    Part.assert (l = max i j) fun lij => do
-    have ilen : i < s.length + 1 := by omega
-    have jlen : j < s.length + 1 := by omega
-    let t ← ofTerm Γ i t
-    let B ← ofType (Γ.snoc ilen (t ≫ s[i].tp)) j B
-    let u ← ofTerm Γ j u
+    return ⟨l, llen, s.mkApp ilen llen _ B f h a rfl⟩
+  | .pair _ _ B t u => do
+    let ⟨i, ilen, t⟩ ← ofTerm Γ t
+    let ⟨j, jlen, B⟩ ← ofType (Γ.snoc ilen (t ≫ s[i].tp)) B
+    let u ← atLevel (ofTerm Γ u) j
     Part.assert (u ≫ s[j].tp = ym(s[i].sec _ t rfl) ≫ B) fun u_tp =>
-    return lij ▸ s.mkPair ilen jlen (t ≫ s[i].tp) B t rfl u u_tp
-  | .fst _ j A B p, llen => do
-    Part.assert (j < s.length + 1) fun jlen => do
+    return ⟨max i j, by omega, s.mkPair ilen jlen (t ≫ s[i].tp) B t rfl u u_tp⟩
+  | .fst _ _ A B p => do
     -- RB was so right
-    let A ← ofType Γ l A
-    let B ← ofType (Γ.snoc llen A) j B
-    let p ← ofTerm Γ (max l j) p
+    let ⟨l, llen, A⟩ ← ofType Γ A
+    let ⟨j, jlen, B⟩ ← ofType (Γ.snoc llen A) B
+    let p ← atLevel (ofTerm Γ p) (max l j)
     Part.assert (p ≫ s[max l j].tp = s.mkSig llen jlen A B) fun p_tp =>
-    return s.mkFst llen jlen A B p p_tp
-  | .snd i _ A B p, llen => do
-    Part.assert (i < s.length + 1) fun ilen => do
-    let A ← ofType Γ i A
-    let B ← ofType (Γ.snoc ilen A) l B
-    let p ← ofTerm Γ (max i l) p
+    return ⟨l, llen, s.mkFst llen jlen A B p p_tp⟩
+  | .snd _ _ A B p => do
+    let ⟨i, ilen, A⟩ ← ofType Γ A
+    let ⟨l, llen, B⟩ ← ofType (Γ.snoc ilen A) B
+    let p ← atLevel (ofTerm Γ p) (max i l)
     Part.assert (p ≫ s[max i l].tp = s.mkSig ilen llen A B) fun p_tp =>
-    return s.mkSnd ilen llen A B p p_tp
-  | .refl _ t, llen => do
-    let t ← ofTerm Γ l t
-    return s.mkRefl llen t
-  | .idRec i _ t M r u h, llen => do
-    Part.assert (i < s.length + 1) fun ilen => do
-    let t ← ofTerm Γ i t
+    return ⟨l, llen, s.mkSnd ilen llen A B p p_tp⟩
+  | .refl _ t => do
+    let ⟨l, llen, t⟩ ← ofTerm Γ t
+    return ⟨l, llen, s.mkRefl llen t⟩
+  | .idRec _ _ t M r u h => do
+    -- Part.assert (i < s.length + 1) fun ilen => do
+    let ⟨i, ilen, t⟩ ← ofTerm Γ t
     let A := t ≫ s[i].tp
-    let M ← ofType ((Γ.snoc ilen A).snoc ilen _) l M
-    let r ← ofTerm Γ l r
+    let ⟨l, llen, M⟩ ← ofType ((Γ.snoc ilen A).snoc ilen _) M
+    let r ← atLevel (ofTerm Γ r) l
     Part.assert _ fun r_tp => do
-    let u ← ofTerm Γ i u
+    let u ← atLevel (ofTerm Γ u) i
     Part.assert (u ≫ s[i].tp = A) fun u_tp => do
-    let h ← ofTerm Γ i h
+    let h ← atLevel (ofTerm Γ h) i
     Part.assert (h ≫ s[i].tp = s.mkId ilen A t u rfl u_tp) fun h_tp => do
-    return s.mkIdRec ilen llen A t rfl _ rfl M r r_tp u u_tp h h_tp
-  | .code t, _ =>
-    Part.assert (0 < l) fun lpos => do
-    let A ← ofType Γ (l-1) t
-    return cast (by congr 3; omega) <| s.code (by omega) A
-  | _, _ => .none
+    return ⟨l, llen, s.mkIdRec ilen llen A t rfl _ rfl M r r_tp u u_tp h h_tp⟩
+  | .code t => do
+    let ⟨i, _, A⟩ ← ofType Γ t
+    Part.assert (i < s.length) fun ilen => do
+    return ⟨i+1, by omega, s.code ilen A⟩
+  | _ => .none
 
 end
 
@@ -396,7 +396,7 @@ def ofCtx : Ctx χ → Part s.CObj
   | (A,l) :: Γ => do
     Part.assert (l < s.length + 1) fun llen => do
     let sΓ ← ofCtx Γ
-    let sA ← I.ofType sΓ l A
+    let sA ← atLevel (I.ofType sΓ A) l
     return sΓ.snoc llen sA
 
 @[simp]
