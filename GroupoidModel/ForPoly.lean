@@ -420,7 +420,7 @@ theorem snd'_comp_right (pair : Γ ⟶ P @ X)
     symm; apply pullback.lift_snd
 
 theorem snd_comp_right (pair : Γ ⟶ P @ X) : snd P Y (pair ≫ P.functor.map f) =
-    eqToHom congr(pullback $(fst_comp_right ..) _) ≫ snd P X pair ≫ f := by
+    eqToHom (by congr 1; apply fst_comp_right) ≫ snd P X pair ≫ f := by
   rw [snd_eq_snd', snd'_comp_right, snd', Category.assoc, ← eqToIso.hom]; congr! 2
   exact IsPullback.isoPullback_eq_eqToIso_left (fst_comp_right _ _ _ f pair) P.p
 

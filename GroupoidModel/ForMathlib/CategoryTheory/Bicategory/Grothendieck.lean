@@ -183,16 +183,17 @@ instance category : Category (∫ F) where
   id_comp {a b} f := by
     ext
     · simp
-    · simp [F.mapComp_id_left_hom_app, Strict.leftUnitor_eqToIso, ← Functor.map_comp_assoc]
+    · simp [F.mapComp_id_left_hom_app, PrelaxFunctor.map₂_eqToHom, Strict.leftUnitor_eqToIso,
+        ← Functor.map_comp_assoc]
   comp_id {a b} f := by
     ext
     · simp
-    · simp [F.mapComp_id_right_hom_app, Strict.rightUnitor_eqToIso]
+    · simp [F.mapComp_id_right_hom_app, PrelaxFunctor.map₂_eqToHom, Strict.rightUnitor_eqToIso]
   assoc f g h := by
     ext
     · simp
-    · simp [mapComp_assoc_right_hom_app_assoc, Strict.associator_eqToIso]
-      -- rw [F.mapComp_assoc_right_hom_app_assoc] after Mathlib change
+    · simp [PrelaxFunctor.map₂_eqToHom, mapComp_assoc_right_hom_app_assoc,
+        Strict.associator_eqToIso]
 
 variable (F)
 

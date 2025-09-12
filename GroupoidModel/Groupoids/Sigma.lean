@@ -73,7 +73,7 @@ theorem sigmaMap_map_fiber_aux {a b : sigmaObj B x} {p : a ⟶ b} :
   simp only [sigmaObj, sigmaMap, Functor.comp_obj, Functor.comp_map, pre_map_base, map_map_base,
     pre_obj_fiber, map_obj_fiber, Functor.whiskerRight_app]
   simp only [← Functor.comp_obj, ← Grpd.comp_eq_comp, ← Functor.map_comp]
-  congr 3
+  congr 2
   exact ((ιNatTrans f).naturality p.base).symm
 
 @[simp] theorem sigmaMap_map_fiber {a b : sigmaObj B x} {p : a ⟶ b} :

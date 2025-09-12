@@ -96,6 +96,8 @@ instance : CartesianMonoidalCategory Ctx := equivalence.chosenFiniteProducts
 
 end Ctx
 
+attribute [local instance] uliftCategory
+
 @[simps] def catLift : Cat.{u,u} ⥤ Cat.{u,u+1} where
   obj x := Cat.of (ULift.{u + 1, u} x)
   map {x y} f := downFunctor ⋙ f ⋙ upFunctor

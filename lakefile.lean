@@ -30,7 +30,7 @@ require checkdecls from git "https://github.com/PatrickMassot/checkdecls.git"
 
 meta if get_config? env = some "dev" then
 require «doc-gen4» from git
-  "https://github.com/leanprover/doc-gen4" @ "v4.22.0-rc3"
+  "https://github.com/leanprover/doc-gen4" @ "v4.23.0-rc2"
 
 @[test_driver]
 lean_lib test where
