@@ -52,6 +52,8 @@ theorem Part.assert_dom {α : Type*} (P : Prop) (x : P → Part α) :
 -/
 universe w v u v₁ u₁ v₂ u₂ v₃ u₃
 
+attribute [local instance] CategoryTheory.uliftCategory
+
 namespace CategoryTheory.ULift
 
 variable {C : Type u₁} {D : Type u₂} [Category.{v₁} C] [Category.{v₂} D]

@@ -1300,7 +1300,7 @@ lemma comp_lift {Δ} (σ : Δ ⟶ Γ) : ym(σ) ≫ lift base i ar aC hrC =
   rw! (castMode := .all) [← comp_motive, ← comp_reflCase, ← equivFst_comp_left] at h
   rw [← h]
   congr 1
-  simp only [Functor.map_comp, iUvPoly_p, Category.assoc]
+  simp only [iUvPoly_p, Category.assoc]
   apply (M.disp_pullback _).hom_ext
   · simp [toI_comp_left, ← toI_comp_i1]
   · apply (M.disp_pullback _).hom_ext
