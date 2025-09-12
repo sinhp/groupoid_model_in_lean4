@@ -540,7 +540,7 @@ def inversion : ∫(A) ⥤ PGrpd := mapStrongTrans B s hs ⋙ sigma.assoc B ⋙ 
 
 lemma mapStrongTrans_comp_fstAux' : mapStrongTrans B s hs ⋙ sigma.fstAux' B = 𝟭 _ := by
   apply Functor.Groupoidal.FunctorTo.hext
-  · rw [Functor.assoc, sigma.fstAux', map_forget, mapStrongTrans, Functor.assoc,
+  · rw [Functor.assoc, sigma.fstAux', map_comp_forget, mapStrongTrans, Functor.assoc,
       Functor.assoc, Functor.Groupoidal.forget,
       Functor.Grothendieck.toPseudoFunctor'Iso.inv_comp_forget,
       Pseudofunctor.Grothendieck.map_comp_forget, Functor.id_comp,

@@ -62,7 +62,7 @@ theorem isPullback' :
       (Cat.homOf PGrpd.forgetToGrpd.{u,u})
       (Cat.homOf PCat.forgetToCat.{u,u})
       (Cat.homOf Grpd.forgetToCat.{u,u}) :=
-  Cat.isPullback forgetToPCat_forgetToCat isPullback
+  Cat.isPullback isPullback
 
 
 end PGrpd

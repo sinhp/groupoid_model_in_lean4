@@ -204,7 +204,7 @@ theorem smallU_substWk (A : y(Γ) ⟶ smallU.{v}.Ty) (σA eq) : smallU.substWk �
   · conv => left; rw [← Functor.map_comp, substWk_disp]
     simp only [smallU_disp, ← Functor.map_comp, Grpd.homOf, yonedaCategoryEquivPre,
       Grpd.comp_eq_comp, Functor.assoc, smallU.disp]
-    rw [pre_comp_forget, ← Functor.assoc, map_forget]
+    rw [pre_comp_forget, ← Functor.assoc, map_comp_forget]
     rfl
 
 @[simp] theorem smallU_sec {Γ : Ctx} (α : y(Γ) ⟶ smallU.{v}.Tm) :
