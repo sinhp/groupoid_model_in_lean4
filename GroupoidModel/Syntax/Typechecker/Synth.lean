@@ -7,7 +7,7 @@ open Qq
 
 For now it is specialized to axioms named by `Lean.Name`. -/
 
-def traceClsTypechecker : Lean.Name := `Leanternal.Typechecker
+def traceClsTypechecker : Lean.Name := `SynthLean.Typechecker
 
 initialize
   Lean.registerTraceClass traceClsTypechecker

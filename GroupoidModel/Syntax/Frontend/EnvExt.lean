@@ -6,7 +6,7 @@ import GroupoidModel.Syntax.Frontend.Checked
 For all definitions added to a given theory, we must keep track of both
 - a shallowly embedded representation of the term/type as a Lean expression,
   for use when working internally; and
-- a deeply embedded representation as a `Leanternal.Expr` + correctness proofs,
+- a deeply embedded representation as a `SynthLean.Expr` + correctness proofs,
   for use when working externally.
 
 We store theory-definitions in deep form in the ordinary Lean environment,
@@ -22,7 +22,7 @@ open Lean in
 instance : MonadOptions ImportM where
   getOptions := ImportM.Context.opts <$> read
 
-namespace Leanternal
+namespace SynthLean
 open Lean Qq
 
 variable {m : Type → Type} [Monad m] [MonadLiftT IO m]
@@ -156,4 +156,4 @@ def setTheoryData (thyNm : Name) (thyData : TheoryData) : m Unit := do
     throwError "trying to write non-existent theory '{thyNm}'"
   setEnv <| theoryExt.modifyState env fun ds => ds.insert thyNm thyData
 
-end Leanternal
+end SynthLean

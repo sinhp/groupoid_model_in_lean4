@@ -2,11 +2,11 @@ import Qq
 import GroupoidModel.Syntax.Axioms
 import GroupoidModel.Syntax.Frontend.Checked
 
-namespace Leanternal
+namespace SynthLean
 
 open Qq Lean Meta
 
-def traceClsTranslation : Name := `Leanternal.Translation
+def traceClsTranslation : Name := `SynthLean.Translation
 
 initialize
   registerTraceClass traceClsTranslation
@@ -44,7 +44,7 @@ def isType : Lean.Expr → Bool
   | .sort .. | .forallE .. => true
   | _ => false
 
-/-- Make the Leanternal term
+/-- Make the SynthLean term
 `fun (A : Type l) (B : A → Type l') : Type (max l l') => code (Σ (El A) (El (B #0)))`. -/
 def mkSigma {u : Level} (χ : Q(Type u)) (l l' : Nat) : Q(_root_.Expr $χ) :=
   q(.lam ($l + 1) (max $l $l' + 1) (.univ $l) <|
@@ -54,7 +54,7 @@ def mkSigma {u : Level} (χ : Q(Type u)) (l l' : Nat) : Q(_root_.Expr $χ) :=
           (.el <| .bvar 1)
           (.el <| .app $l ($l' + 1) (.univ $l') (.bvar 1) (.bvar 0)))
 
-/-- Make the Leanternal term
+/-- Make the SynthLean term
 `fun (A : Type l) (a b : A) : Type l => code (.Id l a b)`. -/
 def mkId {u : Level} (χ : Q(Type u)) (l : Nat) : Q(_root_.Expr $χ) :=
   q(.lam ($l + 1) ($l + 1) (.univ $l) <|
@@ -207,4 +207,4 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr Lea
 
 end
 
-end Leanternal
+end SynthLean

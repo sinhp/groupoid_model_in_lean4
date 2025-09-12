@@ -44,7 +44,7 @@ def collectAxioms' {m : Type → Type} [Monad m] [MonadEnv m] (constName : Name)
 
 end Lean
 
-namespace Leanternal
+namespace SynthLean
 
 open Lean Elab Command
 open Qq
@@ -204,7 +204,7 @@ def elabDeclaration (thyNm : Name) (stx : Syntax) : CommandElabM Unit := do
   saveShallowTheoryConst thyNm (.defnInfo i)
   Command.liftTermElabM <| addCheckedDef thyEnv' i
 
-/-- Declare a new Leanternal theory with the given name.
+/-- Declare a new SynthLean theory with the given name.
 Theories start off with no axioms or definitions.
 You can add these using `<theory> def` and `<theory> axiom`,
 where `<theory>` is your chosen name. -/
@@ -251,4 +251,4 @@ run_meta do
   addAx `sorryAx₁
   addAx `sorryAx₂
 
-end Leanternal
+end SynthLean

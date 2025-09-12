@@ -3,7 +3,7 @@ import GroupoidModel.Syntax.Typechecker.Synth
 import GroupoidModel.Syntax.Frontend.Translation
 
 open Lean Elab Meta Term Command
-open Leanternal
+open SynthLean
 open Qq
 
 inductive Measurement where

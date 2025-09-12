@@ -1,6 +1,6 @@
-/-! ## Leanternal prelude
+/-! ## SynthLean prelude
 
-The prelude of every Leanternal theory.
+The prelude of every SynthLean theory.
 
 This imports the default Lean prelude,
 including definitions that we don't support (e.g. `Prop`-valued `Eq`),
