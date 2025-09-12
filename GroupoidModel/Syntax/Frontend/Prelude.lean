@@ -1,6 +1,6 @@
-/-! ## Leanternal prelude
+/-! ## SynthLean prelude
 
-The prelude of every Leanternal theory.
+The prelude of every SynthLean theory.
 
 This imports the default Lean prelude,
 including definitions that we don't support (e.g. `Prop`-valued `Eq`),
@@ -41,4 +41,3 @@ end Identity
 axiom sorryAx₀ (A : Type 0) : A
 axiom sorryAx₁ (A : Type 1) : A
 axiom sorryAx₂ (A : Type 2) : A
-axiom sorryAx₃ (A : Type 3) : A

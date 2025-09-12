@@ -6,11 +6,15 @@
 ## Python
 __pycache__
 venv
+env
+## JavaScript
+node_modules
 ## Blueprint
 blueprint/web/
 blueprint/src/chapter/auto
 blueprint/lean_decls
 blueprint/print/
+home_page/blueprint
 *.pdf
 ## Docs
 docs/_includes/sorries.md

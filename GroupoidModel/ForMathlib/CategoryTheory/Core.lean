@@ -209,11 +209,10 @@ namespace ULift
 namespace Core
 
 variable {C : Type u} [Category.{v} C]
+attribute [local instance] CategoryTheory.uliftCategory
 
 -- FIXME could be generalized?
-def isoCoreULift :
-    Cat.of (ULift.{w} (Core C)) ≅
-      Cat.of (Core (ULift.{w} C)) where
+def isoCoreULift : Cat.of (ULift.{w} (Core C)) ≅ Cat.of (Core (ULift.{w} C)) where
   hom := Cat.homOf (downFunctor ⋙ upFunctor.core)
   inv := Cat.homOf (downFunctor.core ⋙ upFunctor)
 

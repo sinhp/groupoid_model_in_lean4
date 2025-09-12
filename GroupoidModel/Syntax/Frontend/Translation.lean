@@ -2,11 +2,11 @@ import Qq
 import GroupoidModel.Syntax.Axioms
 import GroupoidModel.Syntax.Frontend.Checked
 
-namespace Leanternal
+namespace SynthLean
 
 open Qq Lean Meta
 
-def traceClsTranslation : Name := `Leanternal.Translation
+def traceClsTranslation : Name := `SynthLean.Translation
 
 initialize
   registerTraceClass traceClsTranslation
@@ -14,8 +14,8 @@ initialize
   registerTraceClass (traceClsTranslation ++ `tm) (inherited := true)
 
 structure Context where
-  /-- Maps `FVarId`s to their de Bruijn index. -/
-  bvars : AssocList FVarId Nat := {}
+  /-- The position of an `FVarId` is its de Bruijn index. -/
+  bvars : List FVarId := []
   /-- The ordinary (external) Lean environment. -/
   extEnv : Environment
 
@@ -27,7 +27,7 @@ def TranslateM.run {α : Type} (x : TranslateM α) (extEnv : Environment) : Meta
   ReaderT.run x { extEnv }
 
 def withBinder {α : Type} (x : Lean.Expr) (k : TranslateM α) : TranslateM α := do
-  withReader (fun s => { s with bvars := s.bvars.mapVal (· + 1) |>.insert x.fvarId! 0 }) k
+  withReader (fun s => { s with bvars := x.fvarId! :: s.bvars }) k
 
 /-- Extract the level `u` in `Sort u`.
 It must be monomorphic, i.e., may not contain universe variables. -/
@@ -44,7 +44,7 @@ def isType : Lean.Expr → Bool
   | .sort .. | .forallE .. => true
   | _ => false
 
-/-- Make the Leanternal term
+/-- Make the SynthLean term
 `fun (A : Type l) (B : A → Type l') : Type (max l l') => code (Σ (El A) (El (B #0)))`. -/
 def mkSigma {u : Level} (χ : Q(Type u)) (l l' : Nat) : Q(_root_.Expr $χ) :=
   q(.lam ($l + 1) (max $l $l' + 1) (.univ $l) <|
@@ -54,7 +54,7 @@ def mkSigma {u : Level} (χ : Q(Type u)) (l l' : Nat) : Q(_root_.Expr $χ) :=
           (.el <| .bvar 1)
           (.el <| .app $l ($l' + 1) (.univ $l') (.bvar 1) (.bvar 0)))
 
-/-- Make the Leanternal term
+/-- Make the SynthLean term
 `fun (A : Type l) (a b : A) : Type l => code (.Id l a b)`. -/
 def mkId {u : Level} (χ : Q(Type u)) (l : Nat) : Q(_root_.Expr $χ) :=
   q(.lam ($l + 1) ($l + 1) (.univ $l) <|
@@ -103,7 +103,7 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr Lea
     let eTp ← inferType e
     let .sort l ← inferType eTp | throwError "internal error (sort)"
     let n ← getSortLevel l
-    match (← read).bvars.find? f with
+    match (← read).bvars.findIdx? (· == f) with
     | some i => return ⟨n, q(.bvar $i)⟩
     | none => throwError "unexpected fvar{indentExpr e}"
   | .lam _ A .. =>
@@ -207,4 +207,4 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(_root_.Expr Lea
 
 end
 
-end Leanternal
+end SynthLean

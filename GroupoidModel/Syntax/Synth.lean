@@ -1,8 +1,8 @@
 import GroupoidModel.Syntax.Inversion
 import GroupoidModel.Syntax.GCongr
 
-variable {χ : Type*} {E : Axioms χ} {Γ : Ctx χ}
-  {A A' t : Expr χ} {i l l' : Nat}
+variable {χ : Type*} {E E' : Axioms χ} {Γ : Ctx χ}
+  {A A' t t' : Expr χ} {i l l' : Nat}
 
 /-! ## Lookup well-formedness -/
 
@@ -79,11 +79,11 @@ theorem WfTm.lvl_eq_synthLvl : E ∣ Γ ⊢[l] t : A → l = synthLvl Γ t :=
   fun t => _root_.eq_synthLvl.2 t
 
 /-- A type's universe level is unique. -/
-theorem WfTp.uniq_lvl : E ∣ Γ ⊢[l] A → E ∣ Γ ⊢[l'] A → l = l' :=
+theorem WfTp.uniq_lvl : E ∣ Γ ⊢[l] A → E' ∣ Γ ⊢[l'] A → l = l' :=
   fun h h' => h.lvl_eq_synthLvl.trans h'.lvl_eq_synthLvl.symm
 
 /-- A term's universe level is unique. -/
-theorem WfTm.uniq_lvl : E ∣ Γ ⊢[l] t : A → E ∣ Γ ⊢[l'] t : A' → l = l' :=
+theorem WfTm.uniq_lvl : E ∣ Γ ⊢[l] t : A → E' ∣ Γ ⊢[l'] t : A' → l = l' :=
   fun h h' => h.lvl_eq_synthLvl.trans h'.lvl_eq_synthLvl.symm
 
 /-! ## Type synthesis and uniqueness -/

@@ -15,7 +15,7 @@ universe w v u v₁ u₁ v₂ u₂ v₃ u₃
 
 noncomputable section
 open CategoryTheory ULift Functor Groupoidal
-  Limits NaturalModel CategoryTheory.Functor
+  Limits CategoryTheory.Functor
 
 namespace CategoryTheory.PGrpd
 def pGrpdToGroupoidalAsSmallFunctor : PGrpd.{v, v} ⥤
@@ -95,6 +95,8 @@ def homOfFunctor {C : Type (v+1)} [Category.{v} C] {D : Type (w+1)} [Category.{w
 instance : CartesianMonoidalCategory Ctx := equivalence.chosenFiniteProducts
 
 end Ctx
+
+attribute [local instance] uliftCategory
 
 @[simps] def catLift : Cat.{u,u} ⥤ Cat.{u,u+1} where
   obj x := Cat.of (ULift.{u + 1, u} x)

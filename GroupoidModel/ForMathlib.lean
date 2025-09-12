@@ -52,6 +52,8 @@ theorem Part.assert_dom {α : Type*} (P : Prop) (x : P → Part α) :
 -/
 universe w v u v₁ u₁ v₂ u₂ v₃ u₃
 
+attribute [local instance] CategoryTheory.uliftCategory
+
 namespace CategoryTheory.ULift
 
 variable {C : Type u₁} {D : Type u₂} [Category.{v₁} C] [Category.{v₂} D]
@@ -270,6 +272,32 @@ def asSmallFunctor : Grpd.{v, u} ⥤ Grpd.{max w v u, max w v u} where
   map F := AsSmall.down ⋙ F ⋙ AsSmall.up
 
 end Grpd
+
+/- We have a 'nice', specific terminal object in `Ctx`,
+and this instance allows use to use it directly
+rather than through an isomorphism with `Limits.terminal`. -/
+class ChosenTerminal (C : Type u) [Category.{v} C] where
+  terminal : C
+  /-- The tensor unit is a terminal object. -/
+  isTerminal : Limits.IsTerminal terminal
+
+namespace ChosenTerminal
+noncomputable section
+open MonoidalCategory CartesianMonoidalCategory
+
+/-- Notation for `terminal` -/
+scoped notation "𝟭_ " X:arg => ChosenTerminal.terminal (C := X)
+
+def isTerminal_yUnit {C : Type u} [Category.{v} C] [ChosenTerminal C] :
+    Limits.IsTerminal (yoneda.obj (𝟭_ C)) :=
+  ChosenTerminal.isTerminal.isTerminalObj yoneda (𝟭_ C)
+
+instance (C : Type u) [Category.{v} C] [CartesianMonoidalCategory C] : ChosenTerminal C where
+  terminal := 𝟙_ C
+  isTerminal := isTerminalTensorUnit
+
+end
+end ChosenTerminal
 
 namespace Equivalence
 noncomputable section

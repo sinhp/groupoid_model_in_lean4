@@ -95,7 +95,7 @@ end CategoryTheory
 
 namespace GroupoidModel
 
-open CategoryTheory Functor.Groupoidal
+open CategoryTheory Functor.Groupoidal NaturalModel Universe
 
 
 namespace FunctorOperation
@@ -498,7 +498,7 @@ def comm: Limits.pullback.lift (𝟙 smallU.Tm) (𝟙 smallU.Tm) rfl ≫ id = re
 
 -- TODO: make sure universe levels are most general
 -- TODO: make namespaces consistent with Sigma file
-def smallUIdBase : NaturalModel.IdIntro smallU.{u,u} where
+def smallUIdBase : Universe.IdIntro smallU.{u,u} where
   k := y(GroupoidModel.U.ext GroupoidModel.π.{u,u})
   k1 := sorry -- smallU.{u,u}.var GroupoidModel.π.{u,u}
   k2 := sorry -- ym(smallU.{u,u}.disp GroupoidModel.π.{u,u})
