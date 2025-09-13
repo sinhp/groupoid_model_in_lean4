@@ -11,12 +11,18 @@ It provides:
 
 This submission also includes incomplete work for the larger **HoTTLean** project,
 which includes many `sorry` results involving the groupoid model.
-The main theorem of the paper is `ofType_ofTerm_sound` in
-`GroupoidModel/Syntax/Interpretation.lean`, which can be validated using
-```
-#print axioms NaturalModel.Universe.Interpretation.ofType_ofTerm_sound
-```
-at the end of the file.
+
+* The main theorem of the paper, theorem 3.1, is `ofType_ofTerm_sound` in
+[`GroupoidModel/Syntax/Interpretation.lean`](GroupoidModel/Syntax/Interpretation.lean#L1212), which can be validated to be `sorry`-free using
+
+  ```
+  #print axioms NaturalModel.Universe.Interpretation.ofType_ofTerm_sound
+  ```
+  at the end of the file.
+
+* [`test/unitt.lean`](test/unitt.lean) contains the examples from section 5. (The interpretation section depends on some unproved work on the groupoid model.)
+
+* [`test/hott0.lean`](test/hott0.lean) is another example theory.
 
 A web version of the mathematics, Lean documentation, and a dependency graph on the progress of formalization can be found [here](https://sinhp.github.io/groupoid_model_in_lean4/).
 
