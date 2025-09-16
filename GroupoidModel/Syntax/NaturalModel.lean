@@ -942,8 +942,7 @@ lemma equivSnd_verticalNatTrans_app {Γ : Ctx} {X : Psh Ctx}
   calc _
   _ = _ ≫ ie.equivSnd pair := by
     dsimp [equivSnd, verticalNatTrans]
-    rw [UvPoly.snd'_verticalNatTrans_app (UvPoly.id M.Tm) ie.iUvPoly
-      (ie.comparison) _ _ pair _]
+    apply UvPoly.snd'_verticalNatTrans_app
     apply reflCase_aux (ie.equivFst pair)
   _ = _ := by
     congr 1
@@ -962,8 +961,7 @@ lemma equivMk_comp_verticalNatTrans_app {Γ : Ctx} {X : Psh Ctx} (a : y(Γ) ⟶ 
     UvPoly.Equiv.mk' (UvPoly.id M.Tm) X a (R := y(Γ)) (f := 𝟙 _) (g := a)
     (reflCase_aux a) (ym(ii.reflSubst a) ≫ x) := by
   dsimp only [equivMk, verticalNatTrans]
-  rw [UvPoly.mk'_comp_verticalNatTrans_app (R' := y(Γ)) (f' := 𝟙 _) (g' := a)
-    (H' := reflCase_aux a)]
+  rw [UvPoly.mk'_comp_verticalNatTrans_app (H := reflCase_aux a)]
   congr 2
   apply (M.disp_pullback _).hom_ext
   · conv => lhs; rw [← toI_comp_i1 ie]
@@ -1089,8 +1087,7 @@ lemma motive_comp_left : ym(σ) ≫ motive ie a C =
 def lift : y(Γ) ⟶ ie.iFunctor.obj N.Tm :=
   i.weakPullback.coherentLift (reflCase a r) (motive ie a C) (by
     dsimp only [motive, equivMk, verticalNatTrans, reflCase]
-    rw [UvPoly.mk'_comp_verticalNatTrans_app (UvPoly.id M.Tm) ie.iUvPoly ie.comparison
-      _ N.Ty a (ie.motiveCtx_isPullback' a).flip C (reflCase_aux a),
+    rw [UvPoly.mk'_comp_verticalNatTrans_app (H := reflCase_aux a),
       UvPoly.Equiv.mk'_comp_right, r_tp, reflSubst]
     congr
     apply (M.disp_pullback _).hom_ext
@@ -1249,13 +1246,8 @@ lemma reflCase_comp_tp : reflCase ar ≫ N.tp =
     (ie.toI (ie.equivFst aC)) (UvPoly.Equiv.fst ie.iUvPoly N.Ty aC) ie.iUvPoly.p := by
     convert (ie.motiveCtx_isPullback' (ie.equivFst aC)).flip
     simp
-  rw! [UvPoly.snd'_verticalNatTrans_app
-    (R := y(ii.motiveCtx (ie.equivFst aC)))
-    (H := H)
-    (R' := y(Γ)) (f' := 𝟙 _) (g' := UvPoly.Equiv.fst (UvPoly.id M.Tm) N.Tm ar)
-    (H' := by
-    rw [fst_eq_fst ar aC hrC]
-    exact Id.reflCase_aux _)]
+  rw! [UvPoly.snd'_verticalNatTrans_app (H' := H)
+    (H := by rw [fst_eq_fst ar aC hrC]; apply Id.reflCase_aux)]
   simp only [Functor.map_comp, iUvPoly_p, equivSnd]
   congr 1
   apply (M.disp_pullback _).hom_ext <;>
