@@ -474,7 +474,7 @@ def fst : ∫(sigma A B) ⥤ PGrpd :=
 theorem fst_forgetToGrpd : fst B ⋙ forgetToGrpd = forget ⋙ A := by
   dsimp only [fst, fstAux']
   rw [Functor.assoc, (Functor.Groupoidal.isPullback A).comm_sq,
-    ← Functor.assoc, map_forget]
+    ← Functor.assoc, map_comp_forget]
 
 end
 
@@ -524,7 +524,7 @@ def snd : ∫(sigma A B) ⥤ PGrpd :=
 theorem ι_sigma_comp_map_fstAux (x) : ι (sigma A B) x ⋙ map (fstAux B)
     = forget ⋙ ι A x := by
   apply FunctorTo.hext
-  · rw [Functor.assoc, map_forget]
+  · rw [Functor.assoc, map_comp_forget]
     rfl
   · intro x
     simp

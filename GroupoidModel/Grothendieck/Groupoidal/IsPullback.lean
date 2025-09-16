@@ -73,14 +73,13 @@ theorem toPGrpd_forgetToGrpd : toPGrpd A ⋙ PGrpd.forgetToGrpd = forget ⋙ A :
 theorem toPGrpd_forgetToPCat : toPGrpd A ⋙ PGrpd.forgetToPCat = (Grothendieck.toPCat _) :=
   rfl
 
-/--
-We also provide a definition of `toPGrpd` as the universal lift
-of the pullback `PGrpd`.
--/
-def toPGrpd' : ∫(A) ⥤ PGrpd.{v₁,u₁} :=
-  PGrpd.isPullback.lift (Grothendieck.toPCat (A ⋙ Grpd.forgetToCat)) (forget ⋙ A) (by
-    rw [Grothendieck.toPCat_forgetToCat]
-    rfl)
+theorem toPGrpd_eq_toPGrpd' : toPGrpd A = PGrpd.isPullback.lift
+    (Grothendieck.toPCat (A ⋙ Grpd.forgetToCat)) (forget ⋙ A) (by
+      rw [Grothendieck.toPCat_forgetToCat]
+      rfl) := by
+  apply PGrpd.isPullback.lift_uniq
+  · rfl
+  · rfl
 
 /--
 The left square is a pullback since the right square and outer square are.
@@ -93,20 +92,12 @@ The left square is a pullback since the right square and outer square are.
         v                                 v              v
         Γ--------------A---------------> Grpd --------> Cat
 -/
-def isPullback' : Functor.IsPullback (toPGrpd' A) forget PGrpd.forgetToGrpd A :=
+def isPullback : Functor.IsPullback (toPGrpd A) forget PGrpd.forgetToGrpd A :=
   Functor.IsPullback.Paste.ofRight'
     (Grothendieck.toPCat_forgetToCat _)
     (Grothendieck.isPullback _)
     PGrpd.forgetToPCat_forgetToCat
-    PGrpd.isPullback
-
-theorem toPGrpd_eq_toPGrpd' : toPGrpd A = toPGrpd' A := by
-  apply PGrpd.isPullback.lift_uniq
-  · rfl
-  · rfl
-
-def isPullback : Functor.IsPullback (toPGrpd A) forget PGrpd.forgetToGrpd A :=
-  cast (by rw [toPGrpd_eq_toPGrpd']) (isPullback' A)
+    PGrpd.isPullback _ (toPGrpd_eq_toPGrpd' _)
 
 end
 
@@ -210,6 +201,12 @@ variable {C : Type u} [Category.{v} C] {D : Type u₁} [Category.{v₁} D]
 @[simp] theorem preNatIso_hom_app_fiber (x) :
     ((preNatIso F α).hom.app x).fiber = 𝟙 _ :=
   Grothendieck.preNatIso_hom_app_fiber _ _ _
+
+@[simp]
+theorem map_eqToHom_toPGrpd {Γ : Type*} [Category Γ] (A A' : Γ ⥤ Grpd) (h : A = A'):
+    map (eqToHom h) ⋙ toPGrpd A' = toPGrpd A := by
+  subst h
+  simp [map_id_eq, Functor.id_comp]
 
 end
 

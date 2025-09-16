@@ -649,7 +649,7 @@ def Sig_pb : IsPullback
     (s.pair ilen jlen)
   (s[i].uvPolyTp.compP s[j].uvPolyTp) s[max i j].tp
     (s.Sig ilen jlen) :=
-  (UvPoly.compDomMap_isPullback ..).paste_horiz (nmSig (max i j)).Sig_pullback
+  (UvPoly.compDomMap_isPullback ..).flip.paste_horiz (nmSig (max i j)).Sig_pullback
 
 /--
 ```
