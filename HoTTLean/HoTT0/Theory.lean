@@ -51,7 +51,7 @@ hott0 def funext₀₀ {A : Type} {B : A → Type} {f g : (a : A) → B a} :
 /-! ## H-level -/
 
 hott0 def isProp₀ (A : Type) : Type :=
-  ∀ (a a' : A) (h h' : Identity a a'), Identity h h'
+  ∀ (a a' : A), Identity a a'
 
 hott0 def isSet₀ (A : Type) : Type :=
   ∀ (a b : A), isProp₀ (Identity a b)
