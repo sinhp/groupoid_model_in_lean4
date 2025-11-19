@@ -1215,7 +1215,7 @@ theorem EqTmIH.trans {Γ A t t' t'' l} :
 
 /-- `I` is a well-formed interpretation of the axiom environment `E`. -/
 structure Wf (I : Interpretation χ s) (E : Axioms χ) : Prop where
-  ax {c Al} (Ec : E c = some Al) :
+  ax ⦃c Al⦄ (Ec : E c = some Al) :
     ∃ sc, I.ax c Al.1.2 = some sc ∧
     ∃ sA : (𝟭_ 𝒞) ⟶ s[Al.1.2].Ty,
       sA ∈ I.ofType s.nilCObj Al.1.2 Al.1.1 ∧
