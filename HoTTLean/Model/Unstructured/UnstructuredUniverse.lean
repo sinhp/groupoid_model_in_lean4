@@ -28,7 +28,7 @@ structure UnstructuredUniverse (Ctx : Type u) [Category Ctx] where
 
 namespace UnstructuredUniverse
 
-variable {Ctx : Type u} [Category Ctx] (M : UnstructuredUniverse Ctx)
+variable {Ctx : Type u} [Category.{v} Ctx] (M : UnstructuredUniverse Ctx)
 
 @[reassoc (attr := simp)]
 theorem var_tp {Γ : Ctx} (A : Γ ⟶ M.Ty) : M.var A ≫ M.tp = (M.disp A) ≫ A := by
