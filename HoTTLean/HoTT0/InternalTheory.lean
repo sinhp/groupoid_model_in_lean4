@@ -1,6 +1,5 @@
 import HoTTLean.Frontend.Commands
 import HoTTLean.Model.Unstructured.Interpretation
-import HoTTLean.Groupoids.UHom
 
 noncomputable section
 
@@ -15,9 +14,7 @@ open Model UnstructuredUniverse Interpretation
 open CategoryTheory ChosenTerminal
 
 variable {𝒞 : Type u} [Category.{v} 𝒞] [ChosenTerminal 𝒞]
--- TODO: include `univMax ≤ s.length` as a field in `UHomSeq`
-variable {s : UHomSeq 𝒞} (slen : univMax ≤ s.length)
-  [s.PiSeq] [s.SigSeq] [s.IdSeq]
+variable {s : UHomSeq 𝒞} [s.PiSeq] [s.SigSeq] [s.IdSeq]
 
 variable (s) in
 /-- Axioms names in the theory of `s`. -/
@@ -26,7 +23,7 @@ inductive AxName
   | tp {l} (llen : l < univMax) (A : 𝟭_ 𝒞 ⟶ s[l].Ty)
 
 /-- Axioms in the theory of `s`. -/
-def axioms : Axioms (s.AxName slen)
+def axioms : Axioms s.AxName
   | .tm (l := l) llen t =>
     some ⟨
       (.el (.ax (.tp llen (t ≫ s[l].tp)) (.univ l)), l),
@@ -37,17 +34,17 @@ def axioms : Axioms (s.AxName slen)
       by simp [Expr.isClosed]; omega⟩
 
 /-- Interpretation of the theory of `s`. -/
-def interp : Interpretation (s.AxName slen) s where
+def interp : Interpretation s.AxName s where
   ax := fun
     | .tm (l := l) _ t, l', _ => if eq : l = l' then some (eq ▸ t) else none
     | .tp (l := l) _ A, l', _ => if eq : l+1 = l' then some (eq ▸ s.code (by omega) A) else none
 
-theorem interp_wf : (s.interp slen).Wf slen (s.axioms slen) where
+theorem interp_wf : s.interp.Wf s.axioms where
   ax := @fun
     | .tm _ t, _, get => by
       cases get
       simp [interp, ofType, comp_code]
-      simp [nilCObj]; omega
+      simp [nilCObj]; get_elem_tactic
     | .tp _ t, _, get => by
       cases get
       simp [interp, ofType, nilCObj]

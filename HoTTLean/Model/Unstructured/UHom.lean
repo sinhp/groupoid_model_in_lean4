@@ -1,6 +1,7 @@
 import Mathlib.CategoryTheory.Limits.Shapes.StrictInitial
 import HoTTLean.ForMathlib
 import HoTTLean.Model.Unstructured.UnstructuredUniverse
+import HoTTLean.Syntax.Typing
 
 /-! Morphisms of unstructured models, and Russell-universe embeddings. -/
 
@@ -193,10 +194,16 @@ structure UHomSeq where
   /-- Number of embeddings in the sequence,
   or one less than the number of models in the sequence. -/
   length : Nat
+  univMax_le : SynthLean.univMax ≤ length
   objs (i : Nat) (h : i < length + 1) : UnstructuredUniverse Ctx
   homSucc' (i : Nat) (h : i < length) : UHom (objs i <| by omega) (objs (i + 1) <| by omega)
 
 namespace UHomSeq
+
+/-- Enable index notation `s[-]` to use the field `univMax_le`. -/
+macro_rules
+  | `(tactic| get_elem_tactic_extensible) =>
+    `(tactic| have := Model.UnstructuredUniverse.UHomSeq.univMax_le ‹_›; omega)
 
 variable (s : UHomSeq Ctx)
 
