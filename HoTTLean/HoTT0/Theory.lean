@@ -50,14 +50,20 @@ hott0 def funext₀₀ {A : Type} {B : A → Type} {f g : (a : A) → B a} :
 
 /-! ## H-level -/
 
-hott0 def isProp₀ (A : Type) : Type :=
-  ∀ (a a' : A), Identity a a'
+hott0
+  /-- The type `A` is (-1)-truncated. -/
+  def isProp₀ (A : Type) : Type :=
+    ∀ (a a' : A), Identity a a'
 
-hott0 def isSet₀ (A : Type) : Type :=
-  ∀ (a b : A), isProp₀ (Identity a b)
+hott0
+  /-- The type `A` is 0-truncated. -/
+  def isSet₀ (A : Type) : Type :=
+    ∀ (a b : A), isProp₀ (Identity a b)
 
-hott0 def isGrpd₀ (A : Type) : Type :=
-  ∀ (a b : A), isSet₀ (Identity a b)
+hott0
+  /-- The type `A` is 1-truncated. -/
+  def isGrpd₀ (A : Type) : Type :=
+    ∀ (a b : A), isSet₀ (Identity a b)
 
 /-! ## Set univalence -/
 
