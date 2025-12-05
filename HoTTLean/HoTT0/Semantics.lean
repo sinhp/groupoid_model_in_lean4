@@ -10,13 +10,10 @@ open SynthLean
 open Model UnstructuredUniverse Interpretation
 open CategoryTheory ChosenTerminal
 
-theorem uHomSeq.slen : univMax ≤ uHomSeq.length := by
-  simp [univMax, uHomSeq]
-
 def emptyInterp : Interpretation Lean.Name uHomSeq where
   ax _ _ _ := none
 
-instance : Fact (emptyInterp.Wf uHomSeq.slen (.empty _)) := by
+instance : Fact (emptyInterp.Wf (.empty _)) := by
   constructor; constructor; simp [emptyInterp, Axioms.empty]
 
 abbrev isGrpd₀_all_tp : 𝟭_ Ctx.{4} ⟶ uHomSeq[1].Ty :=
@@ -33,7 +30,7 @@ def hott₀Interp : Interpretation Lean.Name uHomSeq where
     | ``HoTT0.isGrpd₀_all, 1, _ => isGrpd₀_all_witness
     | _, _, _ => none
 
-instance : Fact (hott₀Interp.Wf uHomSeq.slen HoTT0.isGrpd₀_all.snocAxioms) := by
+instance : Fact (hott₀Interp.Wf HoTT0.isGrpd₀_all.snocAxioms) := by
   constructor; constructor
   intro c _ eq
   simp [HoTT0.isGrpd₀_all, CheckedAx.snocAxioms, Axioms.snoc] at eq
