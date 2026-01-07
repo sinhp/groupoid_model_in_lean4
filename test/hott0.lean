@@ -60,3 +60,6 @@ hott0
   /-- The univalence axiom for sets. See HoTT book, Axiom 2.10.3. -/
   axiom setUv₀₀ {A B : Type} (A_set : isSet₀ A) (B_set : isSet₀ B) :
     isEquiv₁₀ (@Identity.toEquiv₀₀ A B)
+
+-- Beginning Magma Definition
+hott0 def magma (A : Type) : Type :=  A → A → A
