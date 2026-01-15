@@ -62,4 +62,4 @@ hott0
     isEquiv₁₀ (@Identity.toEquiv₀₀ A B)
 
 -- Beginning Magma Definition
-hott0 def magma (A : Type) : Type :=  A → A → A
+hott0 def magma :=  Σ (A : Type), A → A → A
