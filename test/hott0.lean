@@ -63,3 +63,7 @@ hott0
 
 -- Beginning Magma Definition
 hott0 def magma :=  Σ (A : Type), A → A → A
+
+-- Retrying how to solve the pull request for issue
+-- Prove that equivalent magmas consisting of set-data (meaning magmas
+-- (A,A×A→A) s.t. the underlying type A is a set) are equal using set-univalence in test/hott0.lean.
