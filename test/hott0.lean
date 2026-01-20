@@ -62,4 +62,14 @@ hott0
     isEquiv₁₀ (@Identity.toEquiv₀₀ A B)
 
 -- Beginning Magma Definition
-hott0 def magma :=  Σ (A : Type), A → A → A
+hott0 def magma :=  Σ (A : Type), A → (A → A)
+
+-- Recall Currying
+-- Prove by Hand
+
+
+-- Hedberg's Rijke 12.3.5
+-- hott0 theorem hedberg₀ {A : Type} (Π x, y : A) (x =y) + (x ≠ y)
+-- that A has decidable equality. Furthermore, let U be a universe containing
+-- the type A. We will prove that A is a set by Applying Theorem 12.3.4
+
