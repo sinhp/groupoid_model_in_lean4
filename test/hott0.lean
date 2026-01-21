@@ -64,6 +64,27 @@ hott0
 -- Beginning Magma Definition
 hott0 def magma :=  Σ (A : Type), A → (A → A)
 
+-- Projection helpers
+hott0 def magma.carrier (M : magma) : Type := M.1
+hott0 def magma.op (M : magma) : M.carrier → M.carrier → M.carrier := M.2
+
+
+
 -- Retrying how to solve the pull request for issue
 -- Prove that equivalent magmas consisting of set-data (meaning magmas
 -- (A,A×A→A) s.t. the underlying type A is a set) are equal using set-univalence in test/hott0.lean.
+-- A magma homomorphism preserves the operation
+hott0 def magma_hom (M N : magma) : Type :=
+  Σ (f : M.carrier → N.carrier),
+    ∀ (x y : M.carrier), Identity (f (M.op x y)) (N.op (f x) (f y))
+
+-- A magma equivalence is an equivalence that preserves structure
+hott0 def magma_equiv (M N : magma) : Type :=
+  Σ (f : M.carrier → N.carrier),
+    Σ (e : isEquiv₀₀ f),
+      ∀ (x y : M.carrier), Identity (f (M.op x y)) (N.op (f x) (f y))
+
+-- Or the uncurried version
+hott0 def Sigma.eta {A : Type} {B : A → Type} (w : Σ (a : A), B a) :
+    Identity w ⟨w.1, w.2⟩ :=
+  .rfl₀
