@@ -84,7 +84,6 @@ hott0 def magma_equiv (M N : magma) : Type :=
     Σ (e : isEquiv₀₀ f),
       ∀ (x y : M.carrier), Identity (f (M.op x y)) (N.op (f x) (f y))
 
--- Or the uncurried version
 hott0 def Sigma.eta {A : Type} {B : A → Type} (w : Σ (a : A), B a) :
     Identity w ⟨w.1, w.2⟩ :=
   .rfl₀
