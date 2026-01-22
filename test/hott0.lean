@@ -50,6 +50,9 @@ hott0 def isEquiv₀₀_transport₀ {A B : Type} (h : Identity A B) : isEquiv�
 hott0 def Identity.toEquiv₀₀ {A B : Type} : Identity A B → Σ (f : A → B), isEquiv₀₀ f :=
   fun h => ⟨transport₀ h, isEquiv₀₀_transport₀ h⟩
 
+--Adding Is Contractible over here
+hott0 def isContr₀ (A : Type) : Type := sorry
+
 hott0 def isProp₀ (A : Type) : Type :=
   ∀ (a a' : A) (h h' : Identity a a'), Identity h h'
 
@@ -65,10 +68,10 @@ hott0
 hott0 def magma :=  Σ (A : Type), A → (A → A)
 
 -- Projection helpers
+-- The set
 hott0 def magma.carrier (M : magma) : Type := M.1
+ -- The Operation
 hott0 def magma.op (M : magma) : M.carrier → M.carrier → M.carrier := M.2
-
-
 
 -- Retrying how to solve the pull request for issue
 -- Prove that equivalent magmas consisting of set-data (meaning magmas
@@ -84,6 +87,44 @@ hott0 def magma_equiv (M N : magma) : Type :=
     Σ (e : isEquiv₀₀ f),
       ∀ (x y : M.carrier), Identity (f (M.op x y)) (N.op (f x) (f y))
 
+
+-- Equality of Sigma types
 hott0 def Sigma.eta {A : Type} {B : A → Type} (w : Σ (a : A), B a) :
-    Identity w ⟨w.1, w.2⟩ :=
-  .rfl₀
+    Identity w ⟨w.1, w.2⟩ := Identity.rfl₀
+
+-- hott0 def Sigma.eq {A : Type} {B : A → Type} {w w' : Σ (a : A), B a}
+--     (p : Identity w.1 w'.1)
+--     (q : Identity (transport₀ (p.map B) w.2) w'.2)
+--     : Identity w w' := sorry
+
+-- DepTypes are Problems
+-- theorem statement I think I have to use def instead of theorem
+
+-- Consider Defining a Theorem
+
+-- Consider SIP
+-- Need to ask how they define theorems
+hott0 def magma_eq_of_equiv
+    (M N : magma)
+    (M_set : isSet₀ M.carrier)
+    (N_set : isSet₀ N.carrier)
+    (e : magma_equiv M N)
+    : Identity M N :=
+  -- Steps
+  -- Extract carrier equivalence (both types and operations are equiv/iso)
+  let  ⟨f, f_equiv, f_hom⟩ := e
+  -- Use set uni to get M.carrier = N.carrier
+  have carrier_eq : Identity M.carrier N.carrier := by
+    let ⟨g_inv, _, _, _⟩ := setUv₀₀ M_set N_set
+    exact g_inv ⟨f, f_equiv⟩
+  -- Use Sigma.eta (Dep Pair Type equality) to construct M = N
+  have op_eq : Identity (transport₀ (sorry : Identity _ _) M.op) N.op := by
+    --apply funext₀₀; intro ⟨x, y⟩
+    sorry
+  -- Show operations are equal
+  sorry
+  --exact
+  -- exact Sigma.eta carrier_eq op_eq
+
+-- What makes something exactly a def
+-- Why should we use def vs theorem??
