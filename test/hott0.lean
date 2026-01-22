@@ -88,9 +88,10 @@ hott0 def magma_equiv (M N : magma) : Type :=
       ∀ (x y : M.carrier), Identity (f (M.op x y)) (N.op (f x) (f y))
 
 
--- Equality of Sigma types
+-- Equality of Sigma types, using currying
 hott0 def Sigma.eta {A : Type} {B : A → Type} (w : Σ (a : A), B a) :
     Identity w ⟨w.1, w.2⟩ := Identity.rfl₀
+
 
 -- hott0 def Sigma.eq {A : Type} {B : A → Type} {w w' : Σ (a : A), B a}
 --     (p : Identity w.1 w'.1)
@@ -122,9 +123,9 @@ hott0 def magma_eq_of_equiv
     --apply funext₀₀; intro ⟨x, y⟩
     sorry
   -- Show operations are equal
-  sorry
+  --sorry
   --exact
-  -- exact Sigma.eta carrier_eq op_eq
+  exact Σ.eq carrier_eq op_eq
 
 -- What makes something exactly a def
 -- Why should we use def vs theorem??
