@@ -83,10 +83,6 @@ hott0 def ap₂ {A B C : Type} (f : A → B → C) {a a' : A} {b b' : B}
 --=======================================
 --Sigma Type Stuff
 
--- hott0 def transportPath {A : Type} {B : A → Type} {a a' : A}
---     (p : Identity a a') (b : B a) : B a' :=
---   p.rec b
-
 -- Sigma type Eta expansion
 hott0 def Sigma.eta {A : Type} {B : A → Type} (w : Σ (a : A), B a) :
     Identity w ⟨w.1, w.2⟩ := Identity.rfl₀
@@ -168,15 +164,6 @@ hott0
       (f (op (e.1 b₁) (e.1 b₂)))
 
 
---For functions with two arguments, we need to apply this twice:
-hott0
-  /-- Retraction: f(g(b)) = b. -/
-  axiom retraction {A B : Type}
-      (A_set : isSet₀ A) (B_set : isSet₀ B)
-      (f : A → B) (e : isEquiv₀₀ f) (b : B) :
-    Identity (f (e.1 b)) b
-
-
 ---============================================
 -- Beginning Magma Definition
 hott0 def magma :=  Σ (A : Type), A → (A → A)
@@ -196,27 +183,54 @@ hott0 def magma.op (M : magma) : M.carrier → M.carrier → M.carrier := M.2
 --     ∀ (x y : M.carrier), Identity (f (M.op x y)) (N.op (f x) (f y))
 
 -- A magma equivalence is an equivalence that preserves structure
+
+/-
+
+Proof Idea
+------------
+Two magmas are given thus
+M = (A, m) where A is a set and m : A → A → A
+N = (B, n) where B is a set and n : B → B → B
+
+We have an equivalence of types e : A ≃ B
+with forward map f : A → B and inverse map g : B → A
+
+We have e : isEquiv₀₀ f which gives us:
+1. g : B → A (inverse)
+2. h : B → A (another inver)
+3. α : isSection₁₀ f g = a (section)
+4. β : isSection₀₁ h f = a (retraction))
+
+f_hom: ∀ (x y : A), Identity (f (m x y)) (n (f x) (f y)) (homomorphism property)
+
+Then we prove M = N, which is (A, m) = (B, n)
+
+
+Step 1: Get the carriers equal using set-univalence
+ we can convert the equivalence e into a path p : Identity A B
+ This uses the inverse of the univalence equivalence for sets
+ p = (setUv₀₀ A_set B_set).1 ⟨f, e⟩
+
+Step 2: Transport the operation m along p to get an operation on B
+ transported_op M N M_set N_set e : B → B → B
+
+Step 3: Show that the transported operation is equal to n pointwise
+  For all x,y : B, we have a path
+  Identity (transported_op M N M_set N_set e x y) (N.op x y)
+
+Step 4: Use function extensionality to get the operations equal
+  funext₀ on the pointwise equalities to get
+  Identity (transported_op M N M_set N_set e) (N.op)
+
+Step 5: Combine the equalities of the carriers and operations to get
+  Identity M N
+  using Sigma.eq
+-/
+
 hott0 def magma_equiv (M N : magma) : Type :=
   Σ (f : M.carrier → N.carrier),
     Σ (e : isEquiv₀₀ f),
       ∀ (x y : M.carrier), Identity (f (M.op x y)) (N.op (f x) (f y))
-
-
---===========================================
--- The actual proof
--- DepTypes are Problems
--- theorem statement I think I have to use def instead of theorem
-
--- Consider Defining a Theorem
-
--- Consider SIP
--- Need to ask how they define theorems
-
--- Maybe use this?
--- hott0 def isEquiv₀₀_v2 {A B : Type} (f : A → B) : Type :=
---   Σ (g : B → A),
---     Σ (_ : ∀ (a : A), Identity (g (f a)) a),  -- section
---       ∀ (b : B), Identity (f (g b)) b         -- retraction (for same g!)
 
 hott0
   axiom equiv_retraction {A B : Type}
@@ -224,60 +238,6 @@ hott0
       (f : A → B) (e : isEquiv₀₀ f) (b : B) :
     Identity (f (e.1 b)) b
 
--- Has let's but cleaner
--- hott0 def magma_eq_of_equiv
---     (M N : magma)
---     (M_set : isSet₀ M.carrier)
---     (N_set : isSet₀ N.carrier)
---     (e : magma_equiv M N)
---     : Identity M N :=
---   -- Steps
---   -- Extract carrier equivalence (both types and operations are equiv/iso)
---   let f := e.1
---   let f_equiv := e.2.1
---   let f_hom := e.2.2
---   let g := f_equiv.1
---   let h := f_equiv.2.1
---   let α := f_equiv.2.2.1
---   let β := f_equiv.2.2.2
-
---   let carrier_eq := (setUv₀₀ M_set N_set).1 ⟨f, f_equiv⟩
-
---   let op_eq : Identity (@Identity.rec Type M.carrier (fun X _ => X → X → X)
---   M.op N.carrier carrier_eq) N.op :=
---       funext₀ (fun x => funext₀ (fun y =>
---         -- Proof chain:
---         -- 1. tranported_op x y = f(M.op(g x, g y)) [by transport_op]
---         -- 2. f(M.op(g x, g y)) = N.op(f(g x), f(g y)) [by f_hom]
---         -- 3. N.op(f(g x), f(g y)) = N.op(x,y) [by β (retraction)]
---     let step1 : Identity
---         (@Identity.rec Type M.carrier (fun X _ => X → X → X)
---           M.op N.carrier carrier_eq x y)
---         (f (M.op (g x) (g y))) :=
---       transport_op M_set N_set f f_equiv M.op x y
-
---     let step2 : Identity
---         (f (M.op (g x) (g y)))
---         (N.op (f (g x)) (f (g y))) :=
---       f_hom (g x) (g y)
-
---     let step3 : Identity
---         (N.op (f (g x)) (f (g y)))
---         (N.op x y) :=
---       ap₂ N.op
---         (equiv_retraction M_set N_set f f_equiv x)
---         (equiv_retraction M_set N_set f f_equiv y)
---     -- Finally, combine to get full equality of magmas
---     step1.trans₀ (step2.trans₀ step3)
---     ))
---   -- Simply combine the two equalities into a Sigma equality to finish
---   Sigma.eq₁ carrier_eq op_eq
-
--- What makes something exactly a def
--- Why should we use def vs theorem??
-
--- Without let's but not as clean
--- Helper definitions to break up the complexity
 set_option maxHeartbeats 5000000
 
 hott0 def magma_carrier_eq
@@ -305,9 +265,9 @@ hott0 def magma_op_eq_pointwise
     (e : magma_equiv M N)
     (x y : N.carrier)
     : Identity (transported_op M N M_set N_set e x y) (N.op x y) :=
-    -- sorry -- this keeps timing out
-  (transport_op M_set N_set e.1 e.2.1 M.op x y).trans₀
-    ((e.2.2 (e.2.1.1 x) (e.2.1.1 y)).trans₀
-      (ap₂ N.op
-        (equiv_retraction M_set N_set e.1 e.2.1 x)
-        (equiv_retraction M_set N_set e.1 e.2.1 y)))
+    sorry -- this keeps timing out
+  -- (transport_op M_set N_set e.1 e.2.1 M.op x y).trans₀
+  --   ((e.2.2 (e.2.1.1 x) (e.2.1.1 y)).trans₀
+  --     (ap₂ N.op
+  --       (equiv_retraction M_set N_set e.1 e.2.1 x)
+  --       (equiv_retraction M_set N_set e.1 e.2.1 y)))
