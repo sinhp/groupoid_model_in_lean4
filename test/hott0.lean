@@ -50,8 +50,10 @@ hott0 def isEquiv₀₀_transport₀ {A B : Type} (h : Identity A B) : isEquiv�
 hott0 def Identity.toEquiv₀₀ {A B : Type} : Identity A B → Σ (f : A → B), isEquiv₀₀ f :=
   fun h => ⟨transport₀ h, isEquiv₀₀_transport₀ h⟩
 
+--- Another addition of mine TODO
 --Adding Is Contractible over here
 hott0 def isContr₀ (A : Type) : Type := sorry
+------
 
 hott0 def isProp₀ (A : Type) : Type :=
   ∀ (a a' : A) (h h' : Identity a a'), Identity h h'
@@ -64,6 +66,118 @@ hott0
   axiom setUv₀₀ {A B : Type} (A_set : isSet₀ A) (B_set : isSet₀ B) :
     isEquiv₁₀ (@Identity.toEquiv₀₀ A B)
 
+
+-- My stuff starts here
+--====================================
+-- Path Algebra stuff
+
+-- ap on one type
+hott0 def ap {A B : Type} (f : A → B) {a a' : A} (p : Identity a a') : Identity (f a) (f a') :=
+  p.rec (Identity.rfl₀)
+
+-- ap on two types
+hott0 def ap₂ {A B C : Type} (f : A → B → C) {a a' : A} {b b' : B}
+    (p : Identity a a') (q : Identity b b') : Identity (f a b) (f a' b') :=
+  p.rec (ap (f a) q)
+
+--=======================================
+--Sigma Type Stuff
+
+-- hott0 def transportPath {A : Type} {B : A → Type} {a a' : A}
+--     (p : Identity a a') (b : B a) : B a' :=
+--   p.rec b
+
+-- Sigma type Eta expansion
+hott0 def Sigma.eta {A : Type} {B : A → Type} (w : Σ (a : A), B a) :
+    Identity w ⟨w.1, w.2⟩ := Identity.rfl₀
+
+
+-- Well this was a bloody nightmare to figure out
+hott0 def Sigma.eq {A : Type} {B : A → Type} {w w' : Σ (a : A), B a}
+    (p : Identity w.1 w'.1)
+    (q : Identity (p.rec w.2) w'.2)
+    : Identity w w' :=
+  @Identity.rec
+    A
+    w.1
+    (fun x p' => ∀ (b' : B x), Identity (p'.rec w.2) b' → Identity w ⟨x, b'⟩)
+    (fun b' q' =>
+      @Identity.rec
+        (B w.1)
+        w.2
+        (fun b'' q'' => Identity w ⟨w.1, b''⟩)
+        Identity.rfl₀
+        b'
+        q')
+    w'.1
+    p
+    w'.2
+    q
+
+-- Sigma eq for Type 1
+hott0 def Sigma.eq₁ {A : Type 1} {B : A → Type} {w w' : Σ (a : A), B a}
+    (p : Identity w.1 w'.1)
+    (q : Identity (p.rec w.2) w'.2)
+    : Identity w w' :=
+  @Identity.rec
+    A
+    w.1
+    (fun x p' => ∀ (b' : B x), Identity (p'.rec w.2) b' → Identity w ⟨x, b'⟩)
+    (fun b' q' =>
+      @Identity.rec
+        (B w.1)
+        w.2
+        (fun b'' q'' => Identity w ⟨w.1, b''⟩)
+        Identity.rfl₁
+        b'
+        q')
+    w'.1
+    p
+    w'.2
+    q
+
+-- hott0 is a custom elaborator that enforces single-definitions
+hott0 def funext₀ {A : Type} {B : A → Type} {f g : (a : A) → B a}
+    (h : ∀ (a : A), Identity (f a) (g a)) : Identity f g :=
+  (funext₀₀ f g).1 h
+
+---================================
+-- Univalence computation rule
+
+hott0
+  /-- Univalence Computation Rule.
+      See HoTT book (Univalent Foundations), Axiom 2.10.3, Remark 2.10.4.
+  -/
+  axiom ua_comp₀₀ {A B : Type}
+    (A_set : isSet₀ A) (B_set : isSet₀ B) (f : A → B) (e : isEquiv₀₀ f) (a : A):
+    --let ⟨ua_inv, _, _, _⟩ := (setUv₀₀ A_set B_set).1
+    Identity (transport₀ ((setUv₀₀ A_set B_set).1 ⟨f, e⟩) a) (f a)
+
+
+--=====================================
+-- Transport on Π-Types
+
+hott0
+  /-- Transport on binary operations -/
+  axiom transport_op {A B : Type}
+      (A_set : isSet₀ A) (B_set : isSet₀ B)
+      (f : A → B) (e : isEquiv₀₀ f)
+      (op : A → A → A) (b₁ b₂ : B) :
+    Identity
+      (@Identity.rec Type A (fun X _ => X → X → X) op B ((setUv₀₀ A_set B_set).1 ⟨f, e⟩) b₁ b₂)
+      (f (op (e.1 b₁) (e.1 b₂)))
+
+
+--For functions with two arguments, we need to apply this twice:
+hott0
+  /-- Retraction: f(g(b)) = b. -/
+  axiom retraction {A B : Type}
+      (A_set : isSet₀ A) (B_set : isSet₀ B)
+      (f : A → B) (e : isEquiv₀₀ f) (b : B) :
+    Identity (f (e.1 b)) b
+
+
+---============================================
 -- Beginning Magma Definition
 hott0 def magma :=  Σ (A : Type), A → (A → A)
 
@@ -77,9 +191,9 @@ hott0 def magma.op (M : magma) : M.carrier → M.carrier → M.carrier := M.2
 -- Prove that equivalent magmas consisting of set-data (meaning magmas
 -- (A,A×A→A) s.t. the underlying type A is a set) are equal using set-univalence in test/hott0.lean.
 -- A magma homomorphism preserves the operation
-hott0 def magma_hom (M N : magma) : Type :=
-  Σ (f : M.carrier → N.carrier),
-    ∀ (x y : M.carrier), Identity (f (M.op x y)) (N.op (f x) (f y))
+-- hott0 def magma_hom (M N : magma) : Type :=
+--   Σ (f : M.carrier → N.carrier),
+--     ∀ (x y : M.carrier), Identity (f (M.op x y)) (N.op (f x) (f y))
 
 -- A magma equivalence is an equivalence that preserves structure
 hott0 def magma_equiv (M N : magma) : Type :=
@@ -88,16 +202,8 @@ hott0 def magma_equiv (M N : magma) : Type :=
       ∀ (x y : M.carrier), Identity (f (M.op x y)) (N.op (f x) (f y))
 
 
--- Equality of Sigma types, using currying
-hott0 def Sigma.eta {A : Type} {B : A → Type} (w : Σ (a : A), B a) :
-    Identity w ⟨w.1, w.2⟩ := Identity.rfl₀
-
-
--- hott0 def Sigma.eq {A : Type} {B : A → Type} {w w' : Σ (a : A), B a}
---     (p : Identity w.1 w'.1)
---     (q : Identity (transport₀ (p.map B) w.2) w'.2)
---     : Identity w w' := sorry
-
+--===========================================
+-- The actual proof
 -- DepTypes are Problems
 -- theorem statement I think I have to use def instead of theorem
 
@@ -105,27 +211,103 @@ hott0 def Sigma.eta {A : Type} {B : A → Type} (w : Σ (a : A), B a) :
 
 -- Consider SIP
 -- Need to ask how they define theorems
-hott0 def magma_eq_of_equiv
+
+-- Maybe use this?
+-- hott0 def isEquiv₀₀_v2 {A B : Type} (f : A → B) : Type :=
+--   Σ (g : B → A),
+--     Σ (_ : ∀ (a : A), Identity (g (f a)) a),  -- section
+--       ∀ (b : B), Identity (f (g b)) b         -- retraction (for same g!)
+
+hott0
+  axiom equiv_retraction {A B : Type}
+      (A_set : isSet₀ A) (B_set : isSet₀ B)
+      (f : A → B) (e : isEquiv₀₀ f) (b : B) :
+    Identity (f (e.1 b)) b
+
+-- Has let's but cleaner
+-- hott0 def magma_eq_of_equiv
+--     (M N : magma)
+--     (M_set : isSet₀ M.carrier)
+--     (N_set : isSet₀ N.carrier)
+--     (e : magma_equiv M N)
+--     : Identity M N :=
+--   -- Steps
+--   -- Extract carrier equivalence (both types and operations are equiv/iso)
+--   let f := e.1
+--   let f_equiv := e.2.1
+--   let f_hom := e.2.2
+--   let g := f_equiv.1
+--   let h := f_equiv.2.1
+--   let α := f_equiv.2.2.1
+--   let β := f_equiv.2.2.2
+
+--   let carrier_eq := (setUv₀₀ M_set N_set).1 ⟨f, f_equiv⟩
+
+--   let op_eq : Identity (@Identity.rec Type M.carrier (fun X _ => X → X → X)
+--   M.op N.carrier carrier_eq) N.op :=
+--       funext₀ (fun x => funext₀ (fun y =>
+--         -- Proof chain:
+--         -- 1. tranported_op x y = f(M.op(g x, g y)) [by transport_op]
+--         -- 2. f(M.op(g x, g y)) = N.op(f(g x), f(g y)) [by f_hom]
+--         -- 3. N.op(f(g x), f(g y)) = N.op(x,y) [by β (retraction)]
+--     let step1 : Identity
+--         (@Identity.rec Type M.carrier (fun X _ => X → X → X)
+--           M.op N.carrier carrier_eq x y)
+--         (f (M.op (g x) (g y))) :=
+--       transport_op M_set N_set f f_equiv M.op x y
+
+--     let step2 : Identity
+--         (f (M.op (g x) (g y)))
+--         (N.op (f (g x)) (f (g y))) :=
+--       f_hom (g x) (g y)
+
+--     let step3 : Identity
+--         (N.op (f (g x)) (f (g y)))
+--         (N.op x y) :=
+--       ap₂ N.op
+--         (equiv_retraction M_set N_set f f_equiv x)
+--         (equiv_retraction M_set N_set f f_equiv y)
+--     -- Finally, combine to get full equality of magmas
+--     step1.trans₀ (step2.trans₀ step3)
+--     ))
+--   -- Simply combine the two equalities into a Sigma equality to finish
+--   Sigma.eq₁ carrier_eq op_eq
+
+-- What makes something exactly a def
+-- Why should we use def vs theorem??
+
+-- Without let's but not as clean
+-- Helper definitions to break up the complexity
+set_option maxHeartbeats 5000000
+
+hott0 def magma_carrier_eq
     (M N : magma)
     (M_set : isSet₀ M.carrier)
     (N_set : isSet₀ N.carrier)
     (e : magma_equiv M N)
-    : Identity M N :=
-  -- Steps
-  -- Extract carrier equivalence (both types and operations are equiv/iso)
-  let  ⟨f, f_equiv, f_hom⟩ := e
-  -- Use set uni to get M.carrier = N.carrier
-  have carrier_eq : Identity M.carrier N.carrier := by
-    let ⟨g_inv, _, _, _⟩ := setUv₀₀ M_set N_set
-    exact g_inv ⟨f, f_equiv⟩
-  -- Use Sigma.eta (Dep Pair Type equality) to construct M = N
-  have op_eq : Identity (transport₀ (sorry : Identity _ _) M.op) N.op := by
-    --apply funext₀₀; intro ⟨x, y⟩
-    sorry
-  -- Show operations are equal
-  --sorry
-  --exact
-  exact Σ.eq carrier_eq op_eq
+    : Identity M.carrier N.carrier :=
+  (setUv₀₀ M_set N_set).1 ⟨e.1, e.2.1⟩
 
--- What makes something exactly a def
--- Why should we use def vs theorem??
+-- Try a simpler intermediate definition
+hott0 def transported_op
+    (M N : magma)
+    (M_set : isSet₀ M.carrier)
+    (N_set : isSet₀ N.carrier)
+    (e : magma_equiv M N)
+    : N.carrier → N.carrier → N.carrier :=
+  @Identity.rec Type M.carrier (fun X _ => X → X → X)
+    M.op N.carrier (magma_carrier_eq M N M_set N_set e)
+
+hott0 def magma_op_eq_pointwise
+    (M N : magma)
+    (M_set : isSet₀ M.carrier)
+    (N_set : isSet₀ N.carrier)
+    (e : magma_equiv M N)
+    (x y : N.carrier)
+    : Identity (transported_op M N M_set N_set e x y) (N.op x y) :=
+    -- sorry -- this keeps timing out
+  (transport_op M_set N_set e.1 e.2.1 M.op x y).trans₀
+    ((e.2.2 (e.2.1.1 x) (e.2.1.1 y)).trans₀
+      (ap₂ N.op
+        (equiv_retraction M_set N_set e.1 e.2.1 x)
+        (equiv_retraction M_set N_set e.1 e.2.1 y)))
