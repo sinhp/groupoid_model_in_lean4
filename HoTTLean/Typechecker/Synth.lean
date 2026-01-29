@@ -38,6 +38,7 @@ partial def lookupVar (vΓ : Q(TpEnv Lean.Name)) (i : Q(Nat)) :
       exact ⟨_, vA.wk vB.wf_tp, lk.succ ..⟩
     )⟩
 
+/-- Look up an axiom in an axiom environment. -/
 partial def lookupAxiom (E : Q(Axioms Lean.Name)) (c : Q(Lean.Name)) : Lean.MetaM
     ((A : Q(Expr Lean.Name)) × (l : Q(Nat)) × Q(∃ h, $E $c = some ⟨($A, $l), h⟩) ⊕
       Q($E $c = none)) := do

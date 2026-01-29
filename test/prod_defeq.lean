@@ -1,4 +1,4 @@
-import HoTTLean.Frontend.Commands
+import HoTTLean.Frontend.Reflect
 import HoTTLean.Model.Unstructured.Interpretation
 
 /-!
@@ -29,21 +29,21 @@ end SynthLean
 
 noncomputable section
 
--- The empty theory has no axioms.
-declare_theory empty
+@[reflect]
+def MyProd (A B : Type) := Sigma fun (_ : A) => B
 
-empty def MyProd (A B : Type) := Sigma fun (_ : A) => B
-
-empty def myFunc {A B C : Type} : (MyProd A B → C) → A → B → C :=
+@[reflect]
+def myFunc {A B C : Type} : (MyProd A B → C) → A → B → C :=
   fun f a b ↦ f ⟨a, b⟩
 
-empty def myPi {A B : Type} : MyProd A B → A := fun x ↦ x.1
-empty def myPair {A B : Type} : A → B → MyProd A B := myFunc (fun x ↦ x)
+@[reflect] def myPi {A B : Type} : MyProd A B → A := fun x ↦ x.1
+@[reflect] def myPair {A B : Type} : A → B → MyProd A B := myFunc (fun x ↦ x)
 
-empty def aux1 {A B : Type} (x : A) (y : B) := myPi (myPair x y)
-empty def aux2 {A B : Type} (x : A) (y : B) := x
+@[reflect] def aux1 {A B : Type} (x : A) (y : B) := myPi (myPair x y)
+@[reflect] def aux2 {A B : Type} (x : A) (y : B) := x
 
-empty def myPi_myPair {A B : Type} (x : A) (y : B) : Identity (aux1 x y) (aux2 x y) :=
+@[reflect]
+def myPi_myPair {A B : Type} (x : A) (y : B) : Identity (aux1 x y) (aux2 x y) :=
   Identity.refl _
 
 open SynthLean
@@ -61,10 +61,12 @@ instance : Fact ((emptyInterp s).Wf (.empty _)) := by
 
 open Qq in
 example :
-    (emptyInterp s).interpTm aux1.wf_val =
-    (emptyInterp s).interpTm aux2.wf_val := by
+    (emptyInterp s).interpTm aux1.reflection.wf_val =
+    (emptyInterp s).interpTm aux2.reflection.wf_val := by
   apply interpTm_eq -- Reduce to internal judgmental equality
   run_tac do -- Run the typechecker
     let pf ← TypecheckerM.run <| equateWfTms
-      q(Axioms.empty Lean.Name) q([]) q(aux1.l) q(aux1.val) q(aux2.val) q(aux1.tp)
-    Lean.Elab.Tactic.closeMainGoal `equateTms q($pf TpEnvEqCtx.nil aux1.wf_val aux2.wf_val)
+      q(Axioms.empty Lean.Name) q([])
+      q(aux1.reflection.l) q(aux1.reflection.val) q(aux2.reflection.val) q(aux1.reflection.tp)
+    Lean.Elab.Tactic.closeMainGoal `equateTms
+      q($pf TpEnvEqCtx.nil aux1.reflection.wf_val aux2.reflection.wf_val)

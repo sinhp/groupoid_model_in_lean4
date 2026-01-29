@@ -8,6 +8,8 @@ open Qq Lean Meta
 
 def traceClsTranslation : Name := `SynthLean.Translation
 
+def reflectPostfix : Name := `reflection
+
 initialize
   registerTraceClass traceClsTranslation
   registerTraceClass (traceClsTranslation ++ `tp) (inherited := true)
@@ -16,22 +18,24 @@ initialize
 structure Context where
   /-- The position of an `FVarId` is its de Bruijn index. -/
   bvars : List FVarId := []
-  /-- The ordinary (external) Lean environment. -/
-  extEnv : Environment
 
 /-- `TranslateM` computations run in the internal environment
 (otherwise operations such as type inference on internal constants wouldn't work). -/
 abbrev TranslateM := ReaderT Context MetaM
 
-def TranslateM.run {α : Type} (x : TranslateM α) (extEnv : Environment) : MetaM α :=
-  ReaderT.run x { extEnv }
+def TranslateM.run {α : Type} (x : TranslateM α) : MetaM α :=
+  ReaderT.run x {}
 
 def withBinder {α : Type} (x : Lean.Expr) (k : TranslateM α) : TranslateM α := do
   withReader (fun s => { s with bvars := x.fvarId! :: s.bvars }) k
 
 /-- Extract the level `u` in `Sort u`.
-It must be monomorphic, i.e., may not contain universe variables. -/
+It must be monomorphic, i.e., may not contain universe variables.
+It may also not contain level metavariables. -/
 def getSortLevel (l : Level) : Lean.MetaM Nat := do
+  let l ← instantiateLevelMVars l
+  if l.hasMVar then
+    throwError "unsupported universe (contains metavariables){indentExpr <| .sort l}"
   match l.toNat with
   | .some (n+1) => return n
   | .some 0 => throwError "unsupported universe{indentExpr <| .sort l}"
@@ -68,8 +72,7 @@ the output is well-typed in MLTT. -/
 partial def translateAsTp (e : Lean.Expr) : TranslateM (Nat × Q(Expr Lean.Name)) := do
   Lean.withTraceNode (ε := Lean.Exception) (traceClsTranslation ++ `tp) (fun
     | .ok ⟨l, A⟩ => do
-      let mA : MessageData ← withEnv (← read).extEnv <| addMessageContextPartial A
-      return m!"✅️ {e} [{l}]⇒ {mA}"
+      return m!"✅️ {e} [{l}]⇒ {A}"
     | .error _ => return m!"❌️ {e} ⇒ _") do
   if !isType e then
     let ⟨l+1, a⟩ ← translateAsTm e
@@ -91,8 +94,7 @@ partial def translateAsTp (e : Lean.Expr) : TranslateM (Nat × Q(Expr Lean.Name)
 partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(Expr Lean.Name)) := do
   Lean.withTraceNode (ε := Lean.Exception) (traceClsTranslation ++ `tm) (fun
     | .ok ⟨l, a⟩ => do
-      let ma : MessageData ← withEnv (← read).extEnv <| addMessageContextPartial a
-      return m!"✅️ {e} [{l}]⇒ {ma}"
+      return m!"✅️ {e} [{l}]⇒ {a}"
     | .error _ => return m!"❌️ {e} ⇒ _") do
   if isType e then
     let ⟨l, A⟩ ← translateAsTp e
@@ -195,13 +197,16 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(Expr Lean.Name)
     let eTp ← inferType e
     let .sort l ← inferType eTp | throwError "internal error (sort)"
     let n ← getSortLevel l
-    -- We translate internal constants to projections from external constants.
+    -- We translate constants to projections of reflected constants.
     let ci ← getConstInfo nm
-    withEnv (← read).extEnv do
-      match ci with
-      | .defnInfo i => return ⟨n, ← mkAppM ``CheckedDef.val #[.const i.name []]⟩
-      | .axiomInfo i => return ⟨n, ← mkAppM ``CheckedAx.val #[.const i.name []]⟩
-      | _ => throwError "unsupported constant (not a `def` or an `axiom`){indentExpr e}"
+    let nm := ci.name ++ reflectPostfix
+    if !(← hasConst nm) then
+      throwError "Constant '{Expr.const ci.name []}' has not been reflected. \
+        Try marking it with `@[reflect]`."
+    match ci with
+    | .defnInfo _ => return ⟨n, ← mkAppM ``CheckedDef.val #[.const nm []]⟩
+    | .axiomInfo _ => return ⟨n, ← mkAppM ``CheckedAx.val #[.const nm []]⟩
+    | _ => throwError "unsupported kind of constant (not a `def` or an `axiom`){indentExpr e}"
   | .const .. => throwError "unsupported constant (universe-polymorphic){indentExpr e}"
   | e => throwError "unsupported term{indentExpr e}"
 
