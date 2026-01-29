@@ -9,6 +9,8 @@ namespace HoTT0
 hott0 def isSection₀₀ {A B : Type} (f : A → B) (g : B → A) : Type :=
   ∀ (a : A), Identity (g (f a)) a
 
+-- Which inverse am I going to use
+-- Consider isContr
 hott0 def isEquiv₀₀ {A B : Type} (f : A → B) : Type :=
   Σ (g : B → A),
     Σ (h : B → A),
@@ -215,7 +217,7 @@ Step 1: Get the carriers equal using set-univalence
  p = (setUv₀₀ A_set B_set).1 ⟨f, e⟩
 
 Step 2: Transport the operation m along p to get an operation on B
- transported_op M N M_set N_set e : B → B → B
+ transported_op M N M_set N_set (e : B → B → B)
 
 Step 3: Show that the transported operation is equal to n pointwise
   For all x,y : B, we have a path
@@ -248,7 +250,7 @@ hott0 def magma_carrier_eq
     (M_set : isSet₀ M.carrier)
     (N_set : isSet₀ N.carrier)
     (e : magma_equiv M N)
-    : Identity M.carrier N.carrier :=
+    : Identity M.carrier N.carrier := -- sorry
   (setUv₀₀ M_set N_set).1 ⟨e.1, e.2.1⟩
 
 -- Try a simpler intermediate definition
@@ -259,8 +261,11 @@ hott0 def transported_op
     (e : magma_equiv M N)
     : N.carrier → N.carrier → N.carrier :=
   @Identity.rec Type M.carrier (fun X _ => X → X → X)
-    M.op N.carrier (magma_carrier_eq M N M_set N_set e)
+    M.op N.carrier ((setUv₀₀ M_set N_set).1 ⟨e.1, e.2.1⟩)
 
+-- TODO : Pointwise Equality SUUUCKS
+-- Implement transported-op the way that was done in Agda
+-- Consider Equiv-elim
 hott0 def magma_op_eq_pointwise
     (M N : magma)
     (M_set : isSet₀ M.carrier)
@@ -268,9 +273,12 @@ hott0 def magma_op_eq_pointwise
     (e : magma_equiv M N)
     (x y : N.carrier)
     : Identity (transported_op M N M_set N_set e x y) (N.op x y) :=
-    sorry -- this keeps timing out
-  -- (transport_op M_set N_set e.1 e.2.1 M.op x y).trans₀
-  --   ((e.2.2 (e.2.1.1 x) (e.2.1.1 y)).trans₀
-  --     (ap₂ N.op
-  --       (equiv_retraction M_set N_set e.1 e.2.1 x)
-  --       (equiv_retraction M_set N_set e.1 e.2.1 y)))
+  --  sorry -- this keeps timing out
+  (transport_op M_set N_set e.1 e.2.1 M.op x y).trans₀
+    ((e.2.2 (e.2.1.1 x) (e.2.1.1 y)).trans₀
+      (ap₂ N.op
+        (equiv_retraction M_set N_set e.1 e.2.1 x)
+        (equiv_retraction M_set N_set e.1 e.2.1 y)))
+
+
+-- Charactarize Path Spaces using Identity Types
