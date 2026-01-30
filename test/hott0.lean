@@ -52,6 +52,7 @@ hott0 def isEquiv₀₀_transport₀ {A B : Type} (h : Identity A B) : isEquiv�
 hott0 def Identity.toEquiv₀₀ {A B : Type} : Identity A B → Σ (f : A → B), isEquiv₀₀ f :=
   fun h => ⟨transport₀ h, isEquiv₀₀_transport₀ h⟩
 
+-- Meeting TODO
 --- Another addition of mine TODO
 --Adding Is Contractible over here
 hott0 def isContr₀ (A : Type) : Type := sorry
@@ -76,6 +77,7 @@ hott0
 --====================================
 -- Path Algebra stuff
 
+-- Consider having type aliases for long subgoals
 -- ap on one type
 hott0 def ap {A B : Type} (f : A → B) {a a' : A} (p : Identity a a') : Identity (f a) (f a') :=
   p.rec (Identity.rfl₀)
@@ -142,7 +144,7 @@ hott0 def funext₀ {A : Type} {B : A → Type} {f g : (a : A) → B a}
     (h : ∀ (a : A), Identity (f a) (g a)) : Identity f g :=
   (funext₀₀ f g).1 h
 
----================================
+---====================================
 -- Univalence computation rule
 
 hott0
@@ -202,7 +204,7 @@ with forward map f : A → B and inverse map g : B → A
 
 We have e : isEquiv₀₀ f which gives us:
 1. g : B → A (inverse)
-2. h : B → A (another inver)
+2. h : B → A (another inverse)
 3. α : isSection₁₀ f g = a (section)
 4. β : isSection₀₁ h f = a (retraction))
 
@@ -245,6 +247,7 @@ hott0
 
 set_option maxHeartbeats 5000000
 
+-- Seems to be a problem, maybe try specifying which path to take
 hott0 def magma_carrier_eq
     (M N : magma)
     (M_set : isSet₀ M.carrier)
@@ -266,6 +269,8 @@ hott0 def transported_op
 -- TODO : Pointwise Equality SUUUCKS
 -- Implement transported-op the way that was done in Agda
 -- Consider Equiv-elim
+
+-- Univalence axiom doesn't specify, but asserts existence of a path.
 hott0 def magma_op_eq_pointwise
     (M N : magma)
     (M_set : isSet₀ M.carrier)
@@ -282,3 +287,4 @@ hott0 def magma_op_eq_pointwise
 
 
 -- Charactarize Path Spaces using Identity Types
+-- Unfiolding is crazy
