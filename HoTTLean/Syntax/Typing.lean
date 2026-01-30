@@ -7,12 +7,6 @@ as `Prop`-valued relations. -/
 
 namespace SynthLean
 
-declare_syntax_cat judgment
-scoped syntax:50 term:51 : judgment
-scoped syntax:50 term:51 " ≡ " term:51 : judgment
-scoped syntax:50 term:51 " : " term:51 : judgment
-scoped syntax:50 term:51 " ≡ " term:51 " : " term:51 : judgment
-
 /-- The maximum `l` for which `Γ ⊢[l] 𝒥` makes sense.
 When set to `0`, types cannot be quantified over at all. -/
 -- TODO: this should be a parameter,
@@ -37,6 +31,24 @@ abbrev Axioms (χ : Type*) := χ → Option { Al : Expr χ × Nat // Al.1.isClos
 /-- A typing context consisting of type expressions and their universe levels. -/
 abbrev Ctx (χ : Type*) := List (Expr χ × Nat)
 
+namespace Ctx
+
+variable {χ χ' : Type*} (f : χ → χ')
+
+def map (Γ : Ctx χ) : Ctx χ' :=
+  List.map (fun (A, l) => (A.map f, l)) Γ
+
+@[simp] theorem map_id_fun : map (fun (c : χ) => c) = id := by
+  funext; simp [map]
+
+@[simp] theorem map_id_fun' : map (id : χ → χ) = id := map_id_fun
+
+@[simp] theorem map_nil : map f [] = [] := rfl
+
+@[simp] theorem map_cons {A l Γ} : map f ((A, l) :: Γ) = (A.map f, l) :: map f Γ := rfl
+
+end Ctx
+
 variable {χ : Type*} (E : Axioms χ)
 
 /-- `Lookup Γ i A l` means that `A = A'[↑ⁱ⁺¹]` where `Γ[i] = (A', l)`.
@@ -44,6 +56,18 @@ Together with `⊢ Γ`, this implies `Γ ⊢[l] .bvar i : A`. -/
 inductive Lookup : Ctx χ → Nat → Expr χ → Nat → Prop where
   | zero (Γ A l) : Lookup ((A,l) :: Γ) 0 (A.subst Expr.wk) l
   | succ {Γ A i l} (Bk) : Lookup Γ i A l → Lookup (Bk :: Γ) (i+1) (A.subst Expr.wk) l
+
+theorem Lookup.map {χ'} (f : χ → χ') {Γ i A l} (H : Lookup Γ i A l) :
+    Lookup (Γ.map f) i (A.map f) l := by
+  induction H
+  case zero => simp only [Expr.subst_map]; apply Lookup.zero
+  case succ ih => simp only [Expr.subst_map]; apply Lookup.succ _ ih
+
+declare_syntax_cat judgment
+scoped syntax:50 term:51 : judgment
+scoped syntax:50 term:51 " ≡ " term:51 : judgment
+scoped syntax:50 term:51 " : " term:51 : judgment
+scoped syntax:50 term:51 " ≡ " term:51 " : " term:51 : judgment
 
 /-- Judgment syntax not parameterized by an environment.
 Used locally to define typing rules without repeating `E ∣ Γ`. -/
