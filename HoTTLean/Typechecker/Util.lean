@@ -14,6 +14,12 @@ def mkLetFVarsQ {u : Level} {T : Q(Sort u)} (xs : Array Lean.Expr) (e : Q($T))
   mkLetFVars xs e (usedLetOnly := usedLetOnly) (generalizeNondepLet := generalizeNondepLet)
     (binderInfoForMVars := binderInfoForMVars)
 
+/-- Like `inferTypeQ` but yields `Type u` rather than `Sort u`. -/
+def inferTypeQ' (e : Expr) : MetaM ((u : Level) × (α : Q(Type $u)) × Q($α)) := do
+  let α ← inferType e
+  let .sort (.succ u) ← whnf (← inferType α) | throwError "not a type{indentExpr α}"
+  pure ⟨u, α, e⟩
+
 end Qq
 
 namespace SynthLean

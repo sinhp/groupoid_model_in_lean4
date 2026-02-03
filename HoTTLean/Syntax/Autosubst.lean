@@ -221,6 +221,9 @@ theorem snoc_comp_wk_succ (σ : Nat → Expr χ) (n) :
     snoc (comp wk σ) (bvar (n + 1)) = comp wk (snoc σ (bvar n)) := by
   ext ⟨⟩ <;> dsimp [comp, snoc, wk, -ofRen_succ, subst, ofRen]
 
+@[simp]
+theorem map_comp_wk {χ'} (f : χ → χ') : map f ∘ wk = wk := rfl
+
 /-- A substitution that instantiates one binder.
 ```
 Γ ⊢ t : A
@@ -325,6 +328,10 @@ def isClosed (k : Nat := 0) : Expr χ → Bool
   | .Id _ A t u => A.isClosed k && t.isClosed k && u.isClosed k
   | .idRec _ _ t M r u h =>
     t.isClosed k && M.isClosed (k + 2) && r.isClosed k && u.isClosed k && h.isClosed k
+
+theorem isClosed_of_isClosed_of_le {k k'} {e : Expr χ} (le : k ≤ k') :
+    e.isClosed k → e.isClosed k' := by
+  induction e generalizing k k' <;> grind [isClosed]
 
 @[simp]
 theorem map_isClosed {χ'} (f : χ → χ') (e : Expr χ) (k) : (e.map f).isClosed k = e.isClosed k := by

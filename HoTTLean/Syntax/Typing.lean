@@ -26,6 +26,7 @@ This does mean we cannot have type constants at level `univMax`.
 
 We do *not* use `Axioms` for definitions;
 the native Lean `Environment` is used instead. -/
+-- TODO: "theory", not "axiom environment"
 abbrev Axioms (χ : Type*) := χ → Option { Al : Expr χ × Nat // Al.1.isClosed ∧ Al.2 ≤ univMax }
 
 /-- A typing context consisting of type expressions and their universe levels. -/
@@ -37,6 +38,9 @@ variable {χ χ' : Type*} (f : χ → χ')
 
 def map (Γ : Ctx χ) : Ctx χ' :=
   List.map (fun (A, l) => (A.map f, l)) Γ
+
+@[simp] theorem length_map (Γ : Ctx χ) : (Γ.map f).length = Γ.length := by
+  simp [Ctx.map]
 
 @[simp] theorem map_id_fun : map (fun (c : χ) => c) = id := by
   funext; simp [map]
