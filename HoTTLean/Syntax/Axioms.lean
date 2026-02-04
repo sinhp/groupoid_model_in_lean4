@@ -2,19 +2,7 @@ import HoTTLean.Syntax.Synth
 
 namespace SynthLean
 
-variable {χ : Type*} {E : Axioms χ}
-
-theorem isClosed_all :
-    (∀ {Γ l A}, E ∣ Γ ⊢[l] A → A.isClosed Γ.length) ∧
-    (∀ {Γ l A t}, E ∣ Γ ⊢[l] t : A → t.isClosed Γ.length) := by
-  mutual_induction WfTp
-  case bvar =>
-    intros; rename_i lk _
-    simp [Expr.isClosed, lk.lt_length]
-  all_goals grind [Expr.isClosed]
-
-theorem WfTp.isClosed {l A} : E ∣ [] ⊢[l] A → A.isClosed := isClosed_all.1
-theorem WfTm.isClosed {l A t} : E ∣ [] ⊢[l] t : A → t.isClosed := isClosed_all.2
+variable {χ : Type*}
 
 /-! ## Axiom environments -/
 
