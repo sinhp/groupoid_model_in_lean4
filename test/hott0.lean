@@ -245,7 +245,7 @@ hott0
       (f : A → B) (e : isEquiv₀₀ f) (b : B) :
     Identity (f (e.1 b)) b
 
-set_option maxHeartbeats 5000000
+set_option maxHeartbeats 500000000
 
 -- Seems to be a problem, maybe try specifying which path to take
 hott0 def magma_carrier_eq
@@ -256,6 +256,7 @@ hott0 def magma_carrier_eq
     : Identity M.carrier N.carrier := -- sorry
   (setUv₀₀ M_set N_set).1 ⟨e.1, e.2.1⟩
 
+-- Strategy Show any two operations on M, or N are the same under univalence
 -- Try a simpler intermediate definition
 hott0 def transported_op
     (M N : magma)
@@ -271,6 +272,21 @@ hott0 def transported_op
 -- Consider Equiv-elim
 
 -- Univalence axiom doesn't specify, but asserts existence of a path.
+set_option diagnostics true
+
+hott0 def subexpr
+    (M N : magma)
+    (M_set : isSet₀ M.carrier)
+    (N_set : isSet₀ N.carrier)
+    (e : magma_equiv M N)
+    (x y : N.carrier)
+    :=
+    ((e.2.2 (e.2.1.1 x) (e.2.1.1 y)).trans₀
+      (ap₂ N.op
+        (equiv_retraction M_set N_set e.1 e.2.1 x)
+        (equiv_retraction M_set N_set e.1 e.2.1 y)))
+
+
 hott0 def magma_op_eq_pointwise
     (M N : magma)
     (M_set : isSet₀ M.carrier)
@@ -280,10 +296,9 @@ hott0 def magma_op_eq_pointwise
     : Identity (transported_op M N M_set N_set e x y) (N.op x y) :=
   --  sorry -- this keeps timing out
   (transport_op M_set N_set e.1 e.2.1 M.op x y).trans₀
-    ((e.2.2 (e.2.1.1 x) (e.2.1.1 y)).trans₀
-      (ap₂ N.op
-        (equiv_retraction M_set N_set e.1 e.2.1 x)
-        (equiv_retraction M_set N_set e.1 e.2.1 y)))
+    (subexpr M N M_set N_set e x y)
+
+
 
 
 -- Charactarize Path Spaces using Identity Types
