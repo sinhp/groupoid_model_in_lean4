@@ -300,6 +300,6 @@ hott0 def magma_op_eq_pointwise
 
 
 
-
+-- Profile this thing
 -- Charactarize Path Spaces using Identity Types
 -- Unfiolding is crazy
