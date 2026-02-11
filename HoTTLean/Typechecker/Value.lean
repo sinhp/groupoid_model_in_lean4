@@ -568,6 +568,15 @@ theorem EnvEqSb.wk {Δ Eᵥ σ Γ} (h : EnvEqSb E Δ Eᵥ σ Γ) {C k} (hC : E �
     EnvEqSb E ((C,k) :: Δ) Eᵥ (Expr.comp Expr.wk σ) Γ :=
   wk_all.2.2.2.2.2.2 h hC
 
+theorem ValEqTp.wk_many {l vA A} (h : ValEqTp E [] l vA A) {Γ} (hΓ : WfCtx E Γ) :
+    ValEqTp E Γ l vA A := by
+  have A_cl : A.isClosed := h.wf_tp.isClosed
+  induction Γ with
+  | nil => assumption
+  | cons _ _ ih =>
+    cases hΓ with | snoc Γ A
+    simpa [Expr.subst_of_isClosed _ A_cl] using (ih Γ).wk A
+
 /-! ## Type environments -/
 
 /-- A type environment is a context where all types are in NF. -/
@@ -639,47 +648,201 @@ theorem TpEnvEqCtx.toEnv_wf {vΓ Γ} : TpEnvEqCtx E vΓ Γ → EnvEqSb E Γ vΓ.
 
 /-! ## Monotonicity w.r.t. axioms -/
 
-attribute [local grind .] WfCtx.of_axioms_le WfTp.of_axioms_le WfTm.of_axioms_le EqTp.of_axioms_le
-  EqTm.of_axioms_le in
-private theorem of_axioms_le_all {E E' : Axioms χ} (le : E ≤ E') :
-    (∀ {Γ l vA A}, ValEqTp E Γ l vA A → ValEqTp E' Γ l vA A) ∧
-    (∀ {Γ l vt t A}, ValEqTm E Γ l vt t A → ValEqTm E' Γ l vt t A) ∧
-    (∀ {Γ l vt t A}, NeutEqTm E Γ l vt t A → NeutEqTm E' Γ l vt t A) ∧
-    (∀ {Γ l l' A vB B}, ClosEqTp E Γ l l' A vB B → ClosEqTp E' Γ l l' A vB B) ∧
-    (∀ {Γ A l B l' l'' vC C}, Clos₂EqTp E Γ A l B l' l'' vC C → Clos₂EqTp E' Γ A l B l' l'' vC C) ∧
-    (∀ {Γ l l' A B vb b}, ClosEqTm E Γ l l' A B vb b → ClosEqTm E' Γ l l' A B vb b) ∧
-    (∀ {Γ Eᵥ σ Δ}, EnvEqSb E Γ Eᵥ σ Δ → EnvEqSb E' Γ Eᵥ σ Δ) := by
+section
+variable {χ χ' : Type*} (f : χ → χ')
+
+mutual
+-- Semireducible so that the typechecker can WHNF through applications of `map` to constructors.
+-- FIXME: The WHNFs become quite gnarly. Use a custom reducer instead?
+@[semireducible]
+def Val.map : Val χ → Val χ'
+  | .pi l l' A B => .pi l l' A.map B.map
+  | .sigma l l' A B => .sigma l l' A.map B.map
+  | .Id l A t u => .Id l A.map t.map u.map
+  | .univ l => .univ l
+  | .el a => .el a.map
+  | .lam l l' vA b => .lam l l' vA.map b.map
+  | .pair l l' t u => .pair l l' t.map u.map
+  | .refl l t => .refl l t.map
+  | .code A => .code A.map
+  | .neut n A => .neut n.map A.map
+
+@[semireducible]
+def Neut.map : Neut χ → Neut χ'
+  | .ax c A => .ax (f c) A.map
+  | .bvar i => .bvar i
+  | .app l l' A f a => .app l l' A.map f.map a.map
+  | .fst l l' p => .fst l l' p.map
+  | .snd l l' p => .snd l l' p.map
+  | .idRec l l' A a M r h => .idRec l l' A.map a.map M.map r.map h.map
+
+@[semireducible]
+def Clos.map : Clos χ → Clos χ'
+  | .of_val env v => .of_val (env.map Val.map) v.map
+  | .of_expr env t => .of_expr (env.map Val.map) (t.map f)
+end
+
+private theorem map_id_all :
+    (∀ v, Val.map (id : χ → χ) v = v) ∧
+    (∀ n, Neut.map (id : χ → χ) n = n) ∧
+    (∀ c, Clos.map (id : χ → χ) c = c) := by
+  refine ⟨
+    Val.rec (motive_4 := fun l => l.map (Val.map id) = l)
+      ?pi ?sigma ?Id ?univ ?el ?lam ?pair ?refl ?code ?neut
+      ?ax ?bvar ?app ?fst ?snd ?idRec ?of_val ?of_expr ?nil ?cons,
+    Neut.rec
+      ?pi ?sigma ?Id ?univ ?el ?lam ?pair ?refl ?code ?neut
+      ?ax ?bvar ?app ?fst ?snd ?idRec ?of_val ?of_expr ?nil ?cons,
+    Clos.rec
+      ?pi ?sigma ?Id ?univ ?el ?lam ?pair ?refl ?code ?neut
+      ?ax ?bvar ?app ?fst ?snd ?idRec ?of_val ?of_expr ?nil ?cons
+  ⟩
+  all_goals simp [Val.map, Neut.map, Clos.map]; try grind
+
+@[simp] theorem Val.map_id_fun : Val.map (id : χ → χ) = id := funext map_id_all.1
+@[simp] theorem Val.map_id_fun' : Val.map (fun (c : χ) => c) = id := map_id_fun
+@[simp] theorem Neut.map_id_fun : Neut.map (id : χ → χ) = id := funext map_id_all.2.1
+@[simp] theorem Neut.map_id_fun' : Neut.map (fun (c : χ) => c) = id := Neut.map_id_fun
+@[simp] theorem Clos.map_id_fun : Clos.map (id : χ → χ) = id := funext map_id_all.2.2
+@[simp] theorem Clos.map_id_fun' : Clos.map (fun (c : χ) => c) = id := Clos.map_id_fun
+
+variable {f} {𝕋 : Axioms χ} {𝕋' : Axioms χ'} (H : WfTheoryMap 𝕋 f 𝕋')
+include H
+
+attribute [local grind .] WfCtx.map WfTp.map EqTp.map EqTm.map in
+private theorem map_all :
+    (∀ {Γ l vA A}, ValEqTp 𝕋 Γ l vA A →
+      ValEqTp 𝕋' (Γ.map f) l (vA.map f) (A.map f)) ∧
+    (∀ {Γ l vt t A}, ValEqTm 𝕋 Γ l vt t A →
+      ValEqTm 𝕋' (Γ.map f) l (vt.map f) (t.map f) (A.map f)) ∧
+    (∀ {Γ l vt t A}, NeutEqTm 𝕋 Γ l vt t A →
+      NeutEqTm 𝕋' (Γ.map f) l (vt.map f) (t.map f) (A.map f)) ∧
+    (∀ {Γ l l' A vB B}, ClosEqTp 𝕋 Γ l l' A vB B →
+      ClosEqTp 𝕋' (Γ.map f) l l' (A.map f) (vB.map f) (B.map f)) ∧
+    (∀ {Γ A l B l' l'' vC C}, Clos₂EqTp 𝕋 Γ A l B l' l'' vC C →
+      Clos₂EqTp 𝕋' (Γ.map f) (A.map f) l (B.map f) l' l'' (vC.map f) (C.map f)) ∧
+    (∀ {Γ l l' A B vb b}, ClosEqTm 𝕋 Γ l l' A B vb b →
+      ClosEqTm 𝕋' (Γ.map f) l l' (A.map f) (B.map f) (vb.map f) (b.map f)) ∧
+    (∀ {Γ Eᵥ σ Δ}, EnvEqSb 𝕋 Γ Eᵥ σ Δ →
+      EnvEqSb 𝕋' (Γ.map f) (Eᵥ.map (·.map f)) (Expr.map f ∘ σ) (Δ.map f)) := by
   mutual_induction ValEqTp
-  case ax => introv _ Ec _ ihA; apply NeutEqTm.ax _ (le Ec) ihA; grind
-  grind_cases
+  all_goals
+    intros
+    try simp only [Val.map, Neut.map, Clos.map, Expr.map,
+      Expr.subst_map, ← Expr.map_toSb, ← Expr.snoc_map_comp, Expr.map_comp_wk, ← Expr.up_map_comp,
+      Ctx.map_cons] at *
+  case ax Al _ 𝕋c _ _ =>
+    apply NeutEqTm.ax (Al := ⟨(Al.1.1.map f, Al.1.2), by simp [Al.2]⟩)
+    . grind
+    . apply 𝕋c ▸ H.get_eq _ (Option.isSome_iff_exists.mpr ⟨_, 𝕋c⟩)
+    . assumption
+  case pi => apply ValEqTp.pi <;> grind
+  case sigma => apply ValEqTp.sigma <;> grind
+  case Id => apply ValEqTp.Id <;> grind
+  case univ => apply ValEqTp.univ <;> grind
+  case el => apply ValEqTp.el ‹_›
+  case conv_tp => apply ValEqTp.conv_tp ‹_›; grind
+  case lam => apply ValEqTm.lam <;> grind
+  case pair B _ _ _ _ => have := B.map H; apply ValEqTm.pair <;> grind [Ctx.map_cons]
+  case refl => apply ValEqTm.refl ‹_›
+  case code => apply ValEqTm.code <;> grind
+  case neut_tm => apply ValEqTm.neut_tm <;> grind
+  case conv_nf => apply ValEqTm.conv_nf ‹_› <;> grind
+  case bvar Γ lk => have := NeutEqTm.bvar (Γ.map H) (lk.map f); simpa using this
+  case app => apply NeutEqTm.app ‹_› <;> grind
+  case fst => apply NeutEqTm.fst ‹_›
+  case snd => apply NeutEqTm.snd ‹_›
+  case idRec => apply NeutEqTm.idRec ‹_› <;> grind
+  case conv_neut => apply NeutEqTm.conv_neut ‹_› <;> grind
+  case clos_tp Aeq B _ =>
+    have := Aeq.map H
+    simp only [Expr.subst_map] at this
+    apply ClosEqTp.clos_tp ‹_› this (B.map H)
+  case clos_val_tp Aeq _ _ _ =>
+    have := Aeq.map H
+    simp only [Expr.subst_map] at this
+    apply ClosEqTp.clos_val_tp ‹_› this ‹_›
+  case clos₂_tp Aeq Beq C _ =>
+    have Aeq' := Aeq.map H
+    have Beq' := Beq.map H
+    simp only [Expr.subst_map, ← Expr.up_map_comp] at *
+    apply Clos₂EqTp.clos₂_tp ‹_› Aeq' Beq' (C.map H)
+  case clos₂_val_tp Aeq Beq _ _ _ =>
+    have Aeq' := Aeq.map H
+    have Beq' := Beq.map H
+    simp only [Expr.subst_map, ← Expr.up_map_comp] at *
+    apply Clos₂EqTp.clos₂_val_tp ‹_› Aeq' Beq' ‹_›
+  case clos_tm Aeq Beq b _ =>
+    have Aeq' := Aeq.map H
+    have Beq' := Beq.map H
+    simp only [Expr.subst_map, ← Expr.up_map_comp] at *
+    apply ClosEqTm.clos_tm ‹_› Aeq' Beq' (b.map H)
+  case clos_val_tm Aeq Beq b _ _ =>
+    have Aeq' := Aeq.map H
+    have Beq' := Beq.map H
+    simp only [Expr.subst_map, ← Expr.up_map_comp] at *
+    apply ClosEqTm.clos_val_tm ‹_› Aeq' Beq' ‹_›
+  case nil => apply EnvEqSb.nil; grind
+  case snoc => apply EnvEqSb.snoc <;> grind
+
+variable {Γ l l' l'' A B C t u n b vA vB vC vt vn vb}
+
+theorem ValEqTp.map (h : ValEqTp 𝕋 Γ l vA A) : ValEqTp 𝕋' (Γ.map f) l (vA.map f) (A.map f) :=
+  map_all H |>.1 h
+
+theorem ValEqTm.map (h : ValEqTm 𝕋 Γ l vt t A) :
+    ValEqTm 𝕋' (Γ.map f) l (vt.map f) (t.map f) (A.map f) :=
+  map_all H |>.2.1 h
+
+theorem NeutEqTm.map (h : NeutEqTm 𝕋 Γ l vn n A) :
+    NeutEqTm 𝕋' (Γ.map f) l (vn.map f) (n.map f) (A.map f) :=
+  map_all H |>.2.2.1 h
+
+theorem ClosEqTp.map (h : ClosEqTp 𝕋 Γ l l' A vB B) :
+    ClosEqTp 𝕋' (Γ.map f) l l' (A.map f) (vB.map f) (B.map f) :=
+  map_all H |>.2.2.2.1 h
+
+theorem Clos₂EqTp.map (h : Clos₂EqTp 𝕋 Γ A l B l' l'' vC C) :
+    Clos₂EqTp 𝕋' (Γ.map f) (A.map f) l (B.map f) l' l'' (vC.map f) (C.map f) :=
+  map_all H |>.2.2.2.2.1 h
+
+theorem ClosEqTm.map (h : ClosEqTm 𝕋 Γ l l' A B vb b) :
+    ClosEqTm 𝕋' (Γ.map f) l l' (A.map f) (B.map f) (vb.map f) (b.map f) :=
+  map_all H |>.2.2.2.2.2.1 h
+
+theorem EnvEqSb.map {Δ Eᵥ σ Γ} (h : EnvEqSb 𝕋 Δ Eᵥ σ Γ) :
+    EnvEqSb 𝕋' (Δ.map f) (Eᵥ.map (·.map f)) (Expr.map f ∘ σ) (Γ.map f) :=
+  map_all H |>.2.2.2.2.2.2 h
+
+end
 
 theorem ValEqTp.of_axioms_le {E E' : Axioms χ} (le : E ≤ E') {Γ l vA A} :
     ValEqTp E Γ l vA A → ValEqTp E' Γ l vA A :=
-  fun h => of_axioms_le_all le |>.1 h
+  fun h => by simpa using h.map (.of_le le)
 
 theorem ValEqTm.of_axioms_le {E E' : Axioms χ} (le : E ≤ E') {Γ l vt t A} :
     ValEqTm E Γ l vt t A → ValEqTm E' Γ l vt t A :=
-  fun h => of_axioms_le_all le |>.2.1 h
+  fun h => by simpa using h.map (.of_le le)
 
 theorem NeutEqTm.of_axioms_le {E E' : Axioms χ} (le : E ≤ E') {Γ l vn n A} :
     NeutEqTm E Γ l vn n A → NeutEqTm E' Γ l vn n A :=
-  fun h => of_axioms_le_all le |>.2.2.1 h
+  fun h => by simpa using h.map (.of_le le)
 
 theorem ClosEqTp.of_axioms_le {E E' : Axioms χ} (le : E ≤ E') {Γ l l' A vB B} :
     ClosEqTp E Γ l l' A vB B → ClosEqTp E' Γ l l' A vB B :=
-  fun h => of_axioms_le_all le |>.2.2.2.1 h
+  fun h => by simpa using h.map (.of_le le)
 
 theorem Clos₂EqTp.of_axioms_le {E E' : Axioms χ} (le : E ≤ E') {Γ A l B l' l'' vC C} :
     Clos₂EqTp E Γ A l B l' l'' vC C → Clos₂EqTp E' Γ A l B l' l'' vC C :=
-  fun h => of_axioms_le_all le |>.2.2.2.2.1 h
+  fun h => by simpa using h.map (.of_le le)
 
 theorem ClosEqTm.of_axioms_le {E E' : Axioms χ} (le : E ≤ E') {Γ l l' A B vb b} :
     ClosEqTm E Γ l l' A B vb b → ClosEqTm E' Γ l l' A B vb b :=
-  fun h => of_axioms_le_all le |>.2.2.2.2.2.1 h
+  fun h => by simpa using h.map (.of_le le)
 
 theorem EnvEqSb.of_axioms_le {E E' : Axioms χ} (le : E ≤ E') {Δ Eᵥ σ Γ} :
     EnvEqSb E Δ Eᵥ σ Γ → EnvEqSb E' Δ Eᵥ σ Γ :=
-  fun h => of_axioms_le_all le |>.2.2.2.2.2.2 h
+  fun h => by simpa using h.map (.of_le le)
 
 /-! ## Misc lemmas -/
 
