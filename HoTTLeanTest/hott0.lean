@@ -40,6 +40,11 @@ def isEquiv₁₀ {A : Type 1} {B : Type} (f : A → B) : Type 1 :=
       Σ (_ : isSection₁₀ f g),
         isSection₀₁ h f
 
+open SynthLean Expr
+set_option pp.proofs true
+set_option pp.maxSteps 10000
+#print isEquiv₁₀.reflection
+
 @[reflect]
 def isEquiv₁₀_grpd {A : Type 1} {B : Type} (f : A → B) : Type 1 :=
   Σ (g : B → A),

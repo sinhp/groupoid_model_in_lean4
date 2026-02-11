@@ -96,7 +96,7 @@ noncomputable def c' : Cb := c
 
 /-! ## Using `sorry` -/
 
-/-- warning: declaration uses 'sorry' -/
+/-- warning: declaration uses `sorry` -/
 #guard_msgs in
 @[reflect]
 def foo : Type := sorry

@@ -1,4 +1,4 @@
-import test.basic
+import HoTTLeanTest.basic
 
 /-! Test importing a theory. -/
 
