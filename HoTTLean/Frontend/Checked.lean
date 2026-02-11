@@ -21,6 +21,8 @@ namespace CheckedAx
 theorem wf_tp (a : CheckedAx E) : E ∣ [] ⊢[a.l] a.tp :=
   a.wf_nfTp.wf_tp
 
+variable [DecidableEq χ]
+
 /-- The set of axioms extended by this one. -/
 noncomputable abbrev snocAxioms (a : CheckedAx E) : Axioms χ :=
   E.snoc a.get_name a.wf_tp

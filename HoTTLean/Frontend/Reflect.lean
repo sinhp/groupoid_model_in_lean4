@@ -38,7 +38,7 @@ def computeAxioms (constNm : Name) : MetaM ((E : Q(Axioms Name)) × Q(($E).Wf)) 
   for axNm in axioms do
     let checkedAxNm := axNm ++ reflectPostfix
     if !(← hasConst checkedAxNm) then
-      throwError "Axiom '{Expr.const checkedAxNm []}' has not been reflected. \
+      throwError "Axiom '{Expr.const axNm []}' has not been reflected. \
         Try marking it with `@[reflect]`."
     let axCi ← getConstInfo checkedAxNm
     if !axCi.type.isAppOfArity' ``CheckedAx 2 then
@@ -50,11 +50,9 @@ def computeAxioms (constNm : Name) : MetaM ((E : Q(Axioms Name)) × Q(($E).Wf)) 
     have E' : Q(Axioms Name) := E
     have Ewf' : Q(($E').Wf) := Ewf
     let .inr get_name ← lookupAxiom q($E') q(($ax).name) | continue
-    let le ← checkAxiomsLe q($axE) q($E')
-    let E'' : Q(Axioms Name) :=
-      q(($E').snoc ($ax).l ($ax).name ($ax).tp ($ax).wf_tp.le_univMax ($ax).wf_tp.isClosed)
-    let Ewf'' : Q(($E'').Wf) :=
-      q(($Ewf').snoc ($ax).name (($ax).wf_tp.of_axioms_le $le) $get_name)
+    let le ← synthInstanceQ q(Fact ($axE ≤ $E'))
+    let E'' : Q(Axioms Name) := q(($E').snoc $get_name (($ax).wf_tp.of_axioms_le ($le).out))
+    let Ewf'' : Q(($E'').Wf) := q(($Ewf').snoc $get_name (($ax).wf_tp.of_axioms_le ($le).out))
     E := E''
     Ewf := Ewf''
   return ⟨E, Ewf⟩
@@ -62,30 +60,29 @@ def computeAxioms (constNm : Name) : MetaM ((E : Q(Axioms Name)) × Q(($E).Wf)) 
 /-- Reflect the axiom `ci` as a `CheckedAx`,
 adding that to the Lean environment. -/
 def addCheckedAx (ci : AxiomVal) : MetaM Unit := do
-  let (l, T) ←
-    try translateAsTp q(Lean.Name) ci.type |>.run
-    catch e =>
-      throwError "failed to translate type{Lean.indentExpr ci.type}\nerror: {e.toMessageData}"
-
   let ⟨axioms, wf_axioms⟩ ← computeAxioms ci.name
+  let (l, T) ←
+    try translateAsTp q(Name) ci.type |>.run axioms
+    catch e =>
+      throwError "failed to translate type{indentExpr ci.type}\nerror: {e.toMessageData}"
+
   have name : Q(Name) := toExpr ci.name
-  let .inr _ ← lookupAxiom q($axioms) q($name)
-    | throwError "internal error: axiom '{ci.name}' has already been added, \
-      but elaboration succeeded"
+  let .inr get_eq_none ← lookupAxiom q($axioms) q($name)
+    | throwError "internal error: axiom '{ci.name}' depends on itself"
   TypecheckerM.run do
-  let Twf ← checkTp q($axioms) q($wf_axioms) q([]) q($l) q($T)
-  let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Lean.Name from []) q($T)
+  let Twf ← checkTp q($axioms) q([]) q($l) q($T)
+  let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Name from []) q($T)
   let value : Q(CheckedAx $axioms) := q(
     { name := $name
-      get_name := ‹_›
+      get_name := $get_eq_none
       l := $l
       tp := $T
       nfTp := $vT
-      wf_nfTp := $vTeq .nil <| $Twf .nil
+      wf_nfTp := $vTeq .nil <| $Twf $wf_axioms .nil
     }
   )
 
-  -- TODO: `addDeclQ`
+  -- FIXME: `addDeclQ`
   addDecl <| .defnDecl {
     name := ci.name ++ reflectPostfix
     levelParams := []
@@ -98,28 +95,28 @@ def addCheckedAx (ci : AxiomVal) : MetaM Unit := do
 /-- Reflect the definition `ci` as a `CheckedDef`,
 adding that to the Lean environment. -/
 def addCheckedDef (ci : DefinitionVal) : MetaM Unit := do
+  let ⟨axioms, wf_axioms⟩ ← computeAxioms ci.name
   let (l, T) ←
-    try translateAsTp q(Lean.Name) ci.type |>.run
+    try translateAsTp q(Name) ci.type |>.run axioms
     catch e =>
-      throwError "failed to translate type{Lean.indentExpr ci.type}\nerror: {e.toMessageData}"
+      throwError "failed to translate type{indentExpr ci.type}\nerror: {e.toMessageData}"
   let (k, t) ←
-    try translateAsTm q(Lean.Name) ci.value |>.run
+    try translateAsTm q(Name) ci.value |>.run axioms
     catch e =>
-      throwError "failed to translate term{Lean.indentExpr ci.value}\nerror: {e.toMessageData}"
+      throwError "failed to translate term{indentExpr ci.value}\nerror: {e.toMessageData}"
   if l != k then throwError "internal error: inferred level mismatch"
 
-  let ⟨axioms, wf_axioms⟩ ← computeAxioms ci.name
   TypecheckerM.run do
-  let Twf ← checkTp q($axioms) q($wf_axioms) q([]) q($l) q($T)
-  let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Lean.Name from []) q($T)
-  let twf ← checkTm q($axioms) q($wf_axioms) q([]) q($l) q($vT) q($t)
+  let Twf ← checkTp q($axioms) q([]) q($l) q($T)
+  let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Name from []) q($T)
+  let twf ← checkTm q($axioms) q([]) q($l) q($vT) q($t)
   let value : Q(CheckedDef $axioms) := q(
     { l := $l
       tp := $T
       nfTp := $vT
-      wf_nfTp := $vTeq .nil <| $Twf .nil
+      wf_nfTp := $vTeq .nil <| $Twf $wf_axioms .nil
       val := $t
-      wf_val := $twf .nil <| $vTeq .nil <| $Twf .nil
+      wf_val := $twf $wf_axioms .nil <| $vTeq .nil <| $Twf $wf_axioms .nil
     }
   )
 
