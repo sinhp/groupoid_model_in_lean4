@@ -1152,7 +1152,7 @@ theorem EqTmIH.idRec_refl {Γ A M t r l l'} :
     have sr := rtp ▸ Part.mem_unique hR sM
     have ir := I.mem_ofTerm_idRec.2 ⟨_, _, ht, _, ttp, B, by simp [Beq, sAeq],
       _, hM, _, hr, by simp [ttp, sr], _, ht, ttp, _, h1, by simp [ttp],
-        by rw! [ttp, PolymorphicIdElim.idRec_refl (I_eq := _)]⟩
+        by rw! [ttp, PolymorphicIdElim.idRec_refl (I_eq := _)]; rfl⟩
     ⟨_, hΓ, _, _, sM, _, ir, hr, sr⟩
   simp [Beq, ← Id_comp, sAeq, ttp]
 
