@@ -15,16 +15,15 @@ theorem empty_wf (χ) : (empty χ).Wf := nofun
 section
 variable [DecidableEq χ]
 
-/- Remark: we require `E c = none` because it is convenient to have around later.
-We do not require `E ∣ [] ⊢[l] A` so that `@[reflect]` doesn't have to prove it. -/
-def snoc (E : Axioms χ)
-    (l : Nat) (c : χ) (A : Expr χ)
-    (l_le : l ≤ univMax) (_Ec : E c = none) (A_cl : A.isClosed) : Axioms χ :=
-  fun d => if d = c then some ⟨(A, l), ⟨A_cl, l_le⟩⟩ else E d
+/- Remark: we require `E c = none` and `E ∣ [] ⊢[l] A`
+so that `E.snoc` is automatically `Wf` if `E` is. -/
+def snoc (E : Axioms χ) {c : χ} {A : Expr χ} {l : Nat}
+    (_Ec : E c = none) (Awf : E ∣ [] ⊢[l] A) : Axioms χ :=
+  fun d => if d = c then some ⟨(A, l), ⟨Awf.isClosed, Awf.le_univMax⟩⟩ else E d
 
 @[simp]
-theorem snoc_get (E : Axioms χ) (l c A l_le Ec A_cl) :
-    E.snoc l c A l_le Ec A_cl c = some ⟨(A, l), ⟨A_cl, l_le⟩⟩ := by
+theorem snoc_get (E : Axioms χ) {c A l} (Ec : E c = none) (Awf) :
+    E.snoc Ec Awf c = some ⟨(A, l), ⟨Awf.isClosed, Awf.le_univMax⟩⟩ := by
   simp [snoc]
 
 end
@@ -49,28 +48,30 @@ theorem eq_none_of_le {E E' : Axioms χ} (le : E ≤ E') {c} (E'c : E' c = none)
 
 section
 variable [DecidableEq χ] {𝕋 𝕋' : Axioms χ} (le : 𝕋 ≤ 𝕋')
+  {c : χ} {A : Expr χ} {l : Nat}
+  (𝕋c : 𝕋 c = none) (𝕋'c : 𝕋' c = none)
+  (Awf : 𝕋 ∣ [] ⊢[l] A) (Awf' : 𝕋' ∣ [] ⊢[l] A)
 
 include le in
-theorem le_snoc (l c A l_le 𝕋'c A_cl) : 𝕋 ≤ 𝕋'.snoc l c A l_le 𝕋'c A_cl := by
+theorem le_snoc : 𝕋 ≤ 𝕋'.snoc 𝕋'c Awf' := by
   intro d Al 𝕋d
   have : d ≠ c := fun h => nomatch (h ▸ le 𝕋d) ▸ 𝕋'c
   simpa [snoc, this, ↓reduceIte] using le 𝕋d
 
 include le in
-theorem snoc_le (l c A l_le 𝕋c A_cl) (𝕋'c : 𝕋' c = some ⟨(A, l), ⟨A_cl, l_le⟩⟩) :
-    𝕋.snoc l c A l_le 𝕋c A_cl ≤ 𝕋' := by
+theorem snoc_le (𝕋'c : 𝕋' c = some ⟨(A, l), ⟨Awf.isClosed, Awf.le_univMax⟩⟩) :
+    𝕋.snoc 𝕋c Awf ≤ 𝕋' := by
   intro d Al 𝕋d
   by_cases eq : d = c
   . cases eq; convert 𝕋'c using 2; simpa [snoc] using 𝕋d.symm
   . simp only [snoc, eq, ↓reduceIte] at 𝕋d; exact le 𝕋d
 
-theorem le_snoc_self (𝕋 : Axioms χ) (l c A l_le 𝕋c A_cl) :
-    𝕋 ≤ 𝕋.snoc l c A l_le 𝕋c A_cl :=
-  le_snoc (refl _) l c A l_le 𝕋c A_cl
+variable (𝕋) in
+theorem le_snoc_self : 𝕋 ≤ 𝕋.snoc 𝕋c Awf :=
+  le_snoc (refl _) 𝕋c Awf
 
 include le in
-theorem snoc_le_snoc (l c A l_le 𝕋'c A_cl) :
-    𝕋.snoc l c A l_le (eq_none_of_le le 𝕋'c) A_cl ≤ 𝕋'.snoc l c A l_le 𝕋'c A_cl := by
+theorem snoc_le_snoc : 𝕋.snoc 𝕋c Awf ≤ 𝕋'.snoc 𝕋'c Awf' := by
   simp [snoc_le (le_snoc le ..)]
 
 end
@@ -151,12 +152,12 @@ theorem EqTm.of_axioms_le (Γtu : 𝕋 ∣ Γ ⊢[l] t ≡ u : A) : 𝕋' ∣ Γ
 
 end
 
-theorem Axioms.Wf.snoc [DecidableEq χ] {𝕋 : Axioms χ} {A l}
-    (𝕋wf : 𝕋.Wf) (c : χ) (Awf : 𝕋 ∣ [] ⊢[l] A) (𝕋c : 𝕋 c = none) :
-    (𝕋.snoc l c A Awf.le_univMax 𝕋c Awf.isClosed).Wf := by
+theorem Axioms.Wf.snoc [DecidableEq χ] {𝕋 : Axioms χ} {c A l}
+    (𝕋wf : 𝕋.Wf) (𝕋c : 𝕋 c = none) (Awf : 𝕋 ∣ [] ⊢[l] A) :
+    (𝕋.snoc 𝕋c Awf).Wf := by
   intro d Al 𝕋d
   simp only [Axioms.snoc] at 𝕋d
-  have le := 𝕋.le_snoc_self l c A Awf.le_univMax 𝕋c Awf.isClosed
+  have le := 𝕋.le_snoc_self 𝕋c Awf
   by_cases eq : d = c <;> simp only [eq, ↓reduceIte] at 𝕋d
   . cases 𝕋d
     exact Awf.of_axioms_le le

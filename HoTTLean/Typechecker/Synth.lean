@@ -39,19 +39,19 @@ partial def lookupVar (vΓ : Q(TpEnv Lean.Name)) (i : Q(Nat)) :
     )⟩
 
 /-- Look up an axiom in an axiom environment. -/
-partial def lookupAxiom (E : Q(Axioms Lean.Name)) (c : Q(Lean.Name)) : Lean.MetaM
-    ((A : Q(Expr Lean.Name)) × (l : Q(Nat)) × Q(∃ h, $E $c = some ⟨($A, $l), h⟩) ⊕
-      Q($E $c = none)) := do
+partial def lookupAxiom (E : Q(Axioms Lean.Name)) (c : Q(Lean.Name)) :
+    Lean.MetaM ((A : Q(Expr Lean.Name)) × (l : Q(Nat)) ×
+      Q(∃ h, $E $c = some ⟨($A, $l), h⟩) ⊕ Q($E $c = none)) := do
   match E with
   | ~q(.empty _) => return .inr q(by rfl)
-  | ~q(Axioms.snoc $E' $l $c' $A $l_le $A_cl) =>
+  | ~q(@Axioms.snoc _ _ $E' $c' $A $l _ $Awf) =>
     let b : Q(Bool) ← Lean.Meta.whnf q(decide ($c' = $c))
     have : $b =Q decide ($c' = $c) := .unsafeIntro
     match b with
     | ~q(true) =>
       return Sum.inl ⟨q($A), q($l), q(by as_aux_lemma =>
         have : $c' = $c := by rwa [decide_eq_true_iff] at *
-        simp +zetaDelta [this, ($A_cl), ($l_le)]
+        simp +zetaDelta [this, ($Awf).isClosed, ($Awf).le_univMax]
       )⟩
     | ~q(false) =>
       match ← lookupAxiom q($E') q($c) with

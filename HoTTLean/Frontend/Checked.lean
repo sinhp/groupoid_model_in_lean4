@@ -22,14 +22,14 @@ theorem wf_tp (a : CheckedAx E) : E ∣ [] ⊢[a.l] a.tp :=
   a.wf_nfTp.wf_tp
 
 /-- The set of axioms extended by this one. -/
-noncomputable def snocAxioms (a : CheckedAx E) : Axioms χ :=
-  E.snoc a.l a.name a.tp a.wf_tp.le_univMax a.wf_tp.isClosed
+noncomputable abbrev snocAxioms (a : CheckedAx E) : Axioms χ :=
+  E.snoc a.get_name a.wf_tp
 
 theorem le_snocAxioms (a : CheckedAx E) : E ≤ a.snocAxioms :=
-  E.le_snoc_self _ _ _ _ _ a.get_name
+  E.le_snoc_self ..
 
 theorem wf_snocAxioms (a : CheckedAx E) (Ewf : E.Wf) : a.snocAxioms.Wf :=
-  Ewf.snoc a.name a.wf_tp a.get_name
+  Ewf.snoc a.get_name a.wf_tp
 
 /-- The axiom as a term. -/
 def val (a : CheckedAx E) : Expr χ :=
@@ -37,8 +37,7 @@ def val (a : CheckedAx E) : Expr χ :=
 
 theorem wf_val (a : CheckedAx E) : a.snocAxioms ∣ [] ⊢[a.l] a.val : a.tp := by
   unfold val
-  have := E.snoc_get a.l a.name a.tp a.wf_tp.le_univMax a.wf_tp.isClosed
-  apply WfTm.ax .nil this
+  apply WfTm.ax .nil (E.snoc_get ..)
   apply a.wf_nfTp.wf_tp.of_axioms_le a.le_snocAxioms
 
 end CheckedAx
