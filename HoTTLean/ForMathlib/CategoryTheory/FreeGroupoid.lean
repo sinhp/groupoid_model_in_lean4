@@ -4,13 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Hua
 -/
 import Mathlib.CategoryTheory.Groupoid.FreeGroupoid
-import Mathlib.CategoryTheory.Category.Grpd
+import Mathlib.CategoryTheory.Groupoid.Grpd.Basic
 import Mathlib.CategoryTheory.Adjunction.Reflective
 import Mathlib.CategoryTheory.Localization.Predicate
 import Mathlib.CategoryTheory.Monad.Limits
 import Mathlib.CategoryTheory.Category.Cat.Limit
-
-import HoTTLean.ForMathlib.CategoryTheory.Localization.Predicate
 
 /-!
 # Free groupoid on a category
@@ -190,15 +188,15 @@ open Category.FreeGroupoid
 @[simps]
 def free : Cat.{u,u} ⥤ Grpd.{u,u} where
   obj C := Grpd.of <| Category.FreeGroupoid C
-  map {C D} F := map F
-  map_id C := by simp [Grpd.id_eq_id, ← map_id]; rfl
-  map_comp F G := by simp [Grpd.comp_eq_comp, ← map_comp]; rfl
+  map {C D} F := map F.toFunctor
+  map_id C := by simp [Grpd.id_eq_id, ← map_id]
+  map_comp F G := by simp [Grpd.comp_eq_comp, ← map_comp]
 
 /-- The unit of the free-forgetful adjunction between `Grpd` and `Cat`. -/
 @[simps]
 def freeForgetAdjunction.unit : 𝟭 Cat ⟶ free ⋙ forgetToCat where
-  app C := Category.FreeGroupoid.of C
-  naturality C D F := by simp [forgetToCat, Cat.comp_eq_comp, map, lift_spec]
+  app C := ⟨Category.FreeGroupoid.of C⟩
+  naturality C D F := by ext; simp [forgetToCat, map, lift_spec]
 
 /-- The counit of the free-forgetful adjunction between `Grpd` and `Cat`. -/
 @[simps]
@@ -218,7 +216,7 @@ def freeForgetAdjunction : free ⊣ Grpd.forgetToCat where
     apply lift_unique
     simp [Functor.assoc, lift_spec, Grpd.id_eq_id]
   right_triangle_components G := by
-    simp [forgetToCat, Cat.comp_eq_comp, lift_spec, Cat.id_eq_id]
+    ext; simp [forgetToCat, lift_spec]
 
 instance : Reflective Grpd.forgetToCat where
   L := free

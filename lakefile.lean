@@ -1,13 +1,13 @@
 import Lake
 open Lake DSL
 
-require Poly from git "https://github.com/sinhp/Poly" @ "master"
+require Poly from git "https://github.com/Vtec234/Poly" @ "bump/v4.28.0-rc1"
 
 require checkdecls from git "https://github.com/PatrickMassot/checkdecls.git"
 
 meta if get_config? env = some "dev" then
 require «doc-gen4» from git
-  "https://github.com/leanprover/doc-gen4" @ "v4.25.0-rc2"
+  "https://github.com/leanprover/doc-gen4" @ "v4.28.0-rc1"
 
 package hottlean where
   -- Settings applied to both builds and interactive editing

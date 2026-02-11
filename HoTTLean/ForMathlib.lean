@@ -1,10 +1,11 @@
+import Mathlib.Tactic.DepRewrite
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.PullbackCone
 import Mathlib.CategoryTheory.Groupoid.Discrete
-import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
+import Mathlib.CategoryTheory.Limits.Shapes.Pullback.IsPullback.Basic
 import Mathlib.CategoryTheory.Category.ULift
 import Mathlib.Logic.Function.ULift
 import Mathlib.CategoryTheory.Category.Cat
-import Mathlib.CategoryTheory.Category.Grpd
+import Mathlib.CategoryTheory.Groupoid.Grpd.Basic
 import Mathlib.Data.Part
 import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
 import Mathlib.CategoryTheory.Core
@@ -101,29 +102,29 @@ namespace CategoryTheory.Cat
 
 /-- This is the proof of equality used in the eqToHom in `Cat.eqToHom_hom` -/
 theorem eqToHom_hom_aux {C1 C2 : Cat.{v,u}} (x y: C1) (eq : C1 = C2) :
-    (x ⟶ y) = ((eqToHom eq).obj x ⟶ (eqToHom eq).obj y) := by
+    (x ⟶ y) = ((eqToHom eq).toFunctor.obj x ⟶ (eqToHom eq).toFunctor.obj y) := by
   cases eq
   simp[CategoryStruct.id]
 
 /-- This is the turns the hom part of eqToHom functors into a cast-/
 theorem eqToHom_hom {C1 C2 : Cat.{v,u}} {x y: C1} (f : x ⟶ y) (eq : C1 = C2) :
-    (eqToHom eq).map f = (cast (Cat.eqToHom_hom_aux x y eq) f) := by
+    (eqToHom eq).toFunctor.map f = (cast (Cat.eqToHom_hom_aux x y eq) f) := by
   cases eq
   simp[CategoryStruct.id]
 
 /-- This turns the object part of eqToHom functors into casts -/
 theorem eqToHom_obj {C1 C2 : Cat.{v,u}} (x : C1) (eq : C1 = C2) :
-    (eqToHom eq).obj x = cast (congrArg Bundled.α eq) x := by
+    (eqToHom eq).toFunctor.obj x = cast (congrArg Bundled.α eq) x := by
   cases eq
   simp[CategoryStruct.id]
 
 abbrev homOf {C D : Type u} [Category.{v} C] [Category.{v} D] (F : C ⥤ D) :
-    Cat.of C ⟶ Cat.of D := F
+    Cat.of C ⟶ Cat.of D := ⟨F⟩
 
 @[simps] def ULift_lte_iso_self {C : Type (max u u₁)} [Category.{v} C] :
     Cat.of (ULift.{u} C) ≅ Cat.of C where
-  hom := ULift.downFunctor
-  inv := ULift.upFunctor
+  hom := homOf ULift.downFunctor
+  inv := homOf ULift.upFunctor
 
 @[simp] def ULift_succ_iso_self {C : Type (u + 1)} [Category.{v} C] :
     of (ULift.{u, u + 1} C) ≅ of C := ULift_lte_iso_self.{v,u,u+1}
@@ -135,8 +136,8 @@ def ofULift (C : Type u) [Category.{v} C] : Cat.{v, max u w} :=
   of $ ULift.{w} C
 
 def uLiftFunctor : Cat.{v,u} ⥤ Cat.{v, max u w} where
-  obj X := Cat.ofULift.{w} X
-  map F := Cat.homOf $ ULift.downFunctor ⋙ F ⋙ ULift.upFunctor
+  obj X := ofULift.{w} X
+  map F := homOf $ ULift.downFunctor ⋙ F.toFunctor ⋙ ULift.upFunctor
 
 end CategoryTheory.Cat
 
@@ -401,16 +402,15 @@ variable {Γ : Type u₂} [Category.{v₂} Γ] {A : Γ ⥤ Grpd.{v₁,u₁}}
 
 @[simp] theorem Cat.map_id_obj {A : Γ ⥤ Cat.{v₁,u₁}}
     {x : Γ} {a : A.obj x} :
-    (A.map (𝟙 x)).obj a = a := by
-  have : A.map (𝟙 x) = 𝟙 (A.obj x) := by simp
-  exact Functor.congr_obj this a
+    (A.map (𝟙 x)).toFunctor.obj a = a := by
+  simp
 
 theorem Cat.map_id_map {A : Γ ⥤ Cat.{v₁,u₁}}
     {x : Γ} {a b : A.obj x} {f : a ⟶ b} :
-    (A.map (𝟙 x)).map f = eqToHom Cat.map_id_obj
+    (A.map (𝟙 x)).toFunctor.map f = eqToHom Cat.map_id_obj
       ≫ f ≫ eqToHom Cat.map_id_obj.symm := by
-  have : A.map (𝟙 x) = 𝟙 (A.obj x) := by simp
-  exact Functor.congr_hom this f
+  rw! [show A.map (𝟙 x) = 𝟙 (A.obj x) by simp]
+  simp
 
 end
 
@@ -623,14 +623,6 @@ lemma Discrete.functor_eq {X C : Type*} [Category C] {F : Discrete X ⥤ C} :
     cases x ; rcases f with ⟨⟨h⟩⟩
     cases h
     simp
-
-lemma Discrete.functor_ext {X C : Type*} [Category C] (F G : Discrete X ⥤ C)
-    (h : ∀ x : X, F.obj ⟨x⟩ = G.obj ⟨x⟩) :
-    F = G :=
-  calc F
-    _ = Discrete.functor (fun x => F.obj ⟨x⟩) := Discrete.functor_eq
-    _ = Discrete.functor (fun x => G.obj ⟨x⟩) := Discrete.functor_ext' h
-    _ = G := Discrete.functor_eq.symm
 
 lemma Discrete.hext {X Y : Type u} (a : Discrete X) (b : Discrete Y) (hXY : X ≍ Y)
     (hab : a.1 ≍ b.1) : a ≍ b := by

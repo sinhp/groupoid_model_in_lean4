@@ -60,8 +60,6 @@ variable (F : Pseudofunctor B Cat) {a b : B}
     (X Y : LocallyDiscrete C) (e : X ≅ Y) : e.hom.toLoc ≫ e.inv.toLoc = 𝟙 _ :=
   LocallyDiscrete.eq_of_hom ⟨⟨by simp⟩⟩
 
-attribute [reassoc] StrongTrans.naturality_comp_inv_app
-
 end
 
 lemma _root_.CategoryTheory.Functor.toPseudofunctor'_map₂ {C : Type u₁} [Category.{v₁} C] (F : C ⥤ Cat)
