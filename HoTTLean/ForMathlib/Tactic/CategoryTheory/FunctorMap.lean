@@ -62,18 +62,18 @@ def functorMapExpr (e : Expr) (lvl_params : Bool) : MetaM (Expr × List Level) :
     simpType categorySimp' e'
   return (e, [v₂, u₂])
 
-syntax (name := functor_map) "functor_map" (" (" &"attr" ":=" Parser.Term.attrInstance,* ")")? : attr
+syntax (name := functor_map) "functor_map" optAttrArg : attr
 
 initialize registerBuiltinAttribute {
   name := `functor_map
   descr := ""
   applicationTime := .afterCompilation
   add := fun src ref kind => match ref with
-  | `(attr| functor_map $[(attr := $stx?,*)]?) => MetaM.run' do
+  | `(attr| functor_map $stx?) => MetaM.run' do
     if (kind != AttributeKind.global) then
       throwError "`functor_map` can only be used as a global attribute"
-    addRelatedDecl src "_functor_map" ref stx? fun type value levels => do
-      let (e, levels') ← functorMapExpr (← mkExpectedTypeHint value type) true
+    addRelatedDecl src (src.appendAfter "_functor_map") ref stx? fun value levels => do
+      let (e, levels') ← functorMapExpr value true
       pure (e, levels ++ levels'.map fun | .param n => n | _ => panic! "")
   | _ => throwUnsupportedSyntax }
 
