@@ -3,6 +3,7 @@ import HoTTLean.Syntax.Axioms
 import HoTTLean.Typechecker.Util
 import HoTTLean.Frontend.Reflected
 import HoTTLean.Frontend.Instances
+import HoTTLean.Frontend.Shallow
 
 namespace SynthLean
 
@@ -160,6 +161,11 @@ partial def translateAsTm {u : Level} (χ : Q(Type u)) (e : Lean.Expr) :
         q(.app $sl $l (.el <| .bvar 0)
           (.ax $name (.pi $sl $l (.univ $l) (.el <| .bvar 0)))
           (.code $A))⟩
+    if e.isAppOfArity' ``SemAx 2 then
+      let #[T, a] := e.getAppArgs | throwError "internal error"
+      let ⟨l, T⟩ ← translateAsTp χ T
+      let a : Q($χ) ← evalExprExpr a
+      return ⟨l, q(.ax $a $T)⟩
     if e.isAppOfArity' ``Sigma.mk 4 then
       let #[_, B, f, s] := e.getAppArgs | throwError "internal error"
       let ⟨l', B⟩ ← lambdaBoundedTelescope B 1 fun xs B => do
