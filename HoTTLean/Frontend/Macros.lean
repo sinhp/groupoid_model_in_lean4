@@ -11,14 +11,22 @@ open Lean Meta Elab Term
 open CategoryTheory ChosenTerminal
 open Model UnstructuredUniverse
 
--- inductive ExpectedTheory {u : Level} (χ : Q(Type u))
+inductive ExpectedTheory : {u : Level} → Q(Type u) → Type
+  | internal {u : Level} (𝒞 : Q(Type u))
+    {v : Level} (cat : Q(Category.{v, u} $𝒞)) (ct : Q(ChosenTerminal.{v,u} $𝒞))
+    (s : Q(UHomSeq $𝒞)) : ExpectedTheory q(($s).SigInt)
+  | other {u : Level} {χ : Q(Type u)} (E : Q(Axioms $χ)) : ExpectedTheory q($χ)
+
+def ExpectedTheory.theory {u : Level} : {χ : Q(Type u)} → ExpectedTheory q($χ) → Q(Axioms $χ)
+  | _, .internal _ _ _ s => q(($s).thyInt)
+  | _, .other E => q($E)
 
 structure ElabData where
   lctx : LocalContext
   linsts : LocalInstances
   u : Level
   χ : Q(Type u)
-  E : Q(Axioms $χ)
+  E : ExpectedTheory q($χ)
 
 private abbrev ElabExt := EnvExtension (Option ElabData)
 
@@ -39,12 +47,20 @@ initialize elabExt : ElabExt ← registerEnvExtension (pure none)
 /-- Identify the signature and theory
 that a `tp%/tm% (theory := thy)` expression is expected to elaborate into. -/
 def elabExpectedTheory (thy : Option Term) (expectedType : Lean.Expr) :
-    TermElabM ((u : Level) × (χ : Q(Type u)) × Q(Axioms $χ)) := do
+    TermElabM ((u : Level) × (χ : Q(Type u)) × ExpectedTheory q($χ)) := do
   let v ← mkFreshLevelMVar
   let χ ← mkFreshExprMVarQ q(Type v)
   if let some thy := thy then
     let E ← elabTermEnsuringTypeQ thy q(Axioms $χ)
-    return ⟨v, q($χ), q($E)⟩
+    let u ← mkFreshLevelMVar
+    let 𝒞 : Q(Type u) ← mkFreshExprMVarQ q(Type u)
+    let _cat : Q(Category.{v,u} $𝒞) ← mkFreshExprMVarQ q(Category.{v,u} $𝒞)
+    let _ct : Q(ChosenTerminal.{v,u} $𝒞) ← mkFreshExprMVarQ q(ChosenTerminal.{v,u} $𝒞)
+    let s : Q(UHomSeq $𝒞) ← mkFreshExprMVarQ q(UHomSeq $𝒞)
+    if ← isDefEq E q(($s).thyInt) then
+      return ⟨v, q(($s).SigInt), .internal q($𝒞) q($_cat) q($_ct) q($s)⟩
+    else
+      return ⟨v, q($χ), .other q($E)⟩
   -- This may assign the expected type.
   if !(← isDefEq expectedType q(SynthLean.Expr $χ)) then
     throwError "This macro produces a SynthLean expression. \
@@ -56,7 +72,7 @@ def elabExpectedTheory (thy : Option Term) (expectedType : Lean.Expr) :
   let s ← mkFreshExprMVarQ q(UHomSeq $𝒞)
   if ← isDefEq χ q(($s).SigInt) then
     if !(← instantiateMVars s).hasMVar then
-      return ⟨v, q(($s).SigInt), q(($s).thyInt)⟩
+      return ⟨v, q(($s).SigInt), .internal q($𝒞) q($_cat) q($_ct) q($s)⟩
   throwError "Could not infer the theory from the expected type. \
   Please provide (theory := ..) explicitly."
 
@@ -80,7 +96,7 @@ elab "tp%" thy:group("(" "theory" ":=" term ")")? "{" t:term "}" : term <= expec
   modifyEnv (elabExt.modifyState · fun _ => some ⟨lctx, linsts, u, χ, E⟩)
   let t ← withLCtx {} {} <| elabTerm t none
   let (_, T) ←
-    try translateAsTp (u := u) χ t |>.run E
+    try translateAsTp (u := u) χ t |>.run E.theory
     catch e =>
       throwError "failed to translate type{Lean.indentExpr t}\nerror: {e.toMessageData}"
   return T
@@ -107,18 +123,11 @@ elab "⸨" t:term "⸩" : term <= expectedType => do
   if w.hasMVar then
     throwError "The expected type {Expr.sort w.succ} contains metavariables."
 
-  let { lctx, linsts, u := v, χ, E } := elabData
+  let { lctx, linsts, E := .internal (u := u) (v := v) _ _ _ s, .. } := elabData
+    | throwError "Expected the internal theory of a model\n\
+        but got{indentExpr elabData.E.theory}"
 
   withLCtx lctx linsts do
-    let u ← mkFreshLevelMVar
-    let 𝒞 : Q(Type u) ← mkFreshExprMVarQ q(Type u)
-    let _cat : Q(Category.{v,u} $𝒞) ← mkFreshExprMVarQ q(Category.{v,u} $𝒞)
-    let _ct : Q(ChosenTerminal.{v,u} $𝒞) ← mkFreshExprMVarQ q(ChosenTerminal.{v,u} $𝒞)
-    let s : Q(UHomSeq $𝒞) ← mkFreshExprMVarQ q(UHomSeq $𝒞)
-    if !(← isDefEq E q(($s).thyInt)) then
-      throwError "The expected theory should be of the form{indentExpr q(($s).thyInt)}\n\
-        but is{indentExpr E}"
-
     let l ← getSortLevel w
     have l : Q(ℕ) := toExpr l
     let lt ← ltNat q($l) q(univMax)
