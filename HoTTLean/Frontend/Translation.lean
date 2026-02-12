@@ -1,7 +1,7 @@
 import Qq
 import HoTTLean.Syntax.Axioms
 import HoTTLean.Typechecker.Util
-import HoTTLean.Frontend.Checked
+import HoTTLean.Frontend.Reflected
 import HoTTLean.Frontend.Instances
 
 namespace SynthLean
@@ -81,10 +81,10 @@ def mkId {u : Level} (χ : Q(Type u)) (l : Nat) : Q(Expr $χ) :=
 def getTheoryOfChecked (e : Lean.Expr) : MetaM ((u : Level) × (χ : Q(Type u)) × Q(Axioms $χ)) := do
   let ⟨u, α, e⟩ ← inferTypeQ' e
   match α with
-  | ~q(@CheckedAx $χ $E) =>
+  | ~q(@ReflectedAx $χ $E) =>
     let _ ← synthInstanceQ q(DecidableEq $χ)
     return ⟨u, q($χ), q(($e).snocAxioms)⟩
-  | ~q(@CheckedDef $χ $E) => return ⟨u, q($χ), q($E)⟩
+  | ~q(@ReflectedDef $χ $E) => return ⟨u, q($χ), q($E)⟩
   | _ => throwError "expected a `CheckedAx` or `CheckedDef`, got{indentExpr e}"
 
 mutual
@@ -232,8 +232,8 @@ partial def translateAsTm {u : Level} (χ : Q(Type u)) (e : Lean.Expr) :
         Try marking it with `@[reflect]`."
     let ⟨_, χ₀, E⟩ ← getTheoryOfChecked (.const nm [])
     let val : Q(Expr $χ₀) := ← match ci with
-      | .defnInfo _ => mkAppM ``CheckedDef.val #[.const nm []]
-      | .axiomInfo _ => mkAppM ``CheckedAx.val #[.const nm []]
+      | .defnInfo _ => mkAppM ``ReflectedDef.val #[.const nm []]
+      | .axiomInfo _ => mkAppM ``ReflectedAx.val #[.const nm []]
       | _ => throwError "unsupported kind of constant (not a `def` or an `axiom`){indentExpr e}"
     let E' := (← read).expectedTheory
     if !(← isDefEq E E') then

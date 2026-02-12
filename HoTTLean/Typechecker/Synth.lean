@@ -1,5 +1,5 @@
 import HoTTLean.Typechecker.Equate
-import HoTTLean.Frontend.Checked
+import HoTTLean.Frontend.Reflected
 import HoTTLean.Frontend.Instances
 
 /-! ## Typechecker
@@ -62,19 +62,19 @@ partial def lookupAxiom (E : Q(Axioms Lean.Name)) (c : Q(Lean.Name)) :
           have : $c' ≠ $c := by rwa [decide_eq_false_iff_not] at *
           have ⟨h, eq⟩ := $h
           refine ⟨h, ?_⟩
-          simpa +zetaDelta [CheckedAx.snocAxioms, Axioms.snoc, this.symm] using eq
+          simpa +zetaDelta [ReflectedAx.snocAxioms, Axioms.snoc, this.symm] using eq
         )⟩
       | .inr h =>
         return .inr q(by as_aux_lemma =>
           have : $c' ≠ $c := by rwa [decide_eq_false_iff_not] at *
-          simpa +zetaDelta [CheckedAx.snocAxioms, Axioms.snoc, this.symm] using $h
+          simpa +zetaDelta [ReflectedAx.snocAxioms, Axioms.snoc, this.symm] using $h
         )
     | _ =>
       throwError "could not determine whether\
           {Lean.indentExpr q($c') |>.nest 2}\
         {Lean.indentD "="}\
           {Lean.indentExpr c |>.nest 2}"
-  | ~q(CheckedAx.snocAxioms _) =>
+  | ~q(ReflectedAx.snocAxioms _) =>
     let E ← Lean.Meta.unfoldDefinition E
     lookupAxiom E c
   | _ => throwError "unsupported axiom environment{Lean.indentExpr E}"
@@ -191,7 +191,7 @@ partial def synthTm {u : Lean.Level} {χ : Q(Type u)} (𝕋 : Q(Axioms $χ))
       have := t'.map (HasTheoryMap.map_wf $𝕋₀ $𝕋'') |>.subst (WfSb.terminal .bvar Γwf)
       simpa using this
     )⟩
-  | ~q(@CheckedDef.val _ $𝕋' $defn) => do
+  | ~q(@ReflectedDef.val _ $𝕋' $defn) => do
     let .defEq _ ← isDefEqQ q($𝕋) q($𝕋')
       | throwError "got definition in theory{Lean.indentExpr 𝕋'}\n\
         while checking w.r.t. theory{Lean.indentExpr 𝕋}"
@@ -208,7 +208,7 @@ partial def synthTm {u : Lean.Level} {χ : Q(Type u)} (𝕋 : Q(Axioms $χ))
         convert t.subst (WfSb.wk B) using 1
         rw [Expr.subst_of_isClosed _ ($defn).wf_val.isClosed]
     )⟩
-  | ~q(CheckedAx.val $ax) => do
+  | ~q(ReflectedAx.val $ax) => do
     let _decEq ← synthInstanceQ q(DecidableEq $χ)
     let .defEq _ ← isDefEqQ q($𝕋) q(($ax).snocAxioms)
       | throwError "got axiom in theory{Lean.indentExpr q(($ax).snocAxioms)}\n\

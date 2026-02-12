@@ -41,11 +41,11 @@ def computeAxioms (constNm : Name) : MetaM ((E : Q(Axioms Name)) × Q(($E).Wf)) 
       throwError "Axiom '{Expr.const axNm []}' has not been reflected. \
         Try marking it with `@[reflect]`."
     let axCi ← getConstInfo checkedAxNm
-    if !axCi.type.isAppOfArity' ``CheckedAx 2 then
+    if !axCi.type.isAppOfArity' ``ReflectedAx 2 then
       throwError "checked axiom '{axNm}' has unexpected type{indentExpr axCi.type}"
     let #[_, axE] := axCi.type.getAppArgs | throwError "internal error"
     have axE : Q(Axioms Name) := axE
-    have ax : Q(CheckedAx $axE) := .const checkedAxNm []
+    have ax : Q(ReflectedAx $axE) := .const checkedAxNm []
     -- (Aux `have`s work around bugs in Qq elaboration.)
     have E' : Q(Axioms Name) := E
     have Ewf' : Q(($E').Wf) := Ewf
@@ -72,7 +72,7 @@ def addCheckedAx (ci : AxiomVal) : MetaM Unit := do
   TypecheckerM.run do
   let Twf ← checkTp q($axioms) q([]) q($l) q($T)
   let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Name from []) q($T)
-  let value : Q(CheckedAx $axioms) := q(
+  let value : Q(ReflectedAx $axioms) := q(
     { name := $name
       get_name := $get_eq_none
       l := $l
@@ -86,7 +86,7 @@ def addCheckedAx (ci : AxiomVal) : MetaM Unit := do
   addDecl <| .defnDecl {
     name := ci.name ++ reflectPostfix
     levelParams := []
-    type := q(CheckedAx $axioms)
+    type := q(ReflectedAx $axioms)
     value := ShareCommon.shareCommon' value
     hints := .regular 0 -- TODO: what height?
     safety := .safe
@@ -110,7 +110,7 @@ def addCheckedDef (ci : DefinitionVal) : MetaM Unit := do
   let Twf ← checkTp q($axioms) q([]) q($l) q($T)
   let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Name from []) q($T)
   let twf ← checkTm q($axioms) q([]) q($l) q($vT) q($t)
-  let value : Q(CheckedDef $axioms) := q(
+  let value : Q(ReflectedDef $axioms) := q(
     { l := $l
       tp := $T
       nfTp := $vT
@@ -123,7 +123,7 @@ def addCheckedDef (ci : DefinitionVal) : MetaM Unit := do
   addDecl <| .defnDecl {
     name := ci.name ++ reflectPostfix
     levelParams := []
-    type := q(CheckedDef $axioms)
+    type := q(ReflectedDef $axioms)
     /- The kernel does not max-share terms before checking them,
     and our tactics are currently bad at producing highly shared terms.
     Maximal sharing improves checking time asymptotically on some benchmarks (`bench.samplers.id`)

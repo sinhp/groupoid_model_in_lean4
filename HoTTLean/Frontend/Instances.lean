@@ -1,6 +1,5 @@
-import HoTTLean.Syntax.Axioms
 import HoTTLean.Model.Unstructured.InternalTheory
-import HoTTLean.Frontend.Checked
+import HoTTLean.Frontend.Reflected
 
 /-! Classes used by the typechecker to combine expressions from different theories. -/
 
@@ -57,7 +56,7 @@ instance (𝕋 𝕋' : Axioms χ) [Fact (𝕋 ≤ 𝕋')] : HasTheoryMap 𝕋 �
 instance (χ) : Fact (Axioms.empty χ).Wf :=
   ⟨Axioms.empty_wf χ⟩
 
-instance [DecidableEq χ] (𝕋 : Axioms χ) [Fact 𝕋.Wf] (a : CheckedAx 𝕋) : Fact a.snocAxioms.Wf :=
+instance [DecidableEq χ] (𝕋 : Axioms χ) [Fact 𝕋.Wf] (a : ReflectedAx 𝕋) : Fact a.snocAxioms.Wf :=
   ⟨a.wf_snocAxioms Fact.out⟩
 
 instance [DecidableEq χ] (𝕋 : Axioms χ) [Fact 𝕋.Wf]
