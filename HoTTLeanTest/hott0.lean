@@ -40,11 +40,6 @@ def isEquiv₁₀ {A : Type 1} {B : Type} (f : A → B) : Type 1 :=
       Σ (_ : isSection₁₀ f g),
         isSection₀₁ h f
 
-open SynthLean Expr
-set_option pp.proofs true
-set_option pp.maxSteps 10000
-#print isEquiv₁₀.reflection
-
 @[reflect]
 def isEquiv₁₀_grpd {A : Type 1} {B : Type} (f : A → B) : Type 1 :=
   Σ (g : B → A),
@@ -63,15 +58,15 @@ def isEquiv₀₀_transport₀ {A B : Type} (h : Identity A B) : isEquiv₀₀ (
 def Identity.toEquiv₀₀ {A B : Type} : Identity A B → Σ (f : A → B), isEquiv₀₀ f :=
   fun h => ⟨transport₀ h, isEquiv₀₀_transport₀ h⟩
 
-hott0
-  /-- The type `A` is (-1)-truncated. -/
-  def isProp₀ (A : Type) : Type :=
-    ∀ (a a' : A), Identity a a'
+/-- The type `A` is (-1)-truncated. -/
+@[reflect]
+def isProp₀ (A : Type) : Type :=
+  ∀ (a a' : A), Identity a a'
 
-hott0
-  /-- The type `A` is 0-truncated. -/
-  def isSet₀ (A : Type) : Type :=
-    ∀ (a b : A), isProp₀ (Identity a b)
+/-- The type `A` is 0-truncated. -/
+@[reflect]
+def isSet₀ (A : Type) : Type :=
+  ∀ (a b : A), isProp₀ (Identity a b)
 
 /-- The univalence axiom for sets. See HoTT book, Axiom 2.10.3. -/
 @[reflect]

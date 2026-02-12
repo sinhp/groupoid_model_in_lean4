@@ -22,7 +22,7 @@ partial def equateWfTms (E : Q(Axioms Lean.Name))
   let eq ← equateTm q(($vΓ).length) q($l) q($vT) q($va) q($vb)
   return q(by as_aux_lemma =>
     introv vΓ aT bT
-    apply $eq vΓ.length_eq ($vTeq vΓ aT.wf_tp) ($vaeq vΓ aT) ($vbeq vΓ bT)
+    apply ($eq) vΓ.length_eq ($vTeq vΓ aT.wf_tp) ($vaeq vΓ aT) ($vbeq vΓ bT)
   )
 
 end SynthLean
