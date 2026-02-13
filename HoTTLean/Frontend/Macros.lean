@@ -91,8 +91,10 @@ elab_rules : term <= expectedType | `(tp% $[$thy:theorySpec]? {$t}) => do
     -- external context in the tactic state.
     withLCtx {} {} <|
     -- Ensure that infotrees store the `elabExt`.
-    withSaveInfoContext <|
-    elabTerm t none
+    withSaveInfoContext do
+      -- TODO: Need to also deal with mctx?
+      let w ← mkFreshLevelMVar
+      elabTermEnsuringType t (some <| .sort (.succ w))
   let (_, T) ←
     try translateAsTp (u := u) χ t |>.run E.theory
     catch e =>
@@ -118,8 +120,11 @@ elab_rules : term <= expectedType | `(⸨$t⸩) => do
   let l ← getTypeLevel w.succ
   have l : Q(ℕ) := toExpr l
 
+  withEnv (elabExt.modifyState (← getEnv) fun _ => none) do
   -- Reinstate the external local context and instances.
   withLCtx lctx linsts do
+  -- Ensure that infotrees store the `elabExt`.
+  withSaveInfoContext do
     let lt ← ltNat q($l) q(univMax)
     let t ← elabTermEnsuringTypeQ t q(𝟭_ _ ⟶ $s[$l].Tm)
 
