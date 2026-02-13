@@ -47,6 +47,10 @@ class HasTheoryMap (𝕋 : Axioms χ) (𝕋' : Axioms χ') where
   map : χ → χ'
   map_wf (𝕋 𝕋') : WfTheoryMap 𝕋 map 𝕋'
 
+instance [Inhabited χ'] (𝕋' : Axioms χ') : HasTheoryMap (.empty χ) 𝕋' where
+  map := fun _ => default
+  map_wf := ⟨nofun⟩
+
 instance (𝕋 𝕋' : Axioms χ) [Fact (𝕋 ≤ 𝕋')] : HasTheoryMap 𝕋 𝕋' where
   map := id
   map_wf := WfTheoryMap.of_le Fact.out

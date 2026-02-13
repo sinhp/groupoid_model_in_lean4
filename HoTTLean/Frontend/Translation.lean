@@ -41,17 +41,19 @@ def withBinder {α : Type} {u : Level} {χ : Q(Type u)} (x : Lean.Expr) (k : Tra
     TranslateM χ α := do
   withReader (fun s => { s with bvars := x.fvarId! :: s.bvars }) k
 
-/-- Extract the level `u` in `Sort u`.
+/-- Extract the level `u` in `Sort l = Type u`.
 It must be monomorphic, i.e., may not contain universe variables.
 It may also not contain level metavariables. -/
-def getSortLevel (l : Level) : Lean.MetaM Nat := do
+def getTypeLevel (l : Level) : Lean.MetaM Nat := do
   let l ← instantiateLevelMVars l
   if l.hasMVar then
     throwError "unsupported universe (contains metavariables){indentExpr <| .sort l}"
+  if l.hasParam then
+    throwError "unsupported universe (contains level parameters){indentExpr <| .sort l}"
   match l.toNat with
   | .some (n+1) => return n
-  | .some 0 => throwError "unsupported universe{indentExpr <| .sort l}"
-  | .none => throwError "unsupported polymorphic universe level in{indentExpr <| .sort l}"
+  | .some 0 => throwError "unsupported proof-irrelevant universe{indentExpr <| .sort l}"
+  | _ => throwError "internal error"
 
 /-- Syntactically check if a Lean expression should be handled by the type translator.
 We use the term translator iff this returns `false`. -/
@@ -104,7 +106,7 @@ partial def translateAsTp {u : Level} (χ : Q(Type u)) (e : Lean.Expr) :
   match e with
   | .mdata _ e => translateAsTp χ e
   | .sort l => do
-    let n : Nat ← getSortLevel l
+    let n : Nat ← getTypeLevel l
     return ⟨n+1, q(.univ $n)⟩
   | .forallE _ A .. =>
     let ⟨l, A⟩ ← translateAsTp χ A
@@ -128,7 +130,7 @@ partial def translateAsTm {u : Level} (χ : Q(Type u)) (e : Lean.Expr) :
   | .fvar f => do
     let eTp ← inferType e
     let .sort l ← inferType eTp | throwError "internal error (sort)"
-    let n ← getSortLevel l
+    let n ← getTypeLevel l
     match (← read).bvars.findIdx? (· == f) with
     | some i => return ⟨n, q(.bvar $i)⟩
     | none => throwError "unexpected fvar{indentExpr e}"
@@ -220,16 +222,16 @@ partial def translateAsTm {u : Level} (χ : Q(Type u)) (e : Lean.Expr) :
     But the max universe is deficient anyway -
     it can't have axiomatic function extensionality -
     so maybe this is fine. -/
-    let l ← getSortLevel l.succ
-    let l' ← getSortLevel l'.succ
+    let l ← getTypeLevel l.succ
+    let l' ← getTypeLevel l'.succ
     return ⟨max l l' + 1, mkSigma _ l l'⟩
   | .const `Identity [l] =>
-    let l ← getSortLevel l.succ
+    let l ← getTypeLevel l.succ
     return ⟨l + 1, mkId _ l⟩
   | .const nm [] =>
     let eTp ← inferType e
     let .sort l ← inferType eTp | throwError "internal error (sort)"
-    let n ← getSortLevel l
+    let n ← getTypeLevel l
     -- We translate constants to projections of reflected constants.
     let ci ← getConstInfo nm
     let nm := ci.name ++ reflectPostfix

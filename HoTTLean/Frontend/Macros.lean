@@ -41,11 +41,14 @@ so we use one to communicate this data.
 It would alternatively be possible for `tm%{..}` to traverse its argument
 and preprocess occurrences of `⸨..⸩`
 (this is what `quote4` does with antiquotations like `q(t $(u))`),
-but the present implementation strategy appears more straightforward. -/
+but the present implementation strategy appears more straightforward.
+
+For those who know Fitch-style modal type theory:
+this is basically a janky implementation of context locking. -/
 initialize elabExt : ElabExt ← registerEnvExtension (pure none)
 
-/-- Identify the signature and theory
-that a `tp%/tm% (theory := thy)` expression is expected to elaborate into. -/
+/-- Identify the signature and theory that a `tp%/tm% (theory := thy)` expression should target. -/
+-- TODO: Infer `computeAxioms` when `eT = SynthLean.Expr Lean.Name`?
 def elabExpectedTheory (thy : Option Term) (expectedType : Lean.Expr) :
     TermElabM ((u : Level) × (χ : Q(Type u)) × ExpectedTheory q($χ)) := do
   let v ← mkFreshLevelMVar
@@ -76,67 +79,70 @@ def elabExpectedTheory (thy : Option Term) (expectedType : Lean.Expr) :
   throwError "Could not infer the theory from the expected type. \
   Please provide (theory := ..) explicitly."
 
--- TODO: term expressions
-/-- Elaborate a SynthLean type expression.
-
-## Expected theory
-
-This elaborator needs to know the *expected theory*
-w.r.t. which the expression should be typechecked.
-When the optional `(theory := thy)` argument is provided, the expected theory is `thy`.
-Otherwise the expected theory is inferred from the expected type `eT`:
-- When `eT = SynthLean.Expr s.SigInt` for `s : UHomSeq 𝒞`,
-  the expected theory is `s.thyInt`. -/
--- TODO: Infer `computeAxioms` when `eT = SynthLean.Expr Lean.Name`?
-elab "tp%" thy:group("(" "theory" ":=" term ")")? "{" t:term "}" : term <= expectedType => do
+elab_rules : term <= expectedType | `(tp% $[$thy:theorySpec]? {$t}) => do
   let thy := thy.map (⟨·.raw[3]⟩)
   let ⟨u, χ, E⟩ ← elabExpectedTheory thy expectedType
+  let env ← getEnv
   let lctx ← getLCtx
   let linsts ← getLocalInstances
-  modifyEnv (elabExt.modifyState · fun _ => some ⟨lctx, linsts, u, χ, E⟩)
-  let t ← withLCtx {} {} <| elabTerm t none
+  let t ←
+    withEnv (elabExt.modifyState env fun _ => some ⟨lctx, linsts, u, χ, E⟩) <|
+    -- FIXME: Would be really cool to also display the locked,
+    -- external context in the tactic state.
+    withLCtx {} {} <|
+    -- Ensure that infotrees store the `elabExt`.
+    withSaveInfoContext <|
+    elabTerm t none
   let (_, T) ←
     try translateAsTp (u := u) χ t |>.run E.theory
     catch e =>
       throwError "failed to translate type{Lean.indentExpr t}\nerror: {e.toMessageData}"
   return T
 
-/-- *Deinterpretation* `⸨..⸩` (the *Scott unbracket*) works in any `tm%{..}/tp%{..}` context
-where the expected theory is `s.thyInt`.
-It allows us to name a semantic constant in the syntax
-(so, in a sense, it is inverse to interpretation `⟦..⟧`).
-It obeys the following rule,
-where `⊢ᵢ` is the internal typing judgment,
-and `⊢` is Lean's usual typing.
-```
-Γ ⊢ t ⇐ 𝟭_ _ ⟶ s[u].Tm
------------------------
-· ⊢ᵢ ⸨t⸩ ⇐ Type u
-``` -/
--- TODO: demand that `t` have a certain semantic type.
-elab "⸨" t:term "⸩" : term <= expectedType => do
+-- TODO: term expressions
+
+elab_rules : term <= expectedType | `(⸨$t⸩) => do
   let some elabData := elabExt.getState (← getEnv)
     | throwError "The `⸨..⸩` macro can only appear inside `tp%` or `tm%` macros."
-  let .sort (.succ w) ← inferType expectedType
-    | throwError "The expected type must be of the form `Type u`. \
-      Try an explicit annotation like `(⸨..⸩ : Type 0)`."
-  if w.hasMVar then
-    throwError "The expected type {Expr.sort w.succ} contains metavariables."
-
   let { lctx, linsts, E := .internal (u := u) (v := v) _ _ _ s, .. } := elabData
-    | throwError "Expected the internal theory of a model\n\
-        but got{indentExpr elabData.E.theory}"
+    | throwError "The `⸨..⸩` macro can only be used in the internal theory of a model."
 
+  let expectedTypeSort ← inferType expectedType
+  if expectedTypeSort.hasMVar then
+    throwError "The expected type of `⸨..⸩` lives in an unknown universe `{expectedTypeSort}`. \
+      Try an explicit annotation like `(⸨..⸩ : A)`."
+  if expectedTypeSort.isProp then
+    throwError "The expected type `{expectedType}` must not be a proposition."
+  let .sort (.succ w) := expectedTypeSort
+    | throwError "Internal error. The expected type's sort `{expectedTypeSort}` is not `Type u`."
+  let l ← getTypeLevel w.succ
+  have l : Q(ℕ) := toExpr l
+
+  -- Reinstate the external local context and instances.
   withLCtx lctx linsts do
-    let l ← getSortLevel w
-    have l : Q(ℕ) := toExpr l
     let lt ← ltNat q($l) q(univMax)
-    let extExpectedType := q(𝟭_ _ ⟶ $s[$l].Tm)
-    let t ← elabTermEnsuringTypeQ t extExpectedType
+    let t ← elabTermEnsuringTypeQ t q(𝟭_ _ ⟶ $s[$l].Tm)
 
-    let st : Q(($s).SigInt) := q(UHomSeq.SigInt.tm.{v,u} (by get_elem_tactic) $t)
-    let qt : Q(Lean.Expr) := @toExpr Lean.Expr _ st
+    -- `semTm` is well-formed in the external local context.
+    let semTm : Q(($s).SigInt) := q(UHomSeq.SigInt.tm.{v,u} (by get_elem_tactic) $t)
+    -- `qst` is a closed expression, well-formed in any local context
+    -- (in particular in the internal one).
+    let qst : Q(Lean.Expr) := @toExpr Lean.Expr _ semTm
     let expectedType : Q(Type w) := expectedType
-    return q(SemAx $expectedType $qt)
+    return q(SemAx $expectedType $qst)
+
+open PrettyPrinter Delaborator SubExpr
+
+@[delab app.SynthLean.SemAx]
+def delabSemAx : Delab := do
+  let e ← getExpr
+  guard <| e.getAppNumArgs == 2
+  let some elabData := elabExt.getState (← getEnv) | failure
+  let qst ← evalExprExpr (e.getArg! 1)
+  let pos := (← getPos).pushNaryArg 2 1
+  let st ← withLCtx elabData.lctx elabData.linsts <|
+    withTheReader SubExpr (fun _ => { expr := qst, pos }) <|
+      delab
+  `(⸨$st⸩)
 
 end SynthLean
