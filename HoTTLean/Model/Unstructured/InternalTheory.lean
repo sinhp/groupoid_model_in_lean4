@@ -18,7 +18,7 @@ It includes a name for each semantic term and each semantic type
 at every universe level strictly below `univMax`. -/
 inductive SigInt
   | tm {l} (llen : l < univMax) (t : 𝟭_ 𝒞 ⟶ s[l].Tm)
-  | tp {l} (llen : l < univMax) (A : 𝟭_ 𝒞 ⟶ s[l].Ty)
+  | ty {l} (llen : l < univMax) (A : 𝟭_ 𝒞 ⟶ s[l].Ty)
 
 /-- The internal theory of a model `s`.
 
@@ -27,9 +27,9 @@ The syntactic type of a semantic term constant is (`el` of) its semantic type as
 def thyInt : Axioms s.SigInt
   | .tm (l := l) llen t =>
     some ⟨
-      (.el (.ax (.tp llen (t ≫ s[l].tp)) (.univ l)), l),
+      (.el (.ax (.ty llen (t ≫ s[l].tp)) (.univ l)), l),
       by simp [Expr.isClosed]; omega⟩
-  | .tp (l := l) _ A =>
+  | .ty (l := l) _ A =>
     some ⟨
       (.univ l, l+1),
       by simp [Expr.isClosed]; omega⟩
@@ -40,10 +40,10 @@ theorem thyInt_wf : s.thyInt.Wf :=
       simp only [thyInt, Option.some.injEq] at get
       rw [← get]
       apply WfTp.el
-      apply WfTm.ax (Al := s.thyInt (.tp ‹_› (t ≫ s[l].tp)) |>.get rfl) .nil
+      apply WfTm.ax (Al := s.thyInt (.ty ‹_› (t ≫ s[l].tp)) |>.get rfl) .nil
       . simp
       . apply WfTp.univ .nil ‹_›
-    | .tp .., _, get => by
+    | .ty .., _, get => by
       simp only [thyInt, Option.some.injEq] at get
       subst_vars
       apply WfTp.univ .nil ‹_›
@@ -52,7 +52,7 @@ theorem thyInt_wf : s.thyInt.Wf :=
 def interpSigInt : Interpretation s.SigInt s where
   ax := fun
     | .tm (l := l) _ t, l', _ => if eq : l = l' then some (eq ▸ t) else none
-    | .tp (l := l) _ A, l', _ => if eq : l+1 = l' then some (eq ▸ s.code (by omega) A) else none
+    | .ty (l := l) _ A, l', _ => if eq : l+1 = l' then some (eq ▸ s.code (by omega) A) else none
 
 variable [s.PiSeq] [s.SigSeq] [s.IdSeq]
 
@@ -62,7 +62,7 @@ theorem interpSigInt_wf : s.interpSigInt.Wf s.thyInt where
       cases get
       simp [interpSigInt, ofType, comp_code]
       simp [nilCObj]; get_elem_tactic
-    | .tp _ t, _, get => by
+    | .ty _ t, _, get => by
       cases get
       simp [interpSigInt, ofType, nilCObj]
 

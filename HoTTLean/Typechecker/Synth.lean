@@ -10,6 +10,8 @@ For now it is specialized to axioms named by `Lean.Name`. -/
 
 namespace SynthLean
 open Qq
+open CategoryTheory
+open Model UnstructuredUniverse
 
 def traceClsTypechecker : Lean.Name := `SynthLean.Typechecker
 
@@ -227,25 +229,54 @@ partial def synthTm {u : Lean.Level} {χ : Q(Type u)} (𝕋 : Q(Axioms $χ))
         rwa [Expr.subst_of_isClosed _ ($ax).wf_val.isClosed] at this
     )⟩
   | ~q(.ax $c $A) => do
-    let .defEq _ ← isLevelDefEqQ u 0
-      | throwError "TODO: axiom lookup only supported for axioms named by `Lean.Name`"
-    let .defEq _ ← isDefEqQ q($χ) q(Lean.Name)
-      | throwError "TODO: axiom lookup only supported for axioms named by `Lean.Name`"
-    let .inl ⟨A', l', get⟩ ← lookupAxiom 𝕋 c
-      | throwError "could not find constant '{c}' in environment{Lean.indentExpr 𝕋}"
-    let leq ← equateNat q($l) q($l')
-    -- TODO: relax to an `equateTp` check?
-    let ⟨_⟩ ← assertDefEqQ q($A) q($A')
-    /- NOTE: Could also evaluate in empty environment here and then weaken `ValEqTp`;
-    I think it makes no difference. -/
-    let ⟨vA, vApost⟩ ← evalTpId q($vΓ) q($A)
-    return ⟨vA, q(by as_aux_lemma =>
-      introv 𝕋 vΓ
-      subst_vars
-      have ⟨_, Ec⟩ := $get
-      have := $vApost vΓ (𝕋.atCtx vΓ.wf_ctx Ec)
-      refine ⟨_, this, .ax vΓ.wf_ctx Ec this.wf_tp⟩
-    )⟩
+    try -- an internal theory.
+      let w ← Lean.Meta.mkFreshLevelMVar
+      let 𝒞 ← mkFreshExprMVarQ q(Type w)
+      let _cat ← mkFreshExprMVarQ q(CategoryTheory.Category.{u,w} $𝒞)
+      let _ct ← mkFreshExprMVarQ q(CategoryTheory.ChosenTerminal.{u,w} $𝒞)
+      let s ← mkFreshExprMVarQ q(UHomSeq $𝒞)
+      let .defEq _ ← isDefEqQ q($χ) q(($s).SigInt) | throw (.internal ⟨1337⟩)
+      let .defEq _ ← isDefEqQ q($𝕋) q(($s).thyInt) | throw (.internal ⟨1337⟩)
+      match c with
+      | ~q(UHomSeq.SigInt.ty (l := $l') $lt $sA) =>
+        -- TODO: relax to equateTp?
+        let .defEq _ ← isDefEqQ q($A) q(.univ $l')
+          | throwError "unexpected type of semantic type constant{Lean.indentExpr A}"
+        let _ ← equateNat q($l) q($l' + 1)
+        return ⟨q(.univ $l'), q(by as_aux_lemma =>
+          introv 𝕋 vΓ
+          subst_vars
+          refine ⟨_,
+            .univ vΓ.wf_ctx $lt,
+            .ax vΓ.wf_ctx (Al := ⟨(.univ $l', $l' + 1), by simp [Expr.isClosed]; omega⟩)
+              rfl
+              (.univ vΓ.wf_ctx $lt)⟩
+        )⟩
+      | ~q(UHomSeq.SigInt.tm ..) => throwError "TODO: term deinterpretation is not implemented"
+      | _ => throwError "unknown base constant{Lean.indentExpr c}"
+    catch e =>
+      let .internal ⟨1337⟩ := e | throw e
+      try -- named axioms.
+        let .defEq _ ← isLevelDefEqQ u 0 | throw (.internal ⟨1337⟩)
+        let .defEq _ ← isDefEqQ q($χ) q(Lean.Name) | throw (.internal ⟨1337⟩)
+        let .inl ⟨A', l', get⟩ ← lookupAxiom 𝕋 c
+          | throwError "could not find constant '{c}' in theory{Lean.indentExpr 𝕋}"
+        let leq ← equateNat q($l) q($l')
+        -- TODO: relax to an `equateTp` check?
+        let ⟨_⟩ ← assertDefEqQ q($A) q($A')
+        let ⟨vA, vApost⟩ ← evalTpId q($vΓ) q($A)
+        /- NOTE: Could also evaluate in empty environment here and then weaken `ValEqTp`;
+        I think it makes no difference. -/
+        return ⟨vA, q(by as_aux_lemma =>
+          introv 𝕋 vΓ
+          subst_vars
+          have ⟨_, Ec⟩ := $get
+          have := $vApost vΓ (𝕋.atCtx vΓ.wf_ctx Ec)
+          refine ⟨_, this, .ax vΓ.wf_ctx Ec this.wf_tp⟩
+        )⟩
+      catch e =>
+        let .internal ⟨1337⟩ := e | throw e
+        throwError "got unknown theory{Lean.indentExpr 𝕋}"
   | ~q(.bvar $i) => do
     let ⟨vA, m, lk⟩ ← lookupVar q($vΓ) q($i)
     let lm ← equateNat q($l) q($m)

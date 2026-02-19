@@ -30,25 +30,26 @@ syntax "tm%" (theorySpec)? "{" term "}" : term
 
 /-- *Deinterpretation* `⸨..⸩` (the *Scott unbracket*) works in any `tm%{..}/tp%{..}` context
 where the expected theory is `s.thyInt`.
-It allows us to name a semantic constant in the syntax
+It allows us to name a semantic type in the syntax
 (so, in a sense, it is inverse to interpretation).
 
 It obeys the following rule,
 where `⊢[..]` is the internal typing judgment,
 and `⊢` is Lean's usual typing.
 ```
-Γ ⊢ t : 𝟭_ _ ⟶ s[l].Tm
-Γ ⊢ t ≫ s[l].tp ∈ ofType .nil A # TODO check this
--------------------------------
-s.thyInt ∣ · ⊢[l] ⸨t⸩ ⇐ A
+Γ ⊢ t : 𝟭_ _ ⟶ s[l].Ty
+---------------------------------
+s.thyInt ∣ · ⊢[l+1] ⸨t⸩ : .univ l
 ```
 where `Γ` is the external local context
-in which `tm%{..}/tp%{..}` is being elaborated. -/
+in which `tm%{..}/tp%{..}` is being elaborated.
+
+TODO: Also support semantic term deinterpretation. -/
 syntax "⸨" term "⸩" : term
 
 /-- A representation of `⸨t⸩` in the shallow embedding.
 It can have whatever type is necessary.
-The external semantic term `t` is stored in quoted form in `e`.
+The external arrow `t` is stored in quoted form in `e`.
 It must be a closed expression and not refer to any global constants. -/
 /- FIXME: Double-quoting `e` may become a performance issue.
 One alternative would be to store an auxiliary definition in the environment,

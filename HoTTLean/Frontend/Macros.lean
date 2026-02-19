@@ -98,42 +98,56 @@ elab_rules : term <= expectedType | `(tp% $[$thy:theorySpec]? {$t}) => do
   let (_, T) ←
     try translateAsTp (u := u) χ t |>.run E.theory
     catch e =>
-      throwError "failed to translate type{Lean.indentExpr t}\nerror: {e.toMessageData}"
+      throwError "Failed to translate type{Lean.indentExpr t}\nError: {e.toMessageData}"
   return T
 
 -- TODO: term expressions
 
-elab_rules : term <= expectedType | `(⸨$t⸩) => do
+elab_rules : term <= expectedType | `(⸨$t_stx⸩) => do
+  let w ← mkFreshLevelMVar
+  if !(← isDefEq expectedType (.sort (.succ w))) then
+    throwError "Expected a term of type{indentExpr expectedType}\n\
+    but got{indentD ""}⸨..⸩ : {Expr.sort (.succ w)}"
+
   let some elabData := elabExt.getState (← getEnv)
     | throwError "The `⸨..⸩` macro can only appear inside `tp%` or `tm%` macros."
   let { lctx, linsts, E := .internal (u := u) (v := v) _ _ _ s, .. } := elabData
     | throwError "The `⸨..⸩` macro can only be used in the internal theory of a model."
 
-  let expectedTypeSort ← inferType expectedType
-  if expectedTypeSort.hasMVar then
-    throwError "The expected type of `⸨..⸩` lives in an unknown universe `{expectedTypeSort}`. \
-      Try an explicit annotation like `(⸨..⸩ : A)`."
-  if expectedTypeSort.isProp then
-    throwError "The expected type `{expectedType}` must not be a proposition."
-  let .sort (.succ w) := expectedTypeSort
-    | throwError "Internal error. The expected type's sort `{expectedTypeSort}` is not `Type u`."
-  let l ← getTypeLevel w.succ
-  have l : Q(ℕ) := toExpr l
-
+  -- expected Type is one of P : Sort 0 : Type 0 : Type 1
+  -- h : P : Sort 0 : Type 0 : Type 1
   withEnv (elabExt.modifyState (← getEnv) fun _ => none) do
   -- Reinstate the external local context and instances.
   withLCtx lctx linsts do
   -- Ensure that infotrees store the `elabExt`.
   withSaveInfoContext do
-    let lt ← ltNat q($l) q(univMax)
-    let t ← elabTermEnsuringTypeQ t q(𝟭_ _ ⟶ $s[$l].Tm)
+    let l ← mkFreshExprMVarQ q(ℕ)
+    let _lt ← mkFreshExprMVarQ q($l < ($s).length + 1)
+    let t ← elabTermEnsuringTypeQ t_stx q(𝟭_ _ ⟶ $s[$l].Ty)
 
-    -- `semTm` is well-formed in the external local context.
-    let semTm : Q(($s).SigInt) := q(UHomSeq.SigInt.tm.{v,u} (by get_elem_tactic) $t)
+    -- FIXME: how should we external/internal mvars, in particular in `l`/`w`?
+    -- Can we postpone here, wait until `l`/`w` are concrete,
+    -- and then unify them?
+    -- For now we only handle closed `t` and `l`.
+    if t.hasMVar then
+      throwErrorAt t_stx "Term contains metavariables{indentExpr t}"
+    let l ← instantiateMVars l
+    let some nl ← (evalNat l).run
+      | throwErrorAt t_stx "Semantic type has unknown universe level{indentExpr l}"
+    if !(← isLevelDefEq nl.toLevel w) then
+      throwErrorAt t_stx "Got semantic type at level{indentExpr l}\n\
+      but expected{indentExpr <| expectedType}"
+
+    -- Ensure `l < univMax`
+    let lt ← ltNat q($l) q(univMax)
+
+    -- `semTy` is well-formed in the external local context.
+    let semTy : Q(($s).SigInt) := q(UHomSeq.SigInt.ty.{v,u} $lt $t)
     -- `qst` is a closed expression, well-formed in any local context
     -- (in particular in the internal one).
-    let qst : Q(Lean.Expr) := @toExpr Lean.Expr _ semTm
+    let qst : Q(Lean.Expr) := @toExpr Lean.Expr _ semTy
     let expectedType : Q(Type w) := expectedType
+
     return q(SemAx $expectedType $qst)
 
 open PrettyPrinter Delaborator SubExpr
