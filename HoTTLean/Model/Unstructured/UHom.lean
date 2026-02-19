@@ -200,10 +200,15 @@ structure UHomSeq where
 
 namespace UHomSeq
 
-/-- Enable index notation `s[-]` to use the field `univMax_le`. -/
+/-- Enable index notation `s[-]` to use the field `univMax_le`,
+as well as the concrete value of `univMax`. -/
 macro_rules
   | `(tactic| get_elem_tactic_extensible) =>
-    `(tactic| have := Model.UnstructuredUniverse.UHomSeq.univMax_le ‹_›; omega)
+    `(tactic| (
+      have := Model.UnstructuredUniverse.UHomSeq.univMax_le ‹_›
+      have that := this
+      unfold SynthLean.univMax at that
+      omega))
 
 variable (s : UHomSeq Ctx)
 
