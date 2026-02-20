@@ -256,8 +256,8 @@ theorem fan_snd_map' {E B E' B' : C} {P : UvPoly E B} {P' : UvPoly E' B'}
   slice_lhs 1 2 => rw [← this]
   slice_lhs 2 3 => apply Category.comp_id
   simp [α, Over.starPullbackIsoStar]
-  slice_lhs 5 6 => apply pullback.lift_fst
-  simp [Over.mapForget]
+  slice_lhs 4 5 => apply pullback.lift_fst
+  simp
 
 open ExponentiableMorphism in
 theorem fan_snd_map {E B A E' B' A' : C} {P : UvPoly E B} {P' : UvPoly E' B'}

@@ -267,6 +267,7 @@ lemma snd_mk (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
     snd M (mk M A B) _ (fst_mk ..) = B := by
   dsimp only [snd, mk]
   rw! [UvPoly.Equiv.snd'_mk']
+  rfl
 
 section
 variable {Δ : Ctx} {σ : Δ ⟶ Γ} {AB : y(Γ) ⟶ M.Ptp.obj X}
@@ -1152,7 +1153,7 @@ lemma comp_j : ym(ii.motiveSubst σ _) ≫ j i a C r r_tp =
     j i (ym(σ) ≫ a) (ym(ii.motiveSubst σ _) ≫ C) (ym(σ) ≫ r) (by
       simp [r_tp, IdIntro.comp_reflSubst'_assoc]) := by
   simp only [j]
-  conv => rhs; rw! [i.lift_comp_left a C r r_tp]
+  rw! [i.lift_comp_left a C r r_tp]
   rw [ie.equivSnd_comp_left]
   simp only [← Category.assoc]
   congr 1

@@ -23,6 +23,10 @@ theorem snoc_zero {X} (σ : Nat → X) (x : X) : snoc σ x 0 = x := rfl
 @[simp]
 theorem snoc_succ {X} (σ : Nat → X) (x : X) (n) : snoc σ x (n + 1) = σ n := rfl
 
+theorem snoc_map_comp {χ χ'} (f : χ → χ') (σ : Nat → Expr χ) (e : Expr χ) :
+    snoc (map f ∘ σ) (e.map f) = map f ∘ snoc σ e := by
+  funext n; cases n <;> simp
+
 /-! ## Renaming -/
 
 variable {χ : Type*}
@@ -56,6 +60,10 @@ def rename (ξ : Nat → Nat) : Expr χ → Expr χ
   | .el a => .el (a.rename ξ)
   | .code A => .code (A.rename ξ)
 
+theorem rename_map {χ'} (f : χ → χ') (ξ : Nat → Nat) (e : Expr χ) :
+    (e.rename ξ).map f = (e.map f).rename ξ := by
+  induction e generalizing ξ <;> simp [rename, map] at * <;> grind
+
 /-! ## Substitution -/
 
 /-- Lift a substitution under a binder.
@@ -69,6 +77,11 @@ Warning: don't unfold this definition! Use `up_eq_snoc` instead. -/
 @[irreducible]
 def up (σ : Nat → Expr χ) : Nat → Expr χ :=
   snoc (rename Nat.succ ∘ σ) (.bvar 0)
+
+theorem up_map_comp {χ'} (f : χ → χ') (σ : Nat → Expr χ) : up (map f ∘ σ) = map f ∘ up σ := by
+  funext n
+  cases n <;> simp [up, rename_map]
+  . simp [map]
 
 -- TODO: upN
 
@@ -102,6 +115,10 @@ theorem subst_bvar (χ) : subst (χ := χ) Expr.bvar = id := by
 @[simp]
 theorem subst_snoc_zero (σ : Nat → Expr χ) (t : Expr χ) : subst (snoc σ t) (.bvar 0) = t := by
   dsimp [subst, snoc]
+
+theorem subst_map {χ'} (f : χ → χ') (σ : Nat → Expr χ) (e : Expr χ) :
+    (subst σ e).map f = subst (map f ∘ σ) (e.map f) := by
+  induction e generalizing σ <;> simp [subst, map, up_map_comp] at * <;> grind
 
 /-- Turn a renaming into a substitution. -/
 def ofRen (χ) (ξ : Nat → Nat) : Nat → Expr χ :=
@@ -204,6 +221,9 @@ theorem snoc_comp_wk_succ (σ : Nat → Expr χ) (n) :
     snoc (comp wk σ) (bvar (n + 1)) = comp wk (snoc σ (bvar n)) := by
   ext ⟨⟩ <;> dsimp [comp, snoc, wk, -ofRen_succ, subst, ofRen]
 
+@[simp]
+theorem map_comp_wk {χ'} (f : χ → χ') : map f ∘ wk = wk := rfl
+
 /-- A substitution that instantiates one binder.
 ```
 Γ ⊢ t : A
@@ -212,6 +232,12 @@ theorem snoc_comp_wk_succ (σ : Nat → Expr χ) (n) :
 ``` -/
 def toSb (t : Expr χ) : Nat → Expr χ :=
   snoc Expr.bvar t
+
+@[simp]
+theorem map_comp_bvar {χ'} (f : χ → χ') : map f ∘ bvar = bvar := rfl
+
+theorem map_toSb {χ'} (f : χ → χ') (e : Expr χ) : (e.map f).toSb = map f ∘ e.toSb := by
+  simp [toSb, ← snoc_map_comp]
 
 /-! ## Decision procedure -/
 
@@ -302,6 +328,14 @@ def isClosed (k : Nat := 0) : Expr χ → Bool
   | .Id _ A t u => A.isClosed k && t.isClosed k && u.isClosed k
   | .idRec _ _ t M r u h =>
     t.isClosed k && M.isClosed (k + 2) && r.isClosed k && u.isClosed k && h.isClosed k
+
+theorem isClosed_of_isClosed_of_le {k k'} {e : Expr χ} (le : k ≤ k') :
+    e.isClosed k → e.isClosed k' := by
+  induction e generalizing k k' <;> grind [isClosed]
+
+@[simp]
+theorem map_isClosed {χ'} (f : χ → χ') (e : Expr χ) (k) : (e.map f).isClosed k = e.isClosed k := by
+  induction e generalizing k <;> simp_all [isClosed, map]
 
 /-- The substitution acts via identity on indices strictly below `n`. -/
 def SbIsBvar (σ : Nat → Expr χ) (n : Nat) :=

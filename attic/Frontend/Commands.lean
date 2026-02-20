@@ -17,11 +17,12 @@ def envDiff (old new : Environment) : Array ConstantInfo := Id.run do
     ret := ret.push i
   return ret
 
-/-- Find axioms used by the given constant in the given environment,
+/-- Find axioms used by the given constant in the given theory environment,
 and return them as an axiom environment.
 Assumes that all such axioms are present in the ambient environment
 as definitions of type `CheckedAx _` under the same name. -/
-def computeAxioms (thyEnv : Environment) (constNm : Name) : MetaM ((E : Q(Axioms Name)) × Q(($E).Wf)) := do
+def computeAxioms (thyEnv : Environment) (constNm : Name) :
+    MetaM ((E : Q(Axioms Name)) × Q(($E).Wf)) := do
   let (_, st) ← (CollectAxioms.collect constNm).run thyEnv |>.run {}
   let axioms := st.axioms
   -- The output includes `constNm` if it is itself an axiom.
@@ -65,7 +66,7 @@ to the Lean environment as a `CheckedAx`. -/
 def addCheckedAx (thyEnv : Environment) (ci : AxiomVal) : MetaM Unit := do
   let env ← getEnv
   let (l, T) ← withEnv thyEnv do
-    try translateAsTp ci.type |>.run env
+    try translateAsTp q(Lean.Name) ci.type |>.run env
     catch e =>
       throwError "failed to translate type{Lean.indentExpr ci.type}\nerror: {e.toMessageData}"
 
@@ -102,11 +103,11 @@ to the Lean environment as a `CheckedDef`. -/
 def addCheckedDef (thyEnv : Environment) (ci : DefinitionVal) : MetaM Unit := do
   let env ← getEnv
   let (l, T) ← withEnv thyEnv do
-    try translateAsTp ci.type |>.run env
+    try translateAsTp q(Lean.Name) ci.type |>.run env
     catch e =>
       throwError "failed to translate type{Lean.indentExpr ci.type}\nerror: {e.toMessageData}"
   let (k, t) ← withEnv thyEnv do
-    try translateAsTm ci.value |>.run env
+    try translateAsTm q(Lean.Name) ci.value |>.run env
     catch e =>
       throwError "failed to translate term{Lean.indentExpr ci.value}\nerror: {e.toMessageData}"
   if l != k then throwError "internal error: inferred level mismatch"

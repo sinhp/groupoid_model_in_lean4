@@ -20,7 +20,7 @@ namespace Model.UnstructuredUniverse
 
 open SynthLean
 
-variable {𝒞 : Type u} [Category 𝒞] (M : UnstructuredUniverse 𝒞)
+variable {𝒞 : Type u} [Category.{v} 𝒞] (M : UnstructuredUniverse 𝒞)
 variable [ChosenTerminal 𝒞]
 
 open ChosenTerminal
@@ -28,22 +28,21 @@ open ChosenTerminal
 /-! ## Universe level bound helpers -/
 
 section univBounds
-variable {s : UHomSeq 𝒞} (slen : univMax ≤ s.length)
+variable {s : UHomSeq 𝒞}
 variable {χ : Type*} {E : Axioms χ} {Γ : Ctx χ} {A B t u : Expr χ} {l : Nat}
-include slen
 
 theorem _root_.SynthLean.EqTp.lt_slen (H : E ∣ Γ ⊢[l] A ≡ B) : l < s.length + 1 := by
   have := H.le_univMax
-  omega
+  get_elem_tactic
 
 theorem _root_.SynthLean.WfTp.lt_slen (H : E ∣ Γ ⊢[l] A) : l < s.length + 1 :=
-  (EqTp.refl_tp H).lt_slen slen
+  (EqTp.refl_tp H).lt_slen
 
 theorem _root_.SynthLean.EqTm.lt_slen (H : E ∣ Γ ⊢[l] t ≡ u : A) : l < s.length + 1 :=
-  H.wf_tp.lt_slen slen
+  H.wf_tp.lt_slen
 
 theorem _root_.SynthLean.WfTm.lt_slen (H : E ∣ Γ ⊢[l] t : A) : l < s.length + 1 :=
-  H.wf_tp.lt_slen slen
+  H.wf_tp.lt_slen
 
 end univBounds
 
@@ -56,7 +55,7 @@ where `Γ` is a prefix of `Γ'`.
 It witnesses a sequence of context extension operations in `s`
 that built `Γ'` on top of `Γ`.
 We write `Γ ≤ Γ'`. -/
-inductive ExtSeq (s : UHomSeq 𝒞) (Γ : 𝒞) : 𝒞 → Type u where
+inductive ExtSeq (s : UHomSeq 𝒞) (Γ : 𝒞) : 𝒞 → Type (max u v) where
   | nil : s.ExtSeq Γ Γ
   | snoc {Γ'} {l : Nat} (d : s.ExtSeq Γ Γ') (llen : l < s.length + 1) (A : Γ' ⟶ s[l].Ty) :
     s.ExtSeq Γ (s[l].ext A)
@@ -209,7 +208,7 @@ i.e., one of the form `1.Aₙ₋₁.….A₀`,
 together with the extension sequence `[Aₙ₋₁ :: … :: A₀]`.
 
 This kind of object can be destructured. -/
-def CObj (s : UHomSeq 𝒞) : Type u := Σ Γ : 𝒞, s.ExtSeq (𝟭_ 𝒞) Γ
+def CObj (s : UHomSeq 𝒞) : Type (max u v) := Σ Γ : 𝒞, s.ExtSeq (𝟭_ 𝒞) Γ
 
 def nilCObj (s : UHomSeq 𝒞) : s.CObj :=
   ⟨𝟭_ 𝒞, .nil⟩
@@ -398,10 +397,11 @@ end
 
 def ofCtx : Ctx χ → Part s.CObj
   | [] => return s.nilCObj
-  | (A,l) :: Γ => do
-    Part.assert (l < s.length + 1) fun llen => do
-    let sΓ ← ofCtx Γ
-    let sA ← I.ofType sΓ l A
+  | (A,l) :: Γ =>
+    Part.assert (l < s.length + 1) fun llen =>
+    Part.bind (ofCtx Γ) fun sΓ =>
+    -- This universe-polymorphic bind breaks `do` notation.
+    Part.bind (I.ofType sΓ l A) fun sA =>
     return sΓ.snoc llen sA
 
 @[simp]
@@ -567,7 +567,7 @@ theorem mem_ofType_univ {Γ l i} {llen : l < s.length + 1} {x} :
 @[simp]
 theorem mem_ofCtx_snoc {Γ A l sΓ'} : sΓ' ∈ I.ofCtx ((A,l) :: Γ) ↔
     ∃ sΓ ∈ I.ofCtx Γ, ∃ llen, ∃ sA ∈ I.ofType sΓ l A llen, sΓ' = sΓ.snoc llen sA := by
-  simp only [ofCtx, Part.pure_eq_some, Part.bind_eq_bind, Part.mem_assert_iff, Part.mem_bind_iff,
+  simp only [ofCtx, Part.pure_eq_some, Part.mem_assert_iff, Part.mem_bind_iff,
     Part.mem_some_iff]
   tauto
 
@@ -656,7 +656,6 @@ end CSb
 /-! ## Admissibility of substitution -/
 
 open UHomSeq PolymorphicSigma PolymorphicPi PolymorphicIdIntro PolymorphicIdElim
-variable (slen : univMax ≤ s.length)
 
 theorem mem_ofType_ofTerm_subst' {full}
     (IH : full = true → ∀ {Δ Γ l} (llen : l < s.length + 1) {sσ} (σ : I.CSb Δ Γ sσ false) {se e},
@@ -887,9 +886,8 @@ theorem WfCtxIH.nil : I.WfCtxIH [] := by simp [WfCtxIH]
 theorem WfCtxIH.snoc {Γ A l} : I.WfTpIH Γ l A → I.WfCtxIH ((A, l) :: Γ)
   | ⟨_, hΓ, llen, _, hA⟩ => ⟨_, I.mem_ofCtx_snoc.2 ⟨_, hΓ, llen, _, hA, rfl⟩⟩
 
-include slen in
 theorem WfTpIH.univ {Γ l} (_ : l < univMax) : I.WfCtxIH Γ → I.WfTpIH Γ (l + 1) (Expr.univ l)
-  | ⟨_, hΓ⟩ => ⟨_, hΓ, by omega, _, I.mem_ofType_univ.2 ⟨rfl, rfl⟩⟩
+  | ⟨_, hΓ⟩ => ⟨_, hΓ, by get_elem_tactic, _, I.mem_ofType_univ.2 ⟨rfl, rfl⟩⟩
 
 theorem EqTpIH.pi {Γ A A' B B' l l'} :
     I.EqTpIH Γ l A A' → I.EqTpIH ((A, l) :: Γ) l' B B' →
@@ -935,11 +933,10 @@ theorem EqTpIH.el {Γ A A' l} : I.EqTmIH Γ (l + 1) (Expr.univ l) A A' → I.EqT
       I.mem_ofType_el.2 ⟨_, _, ht, ttp, rfl⟩,
       I.mem_ofType_el.2 ⟨_, _, ht', ttp, rfl⟩⟩
 
-include slen in
 theorem EqTpIH.el_code {Γ A l} (_ : l < univMax) : I.WfTpIH Γ l A → I.EqTpIH Γ l A.code.el A
   | ⟨_, hΓ', _, _, hA⟩ =>
     ⟨_, ‹_›, ‹_›, _,
-      I.mem_ofType_el.2 ⟨by omega, _,
+      I.mem_ofType_el.2 ⟨by get_elem_tactic, _,
         I.mem_ofTerm_code.2 ⟨_, rfl, _, hA, by simp; rfl⟩, s.code_tp .., rfl⟩,
       by rwa [s.el_code]⟩
 
@@ -1083,11 +1080,10 @@ theorem EqTmIH.idRec {Γ A M M' t t' r r' u u' h h' l l'} :
       simp [ttp]
     · simp
 
-include slen in
 theorem EqTmIH.code {Γ A A' l} (_ : l < univMax) :
     I.EqTpIH Γ l A A' → I.EqTmIH Γ (l + 1) (Expr.univ l) A.code A'.code
   | ⟨_, hΓ, _, _, hA, hA'⟩ =>
-    ⟨_, hΓ, by omega, _,
+    ⟨_, hΓ, by get_elem_tactic, _,
       I.mem_ofType_univ.2 ⟨rfl, by simp⟩, _,
       I.mem_ofTerm_code.2 ⟨_, rfl, _, hA, by simp; rfl⟩,
       I.mem_ofTerm_code.2 ⟨_, rfl, _, hA', by simp⟩,
@@ -1152,7 +1148,7 @@ theorem EqTmIH.idRec_refl {Γ A M t r l l'} :
     have sr := rtp ▸ Part.mem_unique hR sM
     have ir := I.mem_ofTerm_idRec.2 ⟨_, _, ht, _, ttp, B, by simp [Beq, sAeq],
       _, hM, _, hr, by simp [ttp, sr], _, ht, ttp, _, h1, by simp [ttp],
-        by rw! [ttp, PolymorphicIdElim.idRec_refl (I_eq := _)]⟩
+        by rw! [ttp, PolymorphicIdElim.idRec_refl (I_eq := _)]; rfl⟩
     ⟨_, hΓ, _, _, sM, _, ir, hr, sr⟩
   simp [Beq, ← Id_comp, sAeq, ttp]
 
@@ -1214,21 +1210,21 @@ theorem EqTmIH.trans {Γ A t t' t'' l} :
 
 /-- `I` is a well-formed interpretation of the axiom environment `E`. -/
 structure Wf (I : Interpretation χ s) (E : Axioms χ) : Prop where
-  ax {c Al} (Ec : E c = some Al) :
+  ax ⦃c Al⦄ (Ec : E c = some Al) :
     ∃ sc, I.ax c Al.1.2 = some sc ∧
-    ∃ sA : (𝟭_ 𝒞) ⟶ s[Al.1.2].Ty,
+    ∃ sA : 𝟭_ 𝒞 ⟶ s[Al.1.2].Ty,
       sA ∈ I.ofType s.nilCObj Al.1.2 Al.1.1 ∧
       sc ≫ s[Al.1.2].tp = sA
 
-variable {E : Axioms χ} {slen} [Iwf : Fact (I.Wf slen E)]
+variable {E : Axioms χ} [Iwf : Fact (I.Wf E)]
 include Iwf
 
 theorem WfTmIH.ax {Γ c Al} (Ec : E c = some Al) :
     I.WfCtxIH Γ → I.WfTmIH Γ Al.val.2 Al.val.1 (Expr.ax c Al.val.1)
   | ⟨Γ, hΓ⟩ => by
     have ⟨_, eq, _, sA, sA_tp⟩ := Iwf.out.ax Ec
-    have := I.mem_ofType_of_isClosed Al.2.1 Γ (by omega) sA
-    refine ⟨_, hΓ, by omega, _, this, ?_⟩
+    have := I.mem_ofType_of_isClosed Al.2.1 Γ (by get_elem_tactic) sA
+    refine ⟨_, hΓ, by get_elem_tactic, _, this, ?_⟩
     simp [ofTerm, eq, sA_tp]
 
 theorem ofType_ofTerm_sound :
@@ -1245,14 +1241,14 @@ theorem ofType_ofTerm_sound :
   case pi' => exact fun _ _ h1 h2 => (h1.refl.pi h2.refl).left
   case sigma' => exact fun _ _ h1 h2 => (h1.refl.sigma h2.refl).left
   case Id' => exact fun _ _ _ h1 h2 h3 => (h1.refl.Id h2.refl h3.refl).left
-  case univ => exact fun _ => .univ slen
+  case univ => exact fun _ => .univ
   case el => exact fun _ h1 => (EqTpIH.el h1.refl).left
 
   case cong_pi' => exact fun _ _ _ _ _ _ => .pi
   case cong_sigma' => exact fun _ _ _ _ _ _ => .sigma
   case cong_Id => exact fun _ _ _ => .Id
   case cong_el => exact fun _ => .el
-  case el_code => exact fun h _ => .el_code slen h
+  case el_code => exact fun h _ => .el_code h
   case refl_tp => exact fun _ h => h.refl
   case symm_tp => exact fun _ => .symm
   case trans_tp => exact fun _ _ => .trans
@@ -1267,7 +1263,7 @@ theorem ofType_ofTerm_sound :
   case refl' => exact fun _ _ _ h1 => h1.refl.refl_tm.left
   case idRec' => exact fun _ _ _ _ _ _ _ h1 h2 h3 h4 h5 =>
     (h1.refl.idRec h2.refl h3.refl h4.refl h5.refl).left
-  case code => exact fun h _ h1 => (EqTmIH.code slen h h1.refl).left
+  case code => exact fun h _ h1 => (EqTmIH.code h h1.refl).left
   case conv => exact fun _ _ h1 h2 => (h1.refl.conv h2).left
 
   case cong_lam' => exact fun _ _ _ _ _ _ => .lam
@@ -1277,7 +1273,7 @@ theorem ofType_ofTerm_sound :
   case cong_snd' => exact fun _ _ _ _ _ h1 h2 h3 => (h3.fst_snd h1 h2).2
   case cong_refl' => exact fun _ _ _ => .refl_tm
   case cong_idRec' => exact fun _ _ _ _ _ _ _ _ _ => .idRec
-  case cong_code => exact fun h _ => .code slen h
+  case cong_code => exact fun h _ => .code h
   case app_lam' => exact fun _ _ _ _ _ _ => .app_lam
   case fst_pair' => exact fun _ _ _ _ _ h1 h2 h3 => (EqTmIH.fst_snd_pair h1 h2 h3).1
   case snd_pair' => exact fun _ _ _ _ _ h1 h2 h3 => (EqTmIH.fst_snd_pair h1 h2 h3).2
@@ -1302,8 +1298,8 @@ def interpCtx (H : WfCtx E Γ) : s.CObj :=
   Part.get_mem ..
 
 /-- Given `Γ, l, A` s.t. `Γ ⊢[l] A`, return `⟦A⟧_⟦Γ⟧`. -/
-def interpTy (H : E ∣ Γ ⊢[l] A) : (I.interpCtx H.wf_ctx |>.1) ⟶ (s[l]'(H.lt_slen slen)).Ty :=
-  (I.ofType _ l A (H.lt_slen slen)).get <| by
+def interpTy (H : E ∣ Γ ⊢[l] A) : (I.interpCtx H.wf_ctx |>.1) ⟶ (s[l]'H.lt_slen).Ty :=
+  (I.ofType _ l A H.lt_slen).get <| by
     have ⟨_, h1, _, h2⟩ := I.ofType_ofTerm_sound.2.1 H
     cases Part.mem_unique (I.interpCtx_mem H.wf_ctx) h1
     apply Part.dom_iff_mem.mpr h2
@@ -1320,8 +1316,8 @@ theorem interpTy_eq (H : E ∣ Γ ⊢[l] A ≡ B) :
 
 /-- Given `Γ, l, t, A` s.t. `Γ ⊢[l] t : A`, return `⟦t⟧_⟦Γ⟧`. -/
 def interpTm (H : E ∣ Γ ⊢[l] t : A) :
-    (I.interpCtx H.wf_ctx |>.1) ⟶ (s[l]'(H.lt_slen slen)).Tm :=
-  (I.ofTerm _ l t (H.lt_slen slen)).get <| by
+    (I.interpCtx H.wf_ctx |>.1) ⟶ (s[l]'H.lt_slen).Tm :=
+  (I.ofTerm _ l t H.lt_slen).get <| by
     have ⟨_, h1, _, _, _, _, ⟨h2, rfl⟩, _⟩ := I.ofType_ofTerm_sound.2.2.2.1 H
     cases Part.mem_unique (I.interpCtx_mem H.wf_ctx) h1
     exact h2
@@ -1330,7 +1326,7 @@ def interpTm (H : E ∣ Γ ⊢[l] t : A) :
   Part.get_mem ..
 
 @[simp] theorem interpTm_tp (H : E ∣ Γ ⊢[l] t : A) :
-    I.interpTm H ≫ (s[l]'(H.lt_slen slen)).tp = I.interpTy H.wf_tp := by
+    I.interpTm H ≫ (s[l]'H.lt_slen).tp = I.interpTy H.wf_tp := by
   have ⟨_, h1, _, _, ⟨_, rfl⟩, _, ⟨_, rfl⟩, h2⟩ := I.ofType_ofTerm_sound.2.2.2.1 H
   cases Part.mem_unique (I.interpCtx_mem H.wf_ctx) h1
   exact h2

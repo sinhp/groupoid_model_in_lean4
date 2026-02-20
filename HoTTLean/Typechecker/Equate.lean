@@ -3,12 +3,27 @@ import HoTTLean.Typechecker.Evaluate
 namespace SynthLean
 open Qq
 
+namespace TraceCls
+def equate := `SynthLean.Typechecker.Equate
+def equateTp := equate ++ `tp
+def equateTm := equate ++ `tm
+def equateNeut := equate ++ `neut
+
+initialize
+  Lean.registerTraceClass equate
+  Lean.registerTraceClass equateTp (inherited := true)
+  Lean.registerTraceClass equateTm (inherited := true)
+  Lean.registerTraceClass equateNeut (inherited := true)
+end TraceCls
+
 variable {_u : Lean.Level} {χ : Q(Type _u)}
 
 mutual
 partial def equateTp (d : Q(Nat)) (l : Q(Nat)) (vT' vU' : Q(Val $χ)) :
     TypecheckerM Q(∀ {E Γ T U}, $d = Γ.length →
       ValEqTp E Γ $l $vT' T → ValEqTp E Γ $l $vU' U → E ∣ Γ ⊢[$l] T ≡ U) := do
+  Lean.withTraceNode TraceCls.equateTp (fun e =>
+    return m!"{Lean.exceptEmoji e} [{d}] ⊢[{l}] {vT'} ≡?≡ {vU'}") do
   let key := (⟨d⟩, ⟨l⟩, ⟨vT'⟩, ⟨vU'⟩)
   if let some pf := (← get).equateTp[key]? then return pf
   eventually (fun pf =>
@@ -103,6 +118,8 @@ partial def equateTm (d : Q(Nat)) (l : Q(Nat)) (vT vt vu : Q(Val $χ)) :
     TypecheckerM Q(∀ {E Γ T t u}, $d = Γ.length →
       ValEqTp E Γ $l $vT T → ValEqTm E Γ $l $vt t T → ValEqTm E Γ $l $vu u T →
       E ∣ Γ ⊢[$l] t ≡ u : T) := do
+  Lean.withTraceNode TraceCls.equateTm (fun e =>
+    return m!"{Lean.exceptEmoji e} [{d}] ⊢[{l}] {vt} ≡?≡ {vu} : {vT}") do
   let key := (⟨d⟩, ⟨l⟩, ⟨vT⟩, ⟨vt⟩, ⟨vu⟩)
   if let some pf := (← get).equateTm[key]? then return pf
   eventually (fun pf =>
@@ -219,6 +236,8 @@ partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut $χ)) :
     TypecheckerM Q(∀ {E Γ T U t u l}, $d = Γ.length →
       NeutEqTm E Γ l $nt t T → NeutEqTm E Γ l $nu u U →
       (E ∣ Γ ⊢[l] T ≡ U) ∧ (E ∣ Γ ⊢[l] t ≡ u : T)) := do
+  Lean.withTraceNode TraceCls.equateNeut (fun e =>
+    return m!"{Lean.exceptEmoji e} [{d}] ⊢ {nt} ≡?≡ {nu}") do
   let key := (⟨d⟩, ⟨nt⟩, ⟨nu⟩)
   if let some pf := (← get).equateNeutTm[key]? then return pf
   eventually (fun pf =>

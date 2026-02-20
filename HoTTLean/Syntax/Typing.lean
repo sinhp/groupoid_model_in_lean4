@@ -1,4 +1,5 @@
 import HoTTLean.Syntax.Autosubst
+import HoTTLean.Tactic.MutualInduction
 
 /-! ## Typing rules
 
@@ -6,12 +7,6 @@ In this file we specify typing judgments of the type theory
 as `Prop`-valued relations. -/
 
 namespace SynthLean
-
-declare_syntax_cat judgment
-scoped syntax:50 term:51 : judgment
-scoped syntax:50 term:51 " ≡ " term:51 : judgment
-scoped syntax:50 term:51 " : " term:51 : judgment
-scoped syntax:50 term:51 " ≡ " term:51 " : " term:51 : judgment
 
 /-- The maximum `l` for which `Γ ⊢[l] 𝒥` makes sense.
 When set to `0`, types cannot be quantified over at all. -/
@@ -32,10 +27,32 @@ This does mean we cannot have type constants at level `univMax`.
 
 We do *not* use `Axioms` for definitions;
 the native Lean `Environment` is used instead. -/
+-- TODO: "theory", not "axiom environment"
 abbrev Axioms (χ : Type*) := χ → Option { Al : Expr χ × Nat // Al.1.isClosed ∧ Al.2 ≤ univMax }
 
 /-- A typing context consisting of type expressions and their universe levels. -/
 abbrev Ctx (χ : Type*) := List (Expr χ × Nat)
+
+namespace Ctx
+
+variable {χ χ' : Type*} (f : χ → χ')
+
+def map (Γ : Ctx χ) : Ctx χ' :=
+  List.map (fun (A, l) => (A.map f, l)) Γ
+
+@[simp] theorem length_map (Γ : Ctx χ) : (Γ.map f).length = Γ.length := by
+  simp [Ctx.map]
+
+@[simp] theorem map_id_fun : map (fun (c : χ) => c) = id := by
+  funext; simp [map]
+
+@[simp] theorem map_id_fun' : map (id : χ → χ) = id := map_id_fun
+
+@[simp] theorem map_nil : map f [] = [] := rfl
+
+@[simp] theorem map_cons {A l Γ} : map f ((A, l) :: Γ) = (A.map f, l) :: map f Γ := rfl
+
+end Ctx
 
 variable {χ : Type*} (E : Axioms χ)
 
@@ -44,6 +61,18 @@ Together with `⊢ Γ`, this implies `Γ ⊢[l] .bvar i : A`. -/
 inductive Lookup : Ctx χ → Nat → Expr χ → Nat → Prop where
   | zero (Γ A l) : Lookup ((A,l) :: Γ) 0 (A.subst Expr.wk) l
   | succ {Γ A i l} (Bk) : Lookup Γ i A l → Lookup (Bk :: Γ) (i+1) (A.subst Expr.wk) l
+
+theorem Lookup.map {χ'} (f : χ → χ') {Γ i A l} (H : Lookup Γ i A l) :
+    Lookup (Γ.map f) i (A.map f) l := by
+  induction H
+  case zero => simp only [Expr.subst_map]; apply Lookup.zero
+  case succ ih => simp only [Expr.subst_map]; apply Lookup.succ _ ih
+
+declare_syntax_cat judgment
+scoped syntax:50 term:51 : judgment
+scoped syntax:50 term:51 " ≡ " term:51 : judgment
+scoped syntax:50 term:51 " : " term:51 : judgment
+scoped syntax:50 term:51 " ≡ " term:51 " : " term:51 : judgment
 
 /-- Judgment syntax not parameterized by an environment.
 Used locally to define typing rules without repeating `E ∣ Γ`. -/
@@ -404,5 +433,47 @@ by making `Axioms.Wf` mutual with typing:
 this forces `Axioms` to be finitely supported. -/
 abbrev Axioms.Wf (E : Axioms χ) :=
   ∀ ⦃c p⦄, E c = some p → E ∣ [] ⊢[p.val.2] p.val.1
+
+/-! ## Lookup well-formedness -/
+
+namespace Lookup
+variable {Γ : Ctx χ} {A A' : Expr χ} {l i : Nat}
+
+theorem lt_length : Lookup Γ i A l → i < Γ.length := by
+  intro lk; induction lk <;> (dsimp; omega)
+
+theorem lvl_eq (lk : Lookup Γ i A l) : l = (Γ[i]'lk.lt_length).2 := by
+  induction lk <;> grind
+
+theorem tp_uniq (lk : Lookup Γ i A l) (lk' : Lookup Γ i A' l) : A = A' := by
+  induction lk generalizing A' <;> grind [cases Lookup]
+
+theorem of_lt_length : i < Γ.length → ∃ A l, Lookup Γ i A l := by
+  intro lt
+  induction Γ generalizing i
+  · cases lt
+  · cases i
+    · exact ⟨_, _, Lookup.zero ..⟩
+    · rename_i ih _
+      have ⟨A, l, h⟩ := ih <| Nat.succ_lt_succ_iff.mp lt
+      exact ⟨A.subst Expr.wk, l, Lookup.succ _ h⟩
+
+end Lookup
+
+/-! ## Closed expressions -/
+
+variable {E : Axioms χ}
+
+private theorem isClosed_all :
+    (∀ {Γ l A}, E ∣ Γ ⊢[l] A → A.isClosed Γ.length) ∧
+    (∀ {Γ l A t}, E ∣ Γ ⊢[l] t : A → t.isClosed Γ.length) := by
+  mutual_induction WfTp
+  case bvar =>
+    intros; rename_i lk _
+    simp [Expr.isClosed, lk.lt_length]
+  all_goals grind [Expr.isClosed]
+
+theorem WfTp.isClosed {l A} : E ∣ [] ⊢[l] A → A.isClosed := isClosed_all.1
+theorem WfTm.isClosed {l A t} : E ∣ [] ⊢[l] t : A → t.isClosed := isClosed_all.2
 
 end SynthLean

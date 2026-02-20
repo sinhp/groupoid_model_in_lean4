@@ -3,33 +3,7 @@ import HoTTLean.Syntax.GCongr
 
 namespace SynthLean
 
-variable {χ : Type*} {E E' : Axioms χ} {Γ : Ctx χ}
-  {A A' t t' : Expr χ} {i l l' : Nat}
-
-/-! ## Lookup well-formedness -/
-
-namespace Lookup
-
-theorem lt_length : Lookup Γ i A l → i < Γ.length := by
-  intro lk; induction lk <;> (dsimp; omega)
-
-theorem lvl_eq (lk : Lookup Γ i A l) : l = (Γ[i]'lk.lt_length).2 := by
-  induction lk <;> grind
-
-theorem tp_uniq (lk : Lookup Γ i A l) (lk' : Lookup Γ i A' l) : A = A' := by
-  induction lk generalizing A' <;> grind [cases Lookup]
-
-theorem of_lt_length : i < Γ.length → ∃ A l, Lookup Γ i A l := by
-  intro lt
-  induction Γ generalizing i
-  · cases lt
-  · cases i
-    · exact ⟨_, _, Lookup.zero ..⟩
-    · rename_i ih _
-      have ⟨A, l, h⟩ := ih <| Nat.succ_lt_succ_iff.mp lt
-      exact ⟨A.subst Expr.wk, l, Lookup.succ _ h⟩
-
-end Lookup
+variable {χ : Type*} {E E' : Axioms χ} {Γ : Ctx χ} {A A' t : Expr χ} {l l' : Nat}
 
 /-! ## Level synthesis and uniqueness -/
 
@@ -40,7 +14,7 @@ Furthermore, the correctness proof `eq_synthLvl` needs zero metatheory.
 Does this imply we could omit level annotations from the syntax?
 In the interpretation function, we'd invoke `synthLvl.go` on `ExtSeq`.  -/
 noncomputable def synthLvl (Γ : Ctx χ) (e : Expr χ) : Nat :=
-  go (Γ.map (·.2)) e
+  go (List.map (·.2) Γ) e
 where
   go (Γ : List Nat) : Expr χ → Nat
   | .ax _ A => go Γ A

@@ -14,10 +14,17 @@ def mkLetFVarsQ {u : Level} {T : Q(Sort u)} (xs : Array Lean.Expr) (e : Q($T))
   mkLetFVars xs e (usedLetOnly := usedLetOnly) (generalizeNondepLet := generalizeNondepLet)
     (binderInfoForMVars := binderInfoForMVars)
 
+/-- Like `inferTypeQ` but yields `Type u` rather than `Sort u`. -/
+def inferTypeQ' (e : Expr) : MetaM ((u : Level) × (α : Q(Type $u)) × Q($α)) := do
+  let α ← inferType e
+  let .sort (.succ u) ← whnf (← inferType α) | throwError "not a type{indentExpr α}"
+  pure ⟨u, α, e⟩
+
 end Qq
 
 namespace SynthLean
 open Qq
+open Lean Meta
 
 def equateNat (n m : Q(Nat)) : Lean.MetaM Q($n = $m) := do
   let some vn ← Lean.Meta.evalNat (← Lean.Meta.whnf n)
@@ -35,6 +42,12 @@ def ltNat (n m : Q(Nat)) : Lean.MetaM Q($n < $m) := do
   if vm <= vn then throwError "inequality does not hold{Lean.indentD ""}{n} < {m}"
   let pf ← Lean.Meta.mkEqRefl q(decide ($n < $m))
   Lean.Meta.mkAppM ``of_decide_eq_true #[pf]
+
+unsafe def evalExprExprUnsafe (e : Q(Lean.Expr)) : MetaM Lean.Expr :=
+  evalExpr' Lean.Expr ``Lean.Expr e
+
+@[implemented_by evalExprExprUnsafe]
+opaque evalExprExpr (e : Q(Lean.Expr)) : MetaM Lean.Expr
 
 end SynthLean
 

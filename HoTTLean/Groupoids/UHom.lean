@@ -32,6 +32,7 @@ def uHomSeqHomSucc' (i : Nat) (h : i < 3) :
 -/
 def uHomSeq : UHomSeq Ctx.{4} where
   length := 3
+  univMax_le := by unfold SynthLean.univMax; omega
   objs := uHomSeqObjs
   homSucc' := uHomSeqHomSucc'
 

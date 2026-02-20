@@ -28,7 +28,7 @@ structure UnstructuredUniverse (Ctx : Type u) [Category Ctx] where
 
 namespace UnstructuredUniverse
 
-variable {Ctx : Type u} [Category Ctx] (M : UnstructuredUniverse Ctx)
+variable {Ctx : Type u} [Category.{v} Ctx] (M : UnstructuredUniverse Ctx)
 
 @[reassoc (attr := simp)]
 theorem var_tp {Γ : Ctx} (A : Γ ⟶ M.Ty) : M.var A ≫ M.tp = (M.disp A) ≫ A := by
@@ -320,12 +320,14 @@ lemma fst_comp {Γ Δ} (σ : Δ ⟶ Γ) {A : Γ ⟶ U0.Ty} {σA} (eq) {B : U0.ex
     S.fst (U0.substWk σ A σA eq ≫ B) (σ ≫ s) (by simp [s_tp, S.Sig_comp]) =
     σ ≫ S.fst B s s_tp := by
   rw! [(S.pair_fst_snd B s (by simp [s_tp])).symm, ← S.pair_comp, S.fst_pair, S.fst_pair]
+  rfl
 
 lemma snd_comp {Γ Δ} (σ : Δ ⟶ Γ) {A : Γ ⟶ U0.Ty} {σA} (eq) {B : U0.ext A ⟶ U1.Ty}
     (s : Γ ⟶ U2.Tm) (s_tp : s ≫ U2.tp = S.Sig B) :
     S.snd (U0.substWk σ A σA eq ≫ B) (σ ≫ s) (by simp [s_tp, S.Sig_comp]) =
     σ ≫ S.snd B s s_tp := by
   rw! [(S.pair_fst_snd B s (by simp [s_tp])).symm, ← S.pair_comp, S.snd_pair, S.snd_pair]
+  rfl
 
 end PolymorphicSigma
 
@@ -362,7 +364,7 @@ lemma unLam_comp {Γ Δ} (σ : Δ ⟶ Γ) {A : Γ ⟶ U0.Ty} {σA} (eq) {B : U0.
     P.unLam (U0.substWk σ A σA eq ≫ B) (σ ≫ f) (by simp [f_tp, P.Pi_comp]) =
     U0.substWk σ A σA eq ≫ P.unLam B f f_tp := by
   rw [← P.unLam_lam (U0.substWk σ A σA eq ≫ B) (U0.substWk σ A σA eq ≫ P.unLam B f f_tp)]
-  . rw! [P.lam_comp σ eq B, P.lam_unLam]
+  . rw! [P.lam_comp σ eq B, P.lam_unLam]; rfl
   . rw [Category.assoc, P.unLam_tp]
 
 /--
