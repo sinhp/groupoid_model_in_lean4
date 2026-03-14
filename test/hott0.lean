@@ -1,16 +1,17 @@
 import HoTTLean.Frontend.Commands
 
+set_option profiler true
+
 noncomputable section
 
 declare_theory hott0
 
 namespace HoTT0
 
+
 hott0 def isSection₀₀ {A B : Type} (f : A → B) (g : B → A) : Type :=
   ∀ (a : A), Identity (g (f a)) a
 
--- Which inverse am I going to use
--- Consider isContr
 hott0 def isEquiv₀₀ {A B : Type} (f : A → B) : Type :=
   Σ (g : B → A),
     Σ (h : B → A),
@@ -52,10 +53,8 @@ hott0 def isEquiv₀₀_transport₀ {A B : Type} (h : Identity A B) : isEquiv�
 hott0 def Identity.toEquiv₀₀ {A B : Type} : Identity A B → Σ (f : A → B), isEquiv₀₀ f :=
   fun h => ⟨transport₀ h, isEquiv₀₀_transport₀ h⟩
 
--- Meeting TODO
---- Another addition of mine TODO
 --Adding Is Contractible over here
-hott0 def isContr₀ (A : Type) : Type := sorry
+hott0 def isContr₀ (A : Type) : Type := Σ (a : A), (∀ (b : A), Identity a b)
 
 hott0
   /-- The type `A` is (-1)-truncated. -/
@@ -72,10 +71,6 @@ hott0
   axiom setUv₀₀ {A B : Type} (A_set : isSet₀ A) (B_set : isSet₀ B) :
     isEquiv₁₀ (@Identity.toEquiv₀₀ A B)
 
-
--- My stuff starts here
---====================================
--- Path Algebra stuff
 
 -- Consider having type aliases for long subgoals
 -- ap on one type
@@ -95,7 +90,7 @@ hott0 def Sigma.eta {A : Type} {B : A → Type} (w : Σ (a : A), B a) :
     Identity w ⟨w.1, w.2⟩ := Identity.rfl₀
 
 
--- Well this was a bloody nightmare to figure out
+-- Sigma eq for Type
 hott0 def Sigma.eq {A : Type} {B : A → Type} {w w' : Σ (a : A), B a}
     (p : Identity w.1 w'.1)
     (q : Identity (p.rec w.2) w'.2)
@@ -139,23 +134,10 @@ hott0 def Sigma.eq₁ {A : Type 1} {B : A → Type} {w w' : Σ (a : A), B a}
     w'.2
     q
 
--- hott0 is a custom elaborator that enforces single-definitions
+-- function extensionality
 hott0 def funext₀ {A : Type} {B : A → Type} {f g : (a : A) → B a}
     (h : ∀ (a : A), Identity (f a) (g a)) : Identity f g :=
   (funext₀₀ f g).1 h
-
----====================================
--- Univalence computation rule
-
-hott0
-  /-- Univalence Computation Rule.
-      See HoTT book (Univalent Foundations), Axiom 2.10.3, Remark 2.10.4.
-  -/
-  axiom ua_comp₀₀ {A B : Type}
-    (A_set : isSet₀ A) (B_set : isSet₀ B) (f : A → B) (e : isEquiv₀₀ f) (a : A):
-    --let ⟨ua_inv, _, _, _⟩ := (setUv₀₀ A_set B_set).1
-    Identity (transport₀ ((setUv₀₀ A_set B_set).1 ⟨f, e⟩) a) (f a)
-
 
 --=====================================
 -- Transport on Π-Types
@@ -181,7 +163,6 @@ hott0 def magma.carrier (M : magma) : Type := M.1
  -- The Operation
 hott0 def magma.op (M : magma) : M.carrier → M.carrier → M.carrier := M.2
 
--- Retrying how to solve the pull request for issue
 -- Prove that equivalent magmas consisting of set-data (meaning magmas
 -- (A,A×A→A) s.t. the underlying type A is a set) are equal using set-univalence in test/hott0.lean.
 -- A magma homomorphism preserves the operation
@@ -253,11 +234,11 @@ hott0 def magma_carrier_eq
     (M_set : isSet₀ M.carrier)
     (N_set : isSet₀ N.carrier)
     (e : magma_equiv M N)
-    : Identity M.carrier N.carrier := -- sorry
+    : Identity M.carrier N.carrier :=
   (setUv₀₀ M_set N_set).1 ⟨e.1, e.2.1⟩
 
 -- Strategy Show any two operations on M, or N are the same under univalence
--- Try a simpler intermediate definition
+-- Try a simpler intermediate definition for timeouts
 hott0 def transported_op
     (M N : magma)
     (M_set : isSet₀ M.carrier)
@@ -267,9 +248,6 @@ hott0 def transported_op
   @Identity.rec Type M.carrier (fun X _ => X → X → X)
     M.op N.carrier ((setUv₀₀ M_set N_set).1 ⟨e.1, e.2.1⟩)
 
--- TODO : Pointwise Equality SUUUCKS
--- Implement transported-op the way that was done in Agda
--- Consider Equiv-elim
 
 -- Univalence axiom doesn't specify, but asserts existence of a path.
 set_option diagnostics true
@@ -287,6 +265,8 @@ hott0 def subexpr
         (equiv_retraction M_set N_set e.1 e.2.1 y)))
 
 
+-- VEERRY Sloow, give it 1h 15 mins on a MacBook Air with Apple M4, 16GB RAM
+-- With nothing else but VSCode Open
 hott0 def magma_op_eq_pointwise
     (M N : magma)
     (M_set : isSet₀ M.carrier)
@@ -294,12 +274,5 @@ hott0 def magma_op_eq_pointwise
     (e : magma_equiv M N)
     (x y : N.carrier)
     : Identity (transported_op M N M_set N_set e x y) (N.op x y) :=
-  --  sorry -- this keeps timing out
   (transport_op M_set N_set e.1 e.2.1 M.op x y).trans₀
     (subexpr M N M_set N_set e x y)
-
-
-
--- Profile this thing
--- Charactarize Path Spaces using Identity Types
--- Unfiolding is crazy
