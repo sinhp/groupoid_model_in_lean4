@@ -255,6 +255,7 @@ hott0 def transported_op
 
 
 -- Univalence axiom doesn't specify, but asserts existence of a path.
+-- Left sorry's in, just in case things people want to run it without waiting so long
 set_option diagnostics true
 
 hott0 def subexpr
