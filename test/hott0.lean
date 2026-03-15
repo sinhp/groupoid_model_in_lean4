@@ -200,11 +200,16 @@ Step 1: Get the carriers equal using set-univalence
  p = (setUv₀₀ A_set B_set).1 ⟨f, e⟩
 
 Step 2: Transport the operation m along p to get an operation on B
- transported_op M N M_set N_set (e : B → B → B)
+ tranport^{X ↦ X → X → X}(p,m) : B → B → B
 
 Step 3: Show that the transported operation is equal to n pointwise
   For all x,y : B, we have a path
   Identity (transported_op M N M_set N_set e x y) (N.op x y)
+
+  transported_op m x y
+    = f(m(g(x), g(y)))    -- by transport_op
+    = n(f(g(x)), f(g(y))) -- by f_hom
+    = n(x,y)              -- by α (section : f(g(y)) = y) applied twice
 
 Step 4: Use function extensionality to get the operations equal
   funext₀ on the pointwise equalities to get
@@ -212,7 +217,7 @@ Step 4: Use function extensionality to get the operations equal
 
 Step 5: Combine the equalities of the carriers and operations to get
   Identity M N
-  using Sigma.eq
+
 -/
 
 hott0 def magma_equiv (M N : magma) : Type :=
@@ -259,6 +264,7 @@ hott0 def subexpr
     (e : magma_equiv M N)
     (x y : N.carrier)
     :=
+    -- sorry
     ((e.2.2 (e.2.1.1 x) (e.2.1.1 y)).trans₀
       (ap₂ N.op
         (equiv_retraction M_set N_set e.1 e.2.1 x)
@@ -274,5 +280,27 @@ hott0 def magma_op_eq_pointwise
     (e : magma_equiv M N)
     (x y : N.carrier)
     : Identity (transported_op M N M_set N_set e x y) (N.op x y) :=
+      -- sorry
   (transport_op M_set N_set e.1 e.2.1 M.op x y).trans₀
     (subexpr M N M_set N_set e x y)
+
+-- Apply function extensionality twice
+hott0 def magma_op_eq
+    (M N : magma)
+    (M_set : isSet₀ M.carrier)
+    (N_set : isSet₀ N.carrier)
+    (e : magma_equiv M N)
+    : Identity (transported_op M N M_set N_set e) N.op :=
+  funext₀ (fun x => funext₀ (fun y =>
+    magma_op_eq_pointwise M N M_set N_set e x y))
+
+-- Combine everything with Sigma.eq
+hott0 def magma_eq_of_equiv
+    (M N : magma)
+    (M_set : isSet₀ M.carrier)
+    (N_set : isSet₀ N.carrier)
+    (e : magma_equiv M N)
+    : Identity M N :=
+  Sigma.eq₁
+    (magma_carrier_eq M N M_set N_set e)
+    (magma_op_eq M N M_set N_set e)
