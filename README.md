@@ -23,6 +23,11 @@ Documentation of the Lean code can be found
 [here](https://sinhp.github.io/HoTTLean/docs/).
 (We also have [a blueprint](https://sinhp.github.io/HoTTLean/),
 but it is very outdated.)
+Relevant papers to this project are listed below
+- [A Certifying Proof Assistant for Synthetic
+Mathematics in Lean](https://voidma.in/assets/papers/2026nawrocki_certifying_proof_assistant_synthetic_mathematics_lean.pdf)
+- [Path Types in Algebraic Type Theory](https://arxiv.org/abs/2601.06567v1)
+- [Polynomial Functors in π-clans for the Semantics of Type Theory](https://arxiv.org/pdf/2602.05689)
 
 ### Dependencies
 
