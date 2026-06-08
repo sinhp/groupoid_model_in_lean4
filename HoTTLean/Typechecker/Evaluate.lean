@@ -682,7 +682,6 @@ partial def evalApp (vf va : Q(Val $χ)) : TypecheckerM ((v : Q(Val $χ)) ×
       apply EqTm.cong_app (EqTp.refl_tp b.wf_tp) _ (EqTm.refl_tm va.wf_tm)
       apply EqTm.symm_tm; apply eqt.trans_tm
       apply EqTm.symm_tm; gcongr
-      assumption
     )⟩
   | ~q(.neut $n (.pi $k $k' $vA $vB)) => do
     let ⟨vBa, vBpost⟩ ← evalClosTp q($vB) q($va)
@@ -805,7 +804,7 @@ partial def evalIdRec (l' : Q(Nat)) (cM : Q(Clos $χ)) (vr vh : Q(Val $χ)) :
         apply EqTm.symm_tm
         apply EqTm.cong_idRec (.refl_tm t) (.refl_tp M) (.refl_tm vr.wf_tm) tu
         refine ?eq
-        apply EqTm.trans_tm _ <| eqt.symm_tm.conv_eq _ <;> gcongr; assumption
+        apply EqTm.trans_tm _ <| eqt.symm_tm.conv_eq _ <;> gcongr
       . apply M.subst_eq <| EqSb.snoc (EqSb.toSb tu) (.Id_bvar t) (autosubst% ?eq)
     )⟩
   | ~q(.neut $nh (.Id $l $vA $va $vb)) => do

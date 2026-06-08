@@ -2,6 +2,9 @@ import HoTTLean.ForMathlib
 import HoTTLean.ForMathlib.CategoryTheory.Grpd
 import HoTTLean.ForMathlib.CategoryTheory.Bicategory.Grothendieck
 
+set_option backward.defeqAttrib.useBackward true
+set_option backward.isDefEq.respectTransparency false
+
 /-!
 ## Main definitions
 * `CategoryTheory.Grothendieck.Groupoidal`
@@ -62,22 +65,19 @@ section
 variable {C : Type u₁} [Category.{v₁,u₁} C] {F : C ⥤ Grpd.{v₂,u₂}}
 
 /-- A morphism in the groupoidal Grothendieck category `F : C ⥤ Grpd`
-is defined to be a morphism in the Grothendieck category `F ⋙ Grpd.forgetToCat`.
+is a morphism in the upstream Grothendieck category `F ⋙ Grpd.forgetToCat`.
 -/
-def Hom (x y : ∫(F)) := Grothendieck.Hom x y
+abbrev Hom (x y : ∫(F)) := CategoryTheory.Grothendieck.Hom x y
 
-def id (x : ∫(F)) : Hom x x := Grothendieck.Hom.id x
+abbrev id (x : ∫(F)) : Hom x x := CategoryTheory.Grothendieck.id x
 
-def comp {x y z : ∫(F)} (f : Hom x y) (g : Hom y z) : Hom x z := Grothendieck.Hom.comp f g
+abbrev comp {x y z : ∫(F)} (f : Hom x y) (g : Hom y z) : Hom x z :=
+  CategoryTheory.Grothendieck.comp f g
 
 attribute [local simp] eqToHom_map
 
-instance : Category (∫ F) := {
-  (inferInstanceAs $ Category (Grothendieck (F ⋙ Grpd.forgetToCat))) with
-  Hom := Hom
-  id := id
-  comp := comp
-  }
+instance : Category (∫ F) :=
+  inferInstanceAs (Category (CategoryTheory.Grothendieck (F ⋙ Grpd.forgetToCat)))
 
 def base (p : ∫(F)) : C := Grothendieck.base p
 
@@ -147,8 +147,10 @@ theorem id_base (X : ∫(F)) :
 
 @[simp]
 theorem id_fiber (X : ∫(F)) :
-    Hom.fiber (𝟙 X) = eqToHom (by rw [id_base, Functor.map_id]; simp) :=
-  Grothendieck.Hom.id_fiber _
+    Hom.fiber (𝟙 X) = eqToHom (by
+      rw [id_base]
+      exact Functor.congr_obj (F.map_id X.base) X.fiber) :=
+  rfl
 
 @[simp]
 theorem comp_base {X Y Z : ∫(F)} (f : X ⟶ Y) (g : Y ⟶ Z) :
@@ -158,8 +160,11 @@ theorem comp_base {X Y Z : ∫(F)} (f : X ⟶ Y) (g : Y ⟶ Z) :
 @[simp]
 theorem comp_fiber {X Y Z : ∫(F)} (f : X ⟶ Y) (g : Y ⟶ Z) :
     (f ≫ g).fiber =
-      eqToHom (by simp) ≫ (F.map g.base).map f.fiber ≫ g.fiber :=
-  Grothendieck.Hom.comp_fiber _ _
+      eqToHom (by
+        rw [comp_base]
+        exact Functor.congr_obj (F.map_comp f.base g.base) X.fiber) ≫
+        (F.map g.base).map f.fiber ≫ g.fiber :=
+  rfl
 
 @[simp]
 lemma base_eqToHom {X Y : ∫ F} (h : X = Y) :
@@ -168,8 +173,21 @@ lemma base_eqToHom {X Y : ∫ F} (h : X = Y) :
 
 @[simp]
 lemma fiber_eqToHom {X Y : ∫ F} (h : X = Y) :
-    (eqToHom h).fiber = eqToHom (by subst h; simp) := by
-  subst h; simp
+    (eqToHom h).fiber = eqToHom (by
+      subst h
+      change (F.map (Hom.base (𝟙 X))).obj X.fiber = X.fiber
+      rw [id_base]
+      exact Functor.congr_obj (F.map_id X.base) X.fiber) := by
+  subst h
+  rfl
+
+variable {F' : C ⥤ Grpd}
+
+theorem Hom.hext' (h : F = F') {X Y : ∫ F} {X' Y' : ∫ F'} (hX : HEq X X') (hY : HEq Y Y')
+    (f : Hom X Y) (g : Hom X' Y') (w_base : HEq f.base g.base) (w_fiber : HEq f.fiber g.fiber) :
+    HEq f g := by
+  cases f; cases g
+  congr
 
 end
 
@@ -185,8 +203,8 @@ section
 
 variable {C : Type u₁} [Groupoid.{v₁,u₁} C] {F : C ⥤ Grpd.{v₂,u₂}}
 
-instance (X : C) : Groupoid (F ⋙ Grpd.forgetToCat |>.obj X) where
-  inv f := ((F.obj X).str').inv f
+instance (X : C) : Groupoid ((F ⋙ Grpd.forgetToCat).obj X) :=
+  inferInstanceAs (Groupoid (F.obj X : Type u₂))
 
 /--
 If `F : C ⥤ Grpd` is a functor and `t : c ⟶ d` is a morphism in `C`,
@@ -229,7 +247,8 @@ lemma transport_id {x : ∫ F} : transport x (𝟙 x.base) = x := by
 
 lemma transport_eqToHom {X: C} {X' : F.Groupoidal} (hX': X'.base = X) :
     X'.transport (eqToHom hX') = X' := by
-  apply Grothendieck.transport_eqToHom
+  subst hX'
+  exact transport_id
 
 lemma toTransport_id {X : ∫ F} :
     toTransport X (𝟙 X.base) = eqToHom transport_id.symm := by
@@ -237,16 +256,17 @@ lemma toTransport_id {X : ∫ F} :
 
 lemma toTransport_eqToHom {X: C} {X' : ∫ F} (hX': forget.obj X' = X):
     toTransport X' (eqToHom hX') = eqToHom (by subst hX'; simp [transport_id]) := by
-  apply Grothendieck.toTransport_eqToHom
+  subst hX'
+  exact toTransport_id
 
 lemma transport_comp (x : ∫ F) {c d : C} (t : x.base ⟶ c) (t' : c ⟶ d):
     transport x (t ≫ t') = transport (transport x t) t' := by
-  apply Grothendieck.transport_comp
+  exact (Grothendieck.transport_comp x t t').symm
 
 lemma toTransport_comp (x : ∫ F) {c d: C} (t : x.base ⟶ c) (t' : c ⟶ d):
     toTransport x (t ≫ t') =
     toTransport x t ≫ toTransport (transport x t) t' ≫ eqToHom (transport_comp x t t').symm := by
-  apply Grothendieck.toTransport_comp
+  exact Grothendieck.toTransport_comp x t t'
 
 def isoMk {X Y : ∫(F)} (f : X ⟶ Y) : X ≅ Y := by
   fapply Grothendieck.isoMk
@@ -307,7 +327,9 @@ theorem ι_map (c : C) {X Y : F.obj c} (f : X ⟶ Y) :
 
 -- NOTE maybe this should be an HEq?
 @[simp] theorem ι_map_fiber (c : C) {X Y : F.obj c} (f : X ⟶ Y) :
-    ((ι F c).map f).fiber = eqToHom (by simp) ≫ f :=
+    ((ι F c).map f).fiber = eqToHom (by
+      rw [ι_map_base]
+      exact Functor.congr_obj (F.map_id c) X) ≫ f :=
   rfl
 
 theorem ι_comp_forget (c : C) : ι F c ⋙ forget = (const (F.obj c)).obj c :=
@@ -367,12 +389,6 @@ theorem hext' (h : F = F') {x : ∫ F} {y : ∫ F'}
   subst hbase
   congr
 
-theorem Hom.hext' (h : F = F') {X Y : ∫ F} {X' Y' : ∫ F'} (hX : HEq X X') (hY : HEq Y Y')
-    (f : Hom X Y) (g : Hom X' Y') (w_base : HEq f.base g.base) (w_fiber : HEq f.fiber g.fiber) :
-    HEq f g := by
-  cases f; cases g
-  congr
-
 variable {D : Type*} [Category D]
 
 theorem FunctorTo.hext (G H : D ⥤ ∫ F)
@@ -380,7 +396,7 @@ theorem FunctorTo.hext (G H : D ⥤ ∫ F)
     (hfiber_obj : ∀ x : D, HEq (G.obj x).fiber (H.obj x).fiber)
     (hfiber_map : ∀ {x y : D} (f : x ⟶ y), HEq (G.map f).fiber (H.map f).fiber)
     : G = H :=
-  Grothendieck.FunctorTo.hext _ _ hbase hfiber_obj hfiber_map
+  Grothendieck.FunctorTo.hext hbase hfiber_obj hfiber_map
 
 end ext
 
@@ -469,84 +485,72 @@ def functorFrom : ∫(F) ⥤ E :=
   Grothendieck.functorFrom fib hom hom_id hom_comp
 
 @[simp] theorem functorFrom_obj (X : ∫(F)) :
-    (functorFrom fib hom hom_id hom_comp).obj X = (fib X.base).obj X.fiber := by
-  apply Grothendieck.functorFrom_obj
+    (functorFrom fib hom hom_id hom_comp).obj X = (fib X.base).obj X.fiber :=
+  CategoryTheory.Grothendieck.functorFrom_obj (F := F ⋙ Grpd.forgetToCat)
+    fib hom hom_id hom_comp X
 
 @[simp] theorem functorFrom_map {X Y : ∫(F)} (f : X ⟶ Y) :
     (functorFrom fib hom hom_id hom_comp).map f
-    = (hom f.base).app X.fiber ≫ (fib Y.base).map f.fiber := by
-  apply Grothendieck.functorFrom_map
+    = (hom f.base).app X.fiber ≫ (fib Y.base).map f.fiber :=
+  CategoryTheory.Grothendieck.functorFrom_map (F := F ⋙ Grpd.forgetToCat)
+    fib hom hom_id hom_comp f
 
 /-- `Groupoidal.ι F c` composed with `Groupoidal.functorFrom` is isomorphic a functor on a fiber
 on `F` supplied as the first argument to `Groupoidal.functorFrom`. -/
 def ιCompFunctorFrom (c : C) : ι F c ⋙ (functorFrom fib hom hom_id hom_comp) ≅ fib c :=
-  Grothendieck.ιCompFunctorFrom _ _ _ _ _
+  CategoryTheory.Grothendieck.ιCompFunctorFrom (F := F ⋙ Grpd.forgetToCat)
+    fib hom hom_id hom_comp c
 
 def ι_comp_functorFrom (c : C) : ι F c ⋙ (functorFrom fib hom hom_id hom_comp) = fib c :=
-  Grothendieck.ι_comp_functorFrom _ _ _ _ _
+  Functor.ext_of_iso (ιCompFunctorFrom fib hom hom_id hom_comp c) (by intro; rfl)
 
 lemma whiskerRight_ιNatTrans_functorFrom {x y} (f : x ⟶ y) :
     Functor.whiskerRight (ιNatTrans f) (functorFrom fib hom hom_id hom_comp) =
     eqToHom (ι_comp_functorFrom ..) ≫ hom f ≫
     eqToHom (by rw [Functor.assoc, ι_comp_functorFrom]) :=
-  Grothendieck.whiskerRight_ιNatTrans_functorFrom ..
+  Grothendieck.whiskerRight_ιNatTrans_functorFrom (F := F ⋙ Grpd.forgetToCat)
+    fib hom hom_id hom_comp f
 
 section
 
 variable {D : Type*} [Category D]
-
-def fib' (c) : (F ⋙ Grpd.forgetToCat).obj c ⥤ E := fib c
-
-variable {fib} in
-def hom' {c c' : C} (f : c ⟶ c') : fib' fib c ⟶ (F ⋙ Grpd.forgetToCat).map f ⋙ fib' fib c' :=
-  hom f
-
 variable (G : E ⥤ D)
 
-def functorFromCompFib' (c : C) : (F ⋙ Grpd.forgetToCat).obj c ⥤ D :=
-  Grothendieck.functorFromCompFib (fib' fib) G c
+def functorFromCompFib (c : C) : F.obj c ⥤ D := fib c ⋙ G
 
-def functorFromCompFib (c : C) : F.obj c ⥤ D :=
- functorFromCompFib' fib G c
-
-def functorFromCompHom' {c c' : C}  (f : c ⟶ c') :
-    functorFromCompFib' fib G c ⟶ (F ⋙ Grpd.forgetToCat).map f ⋙ functorFromCompFib' fib G c' :=
-  Grothendieck.functorFromCompHom (fib' fib) (hom' hom) _ _
-
-def functorFromCompHom {c c' : C}  (f : c ⟶ c') :
-    functorFromCompFib' fib G c ⟶ F.map f ⋙ functorFromCompFib' fib G c' :=
-  functorFromCompHom' fib hom G f
+def functorFromCompHom {c c' : C} (f : c ⟶ c') :
+    functorFromCompFib fib G c ⟶ F.map f ⋙ functorFromCompFib fib G c' :=
+  Functor.whiskerRight (hom f) G
 
 include hom_id in
 lemma functorFromCompHom_id (c : C) : functorFromCompHom fib hom G (𝟙 c)
-    = eqToHom (by simp) :=
-  Grothendieck.functorFromCompHom_id _ _ hom_id _ c
+    = eqToHom (by simp) := by
+  ext x
+  simp [functorFromCompHom, hom_id]
 
 include hom_comp in
 lemma functorFromCompHom_comp (c₁ c₂ c₃ : C) (f : c₁ ⟶ c₂) (g : c₂ ⟶ c₃):
-    functorFromCompHom fib (fun {c c'} ↦ hom) G (f ≫ g)
-    = functorFromCompHom fib (fun {c c'} ↦ hom) G f ≫
+    functorFromCompHom fib hom G (f ≫ g)
+    = functorFromCompHom fib hom G f ≫
     Functor.whiskerLeft (F.map f) (functorFromCompHom fib hom G g) ≫
-    eqToHom (by simp) :=
-  Grothendieck.functorFromCompHom_comp _ _ hom_comp _ _ _ _ _ _
-
+    eqToHom (by simp) := by
+  ext x
+  simp [functorFromCompHom, hom_comp]
 
 lemma functorFromCompHom_eq {c c' : C}  (f : c ⟶ c') :
     functorFromCompHom fib hom G f = whiskerRight (hom f) G :=
   rfl
 
-theorem functorFrom_comp' :
-    functorFrom (fib' fib) (hom' hom) hom_id hom_comp ⋙ G =
-    functorFrom (functorFromCompFib' fib G) (functorFromCompHom' fib hom G)
- (functorFromCompHom_id _ _ hom_id _) (functorFromCompHom_comp _ _ hom_comp _) :=
-  Grothendieck.functorFrom_comp (fib' fib) (hom' hom) hom_id hom_comp G
-
 theorem functorFrom_comp :
     functorFrom fib hom hom_id hom_comp ⋙ G =
     functorFrom (functorFromCompFib fib G) (functorFromCompHom fib hom G)
-    (Grothendieck.functorFromCompHom_id _ _ hom_id _)
-    (Grothendieck.functorFromCompHom_comp _ _ hom_comp _) :=
-  functorFrom_comp' fib hom hom_id hom_comp G
+    (functorFromCompHom_id fib hom hom_id G)
+    (functorFromCompHom_comp fib hom hom_comp G) := by
+  fapply CategoryTheory.Functor.ext
+  · intro X
+    simp [functorFromCompFib]
+  · intro x y f
+    simp [functorFromCompHom, functorFromCompFib]
 
 variable (K : ∫(F) ⥤ E)
 
@@ -572,13 +576,13 @@ lemma asFunctorFromHom_app {c c' : C} (f: c ⟶ c') (p : F.obj c) :
 
 lemma asFunctorFromHom_id (c : C) : asFunctorFromHom K (𝟙 c) =
     eqToHom (by simp) :=
-  Grothendieck.asFunctorFromHom_id _ _
+  Grothendieck.asFunctorFromHom_id K c
 
 lemma asFunctorFromHom_comp (c₁ c₂ c₃ : C) (f : c₁ ⟶ c₂) (g: c₂ ⟶ c₃) :
     asFunctorFromHom K (f ≫ g) =
     asFunctorFromHom K f ≫ Functor.whiskerLeft (F.map f) (asFunctorFromHom K g) ≫ eqToHom
     (by simp) :=
-  Grothendieck.asFunctorFromHom_comp _ _ _ _ _ _
+  Grothendieck.asFunctorFromHom_comp K c₁ c₂ c₃ f g
 
 /-- Groupoidal version of `Grothendieck.asFunctorFrom` -/
 theorem asFunctorFrom : functorFrom (asFunctorFromFib K) (asFunctorFromHom K)
@@ -619,10 +623,43 @@ def functorIsoFrom (fib_comp : ∀ c, fib c ⋙ A = ι F c ⋙ forget)
     (obj_fib_obj : ∀ c x, A.obj ((fib c).obj x) = c)
     (map_hom_app : ∀ {c c'} (f : c ⟶ c') x, A.map ((hom f).app x) ≍ f)
     (fibMap_hom_app : ∀ {c c'} (f : c ⟶ c') x, fibMap ((hom f).app x) ≍ 𝟙 ((F.map f).obj x)) :
-    ∫ F ≅≅ E :=
-  Grothendieck.functorIsoFrom fib hom hom_id hom_comp A fibObj fibMap map_id map_comp
-    fib_comp fibObj_fib_obj fibMap_fib_map fib_obj_fibObj hom_map_app_fibObj
-    obj_fib_obj map_hom_app fibMap_hom_app
+    ∫ F ≅≅ E where
+  hom := functorFrom fib hom hom_id hom_comp
+  inv := functorTo A fibObj fibMap map_id map_comp
+  hom_inv_id := by
+    fapply functorFrom_ext
+    · intro c
+      rw [← Functor.assoc, ι_comp_functorFrom]
+      apply FunctorTo.hext
+      · calc
+          fib c ⋙ functorTo A fibObj fibMap map_id map_comp ⋙ forget = fib c ⋙ A := rfl
+          _ = ι F c ⋙ forget := fib_comp c
+          _ = (ι F c ⋙ 𝟭 (∫ F)) ⋙ forget := by simp
+      · apply fibObj_fib_obj
+      · intro x y f
+        exact HEq.trans (fibMap_fib_map c f) (HEq.symm (eqToHom_comp_heq f _))
+    · intro c c' f
+      apply NatTrans.ext
+      ext x
+      simp only [comp_obj, functorFrom_obj, ι_obj_base, ι_obj_fiber, id_obj, comp_whiskerRight,
+        whiskerRight_ιNatTrans_functorFrom, whiskerRight_comp, eqToHom_whiskerRight, Category.assoc,
+        eqToHom_trans, NatTrans.comp_app, eqToHom_app, eqToHom_refl, whiskerRight_app,
+        Category.id_comp, id_whiskerRight, ← heq_eq_eq, heq_eqToHom_comp_iff, comp_eqToHom_heq_iff]
+      apply Hom.hext' rfl
+      · apply hext' rfl
+        · exact heq_of_eq (obj_fib_obj c x)
+        · exact fibObj_fib_obj c x
+      · apply hext' rfl
+        · exact heq_of_eq (obj_fib_obj c' ((F.map f).obj x))
+        · exact fibObj_fib_obj c' ((F.map f).obj x)
+      · exact map_hom_app f x
+      · exact fibMap_hom_app f x
+  inv_hom_id := by
+    fapply Functor.ext
+    · intro x
+      simp [fib_obj_fibObj]
+    · intro x y f
+      simp [← heq_eq_eq, hom_map_app_fibObj]
 
 end
 end
@@ -665,7 +702,11 @@ variable {X} {Y : ∫(F)} (f : X ⟶ Y)
 @[simp] theorem map_map_fiber :
   ((Groupoidal.map α).map f).fiber =
     eqToHom (Functor.congr_obj (α.naturality f.base).symm X.fiber)
-    ≫ (α.app Y.base).map f.fiber := Grothendieck.map_map_fiber _ _
+    ≫ (α.app Y.base).map f.fiber := by
+  change ((CategoryTheory.Grothendieck.map (whiskerRight α Grpd.forgetToCat)).map f).fiber =
+    eqToHom (Functor.congr_obj (α.naturality f.base).symm X.fiber) ≫ (α.app Y.base).map f.fiber
+  rw [CategoryTheory.Grothendieck.map_map_fiber]
+  rfl
 
 /-- The fiber inclusion `ι F c` composed with `map α` is isomorphic to `α.app c ⋙ ι F' c`. -/
 @[simps!]
@@ -732,11 +773,6 @@ theorem preNatIso_congr {G H : D ⥤ C} {α β : G ≅ H} (h : α = β) :
   subst h
   simp
 
-@[simp] theorem preNatIso_eqToIso {G H : D ⥤ C} {h : G = H} :
-    preNatIso F (eqToIso h) =
-    eqToIso (by subst h; simp [map_id_eq, Functor.id_comp]) :=
-  Grothendieck.preNatIso_eqToIso ..
-
 end
 
 /--
@@ -775,46 +811,34 @@ variable {F} {x y : ∫ F} (f : x ⟶ y) [IsIso f]
 
 instance : IsIso f.base := by
   refine ⟨ (CategoryTheory.inv f).base , ?_, ?_ ⟩
-  · simp [← comp_base]
-  · simp [← comp_base]
+  · change Hom.base (f ≫ CategoryTheory.inv f) = Hom.base (𝟙 x)
+    rw [IsIso.hom_inv_id]
+  · change Hom.base (CategoryTheory.inv f ≫ f) = Hom.base (𝟙 y)
+    rw [IsIso.inv_hom_id]
+
+instance : IsIso f.fiber := by
+  infer_instance
 
 def invFiber : y.fiber ⟶ (F.map f.base).obj x.fiber :=
-  eqToHom (by simp [← Functor.comp_obj, ← Grpd.comp_eq_comp, ← Functor.map_comp,
-      ← Groupoidal.comp_base]) ≫
-    (F.map f.base).map (CategoryTheory.inv f).fiber
+  CategoryTheory.inv f.fiber
 
 @[simp]
 lemma fiber_comp_invFiber : f.fiber ≫ invFiber f = 𝟙 ((F.map f.base).obj x.fiber) := by
-  have h := comp_fiber f (CategoryTheory.inv f)
-  rw! [IsIso.hom_inv_id] at h
-  have h0 : F.map (CategoryTheory.inv f).base ⋙ F.map f.base = 𝟭 _ := by
-    simp [← Grpd.comp_eq_comp, ← Functor.map_comp, ← comp_base]
-  have h1 := Functor.congr_map (F.map f.base) h
-  simp [← heq_eq_eq, eqToHom_map, ← Functor.comp_map, Functor.congr_hom h0] at h1
-  dsimp [invFiber]
-  rw! [← h1]
-  simp
+  change f.fiber ≫ invFiber f = 𝟙 ((Grpd.forgetToCat.map (F.map f.base)).toFunctor.obj x.fiber)
+  simp [invFiber]
+  rfl
 
 @[simp]
 lemma invFiber_comp_fiber : invFiber f ≫ f.fiber = 𝟙 _ := by
-  have h := comp_fiber (CategoryTheory.inv f) f
-  rw! [IsIso.inv_hom_id] at h
   simp [invFiber]
-  convert h.symm
-  · simp
-  · simp
-  · simpa using (eqToHom_heq_id_cod _ _ _).symm
-
-instance : IsIso f.fiber :=
-  ⟨invFiber f , fiber_comp_invFiber f, invFiber_comp_fiber f⟩
 
 lemma inv_base : CategoryTheory.inv f.base = (CategoryTheory.inv f).base := by
   apply IsIso.inv_eq_of_hom_inv_id
-  simp [← comp_base]
+  change Hom.base (f ≫ CategoryTheory.inv f) = Hom.base (𝟙 x)
+  rw [IsIso.hom_inv_id]
 
 lemma inv_fiber : CategoryTheory.inv f.fiber = invFiber f := by
-  apply IsIso.inv_eq_of_hom_inv_id
-  simp
+  rfl
 
 end
 end
@@ -831,19 +855,19 @@ lemma comp_forget_naturality {α : F ⟶ G} {X Y : Γ} (f : X ⟶ Y) :
   simp
 
 lemma map_map_eqToHom {α : F ⟶ G} {X Y : ∫(F)} (f : X ⟶ Y) :
-    ((G ⋙ Grpd.forgetToCat).map f.base).obj ((map α).obj X).fiber =
-  (α.app Y.base).obj (((F ⋙ Grpd.forgetToCat).map f.base).obj X.fiber) := by
+    ((G ⋙ Grpd.forgetToCat).map f.base).toFunctor.obj ((map α).obj X).fiber =
+  (α.app Y.base).obj (((F ⋙ Grpd.forgetToCat).map f.base).toFunctor.obj X.fiber) := by
     apply Eq.symm
     have equ1 :
-      (α.app Y.base).obj ((Grpd.forgetToCat.map (F.map f.base)).obj X.fiber) =
-      ((Grpd.forgetToCat.map (F.map f.base)) ⋙ (α.app Y.base)).obj X.fiber := by simp
+      (α.app Y.base).obj ((Grpd.forgetToCat.map (F.map f.base)).toFunctor.obj X.fiber) =
+      ((Grpd.forgetToCat.map (F.map f.base)).toFunctor ⋙ (α.app Y.base)).obj X.fiber := by simp
     have equ2 :
-      (Grpd.forgetToCat.map (G.map f.base)).obj ((α.app X.base).obj X.fiber) =
-      ((α.app X.base) ⋙ (Grpd.forgetToCat.map (G.map f.base))).obj X.fiber := by simp
+      (Grpd.forgetToCat.map (G.map f.base)).toFunctor.obj ((α.app X.base).obj X.fiber) =
+      ((α.app X.base) ⋙ (Grpd.forgetToCat.map (G.map f.base)).toFunctor).obj X.fiber := by simp
     simp only [Functor.comp_obj, Functor.comp_map, map_obj_fiber]
     rw[equ1, equ2]
     refine Functor.congr_obj ?_ X.fiber
-    apply comp_forget_naturality
+    exact α.naturality f.base
 
 @[simp] theorem eqToHom_comp_fiber {C : Type u} [Category.{v} C] {A : C ⥤ Grpd.{v₁, u₁}}
     {p q r : ∫(A)} (h : p = q) {f : q ⟶ r} :
@@ -867,11 +891,6 @@ theorem map_comp_eq {G H : C ⥤ Grpd.{v₂,u₂}} (α : F ⟶ G) (β : G ⟶ H)
     map (α ≫ β) = map α ⋙ map β := by
   simp [map, Grothendieck.map_comp_eq]
 
-theorem preNatIso_comp {G1 G2 G3 : D ⥤ C} (α : G1 ≅ G2) (β : G2 ≅ G3) :
-    preNatIso F (α ≪≫ β) = preNatIso F α ≪≫ Functor.isoWhiskerLeft _ (preNatIso F β) ≪≫
-    eqToIso (by simp [map_comp_eq, Functor.assoc]) :=
-  Grothendieck.preNatIso_comp _ _ _
-
 end
 
 section
@@ -879,52 +898,22 @@ variable {Γ : Type u} [Groupoid.{v} Γ] (A : Γ ⥤ Grpd.{v₁,u₁})
 
 theorem map_eqToHom_base {G1 G2 : ∫(A)} (eq : G1 = G2)
     : A.map (eqToHom eq).base = eqToHom (by subst eq; simp) := by
-  aesop_cat
+  cases eq
+  change A.map (Hom.base (𝟙 G1)) = 𝟭 (A.obj G1.base)
+  rw [id_base]
+  simp
 
 open CategoryTheory.Functor in
 /-- Every morphism `f : X ⟶ Y` in the base category induces a natural transformation from the fiber
 inclusion `ι F X` to the composition `F.map f ⋙ ι F Y`. -/
-def ιNatIso {X Y : Γ} (f : X ⟶ Y) : ι A X ≅ A.map f ⋙ ι A Y where
-  hom := ιNatTrans f
-  inv := whiskerLeft (A.map f) (ιNatTrans (Groupoid.inv f)) ≫ eqToHom (by
-    convert_to A.map (f ≫ Groupoid.inv f) ⋙ ι A X = ι A X
-    · simp only [Functor.map_comp, Grpd.comp_eq_comp, Functor.assoc]
-    · simp)
-  hom_inv_id := by
-    ext a
-    apply Groupoidal.Hom.hext
-    · simp
-    . simp only [NatTrans.comp_app, whiskerLeft_app, comp_base,  comp_fiber, Grpd.map_comp_map,
-        Category.assoc, eqToHom_trans_assoc, eqToHom_refl, Category.id_comp,
-        NatTrans.id_app, id_fiber, eqToHom_comp_heq_iff]
-      -- FIXME: `transparency := default` is like `erw` and should be avoided
-      rw! (castMode := .all) (transparency := .default)
-        [eqToHom_app, map_eqToHom_base, Category.id_comp]
-      -- FIXME: `occs` is fragile
-      rw! (transparency := .default) (occs := .pos [4]) [Functor.map_id]
-      rw! (transparency := .default) [Category.id_comp]
-      simp only [eqToHom_refl, fiber_eqToHom, eqRec_heq_iff_heq]
-      -- these should be automated
-      apply HEq.trans (eqToHom_heq_id_cod _ _ _)
-      apply HEq.symm (eqToHom_heq_id_cod _ _ _)
-  inv_hom_id := by
-    ext a
-    apply Groupoidal.Hom.hext
-    · simp
-    . simp only [NatTrans.comp_app, whiskerLeft_app, comp_fiber, ιNatTrans_app_fiber,
-        map_comp, eqToHom_map, Category.assoc, eqToHom_trans_assoc, NatTrans.id_app,
-        id_fiber, eqToHom_comp_heq_iff]
-      -- FIXME: `transparency := default` is like `erw` and should be avoided
-      -- FIXME: `occs` is fragile
-      rw! (transparency := .default) (occs := .pos [6]) [Functor.map_id]
-      rw! (transparency := .default) (occs := .pos [4]) [Functor.map_id]
-      rw! (transparency := .default) [eqToHom_app]
-      simp only [comp_obj, fiber_eqToHom, eqToHom_map, Category.id_comp, id_base,
-        eqToHom_comp_heq_iff]
-      exact (eqToHom_heq_id_cod _ _ _).symm
+noncomputable def ιNatIso {X Y : Γ} (f : X ⟶ Y) : ι A X ≅ A.map f ⋙ ι A Y :=
+  NatIso.ofComponents (fun a => asIso ((ιNatTrans f).app a)) (by
+    intro a b g
+    exact (ιNatTrans f).naturality g)
 
 theorem ιNatIso_hom {x y : Γ} (f : x ⟶ y) :
     (ιNatIso A f).hom = ιNatTrans f := by
+  ext a
   simp [ιNatIso]
 
 @[simp] theorem ιNatIso_id (x : Γ) :
@@ -944,16 +933,12 @@ section
 
 -- TODO factor through Grothendieck
 lemma eqToHom_eq_homOf_map {Γ : Type*} [Groupoid Γ] {F G : Γ ⥤ Grpd} (h : F = G) :
-    eqToHom (by rw [h]) = Grpd.homOf (map (eqToHom h)) := by
+    eqToHom (by rw [h] : Grpd.of (∫ F) = Grpd.of (∫ G)) =
+      Grpd.homOf (C := Grpd.of (∫ F)) (D := Grpd.of (∫ G)) (map (eqToHom h)) := by
   subst h
-  fapply CategoryTheory.Functor.ext
-  · intro x
-    apply hext
-    · simp
-    · simp
-  · intro x y f
-    simp only [eqToHom_refl, Category.id_comp]
-    apply Hom.ext <;> simp
+  change 𝟭 (∫ F) = map (𝟙 F)
+  rw [map_id_eq]
+  rfl
 
 -- TODO factor through Grothendieck
 theorem map_eqToHom_heq_id_dom {Γ : Type*} [Category Γ] {A A' : Γ ⥤ Grpd}
@@ -996,19 +981,24 @@ lemma fiber_eqToHom_comp_heq {Γ : Type*} [Category Γ]
     {F : Γ ⥤ Grpd} {x' x y : ∫ F} (h : x' = x) (f : x ⟶ y) :
     (eqToHom h ≫ f).fiber ≍ f.fiber := by
   subst h
-  simp [eqToHom_map]
+  rw! (castMode := .all) [comp_fiber, fiber_eqToHom, eqToHom_map]
+  simp only [eqToHom_comp_heq_iff]
+  rfl
 
 lemma fiber_eq_eqToHom_comp_heq {Γ : Type*} [Category Γ]
     {F : Γ ⥤ Grpd} {x' x y : ∫ F} (g : x' ⟶ x) (h : x' = x) (hg : g = eqToHom h)
     (f : x ⟶ y) : (eqToHom h ≫ f).fiber ≍ f.fiber := by
   subst h
-  simp [eqToHom_map]
+  rw! (castMode := .all) [comp_fiber, fiber_eqToHom, eqToHom_map]
+  simp only [eqToHom_comp_heq_iff]
+  rfl
 
 lemma fiber_comp_eqToHom_heq {Γ : Type*} [Category Γ]
     {F : Γ ⥤ Grpd} {x y y' : ∫ F} (h : y = y') (f : x ⟶ y) :
     (f ≫ eqToHom h).fiber ≍ f.fiber := by
   subst h
-  simp
+  simp only [eqToHom_refl]
+  rw [Category.comp_id]
 
 
 end

@@ -12,6 +12,10 @@ macro "simp_part_nat" loc:(Lean.Parser.Tactic.location)? : tactic =>
 
 universe v u
 
+set_option backward.defeqAttrib.useBackward true
+set_option backward.isDefEq.respectTransparency false
+set_option maxHeartbeats 800000
+
 open CategoryTheory Limits
 
 noncomputable section

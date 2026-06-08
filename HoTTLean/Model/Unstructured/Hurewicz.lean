@@ -3,6 +3,9 @@ import Mathlib.CategoryTheory.NatIso
 
 universe v u
 
+set_option backward.defeqAttrib.useBackward true
+set_option backward.isDefEq.respectTransparency false
+
 noncomputable section
 
 open CategoryTheory Opposite
@@ -325,6 +328,7 @@ lemma unpath_ext {Γ} (A : Γ ⟶ U0.Ty) (a0 a1 : Γ ⟶ U0.Tm) (p1 p2 : cyl.I.o
   rw [← P0.unpath_path (A := A) a0 a1 p1 p1_tp δ0_p1 δ1_p1]
   rw [← P0.unpath_path a0 a1 p2 p2_tp δ0_p2 δ1_p2]
   rw! [h]
+  rfl
 
 lemma unpath_comp {Γ Δ} (σ : Δ ⟶ Γ) {A : Γ ⟶ U0.Ty} (a0 a1 : Γ ⟶ U0.Tm) (a0_tp : a0 ≫ U0.tp = A)
     (a1_tp : a1 ≫ U0.tp = A) (p : Γ ⟶ U0.Tm) (p_tp : p ≫ U0.tp = P0.Path a0 a1 a0_tp a1_tp) :

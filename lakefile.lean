@@ -5,6 +5,9 @@ require Poly from git "https://github.com/sinhp/Poly" @ "master"
 
 require checkdecls from git "https://github.com/PatrickMassot/checkdecls.git"
 
+require mathlib from git
+  "https://github.com/leanprover-community/mathlib4.git" @ "v4.31.0-rc1"
+
 meta if get_config? env = some "dev" then
 require «doc-gen4» from git
   "https://github.com/leanprover/doc-gen4" @ "v4.25.0-rc2"
@@ -15,6 +18,9 @@ package hottlean where
     ⟨`pp.unicode.fun, true⟩, -- pretty-prints `fun a ↦ b`
     ⟨`autoImplicit, false⟩,
     ⟨`relaxedAutoImplicit, false⟩,
+    ⟨`checkBinderAnnotations, false⟩,
+    ⟨`backward.defeqAttrib.useBackward, true⟩,
+    ⟨`backward.inferInstanceAs.wrap.reuseSubInstances, true⟩,
     ⟨`grind.warning, false⟩
   ]
 

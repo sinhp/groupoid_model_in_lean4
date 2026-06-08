@@ -1,5 +1,6 @@
 import Mathlib.Tactic.Convert
 import Mathlib.Tactic.SimpRw
+import Mathlib.Tactic.Basic
 import HoTTLean.Syntax.Typing
 import HoTTLean.Tactic.MutualInduction
 import HoTTLean.Tactic.GrindCases
@@ -90,7 +91,8 @@ theorem rename_all :
   have ih_subst (B a : Expr χ) (ξ) :
       (B.subst a.toSb).rename ξ = (B.rename (Expr.upr ξ)).subst (a.rename ξ).toSb := by autosubst
   mutual_induction WfCtx
-  all_goals dsimp only; try intros
+  all_goals try dsimp only
+  all_goals try intros
   all_goals try simp only [Expr.rename, ih_subst] at *; clear ih_subst
   -- Cases that don't go through by `grind_cases`.
   case ax p _ Ec _ _ ihA _ _ Δ ξ =>
@@ -371,7 +373,8 @@ theorem subst_all :
     (∀ {Γ l A t u}, E ∣ Γ ⊢[l] t ≡ u : A →
       ∀ {Δ σ σ'}, EqSb E Δ σ σ' Γ → E ∣ Δ ⊢[l] t.subst σ ≡ u.subst σ' : A.subst σ) := by
   mutual_induction WfCtx
-  all_goals dsimp; try intros
+  all_goals try dsimp
+  all_goals try intros
   all_goals try simp only [Expr.subst_toSb_subst, Expr.subst_snoc_toSb_subst, Expr.subst] at *
   case ax p _ Ec _ _ ihA =>
     constructor

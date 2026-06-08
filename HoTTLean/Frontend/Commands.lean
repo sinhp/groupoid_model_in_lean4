@@ -9,6 +9,19 @@ namespace SynthLean
 open Lean Elab Command
 open Qq
 
+syntax (name := runMetaBang) "run_meta! " doSeq : command
+
+@[command_elab runMetaBang]
+unsafe def elabRunMetaBang : CommandElab := fun stx => do
+  match stx with
+  | `(run_meta!%$tk $elems:doSeq) => do
+    unless (← getEnv).contains ``MetaM do
+      throwError "to use this command, include `import Lean.Meta.Basic`"
+    unsafe Lean.enableInitializersExecution
+    Lean.Elab.Command.elabEvalCore true tk (← `(discard do $elems))
+      (mkApp (mkConst ``MetaM) (mkConst ``Unit))
+  | _ => throwUnsupportedSyntax
+
 def envDiff (old new : Environment) : Array ConstantInfo := Id.run do
   let mut ret := #[]
   for (c, i) in new.constants.map₂ do
@@ -31,15 +44,14 @@ private def checkedAxiomDeclName (nm : Name) : Name :=
     nm
 
 def computeAxioms (thyEnv : Environment) (constNm : Name) : MetaM ((E : Q(Axioms Name)) × Q(($E).Wf)) := do
-  let (_, st) ← (CollectAxioms.collect constNm).run thyEnv |>.run {}
-  let axioms := st.axioms
+  let axioms ← withEnv thyEnv <| Lean.collectAxioms constNm
   -- The output includes `constNm` if it is itself an axiom.
   let axioms := axioms.filter (· != constNm)
   -- Order the axioms by '`a` uses `b`'.
   let mut axiomAxioms : Std.HashMap Name (Array Name) := {}
   for axNm in axioms do
-    let (_, st) ← (CollectAxioms.collect axNm).run thyEnv |>.run {}
-    let axioms := st.axioms.filter (· != axNm)
+    let axioms ← withEnv thyEnv <| Lean.collectAxioms axNm
+    let axioms := axioms.filter (· != axNm)
     axiomAxioms := axiomAxioms.insert axNm axioms
   let mut axioms := axioms.qsort (fun a b => axiomAxioms[b]!.contains a)
   -- HACK: replace `sorryAx` with our universe-monomorphic versions.
@@ -202,7 +214,7 @@ elab "declare_theory " thy:ident : command => do
   )
 
 -- Reflect definitions from the prelude as `Checked*`.
-run_meta do
+run_meta! do
   let thyData ← mkInitTheoryData default default
   let addAx (nm : Name) := do
     let .axiomInfo i ← withEnv thyData.env <| getConstInfo nm | throwError "internal error"

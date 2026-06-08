@@ -8,6 +8,9 @@ import HoTTLean.ForMathlib.CategoryTheory.Functor.IsPullback
 
 universe v u v₁ u₁ v₂ u₂ v₃ u₃
 
+set_option backward.defeqAttrib.useBackward true
+set_option backward.isDefEq.respectTransparency false
+
 namespace CategoryTheory
 
 namespace Functor.Grothendieck
@@ -62,13 +65,13 @@ abbrev point {x y : C} (f : x ⟶ y) :
 variable {A} {fst} {snd}
 
 @[simp] def liftObjFiber (x : C) : A.obj (snd.obj x) :=
-  ((eqToHom w).app x).obj (pt fst x)
+  ((eqToHom w).app x).toFunctor.obj (pt fst x)
 
 variable {x y : C} (f : x ⟶ y)
 
-@[simp] def liftMapFiber : ((snd ⋙ A).map f).obj (liftObjFiber w x) ⟶ liftObjFiber w y :=
-  let m1 := ((eqToHom w).app y).map (point fst f)
-  let m2 := (eqToHom ((eqToHom w).naturality f).symm).app
+@[simp] def liftMapFiber : ((snd ⋙ A).map f).toFunctor.obj (liftObjFiber w x) ⟶ liftObjFiber w y :=
+  let m1 := ((eqToHom w).app y).toFunctor.map (point fst f)
+  let m2 := (eqToHom ((eqToHom w).naturality f).symm).toNatTrans.app
     (pt fst x)
   m2 ≫ m1
 
@@ -78,12 +81,12 @@ theorem liftMapFiber_id (x : C) : liftMapFiber w (𝟙 x) = eqToHom (by simp) :=
 theorem liftMapFiber_comp {x y z} (f : x ⟶ y) (g : y ⟶ z) :
     liftMapFiber w (f ≫ g) =
     eqToHom (by simp)
-    ≫ (A.map (snd.map g)).map (liftMapFiber w f)
+    ≫ (A.map (snd.map g)).toFunctor.map (liftMapFiber w f)
     ≫ liftMapFiber w g := by
-  have hgNatNatF := (eqToHom ((eqToHom w).naturality g).symm).naturality (fst.map f).fiber
-  have h := congr_arg (λ x ↦ x ≫ ((eqToHom w).app z).map (fst.map g).fiber) hgNatNatF
+  have hgNatNatF := (eqToHom ((eqToHom w).naturality g).symm).toNatTrans.naturality (fst.map f).fiber
+  have h := congr_arg (λ x ↦ x ≫ ((eqToHom w).app z).toFunctor.map (fst.map g).fiber) hgNatNatF
   dsimp at h
-  simp only [Category.assoc, eqToHom_app ((eqToHom w).naturality g).symm] at h
+  simp only [Category.assoc, Cat.eqToHom_app _ _ ((eqToHom w).naturality g).symm] at h
   simp [eqToHom_map, h]
 
 variable (fst) (snd)
@@ -116,20 +119,17 @@ def lift : C ⥤ Grothendieck A := functorTo snd
   · simp
 
 @[simp] theorem fac_left : lift fst snd w ⋙ Grothendieck.toPCat A = fst := by
-  apply CategoryTheory.Functor.ext
-  · intro x y f
-    apply Grothendieck.Hom.ext
-    · simp [eqToHom_map, PCat.eqToHom_base_map,
-        Functor.congr_hom (eqToHom_app w y) (point fst f)]
-    · have h := Functor.congr_hom w f
-      simp only [PCat.forgetToCat_map, Functor.comp_map] at h
-      simp [h]
+  apply Grothendieck.FunctorTo.hext
+  · rw [Functor.assoc, toPCat_forgetToCat, ← Functor.assoc, fac_right]
+    exact w.symm
   · intro x
-    have h := (Functor.congr_obj w x).symm
-    simp only [Functor.comp_obj, forget_obj] at h
-    fapply hext
-    · simp [h]
-    · simp [Cat.eqToHom_obj]
+    simp [lift, toPCat, Cat.eqToHom_obj]
+  · intro x y f
+    simp [lift, toPCat, liftMapFiber, point]
+    refine (eqToHom_comp_heq (((eqToHom w).app y).toFunctor.map (fst.map f).fiber) _).trans ?_
+    have hw : (eqToHom w).app y = eqToHom (Functor.congr_obj w y) := eqToHom_app w y
+    rw [hw]
+    exact Cat.eqToHom_map_heq (Functor.congr_obj w y) (fst.map f).fiber
 
 theorem lift_uniq (m : C ⥤ Grothendieck A)
     (hl : m ⋙ Grothendieck.toPCat A = fst)
@@ -144,13 +144,14 @@ theorem hom_ext {m n : C ⥤ Grothendieck A}
     (hl : m ⋙ Grothendieck.toPCat A = n ⋙ Grothendieck.toPCat A)
     (hr : m ⋙ Grothendieck.forget A = n ⋙ Grothendieck.forget A) :
     m = n := by
-  rw [lift_uniq (m ⋙ toPCat A) (m ⋙ forget A) ?_ m rfl rfl,
-    lift_uniq (n ⋙ toPCat A) (n ⋙ forget A) ?_ n rfl rfl]
+  have hm : (m ⋙ toPCat A) ⋙ PCat.forgetToCat = (m ⋙ forget A) ⋙ A := by
+    rw [Functor.assoc, toPCat_forgetToCat, ← Functor.assoc]
+  have hn : (n ⋙ toPCat A) ⋙ PCat.forgetToCat = (n ⋙ forget A) ⋙ A := by
+    rw [Functor.assoc, toPCat_forgetToCat, ← Functor.assoc]
+  rw [lift_uniq (m ⋙ toPCat A) (m ⋙ forget A) hm m rfl rfl,
+    lift_uniq (n ⋙ toPCat A) (n ⋙ forget A) hn n rfl rfl]
   rw! [hl, hr]
-  . show n ⋙ (toPCat A ⋙ PCat.forgetToCat) = _
-    rw [toPCat_forgetToCat, Functor.assoc]
-  . show m ⋙ (toPCat A ⋙ PCat.forgetToCat) = _
-    rw [toPCat_forgetToCat, Functor.assoc]
+  congr 1
 
 def aux {C : Type*} [inst : Category C] (Cn : C ⥤ PCat) (Cw : C ⥤ Γ)
     (hC : Cn ⋙ forget (𝟭 Cat) = Cw ⋙ A) :

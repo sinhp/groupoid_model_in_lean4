@@ -1,7 +1,7 @@
 import Mathlib.CategoryTheory.Limits.Yoneda
 import Mathlib.CategoryTheory.Functor.KanExtension.Adjunction
 import Mathlib.CategoryTheory.Limits.Preserves.Finite
-import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
+import Mathlib.CategoryTheory.Limits.Shapes.Pullback.IsPullback.Basic
 import HoTTLean.ForMathlib.CategoryTheory.WeakPullback
 
 /-!
@@ -10,6 +10,9 @@ import HoTTLean.ForMathlib.CategoryTheory.WeakPullback
 -/
 
 universe u v u₁ v₁ u₂ v₂
+
+set_option backward.defeqAttrib.useBackward true
+set_option backward.isDefEq.respectTransparency false
 
 namespace CategoryTheory
 
@@ -78,8 +81,8 @@ def lift' (c : C) (x' : yoneda.obj c ⟶ s.pt) : yoneda.obj c ⟶ t.pt :=
   rfl
 
 def lift''_app (s : Cone F) (c : C) :
-    s.pt.obj (Opposite.op c) → t.pt.obj (Opposite.op c) :=
-  yonedaEquiv ∘ lift' P c ∘ yonedaEquiv.symm
+    s.pt.obj (Opposite.op c) ⟶ t.pt.obj (Opposite.op c) :=
+  ConcreteCategory.ofHom (TypeCat.Fun.mk (yonedaEquiv ∘ lift' P c ∘ yonedaEquiv.symm))
 
 theorem lift''_app_naturality {c d : C} (f : c ⟶ d) :
     s.pt.map (f.op) ≫ lift''_app P s c
@@ -229,16 +232,20 @@ open Opposite
 
 def repPullbackCone (c : C) (x : G.obj (op c)) : RepPullbackCone f g :=
   .mk c (yonedaEquiv.symm $ a.app (op c) x) (yonedaEquiv.symm $ b.app (op c) x) (by
-    simpa [yonedaEquiv_symm_naturality_right] using congr_fun (NatTrans.congr_app hab (op c)) x)
+    simpa [yonedaEquiv_symm_naturality_right] using
+      congrArg (fun η => (ConcreteCategory.hom η) x) (NatTrans.congr_app hab (op c)))
 
 def lift'.app (c : C) : G.obj (op c) ⟶ W.obj (op c) :=
-  fun x => yonedaEquiv (lift (repPullbackCone a b hab c x))
+  ConcreteCategory.ofHom (TypeCat.Fun.mk (fun x =>
+    yonedaEquiv (lift (repPullbackCone a b hab c x))))
 
 include lift_naturality in
-lemma lift'.naturality ⦃c d : C⦄ (σ : c ⟶ d) : G.map σ.op ≫ lift'.app lift a b hab c =
+lemma lift'.naturality ⦃c d : C⦄ (σ : c ⟶ d) :
+    G.map σ.op ≫ lift'.app lift a b hab c =
     lift'.app lift a b hab d ≫ W.map σ.op := by
   ext x
-  dsimp only [types_comp_apply, app]
+  change yonedaEquiv (lift (repPullbackCone a b hab c ((ConcreteCategory.hom (G.map σ.op)) x))) =
+    (ConcreteCategory.hom (W.map σ.op)) (yonedaEquiv (lift (repPullbackCone a b hab d x)))
   rw [yonedaEquiv_naturality, lift_naturality (repPullbackCone a b hab d x) σ]
   dsimp only [repPullbackCone, π_app_left, fst_mk, π_app_right, snd_mk]
   congr 3
@@ -256,7 +263,7 @@ end
 
 def mk : WeakPullback fst snd f g where
   w := eq
-  lift a b hab := lift' lift lift_naturality a b hab
+  lift a b hab := WeakPullback.lift' lift lift_naturality a b hab
   lift_fst' a b hab := by
     ext c x
     dsimp [lift', lift'.app]

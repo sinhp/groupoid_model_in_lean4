@@ -11,6 +11,9 @@ import Mathlib.Tactic.DepRewrite
 
 universe v u
 
+set_option backward.defeqAttrib.useBackward true
+set_option backward.isDefEq.respectTransparency false
+
 noncomputable section
 
 open CategoryTheory Limits Opposite
@@ -267,6 +270,7 @@ lemma snd_mk (A : y(Γ) ⟶ M.Ty) (B : y(M.ext A) ⟶ X) :
     snd M (mk M A B) _ (fst_mk ..) = B := by
   dsimp only [snd, mk]
   rw! [UvPoly.Equiv.snd'_mk']
+  rfl
 
 section
 variable {Δ : Ctx} {σ : Δ ⟶ Γ} {AB : y(Γ) ⟶ M.Ptp.obj X}

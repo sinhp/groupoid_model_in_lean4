@@ -51,7 +51,12 @@ variable {Γ : Type u} [Category.{v} Γ] (A : Γ ⥤ Grpd.{v₁,u₁})
 -/
 def toPGrpd : ∫(A) ⥤ PGrpd.{v₁,u₁} :=
   PGrpd.functorTo (forget ⋙ A) (fun x => x.fiber) (fun f => f.fiber)
-    (by simp) (by simp [forget_map, Hom.base])
+    (fun x => by
+      change Hom.fiber (𝟙 x) = eqToHom _
+      exact id_fiber x)
+    (fun f g => by
+      change Hom.fiber (f ≫ g) = eqToHom _ ≫ (A.map g.base).map f.fiber ≫ g.fiber
+      exact comp_fiber f g)
 
 @[simp] theorem toPGrpd_obj_base (x) :
     ((toPGrpd A).obj x).base = A.obj x.base := rfl
@@ -77,8 +82,9 @@ of the pullback `PGrpd`.
 -/
 def toPGrpd' : ∫(A) ⥤ PGrpd.{v₁,u₁} :=
   PGrpd.isPullback.lift (Grothendieck.toPCat (A ⋙ Grpd.forgetToCat)) (forget ⋙ A) (by
-    rw [Grothendieck.toPCat_forgetToCat]
-    rfl)
+    change Grothendieck.toPCat (A ⋙ Grpd.forgetToCat) ⋙ PCat.forgetToCat =
+      Grothendieck.forget (A ⋙ Grpd.forgetToCat) ⋙ (A ⋙ Grpd.forgetToCat)
+    exact Grothendieck.toPCat_forgetToCat (A ⋙ Grpd.forgetToCat))
 
 /--
 The left square is a pullback since the right square and outer square are.
@@ -152,9 +158,13 @@ variable (A : Γ ⥤ Grpd.{v₁,u₁}) (α : Γ ⥤ PGrpd.{v₁,u₁}) (h : α �
 -/
 def sec : Γ ⥤ ∫(A) :=
   Groupoidal.functorTo (𝟭 _) (fun x => PGrpd.objFiber' h x) (fun f => PGrpd.mapFiber' h f)
-  (fun x => by simp) (fun f g => by
-    subst h
-    simp [PGrpd.mapFiber', PGrpd.mapFiber'EqToHom])
+  (fun x => by
+    change PGrpd.mapFiber' h (𝟙 x) = eqToHom (by simp)
+    exact PGrpd.mapFiber'_id (h := h))
+  (fun f g => by
+    change PGrpd.mapFiber' h (f ≫ g) =
+      eqToHom (by simp) ≫ (A.map g).map (PGrpd.mapFiber' h f) ≫ PGrpd.mapFiber' h g
+    exact PGrpd.mapFiber'_comp' h f g)
 
 @[simp] lemma sec_obj_base (x) : ((sec A α h).obj x).base = x :=
   rfl
@@ -175,13 +185,11 @@ def sec : Γ ⥤ ∫(A) :=
   · rw [Functor.assoc, toPGrpd_forgetToGrpd, sec, ← Functor.assoc, h]
     rfl
   · intro x
-    simp [toPGrpd_obj_fiber, PGrpd.objFiber', PGrpd.objFiber, Grpd.eqToHom_obj,
-      PGrpd.objFiber'EqToHom]
+    change HEq (PGrpd.objFiber' h x) (α.obj x).fiber
+    exact PGrpd.objFiber'_heq (h := h)
   · intro x y f
-    simp only [Functor.comp_map, toPGrpd_map_fiber, sec_map_fiber, PGrpd.mapFiber',
-      Grpd.eqToHom_hom, PGrpd.mapFiber'EqToHom, PGrpd.objFiber'EqToHom]
-    rw! [eqToHom_comp_heq]
-    simp
+    change HEq (PGrpd.mapFiber' h f) (α.map f).fiber
+    exact PGrpd.mapFiber'_heq (h := h) f
 
 @[simp] def sec_forget : sec A α h ⋙ forget = 𝟭 _ :=
   rfl

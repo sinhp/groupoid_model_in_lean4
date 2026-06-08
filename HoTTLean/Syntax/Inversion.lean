@@ -75,7 +75,7 @@ theorem inv_all :
     (∀ {Γ l A t u}, E ∣ Γ ⊢[l] t ≡ u : A →
       (WfCtx E Γ) ∧ (E ∣ Γ ⊢[l] A) ∧ (E ∣ Γ ⊢[l] t : A) ∧ (E ∣ Γ ⊢[l] u : A)) := by
   mutual_induction WfCtx
-  all_goals dsimp; try intros
+  all_goals (try dsimp); try intros
   case bvar => grind [WfCtx.lookup_wf]
   case cong_pi' => grind [WfTp.pi']
   case cong_sigma' => grind [WfTp.sigma']

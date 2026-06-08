@@ -2,9 +2,42 @@ import HoTTLean.ForMathlib
 import Mathlib.CategoryTheory.Widesubcategory
 import HoTTLean.ForMathlib.CategoryTheory.Functor.Iso
 import HoTTLean.ForMathlib.CategoryTheory.FreeGroupoid
+import HoTTLean.ForMathlib.CategoryTheory.Grpd
 import Mathlib.Tactic.DepRewrite
 
 universe v u v₁ u₁ v₂ u₂ v₃ u₃
+
+namespace CategoryTheory
+
+@[simp]
+lemma WideSubcategory.coe_eqToHom {C : Type u} [Category.{v} C]
+    {P : MorphismProperty C} [P.IsMultiplicative] {X Y : WideSubcategory P} (h : X = Y) :
+    (eqToHom h).1 = eqToHom (by subst h; rfl) := by
+  subst h
+  rfl
+
+@[simp]
+lemma WideSubcategory.hom_eqToHom {C : Type u} [Category.{v} C]
+    {P : MorphismProperty C} [P.IsMultiplicative] {X Y : WideSubcategory P} (h : X = Y) :
+    (eqToHom h).hom = eqToHom (by subst h; rfl) := by
+  subst h
+  rfl
+
+@[simp]
+lemma WideSubcategory.comp_hom {C : Type u} [Category.{v} C]
+    {P : MorphismProperty C} [P.IsMultiplicative] {X Y Z : WideSubcategory P}
+    (f : X ⟶ Y) (g : Y ⟶ Z) :
+    (f ≫ g).hom = f.hom ≫ g.hom := rfl
+
+@[simp]
+lemma ObjectProperty.FullSubcategory.hom_eqToHom {C : Type u} [Category.{v} C]
+    {P : ObjectProperty C} {X Y : P.FullSubcategory} (h : X = Y) :
+    (eqToHom h).hom = eqToHom (by subst h; rfl) := by
+  subst h
+  rfl
+
+end CategoryTheory
+
 
 /-!
 ## Strict (meta-theoretic) 1-pullbacks of categories
@@ -61,16 +94,19 @@ end ChosenObjects
   whose two components are sent to equal maps in the base category `Sudan`.
 -/
 def morphismProperty : MorphismProperty (ChosenObjects east south) :=
-  fun {x y} f => east.map f.1
-    = eqToHom x.property ≫ south.map f.2 ≫ eqToHom y.property.symm
+  fun {x y} f => east.map f.hom.1
+    = eqToHom x.property ≫ south.map f.hom.2 ≫ eqToHom y.property.symm
 
 instance : MorphismProperty.IsMultiplicative (morphismProperty east south) where
   id_mem x := by
-    simp [morphismProperty, ChosenObjects, ObjectProperty.FullSubcategory.id_def]
-  comp_mem f g hf hg := by
-    simp only [morphismProperty, ChosenObjects,
-      ObjectProperty.FullSubcategory.comp_def] at *
-    simp [hg, hf]
+    change east.map (𝟙 x.obj.1) =
+      eqToHom x.property ≫ south.map (𝟙 x.obj.2) ≫ eqToHom x.property.symm
+    simp
+  comp_mem {X Y Z} f g hf hg := by
+    change east.map (f.hom.1 ≫ g.hom.1) =
+      eqToHom X.property ≫ south.map (f.hom.2 ≫ g.hom.2) ≫ eqToHom Z.property.symm
+    rw [east.map_comp, south.map_comp, hf, hg]
+    simp [Category.assoc]
 
 /--
   The chosen pullback category `Chosen` is a wide subcategory
@@ -130,7 +166,10 @@ The universal lift of the chosen pullback `Chosen`.
 -/
 def lift : C ⥤ Chosen east south where
   obj x := ⟨ ⟨ Cn.obj x , Cw.obj x ⟩ , congr_obj hC x ⟩
-  map f := ⟨ ⟨ Cn.map f , Cw.map f ⟩ , congr_hom hC f ⟩
+  map {X Y} f := ⟨ ⟨ ⟨ Cn.map f , Cw.map f ⟩ ⟩ , by
+    change (Cn ⋙ east).map f =
+      eqToHom (congr_obj hC X) ≫ (Cw ⋙ south).map f ≫ eqToHom (congr_obj hC Y).symm
+    exact congr_hom hC f ⟩
 
 /--
 The universal lift of the chosen pullback `Chosen` commutes with projections.
@@ -149,23 +188,27 @@ Lifts of the chosen pullback `Chosen` are unique.
 -/
 theorem hom_ext {l0 l1 : C ⥤ Chosen east south} (hnorth : l0 ⋙ north = l1 ⋙ north)
    (hwest : l0 ⋙ west = l1 ⋙ west) : l0 = l1 := by
-  fapply Functor.ext
-  · intro x
+  let objEq : ∀ x, l0.obj x = l1.obj x := fun x => by
     apply WideSubcategory.ext
     apply ObjectProperty.FullSubcategory.ext
     apply Prod.ext
     · exact congr_obj hnorth x
     · exact congr_obj hwest x
+  fapply Functor.ext
+  · intro x
+    exact objEq x
   · intro x y f
     apply (wideSubcategory.faithful _).map_injective
     apply (ObjectProperty.faithful_ι _).map_injective
-    apply prod.hom_ext
-    · convert congr_hom hnorth f
-      simp only [Functor.map_comp, eqToHom_map]
-      simp [north]
-    · convert congr_hom hwest f
-      simp only [Functor.map_comp, eqToHom_map]
-      simp [west]
+    apply Prod.ext
+    · change north.map (l0.map f) = north.map (eqToHom (objEq x) ≫ l1.map f ≫ eqToHom (objEq y).symm)
+      rw [Functor.map_comp, Functor.map_comp]
+      convert congr_hom hnorth f using 1
+      all_goals simp [eqToHom_map]
+    · change west.map (l0.map f) = west.map (eqToHom (objEq x) ≫ l1.map f ≫ eqToHom (objEq y).symm)
+      rw [Functor.map_comp, Functor.map_comp]
+      convert congr_hom hwest f using 1
+      all_goals simp [eqToHom_map]
 
 end Chosen
 
@@ -850,6 +893,10 @@ namespace CategoryTheory.Cat
 
 open Functor Limits
 
+/-- Compatibility alias: morphisms in `Cat` are bundled functors. -/
+abbrev homOf {C D : Type u} [Category.{v} C] [Category.{v} D] (F : C ⥤ D) :
+    Cat.of C ⟶ Cat.of D := F.toCatHom
+
 section
 variable {Libya Egypt Chad Sudan : Type u} [Category.{v} Libya]
   [Category.{v} Egypt] [Category.{v} Chad] [Category.{v} Sudan]
@@ -859,25 +906,40 @@ variable {Libya Egypt Chad Sudan : Type u} [Category.{v} Libya]
   (h : Functor.IsPullback north west east south)
   (s : Limits.PullbackCone (homOf east) (homOf south))
 
-def lift : s.pt ⟶ of Libya := h.lift s.fst s.snd s.condition
+private def coneCondition : s.fst.toFunctor ⋙ east = s.snd.toFunctor ⋙ south :=
+  congrArg Cat.Hom.toFunctor s.condition
 
-def fac_left : lift h s ≫ (homOf north) = s.fst :=
-  h.fac_left _ _ _
+def lift : s.pt ⟶ of Libya := homOf (h.lift s.fst.toFunctor s.snd.toFunctor (coneCondition s))
 
-def fac_right : lift h s ≫ (homOf west) = s.snd :=
-  h.fac_right _ _ _
+def fac_left : lift h s ≫ homOf north = s.fst := by
+  apply Cat.ext
+  exact h.fac_left s.fst.toFunctor s.snd.toFunctor (coneCondition s)
+
+def fac_right : lift h s ≫ homOf west = s.snd := by
+  apply Cat.ext
+  exact h.fac_right s.fst.toFunctor s.snd.toFunctor (coneCondition s)
 
 def uniq (m : s.pt ⟶ of Libya) (hl : m ≫ homOf north = s.fst)
     (hr : m ≫ homOf west = s.snd) : m = lift h s := by
+  apply Cat.ext
   apply h.hom_ext
-  · convert (fac_left h s).symm
-  · convert (fac_right h s).symm
+  · exact (by
+      have hl' := congrArg Cat.Hom.toFunctor hl
+      have fl' := congrArg Cat.Hom.toFunctor (fac_left h s)
+      exact hl'.trans fl'.symm)
+  · exact (by
+      have hr' := congrArg Cat.Hom.toFunctor hr
+      have fr' := congrArg Cat.Hom.toFunctor (fac_right h s)
+      exact hr'.trans fr'.symm)
 
 variable (comm_sq) in
 def isPullback : IsPullback (homOf north) (homOf west) (homOf east)
-    (homOf south) :=
-  IsPullback.of_isLimit (PullbackCone.IsLimit.mk
-    comm_sq (lift h) (fac_left _) (fac_right _) (uniq _))
+    (homOf south) := by
+  have commSqCat : homOf north ≫ homOf east = homOf west ≫ homOf south := by
+    apply Cat.ext
+    exact comm_sq
+  exact IsPullback.of_isLimit (PullbackCone.IsLimit.mk
+    commSqCat (lift h) (fac_left _) (fac_right _) (uniq _))
 
 noncomputable def functorIsPullback
     (h : IsPullback (homOf north) (homOf west) (homOf east) (homOf south)) :
@@ -885,15 +947,14 @@ noncomputable def functorIsPullback
   have hChosen : IsPullback (P := Cat.of (Functor.IsPullback.Chosen east south))
     (homOf IsPullback.Chosen.north) (homOf IsPullback.Chosen.west) (homOf east)
     (homOf south) :=
-    isPullback Functor.IsPullback.Chosen.comm_sq (Functor.IsPullback.Chosen.isPullback east south)
+    Cat.isPullback (comm_sq := Functor.IsPullback.Chosen.comm_sq)
+      (Functor.IsPullback.Chosen.isPullback east south)
   let i := IsPullback.isoIsPullback _ _ h hChosen
-  convert Functor.IsPullback.ofIsoChosen east south i.hom i.inv ?_ ?_
-  · symm
-    exact IsPullback.isoIsPullback_hom_fst _ _ h hChosen
-  · symm
-    exact IsPullback.isoIsPullback_hom_snd _ _ h hChosen
-  · exact i.hom_inv_id
-  · exact i.inv_hom_id
+  convert Functor.IsPullback.ofIsoChosen east south i.hom.toFunctor i.inv.toFunctor ?_ ?_ using 1
+  · exact congrArg Cat.Hom.toFunctor (IsPullback.isoIsPullback_hom_fst _ _ h hChosen).symm
+  · exact congrArg Cat.Hom.toFunctor (IsPullback.isoIsPullback_hom_snd _ _ h hChosen).symm
+  · exact congrArg Cat.Hom.toFunctor i.hom_inv_id
+  · exact congrArg Cat.Hom.toFunctor i.inv_hom_id
 
 end
 end Cat
@@ -902,28 +963,32 @@ namespace Grpd
 
 open Functor Limits
 
+/-- Compatibility alias for unbundled functors as morphisms in `Grpd`. -/
+abbrev homOf' {C D : Type u} [Groupoid.{v} C] [Groupoid.{v} D] (F : C ⥤ D) :
+    Grpd.of C ⟶ Grpd.of D := F
+
 variable {Libya Egypt Chad Sudan : Type u} [Groupoid.{v} Libya]
   [Groupoid.{v} Egypt] [Groupoid.{v} Chad] [Groupoid.{v} Sudan]
   {north : Libya ⥤ Egypt} {west : Libya ⥤ Chad}
   {east : Egypt ⥤ Sudan} {south : Chad ⥤ Sudan}
   (h : Functor.IsPullback north west east south)
-  (s : Limits.PullbackCone (homOf east) (homOf south))
+  (s : Limits.PullbackCone (homOf' east) (homOf' south))
 
 def lift : s.pt ⟶ of Libya := h.lift s.fst s.snd s.condition
 
-def fac_left : lift h s ≫ (homOf north) = s.fst :=
+def fac_left : lift h s ≫ homOf' north = s.fst :=
   h.fac_left _ _ _
 
-def fac_right : lift h s ≫ (homOf west) = s.snd :=
+def fac_right : lift h s ≫ homOf' west = s.snd :=
   h.fac_right _ _ _
 
-def uniq (m : s.pt ⟶ of Libya) (hl : m ≫ homOf north = s.fst)
-    (hr : m ≫ homOf west = s.snd) : m = lift h s := by
+def uniq (m : s.pt ⟶ of Libya) (hl : m ≫ homOf' north = s.fst)
+    (hr : m ≫ homOf' west = s.snd) : m = lift h s := by
   apply h.hom_ext
   · convert (fac_left h s).symm
   · convert (fac_right h s).symm
 
-def isPullback : IsPullback (homOf north) (homOf west) (homOf east) (homOf south) :=
+def isPullback : IsPullback (homOf' north) (homOf' west) (homOf' east) (homOf' south) :=
   IsPullback.of_isLimit (PullbackCone.IsLimit.mk
     h.comm_sq (lift h) (fac_left _) (fac_right _) (uniq _))
 
@@ -931,11 +996,11 @@ noncomputable def functorIsPullback {Libya Egypt Chad Sudan : Type v} [Groupoid.
     [Groupoid.{v} Egypt] [Groupoid.{v} Chad] [Groupoid.{v} Sudan]
     {north : Libya ⥤ Egypt} {west : Libya ⥤ Chad}
     {east : Egypt ⥤ Sudan} {south : Chad ⥤ Sudan}
-    (h : IsPullback (homOf north) (homOf west) (homOf east) (homOf south)) :
+    (h : IsPullback (homOf' north) (homOf' west) (homOf' east) (homOf' south)) :
     Functor.IsPullback north west east south :=
   Cat.functorIsPullback <|
     @Functor.map_isPullback _ _ _ _ Grpd.forgetToCat (Grpd.of Libya) (Grpd.of Egypt) (Grpd.of Chad)
-    (Grpd.of Sudan) (homOf north) (homOf west) (homOf east) (homOf south) _ h
+    (Grpd.of Sudan) (homOf' north) (homOf' west) (homOf' east) (homOf' south) _ h
 
 end Grpd
 

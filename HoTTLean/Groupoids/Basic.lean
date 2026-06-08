@@ -21,7 +21,7 @@ namespace CategoryTheory.PGrpd
 def pGrpdToGroupoidalAsSmallFunctor : PGrpd.{v, v} ⥤
     ∫(Grpd.asSmallFunctor.{w, v, v}) :=
   Grothendieck.functorTo PGrpd.forgetToGrpd
-  (fun x => AsSmall.up.obj.{v, v, w} x.fiber)
+  (fun x => AsSmall.up.obj x.fiber)
   (fun f => AsSmall.up.map f.fiber)
   (by aesop_cat)
   (by aesop_cat)
@@ -29,7 +29,7 @@ def pGrpdToGroupoidalAsSmallFunctor : PGrpd.{v, v} ⥤
 def groupoidalAsSmallFunctorToPGrpd :
     ∫(Grpd.asSmallFunctor.{w, v, v}) ⥤ PGrpd.{v,v} :=
   PGrpd.functorTo Groupoidal.forget
-  (fun x => AsSmall.down.obj.{v, v, w} x.fiber)
+  (fun x => AsSmall.down.obj x.fiber)
   (fun f => AsSmall.down.map f.fiber)
   (by aesop_cat)
   (by aesop_cat)
@@ -67,8 +67,6 @@ def Ctx := Grpd.{u,u}
 
 instance : CartesianMonoidalCategory Ctx := inferInstanceAs (CartesianMonoidalCategory Grpd)
 
-instance : HasFiniteLimits Ctx := inferInstanceAs (HasFiniteLimits Grpd)
-
 namespace Ctx
 
 def coreAsSmall (C : Type (v+1)) [LargeCategory.{v} C] : Ctx.{max u (v+1)} :=
@@ -90,7 +88,7 @@ variable {Γ Δ : Type u} [Groupoid Γ] [Groupoid Δ] (σ : Δ ⥤ Γ)
     {D : Type (v+1)} [LargeCategory.{v} D]
 
 def toCoreAsSmallEquiv : (Γ ⥤ coreAsSmall C) ≃ Γ ⥤ C :=
-  Core.functorToCoreEquiv.symm.trans functorToAsSmallEquiv
+  (Core.functorToCoreEquiv (G := Γ) (C := AsSmall C)).symm.trans functorToAsSmallEquiv
 
 theorem toCoreAsSmallEquiv_apply_comp_left (A : Γ ⥤ coreAsSmall C) :
     toCoreAsSmallEquiv (σ ⋙ A) = σ ⋙ toCoreAsSmallEquiv A := by
@@ -102,14 +100,13 @@ theorem toCoreAsSmallEquiv_apply_comp_right (A : Γ ⥤ coreAsSmall C) (F : C �
 
 theorem toCoreAsSmallEquiv_symm_apply_comp_left (A : Γ ⥤ C) :
     toCoreAsSmallEquiv.symm (σ ⋙ A) = σ ⋙ toCoreAsSmallEquiv.symm A := by
-  dsimp only [toCoreAsSmallEquiv, Equiv.symm_trans_apply, Equiv.symm_symm, Grpd.comp_eq_comp]
-  erw [functorToAsSmallEquiv_symm_apply_comp_left, Core.functorToCoreEquiv_apply,
-    Core.functorToCore_comp_left]
-  rfl
+  apply toCoreAsSmallEquiv.injective
+  rw [Equiv.apply_symm_apply, toCoreAsSmallEquiv_apply_comp_left, Equiv.apply_symm_apply]
 
 theorem toCoreAsSmallEquiv_symm_apply_comp_right (A : Γ ⥤ C) (F : C ⥤ D) :
     toCoreAsSmallEquiv.symm (A ⋙ F) = toCoreAsSmallEquiv.symm A ⋙ coreAsSmallFunctor F := by
-  rfl
+  apply toCoreAsSmallEquiv.injective
+  rw [Equiv.apply_symm_apply, toCoreAsSmallEquiv_apply_comp_right, Equiv.apply_symm_apply]
 
 end
 

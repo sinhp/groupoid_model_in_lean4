@@ -88,8 +88,8 @@ def isPullback_liftTm' : Functor.IsPullback
 
 theorem isPullback_liftTm'_in_Cat : IsPullback
     (Cat.homOf liftTm'.{v,max u (v+2)})
-    tp'.{_,max u (v+2)}
-    tp'.{v+1,max u (v+2)}
+    (Cat.homOf tp'.{_,max u (v+2)})
+    (Cat.homOf tp'.{v+1,max u (v+2)})
     (Cat.homOf liftTy'.{v,max u (v+2)}) :=
   Cat.isPullback rfl isPullback_liftTm'
 
@@ -199,15 +199,16 @@ def isPullbackClassifierOfCoreAsSmall (A : Γ ⟶ Ty) :
   (isPullbackClassifierOfAsSmall (toCoreAsSmallEquiv A))
   (by
     dsimp [Ctx.coreAsSmallFunctor, Grpd.homOf]
-    rw [Core.core_comp_inclusion])
+    rw [← Core.core_comp_inclusion])
   isPullbackCoreAsSmall (var A)
   (by
     apply (isPullbackCoreAsSmall).lift_uniq
     · simp only [U.var, toCoreAsSmallEquiv, Equiv.symm_trans_apply, Equiv.symm_symm]
       erw [Core.functorToCoreEquiv_apply, Core.functorToCore_comp_inclusion]
       rfl
-    · rw [U.var, ← toCoreAsSmallEquiv_symm_apply_comp_left,
-        ← toCoreAsSmallEquiv_symm_apply_comp_right, toPGrpd_forgetToGrpd])
+    · apply toCoreAsSmallEquiv.injective
+      rw [toCoreAsSmallEquiv_apply_comp_right, Equiv.apply_symm_apply,
+        Equiv.apply_symm_apply, toPGrpd_forgetToGrpd])
 
 /--
   The following square is a pullback in `Ctx`
