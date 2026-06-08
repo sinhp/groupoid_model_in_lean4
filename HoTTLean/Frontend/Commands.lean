@@ -21,6 +21,15 @@ def envDiff (old new : Environment) : Array ConstantInfo := Id.run do
 and return them as an axiom environment.
 Assumes that all such axioms are present in the ambient environment
 as definitions of type `CheckedAx _` under the same name. -/
+def checkedPreludeName (nm : Name) : Name :=
+  `SynthLean.CheckedPrelude ++ nm
+
+private def checkedAxiomDeclName (nm : Name) : Name :=
+  if nm == `sorryAx₀ || nm == `sorryAx₁ || nm == `sorryAx₂ then
+    checkedPreludeName nm
+  else
+    nm
+
 def computeAxioms (thyEnv : Environment) (constNm : Name) : MetaM ((E : Q(Axioms Name)) × Q(($E).Wf)) := do
   let (_, st) ← (CollectAxioms.collect constNm).run thyEnv |>.run {}
   let axioms := st.axioms
@@ -41,7 +50,7 @@ def computeAxioms (thyEnv : Environment) (constNm : Name) : MetaM ((E : Q(Axioms
   let mut E : Q(Axioms Name) := q(.empty _)
   let mut Ewf : Q(($E).Wf) := q(Axioms.empty_wf _)
   for axNm in axioms do
-    let axCi ← getConstInfo axNm
+    let axCi ← getConstInfo (checkedAxiomDeclName axNm)
     if !axCi.type.isAppOfArity' ``CheckedAx 2 then
       throwError "checked axiom '{axNm}' has unexpected type{indentExpr axCi.type}"
     let #[_, axE] := axCi.type.getAppArgs | throwError "internal error"
@@ -62,7 +71,7 @@ def computeAxioms (thyEnv : Environment) (constNm : Name) : MetaM ((E : Q(Axioms
 
 /-- Add an axiom `ci` defined in environment `thyEnv`
 to the Lean environment as a `CheckedAx`. -/
-def addCheckedAx (thyEnv : Environment) (ci : AxiomVal) : MetaM Unit := do
+def addCheckedAx (thyEnv : Environment) (ci : AxiomVal) (declName : Name := ci.name) : MetaM Unit := do
   let env ← getEnv
   let (l, T) ← withEnv thyEnv do
     try translateAsTp ci.type |>.run env
@@ -89,7 +98,7 @@ def addCheckedAx (thyEnv : Environment) (ci : AxiomVal) : MetaM Unit := do
 
   -- TODO: `addDeclQ`
   addDecl <| .defnDecl {
-    name := ci.name
+    name := declName
     levelParams := []
     type := q(CheckedAx $axioms)
     value := ShareCommon.shareCommon' value
@@ -99,7 +108,7 @@ def addCheckedAx (thyEnv : Environment) (ci : AxiomVal) : MetaM Unit := do
 
 /-- Add a definition `ci` defined in environment `thyEnv`
 to the Lean environment as a `CheckedDef`. -/
-def addCheckedDef (thyEnv : Environment) (ci : DefinitionVal) : MetaM Unit := do
+def addCheckedDef (thyEnv : Environment) (ci : DefinitionVal) (declName : Name := ci.name) : MetaM Unit := do
   let env ← getEnv
   let (l, T) ← withEnv thyEnv do
     try translateAsTp ci.type |>.run env
@@ -127,7 +136,7 @@ def addCheckedDef (thyEnv : Environment) (ci : DefinitionVal) : MetaM Unit := do
   )
 
   addDecl <| .defnDecl {
-    name := ci.name
+    name := declName
     levelParams := []
     type := q(CheckedDef $axioms)
     /- The kernel does not max-share terms before checking them,
@@ -197,10 +206,10 @@ run_meta do
   let thyData ← mkInitTheoryData default default
   let addAx (nm : Name) := do
     let .axiomInfo i ← withEnv thyData.env <| getConstInfo nm | throwError "internal error"
-    addCheckedAx thyData.env i
+    addCheckedAx thyData.env i (checkedPreludeName nm)
   let addDef (nm : Name) := do
     let .defnInfo i ← withEnv thyData.env <| getConstInfo nm | throwError "internal error"
-    addCheckedDef thyData.env i
+    addCheckedDef thyData.env i (checkedPreludeName nm)
   -- TODO: fold
   addDef `Identity.rfl₀
   addDef `Identity.rfl₁

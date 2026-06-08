@@ -1,5 +1,6 @@
 import Lean
 import Qq
+import HoTTLean.Prelude
 import HoTTLean.Frontend.Checked
 
 /-!

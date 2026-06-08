@@ -34,7 +34,6 @@ lean_lib NaturalModel where
 
 @[default_target]
 lean_lib HoTTLean where
-  needs := #[Prelude]
 
 @[test_driver]
 lean_lib test where
