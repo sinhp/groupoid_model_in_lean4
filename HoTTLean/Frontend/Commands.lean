@@ -55,7 +55,7 @@ def computeAxioms (thyEnv : Environment) (constNm : Name) : MetaM ((E : Q(Axioms
       throwError "checked axiom '{axNm}' has unexpected type{indentExpr axCi.type}"
     let #[_, axE] := axCi.type.getAppArgs | throwError "internal error"
     have axE : Q(Axioms Name) := axE
-    have ax : Q(CheckedAx $axE) := .const axNm []
+    have ax : Q(CheckedAx $axE) := .const (checkedAxiomDeclName axNm) []
     -- (Aux `have`s work around bugs in Qq elaboration.)
     have E' : Q(Axioms Name) := E
     have Ewf' : Q(($E').Wf) := Ewf
@@ -102,7 +102,7 @@ def addCheckedAx (thyEnv : Environment) (ci : AxiomVal) (declName : Name := ci.n
     levelParams := []
     type := q(CheckedAx $axioms)
     value := ShareCommon.shareCommon' value
-    hints := .regular 0 -- TODO: what height?
+    hints := .abbrev
     safety := .safe
   }
 
@@ -144,7 +144,7 @@ def addCheckedDef (thyEnv : Environment) (ci : DefinitionVal) (declName : Name :
     Maximal sharing improves checking time asymptotically on some benchmarks (`bench.samplers.id`)
     and by a constant factor on others (`bench.samplers.fn`). -/
     value := ShareCommon.shareCommon' value
-    hints := .regular 0 -- TODO: what height?
+    hints := .abbrev
     safety := .safe
   }
 
