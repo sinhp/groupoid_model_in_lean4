@@ -315,7 +315,7 @@ private theorem wf_expr :
     (∀ {Γ l l' A B vb b}, ClosEqTm E Γ l l' A B vb b → E ∣ (A, l) :: Γ ⊢[l'] b : B) ∧
     (∀ {Γ Eᵥ σ Γ'}, EnvEqSb E Γ Eᵥ σ Γ' → WfSb E Γ σ Γ') := by
   mutual_induction ValEqTp
-  all_goals dsimp; intros
+  all_goals intros
   case ax => apply WfTm.ax <;> assumption
   case conv_tp => grind [EqTp.wf_right]
   case conv_nf tt' AA' _ => exact tt'.wf_right.conv AA'

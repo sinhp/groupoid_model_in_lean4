@@ -42,7 +42,7 @@ inductive Expr where
 
 @[simp]
 theorem Expr.sizeOf_pos {χ} (e : Expr χ) : 0 < sizeOf e := by
-  induction e <;> { dsimp; omega }
+  induction e <;> simp [sizeOf, Expr._sizeOf_1] <;> omega
 
 /-- A convergent rewriting system for the HoTT0 σ-calculus. -/
 -- The attribute has to be initialized here for use in downstream modules.

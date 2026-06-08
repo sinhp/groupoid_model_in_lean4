@@ -1,4 +1,4 @@
-import Mathlib.CategoryTheory.Category.Grpd
+import Mathlib.CategoryTheory.Groupoid.Grpd.Basic
 import HoTTLean.ForMathlib
 import HoTTLean.Grothendieck.Groupoidal.Basic
 import HoTTLean.ForMathlib.CategoryTheory.Functor.IsPullback
@@ -8,6 +8,9 @@ Here we define pointed categories and pointed groupoids as well as prove some ba
 -/
 
 universe w v u v₁ u₁ v₂ u₂
+
+set_option backward.defeqAttrib.useBackward true
+set_option backward.isDefEq.respectTransparency false
 
 noncomputable section
 
@@ -32,10 +35,10 @@ abbrev forgetToCat : PCat.{v,u} ⥤ Cat.{v,u} :=
 prefix:max "⇓" => forgetToCat.obj
 
 -- write using `\d==`
-postfix:max "⟱" => forgetToCat.map
+postfix:max "⟱" => fun F => Cat.Hom.toFunctor (forgetToCat.map F)
 
 lemma forgetToCat_map {C D : PCat} (F : C ⟶ D) :
-    F⟱ = F.base := rfl
+    F⟱ = F.base.toFunctor := rfl
 
 @[simp]
 theorem id_obj {C : PCat} (X : C.base) : (𝟙 C)⟱.obj X = X :=
@@ -119,12 +122,14 @@ theorem mapFiber_comp {x y z} (f : x ⟶ y) (g : y ⟶ z) :
 
 theorem mapFiber_inv {x y} (f : x ⟶ y) [IsIso f] :
     mapFiber α (inv f) = eqToHom (Functor.map_inv α f ▸ rfl) ≫ (inv (α.map f)).fiber := by
-  simp [mapFiber, Functor.Grothendieck.Hom.congr (Functor.map_inv α f)]
+  simp [mapFiber, Grothendieck.congr (Functor.map_inv α f)]
 
 end
 
 theorem eqToHom_base_map {x y : PCat} (eq : x = y) {a b} (f : a ⟶ b) :
-    (eqToHom eq).base.map f = eqToHom (by simp) ≫ (eqToHom (by simp [eq] : x.base = y.base)).map f ≫ eqToHom (by simp) := by
+    (eqToHom eq).base.toFunctor.map f =
+      eqToHom (by simp) ≫ (eqToHom (by simp [eq] : x.base = y.base)).toFunctor.map f ≫
+        eqToHom (by simp) := by
   cases eq
   simp
 
@@ -158,7 +163,7 @@ abbrev forgetToGrpd : PGrpd.{v,u} ⥤ Grpd.{v,u} :=
 
 /-- The forgetful functor from PGrpd to PCat -/
 def forgetToPCat : PGrpd.{v,u} ⥤ PCat.{v,u} :=
-  pre (Functor.id Cat) forgetToCat
+  Functor.Grothendieck.pre (Functor.id Cat) forgetToCat
 
 -- write using `\d=`
 prefix:max "⇓" => forgetToGrpd.obj
@@ -371,14 +376,31 @@ theorem mapFiber'_comp {x y z} (f : x ⟶ y)
 
 theorem mapFiber_inv {x y} (f : x ⟶ y) [IsIso f] :
     mapFiber α (inv f) = eqToHom (Functor.map_inv α f ▸ rfl) ≫ (inv (α.map f)).fiber := by
-  simp [mapFiber, Functor.Grothendieck.Hom.congr (Functor.map_inv α f)]
+  simp [mapFiber, Grothendieck.congr (Functor.map_inv α f)]
 
 theorem inv_mapFiber_heq {x y} (f : x ⟶ y) [IsIso f] :
     inv (mapFiber α f) ≍ ((α ⋙ forgetToGrpd).map f).map (mapFiber α (inv f)) := by
-  rw [mapFiber_inv]
-  simp [eqToHom_map, mapFiber]
-  rw [Functor.Grothendieck.inv_fiber, Functor.Grothendieck.invFiber]
-  simp [Grpd.forgetToCat]
+  rw! [mapFiber_inv]
+  simp [eqToHom_map, mapFiber, Grpd.forgetToCat]
+  let H := α.map f
+  let hobj : H.base.obj ((CategoryTheory.inv H).base.obj (α.obj y).fiber) = (α.obj y).fiber := by
+    change ((CategoryTheory.inv H ≫ H).base).obj (α.obj y).fiber =
+      (𝟙 (α.obj y) : α.obj y ⟶ α.obj y).base.obj (α.obj y).fiber
+    rw [IsIso.inv_hom_id]
+  have hleft :
+      (eqToHom hobj.symm ≫ H.base.map (CategoryTheory.inv H).fiber) ≫ H.fiber = 𝟙 _ := by
+    have hfib := Grothendieck.congr (IsIso.inv_hom_id H)
+    simp [H, Grothendieck.comp_fiber, Grothendieck.id_fiber] at hfib
+    dsimp [H]
+    have hfib' : (α.map f).base.map (CategoryTheory.inv (α.map f)).fiber ≫ (α.map f).fiber = eqToHom hobj := by
+      simpa [Grpd.forgetToCat] using hfib
+    rw [Category.assoc, hfib']
+    simp
+  have hEq : CategoryTheory.inv (C := (α.obj y).base) H.fiber =
+      eqToHom hobj.symm ≫ H.base.map (CategoryTheory.inv H).fiber := by
+    apply IsIso.inv_eq_of_inv_hom_id
+    simpa [Category.assoc] using hleft
+  exact (heq_of_eq hEq).trans (eqToHom_comp_heq _ hobj.symm)
 
 end
 
@@ -387,7 +409,7 @@ theorem Functor.hext (F G : Γ ⥤ PGrpd)
     (hfiber_obj : ∀ x : Γ, HEq (F.obj x).fiber (G.obj x).fiber)
     (hfiber_map : ∀ {x y : Γ} (f : x ⟶ y), HEq (F.map f).fiber (G.map f).fiber)
     : F = G :=
-  Grothendieck.FunctorTo.hext F G hbase hfiber_obj hfiber_map
+  Functor.Grothendieck.FunctorTo.hext hbase hfiber_obj hfiber_map
 
 section
 variable {Γ : Type u₁} [Category.{v₁} Γ]

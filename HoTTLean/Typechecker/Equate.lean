@@ -3,6 +3,9 @@ import HoTTLean.Typechecker.Evaluate
 namespace SynthLean
 open Qq
 
+set_option backward.defeqAttrib.useBackward true
+set_option backward.isDefEq.respectTransparency false
+
 variable {_u : Lean.Level} {χ : Q(Type _u)}
 
 mutual
@@ -266,7 +269,7 @@ partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut $χ)) :
       refine ⟨TUeq, ?_⟩
       apply eqt.trans_tm _ |>.trans_tm (eqt'.conv_eq TUeq.symm_tp).symm_tm
       apply EqTm.conv_eq _ eq.symm_tp
-      gcongr
+      exact EqTm.cong_app Beq feq aeq
     )
   | ~q(.fst _ $k' $p), ~q(.fst _ $m' $p') => do
     let km' ← equateNat q($k') q($m')
@@ -296,7 +299,9 @@ partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut $χ)) :
       have ⟨_, _, _, Aeq, Beq⟩ := Seq.inv_sigma
       refine have TUeq := ?_; ⟨TUeq, ?_⟩
       . apply eq.trans_tp _ |>.trans_tp eq'.symm_tp
-        gcongr; apply EqSb.toSb; gcongr
+        apply Beq.subst_eq
+        apply EqSb.toSb
+        gcongr
       . apply eqt.trans_tm _ |>.trans_tm (eqt'.conv_eq TUeq.symm_tp).symm_tm
         apply EqTm.conv_eq _ eq.symm_tp
         gcongr
@@ -314,8 +319,8 @@ partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut $χ)) :
     let req ← equateTm q($d) q($k') q($Mrfl) q($vr) q($vr')
     return q(by as_aux_lemma =>
       introv _ nt nu
-      have ⟨_, _, _, _, _, _, _, vA, va, cM, vr, nh, eqt, eq⟩ := nt.inv_idRec
-      have ⟨_, _, _, _, _, _, _, vA', va', cM', vr', nh', eqt', eq'⟩ := nu.inv_idRec
+      have ⟨_, A0, M0, a0, r0, b0, h0, vA, va, cM, vr, nh, eqt, eq⟩ := nt.inv_idRec
+      have ⟨_, A1, M1, a1, r1, b1, h1, vA', va', cM', vr', nh', eqt', eq'⟩ := nu.inv_idRec
       subst_vars
       have ⟨eqId, heq⟩ := $heq rfl nh nh'
       have ⟨_, _, Aeq, aeq, beq⟩ := eqId.inv_Id
@@ -330,7 +335,10 @@ partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut $χ)) :
         apply WfTm.bvar (Aeq.wf_ctx.snoc Aeq.wf_right) (.zero ..)
       refine have TUeq := ?_; ⟨TUeq, ?_⟩
       . apply eq.trans_tp _ |>.trans_tp eq'.symm_tp
-        apply Meq.subst_eq (EqSb.toSb beq |>.snoc (.Id_bvar aeq.wf_left) (autosubst% heq))
+        exact Meq.subst_eq <| EqSb.snoc
+          (A := Expr.Id $m (A0.subst Expr.wk) (a0.subst Expr.wk) (.bvar 0))
+          (σ := b0.toSb) (σ' := b1.toSb) (t := h0) (t' := h1) (l := $m)
+          (EqSb.toSb beq) (.Id_bvar va.wf_tm) (by simpa only [autosubst] using heq)
       . apply eqt.trans_tm _ |>.trans_tm (eqt'.conv_eq TUeq.symm_tp).symm_tm
         apply EqTm.conv_eq _ eq.symm_tp
         have Mrfl := $Mrflpost cM va (autosubst% ValEqTm.refl va)
@@ -338,10 +346,8 @@ partial def equateNeutTm (d : Q(Nat)) (nt nu : Q(Neut $χ)) :
           apply $req rfl Mrfl vr (vr'.conv_tp _)
           apply Meq.symm_tp.subst_eq (EqSb.toSb aeq.symm_tm |>.snoc (.Id_bvar aeq.wf_left) _)
           apply EqTm.cong_refl aeq.symm_tm |>.conv_eq
-          autosubst; gcongr
-          exact aeq.wf_right
-          exact aeq.symm_tm
-        gcongr
+          exact autosubst% EqTp.cong_Id (EqTp.refl_tp Aeq.wf_left) aeq.symm_tm (EqTm.refl_tm aeq.wf_right)
+        exact EqTm.cong_idRec aeq Meq this beq heq
     )
   | nt, nu =>
     throwError "cannot prove neutral terms are equal\

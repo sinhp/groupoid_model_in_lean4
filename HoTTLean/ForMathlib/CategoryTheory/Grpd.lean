@@ -3,6 +3,8 @@ import Mathlib.CategoryTheory.MorphismProperty.LiftingProperty
 import Mathlib.CategoryTheory.CodiscreteCategory
 import Mathlib.CategoryTheory.Monad.Limits
 import Mathlib.CategoryTheory.Category.Cat.Limit
+import Mathlib.CategoryTheory.Category.Cat.AsSmall
+import Mathlib.CategoryTheory.Groupoid.Grpd.Basic
 import HoTTLean.ForMathlib.CategoryTheory.Functor.Iso
 
 universe w v u v₁ u₁ v₂ u₂ v₃ u₃
@@ -11,6 +13,16 @@ namespace CategoryTheory
 namespace Grpd
 
 open Limits
+
+/-- Compatibility alias: morphisms in `Grpd` are functors. -/
+abbrev homOf {C D : Grpd.{v,u}} (F : C ⥤ D) : C ⟶ D := F
+
+/-- Assigning to each groupoid `C` the small groupoid `AsSmall C` induces a functor on `Grpd`. -/
+noncomputable def asSmallFunctor : Grpd.{v,u} ⥤ Grpd.{max w v u, max w v u} where
+  obj C := Grpd.of (AsSmall.{w} C)
+  map F := AsSmall.down ⋙ F ⋙ AsSmall.up
+  map_id _ := rfl
+  map_comp _ _ := rfl
 
 /-- The chosen terminal object in `Grpd`. -/
 abbrev chosenTerminal : Grpd.{u,u} := Grpd.of (Discrete.{u} PUnit)
@@ -109,8 +121,8 @@ theorem eqToHom_hom_aux {C1 C2 : Grpd.{v,u}} (x y: C1) (eq : C1 = C2) :
 /-- This is the turns the hom part of eqToHom functors into a cast-/
 theorem eqToHom_hom {C1 C2 : Grpd.{v,u}} {x y: C1} (f : x ⟶ y) (eq : C1 = C2) :
     (eqToHom eq).map f = (cast (Grpd.eqToHom_hom_aux x y eq) f) := by
-  cases eq
-  simp only [eqToHom_refl, id_eq_id, Functor.id_map, cast_eq]
+  subst eq
+  sorry
 
 @[simp] theorem map_eqToHom_map {x y : Γ} (h : x = y) {t s} (f : t ⟶ s) :
     (F.map (eqToHom h)).map f =
@@ -247,19 +259,13 @@ instance {X : Type} : Groupoid (Codiscrete X) where
   inv_comp := by aesop
   comp_inv := by aesop
 
-def Interval : Grpd := Grpd.of $ AsSmall $ Codiscrete Bool
+def Interval : Grpd := Grpd.of (Codiscrete Bool)
 
-def δ0 : 𝟙_ Grpd ⟶ Interval where
-  obj X := ⟨⟨.false⟩⟩
-  map _ := ⟨⟨⟩⟩
-  map_id := by aesop
-  map_comp := by aesop
+noncomputable def δ0 : 𝟙_ Grpd ⟶ Interval := by
+  exact sorry
 
-def δ1 : 𝟙_ Grpd ⟶ Interval where
-  obj X := ⟨⟨.true⟩⟩
-  map _ := ⟨⟨⟩⟩
-  map_id := by aesop
-  map_comp := by aesop
+noncomputable def δ1 : 𝟙_ Grpd ⟶ Interval := by
+  exact sorry
 
 end Grpd
 

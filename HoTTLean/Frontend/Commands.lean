@@ -9,6 +9,19 @@ namespace SynthLean
 open Lean Elab Command
 open Qq
 
+syntax (name := runMetaBang) "run_meta! " doSeq : command
+
+@[command_elab runMetaBang]
+unsafe def elabRunMetaBang : CommandElab := fun stx => do
+  match stx with
+  | `(run_meta!%$tk $elems:doSeq) => do
+    unless (← getEnv).contains ``MetaM do
+      throwError "to use this command, include `import Lean.Meta.Basic`"
+    unsafe Lean.enableInitializersExecution
+    Lean.Elab.Command.elabEvalCore true tk (← `(discard do $elems))
+      (mkApp (mkConst ``MetaM) (mkConst ``Unit))
+  | _ => throwUnsupportedSyntax
+
 def envDiff (old new : Environment) : Array ConstantInfo := Id.run do
   let mut ret := #[]
   for (c, i) in new.constants.map₂ do
@@ -21,16 +34,24 @@ def envDiff (old new : Environment) : Array ConstantInfo := Id.run do
 and return them as an axiom environment.
 Assumes that all such axioms are present in the ambient environment
 as definitions of type `CheckedAx _` under the same name. -/
+def checkedPreludeName (nm : Name) : Name :=
+  `SynthLean.CheckedPrelude ++ nm
+
+private def checkedAxiomDeclName (nm : Name) : Name :=
+  if nm == `sorryAx₀ || nm == `sorryAx₁ || nm == `sorryAx₂ then
+    checkedPreludeName nm
+  else
+    nm
+
 def computeAxioms (thyEnv : Environment) (constNm : Name) : MetaM ((E : Q(Axioms Name)) × Q(($E).Wf)) := do
-  let (_, st) ← (CollectAxioms.collect constNm).run thyEnv |>.run {}
-  let axioms := st.axioms
+  let axioms ← withEnv thyEnv <| Lean.collectAxioms constNm
   -- The output includes `constNm` if it is itself an axiom.
   let axioms := axioms.filter (· != constNm)
   -- Order the axioms by '`a` uses `b`'.
   let mut axiomAxioms : Std.HashMap Name (Array Name) := {}
   for axNm in axioms do
-    let (_, st) ← (CollectAxioms.collect axNm).run thyEnv |>.run {}
-    let axioms := st.axioms.filter (· != axNm)
+    let axioms ← withEnv thyEnv <| Lean.collectAxioms axNm
+    let axioms := axioms.filter (· != axNm)
     axiomAxioms := axiomAxioms.insert axNm axioms
   let mut axioms := axioms.qsort (fun a b => axiomAxioms[b]!.contains a)
   -- HACK: replace `sorryAx` with our universe-monomorphic versions.
@@ -41,12 +62,12 @@ def computeAxioms (thyEnv : Environment) (constNm : Name) : MetaM ((E : Q(Axioms
   let mut E : Q(Axioms Name) := q(.empty _)
   let mut Ewf : Q(($E).Wf) := q(Axioms.empty_wf _)
   for axNm in axioms do
-    let axCi ← getConstInfo axNm
+    let axCi ← getConstInfo (checkedAxiomDeclName axNm)
     if !axCi.type.isAppOfArity' ``CheckedAx 2 then
       throwError "checked axiom '{axNm}' has unexpected type{indentExpr axCi.type}"
     let #[_, axE] := axCi.type.getAppArgs | throwError "internal error"
     have axE : Q(Axioms Name) := axE
-    have ax : Q(CheckedAx $axE) := .const axNm []
+    have ax : Q(CheckedAx $axE) := .const (checkedAxiomDeclName axNm) []
     -- (Aux `have`s work around bugs in Qq elaboration.)
     have E' : Q(Axioms Name) := E
     have Ewf' : Q(($E').Wf) := Ewf
@@ -62,7 +83,7 @@ def computeAxioms (thyEnv : Environment) (constNm : Name) : MetaM ((E : Q(Axioms
 
 /-- Add an axiom `ci` defined in environment `thyEnv`
 to the Lean environment as a `CheckedAx`. -/
-def addCheckedAx (thyEnv : Environment) (ci : AxiomVal) : MetaM Unit := do
+def addCheckedAx (thyEnv : Environment) (ci : AxiomVal) (declName : Name := ci.name) : MetaM Unit := do
   let env ← getEnv
   let (l, T) ← withEnv thyEnv do
     try translateAsTp ci.type |>.run env
@@ -89,17 +110,17 @@ def addCheckedAx (thyEnv : Environment) (ci : AxiomVal) : MetaM Unit := do
 
   -- TODO: `addDeclQ`
   addDecl <| .defnDecl {
-    name := ci.name
+    name := declName
     levelParams := []
     type := q(CheckedAx $axioms)
     value := ShareCommon.shareCommon' value
-    hints := .regular 0 -- TODO: what height?
+    hints := .abbrev
     safety := .safe
   }
 
 /-- Add a definition `ci` defined in environment `thyEnv`
 to the Lean environment as a `CheckedDef`. -/
-def addCheckedDef (thyEnv : Environment) (ci : DefinitionVal) : MetaM Unit := do
+def addCheckedDef (thyEnv : Environment) (ci : DefinitionVal) (declName : Name := ci.name) : MetaM Unit := do
   let env ← getEnv
   let (l, T) ← withEnv thyEnv do
     try translateAsTp ci.type |>.run env
@@ -127,7 +148,7 @@ def addCheckedDef (thyEnv : Environment) (ci : DefinitionVal) : MetaM Unit := do
   )
 
   addDecl <| .defnDecl {
-    name := ci.name
+    name := declName
     levelParams := []
     type := q(CheckedDef $axioms)
     /- The kernel does not max-share terms before checking them,
@@ -135,7 +156,7 @@ def addCheckedDef (thyEnv : Environment) (ci : DefinitionVal) : MetaM Unit := do
     Maximal sharing improves checking time asymptotically on some benchmarks (`bench.samplers.id`)
     and by a constant factor on others (`bench.samplers.fn`). -/
     value := ShareCommon.shareCommon' value
-    hints := .regular 0 -- TODO: what height?
+    hints := .abbrev
     safety := .safe
   }
 
@@ -193,14 +214,14 @@ elab "declare_theory " thy:ident : command => do
   )
 
 -- Reflect definitions from the prelude as `Checked*`.
-run_meta do
+run_meta! do
   let thyData ← mkInitTheoryData default default
   let addAx (nm : Name) := do
     let .axiomInfo i ← withEnv thyData.env <| getConstInfo nm | throwError "internal error"
-    addCheckedAx thyData.env i
+    addCheckedAx thyData.env i (checkedPreludeName nm)
   let addDef (nm : Name) := do
     let .defnInfo i ← withEnv thyData.env <| getConstInfo nm | throwError "internal error"
-    addCheckedDef thyData.env i
+    addCheckedDef thyData.env i (checkedPreludeName nm)
   -- TODO: fold
   addDef `Identity.rfl₀
   addDef `Identity.rfl₁

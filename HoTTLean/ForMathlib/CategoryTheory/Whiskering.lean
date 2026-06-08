@@ -53,8 +53,7 @@ def whiskeringLeftObjWhiskeringRightObj : (A ⥤ B) ⥤ (C ⥤ D) :=
 
 @[simp] lemma whiskeringLeftObjWhiskeringRightObj_map {S1 S2 : A ⥤ B} (η : S1 ⟶ S2) :
     (whiskeringLeftObjWhiskeringRightObj F G).map η
-    = whiskerRight (F.whiskerLeft η) G := by
-  simp [whiskeringLeftObjWhiskeringRightObj]
+    = whiskerRight (F.whiskerLeft η) G := rfl
 
 @[simp] lemma whiskeringLeftObjWhiskeringRightObj_id_id :
     whiskeringLeftObjWhiskeringRightObj (𝟭 A) (𝟭 B) = 𝟭 (A ⥤ B) :=
@@ -85,6 +84,7 @@ lemma associator_eq {C D E E' : Type*} [Category C] [Category D] [Category E] [C
 lemma leftUnitor_hom_comp_rightUnitor_inv
     {C : Type u₁} [Category.{v₁, u₁} C] {D : Type u₂}
     [Category.{v₂, u₂} D] (F : C ⥤ D) : F.leftUnitor.hom ≫ F.rightUnitor.inv = 𝟙 _ := by
-  aesop_cat
+  ext X
+  simp
 
 end CategoryTheory.Functor

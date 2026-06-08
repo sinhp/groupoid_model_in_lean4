@@ -104,8 +104,8 @@ variable (E : Q(Axioms Lean.Name)) (Ewf : Q(($E).Wf))
 
 partial def checkTp (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (T : Q(Expr Lean.Name)) :
     TypecheckerM Q(∀ {Γ}, TpEnvEqCtx $E $vΓ Γ → $E ∣ Γ ⊢[$l] ($T)) :=
-  Lean.withTraceNode traceClsTypechecker (fun e =>
-    return m!"{Lean.exceptEmoji e} {vΓ} ⊢[{l}] {T}") do
+  Lean.withTraceNode traceClsTypechecker (fun _ =>
+    return m!"{Lean.bombEmoji} {vΓ} ⊢[{l}] {T}") do
   let key := (⟨vΓ⟩, ⟨l⟩, ⟨T⟩)
   if let some pf := (← get).checkTp[key]? then return pf
   eventually (fun pf =>
@@ -165,8 +165,8 @@ partial def checkTm (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat))
     (vT : Q(Val Lean.Name)) (t : Q(Expr Lean.Name)) :
     TypecheckerM Q(∀ {Γ T}, TpEnvEqCtx $E $vΓ Γ → ValEqTp $E Γ $l $vT T →
       $E ∣ Γ ⊢[$l] ($t) : T) := do
-  Lean.withTraceNode traceClsTypechecker (fun e =>
-    return m!"{Lean.exceptEmoji e} {vΓ} ⊢[{l}] {t} ⇐ {vT}") do
+  Lean.withTraceNode traceClsTypechecker (fun _ =>
+    return m!"{Lean.bombEmoji} {vΓ} ⊢[{l}] {t} ⇐ {vT}") do
   let key := (⟨vΓ⟩, ⟨l⟩, ⟨vT⟩, ⟨t⟩)
   if let some pf := (← get).checkTm[key]? then return pf
   eventually (fun pf =>

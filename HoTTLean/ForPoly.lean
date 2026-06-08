@@ -1,6 +1,9 @@
 import Poly.UvPoly.Basic
 import HoTTLean.ForMathlib
 
+set_option backward.defeqAttrib.useBackward true
+set_option backward.isDefEq.respectTransparency false
+
 open CategoryTheory Limits
 
 noncomputable section
@@ -163,7 +166,7 @@ lemma cartesianNatTrans_fstProj {E B E' B' : C} (P : UvPoly E B) (P' : UvPoly E'
   rw [← Category.assoc]
   change (m.app X).left ≫ pullback.fst (P'.fstProj X) b ≫ P'.fstProj X = P.fstProj X ≫ b
   rw [pullback.condition, ← Category.assoc]; congr 1
-  simpa using Over.w (m.app X)
+  simpa [UvPoly.fstProj, UvPoly.functor] using Over.w (m.app X)
 
 open ExponentiableMorphism Functor in
 set_option maxHeartbeats 300000 in
@@ -255,9 +258,10 @@ theorem fan_snd_map' {E B E' B' : C} {P : UvPoly E B} {P' : UvPoly E' B'}
     Adjunction.id, TwoSquare.natTrans, Over.mapForget] at this
   slice_lhs 1 2 => rw [← this]
   slice_lhs 2 3 => apply Category.comp_id
-  simp [α, Over.starPullbackIsoStar]
-  slice_lhs 5 6 => apply pullback.lift_fst
-  simp [Over.mapForget]
+  have hα :
+      Over.Hom.left (α.app A) ≫ pullback.fst (sE'.obj A).hom e ≫ prod.snd = prod.snd := by
+    simp [α, sE', Over.starPullbackIsoStar, Category.assoc]
+  simpa only [Category.assoc] using congrArg (fun f => Z.app A ≫ f) hα
 
 open ExponentiableMorphism in
 theorem fan_snd_map {E B A E' B' A' : C} {P : UvPoly E B} {P' : UvPoly E' B'}
@@ -295,6 +299,43 @@ theorem ε_map {E B A E' B' A' : C} {P : UvPoly E B} {P' : UvPoly E' B'}
     slice_lhs 2 3 => apply by simpa using ((ev P'.p).app ((Over.star E').obj A')).w
     apply pullback.lift_snd
   · simpa [fan_snd] using fan_snd_map e b a hp
+
+omit [HasTerminal C] in
+@[simp]
+lemma isPullback_of_hasPullback_isoPullback_hom {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
+    (IsPullback.of_hasPullback f g).isoPullback.hom = 𝟙 (pullback f g) := by
+  apply pullback.hom_ext <;> simp
+
+omit [HasTerminal C] in
+@[simp]
+lemma isPullback_of_hasPullback_isoPullback_inv {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
+    (IsPullback.of_hasPullback f g).isoPullback.inv = 𝟙 (pullback f g) := by
+  apply pullback.hom_ext <;> simp
+
+omit [HasPullbacks C] [HasTerminal C] in
+theorem _root_.CategoryTheory.IsPullback.isoPullback_eq_eqToIso_left {X Y Z : C}
+    {f f' : X ⟶ Z} (h : f = f') (g : Y ⟶ Z) [HasPullback f g] [HasPullback f' g] :
+    (show IsPullback (pullback.fst f g) (pullback.snd f g) f' g from by
+      rw [← h]
+      exact IsPullback.of_hasPullback f g).isoPullback =
+      eqToIso (by subst h; rfl) := by
+  subst h
+  ext <;> simp
+
+/-- Compatibility helper for old mathlib's `Equiv.psigmaCongrProp`. -/
+def _root_.Equiv.psigmaCongrProp {α β : Sort*} {P : α → Prop} {Q : β → Prop}
+    (e : α ≃ β) (h : ∀ b, P (e.symm b) ↔ Q b) :
+    (Σ' a, P a) ≃ (Σ' b, Q b) where
+  toFun x := ⟨e x.1, by
+    have hx : P (e.symm (e x.1)) := by simpa using x.2
+    exact (h (e x.1)).1 hx⟩
+  invFun x := ⟨e.symm x.1, (h x.1).2 x.2⟩
+  left_inv x := by
+    cases x with
+    | mk a ha => simp
+  right_inv x := by
+    cases x with
+    | mk b hb => simp
 
 namespace Equiv
 
@@ -348,7 +389,7 @@ theorem fst_comp_right (pair : Γ ⟶ P @ X) : fst P Y (pair ≫ P.functor.map f
   simp [fst_eq]
 
 lemma snd'_eq (pair : Γ ⟶ P @ X) {R f g} (H : IsPullback (P := R) f g (fst P X pair) P.p) :
-    snd' P X pair H = pullback.lift (f ≫ pair) g (by simpa using H.w) ≫ (fan P X).snd := by
+    snd' P X pair H = pullback.lift (f ≫ pair) g (by simpa [fst_eq, Category.assoc] using H.w) ≫ (fan P X).snd := by
   simp [snd', snd]
   simp only [← Category.assoc]; congr! 2
   ext <;> simp
@@ -422,7 +463,7 @@ theorem snd'_comp_right (pair : Γ ⟶ P @ X)
 theorem snd_comp_right (pair : Γ ⟶ P @ X) : snd P Y (pair ≫ P.functor.map f) =
     eqToHom (by congr 1; apply fst_comp_right) ≫ snd P X pair ≫ f := by
   rw [snd_eq_snd', snd'_comp_right, snd', Category.assoc, ← eqToIso.hom]; congr! 2
-  exact IsPullback.isoPullback_eq_eqToIso_left (fst_comp_right _ _ _ f pair) P.p
+  convert IsPullback.isoPullback_eq_eqToIso_left (fst_comp_right _ _ _ f pair) P.p using 1
 
 lemma ext' {pair₁ pair₂ : Γ ⟶ P @ X}
     {R f g} (H : IsPullback (P := R) f g (fst P X pair₁) P.p)
@@ -532,10 +573,7 @@ def compDomEquiv {Γ E B D A : 𝒞} {P : UvPoly E B} {Q : UvPoly D A} :
           (β ≫ Q.p = pullback.lift αB.1 αB.2.1 αB.2.2 ≫ (PartialProduct.fan P A).snd) :=
         Equiv.psigmaCongrProp pullbackHomEquiv (fun αB => by
           apply Eq.congr_right
-          congr 1
-          apply pullback.hom_ext
-          · simp [pullbackHomEquiv]
-          · simp [pullbackHomEquiv]))
+          congr 1))
   _ ≃ _ := {
       -- TODO should be general tactic for this?
       toFun x := ⟨ x.2.1.1, x.2.1.2.1 , x.1 , x.2.1.2.2, x.2.2 ⟩
@@ -552,7 +590,7 @@ def compP {E B D A : C} (P : UvPoly E B) (Q : UvPoly D A) : compDom P Q ⟶ P @ 
     (h : β ≫ Q.p = pullback.lift AB α w ≫ (PartialProduct.fan P A).snd) :
     compDomEquiv.symm ⟨AB, α, β, w, h⟩ ≫ P.compP Q = AB := by
    simp [compDomEquiv, compP, Equiv.psigmaCongrProp, Equiv.sigmaCongrRight_symm,
-    Equiv.coe_fn_symm_mk, pullbackHomEquiv]
+    pullbackHomEquiv]
 
 def compDomMap {E B D A E' B' D' A' : 𝒞} {P : UvPoly E B} {Q : UvPoly D A}
     {P' : UvPoly E' B'} {Q' : UvPoly D' A'}
@@ -623,7 +661,7 @@ instance preservesConnectedLimitsOfShape_of_hasLimitsOfShape {J : Type v₁} [Sm
   unfold UvPoly.functor
   infer_instance
 
-instance preservesPullbacks (P : UvPoly E B)
+theorem preservesPullbacks (P : UvPoly E B)
     {Pb X Y Z : C} (fst : Pb ⟶ X) (snd : Pb ⟶ Y)
     (f : X ⟶ Z) (g : Y ⟶ Z)
     (h: IsPullback fst snd f g) :

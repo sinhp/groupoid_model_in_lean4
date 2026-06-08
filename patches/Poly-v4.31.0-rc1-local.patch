@@ -1,0 +1,512 @@
+diff --git a/Poly/ForMathlib/CategoryTheory/Comma/Over/Basic.lean b/Poly/ForMathlib/CategoryTheory/Comma/Over/Basic.lean
+index c7d37a7..0abbddf 100644
+--- a/Poly/ForMathlib/CategoryTheory/Comma/Over/Basic.lean
++++ b/Poly/ForMathlib/CategoryTheory/Comma/Over/Basic.lean
+@@ -35,10 +35,6 @@ lemma homMk_comp'_assoc {X Y Z W : T} (f : X ⟶ Y) (g : Y ⟶ Z) (h : Z ⟶ W)
+ lemma homMk_id {X B : T} (f : X ⟶ B) (h : 𝟙 X ≫ f = f) : homMk (𝟙 X) h = 𝟙 (mk f) :=
+   rfl
+ 
+-@[simp]
+-theorem mkIdTerminal_from_left {B : T} (U : Over B) : (mkIdTerminal.from U).left = U.hom := by
+-  simp [mkIdTerminal, CostructuredArrow.mkIdTerminal, Limits.IsTerminal.from, Functor.preimage]
+-
+ /-- `Over.Sigma Y U` is a shorthand for `(Over.map Y.hom).obj U`.
+ This is a category-theoretic analogue of `Sigma` for types. -/
+ abbrev Sigma {X : T} (Y : Over X) (U : Over (Y.left)) : Over X :=
+diff --git a/Poly/ForMathlib/CategoryTheory/Comma/Over/Pullback.lean b/Poly/ForMathlib/CategoryTheory/Comma/Over/Pullback.lean
+index 111dcec..46b1aa3 100644
+--- a/Poly/ForMathlib/CategoryTheory/Comma/Over/Pullback.lean
++++ b/Poly/ForMathlib/CategoryTheory/Comma/Over/Pullback.lean
+@@ -11,6 +11,9 @@ import Poly.ForMathlib.CategoryTheory.Comma.Over.Basic
+ import Poly.ForMathlib.CategoryTheory.NatTrans
+ import Poly.ForMathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
+ 
++set_option backward.defeqAttrib.useBackward true
++set_option backward.isDefEq.respectTransparency false
++
+ noncomputable section
+ 
+ universe v₁ v₂ u₁ u₂
+@@ -19,7 +22,7 @@ namespace CategoryTheory
+ 
+ open Category Limits Comonad MonoidalCategory CartesianMonoidalCategory
+ 
+-attribute [local instance] CartesianMonoidalCategory.ofFiniteProducts
++attribute [local instance] CartesianMonoidalCategory.ofHasFiniteProducts
+ 
+ variable {C : Type u₁} [Category.{v₁} C]
+ 
+@@ -211,7 +214,7 @@ lemma star_map [HasBinaryProducts C] {X : C} {Y Z : C} (f : Y ⟶ Z) :
+ instance [HasBinaryProducts C]  (X : C) : (forget X).IsLeftAdjoint  :=
+   ⟨_, ⟨forgetAdjStar X⟩⟩
+ 
+-attribute [local instance] CartesianMonoidalCategory.ofFiniteProducts
++attribute [local instance] CartesianMonoidalCategory.ofHasFiniteProducts
+ 
+ lemma whiskerLeftProdMapId [HasFiniteLimits C] {X : C} {A A' : C} {g : A ⟶ A'} :
+     X ◁ g = prod.map (𝟙 X) g := by
+@@ -298,12 +301,6 @@ def starIsoToOverTerminal [HasTerminal C] [HasBinaryProducts C] :
+ 
+ variable {C}
+ 
+-/-- A natural isomorphism between the functors `star X` and `star Y ⋙ pullback f`
+-for any morphism `f : X ⟶ Y`. -/
+-def starPullbackIsoStar [HasBinaryProducts C] [HasPullbacks C] {X Y : C} (f : X ⟶ Y) :
+-    star Y ⋙ pullback f ≅ star X :=
+-  conjugateIsoEquiv ((mapPullbackAdj f).comp (forgetAdjStar Y)) (forgetAdjStar X) (mapForget f)
+-
+ /-- The functor `Over.pullback f : Over Y ⥤ Over X` is naturally isomorphic to
+ `Over.star : Over Y ⥤ Over (Over.mk f)` post-composed with the
+ iterated slice equivlanece `Over (Over.mk f) ⥤ Over X`. -/
+diff --git a/Poly/ForMathlib/CategoryTheory/Comma/Over/Sections.lean b/Poly/ForMathlib/CategoryTheory/Comma/Over/Sections.lean
+index f736548..b076761 100644
+--- a/Poly/ForMathlib/CategoryTheory/Comma/Over/Sections.lean
++++ b/Poly/ForMathlib/CategoryTheory/Comma/Over/Sections.lean
+@@ -16,6 +16,9 @@ of `X` over `I`.
+ 
+ -/
+ 
++set_option backward.defeqAttrib.useBackward true
++set_option backward.isDefEq.respectTransparency false
++
+ noncomputable section
+ 
+ universe v₁ v₂ u₁ u₂
+@@ -28,7 +31,7 @@ variable {C : Type u₁} [Category.{v₁} C]
+ 
+ attribute [local instance] hasBinaryProducts_of_hasTerminal_and_pullbacks
+ attribute [local instance] hasFiniteProducts_of_has_binary_and_terminal
+-attribute [local instance] CartesianMonoidalCategory.ofFiniteProducts
++attribute [local instance] CartesianMonoidalCategory.ofHasFiniteProducts
+ 
+ section
+ 
+@@ -65,15 +68,40 @@ theorem prodMap_comp_prodIsoTensorObj_hom {X Y Z W : C} (f : X ⟶ Y) (g : Z ⟶
+     prod.map f g ≫ (prodIsoTensorObj _ _).hom = (prodIsoTensorObj _ _).hom ≫ (f ⊗ₘ g) := by
+   apply hom_ext <;> simp
+ 
++/-- A variant of `prodIsoTensorObj` whose target is syntactically `(tensorLeft X).obj Y`.
++This avoids defeq-transparency issues in adjunction proofs involving `ihom.adjunction`. -/
++def prodIsoTensorLeftObj (X Y : C) : X ⨯ Y ≅ (MonoidalCategory.tensorLeft X).obj Y := Iso.refl _
++
++@[reassoc (attr := simp)]
++theorem prodIsoTensorLeftObj_inv_fst {X Y : C} :
++    (prodIsoTensorLeftObj X Y).inv ≫ prod.fst = fst X Y :=
++  Category.id_comp _
++
++@[reassoc (attr := simp)]
++theorem prodIsoTensorLeftObj_hom_fst {X Y : C} :
++    (prodIsoTensorLeftObj X Y).hom ≫ fst X Y = prod.fst :=
++  Category.id_comp _
++
++@[reassoc (attr := simp)]
++theorem prodIsoTensorLeftObj_hom_snd {X Y : C} :
++    (prodIsoTensorLeftObj X Y).hom ≫ snd X Y = prod.snd :=
++  Category.id_comp _
++
++@[reassoc (attr := simp)]
++theorem prodMap_comp_prodIsoTensorLeftObj_hom {X Y Z W : C} (f : X ⟶ Y) (g : Z ⟶ W) :
++    prod.map f g ≫ (prodIsoTensorLeftObj Y W).hom =
++      (prodIsoTensorLeftObj X Z).hom ≫ (f ⊗ₘ g) := by
++  apply hom_ext <;> simp
++
+ end
+ 
+ variable [HasTerminal C] [HasPullbacks C]
+ 
+-variable (I : C) [Exponentiable I]
++variable (I : C) [Closed I]
+ 
+ /-- The first leg of a cospan constructing a pullback diagram in `C` used to define `sections` . -/
+ def curryId : ⊤_ C ⟶ (I ⟹ I) :=
+-  CartesianClosed.curry (fst I (⊤_ C))
++  MonoidalClosed.curry (fst I (⊤_ C))
+ 
+ variable {I}
+ 
+@@ -90,14 +118,14 @@ pullback diagram:
+   ⊤_ C    ---->  I ⟹ I
+ ```-/
+ abbrev sectionsObj (X : Over I) : C :=
+-  Limits.pullback (curryId I) ((exp I).map X.hom)
++  Limits.pullback (curryId I) ((ihom I).map X.hom)
+ 
+ /-- The functoriality of `sectionsObj`. -/
+ def sectionsMap {X X' : Over I} (u : X ⟶ X') :
+     sectionsObj X ⟶ sectionsObj X' := by
+   fapply pullback.map
+   · exact 𝟙 _
+-  · exact (exp I).map u.left
++  · exact (ihom I).map u.left
+   · exact 𝟙 _
+   · simp only [comp_id, id_comp]
+   · simp only [comp_id, ← Functor.map_comp, w]
+@@ -130,31 +158,47 @@ variable {I}
+ in `C`. See `sectionsCurry`. -/
+ def sectionsCurryAux {X : Over I} {A : C} (u : (star I).obj A ⟶ X) :
+     A ⟶ (I ⟹ X.left) :=
+-  CartesianClosed.curry (u.left)
++  MonoidalClosed.curry (u.left)
+ 
+ /-- The currying operation `Hom ((star I).obj A) X → Hom A (I ⟹ X.left)`. -/
+ def sectionsCurry {X : Over I} {A : C} (u : (star I).obj A ⟶ X) :
+     A ⟶ (sections I).obj X := by
+   apply pullback.lift (terminal.from A)
+-    (CartesianClosed.curry ((prodIsoTensorObj _ _).inv ≫ u.left)) (uncurry_injective _)
+-  rw [uncurry_natural_left]
+-  simp [curryId, uncurry_natural_right, uncurry_curry]
++    (MonoidalClosed.curry ((prodIsoTensorLeftObj _ _).inv ≫ u.left)) (MonoidalClosed.uncurry_injective _)
++  rw [MonoidalClosed.uncurry_natural_left, MonoidalClosed.uncurry_natural_right]
++  dsimp [curryId]
++  rw [MonoidalClosed.uncurry_curry, MonoidalClosed.uncurry_curry]
++  simp [Over.star_obj_hom]
+ 
+ /-- The uncurrying operation `Hom A (section X) → Hom ((star I).obj A) X`. -/
+ def sectionsUncurry {X : Over I} {A : C} (v : A ⟶ (sections I).obj X) :
+     (star I).obj A ⟶ X := by
+   let v₂ : A ⟶ (I ⟹ X.left) := v ≫ pullback.snd ..
+-  have w : terminal.from A ≫ (curryId I) = v₂ ≫ (exp I).map X.hom := by
++  have w : terminal.from A ≫ (curryId I) = v₂ ≫ (ihom I).map X.hom := by
+     rw [IsTerminal.hom_ext terminalIsTerminal (terminal.from A ) (v ≫ (pullback.fst ..))]
+-    simp [v₂, pullback.condition]
+-  dsimp [curryId] at w
++    simpa [v₂, Category.assoc] using congrArg (fun f => v ≫ f)
++      (show pullback.fst (curryId I) ((ihom I).map X.hom) ≫ curryId I =
++        pullback.snd (curryId I) ((ihom I).map X.hom) ≫ (ihom I).map X.hom from pullback.condition)
+   have w' := homEquiv_naturality_right_square (F := MonoidalCategory.tensorLeft I)
+-    (adj := exp.adjunction I) _ _ _ _ w
+-  simp [CartesianClosed.curry] at w'
+-  refine Over.homMk ((prodIsoTensorObj I A).hom ≫ CartesianClosed.uncurry v₂) ?_
+-  · dsimp [CartesianClosed.uncurry] at *
+-    rw [Category.assoc, ← w']
+-    simp [star_obj_hom]
++    (adj := ihom.adjunction I) _ _ _ _ w
++  simp at w'
++  refine Over.homMk ((prodIsoTensorLeftObj I A).hom ≫ MonoidalClosed.uncurry v₂) ?_
++  · dsimp [MonoidalClosed.uncurry] at *
++    calc
++      ((prodIsoTensorLeftObj I A).hom ≫ ((ihom.adjunction I).homEquiv A X.left).symm v₂) ≫ X.hom
++          = (prodIsoTensorLeftObj I A).hom ≫
++              (((ihom.adjunction I).homEquiv A X.left).symm v₂ ≫ X.hom) := by
++            simp [Category.assoc]
++      _ = (prodIsoTensorLeftObj I A).hom ≫
++              ((MonoidalCategory.tensorLeft I).map (terminal.from A) ≫
++                ((ihom.adjunction I).homEquiv (⊤_ C) I).symm (curryId I)) := by
++            simpa [Category.assoc] using congrArg (fun t => (prodIsoTensorLeftObj I A).hom ≫ t) w'.symm
++      _ = prod.lift prod.fst (𝟙 (I ⨯ A)) ≫ prod.fst := by
++            have hc : ((ihom.adjunction I).homEquiv (⊤_ C) I).symm (curryId I) = fst I (⊤_ C) := by
++              dsimp [curryId, MonoidalClosed.curry]
++              exact Equiv.symm_apply_apply ((ihom.adjunction I).homEquiv (⊤_ C) I) (fst I (⊤_ C))
++            rw [hc]
++            simp
+ 
+ @[simp]
+ theorem sections_curry_uncurry {X : Over I} {A : C} {v : A ⟶ (sections I).obj X} :
+@@ -188,13 +232,13 @@ def coreHomEquiv : CoreHomEquiv (star I) (sections I) where
+     simp only [star_map]
+     rw [← Over.homMk_comp]  -- note: in a newer version of mathlib this is `Over.homMk_eta`
+     congr 1
+-    simp [CartesianClosed.uncurry_natural_left]
++    simp [MonoidalClosed.uncurry_natural_left, Category.assoc]
+   homEquiv_naturality_right := by
+     intro A X' X u g
+     dsimp [sectionsCurry, sectionsUncurry, curryId]
+     apply pullback.hom_ext (IsTerminal.hom_ext terminalIsTerminal _ _)
+     simp [sectionsMap, curryId]
+-    rw [← CartesianClosed.curry_natural_right, Category.assoc]
++    rw [← MonoidalClosed.curry_natural_right, Category.assoc]
+ 
+ variable (I)
+ 
+diff --git a/Poly/ForMathlib/CategoryTheory/Limits/Shapes/Pullback/CommSq.lean b/Poly/ForMathlib/CategoryTheory/Limits/Shapes/Pullback/CommSq.lean
+index 29faccd..83ddbd9 100644
+--- a/Poly/ForMathlib/CategoryTheory/Limits/Shapes/Pullback/CommSq.lean
++++ b/Poly/ForMathlib/CategoryTheory/Limits/Shapes/Pullback/CommSq.lean
+@@ -3,7 +3,7 @@ Copyright (c) 2025 Wojciech Nawrocki. All rights reserved.
+ Released under Apache 2.0 license as described in the file LICENSE.
+ Authors: Wojciech Nawrocki
+ -/
+-import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
++import Mathlib.CategoryTheory.Limits.Shapes.Pullback.IsPullback.Basic
+ import Poly.ForMathlib.CategoryTheory.CommSq
+ 
+ namespace CategoryTheory.Functor
+@@ -25,6 +25,12 @@ theorem reflect_isPullback
+       ((Cones.postcompose i.symm.hom).obj pb.cone).pt ≅
+       (F.mapCone <| PullbackCone.mk f g sq.w).pt :=
+     Iso.refl _
+-  apply WalkingCospan.ext j <;> simp +zetaDelta
++  apply WalkingCospan.ext j
++  · simp [PullbackCone.mk, Cones.postcompose, Cone.postcompose, i, j, cospanCompIso_inv_app_left]
++    change F.map f ≫ 𝟙 (F.obj Y) = 𝟙 (F.obj X) ≫ F.map f
++    simp
++  · simp [PullbackCone.mk, Cones.postcompose, Cone.postcompose, i, j, cospanCompIso_inv_app_right]
++    change F.map g ≫ 𝟙 (F.obj Z) = 𝟙 (F.obj X) ≫ F.map g
++    simp
+ 
+ end CategoryTheory.Functor
+diff --git a/Poly/ForMathlib/CategoryTheory/LocallyCartesianClosed/Basic.lean b/Poly/ForMathlib/CategoryTheory/LocallyCartesianClosed/Basic.lean
+index 2111115..9309852 100644
+--- a/Poly/ForMathlib/CategoryTheory/LocallyCartesianClosed/Basic.lean
++++ b/Poly/ForMathlib/CategoryTheory/LocallyCartesianClosed/Basic.lean
+@@ -67,7 +67,7 @@ open CategoryTheory Category MonoidalCategory CartesianMonoidalCategory Limits F
+ 
+ variable {C : Type u} [Category.{v} C]
+ 
+-attribute [local instance] CartesianMonoidalCategory.ofFiniteProducts
++attribute [local instance] CartesianMonoidalCategory.ofHasFiniteProducts
+ 
+ /-- A morphism `f : I ⟶ J` is exponentiable if the pullback functor `Over J ⥤ Over I`
+ has a right adjoint. -/
+@@ -144,8 +144,7 @@ theorem pushforward_curry_uncurry [ExponentiableMorphism f] {X : Over I} {A : Ov
+ 
+ instance OverMkHom {I J : C} {f : I ⟶ J} [ExponentiableMorphism f] :
+     ExponentiableMorphism (Over.mk f).hom := by
+-  dsimp only [mk_hom]
+-  infer_instance
++  convert (inferInstance : ExponentiableMorphism f) using 1
+ 
+ /-- The identity morphisms `𝟙` are exponentiable. -/
+ @[simps]
+@@ -179,7 +178,7 @@ instance isMultiplicative : (ExponentiableMorphism (C:= C)).IsMultiplicative whe
+ /-- A morphism with a pushforward is an exponentiable object in the slice category. -/
+ def exponentiableOverMk [HasFiniteWidePullbacks C] {X I : C} (f : X ⟶ I)
+     [ExponentiableMorphism f] :
+-    Exponentiable (Over.mk f) where
++    Closed (Over.mk f) where
+   rightAdj := pullback f ⋙ pushforward f
+   adj := by
+     apply ofNatIsoLeft _ _
+@@ -192,7 +191,7 @@ morphism `X.hom`.
+ Here the pushforward functor along a morphism `f : I ⟶ J` is defined using the section functor
+ `Over (Over.mk f) ⥤ Over J`.
+ -/
+-def ofOverExponentiable [HasFiniteWidePullbacks C] {I : C} (X : Over I) [Exponentiable X] :
++def ofOverExponentiable [HasFiniteWidePullbacks C] {I : C} (X : Over I) [Closed X] :
+     ExponentiableMorphism X.hom :=
+   ⟨X.iteratedSliceEquiv.inverse ⋙ sections X, ⟨by
+     refine ofNatIsoLeft (Adjunction.comp ?_ ?_) (starIteratedSliceForwardIsoPullback X.hom)
+@@ -217,22 +216,22 @@ variable {C} [HasFiniteWidePullbacks C] [HasPushforwards C]
+ /-- In a category where pushforwards exists along all morphisms, every slice category `Over I` is
+ cartesian closed. -/
+ instance cartesianClosedOver (I : C) :
+-    CartesianClosed (Over I) where
++    MonoidalClosed (Over I) where
+   closed X := @exponentiableOverMk _ _ _ _ _ _ X.hom (HasPushforwards.exponentiable X.hom)
+ 
+ end HasPushforwards
+ 
+ namespace CartesianClosedOver
+ 
+-open Over Reindex IsIso CartesianClosed HasPushforwards ExponentiableMorphism
++open Over Reindex IsIso MonoidalClosed HasPushforwards ExponentiableMorphism
+ 
+-variable {C} [HasFiniteWidePullbacks C] {I J : C} [CartesianClosed (Over J)]
++variable {C} [HasFiniteWidePullbacks C] {I J : C} [MonoidalClosed (Over J)]
+ 
+ instance (f : I ⟶ J) : ExponentiableMorphism f :=
+   ExponentiableMorphism.ofOverExponentiable (Over.mk f)
+ 
+ /-- A category with cartesian closed slices has pushforwards along all morphisms. -/
+-instance hasPushforwards [Π (I : C), CartesianClosed (Over I)] : HasPushforwards C where
++instance hasPushforwards [∀ (I : C), MonoidalClosed (Over I)] : HasPushforwards C where
+   exponentiable f := ExponentiableMorphism.ofOverExponentiable (Over.mk f)
+ 
+ end CartesianClosedOver
+@@ -242,7 +241,7 @@ is exponentiable and all the slices are cartesian closed. -/
+ class LocallyCartesianClosed [HasFiniteWidePullbacks C] extends
+     HasPushforwards C where
+   /-- every slice category `Over I` is cartesian closed. This is filled in by default. -/
+-  cartesianClosedOver : Π (I : C), CartesianClosed (Over I) := HasPushforwards.cartesianClosedOver
++  cartesianClosedOver : Π (I : C), MonoidalClosed (Over I) := HasPushforwards.cartesianClosedOver
+ 
+ namespace LocallyCartesianClosed
+ 
+@@ -256,11 +255,14 @@ attribute [scoped instance] hasFiniteLimits_of_hasTerminal_and_pullbacks
+ instance mkOfHasPushforwards [HasPushforwards C] : LocallyCartesianClosed C where
+ 
+ /-- A category with cartesian closed slices is locally cartesian closed. -/
+-instance mkOfCartesianClosedOver [Π (I : C), CartesianClosed (Over I)] :
++instance mkOfCartesianClosedOver [∀ (I : C), MonoidalClosed (Over I)] :
+   LocallyCartesianClosed C where
+ 
+ variable [LocallyCartesianClosed C]
+ 
++instance instMonoidalClosedOver (I : C) : MonoidalClosed (Over I) :=
++  HasPushforwards.cartesianClosedOver I
++
+ /-- Every morphism in a locally cartesian closed category is exponentiable. -/
+ instance {I J : C} (f : I ⟶ J) : ExponentiableMorphism f := HasPushforwards.exponentiable f
+ 
+@@ -283,7 +285,7 @@ abbrev ev' {I : C} (X : Over I) (Y : Over X.left) : Reindex X (Pi X Y) ⟶ Y :=
+ 
+ /-- A locally cartesian closed category with a terminal object is cartesian closed. -/
+ def cartesianClosed [HasTerminal C] :
+-    CartesianClosed C := cartesianClosedOfEquiv <| equivOverTerminal C
++    MonoidalClosed C := cartesianClosedOfEquiv <| equivOverTerminal C
+ 
+ /-- The slices of a locally cartesian closed category are locally cartesian closed. -/
+ def overLocallyCartesianClosed (I : C) : LocallyCartesianClosed (Over I) := by
+@@ -293,7 +295,7 @@ def overLocallyCartesianClosed (I : C) : LocallyCartesianClosed (Over I) := by
+ 
+ /-- The exponential `X^^A` in the slice category `Over I` is isomorphic to the pushforward of the
+ pullback of `X` along `A`. -/
+-def expIso {I : C} (A X : Over I) :  Pi A (Reindex A X) ≅ A ⟹ X := Iso.refl _
++def expIso {I : C} (A X : Over I) : Pi A (Reindex A X) ≅ (ihom A).obj X := Iso.refl _
+ 
+ end LocallyCartesianClosed
+ 
+diff --git a/Poly/ForMathlib/CategoryTheory/LocallyCartesianClosed/BeckChevalley.lean b/Poly/ForMathlib/CategoryTheory/LocallyCartesianClosed/BeckChevalley.lean
+index fe6cdee..7b96643 100644
+--- a/Poly/ForMathlib/CategoryTheory/LocallyCartesianClosed/BeckChevalley.lean
++++ b/Poly/ForMathlib/CategoryTheory/LocallyCartesianClosed/BeckChevalley.lean
+@@ -6,6 +6,9 @@ Authors: Sina Hazratpour, Emily Riehl
+ import Poly.ForMathlib.CategoryTheory.LocallyCartesianClosed.Basic
+ import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
+ 
++set_option backward.defeqAttrib.useBackward true
++set_option backward.isDefEq.respectTransparency false
++
+ /-!
+ # Beck-Chevalley natural transformations and natural isomorphisms
+ 
+@@ -282,9 +285,13 @@ theorem pullback.map_isIso_of_pullback_right_of_comm_cube {W X Y Z S T : C}
+     IsIso (pullback.map f₁ f₂ g₁ g₂ i₁ i₂ i₃ sq_bot.w pb_right.w.symm) := by
+   let m := pullback.map f₁ f₂ g₁ g₂ i₁ i₂ i₃ sq_bot.w pb_right.w.symm
+   have sq_top : CommSq (pullback.snd f₁ f₂) m i₂ (pullback.snd g₁ g₂) := by
+-    aesop
++    exact CommSq.mk (by
++      simpa [m, pullback.map] using
++        (pullback.lift_snd (pullback.fst f₁ f₂ ≫ i₁) (pullback.snd f₁ f₂ ≫ i₂) _).symm)
+   have sq_left : CommSq m (pullback.fst f₁ f₂) (pullback.fst g₁ g₂) i₁ := by
+-    aesop
++    exact CommSq.mk (by
++      simpa [m, pullback.map] using
++        (pullback.lift_fst (pullback.fst f₁ f₂ ≫ i₁) (pullback.snd f₁ f₂ ≫ i₂) _))
+   let pb' : IsPullback m (pullback.fst f₁ f₂)  (pullback.fst g₁ g₂) i₁ := by
+     apply IsPullback.left_face_of_comm_cube (sq_top := sq_top) (sq_bot := sq_bot)
+       (sq_left := sq_left) (pb_back := (IsPullback.of_hasPullback f₁ f₂).flip)
+@@ -298,7 +305,7 @@ end IsPullback
+ variable [HasPullbacks C]
+ 
+ variable {X Y Z W : C} {h : X ⟶ Z} {f : X ⟶ Y}  {g : Z ⟶ W} {k : Y ⟶ W}
+-(sq : CommSq h f g k) (A : Over Y)
++variable (sq : CommSq h f g k) (A : Over Y)
+ 
+ open IsPullback Over
+ 
+@@ -309,10 +316,12 @@ theorem mapPullbackAdj.counit_app_left  :
+ @[simp]
+ theorem pullbackMapTwoSquare_app :
+     (pullbackMapTwoSquare h f g k sq).app A =
+-    Over.homMk (pullback.map _ _ (A.hom ≫ k) _ _ h k (id_comp _).symm sq.w.symm) (by aesop) := by
++    Over.homMk (pullback.map _ _ (A.hom ≫ k) _ _ h k (id_comp _).symm sq.w.symm)
++      (by simpa [Over.pullback_obj_hom, Over.map_obj_hom, pullback.map]) := by
+   ext
+-  simp only [homMk_left, pullbackMapTwoSquare, mapIsoSquare]
+-  aesop
++  apply pullback.hom_ext
++  · simp [homMk_left, pullbackMapTwoSquare, mapIsoSquare, pullback.map]
++  · simp [homMk_left, pullbackMapTwoSquare, mapIsoSquare, pullback.map]
+ 
+ theorem forget_map_pullbackMapTwoSquare :
+     (Over.forget Z).map ((pullbackMapTwoSquare h f g k sq).app A) =
+diff --git a/Poly/ForMathlib/CategoryTheory/LocallyCartesianClosed/Distributivity.lean b/Poly/ForMathlib/CategoryTheory/LocallyCartesianClosed/Distributivity.lean
+index ac406aa..aa672fd 100644
+--- a/Poly/ForMathlib/CategoryTheory/LocallyCartesianClosed/Distributivity.lean
++++ b/Poly/ForMathlib/CategoryTheory/LocallyCartesianClosed/Distributivity.lean
+@@ -8,6 +8,9 @@ import Poly.ForMathlib.CategoryTheory.LocallyCartesianClosed.Basic
+ import Poly.ForMathlib.CategoryTheory.NatTrans
+ import Poly.ForMathlib.CategoryTheory.LocallyCartesianClosed.BeckChevalley
+ 
++set_option backward.defeqAttrib.useBackward true
++set_option backward.isDefEq.respectTransparency false
++
+ /-!
+ # Pentagon distributivity
+ 
+diff --git a/Poly/ForMathlib/CategoryTheory/LocallyCartesianClosed/Presheaf.lean b/Poly/ForMathlib/CategoryTheory/LocallyCartesianClosed/Presheaf.lean
+index a967405..83d6449 100644
+--- a/Poly/ForMathlib/CategoryTheory/LocallyCartesianClosed/Presheaf.lean
++++ b/Poly/ForMathlib/CategoryTheory/LocallyCartesianClosed/Presheaf.lean
+@@ -22,10 +22,10 @@ abbrev Psh (C : Type u) [Category.{v} C] : Type (max u (v + 1)) := Cᵒᵖ ⥤ T
+ 
+ variable {C : Type*} [SmallCategory C] [HasTerminal C]
+ 
+-attribute [local instance] CartesianMonoidalCategory.ofFiniteProducts
++attribute [local instance] CartesianMonoidalCategory.ofHasFiniteProducts
+ 
+ instance cartesianClosedOver {C : Type u} [Category.{max u v} C] (P : Psh C) :
+-    CartesianClosed (Over P) :=
++    MonoidalClosed (Over P) :=
+   cartesianClosedOfEquiv (overEquivPresheafCostructuredArrow P).symm
+ 
+ instance locallyCartesianClosed : LocallyCartesianClosed (Psh C) := by
+diff --git a/Poly/ForMathlib/CategoryTheory/NatTrans.lean b/Poly/ForMathlib/CategoryTheory/NatTrans.lean
+index 6fd36bb..1dbd6f4 100644
+--- a/Poly/ForMathlib/CategoryTheory/NatTrans.lean
++++ b/Poly/ForMathlib/CategoryTheory/NatTrans.lean
+@@ -6,7 +6,9 @@ Authors: Sina Hazratpour
+ 
+ import Mathlib.CategoryTheory.NatTrans
+ import Mathlib.CategoryTheory.Functor.TwoSquare
+-import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
++import Mathlib.CategoryTheory.Discrete.Basic
++import Mathlib.CategoryTheory.Limits.Shapes.Terminal
++import Mathlib.CategoryTheory.Limits.Shapes.Pullback.IsPullback.Basic
+ 
+ open CategoryTheory Limits IsPullback
+ 
+@@ -78,7 +80,9 @@ theorem hcomp {K : Type*} [Category K] {F G : J ⥤ C} {M N : C ⥤ K} {α : F 
+   simp only [Functor.comp_obj, Functor.comp_map, comp_app,
+     whiskerRight_app, whiskerLeft_app,
+     naturality] at hc
+-  exact hc
++  convert hc using 1
++  · exact (β.naturality (α.app i)).symm
++  · exact (β.naturality (α.app j)).symm
+ 
+ open TwoSquare
+ 
+diff --git a/Poly/ForMathlib/CategoryTheory/PartialProduct.lean b/Poly/ForMathlib/CategoryTheory/PartialProduct.lean
+index d37c6a3..6c8e461 100644
+--- a/Poly/ForMathlib/CategoryTheory/PartialProduct.lean
++++ b/Poly/ForMathlib/CategoryTheory/PartialProduct.lean
+@@ -17,6 +17,9 @@ with morphisms `fst : P —> A` and `snd : pullback fst s —> X`  which is univ
+ such data.
+ -/
+ 
++set_option backward.defeqAttrib.useBackward true
++set_option backward.isDefEq.respectTransparency false
++
+ noncomputable section
+ 
+ namespace CategoryTheory
+diff --git a/Poly/UvPoly/Basic.lean b/Poly/UvPoly/Basic.lean
+index 74e0d4f..35fd873 100644
+--- a/Poly/UvPoly/Basic.lean
++++ b/Poly/UvPoly/Basic.lean
+@@ -10,6 +10,8 @@ import Mathlib.CategoryTheory.Functor.TwoSquare
+ import Poly.ForMathlib.CategoryTheory.PartialProduct
+ import Poly.ForMathlib.CategoryTheory.NatTrans
+ 
++set_option backward.defeqAttrib.useBackward true
++set_option backward.isDefEq.respectTransparency false
+ 
+ /-!
+ # Polynomial Functor
+@@ -137,7 +139,13 @@ def verticalNatTrans {F : C} (P : UvPoly E B) (Q : UvPoly F B) (ρ : E ⟶ F) (h
+   let cellLeft := (Over.starPullbackIsoStar ρ).hom
+   let cellMid := (pushforwardPullbackTwoSquare ρ P.p Q.p (𝟙 _) sq)
+   let cellLeftMidPasted := TwoSquare.whiskerRight (cellLeft ≫ₕ cellMid) (Over.pullbackId).inv
+-  simpa using (cellLeftMidPasted ≫ₕ (vId (Over.forget B)))
++  let cell := cellLeftMidPasted ≫ₕ (vId (Over.forget B))
++  let reassoc := whiskerRight
++    (Functor.associator (prodComonad E).cofree (coalgebraToOver E) (pushforward P.p)).inv
++    (Over.forget B)
++  let reassoc' := (Functor.associator (Over.star E) (pushforward P.p) (Over.forget B)).hom
++  simpa [functor, Over.star, Category.assoc] using
++    (Functor.rightUnitor Q.functor).inv ≫ cell ≫ reassoc ≫ reassoc'
+ 
+ /-- A cartesian map of polynomials
+ ```

@@ -13,7 +13,7 @@ variable (E : Axioms χ) in
 inductive EqCtx : Ctx χ → Ctx χ → Prop
   | nil : EqCtx [] []
   /-- Prefer using `EqCtx.snoc`. -/
-  | snoc' {Γ Γ' A A' l} :
+  | snoc' {Γ Γ' : Ctx χ} {A A' : Expr χ} {l : Nat} :
     EqCtx Γ Γ' → E ∣ Γ ⊢[l] A ≡ A' → E ∣ Γ' ⊢[l] A ≡ A' → EqCtx ((A, l) :: Γ) ((A', l) :: Γ')
 
 theorem EqCtx.refl : WfCtx E Γ → EqCtx E Γ Γ := by

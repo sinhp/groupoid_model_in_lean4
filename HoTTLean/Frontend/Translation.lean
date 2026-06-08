@@ -6,6 +6,18 @@ namespace SynthLean
 
 open Qq Lean Meta
 
+private def checkedPreludeName (nm : Name) : Name :=
+  `SynthLean.CheckedPrelude ++ nm
+
+private def checkedConstDeclName (nm : Name) : Name :=
+  if nm == `Identity.rfl₀ || nm == `Identity.rfl₁ ||
+      nm == `Identity.symm₀ || nm == `Identity.symm₁ ||
+      nm == `Identity.trans₀ || nm == `Identity.trans₁ ||
+      nm == `sorryAx₀ || nm == `sorryAx₁ || nm == `sorryAx₂ then
+    checkedPreludeName nm
+  else
+    nm
+
 def traceClsTranslation : Name := `SynthLean.Translation
 
 initialize
@@ -199,8 +211,8 @@ partial def translateAsTm (e : Lean.Expr) : TranslateM (Nat × Q(Expr Lean.Name)
     let ci ← getConstInfo nm
     withEnv (← read).extEnv do
       match ci with
-      | .defnInfo i => return ⟨n, ← mkAppM ``CheckedDef.val #[.const i.name []]⟩
-      | .axiomInfo i => return ⟨n, ← mkAppM ``CheckedAx.val #[.const i.name []]⟩
+      | .defnInfo i => return ⟨n, ← mkAppM ``CheckedDef.val #[.const (checkedConstDeclName i.name) []]⟩
+      | .axiomInfo i => return ⟨n, ← mkAppM ``CheckedAx.val #[.const (checkedConstDeclName i.name) []]⟩
       | _ => throwError "unsupported constant (not a `def` or an `axiom`){indentExpr e}"
   | .const .. => throwError "unsupported constant (universe-polymorphic){indentExpr e}"
   | e => throwError "unsupported term{indentExpr e}"

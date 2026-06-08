@@ -7,6 +7,9 @@ import HoTTLean.Model.Natural.NaturalModel
 
 universe v u
 
+set_option backward.defeqAttrib.useBackward true
+set_option backward.isDefEq.respectTransparency false
+
 noncomputable section
 
 open CategoryTheory Limits Opposite MonoidalCategory

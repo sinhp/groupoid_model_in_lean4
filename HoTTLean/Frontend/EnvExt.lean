@@ -1,5 +1,6 @@
 import Lean
 import Qq
+import HoTTLean.Prelude
 import HoTTLean.Frontend.Checked
 
 /-!
@@ -116,7 +117,7 @@ private initialize theoryExt : TheoryExt ←
     -- Note: because we `cons` local entries onto the list,
     -- this array has the latest entry first
     -- and has to be read in reverse order when imported.
-    exportEntriesFnEx _ s _ := s.1.toArray
+    exportEntriesFnEx _ s := OLeanEntries.uniform s.1.toArray
     -- TODO: statsFn, asyncMode, replay?
   }
 

@@ -359,4 +359,23 @@ def downIso : AsSmall C ≅≅ C where
   hom := AsSmall.down
   inv := AsSmall.up
 
+instance : (AsSmall.down (C := C)).Full where
+  map_surjective f := ⟨⟨f⟩, rfl⟩
+
+instance : (AsSmall.down (C := C)).Faithful where
+  map_injective := by
+    intro _ _ f g h
+    cases f
+    cases g
+    cases h
+    rfl
+
+instance : (AsSmall.up (C := C)).Full where
+  map_surjective f := ⟨f.down, by cases f; rfl⟩
+
+instance : (AsSmall.up (C := C)).Faithful where
+  map_injective := by
+    intro _ _ f g h
+    exact congrArg ULift.down h
+
 end CategoryTheory.AsSmall
