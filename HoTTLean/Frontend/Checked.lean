@@ -50,13 +50,56 @@ structure CheckedDef (E : Axioms χ) where
   nfTp : Val χ
   wf_nfTp : ValEqTp E [] l nfTp tp
   val : Expr χ
-  -- nfVal?
+  /-- Cached value of `val`. Used by the `evalTm` fast path so that references
+  to this def don't have to re-evaluate the body. -/
+  nfVal : Val χ
+  wf_nfVal : ValEqTm E [] l nfVal val tp
   wf_val : E ∣ [] ⊢[l] val : tp
 
 namespace CheckedDef
 
 theorem wf_tp (d : CheckedDef E) : E ∣ [] ⊢[d.l] d.tp :=
   d.wf_val.wf_tp
+
+/-- The cached `nfTp` lifted from empty context (in `E`) to any well-formed context
+in a possibly-larger axiom environment `E'`. The def's type is closed, so substitution
+does not change it. -/
+theorem wf_nfTp_lift_le {E E' : Axioms χ} (d : CheckedDef E) (le : E ≤ E')
+    {Γ} (wfΓ : WfCtx E' Γ) : ValEqTp E' Γ d.l d.nfTp d.tp := by
+  have h := d.wf_nfTp.of_axioms_le le
+  induction Γ with
+  | nil => exact h
+  | cons head tail ih =>
+    have hd : E' ∣ tail ⊢[head.2] head.1 := wfΓ.inv_snoc
+    have lifted := (ih hd.wf_ctx).wk hd
+    rwa [Expr.subst_of_isClosed _ d.wf_tp.isClosed] at lifted
+
+/-- The cached `nfVal` lifted from empty context (in `E`) to any well-formed context
+in a possibly-larger axiom environment `E'`. Both the def's body and type are closed,
+so substitution does not change them. -/
+theorem wf_nfVal_lift_le {E E' : Axioms χ} (d : CheckedDef E) (le : E ≤ E')
+    {Γ} (wfΓ : WfCtx E' Γ) : ValEqTm E' Γ d.l d.nfVal d.val d.tp := by
+  have h := d.wf_nfVal.of_axioms_le le
+  induction Γ with
+  | nil => exact h
+  | cons head tail ih =>
+    have hd : E' ∣ tail ⊢[head.2] head.1 := wfΓ.inv_snoc
+    have lifted := (ih hd.wf_ctx).wk hd
+    rwa [Expr.subst_of_isClosed _ d.wf_val.isClosed,
+         Expr.subst_of_isClosed _ d.wf_tp.isClosed] at lifted
+
+/-- The def's body, well-typed in any well-formed context in a possibly-larger
+axiom environment. Closed; substitution leaves it unchanged. -/
+theorem wf_val_lift_le {E E' : Axioms χ} (d : CheckedDef E) (le : E ≤ E')
+    {Γ} (wfΓ : WfCtx E' Γ) : E' ∣ Γ ⊢[d.l] d.val : d.tp := by
+  have h := d.wf_val.of_axioms_le le
+  induction Γ with
+  | nil => exact h
+  | cons head tail ih =>
+    have hd : E' ∣ tail ⊢[head.2] head.1 := wfΓ.inv_snoc
+    have lifted := (ih hd.wf_ctx).subst (WfSb.wk hd)
+    rwa [Expr.subst_of_isClosed _ d.wf_val.isClosed,
+         Expr.subst_of_isClosed _ d.wf_tp.isClosed] at lifted
 
 end CheckedDef
 end SynthLean

@@ -72,6 +72,11 @@ inductive Neut where
   | ax (c : χ) (A : Val)
   /-- A de Bruijn *level*. -/
   | bvar (i : Nat)
+  /-- A reference to a `hott0 def` constant in the Lean environment.
+  Stored opaquely for short-circuit equality on the name `c`;
+  `body` is the value of the def's RHS, forced only on equality mismatch.
+  `tp` is the def's type, cached so we don't have to extract it from `body`. -/
+  | def (c : Lean.Name) (tp body : Val)
   /-- Application at the specified argument type. -/
   | app (l l' : Nat) (A : Val) (f : Neut) (a : Val)
   | fst (l l' : Nat) (p : Neut)
@@ -166,6 +171,13 @@ inductive NeutEqTm : Ctx χ → Nat → Neut χ → Expr χ → Expr χ → Prop
     WfCtx E Γ →
     Lookup Γ i A l →
     NeutEqTm Γ l (.bvar (Γ.length - i - 1)) (.bvar i) A
+  /-- A `Neut.def c tp body` relates to the *same* deep Expr that `body` relates to.
+  Transparent wrapper: short-circuit equality keys off `c`,
+  but the semantic content is whatever `body` already carries. -/
+  | def {Γ c tp body bodyExpr T l} :
+    ValEqTp Γ l tp T →
+    ValEqTm Γ l body bodyExpr T →
+    NeutEqTm Γ l (.def c tp body) bodyExpr T
   | app {Γ vA A B vf f va a l l'} :
     ValEqTp Γ l vA A →
     NeutEqTm Γ (max l l') vf f (.pi l l' A B) →

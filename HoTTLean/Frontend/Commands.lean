@@ -97,6 +97,21 @@ def addCheckedAx (thyEnv : Environment) (ci : AxiomVal) : MetaM Unit := do
     safety := .safe
   }
 
+/-- Count unique `Lean.Expr` nodes in `e`, treating pointer-equal sub-expressions as one.
+After `ShareCommon.shareCommon'`, structurally-equal sub-expressions become pointer-equal,
+so this equals the number of nodes the kernel actually walks (modulo cached substitutions). -/
+private partial def numUniqueNodes (e : Lean.Expr) : StateM (Std.HashSet Lean.Expr) Unit := do
+  if (← get).contains e then return
+  modify (·.insert e)
+  match e with
+  | .app f a => numUniqueNodes f; numUniqueNodes a
+  | .lam _ t b _ => numUniqueNodes t; numUniqueNodes b
+  | .forallE _ t b _ => numUniqueNodes t; numUniqueNodes b
+  | .letE _ t v b _ => numUniqueNodes t; numUniqueNodes v; numUniqueNodes b
+  | .mdata _ e => numUniqueNodes e
+  | .proj _ _ e => numUniqueNodes e
+  | _ => return
+
 /-- Add a definition `ci` defined in environment `thyEnv`
 to the Lean environment as a `CheckedDef`. -/
 def addCheckedDef (thyEnv : Environment) (ci : DefinitionVal) : MetaM Unit := do
@@ -116,15 +131,21 @@ def addCheckedDef (thyEnv : Environment) (ci : DefinitionVal) : MetaM Unit := do
   let Twf ← checkTp q($axioms) q($wf_axioms) q([]) q($l) q($T)
   let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Lean.Name from []) q($T)
   let twf ← checkTm q($axioms) q($wf_axioms) q([]) q($l) q($vT) q($t)
+  let ⟨vt, vteq⟩ ← evalTmId q(show TpEnv Lean.Name from []) q($t)
   let value : Q(CheckedDef $axioms) := q(
     { l := $l
       tp := $T
       nfTp := $vT
       wf_nfTp := $vTeq .nil <| $Twf .nil
       val := $t
+      nfVal := $vt
+      wf_nfVal := $vteq .nil <| $twf .nil <| $vTeq .nil <| $Twf .nil
       wf_val := $twf .nil <| $vTeq .nil <| $Twf .nil
     }
   )
+  let valueShared := ShareCommon.shareCommon' value
+  let (_, nodes) := (numUniqueNodes valueShared).run {}
+  Lean.logInfo s!"[synthlean] {ci.name}: witness has {nodes.size} unique nodes after ShareCommon"
 
   addDecl <| .defnDecl {
     name := ci.name
@@ -134,7 +155,7 @@ def addCheckedDef (thyEnv : Environment) (ci : DefinitionVal) : MetaM Unit := do
     and our tactics are currently bad at producing highly shared terms.
     Maximal sharing improves checking time asymptotically on some benchmarks (`bench.samplers.id`)
     and by a constant factor on others (`bench.samplers.fn`). -/
-    value := ShareCommon.shareCommon' value
+    value := valueShared
     hints := .regular 0 -- TODO: what height?
     safety := .safe
   }

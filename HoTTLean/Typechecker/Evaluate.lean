@@ -3,12 +3,74 @@ import Qq
 import HoTTLean.Syntax.Synth
 import HoTTLean.Typechecker.ValueInversion
 import HoTTLean.Typechecker.Util
+import HoTTLean.Frontend.Checked
 import HoTTLean.Typechecker.Cache
 
 /-! ## Evaluation -/
 
 namespace SynthLean
 open Qq
+
+partial def lookupAxiom (E : Q(Axioms Lean.Name)) (c : Q(Lean.Name)) : Lean.MetaM
+    ((A : Q(Expr Lean.Name)) × (l : Q(Nat)) × Q(∃ h, $E $c = some ⟨($A, $l), h⟩) ⊕
+      Q($E $c = none)) := do
+  match E with
+  | ~q(.empty _) => return .inr q(by rfl)
+  | ~q(Axioms.snoc $E' $l $c' $A $l_le $A_cl) =>
+    let b : Q(Bool) ← Lean.Meta.whnf q(decide ($c' = $c))
+    have : $b =Q decide ($c' = $c) := .unsafeIntro
+    match b with
+    | ~q(true) =>
+      return Sum.inl ⟨q($A), q($l), q(by as_aux_lemma =>
+        have : $c' = $c := by rwa [decide_eq_true_iff] at *
+        simp +zetaDelta [this, ($A_cl), ($l_le)]
+      )⟩
+    | ~q(false) =>
+      match ← lookupAxiom q($E') q($c) with
+      | .inl ⟨A, l, h⟩ =>
+        return .inl ⟨A, l, q(by as_aux_lemma =>
+          have : $c' ≠ $c := by rwa [decide_eq_false_iff_not] at *
+          have ⟨h, eq⟩ := $h
+          refine ⟨h, ?_⟩
+          simpa +zetaDelta [CheckedAx.snocAxioms, Axioms.snoc, this.symm] using eq
+        )⟩
+      | .inr h =>
+        return .inr q(by as_aux_lemma =>
+          have : $c' ≠ $c := by rwa [decide_eq_false_iff_not] at *
+          simpa +zetaDelta [CheckedAx.snocAxioms, Axioms.snoc, this.symm] using $h
+        )
+    | _ =>
+      throwError "could not determine whether\
+          {Lean.indentExpr q($c') |>.nest 2}\
+        {Lean.indentD "="}\
+          {Lean.indentExpr c |>.nest 2}"
+  | ~q(CheckedAx.snocAxioms _) =>
+    let E ← Lean.Meta.unfoldDefinition E
+    lookupAxiom E c
+  | _ => throwError "unsupported axiom environment{Lean.indentExpr E}"
+
+partial def checkAxiomsLe (E E' : Q(Axioms Lean.Name)) : Lean.MetaM Q($E ≤ $E') := do
+  match E with
+  | ~q(.empty _) => return q(($E').empty_le)
+  | ~q(Axioms.snoc $E₀ $l' $c' $A' $l_le $A_cl) =>
+    let le ← checkAxiomsLe q($E₀) q($E')
+    let .inl ⟨A, l, En⟩ ← lookupAxiom q($E') q($c')
+      | throwError "could not prove that '{c'}' is contained in{Lean.indentExpr E'}"
+    let ⟨_⟩ ← assertDefEqQ q($A) q($A')
+    let ⟨_⟩ ← assertDefEqQ q($l) q($l')
+    return q(by as_aux_lemma =>
+      dsimp +zetaDelta only [CheckedAx.snocAxioms]
+      have ⟨_, h⟩ := $En
+      apply Axioms.snoc_le $le _ _ _ _ _ h
+    )
+  | ~q(CheckedAx.snocAxioms _) =>
+    let E ← Lean.Meta.unfoldDefinition E
+    checkAxiomsLe E E'
+  | _ =>
+    throwError "could not prove\
+        {Lean.indentExpr E |>.nest 2}\
+      {Lean.indentD "≤"}\
+        {Lean.indentExpr E' |>.nest 2}"
 
 -- Qq bug: shadowing by `u : Q(Expr)` below causes 'unbound level param' errors.
 variable {_u : Lean.Level} {χ : Q(Type _u)}
@@ -89,6 +151,32 @@ partial def evalTm (env : Q(List (Val $χ))) (t' : Q(Expr $χ)) :
   if let some (v, pf) := (← get).evalTm[key]? then return ⟨v, pf⟩
   eventually (fun ⟨v, pf⟩ =>
     modify fun st => { st with evalTm := st.evalTm.insert key (v, pf) }) do
+  -- Fast path for `CheckedDef.val (.const c [])` references: produce an opaque
+  -- `Neut.def`-tagged value so that equate can short-circuit and the witness
+  -- references the cached `nfVal`/`wf_nfVal` instead of inlining the body.
+  match t' with
+  | ~q(@CheckedDef.val _ $E' $defn) =>
+    -- claude: use t' to construct the desired typing derivation, don't try to
+    -- reconstruct it from E' and defn.
+    if let .const defName _ := (defn : Lean.Expr) then
+      let cQ : Q(Lean.Name) := Lean.toExpr defName
+      return ⟨q(.neut (.def $cQ ($defn).nfTp ($defn).nfVal) ($defn).nfTp),
+        q(by as_aux_lemma =>
+          introv env t
+          have wfΓ : WfCtx _ _ := env.wf_cod
+          have wfΔ : WfCtx _ _ := env.wf_dom
+          have wf_val_Γ := ($defn).wf_val_lift_le $le wfΓ
+          have nfTp_Δ := ($defn).wf_nfTp_lift_le $le wfΔ
+          have nfVal_Δ := ($defn).wf_nfVal_lift_le $le wfΔ
+          have A_eq := t.uniq_tp wf_val_Γ
+          apply ValEqTm.conv_tp _ (A_eq.subst env.wf_sb).symm_tp
+          simp +zetaDelta only [Expr.subst,
+            Expr.subst_of_isClosed _ ($defn).wf_val.isClosed,
+            Expr.subst_of_isClosed _ ($defn).wf_tp.isClosed]
+          exact ValEqTm.neut_tm nfTp_Δ (NeutEqTm.def nfTp_Δ nfVal_Δ)
+        )⟩
+  | _ => pure ()
+  -- Existing logic: whnf and match on canonical Expr shapes.
   -- TODO: see comment at `evalTp`.
   let t : Q(Expr $χ) ← Lean.Meta.whnf t'
   have _ : $t =Q $t' := .unsafeIntro

@@ -1,48 +1,106 @@
-# HoTTLean — project summary
+# Neut.def WIP — handoff notes
 
-## What the project is
+## Goal
 
-HoTTLean is a Lean 4 formalization of categorical semantics of Martin-Löf type theory, with two complementary tracks running in parallel:
+Reduce the size of certifying-typechecker witnesses in HoTTLean. Measured baseline (with current `neut-def` work-in-progress instrumentation in `Frontend/Commands.lean`):
 
-1. **External, semantic mathematics**: natural models of MLTT in presheaf categories, and a concrete `sorry`-free construction of the groupoid model with Π, Σ, and Id types.
-2. **Internal, synthetic mathematics**: a deep embedding of MLTT syntax together with a custom proof-assistant frontend, *SynthLean*, that lets users write definitions and axioms inside a chosen object theory (e.g. `hott0`) and have them mechanically translated and certified by an internal typechecker.
+| `hott0 def` | unique nodes (post-`ShareCommon`) |
+|---|---|
+| `pointedType` | 1 400 |
+| `pointedType.carrier` | 1 057 |
+| `pointedType.point` | 1 577 |
+| `pointedType_equiv` | 15 411 |
+| **`pointedType_carrier_eq`** | **647 282** |
 
-The two tracks are tied together by a soundness theorem (`ofType_ofTerm_sound` in `HoTTLean/Model/Natural/Interpretation.lean`) which interprets the deep syntax into any natural model. The eventual goal stated in the README is to interpret synthetic HoTT theorems (in the spirit of GroundZero) into classical Mathlib models. The code base lives at about 19.5 kLoC under `HoTTLean/`.
+The last one is a one-line definition. The blow-up is because `Frontend/Translation.lean:194-204` translates every reference to a `hott0 def` as `mkAppM ``CheckedDef.val #[.const i.name []]`, and that projection is unfolded by `whnf` during typechecking — inlining the entire deep body at every reference site.
 
-## Mathematical content
+## Approach
 
-**Syntax (`HoTTLean/Syntax`, ~2.7 kLoC).** A single inductive type `Expr χ` of MLTT expressions with axiom names `χ`, dependent product, sigma, identity, universes `univ l`, `el`/`code` for the Russell/Tarski coding, plus type-annotated elimination forms. De Bruijn indices throughout, with a separate σ-calculus of substitutions (`Autosubst.lean`) registered as a `simp` rewrite system. Typing is given as four mutually inductive `Prop`-valued judgments (`WfCtx`, `WfTp`, `EqTp`, `WfTm`, `EqTm` in `Typing.lean`), with both "primed" rules carrying redundant presuppositions and "unprimed" derived rules used in practice. Universe levels are bounded by a hard-wired `univMax := 3`. There are substantial inversion (`Inversion.lean`, `InversionLemmas.lean`), substitution, and equation-congruence lemmas.
+Add a `Neut.def c tp body` constructor in `HoTTLean/Typechecker/Value.lean` to tag values with the constant they came from. Then:
 
-**Natural-model semantics (`HoTTLean/Model/Natural`).** A `Universe` is a natural transformation `tp : Tm ⟶ Ty` of presheaves with chosen representable fibers (`ext`, `disp`, `var`, `disp_pullback`). Sequences `UHomSeq` encode the universe hierarchy; the file builds the Π, Σ, Id structure abstractly using polynomial functors (`UvPoly`) imported from the `Poly` library, and culminates in the soundness theorem against the syntax.
+1. **Evaluate.lean** detects `CheckedDef.val (.const c [])` *before* `whnf` and emits `Val.neut (Neut.def c tp body) tp` using cached fields from the `CheckedDef`, instead of unfolding the body.
+2. **Equate.lean** short-circuits on same-name `Neut.def` heads (refl without comparing bodies).
+3. The deep theory is **not** extended — `NeutEqTm.def` is a transparent wrapper, relating `Neut.def c tp body` to the same deep `Expr` that `body` relates to. No new `WfTm`/`EqTm`/`WfTp`/`EqTp` rule.
 
-**Unstructured (π-clan) semantics (`HoTTLean/Model/Unstructured`).** A second axis of generalization: a `UnstructuredUniverse` drops representability and works with morphisms in an arbitrary category. `Hurewicz.lean` develops cylinders, Hurewicz fibrations, uniform/normal fibrations, and uses them to build identity-type structure via a path/cylinder construction — this is the "Path types in algebraic type theory" approach of the cited paper.
+`synthTm` (`HoTTLean/Typechecker/Synth.lean:196`) **already has** a fast path for bare `CheckedDef.val`, so a plain `def y := x` already produces a tiny witness. The remaining wins are for *nested* def references (e.g. `M.carrier` inside an `.app`/`.fst`/`.snd`), which currently flow through `evalTm`/`equate*` and inline.
 
-**Groupoid model (`HoTTLean/Groupoids`, ~4.7 kLoC).** The concrete model: contexts are small groupoids (`Ctx := Grpd`), types over `Γ` are functors `Γ ⥤ Grpd` (encoded through `coreAsSmall`), terms are pointed groupoids `PGrpd`, and context extension is the groupoidal Grothendieck construction `∫`. The model is assembled in `UHom.lean`, which packages a 4-level universe tower (`length := 3`, matching `univMax`) and produces `PiSeq`, `SigSeq`, and `IdSeq` instances. The identity types are defined fibrewise as the discrete category on isomorphism sets; elimination uses the cloven-isofibration / Hurewicz machinery (`ClovenIsofibration.lean`, plus the `Hurewicz.lean` infrastructure).
+## Branch / commits
 
-**Supporting libraries.** `HoTTLean/ForMathlib` and `HoTTLean/Grothendieck` extend Mathlib with `Core` (the groupoid core of a category), free groupoids, wide subcategories, the bicategorical Grothendieck construction, representable pullback cones, etc.; the README says these are being upstreamed. `HoTTLean/Pointed` develops pointed (groupoid) categories. `HoTTLean/ForPoly.lean` adds lemmas to the `Poly` library.
+- Branch: **`neut-def`**, off **`magma-sip-pr172`** (which is PR #172 from PradCoder + earlier session work).
+- Origin: `git@github.com:andrejbauer/HoTTLean.git` (your fork). Upstream `sinhp/HoTTLean` is added as `upstream`.
+- This file (`SUMMARY.md`) replaces an earlier project-overview SUMMARY.md (preserved in git history).
 
-**SynthLean frontend (`HoTTLean/Frontend`, `HoTTLean/Typechecker`).** This is the most user-facing layer. `declare_theory hott0` creates a fresh theory namespace; subsequent `hott0 def …` and `hott0 axiom …` commands first elaborate the body as ordinary Lean (in an isolated environment), then `Translation.lean` rewrites the resulting Lean `Expr` into a SynthLean `Expr`, and the certifying typechecker (`Typechecker/{Evaluate,Equate,Synth}.lean`) re-checks it against the deep typing relation. The result is stored as a `CheckedDef`/`CheckedAx` carrying a proof of `WfTm`. The typechecker uses normalization by evaluation with closures (`Value.lean`, ~700 LoC) and is implemented in `Qq` so that the proofs it constructs are themselves checked by the kernel. `test/hott0.lean` shows the result: synthetic statements about function extensionality, `isProp`, `isSet`, set-univalence, etc., all checked into deep terms.
+## What's done (compiles)
 
-## Formalization style
+1. **`HoTTLean/Typechecker/Value.lean`** — `Neut.def (c : Lean.Name) (tp body : Val)` added to the `Neut` inductive. `NeutEqTm.def` rule added (currently a strict transparent wrapper with `ValEqTp`+`ValEqTm` premises — see "Open design question" below).
+2. **`HoTTLean/Frontend/Checked.lean`** — `CheckedDef` extended with `nfVal : Val χ` and `wf_nfVal : ValEqTm E [] l nfVal val tp`. Three lift helpers added: `wf_nfTp_lift_le`, `wf_nfVal_lift_le`, `wf_val_lift_le`, which lift the cached fields from empty context (in `E`) to any well-formed context in a possibly-larger axiom env `E'`, using `Expr.subst_of_isClosed` to discharge the substitution.
+3. **`HoTTLean/Frontend/Commands.lean`** — `addCheckedDef` populates `nfVal`/`wf_nfVal` via a call to `evalTmId`. Also (left over from earlier session work) carries a `numUniqueNodes` instrumentation that logs witness size, and a few `Lean.profileitM` wrappers around phases.
 
-- Pervasive `noncomputable section` (expected, the semantics is classical).
-- Deep dependence on Mathlib's category theory, plus the `Poly` library for `UvPoly`/π-clans.
-- Mutual inductive definitions of judgments; many statements proved by a single `mutual_induction WfCtx` invocation, which keeps the soundness theorem proof remarkably compact (about sixty short cases).
-- The internal proof assistant relies on `Qq` quotations and Lean metaprogramming (`run_meta`, custom `elab` macros) — including a perceptive trick that reflects every prelude definition (`Identity.rfl₀`/`trans₀`/`sorryAx₀`, …) as a `CheckedAx`/`CheckedDef` so user theories start non-empty.
-- Files are large but coherent: many of the bigger ones (`Groupoids/Pi.lean` 1.7 kLoC, `Model/Natural/{NaturalModel,Interpretation}.lean` ≈1.3 kLoC each) follow a "structure then operations then lemmas" template.
-- A `Tactic/` subfolder adds a `mutual_induction` tactic and a `grind_cases` helper, and there's a custom `FunctorMap` tactic in `ForMathlib/Tactic/`.
-- An `attic/` directory holds earlier iterations (display-map style models, a Russell-PER-MS treatment, an older `NaturalModelBase`).
+## What's broken (does NOT compile)
 
-## What is unfinished or could be improved
+4. **`HoTTLean/Typechecker/Evaluate.lean`** — Step 3c attempt. Two issues:
+   - At lines ~14-70: `lookupAxiom` and `checkAxiomsLe` were *moved* here from `Synth.lean` during a symptomatic fix attempt. **Mario said to undo this move** — these functions belong in `Synth.lean`. They use Qq-matching on axiom-env structure and depend on `Frontend.Checked`, which is fine in `Synth.lean`.
+   - At lines ~150-178: a fast-path match block was added at the top of `evalTm` that pattern-matches on `~q(@CheckedDef.val _ $E' $defn)`. The proof body references `$E` (the current axiom env) via `checkAxiomsLe q($E') q($E)`, but `$E` is **not in scope** at meta time in `evalTm` (see "The blocker" below).
 
-- **`sorry`s.** Only three real `sorry`s remain, all in `HoTTLean/ForPoly.lean` (`fst_verticalNatTrans_app`, `snd'_verticalNatTrans_app`, `mk'_comp_verticalNatTrans_app`). These are naturality lemmas for `UvPoly.verticalNatTrans` and look upstreamable to the `Poly` library. The Groupoids and Model directories are genuinely `sorry`-free.
-- **`test/unitt.lean` is broken.** It imports `HoTTLean.Model.Interpretation` and `HoTTLean.Groupoids.NaturalModelBase`, which no longer exist (only attic copies survive), and contains an `instance : uHomSeq.IdSeq := sorry`. Either the test needs porting to `Model.Unstructured.Interpretation` + `Groupoids.UHom`, or `HoTTLean.lean` should pull it in so this rots gets noticed.
-- **Hard-coded universe ladder.** `univMax = 3` (`Syntax/Typing.lean`) and `uHomSeq` (`Groupoids/UHom.lean`) are manually unrolled four cases; the `PiSeq`/`SigSeq`/`IdSeq` instances enumerate all 16 `(i,j)` cases by hand. A small helper would replace ~80 lines with one. The same applies to `sorryAx₀`/`sorryAx₁`/`sorryAx₂` and `Identity.rfl₀`/`rfl₁` in `Prelude.lean` (already flagged with a FIXME).
-- **Blueprint outdated.** README says so explicitly. The PDF in `.Notes (outdated)/` likewise.
-- **No higher inductive types.** Acknowledged in the README; this is what prevents interpreting full HoTT.
-- **Coverage gap in the model layer.** The natural-model path develops Π/Σ/Id and the soundness theorem, but the groupoid universes are assembled against the *unstructured* universe interface (`Groupoids/UHom.lean` uses `Model.UnstructuredUniverse`), not the natural-model `Universe`. There is no end-to-end chain that takes a `hott0` term, sends it through `ofType_ofTerm_sound`, and lands in the groupoid model — that's the natural next milestone and explains why `test/unitt.lean` is the way it is.
-- **`erw` / `FIXME simp failed` clusters.** `Model/Unstructured/Hurewicz.lean` and `Groupoids/Id.lean` each carry ~5 `erw … -- FIXME` lines — symptoms of `simp` lemmas that should be added (or `@[simp]` reformulated) so the definitional unfoldings line up. There are also a few `-- FIXME: transparency := .default` notes in `Model/Natural/NaturalModel.lean`.
-- **Performance hints.** `Frontend/Commands.lean` has `hints := .regular 0 -- TODO: what height?` and `ShareCommon.shareCommon'` is used to force maximal sharing. The bench/ directory exists but doesn't seem to be wired into CI.
-- **Documentation.** Only the README is end-user facing; module-level doc-comments are good in places (e.g. `Syntax/Typing.lean`, `Model/Natural/NaturalModel.lean`) but the Frontend modules would benefit from a one-page "how SynthLean works" walkthrough, since the trick of running Lean elaboration in an isolated environment then translating to deep syntax is unusual and would be the first thing a reader has to reconstruct.
+5. **`HoTTLean/Typechecker/Synth.lean`** — `lookupAxiom` and `checkAxiomsLe` are missing because of the move above. Restore them from git history.
 
-Overall the project is in a strong intermediate state: the syntactic theory, the typechecker, and the groupoid model with Π/Σ/Id are all genuinely complete and `sorry`-free; what is missing is the last bridge that wires the soundness theorem to the concrete groupoid model and resurrects the `unitt`/`hott0` end-to-end examples, plus cleanup of the universe-ladder boilerplate and the three polynomial-functor lemmas in `ForPoly.lean`.
+## The blocker (read carefully — this is the architectural issue)
+
+`synthTm` lives in a `mutual` block declared with `variable (E : Q(Axioms Lean.Name)) (Ewf : Q(($E).Wf))` (`Synth.lean:103`), so `E` is a *meta-level value* while it runs. Its existing fast path for `CheckedDef.val` calls `checkAxiomsLe q($E') q($E)` at meta time to build a `Q($E' ≤ $E)` proof, then embeds that proof in the witness so the cached `wf_nfTp`/`wf_val` can be lifted via `of_axioms_le`.
+
+`evalTm`'s `mutual` block does **not** have `variable (E …)`. The axiom env `E` shows up only *inside* the universally-quantified witness type:
+
+```lean
+∀ {E Γ Δ σ A l}, EnvEqSb E Δ $env σ Γ → (E ∣ Γ ⊢[l] ($t') : A) →
+    ValEqTm E Δ l $v (($t').subst σ) (A.subst σ)
+```
+
+So there is no concrete `E` to feed `checkAxiomsLe`, and no `$E' ≤ E` proof can be constructed at meta time. (`evalTm` is also more polymorphic than `synthTm` — variable in `χ`, not specialised to `Lean.Name`.)
+
+## Mario's suggested fix (in `Evaluate.lean` line 159 comment)
+
+> "claude: use t' to construct the desired typing derivation, don't try to reconstruct it from E' and defn."
+
+Interpretation that survived discussion: in the witness proof body, don't try to lift cached `wf_nfVal`/`wf_nfTp` from `E'` to `E` — instead, use the typing hypothesis `t : E ∣ Γ ⊢[l] (CheckedDef.val _ $E' $defn) : A` (which after Lean defeq is `t : E ∣ Γ ⊢[l] ($defn).val : A`) as our source of well-formedness in `E`.
+
+For this to work, **`NeutEqTm.def`'s premises must be weakened** from `ValEqTp Γ l tp T` and `ValEqTm Γ l body bodyExpr T` to just `E ∣ Γ ⊢[l] T` (`WfTp`) and `E ∣ Γ ⊢[l] bodyExpr : T` (`WfTm`). With the weakened constructor, the fast-path proof is essentially one line:
+
+```lean
+introv env t
+have t' := t.subst env.wf_sb   -- WfTm at outer E, in Δ ctx
+apply ValEqTm.neut_tm ?_  -- still need ValEqTp here (see below)
+apply NeutEqTm.def
+· exact t'.wf_tp
+· exact t'
+```
+
+**Outstanding wrinkle:** even with `NeutEqTm.def` weakened, the wrapping `ValEqTm.neut_tm` still requires a `ValEqTp Γ l tp T`. Two ways forward:
+
+- (a) Weaken `ValEqTm.neut_tm` only for the `Neut.def` case (intrusive — would need a new ValEqTm constructor specifically for the def case).
+- (b) **Promote `Neut.def` to `Val.def`** (a top-level `Val` constructor instead of going through `Val.neut`). Then it gets its own `ValEqTm.def` rule with `WfTp`/`WfTm` premises and no `Val.neut` wrapping.
+
+(b) is cleaner. It means every `Val`-pattern-match in the codebase that wants to "see through" a `Val.neut` needs a parallel `Val.def` case (and the existing `Neut.def` plus `NeutEqTm.def` would be replaced or removed). Trade-off: more pattern-match sites to touch, but the proof structure is clean.
+
+**Soundness consequence to be careful about:** with the weakened premises, the `Val` tag (`body` field of `Val.def` or `Neut.def`) is essentially unconstrained at the deep-theory level — it's a *trusted runtime cache*, not a *verified* correspondence to the deep term. This is OK as long as we maintain the meta-level invariant "the only producer of `Val.def` is the evaluate fast path, which always uses the genuine `nfVal` from `CheckedDef`". The deep theory's `WfTm`/`WfTp` parts of the witness remain sound; only the Val-correspondence is trusted.
+
+## Stash
+
+`stash@{0}` holds an earlier abandoned `profileitM`-based instrumentation attempt in `Commands.lean`. Probably safe to drop (`git stash drop`).
+
+## Open follow-ups (record only)
+
+- **`wf_val` can be derived from `wf_nfVal`.** `ValEqTm.wf_tm` (`Value.lean:362`) already proves `ValEqTm → WfTm`. So `wf_val := wf_nfVal.wf_tm`. The `wf_val` field of `CheckedDef` can be removed and added back as a theorem. Saves one proof construction at definition time.
+- **Double walk in `addCheckedDef`.** `checkTm` (to build `WfTm`) and `evalTmId` (to build `ValEqTm` for `nfVal`) each independently walk the body. Subterm Vals are shared via the `evalTm` cache, but proof construction runs twice. Could `synthTm` be modified to also return the term Val, sharing the work?
+- **Profiling instrumentation.** `Commands.lean` has `numUniqueNodes` + `Lean.profileitM` left in. Keep for measurement, or strip before merging.
+- **`test/pointed.lean`** has profiling options enabled and the final SIP definition is commented out. Restore once `Neut.def` lands and `lake env lean test/pointed.lean` is fast.
+
+## Recommended pickup procedure
+
+1. Read this file. Read the existing plan at `~/.claude/plans/effervescent-jingling-garden.md` (lengthy, has the full design history).
+2. `git status` to see the WIP changes. `git log --oneline master..HEAD` for the commit graph.
+3. Restore `lookupAxiom`/`checkAxiomsLe` to `Synth.lean` from git history; remove from `Evaluate.lean`.
+4. Decide between (a) weakening `ValEqTm.neut_tm` for defs or (b) promoting to `Val.def`. (b) is recommended.
+5. If (b): change `Neut.def` to `Val.def`. Update `NeutEqTm.def` → `ValEqTm.def` with `WfTp`/`WfTm` premises. Audit `Val`-pattern-match sites (Equate, Evaluate, ValueInversion) and add `Val.def` cases where needed.
+6. Write `evalTm`'s fast path using `t.subst env.wf_sb` as outlined above.
+7. Add `equate` short-circuit on same-name `Val.def`.
+8. Measure: rebuild and check `pointedType_carrier_eq`'s witness size. Target: significant drop toward `pointedType_equiv`'s ~15 K node count.

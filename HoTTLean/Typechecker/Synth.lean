@@ -38,67 +38,6 @@ partial def lookupVar (vΓ : Q(TpEnv Lean.Name)) (i : Q(Nat)) :
       exact ⟨_, vA.wk vB.wf_tp, lk.succ ..⟩
     )⟩
 
-partial def lookupAxiom (E : Q(Axioms Lean.Name)) (c : Q(Lean.Name)) : Lean.MetaM
-    ((A : Q(Expr Lean.Name)) × (l : Q(Nat)) × Q(∃ h, $E $c = some ⟨($A, $l), h⟩) ⊕
-      Q($E $c = none)) := do
-  match E with
-  | ~q(.empty _) => return .inr q(by rfl)
-  | ~q(Axioms.snoc $E' $l $c' $A $l_le $A_cl) =>
-    let b : Q(Bool) ← Lean.Meta.whnf q(decide ($c' = $c))
-    have : $b =Q decide ($c' = $c) := .unsafeIntro
-    match b with
-    | ~q(true) =>
-      return Sum.inl ⟨q($A), q($l), q(by as_aux_lemma =>
-        have : $c' = $c := by rwa [decide_eq_true_iff] at *
-        simp +zetaDelta [this, ($A_cl), ($l_le)]
-      )⟩
-    | ~q(false) =>
-      match ← lookupAxiom q($E') q($c) with
-      | .inl ⟨A, l, h⟩ =>
-        return .inl ⟨A, l, q(by as_aux_lemma =>
-          have : $c' ≠ $c := by rwa [decide_eq_false_iff_not] at *
-          have ⟨h, eq⟩ := $h
-          refine ⟨h, ?_⟩
-          simpa +zetaDelta [CheckedAx.snocAxioms, Axioms.snoc, this.symm] using eq
-        )⟩
-      | .inr h =>
-        return .inr q(by as_aux_lemma =>
-          have : $c' ≠ $c := by rwa [decide_eq_false_iff_not] at *
-          simpa +zetaDelta [CheckedAx.snocAxioms, Axioms.snoc, this.symm] using $h
-        )
-    | _ =>
-      throwError "could not determine whether\
-          {Lean.indentExpr q($c') |>.nest 2}\
-        {Lean.indentD "="}\
-          {Lean.indentExpr c |>.nest 2}"
-  | ~q(CheckedAx.snocAxioms _) =>
-    let E ← Lean.Meta.unfoldDefinition E
-    lookupAxiom E c
-  | _ => throwError "unsupported axiom environment{Lean.indentExpr E}"
-
-partial def checkAxiomsLe (E E' : Q(Axioms Lean.Name)) : Lean.MetaM Q($E ≤ $E') := do
-  match E with
-  | ~q(.empty _) => return q(($E').empty_le)
-  | ~q(Axioms.snoc $E₀ $l' $c' $A' $l_le $A_cl) =>
-    let le ← checkAxiomsLe q($E₀) q($E')
-    let .inl ⟨A, l, En⟩ ← lookupAxiom q($E') q($c')
-      | throwError "could not prove that '{c'}' is contained in{Lean.indentExpr E'}"
-    let ⟨_⟩ ← assertDefEqQ q($A) q($A')
-    let ⟨_⟩ ← assertDefEqQ q($l) q($l')
-    return q(by as_aux_lemma =>
-      dsimp +zetaDelta only [CheckedAx.snocAxioms]
-      have ⟨_, h⟩ := $En
-      apply Axioms.snoc_le $le _ _ _ _ _ h
-    )
-  | ~q(CheckedAx.snocAxioms _) =>
-    let E ← Lean.Meta.unfoldDefinition E
-    checkAxiomsLe E E'
-  | _ =>
-    throwError "could not prove\
-        {Lean.indentExpr E |>.nest 2}\
-      {Lean.indentD "≤"}\
-        {Lean.indentExpr E' |>.nest 2}"
-
 mutual
 variable (E : Q(Axioms Lean.Name)) (Ewf : Q(($E).Wf))
 

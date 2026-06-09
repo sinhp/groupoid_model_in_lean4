@@ -42,7 +42,7 @@ set_option maxHeartbeats 4000000
 
 -- Profiling: bisecting which def is slow.
 set_option profiler true
-set_option trace.profiler true
+-- set_option trace.profiler true  -- adds large overhead; turn on only when needed
 
 hott0 def pointedType_carrier_eq
     (M N : pointedType)
