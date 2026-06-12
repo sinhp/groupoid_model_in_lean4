@@ -112,6 +112,58 @@ private partial def numUniqueNodes (e : Lean.Expr) : StateM (Std.HashSet Lean.Ex
   | .proj _ _ e => numUniqueNodes e
   | _ => return
 
+/-- Walk `e` (deduping by pointer-equality) and tally, per `Lean.Name`:
+* `unique` — number of distinct sub-expressions whose head `getAppFn` is this constant.
+* `refs`   — total references to those sub-expressions (counting incoming edges).
+
+Headed by `Lean.const` is what `getAppFn` returns for applications like `WfTm.app f a b`.
+The `unique` column tells you how many *distinct* shapes of that head are in the witness;
+`refs` tells you how often those shapes are pointed at. Both are bounded by the unique-
+node count overall. -/
+private partial def headHistogramGo (e : Lean.Expr)
+    (visit : Lean.Expr →
+      StateM (Std.HashSet Lean.Expr × Std.HashMap Lean.Name (Nat × Nat)) Unit) :
+    StateM (Std.HashSet Lean.Expr × Std.HashMap Lean.Name (Nat × Nat)) Unit := do
+  -- Bump the ref count for the head, even on revisits.
+  if let .const n _ := e.getAppFn then
+    modify fun (seen, m) =>
+      let (u, r) := m.getD n (0, 0)
+      let u' := if seen.contains e then u else u + 1
+      (seen, m.insert n (u', r + 1))
+  visit e
+
+private partial def headHistogram (e : Lean.Expr) :
+    StateM (Std.HashSet Lean.Expr × Std.HashMap Lean.Name (Nat × Nat)) Unit := do
+  let go := headHistogram
+  headHistogramGo e fun e => do
+    if (← get).1.contains e then return
+    modify fun (s, m) => (s.insert e, m)
+    match e with
+    | .app f a => go f; go a
+    | .lam _ t b _ => go t; go b
+    | .forallE _ t b _ => go t; go b
+    | .letE _ t v b _ => go t; go v; go b
+    | .mdata _ e => go e
+    | .proj _ _ e => go e
+    | _ => return
+
+/-- Format the top-N entries (by `unique` descending, then by `refs` descending). -/
+private def fmtHeadHistogram (m : Std.HashMap Lean.Name (Nat × Nat))
+    (top : Nat := 25) : Lean.MessageData := Id.run do
+  let entries := m.toArray.qsort fun a b =>
+    let (_, u₁, r₁) := a
+    let (_, u₂, r₂) := b
+    if u₁ ≠ u₂ then u₁ > u₂ else r₁ > r₂
+  let n := min top entries.size
+  let pad (k : Nat) (s : String) : String :=
+    let p := if s.length < k then "".pushn ' ' (k - s.length) else ""
+    p ++ s
+  let rows := (List.range n).map fun i =>
+    let (name, u, r) := entries[i]!
+    m!"{pad 7 (toString u)}  {pad 7 (toString r)}  {name}"
+  let header := m!"unique     refs  head"
+  Lean.MessageData.joinSep (header :: rows) "\n"
+
 /-- Add a definition `ci` defined in environment `thyEnv`
 to the Lean environment as a `CheckedDef`. -/
 def addCheckedDef (thyEnv : Environment) (ci : DefinitionVal) : MetaM Unit := do
@@ -131,21 +183,20 @@ def addCheckedDef (thyEnv : Environment) (ci : DefinitionVal) : MetaM Unit := do
   let Twf ← checkTp q($axioms) q($wf_axioms) q([]) q($l) q($T)
   let ⟨vT, vTeq⟩ ← evalTpId q(show TpEnv Lean.Name from []) q($T)
   let twf ← checkTm q($axioms) q($wf_axioms) q([]) q($l) q($vT) q($t)
-  let ⟨vt, vteq⟩ ← evalTmId q(show TpEnv Lean.Name from []) q($t)
   let value : Q(CheckedDef $axioms) := q(
     { l := $l
       tp := $T
       nfTp := $vT
       wf_nfTp := $vTeq .nil <| $Twf .nil
       val := $t
-      nfVal := $vt
-      wf_nfVal := $vteq .nil <| $twf .nil <| $vTeq .nil <| $Twf .nil
       wf_val := $twf .nil <| $vTeq .nil <| $Twf .nil
     }
   )
   let valueShared := ShareCommon.shareCommon' value
   let (_, nodes) := (numUniqueNodes valueShared).run {}
-  Lean.logInfo s!"[synthlean] {ci.name}: witness has {nodes.size} unique nodes after ShareCommon"
+  let (_, (_, hist)) := (headHistogram valueShared).run ({}, {})
+  Lean.logInfo m!"[synthlean] {ci.name}: witness has {nodes.size} unique nodes after ShareCommon\n{
+    fmtHeadHistogram hist}"
 
   addDecl <| .defnDecl {
     name := ci.name

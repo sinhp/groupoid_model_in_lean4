@@ -36,6 +36,16 @@ def ltNat (n m : Q(Nat)) : Lean.MetaM Q($n < $m) := do
   let pf ← Lean.Meta.mkEqRefl q(decide ($n < $m))
   Lean.Meta.mkAppM ``of_decide_eq_true #[pf]
 
+open Lean Elab Tactic
+elab "as_aux_lemma'" n:ident " => " s:tacticSeq : tactic => withMainContext do
+  let mvarId ← getMainGoal
+  let mvars ← Tactic.run mvarId (evalTactic s)
+  unless mvars.isEmpty do
+    throwError "Cannot abstract term into auxiliary lemma because there are open goals."
+  let e ← instantiateMVars (mkMVar mvarId)
+  let e ← Meta.mkAuxTheorem (← mvarId.getType) e (kind? := n.getId)
+  mvarId.assign e
+
 end SynthLean
 
 -- /-- Hacks to use during development:

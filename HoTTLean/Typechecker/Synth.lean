@@ -22,7 +22,7 @@ partial def lookupVar (vΓ : Q(TpEnv Lean.Name)) (i : Q(Nat)) :
   match i, vΓ with
   | _, ~q([]) => throwError "bvar {i} out of range in type environment{Lean.indentExpr vΓ}"
   | ~q(.zero), ~q(($vA, $l) :: _) => do
-    return ⟨q($vA), q($l), q(by as_aux_lemma =>
+    return ⟨q($vA), q($l), q(by as_aux_lemma' lookupVar_zero =>
       introv vΓ
       simp +zetaDelta only at vΓ
       rcases vΓ with _ | ⟨vΓ, vA⟩
@@ -30,13 +30,74 @@ partial def lookupVar (vΓ : Q(TpEnv Lean.Name)) (i : Q(Nat)) :
     )⟩
   | ~q($i' + 1), ~q(_ :: $vΓ') => do
     let ⟨vA, l, pf⟩ ← lookupVar q($vΓ') q($i')
-    return ⟨q($vA), q($l), q(by as_aux_lemma =>
+    return ⟨q($vA), q($l), q(by as_aux_lemma' lookupVar_succ =>
       introv vΓ
       simp +zetaDelta only at vΓ ⊢
       rcases vΓ with _ | ⟨vΓ', vB⟩
       have ⟨_, vA, lk⟩ := $pf vΓ'
       exact ⟨_, vA.wk vB.wf_tp, lk.succ ..⟩
     )⟩
+
+partial def lookupAxiom (E : Q(Axioms Lean.Name)) (c : Q(Lean.Name)) : Lean.MetaM
+    ((A : Q(Expr Lean.Name)) × (l : Q(Nat)) × Q(∃ h, $E $c = some ⟨($A, $l), h⟩) ⊕
+      Q($E $c = none)) := do
+  match E with
+  | ~q(.empty _) => return .inr q(by rfl)
+  | ~q(Axioms.snoc $E' $l $c' $A $l_le $A_cl) =>
+    let b : Q(Bool) ← Lean.Meta.whnf q(decide ($c' = $c))
+    have : $b =Q decide ($c' = $c) := .unsafeIntro
+    match b with
+    | ~q(true) =>
+      return Sum.inl ⟨q($A), q($l), q(by as_aux_lemma' lookupAxiom_hit =>
+        have : $c' = $c := by rwa [decide_eq_true_iff] at *
+        simp +zetaDelta [this, ($A_cl), ($l_le)]
+      )⟩
+    | ~q(false) =>
+      match ← lookupAxiom q($E') q($c) with
+      | .inl ⟨A, l, h⟩ =>
+        return .inl ⟨A, l, q(by as_aux_lemma' lookupAxiom_miss_inl =>
+          have : $c' ≠ $c := by rwa [decide_eq_false_iff_not] at *
+          have ⟨h, eq⟩ := $h
+          refine ⟨h, ?_⟩
+          simpa +zetaDelta [CheckedAx.snocAxioms, Axioms.snoc, this.symm] using eq
+        )⟩
+      | .inr h =>
+        return .inr q(by as_aux_lemma' lookupAxiom_miss_inr =>
+          have : $c' ≠ $c := by rwa [decide_eq_false_iff_not] at *
+          simpa +zetaDelta [CheckedAx.snocAxioms, Axioms.snoc, this.symm] using $h
+        )
+    | _ =>
+      throwError "could not determine whether\
+          {Lean.indentExpr q($c') |>.nest 2}\
+        {Lean.indentD "="}\
+          {Lean.indentExpr c |>.nest 2}"
+  | ~q(CheckedAx.snocAxioms _) =>
+    let E ← Lean.Meta.unfoldDefinition E
+    lookupAxiom E c
+  | _ => throwError "unsupported axiom environment{Lean.indentExpr E}"
+
+partial def checkAxiomsLe (E E' : Q(Axioms Lean.Name)) : Lean.MetaM Q($E ≤ $E') := do
+  match E with
+  | ~q(.empty _) => return q(($E').empty_le)
+  | ~q(Axioms.snoc $E₀ $l' $c' $A' $l_le $A_cl) =>
+    let le ← checkAxiomsLe q($E₀) q($E')
+    let .inl ⟨A, l, En⟩ ← lookupAxiom q($E') q($c')
+      | throwError "could not prove that '{c'}' is contained in{Lean.indentExpr E'}"
+    let ⟨_⟩ ← assertDefEqQ q($A) q($A')
+    let ⟨_⟩ ← assertDefEqQ q($l) q($l')
+    return q(by as_aux_lemma' checkAxiomsLe =>
+      dsimp +zetaDelta only [CheckedAx.snocAxioms]
+      have ⟨_, h⟩ := $En
+      apply Axioms.snoc_le $le _ _ _ _ _ h
+    )
+  | ~q(CheckedAx.snocAxioms _) =>
+    let E ← Lean.Meta.unfoldDefinition E
+    checkAxiomsLe E E'
+  | _ =>
+    throwError "could not prove\
+        {Lean.indentExpr E |>.nest 2}\
+      {Lean.indentD "≤"}\
+        {Lean.indentExpr E' |>.nest 2}"
 
 mutual
 variable (E : Q(Axioms Lean.Name)) (Ewf : Q(($E).Wf))
@@ -55,7 +116,7 @@ partial def checkTp (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (T : Q(Expr Lean.Nam
     let Awf ← checkTp q($vΓ) q($k) q($A)
     let ⟨vA, vAeq⟩ ← evalTpId q($vΓ) q($A)
     let Bwf ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
-    return q(by as_aux_lemma =>
+    return q(by as_aux_lemma' checkTp_pi =>
       introv vΓ
       subst_vars
       apply WfTp.pi <| $Bwf <| vΓ.snoc <| $vAeq vΓ <| $Awf vΓ
@@ -65,7 +126,7 @@ partial def checkTp (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (T : Q(Expr Lean.Nam
     let Awf ← checkTp q($vΓ) q($k) q($A)
     let ⟨vA, vAeq⟩ ← evalTpId q($vΓ) q($A)
     let Bwf ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
-    return q(by as_aux_lemma =>
+    return q(by as_aux_lemma' checkTp_sigma =>
       introv vΓ
       subst_vars
       apply WfTp.sigma <| $Bwf <| vΓ.snoc <| $vAeq vΓ <| $Awf vΓ
@@ -76,7 +137,7 @@ partial def checkTp (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (T : Q(Expr Lean.Nam
     let ⟨vA, vAeq⟩ ← evalTpId q($vΓ) q($A)
     let awf ← checkTm q($vΓ) q($k) q($vA) q($a)
     let bwf ← checkTm q($vΓ) q($k) q($vA) q($b)
-    return q(by as_aux_lemma =>
+    return q(by as_aux_lemma' checkTp_Id =>
       introv vΓ
       subst_vars
       have := $vAeq vΓ ($Awf vΓ)
@@ -85,7 +146,7 @@ partial def checkTp (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (T : Q(Expr Lean.Nam
   | ~q(.univ $n) => do
     let ln ← equateNat q($l) q($n + 1)
     let nmax ← ltNat q($n) q(univMax)
-    return q(by as_aux_lemma =>
+    return q(by as_aux_lemma' checkTp_univ =>
       introv vΓ
       subst_vars
       apply WfTp.univ vΓ.wf_ctx $nmax
@@ -93,7 +154,7 @@ partial def checkTp (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (T : Q(Expr Lean.Nam
   | ~q(.el $a) => do
     let lmax ← ltNat q($l) q(univMax)
     let awf ← checkTm q($vΓ) q($l + 1) q(.univ $l) q($a)
-    return q(by as_aux_lemma =>
+    return q(by as_aux_lemma' checkTp_el =>
       introv vΓ
       simp +zetaDelta only
       apply WfTp.el <| $awf vΓ (ValEqTp.univ vΓ.wf_ctx $lmax)
@@ -113,11 +174,11 @@ partial def checkTm (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat))
   /- We could do something more bidirectional,
   but all terms synthesize (thanks to extensive annotations). -/
   let ⟨vU, tU⟩ ← synthTm q($vΓ) q($l) q($t)
-  let eq ← equateTp q(($vΓ).length) q($l) q($vU) q($vT)
-  return q(by as_aux_lemma =>
+  let eq ← equateTp q($vΓ) q($l) q($vU) q($vT)
+  return q(by as_aux_lemma' checkTm =>
     introv vΓ vT
     have ⟨_, vU, t⟩ := $tU vΓ
-    apply t.conv <| $eq vΓ.length_eq vU vT
+    apply t.conv <| $eq vΓ vU vT
   )
 
 -- TODO: infer rather than check universe level?
@@ -136,7 +197,7 @@ partial def synthTm (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (t : Q(Expr Lean.Nam
     -- Ensure the definition uses a subset of the available axioms.
     let le ← checkAxiomsLe q($E') q($E)
     let _ ← equateNat q($l) q(($defn).l)
-    return ⟨q(($defn).nfTp), q(by as_aux_lemma =>
+    return ⟨q(($defn).nfTp), q(by as_aux_lemma' synthTm_CheckedDef =>
       introv vΓ; have Γwf := vΓ.wf_ctx; clear vΓ
       subst_vars
       induction Γ
@@ -151,7 +212,7 @@ partial def synthTm (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (t : Q(Expr Lean.Nam
   | ~q(CheckedAx.val $ax) => do
     let le ← checkAxiomsLe q(($ax).snocAxioms) q($E)
     let _ ← equateNat q($l) q(($ax).l)
-    return ⟨q(($ax).nfTp), q(by as_aux_lemma =>
+    return ⟨q(($ax).nfTp), q(by as_aux_lemma' synthTm_CheckedAx =>
       introv vΓ; have Γwf := vΓ.wf_ctx; clear vΓ
       subst_vars
       have le' := Trans.trans ($ax).le_snocAxioms $le
@@ -173,7 +234,7 @@ partial def synthTm (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (t : Q(Expr Lean.Nam
     -- NOTE: could also evaluate in empty environment here and then weaken `ValEqTp`;
     -- I think it makes no difference.
     let ⟨vA, vApost⟩ ← evalTpId q($vΓ) q($A)
-    return ⟨vA, q(by as_aux_lemma =>
+    return ⟨vA, q(by as_aux_lemma' synthTm_ax =>
       introv vΓ
       subst_vars
       have ⟨_, Ec⟩ := $get
@@ -183,7 +244,7 @@ partial def synthTm (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (t : Q(Expr Lean.Nam
   | ~q(.bvar $i) => do
     let ⟨vA, m, lk⟩ ← lookupVar q($vΓ) q($i)
     let lm ← equateNat q($l) q($m)
-    return ⟨vA, q(by as_aux_lemma =>
+    return ⟨vA, q(by as_aux_lemma' synthTm_bvar =>
       introv vΓ
       have ⟨_, vA, lk⟩ := $lk vΓ
       subst_vars
@@ -194,7 +255,7 @@ partial def synthTm (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (t : Q(Expr Lean.Nam
     let ⟨vA, vAeq⟩ ← evalTpId q($vΓ) q($A)
     let ⟨vB, bB⟩ ← synthTm q(($vA, $k) :: $vΓ) q($k') q($b)
     let lmax ← equateNat q($l) q(max $k $k')
-    return ⟨q(.pi $k $k' $vA (.of_val ($vΓ).toEnv $vB)), q(by as_aux_lemma =>
+    return ⟨q(.pi $k $k' $vA (.of_val ($vΓ).toEnv $vB)), q(by as_aux_lemma' synthTm_lam =>
       introv vΓ
       subst_vars
       have A := $Awf vΓ
@@ -213,7 +274,7 @@ partial def synthTm (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (t : Q(Expr Lean.Nam
     let fwf ← checkTm q($vΓ) q(max $k $k') q(.pi $k $k' $vA (.of_expr ($vΓ).toEnv $B)) q($f)
     let ⟨va, vaeq⟩ ← evalTmId q($vΓ) q($a)
     let ⟨vBa, vBaeq⟩ ← evalTp q($va :: ($vΓ).toEnv) q($B)
-    return ⟨vBa, q(by as_aux_lemma =>
+    return ⟨vBa, q(by as_aux_lemma' synthTm_app =>
       introv vΓ
       have ⟨_, vA, a⟩ := $vApost vΓ
       have B := $Bwf <| vΓ.snoc vA
@@ -232,7 +293,7 @@ partial def synthTm (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (t : Q(Expr Lean.Nam
     let ⟨vf, vfpost⟩ ← evalTmId q($vΓ) q($f)
     let ⟨vBf, vBfpost⟩ ← evalTp q($vf :: ($vΓ).toEnv) q($B)
     let swf ← checkTm q($vΓ) q($k') q($vBf) q($s)
-    return ⟨q(.sigma $k $k' $vA (.of_expr ($vΓ).toEnv $B)), q(by as_aux_lemma =>
+    return ⟨q(.sigma $k $k' $vA (.of_expr ($vΓ).toEnv $B)), q(by as_aux_lemma' synthTm_pair =>
       introv vΓ
       subst_vars
       have ⟨_, vA, f⟩ := $fA vΓ
@@ -253,7 +314,7 @@ partial def synthTm (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (t : Q(Expr Lean.Nam
     let Bwf ← checkTp q(($vA, $k) :: $vΓ) q($k') q($B)
     let pwf ← checkTm
       q($vΓ) q(max $k $k') q(.sigma $k $k' $vA (.of_expr ($vΓ).toEnv $B)) q($p)
-    return ⟨vA, q(by as_aux_lemma =>
+    return ⟨vA, q(by as_aux_lemma' synthTm_fst =>
       introv vΓ
       subst_vars
       have A := $Awf vΓ
@@ -275,7 +336,7 @@ partial def synthTm (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (t : Q(Expr Lean.Nam
     let ⟨vp, vppost⟩ ← evalTmId q($vΓ) q($p)
     let ⟨vf, vfpost⟩ ← evalFst q($vp)
     let ⟨vBf, vBfpost⟩ ← evalTp q($vf :: ($vΓ).toEnv) q($B)
-    return ⟨vBf, q(by as_aux_lemma =>
+    return ⟨vBf, q(by as_aux_lemma' synthTm_snd =>
       introv vΓ
       subst_vars
       have A := $Awf vΓ
@@ -295,7 +356,7 @@ partial def synthTm (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (t : Q(Expr Lean.Nam
     let leq ← equateNat q($l) q($k)
     let ⟨vA, vApost⟩ ← synthTm q($vΓ) q($l) q($a)
     let ⟨va, vapost⟩ ← evalTmId q($vΓ) q($a)
-    return ⟨q(.Id $k $vA $va $va), q(by as_aux_lemma =>
+    return ⟨q(.Id $k $vA $va $va), q(by as_aux_lemma' synthTm_refl =>
       introv vΓ
       subst_vars
       have ⟨_, vA, a⟩ := $vApost vΓ
@@ -315,7 +376,7 @@ partial def synthTm (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (t : Q(Expr Lean.Nam
     let hwf ← checkTm q($vΓ) q($k) q(.Id $k $vA $va $vb) q($h)
     let ⟨vh, vhpost⟩ ← evalTmId q($vΓ) q($h)
     let ⟨vMb, vMbpost⟩ ← evalTp q($vh :: $vb :: ($vΓ).toEnv) q($M)
-    return ⟨q($vMb), q(by as_aux_lemma =>
+    return ⟨q($vMb), q(by as_aux_lemma' synthTm_idRec =>
       introv vΓ
       subst_vars
       have ⟨_, vA, a⟩ := $vApost vΓ
@@ -343,7 +404,7 @@ partial def synthTm (vΓ : Q(TpEnv Lean.Name)) (l : Q(Nat)) (t : Q(Expr Lean.Nam
     let ~q(.succ $k) := l | throwError "expected _+1, got{Lean.indentExpr l}"
     let lmax ← ltNat q($k) q(univMax)
     let Awf ← checkTp q($vΓ) q($k) q($A)
-    return ⟨q(.univ $k), q(by as_aux_lemma =>
+    return ⟨q(.univ $k), q(by as_aux_lemma' synthTm_code =>
       introv vΓ
       exact ⟨_, ValEqTp.univ vΓ.wf_ctx $lmax, WfTm.code $lmax ($Awf vΓ)⟩
     )⟩

@@ -155,6 +155,22 @@ theorem NeutEqTm.inv_ax {Γ C c vA t l₀} : NeutEqTm E Γ l₀ (.ax c vA) t C �
   case ax Γ Ec vA _ =>
     exact ⟨_, rfl, Ec, vA, EqTm.refl_tm <| WfTm.ax Γ Ec vA.wf_tp, EqTp.refl_tp vA.wf_tp⟩
 
+theorem NeutEqTm.inv_def {Γ expr ty t T l} : NeutEqTm E Γ l (.def expr ty) t T →
+    expr.isClosed ∧ ∃ T₀, T₀.isClosed ∧ ValEqTp E Γ l ty T₀ ∧
+      (E ∣ Γ ⊢[l] expr : T₀) ∧
+      (E ∣ Γ ⊢[l] t ≡ expr : T) ∧ (E ∣ Γ ⊢[l] T ≡ T₀) := by
+  suffices ∀ {Γ l vn n T}, NeutEqTm E Γ l vn n T → ∀ {expr ty}, vn = .def expr ty →
+      expr.isClosed ∧ ∃ T₀, T₀.isClosed ∧ ValEqTp E Γ l ty T₀ ∧
+        (E ∣ Γ ⊢[l] expr : T₀) ∧
+        (E ∣ Γ ⊢[l] n ≡ expr : T) ∧ (E ∣ Γ ⊢[l] T ≡ T₀) from
+    fun h => this h rfl
+  mutual_induction NeutEqTm
+  all_goals intros; try exact True.intro
+  all_goals rename_i eq; cases eq
+  case conv_neut => grind [EqTm.conv_eq]
+  case «def» ecl Tcl ty_eq expr_wf _ih_ty =>
+    exact ⟨ecl, _, Tcl, ty_eq, expr_wf, EqTm.refl_tm expr_wf, EqTp.refl_tp expr_wf.wf_tp⟩
+
 theorem NeutEqTm.inv_bvar {Γ A t i l} : NeutEqTm E Γ l (.bvar i) t A →
     ∃ A', Lookup Γ (Γ.length - i - 1) A' l ∧
       (E ∣ Γ ⊢[l] t ≡ .bvar (Γ.length - i - 1) : A) ∧ (E ∣ Γ ⊢[l] A ≡ A') := by

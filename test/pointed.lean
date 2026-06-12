@@ -84,3 +84,19 @@ hott0 def pointedType_carrier_eq
 --     Sigma.eq₁
 --       (pointedType_carrier_eq M N M_set N_set e)
 --       (pointedType_point_eq M N M_set N_set e)
+
+hott0 def pointedType_carrier_eq'
+    (M N : pointedType)
+    (M_set : isSet₀ M.carrier)
+    (N_set : isSet₀ N.carrier)
+    (e : pointedType_equiv M N)
+    : Identity M.carrier N.carrier :=
+  pointedType_carrier_eq M N M_set N_set e
+
+open SynthLean open Expr Neut Val
+#print pointedType_carrier_eq'
+
+hott0 axiom foo : Type
+hott0 def foo' (x : foo) := x
+#print foo
+#print foo'

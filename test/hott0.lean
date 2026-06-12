@@ -45,6 +45,7 @@ hott0 def isEquiv₁₀_grpd {A : Type 1} {B : Type} (f : A → B) : Type 1 :=
 hott0 def transport₀ {A B : Type} (h : Identity A B) (a : A) : B :=
   h.rec a
 
+set_option pp.deepTerms.threshold 2
 hott0 def isEquiv₀₀_transport₀ {A B : Type} (h : Identity A B) : isEquiv₀₀ (transport₀ h) :=
   h.rec ⟨fun a => a, fun a => a, fun _ => .rfl₀, fun _ => .rfl₀⟩
 

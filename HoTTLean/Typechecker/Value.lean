@@ -72,11 +72,12 @@ inductive Neut where
   | ax (c : χ) (A : Val)
   /-- A de Bruijn *level*. -/
   | bvar (i : Nat)
-  /-- A reference to a `hott0 def` constant in the Lean environment.
-  Stored opaquely for short-circuit equality on the name `c`;
-  `body` is the value of the def's RHS, forced only on equality mismatch.
-  `tp` is the def's type, cached so we don't have to extract it from `body`. -/
-  | def (c : Lean.Name) (tp body : Val)
+  /-- A reference to a `hott0 def` (or other Lean-level abbreviation) appearing
+  in the deep syntax as `expr`. The cached `ty` is a `Val` for the def's type,
+  used as the type annotation in a wrapping `Val.neut`. Equality short-circuits
+  on the `expr` field (i.e., the syntactic Lean term); on mismatch the wrapping
+  `whnf` will force `expr` and the recursion proceeds. -/
+  | def (expr : Expr χ) (ty : Val)
   /-- Application at the specified argument type. -/
   | app (l l' : Nat) (A : Val) (f : Neut) (a : Val)
   | fst (l l' : Nat) (p : Neut)
@@ -171,13 +172,17 @@ inductive NeutEqTm : Ctx χ → Nat → Neut χ → Expr χ → Expr χ → Prop
     WfCtx E Γ →
     Lookup Γ i A l →
     NeutEqTm Γ l (.bvar (Γ.length - i - 1)) (.bvar i) A
-  /-- A `Neut.def c tp body` relates to the *same* deep Expr that `body` relates to.
-  Transparent wrapper: short-circuit equality keys off `c`,
-  but the semantic content is whatever `body` already carries. -/
-  | def {Γ c tp body bodyExpr T l} :
-    ValEqTp Γ l tp T →
-    ValEqTm Γ l body bodyExpr T →
-    NeutEqTm Γ l (.def c tp body) bodyExpr T
+  /-- A `hott0 def` (or similar Lean-level abbreviation) reference. The deep
+  term is literally `expr`; the cached `ty` is a `Val` for the type. Closedness
+  premises ensure the rule survives weakening and axiom-env extension without
+  having to substitute on `Neut.def`'s `expr` field.
+
+  Equality short-circuits on syntactic `expr` equality. -/
+  | def {Γ expr ty T l} :
+    expr.isClosed → T.isClosed →
+    ValEqTp Γ l ty T →
+    E ∣ Γ ⊢[l] expr : T →
+    NeutEqTm Γ l (.def expr ty) expr T
   | app {Γ vA A B vf f va a l l'} :
     ValEqTp Γ l vA A →
     NeutEqTm Γ (max l l') vf f (.pi l l' A B) →
@@ -501,6 +506,13 @@ private theorem wk_all :
     have := ihA C
     rw [Expr.subst_of_isClosed _ Al.2.1] at this ⊢
     apply NeutEqTm.ax <;> grind [WfCtx.snoc]
+  case «def» ecl Tcl _ t ihT _ _ C =>
+    rw [Expr.subst_of_isClosed _ ecl, Expr.subst_of_isClosed _ Tcl]
+    have ihT' := ihT C
+    rw [Expr.subst_of_isClosed _ Tcl] at ihT'
+    refine NeutEqTm.def ecl Tcl ihT' ?_
+    have := t.subst (WfSb.wk C)
+    rwa [Expr.subst_of_isClosed _ ecl, Expr.subst_of_isClosed _ Tcl] at this
   case univ => grind [ValEqTp.univ, WfCtx.snoc]
   case conv_tp => grind [ValEqTp.conv_tp, EqTp.subst, WfSb.wk]
   case pair B _ _ iht ihu _ _ C =>
